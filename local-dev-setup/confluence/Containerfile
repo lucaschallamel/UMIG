@@ -1,8 +1,6 @@
 # Use the same base image as in the compose file
 FROM atlassian/confluence-server:7.19.8
 
-# The ScriptRunner plugin .jar file should be placed in this directory
-# before building the image. See the README.md for download instructions.
-# This copies the plugin to a directory that Confluence scans on startup.
-RUN mkdir -p /var/atlassian/application-data/confluence/plugins/installed-plugins
-COPY groovyrunner-8.43.0.jar /var/atlassian/application-data/confluence/plugins/installed-plugins/
+# The custom build is no longer used to install the plugin.
+# Instead, a volume mount is used in podman-compose.yml to place the file
+# directly into the correct runtime directory.
