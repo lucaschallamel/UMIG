@@ -16,7 +16,6 @@ services:
     volumes:
       - confluence_data:/var/atlassian/application-data/confluence # Persist Confluence data
       - ../src:/var/atlassian/application-data/confluence/scripts # Mount local source code for live development
-      - ./confluence/groovyrunner-8.43.0.jar:/var/atlassian/application-data/confluence/plugins/installed-plugins/groovyrunner-8.43.0.jar # Mount ScriptRunner plugin directly
     depends_on:
       - postgres
     networks:
