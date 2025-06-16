@@ -1,0 +1,46 @@
+### Developer Journal: QUAD
+**Date:** 16 June 2025
+**Project:** Runsheet Orchestration Engine (Codename: UMIG)
+**Subject:** Project Genesis & Architectural Pivot from 'Blue Sky' to Pragmatic Reality
+
+Today marked the official kick-off and architectural definition for the new Runsheet Orchestration Engine. It was a day of rapid evolution, moving from a high-level business problem to a concrete, albeit highly constrained, technical blueprint.
+
+**Phase 1: Initial Discovery & "Blue Sky" Architecture**
+
+The session began by defining the core problem: replacing a fragile and manual IT cutover process currently managed via a combination of Excel, Confluence, Draw.io, and email. We successfully fleshed out a detailed domain model, identifying the key entities (`Steps`, `Tasks`, `Controls`, `Iterations`) and the critical relationships between them.
+
+My initial architectural proposal was for a modern, standalone stack: a React frontend, a BaaS provider like Supabase for the backend, and WebSockets for real-time updates. This represented an ideal, "greenfield" solution designed for maximum development velocity and technical elegance.
+
+**Phase 2: The Critical Pivot - Reality Sets In**
+
+The pivotal moment came with the introduction of the bank's strict, non-negotiable technology portfolio. This immediately invalidated the "blue sky" approach and forced a complete re-evaluation. The key constraints are:
+
+*   **Platform:** Atlassian Confluence & JIRA are the primary collaboration tools.
+*   **Backend:** Only Atlassian ScriptRunner (Groovy) or a containerised NodeJS application are permissible.
+*   **Frontend:** No modern JavaScript frameworks (React, Vue, etc.). Development must be done in "vanilla" HTML, JavaScript, and CSS.
+*   **Database:** PostgreSQL is approved; SQLite is not.
+*   **Integrations:** Must use existing Enterprise Active Directory for authentication and Exchange for email.
+
+**Phase 3: Final Architecture & Key Decisions**
+
+After analysing the options, we decisively rejected the standalone NodeJS path due to the immense risk and effort required to build a complex UI and integrate enterprise services from scratch within the tight four-week timeline.
+
+The final, approved architecture is the **Confluence-Integrated Application**:
+
+*   **Host & Frontend:** A custom Confluence macro using vanilla JS, HTML, and CSS.
+*   **Backend:** Atlassian ScriptRunner exposing custom REST endpoints to handle all business logic.
+*   **Database:** A dedicated PostgreSQL instance serving as the single source of truth, fully decoupled from Confluence's internal storage.
+*   **Real-Time:** Achieved via AJAX polling from the frontend to the ScriptRunner backend. It's a pragmatic compromise for efficiency and reliability within the given constraints.
+
+We also successfully integrated a late-breaking requirement for a **Planning Feature**, allowing pilots to generate a shareable HTML macro-plan via a dedicated ScriptRunner endpoint.
+
+**Conclusion**
+
+Today was a classic exercise in pragmatic software architecture. We moved from an ideal technical solution to a robust, realistic plan that respects the client's ecosystem. The chosen path mitigates the biggest risks (authentication, email integration, user adoption) and makes the aggressive timeline feasible. The main challenges ahead are the disciplined management of a complex vanilla JavaScript codebase and ensuring the ScriptRunner backend can perform under the load of a live cutover event.
+
+The entire process and all decisions have been captured in the core Memory Bank documents, providing a solid foundation for development to begin.
+
+**Next Actions:**
+1.  Provision the PostgreSQL instance and deploy the schema.
+2.  Set up the Confluence space and initial ScriptRunner listeners.
+3.  Begin backend development of the core CRUD API endpoints.
