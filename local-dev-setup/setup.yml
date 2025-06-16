@@ -22,12 +22,12 @@
     - name: Check for ScriptRunner JAR file
       find:
         paths: "{{ scriptrunner_jar_path }}"
-        patterns: "scriptrunner-for-confluence-*.jar"
+        patterns: "groovyrunner-*.jar"
       register: scriptrunner_jar
 
     - name: Fail if ScriptRunner JAR is missing
       fail:
-        msg: "The ScriptRunner for Confluence JAR file is missing from the '{{ scriptrunner_jar_path }}' directory. Please see the confluence/README.md for download instructions."
+        msg: "The ScriptRunner (groovyrunner-*.jar) for Confluence JAR file is missing from the '{{ scriptrunner_jar_path }}' directory. Please see the confluence/README.md for download instructions."
       when: scriptrunner_jar.matched == 0
 
     - name: Build and start the containerized services
