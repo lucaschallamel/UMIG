@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- The recommended method for installing ScriptRunner is now a manual installation via the Confluence UI Marketplace. This is more reliable than the previous automated `COPY` method.
+- The `Containerfile` has been simplified to remove the automated plugin installation step.
+- The `README.md` has been significantly updated with detailed instructions for manual plugin installation and a full validation workflow for both backend and frontend development.
+
+### Fixed
+- Resolved critical container instability by increasing the default memory allocation for the Confluence container from 2GB to 6GB, preventing Out Of Memory (OOM) crashes during startup and plugin installation.
+
 ## [0.1.0] - 2025-06-16
 ### Added
 - **Local Development Environment (`local-dev-setup`):**
