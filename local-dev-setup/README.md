@@ -10,6 +10,29 @@ You must have Ansible, Podman, and `podman-compose` installed on your local mach
 
 1.  **Install Tools:**
     ```bash
+
+## Troubleshooting
+
+### ScriptRunner Plugin Not Loading on macOS
+
+If you have followed all the steps and the **SCRIPTRUNNER** section does not appear in the Confluence administration area, you may be running into one of two common issues on macOS:
+
+1.  **File Quarantine:** When you download the ScriptRunner `.jar` file, macOS may attach a `com.apple.quarantine` attribute to it, which can prevent Podman from accessing it during the image build. 
+
+    *   **Symptom:** The build process completes without error, but ScriptRunner is not installed.
+    *   **Solution:** Remove the attribute by running the following command from the `local-dev-setup/confluence` directory:
+        ```bash
+        xattr -d com.apple.quarantine groovyrunner-*.jar
+        ```
+
+2.  **Build Cache:** Podman may aggressively cache layers. If a build fails or is interrupted, a corrupted or incomplete image layer might be cached and reused on subsequent builds, even if the `Containerfile` is fixed.
+
+    *   **Symptom:** Changes to the `Containerfile` do not seem to take effect on rebuilds.
+    *   **Solution:** The Ansible playbook now includes the `--no-cache` flag to prevent this. If you are building manually, you can force a clean build by running:
+        ```bash
+        podman-compose up -d --build --no-cache
+        ```
+
     brew install ansible podman
     pip3 install podman-compose
     ```
