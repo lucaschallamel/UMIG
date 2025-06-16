@@ -14,10 +14,8 @@ services:
       - ATL_LICENSE_KEY=${CONFLUENCE_LICENSE_KEY:-} # Developer license key (optional here, can be set in UI)
       # - CONFLUENCE_CONTEXT_PATH=/umig # If you want confluence on a subpath
     volumes:
-      - confluence_data:/var/atlassian/application-data/confluence
-      # For development, you might want to mount local directories for macros/scripts later:
-      # - ../src/macros:/opt/atlassian/confluence/macros # Example path
-      # - ../src/scriptrunner-scripts:/opt/atlassian/confluence/scripts # Example path
+      - confluence_data:/var/atlassian/application-data/confluence # Persist Confluence data
+      - ../src:/var/atlassian/application-data/confluence/scripts # Mount local source code for live development
     depends_on:
       - postgres
     networks:
