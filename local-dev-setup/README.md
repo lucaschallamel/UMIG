@@ -102,6 +102,65 @@ Once the Confluence container is running and you have completed the initial setu
 3.  In the left sidebar, click **Find new apps**.
 4.  Search for "ScriptRunner for Confluence".
 5.  Click **Install** and follow the prompts. This will install the correct, compatible version for the running Confluence instance.
+
+### 5. Validate the Development Workflow
+
+To ensure both backend and frontend live-reloading is working, you can create two test items.
+
+#### a. Backend Groovy Script
+
+1.  Create a new file: `src/groovy/HelloWorld.groovy`
+2.  Add the following content:
+    ```groovy
+    // src/groovy/HelloWorld.groovy
+    return "Hello, World! The developer workflow is working."
+    ```
+3.  In Confluence, navigate to **ScriptRunner > Script Console**.
+4.  Select the `File` tab and choose `HelloWorld.groovy`.
+5.  Click **Run**. You should see the "Hello, World!" message as the result.
+
+#### b. Frontend User Macro
+
+1.  The example files `src/js/hello-world.js` and `src/css/hello-world.css` have been committed to the repository.
+2.  In Confluence, navigate to **ScriptRunner > User Macros** and click **Create User Macro**.
+3.  Fill in the details:
+    *   **Macro Name:** `UMIG Hello World`
+    *   **Macro Key:** `umig-hello-world`
+    *   **Macro Body Processing:** `No macro body`
+    *   **Template:** Paste the code below.
+4.  Add the macro to any Confluence page by typing `/umig` and selecting it.
+
+**Macro Template Code:**
+
+```groovy
+// This macro reads JS and CSS files from the mounted 'src' directory
+// and injects them into the page to test the live-reload workflow.
+
+import com.opensymphony.xwork.ActionContext
+
+// The path to the mounted source code directory inside the container
+def baseDir = new File("/var/atlassian/application-data/confluence/scripts")
+
+// Read the contents of the CSS and JS files using the compatible getText() method
+def cssContent = new File(baseDir, "css/hello-world.css").getText("UTF-8")
+def jsContent = new File(baseDir, "js/hello-world.js").getText("UTF-8")
+
+// Return the HTML to be injected into the page
+return """
+<style>
+${cssContent}
+</style>
+
+<div class="umig-hello-world">
+    <!-- This content will be replaced by JavaScript -->
+    Loading...
+</div>
+
+<script>
+${jsContent}
+</script>
+"""
+```
     ```
     This command will check for prerequisites, build the custom Confluence image (if it's the first time), and start all the services.
 
