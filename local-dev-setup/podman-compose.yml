@@ -10,7 +10,7 @@ services:
       # - "8091:8091" # Synchrony port, if needed later
     environment:
       - JVM_MINIMUM_MEMORY=1024m
-      - JVM_MAXIMUM_MEMORY=4096m
+      - JVM_MAXIMUM_MEMORY=6144m
       - ATL_LICENSE_KEY=${CONFLUENCE_LICENSE_KEY:-} # Developer license key (optional here, can be set in UI)
       # - CONFLUENCE_CONTEXT_PATH=/umig # If you want confluence on a subpath
     volumes:
