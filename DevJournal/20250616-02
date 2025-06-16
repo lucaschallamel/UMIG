@@ -1,0 +1,36 @@
+### Developer Journal: QUAD
+**Date:** 16 June 2025
+**Project:** Runsheet Orchestration Engine (Codename: UMIG)
+**Subject:** Local Development Environment Setup & The Critical Importance of Memory
+
+Today was dedicated to translating the architectural blueprint defined previously into a tangible, working local development environment. What began as a straightforward setup task evolved into a deep and challenging debugging session, ultimately reinforcing a fundamental principle of systems engineering.
+
+**Phase 1: Initial Setup & Persistent Failures**
+
+Following the architectural decision to use a Confluence-integrated application, we proceeded to build the local environment using Podman and Ansible. The initial goal was to create a fully automated setup, including the pre-installation of the ScriptRunner plugin into a custom Confluence container image.
+
+This automated approach failed persistently. Despite numerous attempts—correcting file paths, ensuring proper file ownership (`chown`), and rebuilding container images—the plugin refused to load correctly. The Confluence UI was unstable, frequently freezing or throwing vague "unexpected errors," which made direct diagnosis impossible.
+
+**Phase 2: The Debugging Journey & Breakthrough**
+
+The turning point came after methodically eliminating all other possibilities. By attempting to inspect the application logs of a non-responsive container, we discovered it wasn't just unhealthy; it was crashing. The `podman ps -a` command revealed the container was repeatedly terminating with `Exited (137)`—the classic calling card of the system's Out Of Memory (OOM) Killer.
+
+This was the breakthrough. The root cause of all instability was not a fault in our automation logic, but a simple lack of resources. The Confluence instance was crashing before it could ever fully initialize and load the plugin.
+
+**Phase 3: Stabilization, Validation, and Documentation**
+
+With the root cause identified, the solution was clear:
+
+1.  **Increase Memory:** We incrementally increased the Confluence container's `JVM_MAXIMUM_MEMORY` from 2GB to a stable 6GB. This immediately resolved the OOM crashes.
+2.  **Pivot Installation Method:** We determined that even with sufficient memory, the most reliable way to install the plugin was manually via the in-app Marketplace after the container was fully running. This decouples the environment from a specific plugin version and leverages Atlassian's robust installation process.
+3.  **Validate Workflow:** We successfully validated the end-to-end live-reload workflow for both backend (`.groovy` files via Script Console) and frontend (`.js`/`.css` files via a User Macro), confirming the environment is ready for active development.
+
+**Conclusion**
+
+Today's session was a powerful lesson in debugging complex systems. The initial symptoms (UI errors, plugin failures) were red herrings, masking the true underlying resource issue. By persisting, we built an incredibly stable and well-documented development environment.
+
+All key decisions, setup instructions, and validation steps have been formally captured in the `README.md`, a new `CHANGELOG.md` entry, and `ADR-007`. The project is now on a solid footing, ready for feature implementation.
+
+**Next Actions:**
+1.  Begin development of the core CRUD API endpoints in ScriptRunner.
+2.  Start building the frontend UI for the main macro within the validated live-reload framework.
