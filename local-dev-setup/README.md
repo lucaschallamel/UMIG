@@ -92,6 +92,16 @@ Once the one-time setup is complete, you can use the Ansible playbook to manage 
 *   **To start the environment:**
     ```bash
     ansible-playbook setup.yml
+
+### 4. Install ScriptRunner
+
+Once the Confluence container is running and you have completed the initial setup wizard, you must manually install ScriptRunner:
+
+1.  Navigate to `http://localhost:8090` and log in as an administrator.
+2.  Click the **cog icon** in the top-right corner and select **Manage apps**.
+3.  In the left sidebar, click **Find new apps**.
+4.  Search for "ScriptRunner for Confluence".
+5.  Click **Install** and follow the prompts. This will install the correct, compatible version for the running Confluence instance.
     ```
     This command will check for prerequisites, build the custom Confluence image (if it's the first time), and start all the services.
 
