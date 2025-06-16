@@ -1,4 +1,4 @@
-# ADR-001: Local Dev Environment Plugin Installation Method
+# ADR-007: Local Dev Environment Plugin Installation Method
 
 *   **Status:** Accepted
 *   **Date:** 2025-06-16

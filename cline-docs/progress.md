@@ -2,37 +2,38 @@
 
 ## 1. What Works / Completed
 
-*   **Phase 0: Discovery & Design**
-    *   Initial requirements have been gathered.
-    *   The core problems with the existing system have been documented.
-    *   A high-level architectural plan and data model have been designed.
-    *   **Decision:** A final architectural direction, the **Confluence-Integrated Application**, has been selected and ratified based on the bank's strict technical constraints.
-    *   **Decision:** The technology stack has been finalised.
-    *   The design for the new "Planning Feature" has been completed and integrated into the architecture.
+* **Phase 0: Discovery & Design**
+    * Initial requirements gathered and core problems documented.
+    * High-level architectural plan and data model designed.
+    * **Architectural Pivot Complete:** Final direction is a Confluence-Integrated Application, strictly aligned with the bank's technology portfolio.
+    * **Technology Stack Finalized:** Frontend (vanilla JS/HTML/CSS), Backend (ScriptRunner/Groovy), Database (PostgreSQL), Real-time (AJAX polling).
+    * **Local Dev Environment Stabilized:** Podman/Ansible orchestration, manual ScriptRunner install via Confluence UI, memory allocation increased to 6GB, live reload validated for backend and frontend.
+    * **Documentation Discipline:** All major decisions and changes are captured in ADRs, README, and CHANGELOG.
 
 ## 2. What's Left to Build (MVP Scope)
 
-*   **Phase 1: Setup**
-    *   Provision and configure the PostgreSQL database instance.
-    *   Implement the full, finalised database schema.
-    *   Configure the Confluence space and necessary ScriptRunner listeners.
-*   **Phase 2: Backend Development (ScriptRunner)**
-    *   Build the core REST endpoints for all CRUD operations (Plans, Chapters, Steps, Tasks, Controls, etc.).
-    *   Implement the backend logic for the `event_log` system.
-    *   Implement the backend logic for the Planning Feature, including the HTML export endpoint.
-    *   Connect to the Exchange server for email notifications.
-*   **Phase 3: Frontend Development (Confluence Macro)**
-    *   Build the HTML structure and CSS for the main dashboard.
-    *   Write the JavaScript for fetching and rendering the runbook state (via polling).
-    *   Develop the UI components for changing status, adding comments, and interacting with controls.
-    *   Build the "Planner" view UI.
-*   **Phase 4: Deployment & Testing**
-    *   Deploy the macro and scripts to a staging Confluence instance.
-    *   Define a data import strategy and process for the existing runbook.
-    *   Conduct User Acceptance Testing (UAT) with the cutover pilots.
+* **Phase 1: Setup**
+    * Provision and configure the PostgreSQL database instance.
+    * Implement the finalized database schema.
+    * Configure the Confluence space and necessary ScriptRunner listeners.
+* **Phase 2: Backend Development (ScriptRunner)**
+    * Build core REST endpoints for CRUD operations (Plans, Chapters, Steps, Tasks, Controls, etc.).
+    * Implement backend logic for the event log system.
+    * Implement backend logic for the Planning Feature, including HTML export endpoint.
+    * Integrate with Exchange server for email notifications.
+* **Phase 3: Frontend Development (Confluence Macro)**
+    * Build the HTML structure and CSS for the main dashboard.
+    * Write JavaScript for fetching and rendering the runbook state (via polling).
+    * Develop UI components for status changes, comments, and controls.
+    * Build the "Planner" view UI.
+* **Phase 4: Deployment & Testing**
+    * Deploy the macro and scripts to a staging Confluence instance.
+    * Define and execute a data import strategy for existing runbooks.
+    * Conduct User Acceptance Testing (UAT) with cutover pilots.
 
 ## 3. Known Issues & Risks
 
-*   **Risk:** The four-week timeline is extremely aggressive. Development with "vanilla" JavaScript is more time-consuming than with modern frameworks.
-*   **Risk:** Potential performance bottlenecks in ScriptRunner under heavy load during a cutover weekend must be considered and tested.
-*   **To Do:** A data import/migration plan from the existing Draw.io/Excel files into the new PostgreSQL schema must be designed and executed.
+* **Aggressive Timeline:** The four-week MVP timeline is challenging, especially with the vanilla JS constraint.
+* **ScriptRunner Performance:** Must validate performance and scalability under load.
+* **Manual Steps:** Manual plugin installation is now required for reliability.
+* **Data Migration:** A plan for importing/migrating data from Draw.io/Excel to PostgreSQL is still needed.

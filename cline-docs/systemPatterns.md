@@ -2,26 +2,32 @@
 
 ## 1. System Architecture
 
-The system is designed as a **Confluence-Integrated Application**, leveraging the Atlassian platform as the host.
-1.  **Host Platform:** A single Atlassian Confluence page serves as the application container and entry point for all users.
-2.  **Frontend:** A custom Confluence Macro built with **HTML, JavaScript, and CSS**. This macro renders the entire user interface, including the live dashboard and planning views.
-3.  **Backend:** **Atlassian ScriptRunner** provides the backend business logic. Scripts written in Groovy expose custom REST API endpoints that the frontend JavaScript consumes.
-4.  **Database:** A central **PostgreSQL** database serves as the single source of truth for all runbook data, schedules, statuses, and audit logs. The application data is explicitly stored outside of Confluence itself.
+The system is a **Confluence-Integrated Application**, leveraging Atlassian Confluence as the host platform and central entry point for all users.
+
+1. **Host Platform:** A dedicated Atlassian Confluence page serves as the application container.
+2. **Frontend:** A custom Confluence Macro built with **HTML, JavaScript (ES6+), and CSS**. No external frameworks or utility libraries are permitted. The macro renders the live dashboard and planner views.
+3. **Backend:** **Atlassian ScriptRunner** (Groovy) provides backend business logic, exposing custom REST API endpoints consumed by the frontend.
+4. **Database:** A central **PostgreSQL** database is the single source of truth for all application data, schedules, statuses, and audit logs. Data is explicitly stored outside of Confluence.
+5. **Local Development:** Podman and Ansible are used for local orchestration of Confluence, PostgreSQL, and MailHog. ScriptRunner plugin installation is performed manually via the Confluence UI Marketplace for reliability. Confluence container memory is set to 6GB to ensure stability. Live reload is validated for both backend and frontend assets.
 
 ## 2. Key Technical Decisions
 
-*   **Architectural Model:** The Confluence-Integrated model was chosen to maximise the use of the existing technology portfolio, significantly reducing development overhead for authentication, user management, and email integration, thus making the project feasible within the timeline.
-*   **Real-Time Updates:** The UI will achieve a near-real-time feel via **AJAX Polling**. The frontend JavaScript will poll the ScriptRunner REST endpoints at a regular interval (e.g., every 5-10 seconds) to fetch the latest state and update the DOM.
-*   **Data Model:** The core normalised relational data model (as previously defined) remains valid, using UUIDs for internal keys and storing human-readable identifiers separately.
-*   **Planning Feature Pattern:** A dedicated table, `chapter_schedules`, stores the planned start/end times for each chapter per iteration. A specific ScriptRunner endpoint (`/schedule/export`) is responsible for querying this data and generating a clean, portable HTML `<table>` as a shareable artifact.
-*   **Auditing Pattern:** The immutable `event_log` table design remains a core component, populated by the ScriptRunner backend logic on every state-changing operation.
-*   **Decoupled Orchestration Engine:** While integrated within Confluence, the core logic and data are separate. The PostgreSQL database holds the state, and ScriptRunner acts as the brain, ensuring the system is more than just a documentation add-on.
+* **Confluence-Integrated Model:** Chosen to maximize use of existing enterprise infrastructure, reduce risk, and accelerate delivery.
+* **AJAX Polling for Real-Time Updates:** The frontend polls ScriptRunner REST endpoints at regular intervals (e.g., every 5–10 seconds) to fetch the latest state and update the DOM. WebSockets and SSE were rejected due to platform constraints.
+* **Data Model:** A normalized relational model using UUIDs for internal keys, with human-readable identifiers stored separately.
+* **Planning Feature Pattern:** The `chapter_schedules` table stores planned timings for each chapter/iteration. A dedicated ScriptRunner endpoint generates a shareable HTML table for macro-plans.
+* **Auditing Pattern:** An immutable `event_log` table is populated by backend logic on every state-changing operation.
+* **Decoupled Orchestration Engine:** Core logic and data are separate from Confluence. PostgreSQL holds the state, ScriptRunner acts as the orchestration engine, and Confluence provides the UI shell.
 
 ## 3. Component Relationships
 
-![Data Model Diagram Placeholder](link_to_diagram_once_created)
+* `Confluence Page` → hosts → `Custom Macro (HTML/JS/CSS)`
+* `Custom Macro` → makes AJAX calls to → `ScriptRunner REST Endpoints`
+* `ScriptRunner REST Endpoints` → execute logic and query → `PostgreSQL Database`
+* `ScriptRunner` → sends email via → `Enterprise Exchange Server`
 
-*   `Confluence Page` -> hosts -> `Custom Macro (HTML/JS/CSS)`
-*   `Custom Macro` -> makes AJAX calls to -> `ScriptRunner REST Endpoints`
-*   `ScriptRunner REST Endpoints` -> execute logic and query -> `PostgreSQL Database`
-*   `ScriptRunner` -> sends email via -> `Enterprise Exchange Server`
+## 4. Development & Deployment Patterns
+
+* **Local Dev Environment:** Podman/Ansible orchestration, manual plugin install, memory allocation at 6GB, live reload for rapid iteration.
+* **Manual Steps for Reliability:** Manual installation of ScriptRunner plugin is now the standard for local development to ensure stability and reproducibility.
+* **Documentation:** All patterns, decisions, and changes are captured in ADRs, README, and CHANGELOG for traceability and onboarding.
