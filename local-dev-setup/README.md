@@ -93,6 +93,7 @@ Once the prerequisites are installed, proceed to the setup instructions below.
     *   Go to "Find new apps" or "Marketplace".
     *   Search for "ScriptRunner for Confluence".
     *   Install the latest compatible version for Confluence `7.19.8` (or the version specified in the `Containerfile`).
+        *   Alternatively, you can find specific versions and download the `.jar` file directly from the [ScriptRunner for Confluence version history page](https://marketplace.atlassian.com/apps/1215215/scriptrunner-for-confluence/version-history). You would then typically use the 'Upload app' option in the Confluence 'Manage apps' section to install the downloaded file.
     *   This is a one-time setup step for your local environment.
 
 5.  **Verify Setup:**
