@@ -22,7 +22,49 @@ UMIG is a collaborative platform designed to streamline the creation, management
 *   Architectural Decision Records (ADRs): `docs/adr/`
 *   Supporting Project Documents: `cline-docs/`
 
-## Getting Started
+## Local Development Setup
 
-(To be added: instructions for setting up development environment, running the application, etc.)
+The local development environment is managed using Podman Compose and a set of helper scripts. It includes containers for Confluence, PostgreSQL, and MailHog, with automated database migrations handled by Liquibase.
 
+### Prerequisites
+
+*   **Podman & Podman Compose**: Follow the official installation guide for your OS.
+*   **Liquibase CLI**: Install the Liquibase CLI. On macOS, you can use Homebrew: `brew install liquibase`.
+
+### First-Time Setup
+
+1.  **Navigate to the setup directory**:
+    ```sh
+    cd local-dev-setup
+    ```
+
+2.  **Create the environment configuration file**:
+    Copy the example `.env.example` file to `.env` and update the values as needed. You must provide a valid Confluence developer license key.
+    ```sh
+    cp .env.example .env
+    ```
+
+### Running the Environment
+
+*   **To start the entire environment**:
+    From the `local-dev-setup` directory, run the start script:
+    ```sh
+    ./start.sh
+    ```
+    This script will:
+    1.  Start the PostgreSQL container.
+    2.  Wait for the database to be ready.
+    3.  Run database migrations using the local Liquibase CLI.
+    4.  Start the Confluence and MailHog containers.
+
+*   **To stop the environment**:
+    ```sh
+    ./stop.sh
+    ```
+
+### Accessing Services
+
+Once the environment is running, you can access the services at the following URLs:
+
+*   **Confluence**: [http://localhost:8090](http://localhost:8090)
+*   **MailHog UI**: [http://localhost:8025](http://localhost:8025)
