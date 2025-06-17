@@ -4,12 +4,117 @@ This directory contains all the necessary files to run a complete local developm
 
 ## Prerequisites
 
-You must have Ansible, Podman, and `podman-compose` installed on your local machine. Below are installation instructions for common operating systems.
+You must have Ansible, Podman, and `podman-compose` installed on your local machine. Follow the instructions for your operating system below.
 
-### macOS (via Homebrew)
+### macOS (Recommended: Homebrew)
 
-1.  **Install Tools:**
+1.  **Install Core Tools (Podman & Ansible):**
     ```bash
+    brew install ansible podman
+    ```
+2.  **Install Podman Compose:**
+    ```bash
+    pip3 install podman-compose
+    # Or, if you prefer pipx (recommended for CLI tools):
+    # pipx install podman-compose
+    ```
+    *Note: Ensure `pip3` or `pipx` is installed and configured correctly on your system.*
+
+3.  **Initialize and Start Podman Machine:**
+    Podman on macOS runs a lightweight Linux VM. Initialize and start it:
+    ```bash
+    podman machine init
+    podman machine start
+    ```
+    *You may need to run `podman machine start` each time you reboot your Mac or want to use Podman.*
+
+### Linux (Example: Debian/Ubuntu)
+
+1.  **Install Core Tools (Podman & Ansible):**
+    ```bash
+    sudo apt update
+    sudo apt install -y ansible podman
+    ```
+2.  **Install Podman Compose:**
+    ```bash
+    # Using pip is generally the most straightforward way
+    sudo pip3 install podman-compose
+    # Or, if you prefer pipx:
+    # sudo pip3 install pipx
+    # pipx install podman-compose
+    ```
+
+### Linux (Example: Fedora/RHEL-based)
+
+1.  **Install Core Tools (Podman & Ansible):**
+    ```bash
+    sudo dnf install -y ansible podman
+    ```
+2.  **Install Podman Compose:**
+    ```bash
+    # Using pip is generally the most straightforward way
+    sudo pip3 install podman-compose
+    # Or, if you prefer pipx:
+    # sudo pip3 install pipx
+    # pipx install podman-compose
+    ```
+
+### Windows (Recommended: WSL2)
+
+Setting up Ansible and Podman directly on Windows can be complex. The recommended approach is to use Windows Subsystem for Linux (WSL2).
+
+1.  **Install WSL2:** Follow Microsoft's official documentation to install WSL2 and a Linux distribution (e.g., Ubuntu).
+2.  **Inside your WSL2 Linux distribution:** Follow the Linux installation instructions above for Ansible, Podman, and `podman-compose`.
+
+Once the prerequisites are installed, proceed to the setup instructions below.
+
+## Initial Setup and Starting the Environment
+
+1.  **Navigate to this Directory:**
+    Open your terminal and change to the `local-dev-setup` directory:
+    ```bash
+    cd path/to/UMIG/local-dev-setup
+    ```
+
+2.  **Run the Ansible Playbook:**
+    This playbook automates the environment setup, including building the custom Confluence image (if not already built) and starting all services (Confluence, PostgreSQL, MailHog).
+    ```bash
+    ansible-playbook setup.yml
+    ```
+    The first run might take some time as it downloads the base Confluence image and builds the custom UMIG image.
+
+3.  **Access Confluence:**
+    Once the playbook completes, Confluence will be available at [http://localhost:8090](http://localhost:8090).
+    Follow the Confluence setup wizard. You can use a free developer license or an evaluation license.
+
+4.  **Manually Install ScriptRunner for Confluence:**
+    As per `ADR-007`, ScriptRunner installation is now a manual process for stability.
+    *   In your browser, navigate to the Confluence administration section (usually Cog Icon > Manage apps or Add-ons).
+    *   Go to "Find new apps" or "Marketplace".
+    *   Search for "ScriptRunner for Confluence".
+    *   Install the latest compatible version for Confluence `7.19.8` (or the version specified in the `Containerfile`).
+    *   This is a one-time setup step for your local environment.
+
+5.  **Verify Setup:**
+    *   Ensure the **SCRIPTRUNNER** section appears in the Confluence administration sidebar.
+    *   Check that the `src` directory from the root of the UMIG project is correctly mounted into the Confluence container (for live development of Groovy scripts and frontend assets).
+
+Your local development environment is now ready!
+
+## Daily Workflow
+
+*   **To start the environment (if stopped):**
+    ```bash
+    cd path/to/UMIG/local-dev-setup
+    podman-compose up -d
+    ```
+    *(Ensure your Podman machine is running on macOS: `podman machine start`)*
+
+*   **To stop the environment:**
+    ```bash
+    cd path/to/UMIG/local-dev-setup
+    podman-compose down
+    ```
 
 ## Troubleshooting
 
@@ -33,12 +138,7 @@ If you have followed all the steps and the **SCRIPTRUNNER** section does not app
         podman-compose up -d --build --no-cache
         ```
 
-    brew install ansible podman
-    pip3 install podman-compose
-    ```
-2.  **Initialize and Start Podman Machine:** Podman on macOS runs a small Linux VM in the background. You must initialize and start it before use.
-    ```bash
-    podman machine init
+machine init
     podman machine start
     ```
 
