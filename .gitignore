@@ -8,6 +8,7 @@ yarn.lock
 # Java / Groovy (common for build artifacts, though ScriptRunner is server-side)
 *.class
 *.jar
+!groovyrunner-*.jar
 *.war
 *.ear
 target/
