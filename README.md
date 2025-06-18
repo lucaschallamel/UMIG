@@ -1,12 +1,12 @@
-# UMIG - Universal Macro Implementation Guides
+# UMIG - UBP Migration Plans
 
-UMIG is a collaborative platform designed to streamline the creation, management, and sharing of "Universal Macro Implementation Guides" within the enterprise. It is built as a **Confluence-Integrated Application**, leveraging Atlassian Confluence for its user interface and backend services via Atlassian ScriptRunner.
+UMIG is a collaborative platform designed to streamline the creation, management, and sharing of "UBP Migration Plans" within the enterprise. It is built as a **Confluence-Integrated Application**, leveraging Atlassian Confluence for its user interface and backend services via Atlassian ScriptRunner.
 
 ## Key Features (Planned)
 
-*   Creation and management of structured guides composed of steps and tasks.
+*   Creation and management of structured migration plans composed of steps and tasks.
 *   Collaborative editing and versioning within Confluence.
-*   Generation of shareable macro-plans.
+*   Generation of shareable migration plans.
 *   Integration with enterprise authentication (Active Directory) and email notifications (Exchange).
 
 ## Technology Stack
