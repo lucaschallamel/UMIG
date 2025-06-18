@@ -40,6 +40,7 @@ echo "[3/4] Running database migrations with local Liquibase..."
 # The path to the properties file has been corrected.
 liquibase \
     --defaults-file=liquibase/liquibase.properties \
+    --search-path=./liquibase \
     --url="jdbc:postgresql://localhost:5432/${UMIG_DB_NAME}" \
     --username="${UMIG_DB_USER}" \
     --password="${UMIG_DB_PASSWORD}" \

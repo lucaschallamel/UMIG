@@ -28,6 +28,12 @@
     * Live reload validated for backend (.groovy) and frontend (.js/.css)
     * Automated database migrations via Liquibase CLI integration
     * Environment health checks and startup sequencing
+    * Correct restart protocol: run `./stop.sh` to clear old containers before a fresh start with `./start.sh`
+* **Database Connectivity (Added 2025-06-18):**
+    * ScriptRunner's built-in Database Connection resource is used for PostgreSQL connectivity
+    * `DatabaseUtil.withSql()` method is used for database access in Groovy scripts
+    * This approach follows ScriptRunner best practices and avoids complex classloader issues
+    * Manual connection configuration is required via the ScriptRunner UI in Confluence
 
 ## 3. Technical Constraints
 
@@ -45,7 +51,16 @@
 * **Path Resolution:** Relative paths configured to work from script execution context.
 * **Schema Authority:** Liquibase is the single source of truth for all database schema changes.
 
-## 5. Locked Patterns for MVP
+## 5. Database Access Patterns (Added 2025-06-18)
+
+* **Connection Management:** ScriptRunner's built-in Database Connection resource is configured via the Confluence UI
+* **Access Method:** `DatabaseUtil.withSql()` method from ScriptRunner API for all database operations
+* **Connection Pooling:** Managed automatically by ScriptRunner's Database Connection resource
+* **Transaction Management:** Handled by ScriptRunner's `withSql()` method
+* **Error Handling:** Standard Groovy try/catch blocks with appropriate logging and error responses
+
+## 6. Locked Patterns for MVP
 
 * All technology and development patterns are now locked for the MVP phase. Any changes require explicit review and documentation.
 * Database migration strategy is finalized and automated as of 2025-06-17.
+* Database connectivity approach is finalized as of 2025-06-18, using ScriptRunner's built-in Database Connection resource.

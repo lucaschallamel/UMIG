@@ -1,7 +1,27 @@
-# Use the same base image as in the compose file
-FROM atlassian/confluence-server:7.19.8
+# Use the specified Confluence version
+FROM atlassian/confluence-server:8.5.6-jdk17
 
+# Set user to root for permission changes, then back to confluence
+USER root
+
+# Copy the PostgreSQL JDBC driver from the same directory as this Containerfile
+# into Confluence's lib directory.
+COPY ./postgresql-42.7.7.jar /opt/atlassian/confluence/confluence/WEB-INF/lib/postgresql-42.7.7.jar
+
+# Ensure correct ownership and permissions for the copied JAR file.
+RUN chown confluence:confluence /opt/atlassian/confluence/confluence/WEB-INF/lib/postgresql-42.7.7.jar && \
+    chmod 644 /opt/atlassian/confluence/confluence/WEB-INF/lib/postgresql-42.7.7.jar
+
+# Switch back to the default confluence user
+# Also copy to the other main lib directory as a fallback
+COPY ./postgresql-42.7.7.jar /opt/atlassian/confluence/lib/postgresql-42.7.7.jar
+RUN chown confluence:confluence /opt/atlassian/confluence/lib/postgresql-42.7.7.jar && \
+    chmod 644 /opt/atlassian/confluence/lib/postgresql-42.7.7.jar
+
+# Switch back to the default confluence user
+USER confluence
+
+# Existing comments from your file:
 # This file is intentionally left minimal.
 # After extensive debugging, it was determined that the most reliable method
 # for installing plugins is via the Confluence UI's Marketplace integration
-# after the container is running.
