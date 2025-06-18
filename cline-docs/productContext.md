@@ -4,7 +4,7 @@
 
 ## 1. Problem Statement
 
-The historical method of managing IT cutover runbooks using a large, macro-enabled Excel file proved to be sluggish, not scalable, and impossible for real-time collaboration. The subsequent evolution to a Confluence and Draw.io based system, while improving documentation accessibility, created a new set of problems. The current system is fundamentally a static documentation platform, not a dynamic execution engine. Orchestration relies on fragile, manual processes like `mailto:` links and Outlook reminders.
+The historical method of managing IT cutover Implementation Plans (IPs) using a large, macro-enabled Excel file proved to be sluggish, not scalable, and impossible for real-time collaboration. The subsequent evolution to a Confluence and Draw.io based system, while improving documentation accessibility, created a new set of problems. The current system is fundamentally a static documentation platform, not a dynamic execution engine. Orchestration relies on fragile, manual processes like `mailto:` links and Outlook reminders.
 
 This leads to several critical issues:
 *   **No Single Source of Truth:** The real-time status of the cutover is fragmented across email inboxes and requires manual updates to a master diagram.
@@ -14,7 +14,7 @@ This leads to several critical issues:
 
 ## 2. Product Vision
 
-This product will be the definitive command and control centre for all IT cutover activities. It will transform the runsheet from a static document into a living, breathing execution plan.
+This product will be the definitive command and control centre for all IT cutover activities. It will transform the Implementation Plan (IP) from a static document into a living, breathing execution plan. An IP is created for a specific Data Migration (e.g., identified by a code name) and can have multiple Iterations (e.g., DR1, DR2, Go-Live Cutover) representing different phases or practice runs of the same overall plan.
 
 It should work as follows:
 *   A Cutover Pilot opens a designated Confluence page and interacts with a live dashboard.
