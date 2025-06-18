@@ -1,70 +1,36 @@
-# Project Progress
+# Progress
 
-## 1. What Works / Completed
+## What Works
 
-* **Phase 0: Discovery & Design**
-    * Initial requirements gathered and core problems documented.
-    * High-level architectural plan and data model designed.
-    * **Architectural Pivot Complete:** Final direction is a Confluence-Integrated Application, strictly aligned with the bank's technology portfolio.
-    * **Technology Stack Finalized:** Frontend (vanilla JS/HTML/CSS), Backend (ScriptRunner/Groovy), Database (PostgreSQL with Liquibase), Real-time (AJAX polling).
-    * **Local Dev Environment Fully Automated (2025-06-17):** 
-        * Podman/Ansible orchestration
-        * Manual ScriptRunner install via Confluence UI
-        * Memory allocation increased to 6GB
-        * Live reload validated for backend and frontend
-        * Automated database migrations with Liquibase CLI
-        * Environment orchestration scripts (`start.sh`/`stop.sh`) with health checks
-        * Single source of truth for database schema management
-    * **Database Migration Strategy (2025-06-17):**
-        * Liquibase CLI successfully integrated into startup sequence
-        * Initial migration script for `teams` and `team_members` tables created
-        * Version-controlled SQL scripts in `/liquibase/changelogs`
-        * Refactored `postgres/init-db.sh` to be idempotent
-        * ADR-008 documented database migration strategy
-    * **Implementation Plan Backend - Initial Work (2025-06-18):**
-        * First implementation of `ImplementationPlanManager.groovy` created
-        * Encountered database connectivity issue: `org.postgresql.Driver not found`
-        * Attempted JDBC driver containerization in custom Confluence image
-        * Made strategic decision to use ScriptRunner's built-in Database Connection instead (ADR-009)
-    * **Documentation Discipline:** All major decisions and changes are captured in ADRs, README, and CHANGELOG.
+- The local development environment is stable and reproducible, using Podman, Ansible, and Liquibase for automated database migrations.
+- ScriptRunner for Confluence is reliably installed manually via the Marketplace, ensuring compatibility and stability (ADR-007).
+- Database schema management is fully automated and version-controlled with Liquibase, with initial tables for teams and team_members in place.
+- The backend (Groovy/ScriptRunner) and frontend (vanilla JS, CSS) codebases are now cleanly separated in the `src/` directory.
+- All ADRs are up-to-date and referenced in documentation.
+- The Confluence version is consistently set to 8.5.6 across all documentation and setup scripts.
 
-## 2. What's Left to Build (MVP Scope)
+## What's Left to Build
 
-* **Phase 1: Database Schema & Configuration** ✅ **COMPLETED**
-    * ✅ PostgreSQL database instance configured and automated
-    * ✅ Database migration management with Liquibase established
-    * ✅ Initial tables (`teams`, `team_members`) created via migration
-    * Remaining: Configure Confluence space and necessary ScriptRunner listeners
-* **Phase 2: Backend Development (ScriptRunner)** 🔄 **IN PROGRESS**
-    * 🔄 Resolve database connectivity issue by configuring ScriptRunner's Database Connection
-    * 🔄 Refactor `ImplementationPlanManager.groovy` to use `DatabaseUtil.withSql()`
-    * Build core REST endpoints for CRUD operations (Plans, Chapters, Steps, Tasks, Controls, etc.).
-    * Implement backend logic for the event log system.
-    * Implement backend logic for the Planning Feature, including HTML export endpoint.
-    * Integrate with Exchange server for email notifications.
-* **Phase 3: Frontend Development (Confluence Macro)**
-    * Build the HTML structure and CSS for the main dashboard.
-    * Write JavaScript for fetching and rendering the runbook state (via polling).
-    * Develop UI components for status changes, comments, and controls.
-    * Build the "Planner" view UI.
-* **Phase 4: Deployment & Testing**
-    * Deploy the macro and scripts to a staging Confluence instance.
-    * Define and execute a data import strategy for existing runbooks.
-    * Conduct User Acceptance Testing (UAT) with cutover pilots.
+- Complete and test the Implementation Plan macro backend, including all CRUD endpoints and integration with the new ScriptRunner database connection.
+- Expand database schema and migrations as new features are defined.
+- Continue frontend development for the macro UI, ensuring robust interaction with backend APIs.
+- Ongoing documentation updates to reflect new features, changes, and lessons learned.
 
-## 3. Known Issues & Risks
+## Current Status
 
-* **Aggressive Timeline:** The four-week MVP timeline is challenging, especially with the vanilla JS constraint.
-* **ScriptRunner Performance:** Must validate performance and scalability under load.
-* **Manual Steps:** Manual plugin installation is now required for reliability.
-* **Data Migration:** A plan for importing/migrating data from Draw.io/Excel to PostgreSQL is still needed.
-* **Database Connectivity (NEW):** ScriptRunner's ability to connect to PostgreSQL must be resolved before proceeding with backend development.
+- The project is on a solid technical footing after a series of architectural pivots and environment stabilisation efforts.
+- All major technical decisions are documented in ADRs and reflected in the memory bank.
+- The team is focused on backend feature delivery and validating the new database connection pattern in ScriptRunner.
 
-## 4. Recent Technical Resolutions
+## Known Issues
 
-* **✅ Database Migration Automation (2025-06-17):** Successfully resolved database schema management with Liquibase integration
-* **✅ Environment Orchestration (2025-06-17):** Solved startup complexity with robust `start.sh`/`stop.sh` scripts
-* **✅ Credential Management (2025-06-17):** Fixed Liquibase authentication issues using command-line arguments
-* **✅ File Path Configuration (2025-06-17):** Resolved relative path issues in scripts and configuration files
-* **✅ Single Source of Truth (2025-06-17):** Established clear separation between database creation and schema management
-* **🔄 Database Connectivity (2025-06-18):** Made strategic decision to use ScriptRunner's built-in Database Connection feature instead of containerizing the JDBC driver
+- The new ScriptRunner database connection pattern requires ongoing monitoring to ensure stability and performance.
+- Manual steps remain for initial environment setup (e.g., ScriptRunner installation, database connection configuration in the UI).
+- The vanilla JS frontend approach, while compliant, increases complexity and requires strict discipline to maintain code quality.
+
+## Evolution of Project Decisions
+
+- The project has moved from a "blue sky" standalone stack to a pragmatic, enterprise-compliant Confluence-integrated solution.
+- Environment setup has been iteratively improved for reliability and developer experience.
+- Database management has evolved from ad-hoc scripts to a robust, automated migration system.
+- All technical pivots and lessons are captured in the ADRs and memory bank for future reference.

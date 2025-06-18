@@ -1,51 +1,33 @@
 # System Patterns
 
-## 1. System Architecture
+## Architecture
 
-The system is a **Confluence-Integrated Application**, leveraging Atlassian Confluence as the host platform and central entry point for all users.
+- The system is a Confluence-integrated application, with all business logic handled by Atlassian ScriptRunner (Groovy) and the frontend implemented as a custom Confluence macro using vanilla JavaScript, HTML, and CSS.
+- The backend exposes REST endpoints via ScriptRunner, which interact with a dedicated PostgreSQL database.
+- Real-time updates are achieved through AJAX polling from the frontend to the ScriptRunner backend (ADR-005).
+- The local development environment is orchestrated using Podman Compose and Ansible, with automated database migrations managed by Liquibase.
 
-1. **Host Platform:** A dedicated Atlassian Confluence page serves as the application container.
-2. **Frontend:** A custom Confluence Macro built with **HTML, JavaScript (ES6+), and CSS**. No external frameworks or utility libraries are permitted. The macro renders the live dashboard and planner views.
-3. **Backend:** **Atlassian ScriptRunner** (Groovy) provides backend business logic, exposing custom REST API endpoints consumed by the frontend.
-4. **Database:** A central **PostgreSQL** database is the single source of truth for all application data, schedules, statuses, and audit logs. Data is explicitly stored outside of Confluence. **Database schema is managed by Liquibase** with version-controlled migrations.
-5. **Local Development:** Podman and Ansible are used for local orchestration of Confluence, PostgreSQL, and MailHog. ScriptRunner plugin installation is performed manually via the Confluence UI Marketplace for reliability. Confluence container memory is set to 6GB to ensure stability. Live reload is validated for both backend and frontend assets. **Environment lifecycle is managed by orchestration scripts (`start.sh`/`stop.sh`) with health checks and automated database migrations.**
-6. **Database Connectivity (2025-06-18):** ScriptRunner's built-in Database Connection resource is used for connecting to PostgreSQL, rather than manually bundling the JDBC driver. This follows best practices recommended by the ScriptRunner documentation and avoids complex classloader issues.
+## Key Technical Decisions
 
-## 2. Key Technical Decisions
+- ScriptRunner is installed manually via the Confluence UI Marketplace for stability (ADR-007).
+- Database connectivity is managed through ScriptRunner's built-in Database Connection resource, not by bundling the JDBC driver (ADR-009).
+- All database schema changes are version-controlled and applied automatically using Liquibase (ADR-008).
+- The codebase is structured for separation of concerns: all development scripts and assets reside in the `src/` directory, with subfolders for `css`, `js`, and `groovy`.
 
-* **Confluence-Integrated Model:** Chosen to maximize use of existing enterprise infrastructure, reduce risk, and accelerate delivery.
-* **AJAX Polling for Real-Time Updates:** The frontend polls ScriptRunner REST endpoints at regular intervals (e.g., every 5–10 seconds) to fetch the latest state and update the DOM. WebSockets and SSE were rejected due to platform constraints.
-* **Data Model:** A normalized relational model using UUIDs for internal keys, with human-readable identifiers stored separately.
-* **Database Migration Strategy (2025-06-17):** Liquibase CLI is integrated into the development environment startup sequence, automatically applying version-controlled SQL migrations from `/liquibase/changelogs`. This ensures consistent schema evolution across all environments.
-* **Planning Feature Pattern:** The `chapter_schedules` table stores planned timings for each chapter/iteration. A dedicated ScriptRunner endpoint generates a shareable HTML table for macro-plans.
-* **Auditing Pattern:** An immutable `event_log` table is populated by backend logic on every state-changing operation.
-* **Decoupled Orchestration Engine:** Core logic and data are separate from Confluence. PostgreSQL holds the state, ScriptRunner acts as the orchestration engine, and Confluence provides the UI shell.
-* **Single Source of Truth for Schema:** Liquibase is the authoritative source for all database schema changes. The `postgres/init-db.sh` script only handles database and user creation, with all table/schema logic removed.
-* **Database Access Pattern (2025-06-18):** ScriptRunner's `DatabaseUtil.withSql()` method is used for database access in Groovy scripts, leveraging ScriptRunner's built-in connection pooling and transaction management. This replaces the initial approach of direct JDBC connections.
+## Component Relationships
 
-## 3. Component Relationships
+- The Confluence macro frontend (vanilla JS) communicates with backend REST endpoints (Groovy/ScriptRunner) for all business logic and data operations.
+- The backend interacts with PostgreSQL for persistent storage, using managed connections.
+- The local environment ensures live-reload for both backend scripts and frontend assets via volume mounts.
 
-* `Confluence Page` → hosts → `Custom Macro (HTML/JS/CSS)`
-* `Custom Macro` → makes AJAX calls to → `ScriptRunner REST Endpoints`
-* `ScriptRunner REST Endpoints` → execute logic and query → `PostgreSQL Database` (via Database Connection resource)
-* `ScriptRunner` → sends email via → `Enterprise Exchange Server`
+## Implementation Paths
 
-## 4. Development & Deployment Patterns
+- Initial setup is performed via Ansible, which builds the custom Confluence image and starts all services.
+- Daily development uses `start.sh` and `stop.sh` scripts for environment lifecycle management.
+- Developers must manually install ScriptRunner and configure the database connection in the Confluence UI on first setup.
 
-* **Local Dev Environment:** Podman/Ansible orchestration, manual plugin install, memory allocation at 6GB, live reload for rapid iteration.
-* **Environment Orchestration (2025-06-17):** Comprehensive `start.sh` and `stop.sh` scripts manage the full lifecycle of the development environment:
-    * `start.sh`: Starts PostgreSQL, waits for readiness, runs Liquibase migrations, starts Confluence and MailHog
-    * `stop.sh`: Gracefully stops all containers in reverse order
-    * Health checks ensure proper service startup sequencing
-* **Database Migration Automation (2025-06-17):** 
-    * Liquibase CLI runs automatically during environment startup
-    * Version-controlled SQL scripts in `/liquibase/changelogs/`
-    * Credentials passed as command-line arguments for reliability
-    * Relative path resolution ensures portability across development machines
-* **Manual Steps for Reliability:** Manual installation of ScriptRunner plugin is now the standard for local development to ensure stability and reproducibility.
-* **Database Connectivity (2025-06-18):**
-    * ScriptRunner's built-in Database Connection resource is used instead of containerizing the JDBC driver
-    * `DatabaseUtil.withSql()` method is used for database access in Groovy scripts
-    * This approach avoids complex classloader issues and follows ScriptRunner best practices
-* **Environment Restart Protocol (2025-06-18):** The correct procedure for restarting the environment is to run `./stop.sh` to clear old containers before a fresh start with `./start.sh`.
-* **Documentation:** All patterns, decisions, and changes are captured in ADRs, README, and CHANGELOG for traceability and onboarding.
+## Patterns and Practices
+
+- All major technical decisions are captured in ADRs and referenced in documentation.
+- The project enforces strict separation of concerns and clear documentation to manage the complexity of a vanilla JS frontend and Groovy backend.
+- The system is designed for reproducibility, maintainability, and compliance with enterprise technology constraints.

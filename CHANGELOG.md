@@ -5,6 +5,12 @@
 - Investigated and attempted to resolve PostgreSQL JDBC driver issues (`org.postgresql.Driver not found`) for ScriptRunner in the local development environment. This involved multiple attempts to bundle the driver in the custom Confluence Docker image (`local-dev-setup/confluence/Containerfile`).
 - Pivoted strategy towards utilizing ScriptRunner's built-in "Database Connection" resource feature as the primary method for database connectivity. This change is pending full implementation and testing.
 - ADR-009 (Containerize JDBC Driver) will be updated to reflect this pivot.
+- **Local Development Documentation & Setup:**
+  - Clarified and centralized Liquibase CLI installation instructions in `local-dev-setup/README.md`.
+  - Updated `local-dev-setup/README.md` to consistently prioritize manual ScriptRunner installation via the in-app Marketplace (aligning with ADR-007).
+  - Removed the ScriptRunner JAR check from `local-dev-setup/setup.yml` (Ansible playbook).
+  - Clarified the distinct roles of `local-dev-setup/start.sh` & `stop.sh` (for daily start/stop including migrations) versus `ansible-playbook setup.yml` (for initial setup and Confluence image rebuilds) in `local-dev-setup/README.md`.
+  - Removed explicit PostgreSQL JDBC driver copying from `local-dev-setup/confluence/Containerfile` as ScriptRunner's native database connection is now used (follow-up to superseded ADR-009).
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

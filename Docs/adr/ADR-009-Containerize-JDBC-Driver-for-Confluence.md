@@ -1,6 +1,6 @@
 # ADR-009: Containerize PostgreSQL JDBC Driver for Confluence
 
-*   **Status:** Accepted
+*   **Status:** Superseded
 *   **Date:** 2025-06-18
 *   **Deciders:** Lucas Challamel, Cascade
 *   **Technical Story:** N/A
@@ -46,9 +46,11 @@ During local development setup, ScriptRunner Groovy scripts executing within Con
         *   "Pollutes" the container's internal library directory with a direct mount, which can sometimes have unintended side effects or be overwritten by application startup processes.
         *   Less encapsulated than building a custom image.
 
-## Decision Outcome
+## Original Decision Outcome (Superseded)
 
-Chosen option: **"Option 1: Build a Custom Confluence Image with the JDBC Driver"**, because it provides the most robust, reproducible, and encapsulated solution. It aligns with modern containerization best practices by treating the application and its core runtime dependencies as a single, immutable artifact. This approach eliminates manual steps and ensures that the development environment is consistent across all machines, directly addressing the primary decision drivers of reproducibility and encapsulation.
+**This section describes the original decision which was later superseded. See 'Amendment - Pivot to ScriptRunner Native Connection' below.**
+
+Original chosen option: **"Option 1: Build a Custom Confluence Image with the JDBC Driver"**, because it was believed to provide the most robust, reproducible, and encapsulated solution. It aligned with modern containerization best practices by treating the application and its core runtime dependencies as a single, immutable artifact. This approach aimed to eliminate manual steps and ensure that the development environment was consistent across all machines, directly addressing the primary decision drivers of reproducibility and encapsulation.
 
 ### Positive Consequences
 
@@ -60,9 +62,50 @@ Chosen option: **"Option 1: Build a Custom Confluence Image with the JDBC Driver
 
 *   The initial startup of the development environment will be slightly longer due to the one-time image build process.
 
-## Validation
+## Original Validation (Based on Superseded Decision)
 
-The decision is considered successful because developers can now run the local environment and execute ScriptRunner scripts that connect to the PostgreSQL database without encountering a `Driver not found` error. This is validated by successfully creating, reading, updating, and deleting Implementation Plans via the custom REST endpoints.
+**This validation corresponds to the original, superseded decision.**
+
+The original decision was initially considered successful because developers could run the local environment and execute ScriptRunner scripts that connect to the PostgreSQL database without encountering a `Driver not found` error. This was validated by successfully creating, reading, updating, and deleting Implementation Plans via the custom REST endpoints using the bundled driver.
+
+---
+
+## Amendment - Pivot to ScriptRunner Native Connection
+
+*   **Date of Amendment:** 2025-06-18
+*   **Reason for Amendment:** While Option 1 (Build a Custom Confluence Image with the JDBC Driver) initially resolved the `Driver not found` error, subsequent development on feature `feat/ip-macro-ui` revealed persistent and difficult-to-diagnose `java.lang.NoClassDefFoundError` issues, likely related to classloader conflicts within Confluence when the driver was bundled this way. These issues blocked further progress.
+
+### New Decision Outcome
+
+**Chosen New Option: Utilize ScriptRunner's built-in Database Connection resource feature.**
+
+This approach involves:
+1.  Removing the JDBC driver from the custom Confluence image (`Containerfile`).
+2.  Configuring a new 'Database Connection' directly within the ScriptRunner admin interface in Confluence, pointing to the PostgreSQL container.
+3.  Refactoring Groovy scripts (e.g., `ImplementationPlanManager.groovy`) to use `DatabaseUtil.withSql()` or equivalent methods that leverage ScriptRunner's managed connections.
+
+**Reasoning for New Decision:**
+*   **Reliability:** This is the officially recommended and supported method by Adaptavist (ScriptRunner vendor) for database interactions, minimizing risks of classloader conflicts.
+*   **Simplicity:** Delegates connection pooling and management to ScriptRunner, simplifying the application code.
+*   **Maintainability:** Easier to manage and update connection details through the ScriptRunner UI.
+
+### Positive Consequences (of New Decision)
+
+*   Resolves the `NoClassDefFoundError` issues, unblocking feature development.
+*   Aligns with ScriptRunner best practices for database connectivity.
+*   Potentially simplifies the `Containerfile` by removing driver management.
+
+### Negative Consequences (of New Decision)
+
+*   Requires a one-time manual configuration step in the ScriptRunner UI for each new environment to set up the Database Connection resource.
+*   Slightly less encapsulation of the full environment setup within `podman-compose.yml` alone, as a UI step is now involved.
+
+### Validation (of New Decision)
+
+The new decision will be considered successful when:
+1.  The ScriptRunner Database Connection resource can be successfully configured to connect to the PostgreSQL database.
+2.  Groovy scripts, particularly the endpoints in `ImplementationPlanManager.groovy` for the `feat/ip-macro-ui` feature, can perform all required CRUD operations against the database without `Driver not found` or `NoClassDefFoundError` issues.
+3.  The `Containerfile` has been cleaned of JDBC driver `COPY` instructions.
 
 ## Links
 

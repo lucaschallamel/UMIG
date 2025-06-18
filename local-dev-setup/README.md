@@ -4,7 +4,29 @@ This directory contains all the necessary files to run a complete local developm
 
 ## Prerequisites
 
-You must have Ansible, Podman, and `podman-compose` installed on your local machine. Follow the instructions for your operating system below.
+You must have Liquibase CLI, Ansible, Podman, and `podman-compose` installed on your local machine.
+
+### Liquibase CLI Installation
+Install the Liquibase command-line interface (CLI).
+    *   **General Steps**:
+        1.  Download the Liquibase installation files (typically a ZIP archive) from the [official Liquibase website](https://www.liquibase.com/download).
+        2.  Extract the archive to a directory on your local system (e.g., `~/liquibase` on macOS/Linux, `C:\liquibase` on Windows).
+        3.  Add the directory where you extracted Liquibase to your system's PATH environment variable. This allows you to run the `liquibase` command from any terminal window.
+    *   **macOS Specific**:
+        *   **Recommended (Homebrew)**: `brew install liquibase`
+        *   **Manual**: Follow the general steps above. You might add something like `export PATH=~/liquibase:$PATH` to your shell profile (e.g., `~/.zshrc`, `~/.bash_profile`).
+    *   **Linux Specific**:
+        *   **Manual**: Follow the general steps above. You might add something like `export PATH=/opt/liquibase:$PATH` (if you extracted it to `/opt/liquibase`) to your shell profile (e.g., `~/.bashrc`, `~/.zshrc`). Ensure the `liquibase` script is executable (`chmod +x liquibase`).
+    *   **Windows Specific**:
+        *   **Manual**: Follow the general steps above. To add Liquibase to your PATH:
+            1.  In the Windows Start Menu Search, type `env` and select "Edit the system environment variables".
+            2.  In the System Properties window, click the "Environment Variables..." button.
+            3.  Under "System variables" (or "User variables" for just your account), find the variable named `Path` and select it.
+            4.  Click "Edit..." and then "New", and add the full path to your Liquibase directory (e.g., `C:\liquibase`).
+            5.  Click OK on all dialogs to save the changes. You may need to restart your command prompt or system for the changes to take effect.
+
+### Ansible, Podman, and Podman Compose Installation
+Follow the instructions for your operating system below for Ansible, Podman, and `podman-compose`.
 
 ### macOS (Recommended: Homebrew)
 
@@ -77,7 +99,7 @@ Once the prerequisites are installed, proceed to the setup instructions below.
     ```
 
 2.  **Run the Ansible Playbook:**
-    This playbook automates the environment setup, including building the custom Confluence image (if not already built) and starting all services (Confluence, PostgreSQL, MailHog).
+    This playbook automates the initial environment setup. It builds the custom Confluence image (using the `--no-cache` option to ensure a fresh build if the `Containerfile` has changed), checks for prerequisites like the `.env` file, and starts all services (Confluence, PostgreSQL, MailHog). Run this playbook for the very first setup or when you need to rebuild the Confluence image after modifying `local-dev-setup/confluence/Containerfile`.
     ```bash
     ansible-playbook setup.yml
     ```
@@ -93,7 +115,7 @@ Once the prerequisites are installed, proceed to the setup instructions below.
     *   Go to "Find new apps" or "Marketplace".
     *   Search for "ScriptRunner for Confluence".
     *   Install the latest compatible version for Confluence `7.19.8` (or the version specified in the `Containerfile`).
-        *   Alternatively, you can find specific versions and download the `.jar` file directly from the [ScriptRunner for Confluence version history page](https://marketplace.atlassian.com/apps/1215215/scriptrunner-for-confluence/version-history). You would then typically use the 'Upload app' option in the Confluence 'Manage apps' section to install the downloaded file.
+        *   **Alternative (if direct Marketplace access fails or a specific older version is needed):** You can find specific versions and download the `.jar` file directly from the [ScriptRunner for Confluence version history page](https://marketplace.atlassian.com/apps/1215215/scriptrunner-for-confluence/version-history). You would then use the 'Upload app' option in the Confluence 'Manage apps' section to install the downloaded file. **However, the primary and recommended method is using "Find new apps" as described above.**
     *   This is a one-time setup step for your local environment.
 
 5.  **Verify Setup:**
@@ -102,19 +124,22 @@ Once the prerequisites are installed, proceed to the setup instructions below.
 
 Your local development environment is now ready!
 
-## Daily Workflow
+## Daily Workflow (Starting/Stopping)
+For everyday development, use the following scripts. These do **not** rebuild the Confluence image but will start/stop services and run Liquibase migrations.
 
 *   **To start the environment (if stopped):**
+    This script handles starting all services in the correct order and runs Liquibase database migrations.
     ```bash
     cd path/to/UMIG/local-dev-setup
-    podman-compose up -d
+./start.sh
     ```
     *(Ensure your Podman machine is running on macOS: `podman machine start`)*
 
 *   **To stop the environment:**
+    This script ensures all services are stopped and related containers are removed.
     ```bash
     cd path/to/UMIG/local-dev-setup
-    podman-compose down
+./stop.sh
     ```
 
 ## Troubleshooting
@@ -123,7 +148,7 @@ Your local development environment is now ready!
 
 If you have followed all the steps and the **SCRIPTRUNNER** section does not appear in the Confluence administration area, you may be running into one of two common issues on macOS:
 
-1.  **File Quarantine:** When you download the ScriptRunner `.jar` file, macOS may attach a `com.apple.quarantine` attribute to it, which can prevent Podman from accessing it during the image build. 
+1.  **File Quarantine (if manually downloading a .jar):** If you choose to download a `.jar` file manually (e.g., the ScriptRunner `.jar` as per the alternative installation method, or any other plugin), macOS may attach a `com.apple.quarantine` attribute to it. This can prevent Podman from accessing it if you were attempting to use it in a custom image build (which is no longer the recommended approach for ScriptRunner itself, but the tip is generally useful for other manually downloaded JARs). 
 
     *   **Symptom:** The build process completes without error, but ScriptRunner is not installed.
     *   **Solution:** Remove the attribute by running the following command from the `local-dev-setup/confluence` directory:
@@ -184,7 +209,7 @@ Podman and Ansible run inside the Windows Subsystem for Linux (WSL2).
     *   Edit the `.env` file and fill in the required values, especially `POSTGRES_PASSWORD`.
 
 2.  **Download ScriptRunner:**
-    *   Follow the instructions in the `confluence/README.md` to download the ScriptRunner for Confluence `.jar` file and place it in the `confluence/` directory.
+    *   Install ScriptRunner for Confluence manually via the in-app Marketplace as detailed in step 4 of the "Initial Setup and Starting the Environment" section above. This is the recommended approach (see ADR-007).
 
 ## Running the Environment
 
@@ -192,7 +217,8 @@ Once the one-time setup is complete, you can use the Ansible playbook to manage 
 
 *   **To start the environment:**
     ```bash
-    ansible-playbook setup.yml
+    ./start.sh # For daily startup, includes Liquibase migrations.
+    # Use 'ansible-playbook setup.yml' for initial setup or to rebuild the Confluence image.
 
 ### 4. Install ScriptRunner
 
@@ -267,9 +293,8 @@ ${jsContent}
 
 *   **To stop the environment:**
     ```bash
-    podman-compose down
+    ./stop.sh # For daily shutdown.
     ```
-    (We can add a `teardown.yml` playbook for this later).
 
 ## Services
 
