@@ -1,49 +1,23 @@
 # Active Context
 
-## 1. Current Work Focus
+## Current Focus
 
-The project has completed its architectural pivot, environment stabilization, and database migration strategy implementation. The local development environment is now fully automated and production-ready. The current focus is on beginning core feature development, with a stable, reproducible local development environment in place. The team is now ready to implement backend CRUD APIs in ScriptRunner and start building the frontend macro UI in vanilla JavaScript.
+- The project is in active development of the Implementation Plan macro backend and its supporting infrastructure.
+- The local development environment is now robust, using Podman, Ansible, and Liquibase for automated, version-controlled database migrations.
+- All "hello-world" and development scripts have been moved to the `src/` directory for clear separation of concerns.
+- The Confluence reference version is now 8.5.6 across all documentation and setup scripts.
 
-## 2. Recent Changes & Decisions (Updated: 2025-06-17)
+## Recent Changes
 
-* **Architectural Pivot Complete:** The project decisively moved from an initial "blue sky" architecture (React, BaaS, WebSockets) to a strictly enterprise-compliant solution, as required by the bank's technology portfolio.
-* **Final Architecture:** The application is a Confluence-Integrated Application:
-  - Frontend: Custom Confluence macro using vanilla JS, HTML, and CSS (no frameworks or utility libraries).
-  - Backend: Atlassian ScriptRunner (Groovy) exposes REST APIs, running inside the Confluence JVM.
-  - Database: Dedicated PostgreSQL instance (not Confluence's internal DB) with Liquibase migrations.
-  - Real-Time: AJAX polling, not WebSockets/SSE, due to ScriptRunner/Confluence limitations.
-* **Local Dev Environment Fully Automated (2025-06-17):**
-  - Podman and Ansible are used for local orchestration of Confluence, PostgreSQL, and MailHog.
-  - ScriptRunner plugin installation is now manual via the Confluence UI Marketplace, as automated install via `Containerfile` was unreliable and caused OOM crashes.
-  - Confluence container memory was increased from 2GB to 6GB to prevent OOM errors.
-  - Both backend (Groovy) and frontend (JS/CSS) live-reload workflows are validated and working.
-  - **NEW:** Automated database migrations with Liquibase CLI integrated into startup sequence.
-  - **NEW:** Environment orchestration scripts (`start.sh`/`stop.sh`) with robust health checks.
-  - **NEW:** Single source of truth for database schema - Liquibase manages all schema changes.
-* **Database Migration Strategy (2025-06-17):**
-  - Liquibase CLI successfully integrated into environment startup sequence.
-  - Database schema changes automatically applied from version-controlled SQL scripts (`/liquibase/changelogs`).
-  - Initial migration script created for `teams` and `team_members` tables.
-  - Refactored `postgres/init-db.sh` to be idempotent and only handle database/user creation.
-  - Established Liquibase as the single source of truth for database schema.
-* **Documentation Discipline:** All changes and decisions are thoroughly documented in ADRs, README, and CHANGELOG.
+- Major architectural pivot: The project moved from a standalone NodeJS/React stack to a Confluence-integrated application, using vanilla JS for the frontend and ScriptRunner (Groovy) for the backend, as mandated by enterprise constraints.
+- Local development setup stabilised: Memory allocation for Confluence increased to 6GB, and ScriptRunner installation is now manual via the Marketplace (ADR-007).
+- Database connectivity: The project now uses ScriptRunner's built-in Database Connection resource for PostgreSQL, superseding the previous approach of bundling the JDBC driver (ADR-009).
+- Liquibase adopted for all schema migrations, with initial tables for teams and team_members created and managed via versioned SQL scripts.
+- Documentation and setup scripts have been clarified and centralised, with clear distinction between initial setup (Ansible) and daily workflows (`start.sh`/`stop.sh`).
+- All ADRs are now consistently referenced and available in `docs/adr/`.
 
-## 3. Next Steps
+## Next Steps
 
-1. Begin development of the core CRUD API endpoints in ScriptRunner for all main entities (Plans, Chapters, Steps, Tasks, Controls, etc.).
-2. Start building the frontend macro UI in vanilla JavaScript, focusing on the main dashboard and planner view.
-3. Implement backend logic for the event log and planning feature, including HTML export.
-4. Prepare for deployment and user acceptance testing after initial feature development.
-
-## 4. Key Risks & Considerations
-
-* The four-week timeline remains aggressive, especially given the vanilla JS constraint.
-* Manual steps (e.g., plugin install) are now preferred for reliability.
-* Performance and scalability of ScriptRunner under load must be validated during development.
-* All technical and architectural decisions are now locked for the MVP phase.
-
-## 5. Recent Technical Challenges Resolved (2025-06-17)
-
-* **Liquibase Configuration:** Resolved credential passing issues by using command-line arguments instead of environment variables in `start.sh` script.
-* **File Path Issues:** Fixed multiple `file not found` errors by correcting relative paths in `start.sh` script and `liquibase.properties` file.
-* **Database Schema Management:** Successfully established Liquibase as single source of truth for all schema changes, removing duplicate logic from `postgres/init-db.sh`.
+- Continue backend feature development for the Implementation Plan macro, focusing on CRUD endpoints and integration with the new database connection pattern.
+- Monitor and validate the stability of ScriptRunner's database connection in practice.
+- Maintain up-to-date documentation and ensure all new features and changes are reflected in the memory bank and ADRs.

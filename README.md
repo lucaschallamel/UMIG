@@ -29,7 +29,7 @@ The local development environment is managed using Podman Compose and a set of h
 ### Prerequisites
 
 *   **Podman & Podman Compose**: Follow the official installation guide for your OS.
-*   **Liquibase CLI**: Install the Liquibase CLI. On macOS, you can use Homebrew: `brew install liquibase`.
+*   **Liquibase CLI**: Required for database migrations. See `local-dev-setup/README.md` for detailed installation instructions.
 
 ### First-Time Setup
 
