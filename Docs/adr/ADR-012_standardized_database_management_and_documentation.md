@@ -1,4 +1,4 @@
-# ADR-003: Standardized Database Management and Documentation
+# ADR-012: Standardized Database Management and Documentation
 
 **Date**: 2025-06-19
 
