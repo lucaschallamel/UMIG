@@ -1,0 +1,509 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d",
+		"name": "UMIG API Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Teams",
+			"item": [
+				{
+					"name": "List All Teams",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/listTeams",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"listTeams"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Team By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/getTeamById?id={{teamId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"getTeamById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{teamId}}",
+									"description": "ID of the team to retrieve"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create New Team",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Engineering Team\",\n    \"description\": \"Core software development team.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/createTeam",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"createTeam"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Team By ID",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Team Name\",\n    \"description\": \"Updated team description.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/updateTeam?id={{teamId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"updateTeam"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{teamId}}",
+									"description": "ID of the team to update"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Team By ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/deleteTeam?id={{teamId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"deleteTeam"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{teamId}}",
+									"description": "ID of the team to delete"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Persons (Team Members)",
+			"item": [
+				{
+					"name": "List All Persons",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/listPersons",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"listPersons"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Person By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/getPersonById?id={{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"getPersonById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{personId}}",
+									"description": "ID of the person to retrieve"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create New Person",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Doe\",\n    \"email\": \"jane.doe@example.com\",\n    \"role\": \"Project Manager\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/createPerson",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"createPerson"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Person By ID",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"first_name\": \"Jane\",\n    \"last_name\": \"Smith (Updated)\",\n    \"email\": \"jane.smith@example.com\",\n    \"role\": \"Senior Project Manager\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/updatePerson?id={{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"updatePerson"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{personId}}",
+									"description": "ID of the person to update"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Person By ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/deletePerson?id={{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"deletePerson"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{personId}}",
+									"description": "ID of the person to delete"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Team Membership",
+			"item": [
+				{
+					"name": "List Members of a Team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/listTeamMembers?team_id={{teamId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"listTeamMembers"
+							],
+							"query": [
+								{
+									"key": "team_id",
+									"value": "{{teamId}}",
+									"description": "ID of the team whose members to list"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Assign Person to Team",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/assignPersonToTeam?person_id={{personId}}&team_id={{teamId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"assignPersonToTeam"
+							],
+							"query": [
+								{
+									"key": "person_id",
+									"value": "{{personId}}",
+									"description": "ID of the person to assign"
+								},
+								{
+									"key": "team_id",
+									"value": "{{teamId}}",
+									"description": "ID of the team to assign to"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Remove Person from Team",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/removePersonFromTeam?person_id={{personId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"removePersonFromTeam"
+							],
+							"query": [
+								{
+									"key": "person_id",
+									"value": "{{personId}}",
+									"description": "ID of the person to remove from their team"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Implementation Plans",
+			"item": [
+				{
+					"name": "List All Plans",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/listPlans",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"listPlans"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Plan By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/getPlanById?id={{planId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"getPlanById"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{planId}}",
+									"description": "ID of the plan to retrieve"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create New Plan",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Q4 Product Launch Plan\",\n    \"data_migration_code\": \"PROD-LAUNCH-Q4\",\n    \"content\": \"Detailed steps for the Q4 product launch...\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/createPlan",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"createPlan"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Plan By ID",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Q4 Product Launch Plan\",\n    \"data_migration_code\": \"PROD-LAUNCH-Q4-REV1\",\n    \"content\": \"Revised detailed steps for the Q4 product launch...\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/updatePlan?id={{planId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"updatePlan"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{planId}}",
+									"description": "ID of the plan to update"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Plan By ID",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/deletePlan?id={{planId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"deletePlan"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "{{planId}}",
+									"description": "ID of the plan to delete"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{password}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{username}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8090/rest/scriptrunner/latest/custom",
+			"type": "string"
+		},
+		{
+			"key": "teamId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "personId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "planId",
+			"value": "1",
+			"type": "string"
+		}
+	]
+}

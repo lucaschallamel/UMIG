@@ -2,22 +2,25 @@
 
 ## Current Focus
 
-- The project is in active development of the Implementation Plan macro backend and its supporting infrastructure.
-- The local development environment is now robust, using Podman, Ansible, and Liquibase for automated, version-controlled database migrations.
-- All "hello-world" and development scripts have been moved to the `src/` directory for clear separation of concerns.
-- The Confluence reference version is now 8.5.6 across all documentation and setup scripts.
+- The project is in active development of the Implementation Plan macro backend and its supporting infrastructure, with significant progress on API endpoints and database schema.
+- The backend API has been structured into logical modules for Teams, Persons, and Implementation Plans, with comprehensive CRUD operations for each entity.
+- API documentation (OpenAPI specification and Postman collection) has been created and aligned with the implemented endpoints.
+- The database schema is being expanded with additional tables to support the evolving application requirements.
 
 ## Recent Changes
 
 - Major architectural pivot: The project moved from a standalone NodeJS/React stack to a Confluence-integrated application, using vanilla JS for the frontend and ScriptRunner (Groovy) for the backend, as mandated by enterprise constraints.
-- Local development setup stabilised: Memory allocation for Confluence increased to 6GB, and ScriptRunner installation is now manual via the Marketplace (ADR-007).
-- Database connectivity: The project now uses ScriptRunner's built-in Database Connection resource for PostgreSQL, superseding the previous approach of bundling the JDBC driver (ADR-009).
-- Liquibase adopted for all schema migrations, with initial tables for teams and team_members created and managed via versioned SQL scripts.
-- Documentation and setup scripts have been clarified and centralised, with clear distinction between initial setup (Ansible) and daily workflows (`start.sh`/`stop.sh`).
-- All ADRs are now consistently referenced and available in `docs/adr/`.
+- API Development: Backend endpoints for Teams, Persons, and Implementation Plans have been implemented with a modular structure in `src/groovy/v1/` directories.
+- Database connectivity: The project now uses ScriptRunner's built-in Database Connection Pool resource for PostgreSQL (ADR-010), superseding the previous approach of bundling the JDBC driver.
+- REST Endpoint Configuration: Standardised the method for configuring and discovering ScriptRunner REST endpoints (ADR-011), resolving runtime errors related to file path resolution.
+- Database Management: Formalised a standardised approach for database management and documentation (ADR-012), ensuring reliable migrations and clear schema documentation.
+- Documentation: Created comprehensive API documentation in OpenAPI format and a Postman collection for testing. Added formal data model documentation with ERD diagrams.
+- Local development environment is now robust, with Liquibase managing database migrations and clear setup instructions for developers.
 
 ## Next Steps
 
-- Continue backend feature development for the Implementation Plan macro, focusing on CRUD endpoints and integration with the new database connection pattern.
-- Monitor and validate the stability of ScriptRunner's database connection in practice.
-- Maintain up-to-date documentation and ensure all new features and changes are reflected in the memory bank and ADRs.
+- Continue frontend development for the Implementation Plan macro UI, ensuring integration with the newly implemented backend APIs.
+- Implement the hierarchical data structure (Macro-Phase > Chapter > Step > Task) and related database tables.
+- Develop the Planning Feature UI for generating shareable HTML macro-plans.
+- Validate all API endpoints using the Postman collection against the local development environment.
+- Expand the data model documentation as the schema evolves.
