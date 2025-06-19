@@ -1,21 +1,10 @@
-/* Basic styling for the UMIG Macro */
-.umig-container {
-    border: 1px solid #ccc;
-    padding: 16px;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+/* Styles for the UMIG Implementation Plan Macro */
+
+.umig-ip-macro-container .error-message {
+    color: #d04437; /* AUI error color */
+    font-weight: bold;
 }
 
-#umig-ip-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-#umig-ip-list li {
-    padding: 8px;
-    border-bottom: 1px solid #eee;
-}
-
-#umig-load-ips-btn {
-    margin-bottom: 16px;
+#ip-list-container table {
+    width: 100%;
 }

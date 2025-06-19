@@ -1,7 +1,8 @@
-# Use the same base image as in the compose file
-FROM atlassian/confluence-server:7.19.8
+# Use the specified Confluence version
+FROM atlassian/confluence-server:8.5.6-jdk17
 
+
+# Existing comments from your file:
 # This file is intentionally left minimal.
 # After extensive debugging, it was determined that the most reliable method
 # for installing plugins is via the Confluence UI's Marketplace integration
-# after the container is running.

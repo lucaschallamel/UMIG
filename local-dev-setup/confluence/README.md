@@ -1,10 +1,12 @@
 # Custom Confluence Image for UMIG
 
-This directory contains the `Containerfile` used to build the custom Atlassian Confluence image for the UMIG local development environment. This image is based on the official Confluence version specified within the `Containerfile` (e.g., `7.19.8`).
+This directory contains the `Containerfile` used to build the custom Atlassian Confluence image for the UMIG local development environment. This image is based on the official Confluence version specified within the `Containerfile` (e.g., `8.5.6`).
 
 ## Purpose
 
-The primary purpose of this custom image is to provide a consistent Confluence environment tailored for UMIG development. It ensures that all developers are using the same base Confluence version.
+The primary purpose of this custom image is to provide a consistent Confluence environment tailored for UMIG development. It ensures that all developers are using the same base Confluence version and includes necessary runtime dependencies.
+
+Specifically, this custom image now includes the **PostgreSQL JDBC driver**, which is required for ScriptRunner Groovy scripts to connect to the PostgreSQL database service.
 
 ## ScriptRunner Installation
 
