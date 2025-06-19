@@ -19,8 +19,13 @@ UMIG is a collaborative platform designed to streamline the creation, management
 
 ## Project Documentation
 
-*   Architectural Decision Records (ADRs): `docs/adr/`
-*   Supporting Project Documents: `cline-docs/`
+*   **Architectural Decision Records (ADRs):** `docs/adr/`
+*   **API Documentation:**
+    *   **OpenAPI (Swagger) Spec:** [`docs/api/openapi.yaml`](docs/api/openapi.yaml)
+    *   **Postman Test Collection:** [`docs/api/postman/README.md`](docs/api/postman/README.md)
+*   **Data Model Documentation:** [`docs/dataModel/README.md`](docs/dataModel/README.md)
+*   **Groovy/ScriptRunner Conventions:** [`src/groovy/README.md`](src/groovy/README.md)
+*   **Supporting Project Documents:** `cline-docs/`
 
 ## Local Development Setup
 

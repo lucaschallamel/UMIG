@@ -1,0 +1,546 @@
+openapi: 3.0.3
+info:
+  title: UMIG API
+  version: 0.1.0
+  description: |
+    REST API for managing Implementation Plans, Teams, and Persons in the UMIG Confluence-integrated application.
+    
+    This API is implemented using ScriptRunner Groovy scripts and documented according to the OpenAPI 3.0 standard.
+servers:
+  - url: /rest/scriptrunner/latest/custom
+    description: ScriptRunner Custom REST Endpoints (relative to Confluence base URL)
+tags:
+  - name: Teams
+    description: Operations about teams
+  - name: Persons
+    description: CRUD Operations for individual persons
+  - name: Team Members
+    description: Operations for managing team membership
+  - name: Implementation Plans
+    description: Operations about implementation plans
+
+paths:
+  # --- Teams Endpoints ---
+  /listTeams:
+    get:
+      summary: List all teams
+      tags: [Teams]
+      responses:
+        '200':
+          description: List of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+  /createTeam:
+    post:
+      summary: Create a new team
+      tags: [Teams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamCreateRequest'
+      responses:
+        '201':
+          description: Team created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /updateTeam:
+    put:
+      summary: Update an existing team by ID
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamCreateRequest' # Reusing create schema for update
+      responses:
+        '200':
+          description: Team updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /deleteTeam:
+    delete:
+      summary: Delete a team by ID
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Team deleted successfully
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  # --- Duplicated GET /getTeamById was here and is now removed by this edit. The correct one is below.
+    get:
+      summary: Get a team by ID
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Team object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # --- Implementation Plans Endpoints ---
+  /listPlans:
+    get:
+      summary: List all implementation plans
+      tags: [Implementation Plans]
+      responses:
+        '200':
+          description: A list of all implementation plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ImplementationPlan'
+  /createPlan:
+    post:
+      summary: Create a new implementation plan
+      tags: [Implementation Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImplementationPlanCreateRequest'
+      responses:
+        '201':
+          description: Plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImplementationPlan'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /updatePlan:
+    put:
+      summary: Update an existing plan by ID
+      tags: [Implementation Plans]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImplementationPlanCreateRequest' # Reusing create schema
+      responses:
+        '200':
+          description: Plan updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImplementationPlan'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /deletePlan:
+    delete:
+      summary: Delete a plan by ID
+      tags: [Implementation Plans]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Plan deleted successfully
+        '404':
+          description: Plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  # --- Duplicated GET /getPlanById was here and is now removed by this edit. The correct one is below.
+    get:
+      summary: Get an implementation plan by ID
+      tags: [Implementation Plans]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Implementation plan object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImplementationPlan'
+        '404':
+          description: Plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  # --- Duplicated /createPlan, /updatePlan, /deletePlan block removed by this edit. The correct one is above.
+  # --- Duplicated /createTeam, /updateTeam, /deleteTeam block removed by this edit. The correct one is above.
+
+  # --- Persons Endpoints ---
+  /listPersons:
+    get:
+      summary: List all persons
+      tags: [Persons]
+      responses:
+        '200':
+          description: A list of all persons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Person'
+  /createPerson:
+    post:
+      summary: Create a new person
+      tags: [Persons]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonCreateRequest'
+      responses:
+        '201':
+          description: Person created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /updatePerson:
+    put:
+      summary: Update an existing person by ID
+      tags: [Persons]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonCreateRequest' # Reusing create schema for update
+      responses:
+        '200':
+          description: Person updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /deletePerson:
+    delete:
+      summary: Delete a person by ID
+      tags: [Persons]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Person deleted successfully
+        '404':
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  # --- Duplicated GET /getPersonById was here and is now removed by this edit. The correct one is below.
+    get:
+      summary: Get a person by ID
+      tags: [Persons]
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Person object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  # --- Duplicated /createPerson, /updatePerson, /deletePerson block removed by this edit. The correct one is above.
+
+  # --- Team Membership Endpoints ---
+  /listTeamMembers:
+    get:
+      summary: List all members for a team
+      tags: ["Team Members"]
+      parameters:
+        - name: team_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of persons assigned to the team
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Person'
+  /assignPersonToTeam:
+    put:
+      summary: Assign a person to a team
+      tags: ["Team Members"]
+      parameters:
+        - name: person_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: team_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The updated person object with the new team assignment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          description: Person or Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /removePersonFromTeam:
+    put:
+      summary: Remove a person from a team
+      tags: ["Team Members"]
+      parameters:
+        - name: person_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The updated person object with team_id set to null
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+        '404':
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    TeamCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+    Person:
+      type: object
+      properties:
+        id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          nullable: true
+    ImplementationPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        data_migration_code:
+          type: string
+          nullable: true
+        content:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ImplementationPlanCreateRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+        data_migration_code:
+          type: string
+          nullable: true
+        content:
+          type: string
+          nullable: true
+        team_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    PersonCreateRequest:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          nullable: true
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
