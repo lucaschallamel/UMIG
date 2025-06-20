@@ -7,5 +7,7 @@
 
         <!-- Include the initial schema setup -->
     <include file="001_create_teams_and_members_tables.sql" relativeToChangelogFile="true"/>
+    <include file="001_create_implementation_plans_table.sql" relativeToChangelogFile="true"/>
+    <include file="002_update_team_members_table.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
