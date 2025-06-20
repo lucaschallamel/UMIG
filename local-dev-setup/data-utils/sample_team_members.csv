@@ -1,0 +1,6 @@
+FirstName,LastName,Email,Role,TeamId
+Alice,Smith,alice.smith@example.com,Developer,1
+Bob,Johnson,bob.johnson@example.com,Product Manager,1
+Carol,Williams,carol.williams@example.com,QA Engineer,2
+David,Jones,david.jones@example.com,Designer,2
+Eve,Brown,eve.brown@example.com,Developer,3

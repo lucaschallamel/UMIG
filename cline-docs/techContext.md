@@ -9,6 +9,8 @@
 - **Containerisation:** Podman and Podman Compose
 - **Configuration Management:** Ansible
 - **Version Control:** Git
+- **Testing Framework:** Jest for Node.js utilities
+- **Development Utilities:** Node.js for data generation and CSV importing
 
 ## Development Setup
 
@@ -34,3 +36,6 @@
 - Daily development is managed with `start.sh` and `stop.sh` scripts for starting and stopping all services and running migrations.
 - Live-reload for backend and frontend code is supported via volume mounts.
 - **ScriptRunner database connectivity is validated by running a simple `SELECT 1` in the ScriptRunner console.**
+- Node.js CLI tools (`umig_generate_fake_data.js` and `umig_csv_importer.js`) are used for generating synthetic test data and importing data from CSV files.
+- Jest is used for testing Node.js utilities, with deterministic fixtures ensuring reproducible test results.
+- All Node.js utilities enforce strict environment safety, refusing to run in production environments and requiring confirmation for destructive operations.

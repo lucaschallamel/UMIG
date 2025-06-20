@@ -73,3 +73,12 @@ Once the environment is running, you can access the services at the following UR
 
 *   **Confluence**: [http://localhost:8090](http://localhost:8090)
 *   **MailHog UI**: [http://localhost:8025](http://localhost:8025)
+
+---
+
+## Data Utilities
+
+See `/local-dev-setup/data-utils` for CLI tools to generate synthetic test data and import CSV data into your local PostgreSQL database.
+
+- Includes robust reset (truncate) options, interactive confirmation, and flexible mapping via JSON files.
+- Automated tests use deterministic fixture files for reproducibility. See the subfolder README for full instructions and examples.
