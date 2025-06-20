@@ -17,6 +17,82 @@ build/
 .gradle/
 *.log
 
+# Visual Studio
+.vs/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]uild/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dbmdl
+*.jfm
+*.pfx
+*.publishsettings
+*.cache
+*.csproj.user
+*.pubxml
+*.pubxml.user
+*.dbproj.user
+*.rdl.data
+*.bim.layout
+*.bim_*.settings
+
+# Visual Studio extensions and tools
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+_TeamCity*
+*.dotCover
+*.coverage
+*.coveragexml
+*.psess
+*.vsp
+*.vspx
+*.sap
+*.e2e
+*.gpState
+*.sln.ide
+*.sln.iml
+FakesAssemblies/
+.ntvs_analysis.dat
+*.GhostDoc.xml
+
+# Visual Studio project files
+*.ncb
+*.aps
+*.clw
+*.pch
+*.idb
+*.pdb
+*.ilk
+*.sbr
+*.scc
+*.tlb
+*.tlh
+*.bak
+*.swp
+*.tmp
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
 # macOS
 .DS_Store
 .AppleDouble
