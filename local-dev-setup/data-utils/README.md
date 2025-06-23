@@ -28,7 +28,7 @@ This directory contains CLI tools for generating synthetic test data and importi
 
 **Script:** `umig_generate_fake_data.js`
 
-**Purpose:** Populates the local database with a complete, consistent, and realistic set of synthetic data for development and testing. It generates records for migrations, teams, applications, and users with role-based assignments.
+**Purpose:** Populates the local database with a foundational set of synthetic data for development and testing. It generates the high-level structures for migrations, iterations, and sequences, along with the necessary users, teams, applications, and environments. It does **not** yet generate the detailed plan data within those structures (e.g., chapters, steps, tasks).
 
 **Environment Safety:** The script includes critical safety checks:
 - It will **only** run if the `--env dev` or `--env test` flag is explicitly provided.
@@ -68,9 +68,18 @@ The generation process is controlled by `fake_data_config.json`. Below is a desc
 
 The script follows specific rules to ensure data integrity and realism:
 
-- **Teams (`teams_tms`):**
-  - A special **`IT_CUTOVER`** team is always created first with `tms_code` = `T00`.
-  - Additional teams are generated up to `num_teams`, with abstract names (`TEAM_STRATEGY`, `TEAM_LOGISTICS`) and chronological codes (`T01`, `T02`, ...).
+- **High-Level Structure:** The script generates a specified number of `migrations_mig`. For each migration, it creates a corresponding set of `iterations_ite` (RUN, DR, CUTOVER) and `sequences_sqc` (PRE-MIGRATION, CSD MIGRATION, etc.).
+
+- **Users, Teams, and Roles:**
+  - A special **`IT_CUTOVER`** team is always created first (`tms_code` = `T00`).
+  - `ADMIN` and `PILOT` users are assigned exclusively to the `IT_CUTOVER` team.
+  - `NORMAL` users are distributed across the other generated teams.
+
+- **Applications and Environments:**
+  - A fixed list of environments (`PROD`, `EV1`, etc.) is created.
+  - A specified number of applications are generated and randomly linked to teams via the `teams_applications_tap` table.
+
+- **Pending Implementation:** The script does **not** yet populate the tables for chapters, steps, tasks, controls, statuses, or their related join tables. This is the next logical area for expansion.
 
 - **Applications (`applications_app`):**
   - Applications are generated with unique 3-letter codes.

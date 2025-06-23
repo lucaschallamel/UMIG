@@ -5,6 +5,7 @@
 - Updated `fake_data_config.json` to allow configuration of user/role counts.
 
 #### Changed
+- Refactored `steps_stp` to use a foreign key to the re-introduced `status_sts` table, removing the hardcoded `status` column and normalizing the schema.
 - Removed obsolete `usr_code` from `users_usr` in schema and documentation.
 - Updated `/local-dev-setup/data-utils/README.md` to document new conventions, configuration, and tests.
 - Updated the `controls_ctl` table to match the original SQL Server specification: added producer, IT/biz validator and comments fields, removed description/type/status.

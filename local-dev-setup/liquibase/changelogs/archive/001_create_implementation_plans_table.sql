@@ -1,2 +1,0 @@
--- liquibase formatted sql
--- (Removed implementation_plans and implementation_plans_ipl, canonical is migrations_mig in 008)
