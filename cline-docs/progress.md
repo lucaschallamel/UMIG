@@ -6,9 +6,10 @@
 - Backend API endpoints for Teams, Persons, and Implementation Plans have been implemented with comprehensive CRUD operations.
 - REST endpoint configuration has been standardised with automatic script discovery using Java system properties.
 - ScriptRunner's Database Connection Pool resource is successfully handling database connectivity (ADR-010).
-- Database schema management is fully automated and version-controlled with Liquibase, with tables for teams, team_members, and implementation plans in place.
+- Database schema is now a faithful, fully-documented translation of the original SQL Server model, with all tables, fields, and constraints accurately represented.
+- Database schema management is fully automated and version-controlled with Liquibase, with complete schema synchronization across all 19 tables.
 - Comprehensive API documentation is available via OpenAPI specification and a Postman collection for testing.
-- Initial data model documentation with ERD diagrams has been established.
+- Data model documentation with ERD diagrams is fully synchronized with the actual database schema.
 - The backend (Groovy/ScriptRunner) and frontend (vanilla JS, CSS) codebases are cleanly separated in the `src/` directory.
 - All ADRs are up-to-date and referenced in documentation.
 - The Confluence version is consistently set to 8.5.6 across all documentation and setup scripts.
@@ -21,16 +22,17 @@
 - Complete the Implementation Plan macro frontend UI, integrating with the implemented backend APIs.
 - Implement the hierarchical data structure (Macro-Phase > Chapter > Step > Task) and corresponding database tables.
 - Develop the Planning Feature UI for generating shareable HTML macro-plans.
-- Create additional database migrations for the remaining entities in the data model.
 - Implement notification and email functionality for status changes.
 - Build the audit logging system for tracking all state changes.
 - Ongoing documentation updates to reflect new features, changes, and lessons learned.
+- Consider adding automated schema integrity checks to ensure documentation and database schema remain synchronized.
 
 ## Current Status
 
-- The project is on a solid technical footing with a well-structured API layer and supporting database infrastructure.
+- The project is on a solid technical footing with a well-structured API layer and complete, synchronized database infrastructure.
 - The backend implementation has made significant progress, with modular API endpoints for all core entities.
-- Documentation is comprehensive, with formal API specifications, data model documentation, and architectural decision records.
+- Documentation is comprehensive and accurately synchronized with implementation, with formal API specifications, data model documentation, and architectural decision records.
+- The database schema now precisely matches the original SQL Server specification, with all tables, relationships, and constraints fully implemented.
 - Data utilities now provide a reliable foundation for local development, with robust testing infrastructure and deterministic fixtures.
 - The team is now ready to shift focus to frontend development and the implementation of the hierarchical data structure.
 
@@ -46,6 +48,7 @@
 - The project has moved from a "blue sky" standalone stack to a pragmatic, enterprise-compliant Confluence-integrated solution.
 - Environment setup has been iteratively improved for reliability and developer experience.
 - Database management has evolved from ad-hoc scripts to a robust, automated migration system with formal documentation (ADR-012).
+- Database schema has progressed from initial designs to a complete, faithful translation of the SQL Server model with enhanced relationships and documentation.
 - API organization has matured with a modular structure and standardised endpoints.
 - REST endpoint configuration has been refined to use automatic script discovery instead of manual registration (ADR-011).
 - The Database Connection approach has shifted from manual JDBC driver management to ScriptRunner's built-in connection pooling (ADR-010).

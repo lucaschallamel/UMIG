@@ -89,27 +89,41 @@ erDiagram
     timestamp ite_end_date
   }
   iterations_tracking_itt {
-    int id PK
-    int ite_id FK
-    int stp_id FK
-    timestamp itt_date
-    varchar itt_status
+    varchar id PK
+    varchar mig_code
+    varchar ite_code
+    varchar entity_type
+    varchar entity_id
+    varchar entity_status
+    timestamp start_date
+    timestamp end_date
+    text comments
   }
   migrations_mig {
     int id PK
+    varchar mig_code
     varchar mig_name
     text mig_description
-    int mty_id FK
     timestamp mig_planned_start_date
     timestamp mig_planned_end_date
+    int mty_id FK
   }
   migration_type_mty {
     int id PK
+    varchar mty_code
     varchar mty_name
     text mty_description
   }
+  release_notes_rnt {
+    int id PK
+    varchar rnt_code
+    varchar rnt_name
+    text rnt_description
+    timestamp rnt_date
+  }
   roles_rls {
     int id PK
+    varchar rle_code
     varchar rle_name
     text rle_description
   }
@@ -120,9 +134,11 @@ erDiagram
     int sqc_order
     timestamp start_date
     timestamp end_date
+    int sqc_previous
   }
   status_sts {
     int id PK
+    varchar sts_code
     varchar sts_name
     text sts_description
   }
@@ -130,17 +146,14 @@ erDiagram
     int id PK
     varchar stp_code
     varchar stp_name
-    text stp_description
     int cha_id FK
     int tms_id FK
     int stt_type FK
+    int stp_previous
+    text stp_description
     int sts_id FK
     int owner_id FK
     varchar target_env FK
-    timestamp stp_start_date
-    timestamp stp_end_date
-    timestamp stp_effective_start_date
-    timestamp stp_effective_end_date
   }
   step_type_stt {
     int id PK
@@ -167,8 +180,8 @@ erDiagram
     varchar usr_last_name
     varchar usr_trigram
     varchar usr_email
-    int rle_id FK
     int tms_id FK
+    int rle_id FK
   }
 
   additional_instructions_ais }|--|| steps_stp : "to step"
@@ -176,20 +189,21 @@ erDiagram
   additional_instructions_ais }o--o| iterations_ite : "for iteration"
   chapter_cha }o--o| sequences_sqc : "in sequence"
   chapter_cha }o--o| chapter_cha : "follows"
-  controls_ctl }o--o| status_sts : "has status"
   environments_applications_eap }|--|| environments_env : "links"
   environments_applications_eap }|--|| applications_app : "links"
+  environments_iterations_eit }|--|| environments_env : "links"
+  environments_iterations_eit }|--|| iterations_ite : "links"
   instructions_ins }|--|| steps_stp : "for step"
   instructions_ins }o--o| teams_tms : "for team"
   instructions_ins }o--o| controls_ctl : "has control"
   iterations_ite }|--|| migrations_mig : "part of migration"
-  iterations_tracking_itt }|--|| iterations_ite : "tracks iteration"
-  iterations_tracking_itt }|--|| steps_stp : "tracks step"
   migrations_mig }o--o| migration_type_mty : "has type"
-  sequences_sqc }|--|| iterations_ite : "for iteration"
+  sequences_sqc }|--|| migrations_mig : "for migration"
+  sequences_sqc }o--o| sequences_sqc : "previous sequence"
   steps_stp }o--o| chapter_cha : "in chapter"
   steps_stp }o--o| teams_tms : "assigned to team"
   steps_stp }o--o| step_type_stt : "has type"
+  steps_stp }o--o| steps_stp : "previous step"
   steps_stp }o--o| status_sts : "has status"
   steps_stp }o--o| users_usr : "owned by"
   steps_stp }o--o| environments_env : "targets"
@@ -200,6 +214,14 @@ erDiagram
 ```
 
 ## Table and Field Listing
+
+#### **RELEASE_NOTES_RNT**
+- `id` SERIAL PRIMARY KEY
+- `rnt_code` VARCHAR(10)
+- `rnt_name` VARCHAR(64)
+- `rnt_description` TEXT
+- `rnt_date` TIMESTAMP
+
 
 #### **ADDITIONAL_INSTRUCTIONS_AIS**
 - `id` SERIAL PRIMARY KEY
@@ -272,28 +294,35 @@ erDiagram
 - `ite_end_date` TIMESTAMP
 
 #### **ITERATIONS_TRACKING_ITT**
-- `id` SERIAL PRIMARY KEY
-- `ite_id` INTEGER NOT NULL
-- `stp_id` INTEGER NOT NULL
-- `itt_date` TIMESTAMP
-- `itt_status` VARCHAR(50)
+- `id` VARCHAR(10) PRIMARY KEY
+- `mig_code` VARCHAR(10)
+- `ite_code` VARCHAR(10)
+- `entity_type` VARCHAR(10)
+- `entity_id` VARCHAR(10)
+- `entity_status` VARCHAR(10)
+- `start_date` TIMESTAMP
+- `end_date` TIMESTAMP
+- `comments` TEXT
 
 #### **MIGRATIONS_MIG**
 - `id` SERIAL PRIMARY KEY
-- `mig_name` VARCHAR(255)
+- `mig_code` VARCHAR(10)
+- `mig_name` VARCHAR(128)
 - `mig_description` TEXT
-- `mty_id` INTEGER
 - `mig_planned_start_date` TIMESTAMP
 - `mig_planned_end_date` TIMESTAMP
+- `mty_id` INTEGER
 
 #### **MIGRATION_TYPE_MTY**
 - `id` SERIAL PRIMARY KEY
-- `mty_name` VARCHAR(255)
+- `mty_code` VARCHAR(10)
+- `mty_name` VARCHAR(64)
 - `mty_description` TEXT
 
 #### **ROLES_RLS**
 - `id` SERIAL PRIMARY KEY
-- `rle_name` VARCHAR(255)
+- `rle_code` VARCHAR(10)
+- `rle_name` VARCHAR(64)
 - `rle_description` TEXT
 
 #### **SEQUENCES_SQC**
@@ -303,27 +332,26 @@ erDiagram
 - `sqc_order` INTEGER
 - `start_date` TIMESTAMP
 - `end_date` TIMESTAMP
+- `sqc_previous` INTEGER
 
 #### **STATUS_STS**
 - `id` SERIAL PRIMARY KEY
-- `sts_name` VARCHAR(255)
+- `sts_code` VARCHAR(10)
+- `sts_name` VARCHAR(64)
 - `sts_description` TEXT
 
 #### **STEPS_STP**
 - `id` SERIAL PRIMARY KEY
 - `stp_code` VARCHAR(10)
 - `stp_name` VARCHAR(64)
-- `stp_description` TEXT
 - `cha_id` INTEGER
 - `tms_id` INTEGER
 - `stt_type` INTEGER
+- `stp_previous` INTEGER
+- `stp_description` TEXT
 - `sts_id` INTEGER
 - `owner_id` INTEGER
 - `target_env` VARCHAR(10)
-- `stp_start_date` TIMESTAMP
-- `stp_end_date` TIMESTAMP
-- `stp_effective_start_date` TIMESTAMP
-- `stp_effective_end_date` TIMESTAMP
 
 #### **STEP_TYPE_STT**
 - `id` SERIAL PRIMARY KEY
