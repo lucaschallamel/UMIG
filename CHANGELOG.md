@@ -1,22 +1,21 @@
-## [Unreleased]
-### Changed
-- **API Documentation:**
-    - Updated Postman collection (`docs/api/postman/UMIG_API_Collection.postman_collection.json`) with corrected `baseUrl`, comprehensive CRUD endpoints for all entities (Teams, Persons, Plans), accurate endpoint naming, example payloads, and helper variables (`teamId`, `personId`, `planId`).
-    - Aligned `docs/api/openapi.yaml` with the Postman collection and actual Groovy API implementation, including correct server URL, standardized endpoint names, and all CRUD operations. Resolved YAML formatting errors (duplicated mapping keys).
-    - Updated `docs/api/README.md` to link to the Postman collection and its usage instructions.
-    - Updated `docs/api/postman/README.md` with the correct `baseUrl` and information on new helper variables.
-### Added
-- **Data Model Documentation:** Created formal documentation for the database schema at `docs/dataModel/README.md`, including a Mermaid ERD and detailed table descriptions.
-- **API Testing Collection:** Added a version-controlled Postman collection at `docs/api/postman/` for local API testing.
-- **Architectural Decision Record (ADR):** Added `ADR-003` to document the standardized approach for database management and documentation.
+### [Unreleased]
+#### Changed
+- Updated the `controls_ctl` table to match the original SQL Server specification: added producer, IT/biz validator and comments fields, removed description/type/status.
+- Removed the `env_type` field from the `environments_env` table as it is no longer needed.
+- Added the `environments_iterations_eit` join table to associate environments and iterations, with optional role support.
+- The `iterations_ite` table: removed the `ite_sequence` column and added a free `description` field.
+- The `sequences_sqc` table now references `migrations_mig` via `mig_id` instead of `iterations_ite` via `ite_id`. Added `start_date` and `end_date` columns to support scheduling and tracking.
+- Added a `comments` field to the `environments_applications_eap` table for storing additional notes or metadata about environment-application relationships.
+- Modified the `users_usr` table to replace the single `usr_name` field with `usr_first_name`, `usr_last_name`, and `usr_trigram` to allow for more granular user data management. Updated all relevant schema files and documentation.
+#### Fixed
+- Corrected the baseline Liquibase schema (`001_baseline_schema.sql`) to be a complete 1:1 representation of the original SQL Server data model.
+- Added previously missing tables (`ITERATIONS_TRACKING_ITT`) and columns (`tms_email` in `TEAMS_TMS`) to ensure full synchronization.
+- Verified all 19 tables and their fields are now correctly defined as per the source model.
 
-### Fixed
-- **Database Migration System:** Resolved a critical failure in the Liquibase migration process by correcting the master changelog configuration, removing duplicate files, and ensuring all migration scripts are idempotent. The system is now robust and reliable.
-
-### Fixed
-- **ScriptRunner REST Endpoints:** Resolved persistent `bundle://` runtime errors for file-based REST endpoints by correcting the Java system properties in the development environment. The configuration now uses `-Dplugin.script.roots` and `-Dplugin.rest.scripts.package` for automatic scanning and registration, eliminating the need for manual UI configuration.
-
-### Added
-- **API Documentation:** Introduced OpenAPI (Swagger) documentation for the UMIG REST API at `docs/api/openapi.yaml`.
-- **Groovy/ScriptRunner Coding Conventions:** Added `src/groovy/README.md` for workspace rules and best practices.
-- **API Doc Tooling:** Recommended Redoc (local/online) and VS Code OpenAPI extensions for viewing and working with the API documentation.
+#### Changed
+- Refactored database schema to enforce new table and column naming conventions:
+    - `teams` → `teams_tms`
+    - `team_members`/`team_members_usr` → `users_usr`
+    - `implementation_plans`/`implementation_plans_ipl` → `migrations_mig`
+- Updated all foreign key constraints, join tables, and references accordingly.
+- Removed legacy table definitions and references from all changelogs.

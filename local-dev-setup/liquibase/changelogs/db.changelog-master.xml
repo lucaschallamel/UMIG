@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-        <!-- Include the initial schema setup -->
-    <include file="001_create_teams_and_members_tables.sql" relativeToChangelogFile="true"/>
-    <include file="001_create_implementation_plans_table.sql" relativeToChangelogFile="true"/>
-    <include file="002_update_team_members_table.sql" relativeToChangelogFile="true"/>
+    <include file="001_baseline_schema.sql" relativeToChangelogFile="true"/>
+    <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
