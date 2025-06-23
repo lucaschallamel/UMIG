@@ -1,4 +1,12 @@
 ### [Unreleased]
+#### Added
+- Enhanced `umig_generate_fake_data.js` to support configurable generation of NORMAL, ADMIN, and PILOT users, with unique trigrams and correct team assignment logic (all ADMIN and PILOT users assigned to IT_CUTOVER; every team receives at least one NORMAL user).
+- Added/updated Jest integration tests to verify: every team has at least one member, every user belongs to exactly one team, every application is assigned to exactly one team, and all ADMIN/PILOT users are in IT_CUTOVER.
+- Updated `fake_data_config.json` to allow configuration of user/role counts.
+
+#### Changed
+- Removed obsolete `usr_code` from `users_usr` in schema and documentation.
+- Updated `/local-dev-setup/data-utils/README.md` to document new conventions, configuration, and tests.
 #### Changed
 - Updated the `controls_ctl` table to match the original SQL Server specification: added producer, IT/biz validator and comments fields, removed description/type/status.
 - Removed the `env_type` field from the `environments_env` table as it is no longer needed.

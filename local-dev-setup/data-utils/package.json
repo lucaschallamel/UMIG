@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node umig_generate_fake_data.js",
-    "test": "jest"
+    "test": "jest --verbose"
   },
   "author": "UMIG Core Team",
   "license": "MIT",
