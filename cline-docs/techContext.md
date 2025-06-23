@@ -18,9 +18,11 @@
 - Database schema changes are managed and versioned with Liquibase, applied automatically on environment startup.
 - The codebase is structured for separation of concerns, with all development scripts and assets in the `src/` directory (`css`, `js`, `groovy`).
 - ScriptRunner is installed manually via the Confluence UI Marketplace for stability and compatibility.
-- **Database connectivity for ScriptRunner is now managed via its built-in Database Resource Pool feature. This eliminates the need for manual JDBC driver management or custom image modifications.**
-- **The PostgreSQL JDBC driver is automatically handled by ScriptRunner for pooled resources.**
-- **Ping tests using `SELECT 1` via the ScriptRunner console are used to validate connectivity.**
+- Database connectivity for ScriptRunner is managed via its built-in Database Resource Pool feature, eliminating the need for manual JDBC driver management or custom image modifications.
+- The PostgreSQL JDBC driver is automatically handled by ScriptRunner for pooled resources.
+- REST endpoints are discovered automatically using ScriptRunner's package scanning feature via Java system properties set in `podman-compose.yml`.
+- Ping tests using `SELECT 1` via the ScriptRunner console are used to validate connectivity.
+- Podman named volumes are used for PostgreSQL data persistence, with proper volume management required during environment restarts.
 
 ## Technical Constraints
 
@@ -35,7 +37,9 @@
 - Ansible is used for initial environment setup and rebuilding the custom Confluence image.
 - Daily development is managed with `start.sh` and `stop.sh` scripts for starting and stopping all services and running migrations.
 - Live-reload for backend and frontend code is supported via volume mounts.
-- **ScriptRunner database connectivity is validated by running a simple `SELECT 1` in the ScriptRunner console.**
+- ScriptRunner database connectivity is validated by running a simple `SELECT 1` in the ScriptRunner console.
 - Node.js CLI tools (`umig_generate_fake_data.js` and `umig_csv_importer.js`) are used for generating synthetic test data and importing data from CSV files.
+- Enhanced synthetic data generation now supports role-based user creation (NORMAL, ADMIN, PILOT) with intelligent team assignment logic.
 - Jest is used for testing Node.js utilities, with deterministic fixtures ensuring reproducible test results.
 - All Node.js utilities enforce strict environment safety, refusing to run in production environments and requiring confirmation for destructive operations.
+- Integration tests verify data integrity rules, including team membership guarantees and role-based assignments.

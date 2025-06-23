@@ -7,6 +7,7 @@
 - API documentation (OpenAPI specification and Postman collection) has been created and aligned with the implemented endpoints.
 - The database schema has been fully synchronised with the original SQL Server specification, ensuring consistency across all tables, fields, and constraints.
 - Development of robust Node.js utilities for synthetic data generation and CSV importing, complete with comprehensive testing infrastructure.
+- Enhanced synthetic data generation for more realistic user and team data, with configurable role-based assignments.
 
 ## Recent Changes
 
@@ -28,6 +29,12 @@
   - `sequences_sqc`: Updated to reference `migrations_mig` instead of `iterations_ite`
   - `environments_applications_eap`: Added a `comments` field
   - `users_usr`: Split the name field into `usr_first_name`, `usr_last_name`, and added `usr_trigram` identifier
+- Enhanced Data Generation: Implemented role-based user creation (NORMAL, ADMIN, PILOT) with intelligent team assignment rules:
+  - All ADMIN and PILOT users are assigned exclusively to the IT_CUTOVER team
+  - Every other team has at least one NORMAL user to prevent orphaned teams
+  - Each user has a unique 3-letter trigram identifier
+- Fixed Environment Stability: Resolved issues with Podman volume persistence that were causing migration failures on restart.
+- Fixed Schema-Script Mismatch: Corrected data generation script to use the updated schema references (mig_id instead of ite_id).
 
 ## Next Steps
 
