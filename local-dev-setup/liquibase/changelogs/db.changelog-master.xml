@@ -1,35 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-        <!-- Include the initial schema setup -->
-    <include file="001_create_teams_and_members_tables.sql" relativeToChangelogFile="true"/>
-    <include file="001_create_implementation_plans_table.sql" relativeToChangelogFile="true"/>
-    <include file="002_update_team_members_table.sql" relativeToChangelogFile="true"/>
+    <include file="001_baseline_schema.sql" relativeToChangelogFile="true"/>
+    <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
-    <!-- Include new table creations -->
-    <include file="003_create_roles_rls_table.sql" relativeToChangelogFile="true"/>
-    <include file="004_create_status_sts_table.sql" relativeToChangelogFile="true"/>
-    <include file="005_create_step_type_stt_table.sql" relativeToChangelogFile="true"/>
-    <include file="006_create_applications_app_table.sql" relativeToChangelogFile="true"/>
-    <include file="007_create_environments_env_table.sql" relativeToChangelogFile="true"/>
-    <include file="008_create_migrations_mig_table.sql" relativeToChangelogFile="true"/>
-    <include file="009_create_phases_phs_table.sql" relativeToChangelogFile="true"/>
-    <include file="010_create_chapter_cha_table.sql" relativeToChangelogFile="true"/>
-    <include file="011_create_steps_stp_table.sql" relativeToChangelogFile="true"/>
-    <include file="012_create_instructions_ins_table.sql" relativeToChangelogFile="true"/>
-    <include file="013_create_additional_instructions_ais_table.sql" relativeToChangelogFile="true"/>
-    <include file="014_create_controls_ctl_table.sql" relativeToChangelogFile="true"/>
-    <include file="015_create_iteration_ite_table.sql" relativeToChangelogFile="true"/>
-    <include file="016_create_logs_log_table.sql" relativeToChangelogFile="true"/>
-    <include file="017_create_environments_applications_eap_table.sql" relativeToChangelogFile="true"/>
-    <include file="018_create_impacted_teams_its_table.sql" relativeToChangelogFile="true"/>
-    <include file="019_create_migrations_environments_mev_table.sql" relativeToChangelogFile="true"/>
-    <include file="020_create_steps_instructions_sin_table.sql" relativeToChangelogFile="true"/>
-    <include file="021_create_teams_applications_tap_table.sql" relativeToChangelogFile="true"/>
-    <include file="021a_alter_migrations_mig_add_fk_columns.sql" relativeToChangelogFile="true"/>
-    <include file="022_add_initial_foreign_keys.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>
