@@ -6,6 +6,8 @@
 - `teams_tms`: Stores team records.
 - `users_usr`: Stores user records. Each user may belong to a team (`tms_id`).
 - `migrations_mig`: Stores implementation plan (migration) records.
+- `iteration_plan_itp`: Stores iteration plan structure (chapters, steps, timings).
+- `iterations_tracking_itt`: Tracks execution and status of steps per iteration.
 
 ### Naming Conventions
 - All tables use a suffix for clarity (e.g., `_tms`, `_usr`, `_mig`).
