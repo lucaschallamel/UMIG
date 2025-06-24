@@ -7,11 +7,10 @@ describe('Data Generation Script Integration Tests', () => {
   let client;
 
   beforeAll(async () => {
-    // Run the script to populate the database
-    const scriptPath = path.resolve(__dirname, '../umig_generate_fake_data.js');
-    // Run the script, automatically answering 'yes' to the confirmation prompt.
-    execSync(`node ${scriptPath} --env test --reset`, { input: 'yes\n' });
-
+    // NOTE: These tests expect data to be already generated with:
+    // node umig_generate_fake_data.js --env dev --reset
+    // DO NOT run the script here - tests should only VERIFY data, not CREATE it
+    
     // Connect to the database to run checks
     client = new Client({
       host: process.env.POSTGRES_HOST || 'localhost',
@@ -21,7 +20,7 @@ describe('Data Generation Script Integration Tests', () => {
       database: process.env.UMIG_DB_NAME,
     });
     await client.connect();
-  }, 30000); // Increase timeout to allow script to run
+  });
 
   afterAll(async () => {
     await client.end();
