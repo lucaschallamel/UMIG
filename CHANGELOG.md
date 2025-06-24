@@ -11,7 +11,8 @@
     - Improved `resetDatabase()` to protect reference and migration tracking tables from truncation.
     - All integration and unit tests pass, confirming robust reference data and safe resets.
     - Documentation and subfolder READMEs updated to reflect schema and data generation changes.
-
+    - Added Liquibase migration `013_create_iteration_plan_and_tracking.sql` for creation of tables `iteration_plan_itp` and `iterations_tracking_itt`.
+    - Merged branch `main` into `data/tracking_activities` to synchronize latest changes.
 #### Changed
 - Refactored `steps_stp` to use a foreign key to the re-introduced `status_sts` table, removing the hardcoded `status` column and normalizing the schema.
 - Removed obsolete `usr_code` from `users_usr` in schema and documentation.
