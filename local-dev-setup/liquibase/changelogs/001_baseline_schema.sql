@@ -1,5 +1,8 @@
 --liquibase formatted sql
 
+-- Ensure clean baseline for dev/test
+DROP TABLE IF EXISTS steps_stp CASCADE;
+
 --changeset lucas.challamel:1 context:all
 --comment: This is the initial baseline schema for the UMIG application,
 --         migrated from the original SQL Server data model. It includes all
@@ -59,8 +62,8 @@ CREATE TABLE controls_ctl (
 -- Table structure for table 'environments_env'
 --
 CREATE TABLE environments_env (
-    id VARCHAR(10) PRIMARY KEY,
-    env_code VARCHAR(10),
+    id SERIAL PRIMARY KEY,
+    env_code VARCHAR(10) UNIQUE,
     env_name VARCHAR(64),
     env_description TEXT
 );
@@ -70,7 +73,7 @@ CREATE TABLE environments_env (
 --
 CREATE TABLE environments_applications_eap (
     id SERIAL PRIMARY KEY,
-    env_id VARCHAR(10) NOT NULL,
+    env_id INTEGER NOT NULL,
     app_id INTEGER NOT NULL,
     comments TEXT
 );
@@ -80,7 +83,7 @@ CREATE TABLE environments_applications_eap (
 --
 CREATE TABLE environments_iterations_eit (
     id SERIAL PRIMARY KEY,
-    env_id VARCHAR(10) NOT NULL,
+    env_id INTEGER NOT NULL,
     ite_id INTEGER NOT NULL,
     eit_role VARCHAR(10)
 );
@@ -128,6 +131,8 @@ CREATE TABLE iterations_tracking_itt (
 --
 -- Table structure for table 'migrations_mig'
 --
+CREATE TYPE migration_type_enum AS ENUM ('EXTERNAL', 'INTERNAL');
+
 CREATE TABLE migrations_mig (
     id SERIAL PRIMARY KEY,
     mig_code VARCHAR(10),
@@ -135,18 +140,10 @@ CREATE TABLE migrations_mig (
     mig_description TEXT,
     mig_planned_start_date TIMESTAMP,
     mig_planned_end_date TIMESTAMP,
-    mty_id INTEGER
+    mty_type migration_type_enum
 );
 
 --
--- Table structure for table 'migration_type_mty'
---
-CREATE TABLE migration_type_mty (
-    id SERIAL PRIMARY KEY,
-    mty_code VARCHAR(10),
-    mty_name VARCHAR(64),
-    mty_description TEXT
-);
 
 --
 -- Table structure for table 'release_notes_rnt'
@@ -175,12 +172,15 @@ CREATE TABLE roles_rls (
 CREATE TABLE sequences_sqc (
     id SERIAL PRIMARY KEY,
     mig_id INTEGER NOT NULL,
+    ite_id INTEGER NULL,
     sqc_name VARCHAR(255),
     sqc_order INTEGER,
     start_date TIMESTAMP,
     end_date TIMESTAMP,
     sqc_previous INTEGER
 );
+
+ALTER TABLE sequences_sqc ADD CONSTRAINT fk_sqc_ite FOREIGN KEY (ite_id) REFERENCES iterations_ite(id);
 
 --
 -- Table structure for table 'status_sts'
@@ -206,7 +206,7 @@ CREATE TABLE steps_stp (
     stp_description TEXT,
     sts_id INTEGER,
     owner_id INTEGER,
-    target_env VARCHAR(10)
+    target_env INTEGER
 );
 
 --
@@ -244,7 +244,6 @@ CREATE TABLE teams_applications_tap (
 --
 CREATE TABLE users_usr (
     id SERIAL PRIMARY KEY,
-    usr_code VARCHAR(10),
     usr_first_name VARCHAR(64),
     usr_last_name VARCHAR(64),
     usr_trigram VARCHAR(3),
@@ -269,7 +268,7 @@ ALTER TABLE instructions_ins ADD CONSTRAINT fk_ins_stp FOREIGN KEY (stp_id) REFE
 ALTER TABLE instructions_ins ADD CONSTRAINT fk_ins_tms FOREIGN KEY (tms_id) REFERENCES teams_tms(id);
 ALTER TABLE instructions_ins ADD CONSTRAINT fk_ins_ctl FOREIGN KEY (ctl_id) REFERENCES controls_ctl(id);
 ALTER TABLE iterations_ite ADD CONSTRAINT fk_ite_mig FOREIGN KEY (mig_id) REFERENCES migrations_mig(id);
-ALTER TABLE migrations_mig ADD CONSTRAINT fk_mig_mty FOREIGN KEY (mty_id) REFERENCES migration_type_mty(id);
+
 ALTER TABLE sequences_sqc ADD CONSTRAINT fk_sqc_mig FOREIGN KEY (mig_id) REFERENCES migrations_mig(id);
 ALTER TABLE steps_stp ADD CONSTRAINT fk_stp_cha FOREIGN KEY (cha_id) REFERENCES chapter_cha(id);
 ALTER TABLE steps_stp ADD CONSTRAINT fk_stp_tms FOREIGN KEY (tms_id) REFERENCES teams_tms(id);

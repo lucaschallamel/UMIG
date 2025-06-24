@@ -28,20 +28,71 @@ This directory contains CLI tools for generating synthetic test data and importi
 
 **Script:** `umig_generate_fake_data.js`
 
-- **Purpose:** Populate your local DEV database with fake teams, team members, and implementation plans for development/testing.
-- **Environment Safety:** Refuses to run unless `--env dev` or `--env test` is specified. Will fail with a clear error if any required DB environment variable is missing.
+**Purpose:** Populates the local database with a foundational set of synthetic data for development and testing. It generates the high-level structures for migrations, iterations, and sequences, along with the necessary users, teams, applications, and environments. It does **not** yet generate the detailed plan data within those structures (e.g., chapters, steps, tasks).
+
+**Environment Safety:** The script includes critical safety checks:
+- It will **only** run if the `--env dev` or `--env test` flag is explicitly provided.
+- If the `--reset` flag is used, it will prompt for confirmation before truncating tables to prevent accidental data loss.
+- It will fail with a clear error if any required database connection variables from `.env` are missing.
 
 ### Usage
 
-```sh
-node umig_generate_fake_data.js --plans 2 --teams 10 --members-per-team 5 --env dev
-```
-
-- To reset (truncate) all relevant tables before generating new data (with confirmation):
+- **Generate data (without resetting):**
   ```sh
-  node umig_generate_fake_data.js --plans 2 --teams 10 --members-per-team 5 --env dev --reset
+  node umig_generate_fake_data.js --env dev
   ```
-- All options are optional; defaults are provided for local dev.
+- **Reset and generate new data:**
+  ```sh
+  node umig_generate_fake_data.js --env dev --reset
+  ```
+
+### Configuration (`fake_data_config.json`)
+
+The generation process is controlled by `fake_data_config.json`. Below is a description of each parameter:
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `num_migrations` | Number | The total number of migrations (`migrations_mig`) to create. |
+| `mig_type` | String | The type assigned to all generated migrations (e.g., "EXTERNAL"). |
+| `mig_start_date_range`| Array | A `[start, end]` string array defining the date range for migration start dates. |
+| `mig_duration_months`| Number | The duration in months for each migration, used to calculate the end date. |
+| `iterations` | Object | Defines the number of `RUN`, `DR`, and `CUTOVER` iterations per migration. |
+| `num_teams` | Number | The number of regular teams to generate (in addition to the special `IT_CUTOVER` team). |
+| `teams_email_domain` | String | The email domain used for all generated users (e.g., "example.com"). |
+| `num_applications` | Number | The number of applications to generate. |
+| `num_users` | Number | The number of users with the `NORMAL` role to generate. |
+| `num_pilot_users` | Number | The number of users with the `PILOT` role to generate. |
+| `num_admin_users` | Number | The number of users with the `ADMIN` role to generate. |
+
+### Data Generation Logic and Conventions
+
+The script follows specific rules to ensure data integrity and realism:
+
+- **High-Level Structure:** The script generates a specified number of `migrations_mig`. For each migration, it creates a corresponding set of `iterations_ite` (RUN, DR, CUTOVER) and `sequences_sqc` (PRE-MIGRATION, CSD MIGRATION, etc.).
+
+- **Users, Teams, and Roles:**
+  - A special **`IT_CUTOVER`** team is always created first (`tms_code` = `T00`).
+  - `ADMIN` and `PILOT` users are assigned exclusively to the `IT_CUTOVER` team.
+  - `NORMAL` users are distributed across the other generated teams.
+
+- **Applications and Environments:**
+  - A fixed list of environments (`PROD`, `EV1`, etc.) is created.
+  - A specified number of applications are generated and randomly linked to teams via the `teams_applications_tap` table.
+
+- **Pending Implementation:** The script does **not** yet populate the tables for chapters, steps, tasks, controls, statuses, or their related join tables. This is the next logical area for expansion.
+
+- **Applications (`applications_app`):**
+  - Applications are generated with unique 3-letter codes.
+  - Each application is randomly assigned to one of the generated teams (excluding `IT_CUTOVER`).
+
+- **Users (`users_usr`):**
+  - **Roles:** Users are generated for three roles: `NORMAL`, `ADMIN`, and `PILOT`. The number for each is set in the config.
+  - **Unique Trigrams:** Every user is assigned a unique, randomly generated 3-letter uppercase trigram (`usr_trigram`).
+  - **Team Assignment Logic:**
+    - All `ADMIN` and `PILOT` users are assigned **exclusively** to the `IT_CUTOVER` team.
+    - `NORMAL` users are distributed among the other teams.
+    - The script **guarantees** that every non-`IT_CUTOVER` team has at least one `NORMAL` user assigned to it, preventing orphaned teams.
+  - **Email:** User emails are generated in the format `firstname.lastname@<teams_email_domain>`.
 
 ---
 
@@ -92,10 +143,16 @@ Automated tests ensure the reliability and maintainability of these utilities. T
   ```sh
   npx jest __tests__/umig_csv_importer.unit.test.js
   ```
+- Tests are run in verbose mode, so all conditions tested and passed will be clearly listed in the output.
 
 ### Test Types
 - **Unit tests:** Validate core logic (e.g., mapping, validation, CLI parsing). No database or file system side effects.
 - **Integration/CLI tests:** Simulate CLI usage and check for correct behavior, error handling, and environment safety.
+- **Integration tests for user and team assignment:**
+  - Every team has at least one member.
+  - Every user belongs to exactly one team.
+  - Every application is assigned to exactly one team.
+  - All ADMIN and PILOT users exist in the correct numbers and are assigned to IT_CUTOVER.
 
 ### Test Safety & Maintenance
 - **No tests will ever modify, rename, or delete your `.env` file.**
@@ -117,6 +174,14 @@ Automated tests ensure the reliability and maintainability of these utilities. T
 - ADR-013 (Node.js utilities rationale)
 
 ---
+
+## Recent Changes
+
+- **2025-06-23:**
+  - `env_code` now always matches `env_name` for environments.
+  - Team names are now abstract (`TEAM_X`), not person/company names.
+  - Team codes (`tms_code`) are now deterministic: `T00` for IT_CUTOVER, then `T01`, `T02`, ...
+  - Updated all examples and documentation to reflect these conventions.
 
 ## Extending
 - Add new entity generators or importers as your data model evolves.

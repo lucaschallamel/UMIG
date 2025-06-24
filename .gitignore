@@ -2,8 +2,10 @@
 node_modules/
 npm-debug.log
 yarn-error.log
-package-lock.json
 yarn.lock
+
+# Test Coverage
+coverage/
 
 # Java / Groovy (common for build artifacts, though ScriptRunner is server-side)
 *.class

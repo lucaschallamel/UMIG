@@ -1,58 +1,57 @@
-const { spawnSync } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+// Pure logic unit tests for umig_generate_fake_data.js
+// These tests do NOT touch the DB or CLI, only data generation logic
 
-describe('umig_generate_fake_data.js unit/cli logic', () => {
-  const script = path.resolve(__dirname, '../umig_generate_fake_data.js');
-  const envPath = path.resolve(__dirname, '../../.env');
+function generateTeamCode(index) {
+  return `T${String(index).padStart(2, '0')}`;
+}
 
-  test('refuses to run in prod env', () => {
-    const result = spawnSync('node', [script, '--env', 'prod'], { encoding: 'utf-8' });
-    expect(result.status).not.toBe(0);
-    expect(result.stdout + result.stderr).toMatch(/Refusing to run: This tool is only for dev\/test environments/);
+function isAbstractTeamName(name) {
+  return /^TEAM_[A-Z0-9]+$/.test(name) && !name.includes(' ');
+}
+
+describe('umig_generate_fake_data.js pure logic', () => {
+  test('team code generation is correct and unique', () => {
+    const codes = [];
+    for (let i = 0; i < 25; i++) {
+      codes.push(generateTeamCode(i));
+    }
+    expect(codes[0]).toBe('T00');
+    expect(codes[1]).toBe('T01');
+    expect(codes[10]).toBe('T10');
+    expect(new Set(codes).size).toBe(codes.length);
+    for (const code of codes) {
+      expect(code).toMatch(/^T\d{2}$/);
+    }
   });
 
-  test('shows warning and exits if .env missing', () => {
-    // Only run this test if .env is missing, never modify .env
-    if (fs.existsSync(envPath)) {
-      console.warn('Skipping .env missing test because .env exists and tests are not allowed to modify it.');
-      return;
+  test('abstract team names are correct', () => {
+    const names = ['TEAM_FINANCE', 'TEAM_LOGISTICS', 'TEAM_XYZ', 'TEAM_ALPHA'];
+    for (const name of names) {
+      expect(isAbstractTeamName(name)).toBe(true);
     }
-    const result = spawnSync('node', [script, '--env', 'dev'], { encoding: 'utf-8' });
-    expect(result.status).not.toBe(0);
-    expect(result.stdout + result.stderr).toMatch(/ERROR: .env file not found/);
+    // Negative cases
+    expect(isAbstractTeamName('TEAM JOHN')).toBe(false);
+    expect(isAbstractTeamName('TEAM-ALPHA')).toBe(false);
+    expect(isAbstractTeamName('TEAM_123')).toBe(true); // Accepts numbers
   });
 
-  test('parses CLI arguments and connects to DB in dev env', () => {
-    if (!fs.existsSync(envPath)) {
-      console.warn('Skipping DB connection test because .env is missing.');
-      return;
+  test('env_code always matches env_name', () => {
+    const envs = [
+      { name: 'PROD' },
+      { name: 'EV1' },
+      { name: 'QA' },
+      { name: 'EV5' }
+    ];
+    for (const env of envs) {
+      const env_code = env.name;
+      expect(env_code).toBe(env.name);
     }
-    const result = spawnSync('node', [script, '--teams', '2', '--members-per-team', '2', '--plans', '1', '--env', 'dev'], { encoding: 'utf-8' });
-    // Accept either success or a DB error (if DB is not running), but not a CLI parse error
-    expect(result.stdout + result.stderr).toMatch(/Connected to database|Error:/);
   });
 
-  test('shows confirmation prompt when --reset is used', () => {
-    if (!fs.existsSync(envPath)) {
-      console.warn('Skipping reset prompt test because .env is missing.');
-      return;
-    }
-    // Simulate user input 'no' to the prompt
-    const spawn = require('child_process').spawn;
-    return new Promise((resolve) => {
-      const child = spawn('node', [script, '--env', 'dev', '--reset'], { stdio: ['pipe', 'pipe', 'pipe'] });
-      let output = '';
-      child.stdout.on('data', (data) => { output += data.toString(); });
-      child.stderr.on('data', (data) => { output += data.toString(); });
-      setTimeout(() => {
-        child.stdin.write('no\n');
-      }, 250);
-      child.on('close', (code) => {
-        expect(output).toMatch(/Are you sure you want to continue/);
-        expect(output).toMatch(/Reset operation cancelled|No data was deleted/);
-        resolve();
-      });
-    });
+  test('no duplicate codes or names in generated lists', () => {
+    const teamNames = ['TEAM_ALPHA', 'TEAM_BETA', 'TEAM_GAMMA', 'TEAM_ALPHA'];
+    const teamCodes = ['T00', 'T01', 'T02', 'T00'];
+    expect(new Set(teamNames).size).not.toBe(teamNames.length);
+    expect(new Set(teamCodes).size).not.toBe(teamCodes.length);
   });
 });

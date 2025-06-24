@@ -16,6 +16,8 @@
 - Data utility tools (`umig_generate_fake_data.js` and `umig_csv_importer.js`) for synthetic data generation and CSV importing are in place with comprehensive testing.
 - Deterministic test fixtures for teams and team members ensure reproducible test results across the development team.
 - Jest-based testing framework with unit and integration tests provides safety and reliability guarantees for all data utilities.
+- Role-based user creation with intelligent team assignment logic ensuring data integrity and realistic test scenarios.
+- Unique user trigram generation for proper user identification in accordance with schema requirements.
 
 ## What's Left to Build
 
@@ -33,7 +35,8 @@
 - The backend implementation has made significant progress, with modular API endpoints for all core entities.
 - Documentation is comprehensive and accurately synchronized with implementation, with formal API specifications, data model documentation, and architectural decision records.
 - The database schema now precisely matches the original SQL Server specification, with all tables, relationships, and constraints fully implemented.
-- Data utilities now provide a reliable foundation for local development, with robust testing infrastructure and deterministic fixtures.
+- Data utilities now provide a reliable foundation for local development, with robust testing infrastructure, deterministic fixtures, and role-based user generation.
+- Environment stability issues have been resolved, particularly around volume persistence and schema-script synchronization.
 - The team is now ready to shift focus to frontend development and the implementation of the hierarchical data structure.
 
 ## Known Issues
@@ -53,4 +56,6 @@
 - REST endpoint configuration has been refined to use automatic script discovery instead of manual registration (ADR-011).
 - The Database Connection approach has shifted from manual JDBC driver management to ScriptRunner's built-in connection pooling (ADR-010).
 - Development utilities have advanced from basic scripts to robust, tested CLI tools with environment safety, comprehensive documentation, and reproducible test fixtures.
+- Data generation has become more sophisticated with role-based user creation and intelligent team assignment logic.
+- Environment stability has improved through fixes to volume persistence issues and schema-script synchronization.
 - All technical pivots and lessons are captured in the ADRs and memory bank for future reference.

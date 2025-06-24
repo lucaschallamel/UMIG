@@ -106,13 +106,7 @@ erDiagram
     text mig_description
     timestamp mig_planned_start_date
     timestamp mig_planned_end_date
-    int mty_id FK
-  }
-  migration_type_mty {
-    int id PK
-    varchar mty_code
-    varchar mty_name
-    text mty_description
+    enum mty_type
   }
   release_notes_rnt {
     int id PK
@@ -128,6 +122,15 @@ erDiagram
     text rle_description
   }
   sequences_sqc {
+    int id PK
+    int mig_id FK
+    int ite_id FK
+    varchar sqc_name
+    int sqc_order
+    timestamp start_date
+    timestamp end_date
+    int sqc_previous FK
+  
     int id PK
     int mig_id FK
     varchar sqc_name
@@ -175,7 +178,6 @@ erDiagram
   }
   users_usr {
     int id PK
-    varchar usr_code
     varchar usr_first_name
     varchar usr_last_name
     varchar usr_trigram
@@ -199,6 +201,7 @@ erDiagram
   iterations_ite }|--|| migrations_mig : "part of migration"
   migrations_mig }o--o| migration_type_mty : "has type"
   sequences_sqc }|--|| migrations_mig : "for migration"
+  sequences_sqc }|--|| iterations_ite : "for iteration"
   sequences_sqc }o--o| sequences_sqc : "previous sequence"
   steps_stp }o--o| chapter_cha : "in chapter"
   steps_stp }o--o| teams_tms : "assigned to team"
@@ -311,13 +314,9 @@ erDiagram
 - `mig_description` TEXT
 - `mig_planned_start_date` TIMESTAMP
 - `mig_planned_end_date` TIMESTAMP
-- `mty_id` INTEGER
+- `mty_type` ENUM('EXTERNAL', 'INTERNAL')
 
-#### **MIGRATION_TYPE_MTY**
-- `id` SERIAL PRIMARY KEY
-- `mty_code` VARCHAR(10)
-- `mty_name` VARCHAR(64)
-- `mty_description` TEXT
+> **Note:** The migration type is now an ENUM (`migration_type_enum`) with allowed values: 'EXTERNAL', 'INTERNAL'. The `migration_type_mty` table has been removed for simplicity and clarity.
 
 #### **ROLES_RLS**
 - `id` SERIAL PRIMARY KEY
@@ -326,6 +325,14 @@ erDiagram
 - `rle_description` TEXT
 
 #### **SEQUENCES_SQC**
+- `id`: Surrogate PK
+- `mig_id`: FK to `migrations_mig.id`
+- `ite_id`: FK to `iterations_ite.id` (**NEW: links sequence to its iteration**)
+- `sqc_name`: Sequence name
+- `sqc_order`: Sequence order within iteration
+- `start_date`, `end_date`: Sequence timing
+- `sqc_previous`: FK to previous sequence (if any)
+
 - `id` SERIAL PRIMARY KEY
 - `mig_id` INTEGER NOT NULL
 - `sqc_name` VARCHAR(255)
@@ -373,7 +380,6 @@ erDiagram
 
 #### **USERS_USR**
 - `id` SERIAL PRIMARY KEY
-- `usr_code` VARCHAR(10)
 - `usr_first_name` VARCHAR(64)
 - `usr_last_name` VARCHAR(64)
 - `usr_trigram` VARCHAR(3)
