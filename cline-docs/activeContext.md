@@ -8,12 +8,33 @@
 - The database schema has been fully synchronised with the original SQL Server specification, ensuring consistency across all tables, fields, and constraints.
 - Development of robust Node.js utilities for synthetic data generation and CSV importing, complete with comprehensive testing infrastructure.
 - Enhanced synthetic data generation for more realistic user and team data, with configurable role-based assignments.
+- Major architectural improvement: Implemented separation between canonical implementation plans (templates) and their execution instances via new tables, enabling reusability, versioning, and robust plan-vs-actual analysis.
 
 ## Recent Changes
 
-- Created and documented new tables `iteration_plan_itp` (structure of iteration plans) and `iterations_tracking_itt` (tracking of step execution per iteration) via dedicated Liquibase migration (`013_create_iteration_plan_and_tracking.sql`).
-- Merged the latest changes from `main` into the working branch (`data/tracking_activities`) to ensure full synchronisation with recent schema, utility, and documentation improvements.
-- Updated the `CHANGELOG.md` and main `README.md` to reflect the new tables and migration.
+- Implemented a new Canonical Implementation Plan data model (ADR-015) with new tables:
+  - `implementation_plans_canonical_ipc` (canonical plan templates)
+  - `sequences_master_sqm` (canonical sequences/phases)
+  - `chapters_master_chm` (canonical chapters)
+  - `steps_master_stm` (canonical steps)
+  - `instructions_master_inm` (canonical instructions)
+  - `controls_master_ctl` (canonical controls/validation checks)
+- Added Liquibase migration `013_create_canonical_implementation_plan_tables.sql` to implement the new schema.
+- Completely refactored the monolithic `umig_generate_fake_data.js` script into a modular system with single-responsibility generator files:
+  - `01_generate_core_metadata.js`
+  - `02_generate_teams_apps.js`
+  - `03_generate_users.js`
+  - `04_generate_environments.js`
+  - `05_generate_legacy_plans.js`
+  - `06_generate_canonical_plans.js`
+- Fixed multiple critical bugs in the legacy plan generator (`05_generate_legacy_plans.js`), resolving syntax errors and schema mismatches.
+- Refactored `status_sts` table: renamed `sts_code` to `entity_type`, widened columns, prepopulated with entity-specific statuses via migration `011_refactor_status_sts.sql`.
+- Added unique constraint to `stt_code` in `step_type_stt` (baseline schema).
+- Added `type_color` column (hex color code, VARCHAR(7)) to `step_type_stt` via migration `012_add_type_color_to_step_type_stt.sql`.
+- Updated data generation script to prepopulate `step_type_stt` with codes, names, descriptions, and color codes; uses idempotent insert logic.
+- Improved `resetDatabase()` to protect reference and migration tracking tables from truncation.
+- All integration and unit tests pass, confirming robust reference data and safe resets.
+- Updated the `CHANGELOG.md` and all relevant documentation to reflect the new tables and migration.
 - Added a detailed developer journal entry narrating the session, decisions, and technical pivots.
 - All documentation is now fully aligned with the current state of the codebase and database.
 - (Historique conservé) Major architectural pivot: The project moved from a standalone NodeJS/React stack to a Confluence-integrated application, using vanilla JS for the frontend and ScriptRunner (Groovy) for the backend, as mandated by enterprise constraints.
@@ -43,10 +64,12 @@
 
 ## Next Steps
 
-- Implement backend logic and API endpoints to leverage the new `iteration_plan_itp` and `iterations_tracking_itt` tables for real-time tracking and reporting.
-- Continue frontend development for the Implementation Plan macro UI, ensuring integration with the newly implemented backend APIs and new tracking features.
+- Finalize ADR-015 by updating its status from "Draft" to "Accepted" or "Implemented".
+- Implement backend logic and API endpoints to leverage the new canonical implementation plan tables for plan creation, editing, and versioning.
+- Continue frontend development for the Implementation Plan macro UI, ensuring integration with the newly implemented backend APIs and canonical plan structures.
 - Develop the Planning Feature UI for generating shareable HTML macro-plans.
 - Validate all API endpoints using the Postman collection against the local development environment.
 - Maintain strict documentation discipline for all future schema changes.
-- Extend test fixtures and integration tests as the data model evolves, particularly for implementation plans and tracking.
+- Extend test fixtures and integration tests as the data model evolves, particularly for canonical implementation plans.
 - Consider adding automated schema integrity checks or further integration tests as the project matures.
+- Create a dedicated document that explicitly outlines the current database naming conventions and table relationships.

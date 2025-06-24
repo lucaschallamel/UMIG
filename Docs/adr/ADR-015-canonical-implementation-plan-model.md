@@ -1,6 +1,6 @@
 # ADR-015: Canonical Implementation Plan Data Model
 
-**Status:** Draft  
+**Status:** Accepted  
 **Date:** 2025-06-24  
 
 ## Context
@@ -43,6 +43,3 @@ We will introduce a new canonical plan hierarchy, implemented as a set of normal
 - `/docs/dataModel/README.md`
 - `/CHANGELOG.md`
 - `/docs/adr/ADR-012_standardized_database_management_and_documentation.md`
-
----
-*Please review and suggest edits or approve so we can proceed to schema implementation and documentation updates.*
