@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS steps_stp CASCADE;
 --
 -- Table structure for table 'additional_instructions_ais'
 --
-CREATE TABLE additional_instructions_ais (
+CREATE TABLE IF NOT EXISTS additional_instructions_ais (
     id SERIAL PRIMARY KEY,
     stp_id INTEGER NOT NULL,
     instructions TEXT,
@@ -22,7 +22,7 @@ CREATE TABLE additional_instructions_ais (
 --
 -- Table structure for table 'applications_app'
 --
-CREATE TABLE applications_app (
+CREATE TABLE IF NOT EXISTS applications_app (
     id SERIAL PRIMARY KEY,
     app_code VARCHAR(50) NOT NULL,
     app_name VARCHAR(10),
@@ -32,7 +32,7 @@ CREATE TABLE applications_app (
 --
 -- Table structure for table 'chapter_cha'
 --
-CREATE TABLE chapter_cha (
+CREATE TABLE IF NOT EXISTS chapter_cha (
     id SERIAL PRIMARY KEY,
     cha_code VARCHAR(10),
     cha_name VARCHAR(10),
@@ -47,7 +47,7 @@ CREATE TABLE chapter_cha (
 --
 -- Table structure for table 'controls_ctl'
 --
-CREATE TABLE controls_ctl (
+CREATE TABLE IF NOT EXISTS controls_ctl (
     id SERIAL PRIMARY KEY,
     ctl_code VARCHAR(10),
     ctl_name TEXT,
@@ -61,7 +61,7 @@ CREATE TABLE controls_ctl (
 --
 -- Table structure for table 'environments_env'
 --
-CREATE TABLE environments_env (
+CREATE TABLE IF NOT EXISTS environments_env (
     id SERIAL PRIMARY KEY,
     env_code VARCHAR(10) UNIQUE,
     env_name VARCHAR(64),
@@ -71,7 +71,7 @@ CREATE TABLE environments_env (
 --
 -- Table structure for table 'environments_applications_eap'
 --
-CREATE TABLE environments_applications_eap (
+CREATE TABLE IF NOT EXISTS environments_applications_eap (
     id SERIAL PRIMARY KEY,
     env_id INTEGER NOT NULL,
     app_id INTEGER NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE environments_applications_eap (
 --
 -- Table structure for table 'environments_iterations_eit'
 --
-CREATE TABLE environments_iterations_eit (
+CREATE TABLE IF NOT EXISTS environments_iterations_eit (
     id SERIAL PRIMARY KEY,
     env_id INTEGER NOT NULL,
     ite_id INTEGER NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE environments_iterations_eit (
 
 -- Table structure for table 'instructions_ins'
 --
-CREATE TABLE instructions_ins (
+CREATE TABLE IF NOT EXISTS instructions_ins (
     id SERIAL PRIMARY KEY,
     ins_code VARCHAR(10),
     ins_description TEXT,
@@ -102,7 +102,7 @@ CREATE TABLE instructions_ins (
 --
 -- Table structure for table 'iterations_ite'
 --
-CREATE TABLE iterations_ite (
+CREATE TABLE IF NOT EXISTS iterations_ite (
     id SERIAL PRIMARY KEY,
     ite_code VARCHAR(10),
     ite_name VARCHAR(64),
@@ -116,7 +116,7 @@ CREATE TABLE iterations_ite (
 --
 -- Table structure for table 'iterations_tracking_itt'
 --
-CREATE TABLE iterations_tracking_itt (
+CREATE TABLE IF NOT EXISTS iterations_tracking_itt (
     id VARCHAR(10) PRIMARY KEY,
     mig_code VARCHAR(10),
     ite_code VARCHAR(10),
@@ -133,7 +133,7 @@ CREATE TABLE iterations_tracking_itt (
 --
 CREATE TYPE migration_type_enum AS ENUM ('EXTERNAL', 'INTERNAL');
 
-CREATE TABLE migrations_mig (
+CREATE TABLE IF NOT EXISTS migrations_mig (
     id SERIAL PRIMARY KEY,
     mig_code VARCHAR(10),
     mig_name VARCHAR(128),
@@ -148,7 +148,7 @@ CREATE TABLE migrations_mig (
 --
 -- Table structure for table 'release_notes_rnt'
 --
-CREATE TABLE release_notes_rnt (
+CREATE TABLE IF NOT EXISTS release_notes_rnt (
     id SERIAL PRIMARY KEY,
     rnt_code VARCHAR(10),
     rnt_name VARCHAR(64),
@@ -159,7 +159,7 @@ CREATE TABLE release_notes_rnt (
 --
 -- Table structure for table 'roles_rls'
 --
-CREATE TABLE roles_rls (
+CREATE TABLE IF NOT EXISTS roles_rls (
     id SERIAL PRIMARY KEY,
     rle_code VARCHAR(10),
     rle_name VARCHAR(64),
@@ -169,7 +169,7 @@ CREATE TABLE roles_rls (
 --
 -- Table structure for table 'sequences_sqc'
 --
-CREATE TABLE sequences_sqc (
+CREATE TABLE IF NOT EXISTS sequences_sqc (
     id SERIAL PRIMARY KEY,
     mig_id INTEGER NOT NULL,
     ite_id INTEGER NULL,
@@ -185,7 +185,7 @@ ALTER TABLE sequences_sqc ADD CONSTRAINT fk_sqc_ite FOREIGN KEY (ite_id) REFEREN
 --
 -- Table structure for table 'status_sts'
 --
-CREATE TABLE status_sts (
+CREATE TABLE IF NOT EXISTS status_sts (
     id SERIAL PRIMARY KEY,
     sts_code VARCHAR(10),
     sts_name VARCHAR(64),
@@ -195,7 +195,7 @@ CREATE TABLE status_sts (
 --
 -- Table structure for table 'steps_stp'
 --
-CREATE TABLE steps_stp (
+CREATE TABLE IF NOT EXISTS steps_stp (
     id SERIAL PRIMARY KEY,
     stp_code VARCHAR(10),
     stp_name VARCHAR(64),
@@ -212,7 +212,7 @@ CREATE TABLE steps_stp (
 --
 -- Table structure for table 'step_type_stt'
 --
-CREATE TABLE step_type_stt (
+CREATE TABLE IF NOT EXISTS step_type_stt (
     id SERIAL PRIMARY KEY,
     stt_code VARCHAR(10),
     stt_name VARCHAR(64),
@@ -222,7 +222,7 @@ CREATE TABLE step_type_stt (
 --
 -- Table structure for table 'teams_tms'
 --
-CREATE TABLE teams_tms (
+CREATE TABLE IF NOT EXISTS teams_tms (
     id SERIAL PRIMARY KEY,
     tms_code VARCHAR(10),
     tms_name VARCHAR(64),
@@ -233,7 +233,7 @@ CREATE TABLE teams_tms (
 --
 -- Table structure for table 'teams_applications_tap'
 --
-CREATE TABLE teams_applications_tap (
+CREATE TABLE IF NOT EXISTS teams_applications_tap (
     id SERIAL PRIMARY KEY,
     tms_id INTEGER NOT NULL,
     app_id INTEGER NOT NULL
@@ -242,7 +242,7 @@ CREATE TABLE teams_applications_tap (
 --
 -- Table structure for table 'users_usr'
 --
-CREATE TABLE users_usr (
+CREATE TABLE IF NOT EXISTS users_usr (
     id SERIAL PRIMARY KEY,
     usr_first_name VARCHAR(64),
     usr_last_name VARCHAR(64),
