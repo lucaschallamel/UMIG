@@ -13,5 +13,6 @@
   "num_applications": 12,
   "num_users": 50,
   "num_pilot_users": 4,
-  "num_admin_users": 2
+  "num_admin_users": 2,
+  "num_controls": 30
 }

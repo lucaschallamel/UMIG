@@ -1,7 +1,5 @@
 --liquibase formatted sql
 
--- Ensure clean baseline for dev/test
-DROP TABLE IF EXISTS steps_stp CASCADE;
 
 --changeset lucas.challamel:1 context:all
 --comment: This is the initial baseline schema for the UMIG application,
@@ -28,6 +26,8 @@ CREATE TABLE IF NOT EXISTS applications_app (
     app_name VARCHAR(10),
     app_description TEXT
 );
+-- Add unique constraint for app_code
+ALTER TABLE applications_app ADD CONSTRAINT uq_applications_app_code UNIQUE (app_code);
 
 --
 -- Table structure for table 'chapter_cha'
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS chapter_cha (
 --
 CREATE TABLE IF NOT EXISTS controls_ctl (
     id SERIAL PRIMARY KEY,
-    ctl_code VARCHAR(10),
+    ctl_code VARCHAR(10) NOT NULL,
     ctl_name TEXT,
     ctl_producer INTEGER,
     ctl_it_validator INTEGER,
@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS controls_ctl (
     ctl_biz_comments TEXT,
     ctl_biz_validator INTEGER
 );
+-- Add unique constraint for ctl_code
+ALTER TABLE controls_ctl ADD CONSTRAINT uq_controls_ctl_code UNIQUE (ctl_code);
 
 --
 -- Table structure for table 'environments_env'
@@ -104,14 +106,16 @@ CREATE TABLE IF NOT EXISTS instructions_ins (
 --
 CREATE TABLE IF NOT EXISTS iterations_ite (
     id SERIAL PRIMARY KEY,
-    ite_code VARCHAR(10),
+    ite_code VARCHAR(10) NOT NULL,
     ite_name VARCHAR(64),
-    mig_id INTEGER,
+    mig_id INTEGER NOT NULL,
     ite_type VARCHAR(16),
-    description TEXT,
     ite_start_date TIMESTAMP,
-    ite_end_date TIMESTAMP
+    ite_end_date TIMESTAMP,
+    description TEXT
 );
+-- Add unique constraint for (ite_code, mig_id)
+ALTER TABLE iterations_ite ADD CONSTRAINT uq_iterations_ite_code_mig UNIQUE (ite_code, mig_id);
 
 --
 -- Table structure for table 'iterations_tracking_itt'
@@ -135,15 +139,15 @@ CREATE TYPE migration_type_enum AS ENUM ('EXTERNAL', 'INTERNAL');
 
 CREATE TABLE IF NOT EXISTS migrations_mig (
     id SERIAL PRIMARY KEY,
-    mig_code VARCHAR(10),
+    mig_code VARCHAR(50) NOT NULL,
     mig_name VARCHAR(128),
     mig_description TEXT,
     mig_planned_start_date TIMESTAMP,
     mig_planned_end_date TIMESTAMP,
     mty_type migration_type_enum
 );
-
---
+-- Add unique constraint for mig_code
+ALTER TABLE migrations_mig ADD CONSTRAINT uq_migrations_mig_code UNIQUE (mig_code);
 
 --
 -- Table structure for table 'release_notes_rnt'
@@ -172,13 +176,15 @@ CREATE TABLE IF NOT EXISTS roles_rls (
 CREATE TABLE IF NOT EXISTS sequences_sqc (
     id SERIAL PRIMARY KEY,
     mig_id INTEGER NOT NULL,
-    ite_id INTEGER NULL,
+    ite_id INTEGER NOT NULL,
+    sqc_order INTEGER NOT NULL,
     sqc_name VARCHAR(255),
-    sqc_order INTEGER,
     start_date TIMESTAMP,
     end_date TIMESTAMP,
     sqc_previous INTEGER
 );
+-- Add unique constraint for (mig_id, ite_id, sqc_order)
+ALTER TABLE sequences_sqc ADD CONSTRAINT uq_sequences_sqc_mig_ite_order UNIQUE (mig_id, ite_id, sqc_order);
 
 ALTER TABLE sequences_sqc ADD CONSTRAINT fk_sqc_ite FOREIGN KEY (ite_id) REFERENCES iterations_ite(id);
 
@@ -187,8 +193,8 @@ ALTER TABLE sequences_sqc ADD CONSTRAINT fk_sqc_ite FOREIGN KEY (ite_id) REFEREN
 --
 CREATE TABLE IF NOT EXISTS status_sts (
     id SERIAL PRIMARY KEY,
-    sts_code VARCHAR(10),
-    sts_name VARCHAR(64),
+    sts_code VARCHAR(32),
+    sts_name VARCHAR(32),
     sts_description TEXT
 );
 
@@ -218,17 +224,21 @@ CREATE TABLE IF NOT EXISTS step_type_stt (
     stt_name VARCHAR(64),
     stt_description TEXT
 );
+-- Add unique constraint for stt_code
+ALTER TABLE step_type_stt ADD CONSTRAINT uq_step_type_stt_code UNIQUE (stt_code);
 
 --
 -- Table structure for table 'teams_tms'
 --
 CREATE TABLE IF NOT EXISTS teams_tms (
     id SERIAL PRIMARY KEY,
-    tms_code VARCHAR(10),
+    tms_code VARCHAR(10) NOT NULL,
     tms_name VARCHAR(64),
     tms_description TEXT,
     tms_email VARCHAR(255)
 );
+-- Add unique constraint for tms_code
+ALTER TABLE teams_tms ADD CONSTRAINT uq_teams_tms_code UNIQUE (tms_code);
 
 --
 -- Table structure for table 'teams_applications_tap'
@@ -246,11 +256,13 @@ CREATE TABLE IF NOT EXISTS users_usr (
     id SERIAL PRIMARY KEY,
     usr_first_name VARCHAR(64),
     usr_last_name VARCHAR(64),
-    usr_trigram VARCHAR(3),
+    usr_trigram VARCHAR(3) NOT NULL,
     usr_email VARCHAR(128),
-    tms_id INTEGER,
-    rle_id INTEGER
+    rle_id INTEGER,
+    tms_id INTEGER
 );
+-- Add unique constraint for usr_trigram
+ALTER TABLE users_usr ADD CONSTRAINT uq_users_usr_trigram UNIQUE (usr_trigram);
 
 --
 -- Foreign key constraints

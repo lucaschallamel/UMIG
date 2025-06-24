@@ -5,7 +5,7 @@ description: At the end of each session, we look back at everythig that was said
 The Developer Journal is a great way to keep track of our progress and document the way we made design decisions and coding breakthroughs.
 
 The task is to generate a new Developer Journal entry in the 
-DevJournal
+docs/devJournal
  folder, in markdown format, using the naming convention yyyymmdd-nn.md.
 
 The content of the entry must narrate the session's story. To ensure the full context is captured, you will follow these steps in order:
@@ -24,7 +24,7 @@ Review any documentation that was modified, such as
 CHANGELOG.md
 , 
 README.md
-, and any files in Docs/adr.
+, and any files in docs/adr.
 3. Synthesise and Write the Narrative:
 
 Begin the journal entry by stating the high-level goal you identified in Step 1.

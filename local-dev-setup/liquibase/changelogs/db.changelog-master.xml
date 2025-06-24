@@ -6,6 +6,8 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <include file="001_baseline_schema.sql" relativeToChangelogFile="true"/>
+    <include file="011_refactor_status_sts.sql" relativeToChangelogFile="true"/>
+    <include file="012_add_type_color_to_step_type_stt.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

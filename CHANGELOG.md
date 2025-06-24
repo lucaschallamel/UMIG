@@ -3,6 +3,14 @@
 - Enhanced `umig_generate_fake_data.js` to support configurable generation of NORMAL, ADMIN, and PILOT users, with unique trigrams and correct team assignment logic (all ADMIN and PILOT users assigned to IT_CUTOVER; every team receives at least one NORMAL user).
 - Added/updated Jest integration tests to verify: every team has at least one member, every user belongs to exactly one team, every application is assigned to exactly one team, and all ADMIN/PILOT users are in IT_CUTOVER.
 - Updated `fake_data_config.json` to allow configuration of user/role counts.
+- **2025-06-24:**
+    - Refactored `status_sts` table: renamed `sts_code` to `entity_type`, widened columns, prepopulated with entity-specific statuses via migration `011_refactor_status_sts.sql`.
+    - Added unique constraint to `stt_code` in `step_type_stt` (baseline schema).
+    - Added `type_color` column (hex color code, VARCHAR(7)) to `step_type_stt` via migration `012_add_type_color_to_step_type_stt.sql`.
+    - Updated data generation script to prepopulate `step_type_stt` with codes, names, descriptions, and color codes; uses idempotent insert logic.
+    - Improved `resetDatabase()` to protect reference and migration tracking tables from truncation.
+    - All integration and unit tests pass, confirming robust reference data and safe resets.
+    - Documentation and subfolder READMEs updated to reflect schema and data generation changes.
 
 #### Changed
 - Refactored `steps_stp` to use a foreign key to the re-introduced `status_sts` table, removing the hardcoded `status` column and normalizing the schema.

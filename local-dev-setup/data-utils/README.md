@@ -68,6 +68,26 @@ The generation process is controlled by `fake_data_config.json`. Below is a desc
 
 The script follows specific rules to ensure data integrity and realism:
 
+- **Reference Table Protection:**
+  - The `resetDatabase()` function will never truncate the `status_sts` or `step_type_stt` tables, nor the Liquibase migration tracking tables. This ensures critical reference data and migration state are always preserved, even when running with `--reset`.
+
+- **Step Type Reference Data (`step_type_stt`):**
+  - The script always prepopulates `step_type_stt` with a fixed set of step types, each with a code, name, description, and a hexadecimal color code (`type_color`).
+  - Color codes are stored in the `type_color` field (`VARCHAR(7)`, e.g., `#1ba1e2`).
+  - The current reference set is:
+    | stt_code | stt_name      | stt_description                 | type_color |
+    |----------|---------------|----------------------------------|------------|
+    | TRT      | TREATMENTS    | Treatments steps                 | #1ba1e2    |
+    | PRE      | PREPARATION   | Preparation steps                | #008a00    |
+    | IGO      | IT GO         | IT Validation steps              | #7030a0    |
+    | CHK      | CHECK         | Controls and check activities    | #ffff00    |
+    | BUS      | BUS           | Bus related steps                | #ff00ff    |
+    | SYS      | SYSTEM        | System related activities        | #000000    |
+    | GON      | GO/NOGO       | Go/No Go steps                   | #ff0000    |
+    | BGO      | BUSINESS GO   | Business Validation steps        | #ffc000    |
+    | DUM      | DUMPS         | Database related activities      | #948a54    |
+  - The script uses `ON CONFLICT (stt_code) DO NOTHING` to ensure idempotency: running the script multiple times will never create duplicates or errors.
+
 - **High-Level Structure:** The script generates a specified number of `migrations_mig`. For each migration, it creates a corresponding set of `iterations_ite` (RUN, DR, CUTOVER) and `sequences_sqc` (PRE-MIGRATION, CSD MIGRATION, etc.).
 
 - **Users, Teams, and Roles:**
@@ -135,7 +155,14 @@ Automated tests ensure the reliability and maintainability of these utilities. T
 
 ### Running Tests
 
-- To run all tests:
+**Important:** The integration tests now expect data to be already generated. Always run the data generation script before running tests:
+
+```sh
+node umig_generate_fake_data.js --env dev --reset
+npm test
+```
+
+- To run all tests (after data generation):
   ```sh
   npm test
   ```
@@ -176,6 +203,15 @@ Automated tests ensure the reliability and maintainability of these utilities. T
 ---
 
 ## Recent Changes
+
+- **2025-06-24:**
+  - Refactored `status_sts` table: renamed `sts_code` to `entity_type`, widened columns, and prepopulated with entity-specific statuses via migration `011_refactor_status_sts.sql`.
+  - Added unique constraint to `stt_code` in `step_type_stt` (baseline schema).
+  - Added `type_color` column (hex color code, VARCHAR(7)) to `step_type_stt` via migration `012_add_type_color_to_step_type_stt.sql`.
+  - Updated data generation script to prepopulate `step_type_stt` with codes, names, descriptions, and color codes; uses idempotent insert logic.
+  - Improved `resetDatabase()` to protect reference and migration tracking tables from truncation.
+  - All integration and unit tests pass, confirming robust reference data and safe resets.
+  - Documentation updated to reflect schema and data generation changes, including new color code support for step types.
 
 - **2025-06-23:**
   - `env_code` now always matches `env_name` for environments.

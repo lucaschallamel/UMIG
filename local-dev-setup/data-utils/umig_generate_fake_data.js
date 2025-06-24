@@ -113,10 +113,155 @@ const client = new Client(DB_CONFIG);
 // 3. Entity Generator Functions
 // ============================
 
+// Generate environments_iterations_eit associations
+async function generateEnvironmentIterationLinks(client) {
+  console.log('Linking environments to iterations...');
+  // Fetch all environments
+  const envRes = await client.query('SELECT id, env_name FROM environments_env');
+  const envs = envRes.rows;
+  const prodEnv = envs.find(e => e.env_name === 'PROD');
+  const nonProdEnvs = envs.filter(e => e.env_name !== 'PROD');
+  if (!prodEnv || nonProdEnvs.length < 2) throw new Error('Not enough environments for associations.');
+  // Fetch all iterations with their types and ids
+  const iterRes = await client.query('SELECT id, ite_type, mig_id FROM iterations_ite');
+  const iterations = iterRes.rows;
+  // For each migration, group its iterations
+  const itersByMig = {};
+  for (const iter of iterations) {
+    if (!itersByMig[iter.mig_id]) itersByMig[iter.mig_id] = [];
+    itersByMig[iter.mig_id].push(iter);
+  }
+  for (const migId in itersByMig) {
+    const iters = itersByMig[migId];
+    // RUN/DR: 3 non-PROD envs, roles PROD/TEST/BACKUP
+    for (const iter of iters) {
+      if (iter.ite_type === 'RUN' || iter.ite_type === 'DR') {
+        // Pick 3 unique non-PROD envs
+        const shuffled = [...nonProdEnvs].sort(() => 0.5 - Math.random());
+        const roles = ['PROD', 'TEST', 'BACKUP'];
+        for (let i = 0; i < 3; i++) {
+          await client.query(
+            'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+            [shuffled[i % shuffled.length].id, iter.id, roles[i]]
+          );
+        }
+      }
+      if (iter.ite_type === 'CUTOVER') {
+        // PROD env for PROD role
+        await client.query(
+          'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [prodEnv.id, iter.id, 'PROD']
+        );
+        // Pick 2 unique non-PROD envs for TEST and BACKUP
+        const shuffled = [...nonProdEnvs].sort(() => 0.5 - Math.random());
+        await client.query(
+          'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [shuffled[0].id, iter.id, 'TEST']
+        );
+        await client.query(
+          'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [shuffled[1 % shuffled.length].id, iter.id, 'BACKUP']
+        );
+      }
+    }
+  }
+  console.log('Finished linking environments to iterations.');
+}
+
+
+// Generate environments_applications_eap associations
+async function generateEnvironmentApplicationLinks(client) {
+  console.log('Linking applications to environments...');
+  // Fetch all environments and applications
+  const envRes = await client.query('SELECT id, env_name FROM environments_env');
+  const appRes = await client.query('SELECT id FROM applications_app');
+  const envs = envRes.rows;
+  const apps = appRes.rows;
+  if (envs.length < 2 || apps.length === 0) {
+    throw new Error('Not enough environments or applications to link.');
+  }
+  // Identify PROD and EV1
+  const prodEnv = envs.find(e => e.env_name === 'PROD');
+  const ev1Env = envs.find(e => e.env_name === 'EV1');
+  if (!prodEnv || !ev1Env) throw new Error('PROD or EV1 environment not found.');
+  // Helper to avoid duplicate links
+  const inserted = new Set();
+  // 1. Link every app to PROD
+  for (const app of apps) {
+    const key = `${prodEnv.id}_${app.id}`;
+    await client.query(
+      'INSERT INTO environments_applications_eap (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+      [prodEnv.id, app.id, faker.lorem.sentence()]
+    );
+    inserted.add(key);
+  }
+  // 2. Link every app to EV1
+  for (const app of apps) {
+    const key = `${ev1Env.id}_${app.id}`;
+    if (!inserted.has(key)) {
+      await client.query(
+        'INSERT INTO environments_applications_eap (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [ev1Env.id, app.id, faker.lorem.sentence()]
+      );
+      inserted.add(key);
+    }
+  }
+  // 3. For other envs, associate at least 5 random apps
+  for (const env of envs) {
+    if (env.env_name === 'PROD' || env.env_name === 'EV1') continue;
+    // Pick at least 5 unique random apps
+    const shuffled = [...apps].sort(() => 0.5 - Math.random());
+    const numLinks = Math.max(5, Math.floor(apps.length / 2)); // Ensure at least 5, or more if small app count
+    for (let i = 0; i < numLinks; i++) {
+      const app = shuffled[i % apps.length];
+      const key = `${env.id}_${app.id}`;
+      if (!inserted.has(key)) {
+        await client.query(
+          'INSERT INTO environments_applications_eap (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [env.id, app.id, faker.lorem.sentence()]
+        );
+        inserted.add(key);
+      }
+    }
+  }
+  console.log('Finished linking applications to environments.');
+}
+
+
+// Generate controls_ctl entries
+async function generateControls(client, numControls = 30) {
+  console.log(`Generating ${numControls} controls...`);
+  // Fetch all team ids and names
+  const teamsRes = await client.query('SELECT id, tms_name FROM teams_tms');
+  const teams = teamsRes.rows;
+  if (teams.length < 1) {
+    throw new Error('No teams found for control assignment.');
+  }
+  for (let i = 1; i <= numControls; i++) {
+    const ctl_code = `C${String(i).padStart(4, '0')}`;
+    const ctl_name = 'Control of ' + faker.lorem.sentence();
+    // Pick random teams for producer, it_validator, biz_validator (by id)
+    const ctl_producer = teams[Math.floor(Math.random() * teams.length)].id;
+    const ctl_it_validator = teams[Math.floor(Math.random() * teams.length)].id;
+    const ctl_biz_validator = teams[Math.floor(Math.random() * teams.length)].id;
+    const ctl_it_comments = faker.lorem.sentence();
+    const ctl_biz_comments = faker.lorem.sentence();
+    await client.query(
+      `INSERT INTO controls_ctl (ctl_code, ctl_name, ctl_producer, ctl_it_validator, ctl_biz_validator, ctl_it_comments, ctl_biz_comments)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (ctl_code) DO NOTHING`,
+      [ctl_code, ctl_name, ctl_producer, ctl_it_validator, ctl_biz_validator, ctl_it_comments, ctl_biz_comments]
+    );
+  }
+  console.log('Finished generating controls.');
+}
+
+
 async function generateMigration(client, mig) {
   const result = await client.query(
     `INSERT INTO migrations_mig (mig_code, mig_name, mig_description, mig_planned_start_date, mig_planned_end_date, mty_type)
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (mig_code) DO NOTHING RETURNING id`,
     [mig.mig_code, mig.mig_name, mig.mig_description, mig.mig_planned_start_date, mig.mig_planned_end_date, mig.mty_type]
   );
   return { ...mig, id: result.rows[0].id };
@@ -130,7 +275,8 @@ async function generateIteration(client, migration, type, index, startDate, wind
   const ite_end_date = new Date(ite_start_date.getTime() + (windowDays - 1) * 24 * 60 * 60 * 1000);
   const result = await client.query(
     `INSERT INTO iterations_ite (mig_id, ite_code, ite_name, ite_type, ite_start_date, ite_end_date, description)
-     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     ON CONFLICT (ite_code, mig_id) DO NOTHING RETURNING id`,
     [migration.id, ite_code, ite_name, type, ite_start_date, ite_end_date, description]
   );
   return { ...migration, id: result.rows[0].id, ite_start_date, ite_end_date };
@@ -141,7 +287,8 @@ async function generateSequences(client, migration, iteration, seqWindows) {
   for (let sqc_order = 1; sqc_order <= SEQUENCE_NAMES.length; sqc_order++) {
     const seqResult = await client.query(
       `INSERT INTO sequences_sqc (mig_id, ite_id, sqc_name, sqc_order, start_date, end_date, sqc_previous)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (mig_id, ite_id, sqc_order) DO NOTHING RETURNING id`,
       [migration.id, iteration.id, SEQUENCE_NAMES[sqc_order - 1], sqc_order, seqWindows[sqc_order-1].start, seqWindows[sqc_order-1].end, prevSeqId === 0 ? null : prevSeqId]
     );
     prevSeqId = seqResult.rows[0].id;
@@ -153,7 +300,7 @@ async function generateEnvironments(client, envList) {
     const name = env.name;
     const description = faker.company.catchPhrase();
     await client.query(
-      `INSERT INTO environments_env (env_name, env_code, env_description) VALUES ($1, $1, $2)`,
+      `INSERT INTO environments_env (env_name, env_code, env_description) VALUES ($1, $1, $2) ON CONFLICT (env_code) DO NOTHING`,
       [name, description]
     );
   }
@@ -164,7 +311,8 @@ async function generateTeams(client, config) {
   const domain = config.teams_email_domain;
   const specialTeamName = 'IT_CUTOVER';
   await client.query(
-    `INSERT INTO teams_tms (tms_code, tms_name, tms_description, tms_email) VALUES ($1, $2, $3, $4)`,
+    `INSERT INTO teams_tms (tms_code, tms_name, tms_description, tms_email) VALUES ($1, $2, $3, $4)
+     ON CONFLICT (tms_code) DO NOTHING`,
     ['T00', specialTeamName, 'Team for IT Cutover activities', makeTeamEmail(specialTeamName, domain)]
   );
 
@@ -174,7 +322,8 @@ async function generateTeams(client, config) {
     const description = faker.company.catchPhrase();
     const email = makeTeamEmail(name, domain);
     await client.query(
-      `INSERT INTO teams_tms (tms_code, tms_name, tms_description, tms_email) VALUES ($1, $2, $3, $4)`,
+      `INSERT INTO teams_tms (tms_code, tms_name, tms_description, tms_email) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (tms_code) DO NOTHING`,
       [code, name, description, email]
     );
   }
@@ -205,6 +354,7 @@ async function resetDatabase() {
     WHERE schemaname = 'public'
       AND tablename NOT LIKE 'pg_%'
       AND tablename NOT LIKE 'sql_%'
+      AND tablename NOT IN ('databasechangelog', 'databasechangeloglock', 'status_sts') -- Protect Liquibase migration tracking tables and status reference data [SFT][CA][REH]
   `);
   const tableNames = rows.map(r => '"' + r.tablename + '"');
   if (tableNames.length > 0) {
@@ -215,6 +365,31 @@ async function resetDatabase() {
   }
   await client.query('COMMIT');
   console.log('All tables truncated.');
+}
+
+async function generateStepTypes(client) {
+  // Prepopulate step_type_stt with reference values and color codes [SF][CA][DRY]
+  // stt_code, stt_name, stt_description, type_color
+  console.log('Prepopulating step_type_stt...');
+  const stepTypes = [
+    ['TRT', 'TREATMENTS', 'Treatments steps', '#1ba1e2'],
+    ['PRE', 'PREPARATION', 'Preparation steps', '#008a00'],
+    ['IGO', 'IT GO', 'IT Validation steps', '#7030a0'],
+    ['CHK', 'CHECK', 'Controls and check activities', '#ffff00'],
+    ['BUS', 'BUS', 'Bus related steps', '#ff00ff'],
+    ['SYS', 'SYSTEM', 'System related activities', '#000000'],
+    ['GON', 'GO/NOGO', 'Go/No Go steps', '#ff0000'],
+    ['BGO', 'BUSINESS GO', 'Business Validation steps', '#ffc000'],
+    ['DUM', 'DUMPS', 'Database related activities', '#948a54'],
+  ];
+  for (const [stt_code, stt_name, stt_description, type_color] of stepTypes) {
+    await client.query(
+      `INSERT INTO step_type_stt (stt_code, stt_name, stt_description, type_color) VALUES ($1, $2, $3, $4)
+       ON CONFLICT (stt_code) DO NOTHING`,
+      [stt_code, stt_name, stt_description, type_color]
+    );
+  }
+  console.log('Finished prepopulating step_type_stt.');
 }
 
 async function main() {
@@ -240,6 +415,8 @@ async function main() {
       }
       await resetDatabase();
     }
+    // --- Prepopulate Step Types ---
+    await generateStepTypes(client);
     // --- Load config ---
     await generateRoles(client);
     const configPath = path.resolve(__dirname, 'fake_data_config.json');
@@ -251,11 +428,14 @@ async function main() {
     await generateEnvironments(client, ENVIRONMENTS);
     // --- Prepopulate Teams ---
     await generateTeams(client, config);
+    // --- Prepopulate Controls ---
+    await generateControls(client, config.num_controls || 30);
     // --- Generate Users ---
     await generateUsers(client, config);
     // --- Prepopulate Applications ---
     await generateApplications(client, config.num_applications || 10);
-
+    // --- Link Applications to Environments ---
+    await generateEnvironmentApplicationLinks(client);
     // --- Link Applications to Teams ---
     await generateTeamApplicationLinks(client);
     // --- Generate Migrations ---
@@ -285,11 +465,9 @@ async function main() {
     }
     // --- Generate Iterations & Sequences ---
     for (const mig of migrations) {
-      let currentStart = nextThursday(new Date(mig.mig_planned_start_date));
-      for (const type of ITERATION_TYPES) {
-        const count = type === 'RUN' ? Math.floor(Math.random() * (mig.iterations.run.max - mig.iterations.run.min + 1)) + mig.iterations.run.min :
-                      type === 'DR' ? Math.floor(Math.random() * (mig.iterations.dr.max - mig.iterations.dr.min + 1)) + mig.iterations.dr.min :
-                      mig.iterations.cutover || 1;
+      for (const type of ['RUN', 'DR', 'CUTOVER']) {
+        const count = type === 'CUTOVER' ? config.iterations.cutover : faker.number.int({ min: config.iterations[type.toLowerCase()].min, max: config.iterations[type.toLowerCase()].max });
+        let currentStart = nextThursday(mig.mig_planned_start_date);
         for (let i = 0; i < count; i++) {
           const iteration = await generateIteration(client, mig, type, i, currentStart);
           const seqWindows = getSequenceWindows(iteration.ite_start_date, iteration.ite_end_date);
@@ -298,6 +476,8 @@ async function main() {
         }
       }
     }
+    // --- Link Environments to Iterations ---
+    await generateEnvironmentIterationLinks(client);
     console.log('Fake data generation complete.');
   } catch (err) {
     console.error('Error:', err);
@@ -327,7 +507,8 @@ async function generateApplications(client, numApplications) {
     const app_name = faker.word.noun().toUpperCase().slice(0, 10);
     const app_description = faker.lorem.sentence();
     await client.query(
-      `INSERT INTO applications_app (app_code, app_name, app_description) VALUES ($1, $2, $3)`,
+      `INSERT INTO applications_app (app_code, app_name, app_description) VALUES ($1, $2, $3)
+       ON CONFLICT (app_code) DO NOTHING`,
       [app_code, app_name, app_description]
     );
   }
@@ -346,11 +527,12 @@ async function generateTeamApplicationLinks(client) {
     return;
   }
 
-  for (const appId of appIds) {
-    const randomTeamId = teamIds[Math.floor(Math.random() * teamIds.length)];
+  // Assign applications to teams in round-robin (deterministic)
+  for (let i = 0; i < appIds.length; i++) {
+    const teamId = teamIds[i % teamIds.length];
     await client.query(
       'INSERT INTO teams_applications_tap (tms_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-      [randomTeamId, appId]
+      [teamId, appIds[i]]
     );
   }
   console.log(`Finished linking ${appIds.length} applications to teams.`);
@@ -405,7 +587,8 @@ async function generateUsers(client, config) {
     const trigram = trigrams[trigramIndex++];
     await client.query(
       `INSERT INTO users_usr (usr_first_name, usr_last_name, usr_trigram, usr_email, rle_id, tms_id)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (usr_trigram) DO NOTHING`,
       [firstName, lastName, trigram, email, roleId, teamId]
     );
   };
