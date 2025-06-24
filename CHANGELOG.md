@@ -11,7 +11,21 @@
     - Improved `resetDatabase()` to protect reference and migration tracking tables from truncation.
     - All integration and unit tests pass, confirming robust reference data and safe resets.
     - Documentation and subfolder READMEs updated to reflect schema and data generation changes.
-    - Added Liquibase migration `013_create_iteration_plan_and_tracking.sql` for creation of tables `iteration_plan_itp` and `iterations_tracking_itt`.
+    - Added Liquibase migration `013_create_canonical_implementation_plan_tables.sql` for creation of canonical implementation plan tables as defined in ADR-015:
+        - `implementation_plans_canonical_ipc` (canonical plan templates)
+        - `sequences_master_sqm` (canonical sequences/phases)
+        - `chapters_master_chm` (canonical chapters)
+        - `steps_master_stm` (canonical steps)
+        - `instructions_master_inm` (canonical instructions)
+        - `controls_master_ctl` (canonical controls/validation checks)
+    - Completely refactored the monolithic `umig_generate_fake_data.js` script into a modular system with single-responsibility generator files:
+        - `01_generate_core_metadata.js`
+        - `02_generate_teams_apps.js`
+        - `03_generate_users.js`
+        - `04_generate_environments.js`
+        - `05_generate_legacy_plans.js`
+        - `06_generate_canonical_plans.js`
+    - Added new generator (`06_generate_canonical_plans.js`) to populate the new canonical tables.
     - Merged branch `main` into `data/tracking_activities` to synchronize latest changes.
 #### Changed
 - Refactored `steps_stp` to use a foreign key to the re-introduced `status_sts` table, removing the hardcoded `status` column and normalizing the schema.
@@ -32,6 +46,7 @@
 - Removed legacy table definitions and references from all changelogs.
 
 #### Fixed
+- Heavily refactored the legacy plan generator (`05_generate_legacy_plans.js`) to resolve multiple critical bugs, including syntax errors and schema mismatches with the `migrations_mig` and `iterations_ite` tables. The script now successfully generates a complete, hierarchical legacy plan dataset.
 - Corrected the baseline Liquibase schema (`001_baseline_schema.sql`) to be a complete 1:1 representation of the original SQL Server data model.
 - Added previously missing tables (`ITERATIONS_TRACKING_ITT`) and columns (`tms_email` in `TEAMS_TMS`) to ensure full synchronization.
 - Verified all 19 tables and their fields are now correctly defined as per the source model.

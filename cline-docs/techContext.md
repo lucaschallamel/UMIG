@@ -38,8 +38,19 @@
 - Daily development is managed with `start.sh` and `stop.sh` scripts for starting and stopping all services and running migrations.
 - Live-reload for backend and frontend code is supported via volume mounts.
 - ScriptRunner database connectivity is validated by running a simple `SELECT 1` in the ScriptRunner console.
-- Node.js CLI tools (`umig_generate_fake_data.js` and `umig_csv_importer.js`) are used for generating synthetic test data and importing data from CSV files.
-- Enhanced synthetic data generation now supports role-based user creation (NORMAL, ADMIN, PILOT) with intelligent team assignment logic.
+- Data generation has been completely refactored from a monolithic script into a modular system with single-responsibility generator files:
+  - `01_generate_core_metadata.js`
+  - `02_generate_teams_apps.js`
+  - `03_generate_users.js`
+  - `04_generate_environments.js`
+  - `05_generate_legacy_plans.js`
+  - `06_generate_canonical_plans.js`
+- The main `umig_generate_fake_data.js` script now orchestrates these modular components, making the system far easier to manage and extend.
+- Data generation now supports both legacy and canonical implementation plan structures, with dedicated generators for each.
+- Reference tables (`status_sts`, `step_type_stt`) and Liquibase migration tracking tables are protected during database resets.
+- Step types are prepopulated with codes, names, descriptions, and colour codes using idempotent insert logic.
+- CSV importing is supported via `umig_csv_importer.js` with flexible field mapping between CSV headers and database columns.
+- Enhanced synthetic data generation supports role-based user creation (NORMAL, ADMIN, PILOT) with intelligent team assignment logic.
 - Jest is used for testing Node.js utilities, with deterministic fixtures ensuring reproducible test results.
 - All Node.js utilities enforce strict environment safety, refusing to run in production environments and requiring confirmation for destructive operations.
 - Integration tests verify data integrity rules, including team membership guarantees and role-based assignments.

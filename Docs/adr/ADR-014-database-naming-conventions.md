@@ -1,4 +1,4 @@
-# ADR-013: Database Naming Conventions
+# ADR-014: Database Naming Conventions
 
 **Status:** Draft (pending review)
 **Date:** 2025-06-23

@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS additional_instructions_ais (
 CREATE TABLE IF NOT EXISTS applications_app (
     id SERIAL PRIMARY KEY,
     app_code VARCHAR(50) NOT NULL,
-    app_name VARCHAR(10),
+    app_name VARCHAR(64),
     app_description TEXT
 );
 -- Add unique constraint for app_code
@@ -34,8 +34,8 @@ ALTER TABLE applications_app ADD CONSTRAINT uq_applications_app_code UNIQUE (app
 --
 CREATE TABLE IF NOT EXISTS chapter_cha (
     id SERIAL PRIMARY KEY,
-    cha_code VARCHAR(10),
-    cha_name VARCHAR(10),
+    cha_code VARCHAR(64),
+    cha_name VARCHAR(64),
     sqc_id INTEGER,
     cha_previous INTEGER,
     cha_start_date TIMESTAMP,
@@ -169,6 +169,8 @@ CREATE TABLE IF NOT EXISTS roles_rls (
     rle_name VARCHAR(64),
     rle_description TEXT
 );
+-- Add unique constraint for rle_code
+ALTER TABLE roles_rls ADD CONSTRAINT uq_roles_rls_code UNIQUE (rle_code);
 
 --
 -- Table structure for table 'sequences_sqc'
