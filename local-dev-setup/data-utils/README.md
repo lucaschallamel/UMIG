@@ -28,7 +28,7 @@ This directory contains CLI tools for generating synthetic test data and importi
 
 **Script:** `umig_generate_fake_data.js`
 
-**Purpose:** Populates the local database with a foundational set of synthetic data for development and testing. It generates the high-level structures for migrations, iterations, and sequences, along with the necessary users, teams, applications, and environments. It does **not** yet generate the detailed plan data within those structures (e.g., chapters, steps, tasks).
+**Purpose:** Populates the local database with a comprehensive, hierarchical set of synthetic data for development and testing. It generates a complete structure of migrations, iterations, sequences, chapters, steps, and instructions, along with all necessary supporting data like users, teams, applications, and environments.
 
 **Environment Safety:** The script includes critical safety checks:
 - It will **only** run if the `--env dev` or `--env test` flag is explicitly provided.
@@ -39,16 +39,18 @@ This directory contains CLI tools for generating synthetic test data and importi
 
 - **Generate data (without resetting):**
   ```sh
-  node umig_generate_fake_data.js --env dev
+  node umig_generate_fake_data.js
   ```
 - **Reset and generate new data:**
   ```sh
-  node umig_generate_fake_data.js --env dev --reset
+  node umig_generate_fake_data.js --reset
   ```
 
-### Configuration (`fake_data_config.json`)
+The script will prompt for confirmation before deleting any data when using the `--reset` flag.
 
-The generation process is controlled by `fake_data_config.json`. Below is a description of each parameter:
+### Configuration
+
+The generation process is controlled by a configuration object embedded at the top of the `umig_generate_fake_data.js` script. This approach centralizes all parameters for easier management. The `fake_data_config.json` file is now obsolete. Below is a description of each parameter:
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
@@ -88,7 +90,7 @@ The script follows specific rules to ensure data integrity and realism:
     | DUM      | DUMPS         | Database related activities      | #948a54    |
   - The script uses `ON CONFLICT (stt_code) DO NOTHING` to ensure idempotency: running the script multiple times will never create duplicates or errors.
 
-- **High-Level Structure:** The script generates a specified number of `migrations_mig`. For each migration, it creates a corresponding set of `iterations_ite` (RUN, DR, CUTOVER) and `sequences_sqc` (PRE-MIGRATION, CSD MIGRATION, etc.).
+- **Full Hierarchy Generation:** The script generates a specified number of `migrations_mig`. For each migration, it creates a corresponding set of `iterations_ite` (RUN, DR, CUTOVER). Within each iteration, it then generates a full hierarchy of `sequences_sqc`, `chapter_cha`, `steps_stp`, and `instructions_ins`, creating a complete and realistic data structure.
 
 - **Users, Teams, and Roles:**
   - A special **`IT_CUTOVER`** team is always created first (`tms_code` = `T00`).

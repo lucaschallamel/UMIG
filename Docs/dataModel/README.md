@@ -6,7 +6,42 @@ This model is a direct translation of the original SQL Server schema, located at
 
 ## Schema Overview
 
-The database consists of 19 tables designed to manage migration plans, steps, teams, applications, and related metadata.
+The database consists of tables designed to manage both canonical (template) implementation plans and instance/execution data for migrations, steps, teams, applications, and related metadata.
+
+---
+
+## Canonical Implementation Plan Hierarchy
+
+**As of ADR-015, UMIG separates canonical (template) implementation plan data from instance/execution data.**
+
+### Purpose
+Canonical tables define the authoritative, reusable, and versionable structure of an implementation plan. They form a hierarchy that can be instantiated for specific migrations and tracked independently.
+
+### Canonical Tables and Relationships
+
+| Table Name                         | Purpose                                 | Key Fields & Relationships                  |
+|-------------------------------------|-----------------------------------------|---------------------------------------------|
+| implementation_plans_canonical_ipc  | Canonical implementation plan (template) | ipc_id (PK), name, description, version, status, author_user_id, created_at, updated_at |
+| sequences_master_sqm                | Canonical sequence/phase                | sqm_id (PK), ipc_id (FK), predecessor_sqm_id (FK, nullable, self), name, description, duration (min) |
+| chapters_master_chm                 | Canonical chapter                       | chm_id (PK), sqm_id (FK), predecessor_chm_id (FK, nullable, self), name, description, duration (min) |
+| steps_master_stm                    | Canonical step                          | stm_id (PK), chm_id (FK), name, description, type, duration (min), team_id (FK), env_type (enum: PROD, TEST, BACKUP), predecessor_stm_id (FK, nullable, self), step_prereq (FK, nullable, self) |
+| instructions_master_inm             | Canonical instruction                   | inm_id (PK), stm_id (FK), instruction_order, title, body, format, duration (min), ctl_id (FK, nullable) |
+| controls_master_ctl                 | Canonical control/validation check      | ctl_id (PK), code, name, critical (boolean), description, producer_team_id (FK), it_validator_team_id (FK), biz_validator_team_id (FK) |
+
+#### Hierarchy
+- implementation_plans_canonical_ipc → sequences_master_sqm → chapters_master_chm → steps_master_stm → (instructions_master_inm, controls_master_ctl)
+
+#### Key Points
+- Canonical tables are used to define templates and plans of record.
+- All *_id fields are UUID unless otherwise noted; all FKs reference the PK of the named table.
+- Predecessor fields (e.g., predecessor_sqm_id) are self-referencing and nullable.
+- Duration fields are in integer minutes.
+- Enum fields (e.g., env_type) are PostgreSQL ENUMs.
+- Boolean fields (e.g., critical) use PostgreSQL BOOLEAN.
+- Instance/execution tables (e.g., migrations_mig, steps_stp) reference these canonical tables for traceability and plan-vs-actual analysis.
+- See [ADR-015](../adr/ADR-015-canonical-implementation-plan-model.md) for rationale and detailed structure.
+
+---
 
 ### Naming Conventions
 
@@ -18,202 +53,83 @@ The database consists of 19 tables designed to manage migration plans, steps, te
 
 ```mermaid
 erDiagram
-  environments_iterations_eit {
-    int id PK
-    varchar env_id FK
-    int ite_id FK
-    varchar eit_role
-  }
-  additional_instructions_ais {
-    int id PK
-    int stp_id FK
-    text instructions
-    int usr_id FK
-    int ite_id FK
-  }
-  applications_app {
-    int id PK
-    varchar app_code
-    varchar app_name
-    text app_description
-  }
-  chapter_cha {
-    int id PK
-    varchar cha_code
-    varchar cha_name
-    int sqc_id FK
-    int cha_previous FK
-    timestamp cha_start_date
-    timestamp cha_end_date
-    timestamp cha_effective_start_date
-    timestamp cha_effective_end_date
-  }
-  controls_ctl {
-    int id PK
-    varchar ctl_code
-    text ctl_name
-    int ctl_producer
-    int ctl_it_validator
-    text ctl_it_comments
-    text ctl_biz_comments
-    int ctl_biz_validator
-  }
-  environments_env {
-    varchar id PK
-    varchar env_code
-    varchar env_name
-    text env_description
-  }
-  environments_applications_eap {
-    int id PK
-    varchar env_id FK
-    int app_id FK
-    text comments
-  }
-  instructions_ins {
-    int id PK
-    varchar ins_code
-    text ins_description
-    int stp_id FK
-    int tms_id FK
-    int ctl_id FK
-  }
-  iterations_ite {
-    int id PK
-    varchar ite_code
-    varchar ite_name
-    int mig_id FK
-    varchar ite_type
-    text description
-    timestamp ite_start_date
-    timestamp ite_end_date
-  }
-  iterations_tracking_itt {
-    varchar id PK
-    varchar mig_code
-    varchar ite_code
-    varchar entity_type
-    varchar entity_id
-    varchar entity_status
-    timestamp start_date
-    timestamp end_date
-    text comments
-  }
-  migrations_mig {
-    int id PK
-    varchar mig_code
-    varchar mig_name
-    text mig_description
-    timestamp mig_planned_start_date
-    timestamp mig_planned_end_date
-    enum mty_type
-  }
-  release_notes_rnt {
-    int id PK
-    varchar rnt_code
-    varchar rnt_name
-    text rnt_description
-    timestamp rnt_date
-  }
-  roles_rls {
-    int id PK
-    varchar rle_code
-    varchar rle_name
-    text rle_description
-  }
-  sequences_sqc {
-    int id PK
-    int mig_id FK
-    int ite_id FK
-    varchar sqc_name
-    int sqc_order
-    timestamp start_date
-    timestamp end_date
-    int sqc_previous FK
-  
-    int id PK
-    int mig_id FK
-    varchar sqc_name
-    int sqc_order
-    timestamp start_date
-    timestamp end_date
-    int sqc_previous
-  }
-  status_sts {
-    int id PK
-    varchar sts_code
-    varchar sts_name
-    text sts_description
-  }
-  steps_stp {
-    int id PK
-    varchar stp_code
-    varchar stp_name
-    int cha_id FK
-    int tms_id FK
-    int stt_type FK
-    int stp_previous
-    text stp_description
-    int sts_id FK
-    int owner_id FK
-    varchar target_env FK
-  }
-  step_type_stt {
-    int id PK
-    varchar stt_code
-    varchar stt_name
-    text stt_description
-  }
-  teams_tms {
-    int id PK
-    varchar tms_code
-    varchar tms_name
-    text tms_description
-    varchar tms_email
-  }
-  teams_applications_tap {
-    int id PK
-    int tms_id FK
-    int app_id FK
-  }
-  users_usr {
-    int id PK
-    varchar usr_first_name
-    varchar usr_last_name
-    varchar usr_trigram
-    varchar usr_email
-    int tms_id FK
-    int rle_id FK
-  }
+    implementation_plans_canonical_ipc {
+        UUID ipc_id PK
+        TEXT name
+        TEXT description
+        TEXT version
+        TEXT status
+        UUID author_user_id FK
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
 
-  additional_instructions_ais }|--|| steps_stp : "to step"
-  additional_instructions_ais }|--|| users_usr : "by user"
-  additional_instructions_ais }o--o| iterations_ite : "for iteration"
-  chapter_cha }o--o| sequences_sqc : "in sequence"
-  chapter_cha }o--o| chapter_cha : "follows"
-  environments_applications_eap }|--|| environments_env : "links"
-  environments_applications_eap }|--|| applications_app : "links"
-  environments_iterations_eit }|--|| environments_env : "links"
-  environments_iterations_eit }|--|| iterations_ite : "links"
-  instructions_ins }|--|| steps_stp : "for step"
-  instructions_ins }o--o| teams_tms : "for team"
-  instructions_ins }o--o| controls_ctl : "has control"
-  iterations_ite }|--|| migrations_mig : "part of migration"
-  migrations_mig }o--o| migration_type_mty : "has type"
-  sequences_sqc }|--|| migrations_mig : "for migration"
-  sequences_sqc }|--|| iterations_ite : "for iteration"
-  sequences_sqc }o--o| sequences_sqc : "previous sequence"
-  steps_stp }o--o| chapter_cha : "in chapter"
-  steps_stp }o--o| teams_tms : "assigned to team"
-  steps_stp }o--o| step_type_stt : "has type"
-  steps_stp }o--o| steps_stp : "previous step"
-  steps_stp }o--o| status_sts : "has status"
-  steps_stp }o--o| users_usr : "owned by"
-  steps_stp }o--o| environments_env : "targets"
-  teams_applications_tap }|--|| teams_tms : "links"
-  teams_applications_tap }|--|| applications_app : "links"
-  users_usr }o--o| roles_rls : "has role"
-  users_usr }o--o| teams_tms : "member of team"
+    sequences_master_sqm {
+        UUID sqm_id PK
+        UUID ipc_id FK
+        UUID predecessor_sqm_id FK
+        TEXT name
+        TEXT description
+        INT duration_min
+    }
+
+    chapters_master_chm {
+        UUID chm_id PK
+        UUID sqm_id FK
+        UUID predecessor_chm_id FK
+        TEXT name
+        TEXT description
+        INT duration_min
+    }
+
+    steps_master_stm {
+        UUID stm_id PK
+        UUID chm_id FK
+        TEXT name
+        TEXT description
+        TEXT type
+        INT duration_min
+        UUID team_id FK
+        ENV_TYPE env_type
+        UUID predecessor_stm_id FK
+        UUID step_prereq FK
+    }
+
+    instructions_master_inm {
+        UUID inm_id PK
+        UUID stm_id FK
+        INT instruction_order
+        TEXT title
+        TEXT body
+        TEXT format
+        INT duration_min
+        UUID ctl_id FK
+    }
+
+    controls_master_ctl {
+        UUID ctl_id PK
+        TEXT code
+        TEXT name
+        BOOLEAN critical
+        TEXT description
+        UUID producer_team_id FK
+        UUID it_validator_team_id FK
+        UUID biz_validator_team_id FK
+    }
+
+    implementation_plans_canonical_ipc ||--o{ sequences_master_sqm : contains
+    sequences_master_sqm ||--o{ chapters_master_chm : contains
+    chapters_master_chm ||--o{ steps_master_stm : contains
+    steps_master_stm ||--o{ instructions_master_inm : contains
+    instructions_master_inm ||--o{ controls_master_ctl : contains
+
+    users_usr {
+        UUID id PK
+        TEXT usr_first_name
+        TEXT usr_last_name
+    }
+
+    implementation_plans_canonical_ipc }o--|| users_usr : "authored by"
 ```
 
 ## Table and Field Listing
