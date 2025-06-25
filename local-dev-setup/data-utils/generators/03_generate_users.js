@@ -75,10 +75,6 @@ async function generateUsers(config, options = {}) {
     if (trigramIndex >= trigrams.length) return; // Avoid errors if counts mismatch
 
     const roleId = roleMap[roleCode];
-    if (!roleId) {
-      console.warn(`Warning: Role ID for role code '${roleCode}' not found. Skipping user creation.`);
-      return;
-    }
 
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();

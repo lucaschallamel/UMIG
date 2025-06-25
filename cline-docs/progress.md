@@ -2,90 +2,155 @@
 
 ## What Works
 
-- **Data Generation Pipeline**:
-  - Fully modular system with single-responsibility generator files.
-  - Single canonical plan template with a fixed, predefined structure (PREMIG, CSD, W12, P&C, POSTMIG).
-  - Deterministic generation of exactly two instances per iteration (ACTIVE and DRAFT), with dynamic plan descriptions.
-  - All legacy data generators and models have been removed.
-  - Comprehensive test coverage for all generator components.
+### Infrastructure and Environment
 
-- **Data Model Implementation**:
-  - Complete separation of canonical (master) and instance (execution) entities.
-  - Controls elevated to phase level, with team ownership and direct instruction association.
-  - Standardised naming conventions across all tables and columns.
-  - Updated foreign key constraints and relationships.
-  - Comprehensive documentation with Mermaid ERD.
+- ✅ **Local Development Environment**: Fully functional containerized environment with Podman and Podman Compose.
+- ✅ **Database Setup**: PostgreSQL database with proper schema and migrations managed by Liquibase.
+- ✅ **Confluence Integration**: ScriptRunner successfully integrated with Confluence for backend logic.
+- ✅ **Environment Management**: Shell scripts for starting, stopping, and resetting the environment.
+- ✅ **Database Connectivity**: ScriptRunner Database Resource Pool configured and working.
 
-- **API & Backend Architecture**:
-  - V2 REST API fully implemented using the "Pure ScriptRunner Application" pattern.
-  - All repository classes refactored to use the new, type-safe `withSql` pattern for database access.
-  - Static analysis warnings eliminated via `@ClosureParams` and explicit type casting.
-  - OpenAPI specification downgraded to 3.0.0 for compatibility.
-  - New `src/README.md` documents backend conventions and database access patterns.
-  - All critical runtime database errors resolved.
+### Data Model and Generation
 
-- **Database Infrastructure**:
-  - Consolidated schema migrations into a unified, idempotent baseline.
-  - Protected reference tables during database resets.
-  - Complete Liquibase integration with established conventions for changesets, tags, and labels.
+- ✅ **Core Data Model**: Complete database schema with tables for all entities.
+- ✅ **Canonical Plan Model**: Implemented separation between canonical (master) and instance (execution) entities.
+- ✅ **Data Generation Pipeline**: Fully modular system with single-responsibility generator files.
+- ✅ **Test Data**: Comprehensive synthetic data generation for development and testing.
+- ✅ **CSV Import**: Flexible CSV import utility with field mapping.
+- ✅ **Test Coverage**: Comprehensive test coverage for all generator components.
+- ✅ **NPM Integration**: Proper package.json and package-lock.json for Node.js utilities.
 
-- **Testing Framework**:
-  - Enhanced Jest tests for plan and instance generation, enforcing deterministic business rules.
-  - Rigorous validation of business rules and integration tests for data generation.
-  - Updated test fixtures matching the current data model.
+### Backend Implementation
 
-- **Documentation**:
-  - Detailed data model documentation with visual ERD.
-  - Updated README files across the project, including backend and data utilities.
-  - Comprehensive developer journal entries and ADRs.
-  - Documented backend patterns, database conventions, and migration strategies.
+- ✅ **REST API**: V2 REST API implemented using the "Pure ScriptRunner Application" pattern.
+- ✅ **Repository Layer**: Repository classes implemented with type-safe database access.
+- ✅ **Database Access**: Type-safe `withSql` pattern implemented for all database access.
+- ✅ **API Documentation**: OpenAPI specification for the REST API.
+- ✅ **Error Handling**: Basic error handling for database and API operations.
 
-- **Development Environment**:
-  - Stable local development setup with Podman and Ansible.
-  - Improved shell scripts: `restart.sh` (with `--reset` and confirmation), simplified `stop.sh`.
-  - Custom Confluence image includes PostgreSQL JDBC driver.
-  - ScriptRunner installed manually for improved reliability.
-  - Automated database migrations with Liquibase.
+### Frontend Implementation
+
+- ✅ **Basic Macro**: Initial implementation of the Confluence macro for rendering implementation plans.
+- ✅ **CSS Styling**: Basic CSS styling for the macro.
+- ✅ **JavaScript Logic**: Initial JavaScript logic for the macro.
 
 ## What's Left to Build
 
-- Finalise and push all documentation and code updates to remote repositories (`main` and feature branches).
-- Implement backend services for canonical plan management and execution tracking.
-- Develop additional API endpoints for user-facing features.
-- Create frontend components for plan visualisation and interaction.
-- Build notification system for status changes.
-- Implement audit logging for state changes.
-- Develop automated schema integrity checks.
-- Create a dedicated database naming conventions document.
-- Continue refining backend and data generation logic based on feedback and testing.
+### Backend Implementation
+
+- 🔲 **Service Layer**: Implement a formal service layer for business logic.
+- 🔲 **Notification System**: Implement a notification system for status changes.
+- 🔲 **Authentication and Authorization**: Implement proper authentication and authorization.
+- 🔲 **Validation**: Implement comprehensive validation for all API endpoints.
+- 🔲 **Error Handling**: Enhance error handling with proper error codes and messages.
+- 🔲 **Logging**: Implement comprehensive logging for all operations.
+- 🔲 **Caching**: Implement caching for frequently accessed data.
+
+### Frontend Implementation
+
+- 🔲 **Enhanced Macro**: Enhance the Confluence macro with more features.
+- 🔲 **Interactive UI**: Implement interactive UI for plan management.
+- 🔲 **Status Updates**: Implement interactive status updates.
+- 🔲 **User-Friendly Navigation**: Implement user-friendly navigation.
+- 🔲 **Responsive Design**: Ensure responsive design for all screen sizes.
+- 🔲 **Accessibility**: Ensure accessibility compliance.
+- 🔲 **Localization**: Implement localization support.
+
+### Testing and Quality Assurance
+
+- 🔲 **Integration Tests**: Implement integration tests for the backend.
+- 🔲 **End-to-End Tests**: Implement end-to-end tests for the frontend.
+- 🔲 **Performance Testing**: Implement performance testing.
+- 🔲 **Security Testing**: Implement security testing.
+- 🔲 **Load Testing**: Implement load testing.
+
+### Documentation
+
+- 🔲 **User Documentation**: Create comprehensive user documentation.
+- 🔲 **API Documentation**: Enhance API documentation with examples and use cases.
+- 🔲 **Developer Documentation**: Create comprehensive developer documentation.
+- 🔲 **Deployment Documentation**: Create comprehensive deployment documentation.
 
 ## Current Status
 
-The project has achieved a stable foundation with:
-- A fully implemented canonical data model and robust data generation pipeline.
-- Production-ready V2 REST API and backend architecture.
-- Comprehensive test coverage and documentation.
-- Stable, developer-friendly local environment.
+The project is in the **Development** phase, with a focus on:
 
-The team is now prepared to shift focus to:
-- Backend service and API endpoint implementation.
-- Frontend development for user interaction and visualisation.
-- Execution tracking features and advanced monitoring capabilities.
+1. **Finalizing the Node.js Data Utilities**:
+   - ✅ Modular generator structure
+   - ✅ Canonical plan template
+   - ✅ Deterministic instance generation
+   - ✅ Legacy removal
+   - ✅ Test coverage
+   - ✅ NPM integration
+   - ✅ Update .gitignore file
+
+2. **Stabilizing the Backend Architecture**:
+   - ✅ REST API implementation
+   - ✅ Repository layer implementation
+   - ✅ Database access pattern
+   - ✅ API documentation
+   - 🔲 Service layer implementation
+   - 🔲 Notification system
+   - 🔲 Authentication and authorization
+
+3. **Consolidating the Data Model**:
+   - ✅ Entity separation
+   - ✅ Control elevation
+   - ✅ Naming conventions
+   - ✅ Relationship updates
+   - ✅ Documentation
+   - 🔲 Validation rules
+   - 🔲 Indexing strategy
+
+4. **Improving Development Environment**:
+   - ✅ Shell scripts
+   - ✅ Schema migrations
+   - ✅ Reference table protection
+   - ✅ Database connectivity
+   - 🔲 CI/CD pipeline
+   - 🔲 Automated testing
+   - 🔲 Deployment automation
 
 ## Known Issues
 
-- ADR-015 remains in "Draft" status and needs finalisation.
-- ScriptRunner database connection and new backend patterns require ongoing monitoring.
-- Some manual steps remain for initial environment setup (e.g., ScriptRunner installation).
-- Multiple database naming conventions exist across schema and require harmonisation.
+1. **Database Connectivity**:
+   - ScriptRunner Database Resource Pool requires manual configuration.
+   - Connection pooling parameters need tuning for production.
+
+2. **Data Generation**:
+   - Large data sets can cause performance issues.
+   - Some edge cases in data generation are not fully tested.
+
+3. **Frontend Integration**:
+   - Confluence macro rendering can be slow with large plans.
+   - JavaScript performance needs optimization.
+
+4. **Development Environment**:
+   - Podman volume management can be fragile during environment restarts.
+   - Liquibase migrations can be slow with large changesets.
 
 ## Evolution of Project Decisions
 
-The project has progressed through several key phases:
-1. Initial standalone stack to enterprise-compliant Confluence integration.
-2. Ad-hoc scripts to automated Liquibase migrations.
-3. Basic data generation to a sophisticated, modular pipeline.
-4. Monolithic architecture to clean separation of concerns and robust backend patterns.
-5. Manual processes to automated, tested workflows.
+### Data Model
 
-All technical decisions and lessons are captured in ADRs and memory bank documentation.
+- **Initial Decision**: Use a flat data model with all entities in a single table.
+- **Evolution**: Moved to a hierarchical data model with separate tables for each entity type.
+- **Current Approach**: Implemented separation between canonical (master) and instance (execution) entities.
+
+### Backend Architecture
+
+- **Initial Decision**: Use a monolithic Confluence plugin.
+- **Evolution**: Moved to a hybrid approach with ScriptRunner and a custom plugin.
+- **Current Approach**: Implemented the "Pure ScriptRunner Application" pattern.
+
+### Frontend Implementation
+
+- **Initial Decision**: Use a custom Confluence macro with jQuery.
+- **Evolution**: Considered using a modern JavaScript framework.
+- **Current Approach**: Settled on vanilla JavaScript for compatibility and simplicity.
+
+### Development Environment
+
+- **Initial Decision**: Use Docker for containerization.
+- **Evolution**: Evaluated Kubernetes for orchestration.
+- **Current Approach**: Settled on Podman and Ansible for simplicity and compatibility.

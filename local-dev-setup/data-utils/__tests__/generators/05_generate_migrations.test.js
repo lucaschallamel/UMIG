@@ -1,18 +1,9 @@
 const { client } = require('../../lib/db');
 const { generateMigrations } = require('../../generators/05_generate_migrations');
-const { faker } = require('../../lib/utils');
+const utils = require('../../lib/utils');
 
 // Mock dependencies
 jest.mock('../../lib/db', () => ({ client: { query: jest.fn() } }));
-jest.mock('../../lib/utils', () => ({
-  faker: {
-    company: { name: jest.fn(() => 'FakeCorp') },
-    lorem: { paragraph: jest.fn(() => 'A paragraph.'), sentence: jest.fn(() => 'A sentence.') },
-    helpers: { arrayElement: jest.fn(arr => arr[0]) },
-    date: { between: jest.fn(() => new Date()), soon: jest.fn(() => new Date()) },
-    number: { int: jest.fn(() => 1) },
-  },
-}));
 
 const CONFIG = {
   num_migrations: 2,
@@ -28,7 +19,17 @@ const CONFIG = {
 describe('Migrations Generator (05_generate_migrations.js)', () => {
   beforeEach(() => {
     client.query.mockReset();
-    jest.clearAllMocks();
+    // Use restoreAllMocks to ensure spies are reset for each test
+    jest.restoreAllMocks();
+
+    // Spy on faker methods to ensure deterministic behavior
+    jest.spyOn(utils.faker.company, 'name').mockReturnValue('FakeCorp');
+    jest.spyOn(utils.faker.lorem, 'paragraph').mockReturnValue('A paragraph.');
+    jest.spyOn(utils.faker.lorem, 'sentence').mockReturnValue('A sentence.');
+    jest.spyOn(utils.faker.helpers, 'arrayElement').mockImplementation(arr => arr[0]);
+    jest.spyOn(utils.faker.date, 'between').mockReturnValue(new Date('2023-04-15T00:00:00.000Z'));
+    jest.spyOn(utils.faker.date, 'soon').mockReturnValue(new Date('2023-10-25T00:00:00.000Z'));
+    jest.spyOn(utils.faker.number, 'int').mockReturnValue(1);
   });
 
   it('should call resetMigrationsTables when reset option is true', async () => {
@@ -57,7 +58,7 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
 
   it('should throw an error if no users are found', async () => {
     // Arrange
-    client.query.mockResolvedValue({ rows: [] });
+    client.query.mockResolvedValue({ rows: [] }); // No users
 
     // Act & Assert
     await expect(generateMigrations(CONFIG, {})).rejects.toThrow('Cannot generate migrations without users to assign as owners.');
@@ -66,8 +67,8 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
   it('should throw an error if less than 2 environments are found', async () => {
     // Arrange
     client.query
-      .mockResolvedValueOnce({ rows: [{ usr_id: 'user-1' }] })
-      .mockResolvedValueOnce({ rows: [{ env_id: 'env-1' }] });
+      .mockResolvedValueOnce({ rows: [{ usr_id: 'user-1' }] }) // Has users
+      .mockResolvedValueOnce({ rows: [{ env_id: 'env-1' }] }); // Not enough envs
 
     // Act & Assert
     await expect(generateMigrations(CONFIG, {})).rejects.toThrow('Cannot generate iteration environments without at least 2 environments defined.');
@@ -76,8 +77,8 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
   it('should throw an error if required environment roles are missing', async () => {
     // Arrange
     client.query
-      .mockResolvedValueOnce({ rows: [{ usr_id: 'user-1' }] })
-      .mockResolvedValueOnce({ rows: [{ env_id: 'env-1' }, { env_id: 'env-2' }] })
+      .mockResolvedValueOnce({ rows: [{ usr_id: 'user-1' }] }) // Has users
+      .mockResolvedValueOnce({ rows: [{ env_id: 'env-1' }, { env_id: 'env-2' }] }) // Has envs
       .mockResolvedValueOnce({ rows: [{ enr_id: 'prod-role-id', enr_name: 'PROD' }] }); // Missing TEST and BACKUP
 
     // Act & Assert
@@ -116,6 +117,6 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
     expect(iterationInserts.length).toBe(totalExpectedIterations);
 
     // Check that a CUTOVER iteration was created
-    expect(faker.helpers.arrayElement).toHaveBeenCalledWith(['MIGRATION', 'DR_TEST']);
+    expect(utils.faker.helpers.arrayElement).toHaveBeenCalledWith(['MIGRATION', 'DR_TEST']);
   });
 });

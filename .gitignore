@@ -1,11 +1,21 @@
 # Node.js / JavaScript
 node_modules/
-npm-debug.log
+npm-debug.log*
 yarn-error.log
+yarn-debug.log*
 yarn.lock
+.npm
+.yarn-integrity
+.pnp.*
+.pnp/
+.yarn/
+lerna-debug.log*
+.eslintcache
+.node_repl_history
 
 # Test Coverage
 coverage/
+.nyc_output/
 
 # Java / Groovy (common for build artifacts, though ScriptRunner is server-side)
 *.class
