@@ -1,6 +1,15 @@
 ### [Unreleased]
 #### Added
 - **2025-06-25:**
+    - **Data Model Refactoring (Controls & Instructions):**
+        - Elevated `controls_master_ctm` from the step level to the phase level, linking them via `phm_id` for better reusability and logical grouping.
+        - Streamlined `instructions_master_inm` by removing `inm_title`, `inm_format`, and the self-referencing `predecessor_inm_id`.
+        - Added `tms_id` to `instructions_master_inm` to assign explicit team ownership for each instruction.
+        - Added `ctm_id` to `instructions_master_inm` to allow an instruction to be directly associated with a master control.
+    - **Data Generator Updates:** Heavily refactored `06_generate_canonical_plans.js` to align with the new control and instruction schema, ensuring controls are generated per phase and linked correctly.
+    - **Comprehensive Documentation:** Created a new, detailed data model document at `docs/dataModel/README.md`, including a full explanation of the canonical vs. instance architecture and a complete Mermaid ERD.
+
+- **2025-06-25:**
     - **Refactored Liquibase Migrations:** Consolidated all database schema migrations into a single, unified baseline file (`001_unified_baseline.sql`). This simplifies the migration process and improves maintainability.
     - **Idempotent Schema Script:** Made the baseline migration script idempotent by adding `DROP TABLE ... CASCADE` statements. This ensures a clean and reliable database setup on every run, resolving previous startup failures caused by persistent Docker volumes.
     - **Legacy Data Model Removal:** Completely removed the legacy data model, including the `05_generate_legacy_plans.js` data generator and all associated table definitions from the schema.

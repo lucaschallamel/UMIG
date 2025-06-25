@@ -1,5 +1,5 @@
 -- liquibase formatted sql
--- changeset umig:grant_app_user_privileges_1
+-- changeset umig:999_grant_app_user_privileges_v1
 -- comment: Grant all necessary privileges to application user for all tables and sequences in public schema
 
 -- Tables

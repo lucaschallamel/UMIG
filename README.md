@@ -2,41 +2,28 @@
 
 ## Data Model Overview
 
-The UMIG project utilizes a clean, two-part data model designed for creating and managing reusable implementation plans.
+The UMIG project utilizes a sophisticated, two-part data model that separates reusable "Canonical" templates from time-bound "Instance" executions. This design provides maximum flexibility for managing complex migrations.
 
-### 1. Canonical (Master) Model
-This part of the model defines the reusable templates for implementation plans. It consists of a hierarchical structure:
-- `implementation_plans_canonical_ipc`: The top-level plan template.
-- `sequences_master_sqm`: Reusable sequences or phases within a plan.
-- `chapters_master_chm`: Chapters that group related steps.
-- `steps_master_stm`: Individual steps to be executed.
-- `instructions_master_inm`: Detailed instructions for a step.
-- `controls_master_ctl`: Validation checks associated with a step.
+### Core Philosophy: Canonical vs. Instance
 
-This design allows for the creation of standardized, version-controlled plans that can be reused across multiple projects or migrations.
+*   **Canonical (Master) Model**: Defines the reusable playbooks for a migration (`plans_master_plm`, `sequences_master_sqm`, `phases_master_phm`, etc.). These are the "what" and "how."
+*   **Instance Model**: Represents a specific, live execution of a canonical plan for a given iteration (`plans_instance_pli`, `sequences_instance_sqi`, etc.). These track the "when" and "what happened."
 
-### 2. Instance Model
-This model represents the live execution of a canonical plan. Each canonical entity has a corresponding instance entity to track its progress and status:
-- `migration_iterations_mic`: A specific run or iteration of a canonical plan.
-- `sequences_instance_sqi`: An instance of a sequence for a specific iteration.
-- `chapters_instance_chi`: An instance of a chapter.
-- `steps_instance_sti`: An instance of a step, which can be assigned to users.
-- `instructions_instance_ini`: An instance of an instruction to be completed.
-- `controls_instance_cti`: An instance of a control to be validated.
+### Hierarchy
 
-### Core Supporting Tables
-A set of core tables supports the data model by managing users, teams, applications, and other essential metadata:
-- `applications_app`
-- `environments_env`
-- `roles_rls`
-- `status_sts`
-- `teams_tms`
-- `users_usr`
+The model follows a clear hierarchy:
+
+1.  **Strategic Layer**: `Migrations` > `Iterations`
+2.  **Canonical Layer**: `Plans` > `Sequences` > `Phases` > `Steps` > `Instructions`
+3.  **Quality Gates**: `Controls` are defined at the `Phase` level.
+4.  **Instance Layer**: Mirrors the canonical hierarchy, with `Control Instances` linked directly to the `Instruction Instance` they validate.
+
+For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD), please see the **[UMIG Data Model Documentation](./docs/dataModel/README.md)**.
 
 ### Naming Conventions
-- All tables use a three-letter suffix for clarity (e.g., `_ipc`, `_sqm`, `_usr`).
-- Foreign key columns follow the format `<ref_table_pk>` (e.g., `ipc_id`, `sqm_id`).
+- All tables use a three-letter suffix for clarity (e.g., `_plm`, `_sqm`, `_usr`).
 - Canonical tables use a `_master_` infix, while instance tables use `_instance_`.
+- Foreign key columns follow the format `<ref_table_pk>` (e.g., `plm_id`, `sqm_id`).
 
 ## Data Generation Utilities
 The project includes a modular system for generating realistic fake data for development and testing. The main script `umig_generate_fake_data.js` orchestrates the following generators:

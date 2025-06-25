@@ -6,6 +6,7 @@ const { generateCoreMetadata } = require('./generators/01_generate_core_metadata
 const { generateTeamsAndApps } = require('./generators/02_generate_teams_apps');
 const { generateUsers } = require('./generators/03_generate_users');
 const { generateAllEnvironments } = require('./generators/04_generate_environments');
+const { generateMigrations } = require('./generators/05_generate_migrations');
 const { generateCanonicalPlans } = require('./generators/06_generate_canonical_plans');
 const { generateInstanceData } = require('./generators/07_generate_instance_data');
 const readline = require('readline');
@@ -47,7 +48,7 @@ async function resetDatabase() {
   const { rows } = await client.query(`
     SELECT tablename FROM pg_tables
     WHERE schemaname = 'public' AND tablename NOT LIKE 'pg_%' AND tablename NOT LIKE 'sql_%'
-    AND tablename NOT IN ('databasechangelog', 'databasechangeloglock', 'status_sts')
+    AND tablename NOT IN ('databasechangelog', 'databasechangeloglock')
   `);
   const tableNames = rows.map(r => `"${r.tablename}"`);
   if (tableNames.length > 0) {
@@ -86,7 +87,8 @@ async function main() {
     await generateTeamsAndApps(CONFIG);
     await generateUsers(CONFIG);
     await generateAllEnvironments();
-    await generateCanonicalPlans(CONFIG); // Our new tables!
+    await generateMigrations(CONFIG);
+    await generateCanonicalPlans(CONFIG);
     await generateInstanceData(CONFIG); // Generate instance data based on canonical plans
 
     console.log('\n✅ Data generation process completed successfully!');

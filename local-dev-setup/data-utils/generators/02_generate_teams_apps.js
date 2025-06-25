@@ -13,20 +13,19 @@ async function generateTeams(client, config) {
   // Always create IT_CUTOVER first for user assignment stability
   const specialTeamName = 'IT_CUTOVER';
   await client.query(
-    `INSERT INTO teams_tms (tms_code, tms_name, tms_description, tms_email) VALUES ($1, $2, $3, $4)
-     ON CONFLICT (tms_code) DO NOTHING`,
-    ['T00', specialTeamName, 'Team for IT Cutover activities', makeTeamEmail(specialTeamName, domain)]
+    `INSERT INTO teams_tms (tms_name, tms_description, tms_email) VALUES ($1, $2, $3)
+     ON CONFLICT (tms_email) DO NOTHING`,
+    [specialTeamName, 'Team for IT Cutover activities', makeTeamEmail(specialTeamName, domain)]
   );
 
   for (let i = 1; i < config.num_teams; i++) {
     const name = `TEAM_${faker.word.adjective().toUpperCase()}`.replace(/ /g, '_');
-    const code = `T${String(i).padStart(2, '0')}`;
     const description = faker.company.catchPhrase();
     const email = makeTeamEmail(name, domain);
     await client.query(
-      `INSERT INTO teams_tms (tms_code, tms_name, tms_description, tms_email) VALUES ($1, $2, $3, $4)
-       ON CONFLICT (tms_code) DO NOTHING`,
-      [code, name, description, email]
+      `INSERT INTO teams_tms (tms_name, tms_description, tms_email) VALUES ($1, $2, $3)
+       ON CONFLICT (tms_email) DO NOTHING`,
+      [name, description, email]
     );
   }
   console.log('Finished generating teams.');
@@ -58,8 +57,8 @@ async function generateApplications(client, config) {
  */
 async function generateTeamApplicationLinks(client) {
   console.log('Linking teams to applications...');
-  const teamRes = await client.query('SELECT id FROM teams_tms');
-  const appRes = await client.query('SELECT id FROM applications_app');
+  const teamRes = await client.query('SELECT tms_id FROM teams_tms');
+  const appRes = await client.query('SELECT app_id FROM applications_app');
   const teams = teamRes.rows;
   const apps = appRes.rows;
 
@@ -74,8 +73,8 @@ async function generateTeamApplicationLinks(client) {
     const numLinks = faker.number.int({ min: 1, max: Math.min(5, apps.length) });
     for (let i = 0; i < numLinks; i++) {
       await client.query(
-        'INSERT INTO teams_applications_tap (tms_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-        [team.id, shuffledApps[i].id]
+        'INSERT INTO teams_tms_x_applications_app (tms_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [team.tms_id, shuffledApps[i].app_id]
       );
     }
   }

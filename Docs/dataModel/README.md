@@ -1,203 +1,278 @@
 # UMIG Data Model
 
-This document provides a comprehensive overview of the UMIG application's PostgreSQL database schema. The schema is managed via Liquibase, with the baseline defined in [`001_unified_baseline.sql`](../../local-dev-setup/liquibase/changelogs/001_unified_baseline.sql).
+This document provides a comprehensive overview of the Unified Migration (UMIG) data model. It is designed to be a central reference for developers, architects, and anyone else interacting with the UMIG database.
 
-The data model has been designed from scratch to support a clean, template-based approach for managing IT cutover events.
+## Core Design Philosophy: Canonical vs. Instance
 
-## Schema Overview
+The UMIG data model is built on a fundamental design principle: the strict separation of **Canonical (Master)** entities from **Instance (Execution)** entities.
 
-The database consists of tables designed to manage both canonical (template) implementation plans and instance/execution data for migrations, steps, teams, applications, and related metadata.
+-   **Canonical Entities**: These are the master templates or "playbooks." They define *what* should be done, in what order, and who is responsible. They are reusable, version-controlled, and represent the standardized process for a migration. All canonical tables use the `_master_` suffix (e.g., `plans_master_plm`).
 
-## Canonical Implementation Plan Hierarchy
+-   **Instance Entities**: These are time-bound, execution-specific records. They represent a single, real-world "run" of a canonical plan, such as a disaster recovery test, a dress rehearsal, or the actual go-live event. They track *when* something was done, by whom, and what the outcome was. All instance tables use the `_instance_` suffix (e.g., `plans_instance_pli`).
 
-### Purpose
-Canonical tables define the authoritative, reusable, and versionable structure of an implementation plan. They form a hierarchy that can be instantiated for specific migrations and tracked independently.
+This separation provides critical flexibility, allowing a single canonical plan to be executed multiple times for different purposes (iterations), with each execution having its own distinct history, status, and audit trail.
 
-### Canonical Tables and Relationships
+## Entity Hierarchy
 
-| Table Name                         | Purpose                                 | Key Fields & Relationships                  |
-|-------------------------------------|-----------------------------------------|---------------------------------------------|
-| implementation_plans_canonical_ipc  | Canonical implementation plan (template) | ipc_id (PK), name, description, version, status, author_user_id, created_at, updated_at |
-| sequences_master_sqm                | Canonical sequence/phase                | sqm_id (PK), ipc_id (FK), predecessor_sqm_id (FK, nullable, self), name, description, duration (min) |
-| chapters_master_chm                 | Canonical chapter                       | chm_id (PK), sqm_id (FK), predecessor_chm_id (FK, nullable, self), name, description, duration (min) |
-| steps_master_stm                    | Canonical step                          | stm_id (PK), chm_id (FK), name, description, type, duration (min), team_id (FK), env_type (enum: PROD, TEST, BACKUP), predecessor_stm_id (FK, nullable, self) |
-| instructions_master_inm             | Canonical instruction                   | inm_id (PK), stm_id (FK), name, description, type, content (jsonb), team_id (FK) |
-| controls_master_ctm                 | Canonical control                       | ctm_id (PK), stm_id (FK), name, description, type, query, expected_result, team_id (FK) |
+The data model follows a clear hierarchical structure, flowing from high-level strategic projects down to granular, executable instructions.
 
-### ER Diagram: Canonical Plan Tables
+### 1. The Strategic Layer
+
+-   **Migration (`migrations_mig`)**: The highest-level container representing a complete strategic initiative (e.g., "Data Center Consolidation 2025"). It has a business owner and a final cutover date.
+-   **Iteration (`iterations_ite`)**: A specific, time-bound execution event under a Migration (e.g., "Go-Live Weekend," "Q3 Disaster Recovery Test"). It has its own technical cutover dates and is linked to a specific set of environments.
+
+### 2. The Canonical (Master) Layer
+
+This layer defines the reusable playbook.
+
+-   **Plan (`plans_master_plm`)**: The master playbook containing the end-to-end set of procedures.
+-   **Sequence (`sequences_master_sqm`)**: A major chapter in the plan (e.g., "Pre-Migration Setup," "Application Failover").
+-   **Phase (`phases_master_phm`)**: A distinct stage of work within a sequence (e.g., "Configure Network ACLs," "Start Database Replication").
+-   **Control (`controls_master_ctm`)**: A quality gate or verification checkpoint linked to a **Phase**. It defines a standard check that must be performed (e.g., "Verify End-to-End Connectivity").
+-   **Step (`steps_master_stm`)**: A granular, executable task within a phase (e.g., "Restart the primary application server").
+-   **Instruction (`instructions_master_inm`)**: The most detailed level of the playbook, providing the specific command or procedure for a step. An instruction can be optionally linked to a master **Control** to indicate that this specific procedure satisfies the phase-level quality check.
+
+### 3. The Instance (Execution) Layer
+
+This layer is a direct, time-stamped snapshot of the canonical layer for a specific iteration.
+
+-   **Plan Instance (`plans_instance_pli`)**: A snapshot of a master plan, created for and linked to a single **Iteration**.
+-   **Sequence Instance (`sequences_instance_sqi`)**: An instance of a sequence for a specific plan instance.
+-   **Phase Instance (`phases_instance_phi`)**: An instance of a phase.
+-   **Step Instance (`steps_instance_sti`)**: An instance of a step, where status (e.g., 'COMPLETED', 'FAILED') is tracked.
+-   **Instruction Instance (`instructions_instance_ini`)**: The record of a specific instruction being performed at a specific time by a specific user.
+-   **Control Instance (`controls_instance_cti`)**: The record of a control being executed, linked directly to the **Instruction Instance** it verifies. This provides a granular audit trail, confirming that the quality check was performed for the specific action taken.
+
+## Entity Relationship Diagram (ERD)
+
+The following ERD illustrates the relationships between all entities in the UMIG data model.
 
 ```mermaid
 erDiagram
-    implementation_plans_canonical_ipc {
-        UUID ipc_id PK
-        TEXT name
-        TEXT description
-        INTEGER version
-        VARCHAR status
-        UUID author_user_id FK
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+    applications_app {
+        INT app_id PK
+        VARCHAR app_code
+        VARCHAR app_name
+        TEXT app_description
+    }
+
+    environments_env {
+        INT env_id PK
+        VARCHAR env_code
+        VARCHAR env_name
+        TEXT env_description
+    }
+
+    teams_tms {
+        INT tms_id PK
+        VARCHAR tms_name
+        VARCHAR tms_email
+        TEXT tms_description
+    }
+
+    users_usr {
+        UUID usr_id PK
+        INT tms_id FK
+        VARCHAR usr_trigram
+        VARCHAR usr_first_name
+        VARCHAR usr_last_name
+        VARCHAR usr_email
+    }
+
+    roles_rls {
+        INT rls_id PK
+        VARCHAR rls_name
+    }
+
+    environment_roles_enr {
+        INT enr_id PK
+        VARCHAR enr_name
+    }
+
+    step_types_stt {
+        VARCHAR stt_code PK
+        VARCHAR stt_name
+    }
+
+    iteration_types_itt {
+        VARCHAR itt_code PK
+        VARCHAR itt_name
+    }
+
+    migrations_mig {
+        UUID mig_id PK
+        UUID usr_id_owner FK
+        VARCHAR mig_name
+        TEXT mig_description
+        DATE mig_business_cutover_date
+    }
+
+    iterations_ite {
+        UUID ite_id PK
+        UUID mig_id FK
+        VARCHAR ite_name
+        TEXT ite_description
+        TIMESTAMPTZ ite_static_cutover_date
+        TIMESTAMPTZ ite_dynamic_cutover_date
+    }
+
+    plans_master_plm {
+        UUID plm_id PK
+        INT tms_id FK
+        VARCHAR plm_name
+        TEXT plm_description
     }
 
     sequences_master_sqm {
         UUID sqm_id PK
-        UUID ipc_id FK
+        UUID plm_id FK
+        INT sqm_order
+        VARCHAR sqm_name
         UUID predecessor_sqm_id FK
-        TEXT name
-        TEXT description
-        INTEGER duration
     }
 
-    chapters_master_chm {
-        UUID chm_id PK
+    phases_master_phm {
+        UUID phm_id PK
         UUID sqm_id FK
-        UUID predecessor_chm_id FK
-        TEXT name
-        TEXT description
-        INTEGER duration
+        INT phm_order
+        VARCHAR phm_name
+        UUID predecessor_phm_id FK
     }
 
     steps_master_stm {
         UUID stm_id PK
-        UUID chm_id FK
-        UUID predecessor_stm_id FK
-        TEXT name
-        TEXT description
-        VARCHAR type
-        INTEGER duration
-        UUID team_id FK
-        VARCHAR env_type
+        UUID phm_id FK
+        INT tms_id_owner FK
+        VARCHAR stt_code FK
+        INT stm_number
+        VARCHAR stm_name
+        UUID stm_id_predecessor FK
+    }
+
+    controls_master_ctm {
+        UUID ctm_id PK
+        UUID phm_id FK
+        INT ctm_order
+        VARCHAR ctm_name
+        VARCHAR ctm_type
+        BOOLEAN ctm_is_critical
     }
 
     instructions_master_inm {
         UUID inm_id PK
         UUID stm_id FK
-        TEXT name
-        TEXT description
-        VARCHAR type
-        JSONB content
-        UUID team_id FK
+        INT tms_id FK
+        UUID ctm_id FK
+        INT inm_order
+        TEXT inm_body
     }
 
-    controls_master_ctm {
-        UUID ctm_id PK
-        UUID stm_id FK
-        TEXT name
-        TEXT description
-        VARCHAR type
-        TEXT query
-        TEXT expected_result
-        UUID team_id FK
-    }
+    %% Instance Tables
 
-    implementation_plans_canonical_ipc ||--o{ sequences_master_sqm : "has"
-    sequences_master_sqm ||--o{ chapters_master_chm : "has"
-    chapters_master_chm ||--o{ steps_master_stm : "has"
-    steps_master_stm ||--o{ instructions_master_inm : "has"
-    steps_master_stm ||--o{ controls_master_ctm : "has"
-    sequences_master_sqm }o--o| sequences_master_sqm : "precedes"
-    chapters_master_chm }o--o| chapters_master_chm : "precedes"
-    steps_master_stm }o--o| steps_master_stm : "precedes"
-```
-
-## Instance/Execution & Audit Tables
-
-### Purpose
-Instance tables capture the live execution of a canonical plan. They are created when a plan is instantiated for a specific migration event and track real-time progress, statuses, and assignments. The audit log provides an immutable record of all significant actions.
-
-### Instance and Audit Tables
-
-| Table Name                   | Purpose                                     | Key Fields & Relationships                                                              |
-|------------------------------|---------------------------------------------|-----------------------------------------------------------------------------------------|
-| migration_iterations_mic     | A live instance of a canonical plan         | mic_id (PK), ipc_id (FK), name, description, status, start_date, end_date                |
-| sequences_instance_sqi       | A live instance of a canonical sequence     | sqi_id (PK), mic_id (FK), sqm_id (FK), status, start_date, end_date                     |
-| chapters_instance_chi        | A live instance of a canonical chapter      | chi_id (PK), sqi_id (FK), chm_id (FK), status, start_date, end_date                      |
-| steps_instance_sti           | A live instance of a canonical step         | sti_id (PK), chi_id (FK), stm_id (FK), status, assignee_usr_id (FK), start_date, end_date |
-| instructions_instance_ini    | A live instance of a canonical instruction  | ini_id (PK), sti_id (FK), inm_id (FK), status, comments                                 |
-| controls_instance_cti        | A live instance of a canonical control      | cti_id (PK), sti_id (FK), ctm_id (FK), status, result, comments                          |
-| audit_log_aud                | Immutable audit log for all major events    | aud_id (PK), entity_type, entity_id, action, user_id (FK), details (jsonb), timestamp   |
-
-### ER Diagram: Instance/Execution Tables & Audit Log
-
-```mermaid
-erDiagram
-    migration_iterations_mic {
-        UUID mic_id PK
-        UUID ipc_id FK
-        TEXT name
-        TEXT description
-        VARCHAR status
-        TIMESTAMP start_date
-        TIMESTAMP end_date
+    plans_instance_pli {
+        UUID pli_id PK
+        UUID plm_id FK
+        UUID ite_id FK
+        VARCHAR pli_name
     }
 
     sequences_instance_sqi {
         UUID sqi_id PK
-        UUID mic_id FK
+        UUID pli_id FK
         UUID sqm_id FK
-        VARCHAR status
-        TIMESTAMP start_date
-        TIMESTAMP end_date
     }
 
-    chapters_instance_chi {
-        UUID chi_id PK
+    phases_instance_phi {
+        UUID phi_id PK
         UUID sqi_id FK
-        UUID chm_id FK
-        VARCHAR status
-        TIMESTAMP start_date
-        TIMESTAMP end_date
+        UUID phm_id FK
     }
 
     steps_instance_sti {
         UUID sti_id PK
-        UUID chi_id FK
+        UUID phi_id FK
         UUID stm_id FK
-        VARCHAR status
-        UUID assignee_usr_id FK
-        TIMESTAMP start_date
-        TIMESTAMP end_date
     }
 
     instructions_instance_ini {
         UUID ini_id PK
         UUID sti_id FK
         UUID inm_id FK
-        VARCHAR status
-        TEXT comments
     }
 
     controls_instance_cti {
         UUID cti_id PK
-        UUID sti_id FK
+        UUID ini_id FK
         UUID ctm_id FK
-        VARCHAR status
-        TEXT result
-        TEXT comments
     }
 
-    audit_log_aud {
-        UUID aud_id PK
-        VARCHAR entity_type
-        UUID entity_id
-        VARCHAR action
-        UUID user_id FK
-        JSONB details
-        TIMESTAMP timestamp
+    %% Join Tables
+
+    teams_tms_x_applications_app {
+        INT tms_id FK
+        INT app_id FK
     }
 
-    implementation_plans_canonical_ipc ||--o{ migration_iterations_mic : "instantiates as"
-    migration_iterations_mic ||--o{ sequences_instance_sqi : "contains"
-    sequences_instance_sqi ||--o{ chapters_instance_chi : "contains"
-    chapters_instance_chi ||--o{ steps_instance_sti : "contains"
-    steps_instance_sti ||--o{ instructions_instance_ini : "contains"
-    steps_instance_sti ||--o{ controls_instance_cti : "contains"
+    environments_env_x_applications_app {
+        INT env_id FK
+        INT app_id FK
+    }
 
-    sequences_master_sqm ||--o{ sequences_instance_sqi : "is instance of"
-    chapters_master_chm ||--o{ chapters_instance_chi : "is instance of"
-    steps_master_stm ||--o{ steps_instance_sti : "is instance of"
-    instructions_master_inm ||--o{ instructions_instance_ini : "is instance of"
-    controls_master_ctm ||--o{ controls_instance_cti : "is instance of"
+    environments_env_x_iterations_ite {
+        UUID ite_id FK
+        INT env_id FK
+        INT enr_id FK
+    }
 
-    migration_iterations_mic ||..o{ audit_log_aud : "is audited"
-    steps_instance_sti ||..o{ audit_log_aud : "is audited"
+    steps_master_stm_x_iteration_types_itt {
+        UUID stm_id FK
+        VARCHAR itt_code FK
+    }
+
+    steps_master_stm_x_teams_tms_impacted {
+        UUID stm_id FK
+        INT tms_id FK
+    }
+
+    %% Relationships
+
+    users_usr }o--|| teams_tms : "belongs to"
+    migrations_mig }o--|| users_usr : "owned by"
+    iterations_ite }o--|| migrations_mig : "belongs to"
+    plans_master_plm }o--|| teams_tms : "owned by"
+    sequences_master_sqm }o--|| plans_master_plm : "belongs to"
+    phases_master_phm }o--|| sequences_master_sqm : "belongs to"
+    steps_master_stm }o--|| phases_master_phm : "belongs to"
+    steps_master_stm }o--|| teams_tms : "owned by"
+    steps_master_stm }o--|| step_types_stt : "is of type"
+    controls_master_ctm }o--|| phases_master_phm : "validates"
+    instructions_master_inm }o--|| steps_master_stm : "details"
+    instructions_master_inm }o--|| teams_tms : "owned by"
+    instructions_master_inm }o--|| controls_master_ctm : "can satisfy"
+
+    plans_instance_pli }o--|| plans_master_plm : "instantiates"
+    plans_instance_pli }o--|| iterations_ite : "executes for"
+    sequences_instance_sqi }o--|| plans_instance_pli : "part of"
+    sequences_instance_sqi }o--|| sequences_master_sqm : "instantiates"
+    phases_instance_phi }o--|| sequences_instance_sqi : "part of"
+    phases_instance_phi }o--|| phases_master_phm : "instantiates"
+    steps_instance_sti }o--|| phases_instance_phi : "part of"
+    steps_instance_sti }o--|| steps_master_stm : "instantiates"
+    instructions_instance_ini }o--|| steps_instance_sti : "part of"
+    instructions_instance_ini }o--|| instructions_master_inm : "instantiates"
+    controls_instance_cti }o--|| instructions_instance_ini : "validates execution of"
+    controls_instance_cti }o--|| controls_master_ctm : "instantiates"
+
+    teams_tms_x_applications_app }o--|| teams_tms : ""
+    teams_tms_x_applications_app }o--|| applications_app : ""
+    environments_env_x_applications_app }o--|| environments_env : ""
+    environments_env_x_applications_app }o--|| applications_app : ""
+    environments_env_x_iterations_ite }o--|| environments_env : ""
+    environments_env_x_iterations_ite }o--|| iterations_ite : ""
+    environments_env_x_iterations_ite }o--|| environment_roles_enr : ""
+    steps_master_stm_x_iteration_types_itt }o--|| steps_master_stm : ""
+    steps_master_stm_x_iteration_types_itt }o--|| iteration_types_itt : ""
+    steps_master_stm_x_teams_tms_impacted }o--|| steps_master_stm : ""
+    steps_master_stm_x_teams_tms_impacted }o--|| teams_tms : ""
+
+```

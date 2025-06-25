@@ -23,7 +23,7 @@ async function generateEnvironments(client) {
  */
 async function generateEnvironmentIterationLinks(client) {
   console.log('Linking environments to iterations...');
-  const envRes = await client.query('SELECT id, env_name FROM environments_env');
+  const envRes = await client.query('SELECT env_id, env_name FROM environments_env');
   const envs = envRes.rows;
   const prodEnv = envs.find(e => e.env_name === 'PROD');
   const nonProdEnvs = envs.filter(e => e.env_name !== 'PROD');
@@ -33,7 +33,7 @@ async function generateEnvironmentIterationLinks(client) {
     return;
   }
 
-  const iterRes = await client.query('SELECT id, ite_type FROM iterations_ite');
+  const iterRes = await client.query('SELECT ite_id, ite_type FROM iterations_ite');
   const iterations = iterRes.rows;
 
   for (const iter of iterations) {
@@ -42,23 +42,23 @@ async function generateEnvironmentIterationLinks(client) {
       const roles = ['PROD', 'TEST', 'BACKUP'];
       for (let i = 0; i < 3; i++) {
         await client.query(
-          'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-          [shuffled[i % shuffled.length].id, iter.id, roles[i]]
+          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [shuffled[i % shuffled.length].env_id, iter.ite_id, roles[i]]
         );
       }
     } else if (iter.ite_type === 'CUTOVER') {
       await client.query(
-        'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [prodEnv.id, iter.id, 'PROD']
+        'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [prodEnv.env_id, iter.ite_id, 'PROD']
       );
       const shuffled = [...nonProdEnvs].sort(() => 0.5 - Math.random());
       await client.query(
-        'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [shuffled[0].id, iter.id, 'TEST']
+        'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [shuffled[0].env_id, iter.ite_id, 'TEST']
       );
       await client.query(
-        'INSERT INTO environments_iterations_eit (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [shuffled[1].id, iter.id, 'BACKUP']
+        'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [shuffled[1].env_id, iter.ite_id, 'BACKUP']
       );
     }
   }
@@ -73,8 +73,8 @@ async function generateEnvironmentIterationLinks(client) {
  */
 async function generateEnvironmentApplicationLinks(client) {
   console.log('Linking applications to environments...');
-  const envRes = await client.query('SELECT id, env_name FROM environments_env');
-  const appRes = await client.query('SELECT id FROM applications_app');
+  const envRes = await client.query('SELECT env_id, env_name FROM environments_env');
+  const appRes = await client.query('SELECT app_id FROM applications_app');
   const envs = envRes.rows;
   const apps = appRes.rows;
 
@@ -92,12 +92,12 @@ async function generateEnvironmentApplicationLinks(client) {
 
   for (const app of apps) {
     await client.query(
-      'INSERT INTO environments_applications_eap (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-      [prodEnv.id, app.id, faker.lorem.sentence()]
+      'INSERT INTO environments_env_x_applications_app (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+      [prodEnv.env_id, app.app_id, faker.lorem.sentence()]
     );
     await client.query(
-      'INSERT INTO environments_applications_eap (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-      [ev1Env.id, app.id, faker.lorem.sentence()]
+      'INSERT INTO environments_env_x_applications_app (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+      [ev1Env.env_id, app.app_id, faker.lorem.sentence()]
     );
   }
 
@@ -108,8 +108,8 @@ async function generateEnvironmentApplicationLinks(client) {
     for (let i = 0; i < numLinks; i++) {
       const app = shuffled[i % apps.length];
       await client.query(
-        'INSERT INTO environments_applications_eap (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [env.id, app.id, faker.lorem.sentence()]
+        'INSERT INTO environments_env_x_applications_app (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+        [env.env_id, app.app_id, faker.lorem.sentence()]
       );
     }
   }
