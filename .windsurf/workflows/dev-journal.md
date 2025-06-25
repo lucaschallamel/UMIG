@@ -31,3 +31,5 @@ Begin the journal entry by stating the high-level goal you identified in Step 1.
 Narrate the story of the session, explaining the steps taken, the reasoning behind decisions, and any dead-ends or strategic pivots encountered, using the evidence from Step 2.
 Conclude with the final state of the project and a clear outline of the immediate next steps.
 The tone should be in British English, and the format should be raw markdown. You will be concise but comprehensive and exhaustive.
+
+Avoid the "tunnel vision", just looking at most recent changes: We want to carefully crunch everything that was done so far today, as per the existing conversation, and since the last devJournal entry.
