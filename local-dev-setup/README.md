@@ -90,6 +90,33 @@ The `restart.sh` script includes an optional `--reset` flag that completely wipe
 ```
 You will be asked for confirmation before the data is deleted.
 
+## One-Time ScriptRunner Configuration
+
+After starting the Confluence instance for the first time, you must manually configure the database connection pool within ScriptRunner. This is a **one-time setup** as the configuration is persisted in the `confluence_data` volume.
+
+Our application code uses this shared connection pool to interact with the database.
+
+1.  **Navigate to ScriptRunner Resources**:
+    *   Go to Confluence Administration > **ScriptRunner** > **Resources**.
+
+2.  **Add a New Resource**:
+    *   Click on **Add a new resource** and select **Database Connection**.
+
+3.  **Fill in the Configuration Details**:
+    *   **Pool Name**: `umig_db_pool`
+        *   **Important**: This name must be exact, as it is hardcoded in the application's `DatabaseUtil.groovy`.
+    *   **Driver**: `org.postgresql.Driver`
+    *   **JDBC URL**: `jdbc:postgresql://umig_postgres:5432/umig_app_db`
+        *   **Note**: We use the container name `umig_postgres` for the host, not `localhost`.
+    *   **User**: `umig_app_user` (or the value of `UMIG_DB_USER` in your `.env` file)
+    *   **Password**: `123456` (or the value of `UMIG_DB_PASSWORD` in your `.env` file)
+    *   **JNDI Name**: Leave this field blank.
+
+4.  **Save the Resource**:
+    *   Click **Add** to save the configuration.
+
+Once this is done, ScriptRunner will be able to obtain a database connection and all API endpoints will function correctly.
+
 ## Database Migrations (Liquibase)
 
 To ensure consistency and clarity in our database migration process, we follow a set of conventions for writing Liquibase changesets.
@@ -126,6 +153,22 @@ Liquibase offers powerful features like tags and labels to manage database versi
     *   `experimental`: For changes related to features that are not yet stable.
 
 By adhering to these conventions, we maintain a clean, understandable, and robust database migration history.
+
+### First-Time Confluence Setup
+
+When you start the environment for the first time, you will need to configure Confluence to connect to the PostgreSQL database. You will be guided through a setup wizard in your browser at [http://localhost:8090](http://localhost:8090).
+
+When you reach the "Set up your database" screen, you must use the following settings:
+
+- **Database Type**: `PostgreSQL`
+- **Setup Type**: `Simple`
+- **Hostname**: `postgres`
+- **Port**: `5432`
+- **Database Name**: `confluence_db`
+- **Username**: `umig_user` (or the value of `POSTGRES_USER` in your `.env` file)
+- **Password**: The password you set for `POSTGRES_PASSWORD` in your `.env` file (defaults to `changeme`).
+
+**Important**: You must use `postgres` as the hostname, not `localhost`. This is because Confluence is running in its own container and needs to connect to the `postgres` container over the shared container network. `localhost` inside the Confluence container refers only to itself.
 
 ## Services
 

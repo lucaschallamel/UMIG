@@ -1,6 +1,13 @@
 ### [Unreleased]
 #### Added
 - **2025-06-25:**
+    - **Implemented V2 REST API Foundation:**
+        - Implemented the full "Pure ScriptRunner" architecture, including a static asset-serving REST endpoint and modernized UI macro asset loading.
+        - Created a complete, production-ready CRUD API for the `/api/v2/users` resource.
+        - Created a complete, production-ready CRUD API for the `/api/v2/teams` resource.
+        - Created a complete, production-ready CRUD API for the `/api/v2/plans` resource, refactoring the legacy `ImplementationPlanManager`.
+        - Refactored the project source tree to align with the new architecture, removing legacy files and folders.
+- **2025-06-25:**
     - **Refined Plan Generation Logic:**
         - The data generator now creates a single "master" canonical plan to serve as a template.
         - For each iteration, exactly two instances are generated: one `ACTIVE` (with a full hierarchy) and one `DRAFT`.
@@ -48,6 +55,11 @@
         - `06_generate_canonical_plans.js`
     - Added new generator (`06_generate_canonical_plans.js`) to populate the new canonical tables.
     - Merged branch `main` into `data/tracking_activities` to synchronize latest changes.
+- **2025-06-25:**
+    - **Defined Application Architecture:**
+        - Formalized a "Pure ScriptRunner Application" architecture, avoiding a formal Confluence plugin structure.
+        - Established a new project source structure: `src/com/umig` for backend, `src/macros` for UI scripts, and `src/web` for CSS/JS assets.
+        - Documented the decision in `ADR-018`.
 #### Changed
 - Refactored `steps_stp` to use a foreign key to the re-introduced `status_sts` table, removing the hardcoded `status` column and normalizing the schema.
 - Removed obsolete `usr_code` from `users_usr` in schema and documentation.
@@ -67,6 +79,8 @@
 - Removed legacy table definitions and references from all changelogs.
 
 #### Fixed
+- **Database Connectivity:** Resolved runtime errors in all REST endpoints by correcting the database connection pool name in `DatabaseUtil.groovy` to use the ScriptRunner Resource `umig_db_pool`.
+- **Static Type Errors:** Eliminated all IDE static analysis errors in repository classes by adding `@ClosureParams` to `DatabaseUtil.groovy` and applying explicit type casting for database-returned IDs.
 - Heavily refactored the legacy plan generator (`05_generate_legacy_plans.js`) to resolve multiple critical bugs, including syntax errors and schema mismatches with the `migrations_mig` and `iterations_ite` tables. The script now successfully generates a complete, hierarchical legacy plan dataset.
 - Corrected the baseline Liquibase schema (`001_baseline_schema.sql`) to be a complete 1:1 representation of the original SQL Server data model.
 - Added previously missing tables (`ITERATIONS_TRACKING_ITT`) and columns (`tms_email` in `TEAMS_TMS`) to ensure full synchronization.

@@ -50,7 +50,7 @@ Successful connection and query execution via ScriptRunner’s Database Resource
 
 ```groovy
 import com.onresolve.scriptrunner.db.DatabaseUtil
-DatabaseUtil.withSql('umig_app_db_pool') { sql ->
+DatabaseUtil.withSql('umig_db_pool') { sql ->
     sql.firstRow('SELECT 1')
 }
 ```

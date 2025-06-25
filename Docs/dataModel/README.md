@@ -41,7 +41,7 @@ This layer is a direct, time-stamped snapshot of the canonical layer for a speci
 -   **Phase Instance (`phases_instance_phi`)**: An instance of a phase.
 -   **Step Instance (`steps_instance_sti`)**: An instance of a step, where status (e.g., 'COMPLETED', 'FAILED') is tracked.
 -   **Instruction Instance (`instructions_instance_ini`)**: The record of a specific instruction being performed at a specific time by a specific user.
--   **Control Instance (`controls_instance_cti`)**: The record of a control being executed, linked directly to the **Instruction Instance** it verifies. This provides a granular audit trail, confirming that the quality check was performed for the specific action taken.
+-   **Control Instance (`controls_instance_cti`)**: The record of a control being executed, linked directly to the **Step Instance** it validates. This provides an audit trail confirming that the phase-level quality check was performed for a given step.
 
 ## Entity Relationship Diagram (ERD)
 
@@ -71,7 +71,7 @@ erDiagram
     }
 
     users_usr {
-        UUID usr_id PK
+        INT usr_id PK
         INT tms_id FK
         VARCHAR usr_trigram
         VARCHAR usr_first_name
@@ -202,7 +202,7 @@ erDiagram
 
     controls_instance_cti {
         UUID cti_id PK
-        UUID ini_id FK
+        UUID sti_id FK
         UUID ctm_id FK
     }
 
@@ -260,7 +260,7 @@ erDiagram
     steps_instance_sti }o--|| steps_master_stm : "instantiates"
     instructions_instance_ini }o--|| steps_instance_sti : "part of"
     instructions_instance_ini }o--|| instructions_master_inm : "instantiates"
-    controls_instance_cti }o--|| instructions_instance_ini : "validates execution of"
+    controls_instance_cti }o--|| steps_instance_sti : "validates"
     controls_instance_cti }o--|| controls_master_ctm : "instantiates"
 
     teams_tms_x_applications_app }o--|| teams_tms : ""
@@ -274,5 +274,3 @@ erDiagram
     steps_master_stm_x_iteration_types_itt }o--|| iteration_types_itt : ""
     steps_master_stm_x_teams_tms_impacted }o--|| steps_master_stm : ""
     steps_master_stm_x_teams_tms_impacted }o--|| teams_tms : ""
-
-```
