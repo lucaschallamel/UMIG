@@ -1,85 +1,92 @@
 package com.umig.api.v2
 
+import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import com.umig.repository.TeamRepository
-import com.umig.utils.JsonUtil
-import com.umig.utils.RequestUtil
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+import groovy.transform.BaseScript
 
-import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpServletRequest
+import javax.ws.rs.core.MultivaluedMap
+import javax.ws.rs.core.Response
 
-// This script is executed by ScriptRunner for requests to /api/v2/teams*
+@BaseScript CustomEndpointDelegate delegate
 
-// Instantiate the repository to access business logic
-def teamRepository = new TeamRepository()
+final TeamRepository teamRepository = new TeamRepository()
 
-// Check for a path variable (e.g., a team ID like /teams/10)
-def teamId = RequestUtil.getPathVariableAsInt(request)
-
-// Main router to handle different HTTP methods
-switch (request.method) {
-    case 'GET':
-        if (teamId) {
-            // Handle GET /api/v2/teams/{teamId}
-            def team = teamRepository.findTeamById(teamId)
-            if (team) {
-                JsonUtil.sendSuccess(response, team)
-            } else {
-                JsonUtil.sendError(response, "Team with ID ${teamId} not found.", HttpServletResponse.SC_NOT_FOUND)
-            }
-        } else {
-            // Handle GET /api/v2/teams
-            def teams = teamRepository.findAllTeams()
-            JsonUtil.sendSuccess(response, teams)
-        }
-        break
-
-    case 'POST':
-        // Handle POST /api/v2/teams
-        try {
-            def teamData = JsonUtil.parseRequest(request)
-            def newTeam = teamRepository.createTeam(teamData)
-            if (newTeam) {
-                JsonUtil.sendSuccess(response, newTeam, HttpServletResponse.SC_CREATED)
-            } else {
-                JsonUtil.sendError(response, "Failed to create team.", HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-            }
-        } catch (Exception e) {
-            JsonUtil.sendError(response, "Invalid request body: ${e.message}", HttpServletResponse.SC_BAD_REQUEST)
-        }
-        break
-
-    case 'PUT':
-        // Handle PUT /api/v2/teams/{teamId}
-        if (teamId) {
+private Integer getTeamIdFromPath(HttpServletRequest request) {
+    def extraPath = getAdditionalPath(request)
+    if (extraPath) {
+        def pathParts = extraPath.split('/').findAll { it }
+        if (pathParts) {
             try {
-                def teamData = JsonUtil.parseRequest(request)
-                def updatedTeam = teamRepository.updateTeam(teamId, teamData)
-                if (updatedTeam) {
-                    JsonUtil.sendSuccess(response, updatedTeam)
-                } else {
-                    JsonUtil.sendError(response, "Team with ID ${teamId} not found for update.", HttpServletResponse.SC_NOT_FOUND)
-                }
-            } catch (Exception e) {
-                JsonUtil.sendError(response, "Invalid request body: ${e.message}", HttpServletResponse.SC_BAD_REQUEST)
+                return pathParts[0].toInteger()
+            } catch (NumberFormatException e) {
+                return null
             }
-        } else {
-            JsonUtil.sendError(response, "Team ID is required for PUT method.", HttpServletResponse.SC_BAD_REQUEST)
         }
-        break
+    }
+    return null
+}
 
-    case 'DELETE':
-        // Handle DELETE /api/v2/teams/{teamId}
-        if (teamId) {
-            if (teamRepository.deleteTeam(teamId)) {
-                response.status = HttpServletResponse.SC_NO_CONTENT
-            } else {
-                JsonUtil.sendError(response, "Team with ID ${teamId} not found for deletion.", HttpServletResponse.SC_NOT_FOUND)
-            }
+teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    final Integer teamId = getTeamIdFromPath(request)
+
+    if (teamId != null) {
+        def team = teamRepository.findTeamById(teamId)
+        if (team) {
+            return Response.ok(new JsonBuilder(team).toString()).build()
         } else {
-            JsonUtil.sendError(response, "Team ID is required for DELETE method.", HttpServletResponse.SC_BAD_REQUEST)
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found."]).toString()).build()
         }
-        break
+    } else {
+        def teams = teamRepository.findAllTeams()
+        return Response.ok(new JsonBuilder(teams).toString()).build()
+    }
+}
 
-    default:
-        JsonUtil.sendError(response, "HTTP method '${request.method}' not supported on this endpoint.", HttpServletResponse.SC_METHOD_NOT_ALLOWED)
-        break
+teams(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    try {
+        Map teamData = new JsonSlurper().parseText(body) as Map
+        def newTeam = teamRepository.createTeam(teamData)
+        if (newTeam) {
+            return Response.status(Response.Status.CREATED).entity(new JsonBuilder(newTeam).toString()).build()
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to create team."]).toString()).build()
+        }
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid request body: ${e.message}"]).toString()).build()
+    }
+}
+
+teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    final Integer teamId = getTeamIdFromPath(request)
+    if (teamId == null) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Team ID is required for PUT method."]).toString()).build()
+    }
+
+    try {
+        Map teamData = new JsonSlurper().parseText(body) as Map
+        def updatedTeam = teamRepository.updateTeam(teamId, teamData)
+        if (updatedTeam) {
+            return Response.ok(new JsonBuilder(updatedTeam).toString()).build()
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found for update."]).toString()).build()
+        }
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid request body: ${e.message}"]).toString()).build()
+    }
+}
+
+teams(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    final Integer teamId = getTeamIdFromPath(request)
+    if (teamId == null) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Team ID is required for DELETE method."]).toString()).build()
+    }
+
+    if (teamRepository.deleteTeam(teamId)) {
+        return Response.noContent().build()
+    } else {
+        return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found for deletion."]).toString()).build()
+    }
 }

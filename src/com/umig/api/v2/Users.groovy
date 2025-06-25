@@ -1,85 +1,92 @@
 package com.umig.api.v2
 
+import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import com.umig.repository.UserRepository
-import com.umig.utils.JsonUtil
-import com.umig.utils.RequestUtil
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+import groovy.transform.BaseScript
 
-import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpServletRequest
+import javax.ws.rs.core.MultivaluedMap
+import javax.ws.rs.core.Response
 
-// This script is executed by ScriptRunner for requests to /api/v2/users*
+@BaseScript CustomEndpointDelegate delegate
 
-// Instantiate the repository to access business logic
-def userRepository = new UserRepository()
+final UserRepository userRepository = new UserRepository()
 
-// Check for a path variable (e.g., a user ID like /users/42)
-def userId = RequestUtil.getPathVariableAsInt(request)
-
-// Main router to handle different HTTP methods
-switch (request.method) {
-    case 'GET':
-        if (userId) {
-            // Handle GET /api/v2/users/{userId}
-            def user = userRepository.findUserById(userId)
-            if (user) {
-                JsonUtil.sendSuccess(response, user)
-            } else {
-                JsonUtil.sendError(response, "User with ID ${userId} not found.", HttpServletResponse.SC_NOT_FOUND)
-            }
-        } else {
-            // Handle GET /api/v2/users
-            def users = userRepository.findAllUsers()
-            JsonUtil.sendSuccess(response, users)
-        }
-        break
-
-    case 'POST':
-        // Handle POST /api/v2/users
-        try {
-            def userData = JsonUtil.parseRequest(request)
-            def newUser = userRepository.createUser(userData)
-            if (newUser) {
-                JsonUtil.sendSuccess(response, newUser, HttpServletResponse.SC_CREATED)
-            } else {
-                JsonUtil.sendError(response, "Failed to create user.", HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
-            }
-        } catch (Exception e) {
-            JsonUtil.sendError(response, "Invalid request body: ${e.message}", HttpServletResponse.SC_BAD_REQUEST)
-        }
-        break
-
-    case 'PUT':
-        // Handle PUT /api/v2/users/{userId}
-        if (userId) {
+private Integer getUserIdFromPath(HttpServletRequest request) {
+    def extraPath = getAdditionalPath(request)
+    if (extraPath) {
+        def pathParts = extraPath.split('/').findAll { it }
+        if (pathParts) {
             try {
-                def userData = JsonUtil.parseRequest(request)
-                def updatedUser = userRepository.updateUser(userId, userData)
-                if (updatedUser) {
-                    JsonUtil.sendSuccess(response, updatedUser)
-                } else {
-                    JsonUtil.sendError(response, "User with ID ${userId} not found for update.", HttpServletResponse.SC_NOT_FOUND)
-                }
-            } catch (Exception e) {
-                JsonUtil.sendError(response, "Invalid request body: ${e.message}", HttpServletResponse.SC_BAD_REQUEST)
+                return pathParts[0].toInteger()
+            } catch (NumberFormatException e) {
+                return null
             }
-        } else {
-            JsonUtil.sendError(response, "User ID is required for PUT method.", HttpServletResponse.SC_BAD_REQUEST)
         }
-        break
+    }
+    return null
+}
 
-    case 'DELETE':
-        // Handle DELETE /api/v2/users/{userId}
-        if (userId) {
-            if (userRepository.deleteUser(userId)) {
-                response.status = HttpServletResponse.SC_NO_CONTENT
-            } else {
-                JsonUtil.sendError(response, "User with ID ${userId} not found for deletion.", HttpServletResponse.SC_NOT_FOUND)
-            }
+users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    final Integer userId = getUserIdFromPath(request)
+
+    if (userId != null) {
+        def user = userRepository.findUserById(userId)
+        if (user) {
+            return Response.ok(new JsonBuilder(user).toString()).build()
         } else {
-            JsonUtil.sendError(response, "User ID is required for DELETE method.", HttpServletResponse.SC_BAD_REQUEST)
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
         }
-        break
+    } else {
+        def users = userRepository.findAllUsers()
+        return Response.ok(new JsonBuilder(users).toString()).build()
+    }
+}
 
-    default:
-        JsonUtil.sendError(response, "HTTP method '${request.method}' not supported on this endpoint.", HttpServletResponse.SC_METHOD_NOT_ALLOWED)
-        break
+users(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    try {
+        Map userData = new JsonSlurper().parseText(body) as Map
+        def newUser = userRepository.createUser(userData)
+        if (newUser) {
+            return Response.status(Response.Status.CREATED).entity(new JsonBuilder(newUser).toString()).build()
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to create user."]).toString()).build()
+        }
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid request body: ${e.message}"]).toString()).build()
+    }
+}
+
+users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    final Integer userId = getUserIdFromPath(request)
+    if (userId == null) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "User ID is required for PUT method."]).toString()).build()
+    }
+
+    try {
+        Map userData = new JsonSlurper().parseText(body) as Map
+        def updatedUser = userRepository.updateUser(userId, userData)
+        if (updatedUser) {
+            return Response.ok(new JsonBuilder(updatedUser).toString()).build()
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found for update."]).toString()).build()
+        }
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid request body: ${e.message}"]).toString()).build()
+    }
+}
+
+users(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    final Integer userId = getUserIdFromPath(request)
+    if (userId == null) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "User ID is required for DELETE method."]).toString()).build()
+    }
+
+    if (userRepository.deleteUser(userId)) {
+        return Response.noContent().build()
+    } else {
+        return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found for deletion."]).toString()).build()
+    }
 }

@@ -12,8 +12,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "users"
                             ],
                             "host": [
@@ -39,8 +41,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users"
                                     ],
                                     "host": [
@@ -84,8 +88,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "users"
                             ],
                             "host": [
@@ -124,8 +130,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users"
                                     ],
                                     "host": [
@@ -174,8 +182,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users"
                                     ],
                                     "host": [
@@ -232,8 +242,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "users",
                                 ":userId"
                             ],
@@ -271,8 +283,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users",
                                         ":userId"
                                     ],
@@ -309,8 +323,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users",
                                         ":userId"
                                     ],
@@ -355,8 +371,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "users",
                                 ":userId"
                             ],
@@ -407,8 +425,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users",
                                         ":userId"
                                     ],
@@ -458,8 +478,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users",
                                         ":userId"
                                     ],
@@ -509,8 +531,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users",
                                         ":userId"
                                     ],
@@ -568,8 +592,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "users",
                                 ":userId"
                             ],
@@ -607,8 +633,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users",
                                         ":userId"
                                     ],
@@ -633,8 +661,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "users",
                                         ":userId"
                                     ],
@@ -685,8 +715,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "teams"
                             ],
                             "host": [
@@ -712,8 +744,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams"
                                     ],
                                     "host": [
@@ -757,8 +791,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "teams"
                             ],
                             "host": [
@@ -797,8 +833,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams"
                                     ],
                                     "host": [
@@ -847,8 +885,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams"
                                     ],
                                     "host": [
@@ -905,8 +945,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "teams",
                                 ":teamId"
                             ],
@@ -944,8 +986,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams",
                                         ":teamId"
                                     ],
@@ -982,8 +1026,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams",
                                         ":teamId"
                                     ],
@@ -1028,8 +1074,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "teams",
                                 ":teamId"
                             ],
@@ -1080,8 +1128,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams",
                                         ":teamId"
                                     ],
@@ -1131,8 +1181,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams",
                                         ":teamId"
                                     ],
@@ -1182,8 +1234,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams",
                                         ":teamId"
                                     ],
@@ -1241,8 +1295,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "teams",
                                 ":teamId"
                             ],
@@ -1280,8 +1336,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams",
                                         ":teamId"
                                     ],
@@ -1306,8 +1364,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "teams",
                                         ":teamId"
                                     ],
@@ -1358,8 +1418,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "plans"
                             ],
                             "host": [
@@ -1385,8 +1447,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans"
                                     ],
                                     "host": [
@@ -1430,8 +1494,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "plans"
                             ],
                             "host": [
@@ -1470,8 +1536,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans"
                                     ],
                                     "host": [
@@ -1520,8 +1588,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans"
                                     ],
                                     "host": [
@@ -1578,8 +1648,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "plans",
                                 ":planId"
                             ],
@@ -1617,8 +1689,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans",
                                         ":planId"
                                     ],
@@ -1655,8 +1729,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans",
                                         ":planId"
                                     ],
@@ -1701,8 +1777,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "plans",
                                 ":planId"
                             ],
@@ -1753,8 +1831,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans",
                                         ":planId"
                                     ],
@@ -1804,8 +1884,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans",
                                         ":planId"
                                     ],
@@ -1855,8 +1937,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans",
                                         ":planId"
                                     ],
@@ -1914,8 +1998,10 @@
                         "description": {},
                         "url": {
                             "path": [
-                                "api",
-                                "v2",
+                                "rest",
+                                "scriptrunner",
+                                "latest",
+                                "custom",
                                 "plans",
                                 ":planId"
                             ],
@@ -1953,8 +2039,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans",
                                         ":planId"
                                     ],
@@ -1979,8 +2067,10 @@
                             "originalRequest": {
                                 "url": {
                                     "path": [
-                                        "api",
-                                        "v2",
+                                        "rest",
+                                        "scriptrunner",
+                                        "latest",
+                                        "custom",
                                         "plans",
                                         ":planId"
                                     ],

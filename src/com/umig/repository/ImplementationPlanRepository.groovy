@@ -15,14 +15,13 @@ class ImplementationPlanRepository {
      * @return A map representing the plan, or null if not found.
      */
     def findPlanById(UUID planId) {
-        def sql = DatabaseUtil.getSql()
-        def plan = sql.firstRow("""
-            SELECT mig_id, usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date
-            FROM migrations_mig
-            WHERE mig_id = :planId
-        """, [planId: planId])
-
-        return plan
+        DatabaseUtil.withSql { sql ->
+            return sql.firstRow("""
+                SELECT mig_id, usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date
+                FROM migrations_mig
+                WHERE mig_id = :planId
+            """, [planId: planId])
+        }
     }
 
     /**
@@ -30,14 +29,13 @@ class ImplementationPlanRepository {
      * @return A list of maps, where each map is a plan.
      */
     def findAllPlans() {
-        def sql = DatabaseUtil.getSql()
-        def plans = sql.rows("""
-            SELECT mig_id, usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date
-            FROM migrations_mig
-            ORDER BY mig_name
-        """)
-
-        return plans
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT mig_id, usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date
+                FROM migrations_mig
+                ORDER BY mig_name
+            """)
+        }
     }
 
     /**
@@ -46,27 +44,22 @@ class ImplementationPlanRepository {
      * @return A map representing the newly created plan.
      */
     def createPlan(Map planData) {
-        def sql = DatabaseUtil.getSql()
-        // The RETURNING clause is essential for getting the auto-generated UUID back
-        def insertQuery = """
-            INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date)
-            VALUES (:usr_id_owner, :mig_name, :mig_description, :mig_status, :mig_type, :mig_start_date, :mig_end_date)
-            RETURNING mig_id
-        """
+        DatabaseUtil.withSql { sql ->
+            // The RETURNING clause is essential for getting the auto-generated UUID back
+            def insertQuery = """
+                INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date)
+                VALUES (:usr_id_owner, :mig_name, :mig_description, :mig_status, :mig_type, :mig_start_date, :mig_end_date)
+                RETURNING mig_id
+            """
 
-        // Ensure optional fields are handled correctly if not present in the map
-        planData.mig_start_date = planData.mig_start_date ?: null
-        planData.mig_end_date = planData.mig_end_date ?: null
-        planData.mig_description = planData.mig_description ?: null
+            def result = sql.firstRow(insertQuery, planData)
 
-        def generatedKeys = sql.executeInsert(insertQuery, planData)
+            if (result && result.mig_id) {
+                return findPlanById(result.mig_id as UUID)
+            }
 
-        if (generatedKeys && generatedKeys[0]) {
-            def newId = generatedKeys[0][0] as UUID // Cast to UUID
-            return findPlanById(newId)
+            return null
         }
-
-        return null
     }
 
     /**
@@ -76,32 +69,32 @@ class ImplementationPlanRepository {
      * @return A map representing the updated plan.
      */
     def updatePlan(UUID planId, Map planData) {
-        def sql = DatabaseUtil.getSql()
-        def updateQuery = """
-            UPDATE migrations_mig SET
-                usr_id_owner = :usr_id_owner,
-                mig_name = :mig_name,
-                mig_description = :mig_description,
-                mig_status = :mig_status,
-                mig_type = :mig_type,
-                mig_start_date = :mig_start_date,
-                mig_end_date = :mig_end_date
-            WHERE mig_id = :mig_id
-        """
+        DatabaseUtil.withSql { sql ->
+            if (sql.firstRow('SELECT mig_id FROM migrations_mig WHERE mig_id = :planId', [planId: planId]) == null) {
+                return null
+            }
 
-        planData.mig_id = planId
-        // Handle optional fields
-        planData.mig_start_date = planData.mig_start_date ?: null
-        planData.mig_end_date = planData.mig_end_date ?: null
-        planData.mig_description = planData.mig_description ?: null
+            def setClauses = []
+            def queryParams = [:]
+            def updatableFields = ['usr_id_owner', 'mig_name', 'mig_description', 'mig_status', 'mig_type', 'mig_start_date', 'mig_end_date']
 
-        def updatedRows = sql.executeUpdate(updateQuery, planData)
+            planData.each { key, value ->
+                if (key in updatableFields) {
+                    setClauses.add("${key} = :${key}")
+                    queryParams[key] = value
+                }
+            }
 
-        if (updatedRows > 0) {
-            return findPlanById(planId)
+            if (setClauses.isEmpty()) {
+                return
+            }
+
+            queryParams['mig_id'] = planId
+            def updateQuery = "UPDATE migrations_mig SET ${setClauses.join(', ')} WHERE mig_id = :mig_id"
+
+            sql.executeUpdate(updateQuery, queryParams)
         }
-
-        return null
+        return findPlanById(planId)
     }
 
     /**
@@ -110,10 +103,10 @@ class ImplementationPlanRepository {
      * @return true if the plan was deleted, false otherwise.
      */
     def deletePlan(UUID planId) {
-        def sql = DatabaseUtil.getSql()
-        def deleteQuery = "DELETE FROM migrations_mig WHERE mig_id = :planId"
-        def deletedRows = sql.executeUpdate(deleteQuery, [planId: planId])
-
-        return deletedRows > 0
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM migrations_mig WHERE mig_id = :planId"
+            def rowsAffected = sql.executeUpdate(deleteQuery, [planId: planId])
+            return rowsAffected > 0
+        }
     }
 }

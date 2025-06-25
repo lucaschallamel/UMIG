@@ -22,7 +22,22 @@ For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD
 
 ## Application Architecture & Structure
 
-The UMIG application is built as a **pure ScriptRunner application**, not a formal, compiled Confluence plugin. This approach keeps the project lean, simplifies deployment, and relies entirely on ScriptRunner's native features (REST Endpoints, Script Macros).
+The UMIG application is built as a **pure ScriptRunner application**, not a formal, compiled Confluence plugin. This approach keeps the project lean, simplifies deployment, and relies entirely on ScriptRunner's native features. The two core architectural patterns are auto-discovered REST endpoints and resource-based database connections.
+
+### Auto-Discovered REST Endpoints
+
+The entire API is composed of Groovy scripts located in the `src/` directory. ScriptRunner is configured to automatically scan specific packages within this directory (`com.umig.api.v2` and `com.umig.api.v2.web`) for files that follow the `CustomEndpointDelegate` pattern.
+
+When the Confluence container starts, ScriptRunner discovers these scripts and dynamically exposes them as REST endpoints under the `/rest/scriptrunner/latest/custom/` path. This means there is no manual registration or compilation step required to deploy or update an endpoint; simply updating the Groovy file is sufficient.
+
+### Resource-Based Database Connection
+
+Database connectivity is managed entirely within ScriptRunner. Instead of defining a JNDI resource at the container level (e.g., in `server.xml`), we use a **ScriptRunner Database Connection Resource**.
+
+- **Configuration**: A connection pool named `umig_db_pool` is configured directly in the ScriptRunner **Resources** tab in the Confluence administration UI.
+- **Access**: The application code accesses this connection pool by its name via the `DatabaseUtil.withSql('umig_db_pool', ...)` method.
+
+This approach keeps the Confluence server configuration completely clean and standard. All application-specific configuration (database connections, script paths) is managed within ScriptRunner, making the setup more portable and easier to manage.
 
 The source code is organized as follows:
 

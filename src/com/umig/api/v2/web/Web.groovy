@@ -1,19 +1,21 @@
 package com.umig.api.v2.web
 
-import javax.servlet.http.HttpServletResponse
+import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
+import groovy.transform.BaseScript
+
+import javax.servlet.http.HttpServletRequest
+import javax.ws.rs.core.MultivaluedMap
+import javax.ws.rs.core.Response
+
+@BaseScript CustomEndpointDelegate delegate
 
 // This script serves static assets (CSS, JS) from the 'web' directory.
-// It is mapped to the REST endpoint /api/v2/web/*
 
 // --- Configuration ---
-// Determine the root directory for our web assets.
-// The script is at .../scripts/com/umig/api/v2/web/Web.groovy
-// The assets are at .../scripts/web/
-// So we need to go up 5 levels from the script's location to get to the script root.
 def scriptFile = new File(getClass().protectionDomain.codeSource.location.path)
+// The script is at .../scripts/com/umig/api/v2/web/Web.groovy, assets are at .../scripts/web/
 def webRootDir = scriptFile.parentFile.parentFile.parentFile.parentFile.parentFile.toPath().resolve('web').toFile()
 
-// A map of file extensions to MIME types for common web assets.
 def mimeTypes = [
     'css' : 'text/css',
     'js'  : 'application/javascript',
@@ -25,35 +27,32 @@ def mimeTypes = [
     'html': 'text/html'
 ]
 
-// --- Logic ---
-// Get the requested file path from the URL (e.g., /css/styles.css)
-def requestedPath = request.pathInfo
+web(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    // --- Logic ---
+    String requestedPath = getAdditionalPath(request)
 
-if (!requestedPath || requestedPath == '/') {
-    response.sendError(HttpServletResponse.SC_BAD_REQUEST, 'File path is required.')
-    return
+    if (!requestedPath || requestedPath == '/') {
+        return Response.status(Response.Status.BAD_REQUEST).entity('File path is required.').build()
+    }
+
+    // Construct the full path to the requested file, removing leading slash.
+    def requestedFile = new File(webRootDir, requestedPath.substring(1))
+
+    // ** Security Check **
+    // Prevent directory traversal attacks. Ensure the requested file is actually inside the web root directory.
+    if (!requestedFile.getCanonicalPath().startsWith(webRootDir.getCanonicalPath())) {
+        return Response.status(Response.Status.FORBIDDEN).entity('Access denied.').build()
+    }
+
+    if (!requestedFile.exists() || requestedFile.isDirectory()) {
+        return Response.status(Response.Status.NOT_FOUND).entity("File not found: ${requestedPath}").build()
+    }
+
+    // Determine the content type from the file extension.
+    def fileExtension = requestedFile.name.split(/\./).last()
+    def contentType = mimeTypes.get(fileExtension, 'application/octet-stream') // Default to binary stream
+
+    // Serve the file.
+    return Response.ok(requestedFile.newInputStream()).type(contentType).build()
 }
 
-// Construct the full path to the requested file.
-def requestedFile = new File(webRootDir, requestedPath.substring(1))
-
-// ** Security Check **
-// Prevent directory traversal attacks. Ensure the requested file is actually inside the web root directory.
-if (!requestedFile.getCanonicalPath().startsWith(webRootDir.getCanonicalPath())) {
-    response.sendError(HttpServletResponse.SC_FORBIDDEN, 'Access denied.')
-    return
-}
-
-if (!requestedFile.exists() || requestedFile.isDirectory()) {
-    response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found: ${requestedPath}")
-    return
-}
-
-// Determine the content type from the file extension.
-def fileExtension = requestedFile.name.split('\\.')[-1]
-def contentType = mimeTypes.get(fileExtension, 'application/octet-stream') // Default to binary stream
-
-// Serve the file.
-response.contentType = contentType
-response.setContentLength(requestedFile.bytes.length)
-response.outputStream << requestedFile.newInputStream()

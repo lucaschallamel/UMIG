@@ -15,14 +15,13 @@ class UserRepository {
      * @return A map representing the user, or null if not found.
      */
     def findUserById(int userId) {
-        def sql = DatabaseUtil.getSql()
-        def user = sql.firstRow("""
-            SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id
-            FROM users_usr
-            WHERE usr_id = :userId
-        """, [userId: userId])
-
-        return user
+        DatabaseUtil.withSql { sql ->
+            return sql.firstRow("""
+                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id
+                FROM users_usr
+                WHERE usr_id = :userId
+            """, [userId: userId])
+        }
     }
 
     /**
@@ -30,13 +29,13 @@ class UserRepository {
      * @return A list of maps, where each map is a user.
      */
     def findAllUsers() {
-        def sql = DatabaseUtil.getSql()
-        def users = sql.rows("""
-            SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id
-            FROM users_usr
-            ORDER BY usr_id
-        """)
-        return users
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id
+                FROM users_usr
+                ORDER BY usr_id
+            """)
+        }
     }
 
     /**
@@ -45,21 +44,21 @@ class UserRepository {
      * @return A map representing the newly created user, including the generated ID.
      */
     def createUser(Map userData) {
-        def sql = DatabaseUtil.getSql()
-        def insertQuery = """
-            INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id)
-            VALUES (:usr_code, :usr_first_name, :usr_last_name, :usr_email, :usr_is_admin, :tms_id, :rls_id)
-        """
+        DatabaseUtil.withSql { sql ->
+            def insertQuery = """
+                INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id)
+                VALUES (:usr_code, :usr_first_name, :usr_last_name, :usr_email, :usr_is_admin, :tms_id, :rls_id)
+            """
 
-        // executeInsert returns a list containing the generated keys
-        def generatedKeys = sql.executeInsert(insertQuery, userData)
+            def generatedKeys = sql.executeInsert(insertQuery, userData, ['usr_id'])
 
-        if (generatedKeys && generatedKeys[0]) {
-            def newId = generatedKeys[0][0] as int
-            return findUserById(newId) // Reuse findUserById to return the full user object
+            if (generatedKeys && generatedKeys[0]) {
+                def newId = generatedKeys[0][0] as int
+                return findUserById(newId)
+            }
+
+            return null // Should not happen if insert is successful
         }
-
-        return null // Should not happen if insert is successful
     }
 
     /**
@@ -69,36 +68,37 @@ class UserRepository {
      * @return A map representing the updated user.
      */
     def updateUser(int userId, Map userData) {
-        def sql = DatabaseUtil.getSql()
-
-        // Ensure the user exists before attempting an update
-        if (findUserById(userId) == null) {
-            return null
-        }
-
-        // Build the SET part of the query dynamically from a whitelist of fields
-        def setClauses = []
-        def queryParams = [:]
-        def updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'tms_id', 'rls_id']
-
-        userData.each { key, value ->
-            if (key in updatableFields) {
-                setClauses.add("${key} = :${key}")
-                queryParams[key] = value
+        // It's better to perform the check and update in the same transaction
+        DatabaseUtil.withSql { sql ->
+            // Ensure the user exists before attempting an update
+            def currentUser = sql.firstRow('SELECT usr_id FROM users_usr WHERE usr_id = :userId', [userId: userId])
+            if (!currentUser) {
+                return null
             }
+
+            // Build the SET part of the query dynamically from a whitelist of fields
+            def setClauses = []
+            def queryParams = [:]
+            def updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'tms_id', 'rls_id']
+
+            userData.each { key, value ->
+                if (key in updatableFields) {
+                    setClauses.add("${key} = :${key}")
+                    queryParams[key] = value
+                }
+            }
+
+            if (setClauses.isEmpty()) {
+                // If no valid fields were provided for update, return the current user data
+                return findUserById(userId)
+            }
+
+            queryParams['usr_id'] = userId
+            def updateQuery = "UPDATE users_usr SET ${setClauses.join(', ')} WHERE usr_id = :usr_id"
+
+            sql.executeUpdate(updateQuery, queryParams)
         }
-
-        if (setClauses.isEmpty()) {
-            // If no valid fields were provided for update, return the current user data
-            return findUserById(userId)
-        }
-
-        queryParams['usr_id'] = userId
-        def updateQuery = "UPDATE users_usr SET ${setClauses.join(', ')} WHERE usr_id = :usr_id"
-
-        sql.executeUpdate(updateQuery, queryParams)
-
-        // Return the updated user data
+        // Return the updated user data by calling findUserById outside the transaction
         return findUserById(userId)
     }
 
@@ -108,9 +108,10 @@ class UserRepository {
      * @return true if the user was deleted, false otherwise.
      */
     def deleteUser(int userId) {
-        def sql = DatabaseUtil.getSql()
-        def deleteQuery = "DELETE FROM users_usr WHERE usr_id = :userId"
-        def rowsAffected = sql.executeUpdate(deleteQuery, [userId: userId])
-        return rowsAffected > 0
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM users_usr WHERE usr_id = :userId"
+            def rowsAffected = sql.executeUpdate(deleteQuery, [userId: userId])
+            return rowsAffected > 0
+        }
     }
 }

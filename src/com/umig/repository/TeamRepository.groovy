@@ -14,14 +14,13 @@ class TeamRepository {
      * @return A map representing the team, or null if not found.
      */
     def findTeamById(int teamId) {
-        def sql = DatabaseUtil.getSql()
-        def team = sql.firstRow("""
-            SELECT tms_id, tms_name, tms_email, tms_description
-            FROM teams_tms
-            WHERE tms_id = :teamId
-        """, [teamId: teamId])
-
-        return team
+        DatabaseUtil.withSql { sql ->
+            return sql.firstRow("""
+                SELECT tms_id, tms_name, tms_description
+                FROM teams_tms
+                WHERE tms_id = :teamId
+            """, [teamId: teamId])
+        }
     }
 
     /**
@@ -29,14 +28,13 @@ class TeamRepository {
      * @return A list of maps, where each map is a team.
      */
     def findAllTeams() {
-        def sql = DatabaseUtil.getSql()
-        def teams = sql.rows("""
-            SELECT tms_id, tms_name, tms_email, tms_description
-            FROM teams_tms
-            ORDER BY tms_name
-        """)
-
-        return teams
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT tms_id, tms_name, tms_description
+                FROM teams_tms
+                ORDER BY tms_name
+            """)
+        }
     }
 
     /**
@@ -45,20 +43,21 @@ class TeamRepository {
      * @return A map representing the newly created team.
      */
     def createTeam(Map teamData) {
-        def sql = DatabaseUtil.getSql()
-        def insertQuery = """
-            INSERT INTO teams_tms (tms_name, tms_email, tms_description)
-            VALUES (:tms_name, :tms_email, :tms_description)
-        """
+        DatabaseUtil.withSql { sql ->
+            def insertQuery = """
+                INSERT INTO teams_tms (tms_name, tms_description)
+                VALUES (:tms_name, :tms_description)
+            """
 
-        def generatedKeys = sql.executeInsert(insertQuery, teamData)
+            def generatedKeys = sql.executeInsert(insertQuery, teamData, ['tms_id'])
 
-        if (generatedKeys && generatedKeys[0]) {
-            def newId = generatedKeys[0][0] as int
-            return findTeamById(newId)
+            if (generatedKeys && generatedKeys[0]) {
+                def newId = generatedKeys[0][0] as int
+                return findTeamById(newId)
+            }
+
+            return null
         }
-
-        return null
     }
 
     /**
@@ -68,23 +67,32 @@ class TeamRepository {
      * @return A map representing the updated team.
      */
     def updateTeam(int teamId, Map teamData) {
-        def sql = DatabaseUtil.getSql()
-        def updateQuery = """
-            UPDATE teams_tms SET
-                tms_name = :tms_name,
-                tms_email = :tms_email,
-                tms_description = :tms_description
-            WHERE tms_id = :tms_id
-        """
+        DatabaseUtil.withSql { sql ->
+            if (sql.firstRow('SELECT tms_id FROM teams_tms WHERE tms_id = :teamId', [teamId: teamId]) == null) {
+                return null
+            }
 
-        teamData.tms_id = teamId
-        def updatedRows = sql.executeUpdate(updateQuery, teamData)
+            def setClauses = []
+            def queryParams = [:]
+            def updatableFields = ['tms_name', 'tms_description']
 
-        if (updatedRows > 0) {
-            return findTeamById(teamId)
+            teamData.each { key, value ->
+                if (key in updatableFields) {
+                    setClauses.add("${key} = :${key}")
+                    queryParams[key] = value
+                }
+            }
+
+            if (setClauses.isEmpty()) {
+                return
+            }
+
+            queryParams['tms_id'] = teamId
+            def updateQuery = "UPDATE teams_tms SET ${setClauses.join(', ')} WHERE tms_id = :tms_id"
+
+            sql.executeUpdate(updateQuery, queryParams)
         }
-
-        return null
+        return findTeamById(teamId)
     }
 
     /**
@@ -93,10 +101,10 @@ class TeamRepository {
      * @return true if the team was deleted, false otherwise.
      */
     def deleteTeam(int teamId) {
-        def sql = DatabaseUtil.getSql()
-        def deleteQuery = "DELETE FROM teams_tms WHERE tms_id = :teamId"
-        def deletedRows = sql.executeUpdate(deleteQuery, [teamId: teamId])
-
-        return deletedRows > 0
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM teams_tms WHERE tms_id = :teamId"
+            def rowsAffected = sql.executeUpdate(deleteQuery, [teamId: teamId])
+            return rowsAffected > 0
+        }
     }
 }

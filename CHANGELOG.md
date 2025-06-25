@@ -79,6 +79,8 @@
 - Removed legacy table definitions and references from all changelogs.
 
 #### Fixed
+- **Database Connectivity:** Resolved runtime errors in all REST endpoints by correcting the database connection pool name in `DatabaseUtil.groovy` to use the ScriptRunner Resource `umig_db_pool`.
+- **Static Type Errors:** Eliminated all IDE static analysis errors in repository classes by adding `@ClosureParams` to `DatabaseUtil.groovy` and applying explicit type casting for database-returned IDs.
 - Heavily refactored the legacy plan generator (`05_generate_legacy_plans.js`) to resolve multiple critical bugs, including syntax errors and schema mismatches with the `migrations_mig` and `iterations_ite` tables. The script now successfully generates a complete, hierarchical legacy plan dataset.
 - Corrected the baseline Liquibase schema (`001_baseline_schema.sql`) to be a complete 1:1 representation of the original SQL Server data model.
 - Added previously missing tables (`ITERATIONS_TRACKING_ITT`) and columns (`tms_email` in `TEAMS_TMS`) to ensure full synchronization.
