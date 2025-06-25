@@ -2,10 +2,32 @@ const { client } = require('../lib/db');
 const { faker } = require('../lib/utils');
 
 /**
+ * Truncates all tables related to canonical plans and their components.
+ * @param {object} client - The PostgreSQL client.
+ */
+async function resetCanonicalPlansTables(client) {
+  console.log('Resetting canonical plan tables...');
+  try {
+    // Truncating `plans_master_plm` with CASCADE will clear the entire hierarchy:
+    // sequences, phases, controls, steps, instructions, and all related link tables.
+    await client.query('TRUNCATE TABLE "plans_master_plm" RESTART IDENTITY CASCADE');
+    console.log('  - Table plans_master_plm truncated (cascading to all children).');
+    console.log('Finished resetting canonical plan tables.');
+  } catch (error) {
+    console.error(`Error resetting canonical plan tables: ${error}`);
+    throw error;
+  }
+}
+
+/**
  * Generates a complete canonical implementation plan with all its components.
  * @param {object} config - The main configuration object.
+ * @param {object} options - Command line options, e.g., { reset: true }.
  */
-async function generateCanonicalPlans(config) {
+async function generateCanonicalPlans(config, options = {}) {
+  if (options.reset) {
+    await resetCanonicalPlansTables(client);
+  }
   console.log(`Generating ${config.num_canonical_plans} canonical implementation plans...`);
 
   try {

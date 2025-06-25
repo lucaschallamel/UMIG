@@ -22,11 +22,39 @@ async function generateRoles(client) {
 }
 
 /**
+ * Pre-populates the step_types_stt table with default step types.
+ * @param {object} client - The PostgreSQL client.
+ */
+async function generateStepTypes(client) {
+  console.log('Prepopulating step_types_stt...');
+  const stepTypes = [
+    ['TRT', 'TREATMENTS', '#1ba1e2'],
+    ['PRE', 'PREPARATION', '#008a00'],
+    ['IGO', 'IT GO', '#7030a0'],
+    ['CHK', 'CHECK', '#ffff00'],
+    ['BUS', 'BUS', '#ff00ff'],
+    ['SYS', 'SYSTEM', '#000000'],
+    ['GON', 'GO/NOGO', '#ff0000'],
+    ['BGO', 'BUSINESS GO', '#ffc000'],
+    ['DUM', 'DUMPS', '#948a54']
+  ];
+
+  for (const [stt_code, stt_name, stt_color] of stepTypes) {
+    await client.query(
+      'INSERT INTO step_types_stt (stt_code, stt_name, stt_color) VALUES ($1, $2, $3) ON CONFLICT (stt_code) DO NOTHING',
+      [stt_code, stt_name, stt_color]
+    );
+  }
+  console.log('Finished prepopulating step_types_stt.');
+}
+
+/**
  * Main function to generate all core metadata.
  */
 async function generateCoreMetadata() {
   try {
     await generateRoles(client);
+    await generateStepTypes(client);
   } catch (error) {
     console.error('Error generating core metadata:', error);
     throw error;

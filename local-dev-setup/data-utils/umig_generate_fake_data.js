@@ -9,8 +9,6 @@ const { generateAllEnvironments } = require('./generators/04_generate_environmen
 const { generateMigrations } = require('./generators/05_generate_migrations');
 const { generateCanonicalPlans } = require('./generators/06_generate_canonical_plans');
 const { generateInstanceData } = require('./generators/07_generate_instance_data');
-const readline = require('readline');
-
 // Centralized configuration for data generation
 const CONFIG = {
   num_migrations: 5,
@@ -32,66 +30,45 @@ const CONFIG = {
   num_canonical_plans: 5
 };
 
-async function confirmReset() {
-  return new Promise((resolve) => {
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.question('\nWARNING: This will DELETE ALL DATA from the database. Are you sure? (yes/no): ', (answer) => {
-      rl.close();
-      resolve(answer.trim().toLowerCase() === 'yes');
-    });
-  });
-}
-
-async function resetDatabase() {
-  console.log('Truncating ALL user tables in the database...');
-  await client.query('BEGIN');
-  const { rows } = await client.query(`
-    SELECT tablename FROM pg_tables
-    WHERE schemaname = 'public' AND tablename NOT LIKE 'pg_%' AND tablename NOT LIKE 'sql_%'
-    AND tablename NOT IN ('databasechangelog', 'databasechangeloglock')
-  `);
-  const tableNames = rows.map(r => `"${r.tablename}"`);
-  if (tableNames.length > 0) {
-    await client.query(`TRUNCATE TABLE ${tableNames.join(', ')} RESTART IDENTITY CASCADE`);
-    console.log(`Truncated tables: ${tableNames.join(', ')}`);
-  } else {
-    console.log('No user tables found to truncate.');
-  }
-  await client.query('COMMIT');
-  console.log('All tables truncated.');
-}
-
 async function main() {
   const program = new Command();
   program
-    .option('--reset', 'Reset the database by truncating all tables before generating data')
+    .option('--reset', 'Reset the relevant database tables before generating data')
+    .option('--script <number>', 'Run only a specific generator script (e.g., 01, 02, etc.)')
     .parse(process.argv);
 
   const options = program.opts();
 
+  const generators = {
+    '01': () => generateCoreMetadata(), // No reset needed
+    '02': () => generateTeamsAndApps(CONFIG, options),
+    '03': () => generateUsers(CONFIG, options),
+    '04': () => generateAllEnvironments(options),
+    '05': () => generateMigrations(CONFIG, options),
+    '06': () => generateCanonicalPlans(CONFIG, options),
+    '07': () => generateInstanceData(CONFIG, options)
+  };
+
   try {
     await connect();
 
-    if (options.reset) {
-      if (await confirmReset()) {
-        await resetDatabase();
+    if (options.script) {
+      if (generators[options.script]) {
+        console.log(`\nRunning generator script ${options.script}...`);
+        await generators[options.script]();
+        console.log(`\n✅ Script ${options.script} completed successfully!`);
       } else {
-        console.log('Aborting data generation.');
-        return;
+        console.error(`\n❌ Error: Script '${options.script}' not found. Available scripts are: ${Object.keys(generators).join(', ')}`);
+        process.exit(1);
       }
+    } else {
+      console.log('\nStarting full data generation process...');
+      // The order of execution is critical to respect foreign key constraints
+      for (const key in generators) {
+        await generators[key]();
+      }
+      console.log('\n✅ Full data generation process completed successfully!');
     }
-
-    console.log('\nStarting data generation process...');
-    // The order of execution is critical to respect foreign key constraints
-    await generateCoreMetadata();
-    await generateTeamsAndApps(CONFIG);
-    await generateUsers(CONFIG);
-    await generateAllEnvironments();
-    await generateMigrations(CONFIG);
-    await generateCanonicalPlans(CONFIG);
-    await generateInstanceData(CONFIG); // Generate instance data based on canonical plans
-
-    console.log('\n✅ Data generation process completed successfully!');
 
   } catch (error) {
     console.error('\n❌ An error occurred during the data generation process:');

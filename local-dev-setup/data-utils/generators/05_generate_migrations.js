@@ -2,10 +2,32 @@ const { client } = require('../lib/db');
 const { faker } = require('../lib/utils');
 
 /**
+ * Truncates tables related to migrations and their children (iterations).
+ * @param {object} client - The PostgreSQL client.
+ */
+async function resetMigrationsTables(client) {
+  console.log('Resetting migrations and iterations tables...');
+  try {
+    // Truncating `migrations_mig` with CASCADE will automatically truncate
+    // `iterations_ite` and any other dependent tables due to foreign key constraints.
+    await client.query('TRUNCATE TABLE "migrations_mig" RESTART IDENTITY CASCADE');
+    console.log('  - Table migrations_mig truncated (cascading to iterations).');
+    console.log('Finished resetting migrations tables.');
+  } catch (error) {
+    console.error(`Error resetting migrations tables: ${error}`);
+    throw error;
+  }
+}
+
+/**
  * Generates top-level migrations and their associated iterations (RUN, DR, CUTOVER).
  * @param {object} config - The main configuration object.
+ * @param {object} options - Command line options, e.g., { reset: true }.
  */
-async function generateMigrations(config) {
+async function generateMigrations(config, options = {}) {
+  if (options.reset) {
+    await resetMigrationsTables(client);
+  }
   console.log(`Generating ${config.num_migrations} migrations...`);
 
   try {

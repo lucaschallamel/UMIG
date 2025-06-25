@@ -2,29 +2,55 @@ const { client } = require('../lib/db');
 const { faker } = require('../lib/utils');
 
 /**
+ * Truncates all tables related to instance data and audit logs.
+ * @param {object} client - The PostgreSQL client.
+ */
+async function resetInstanceDataTables(client) {
+  console.log('Resetting instance data and audit log tables...');
+  try {
+    // Truncating `plans_instance_pli` will cascade to all other instance tables.
+    await client.query('TRUNCATE TABLE "plans_instance_pli" RESTART IDENTITY CASCADE');
+    console.log('  - Table plans_instance_pli truncated (cascading to all children).');
+
+    // The audit log must be cleared separately.
+    await client.query('TRUNCATE TABLE "audit_log_aud" RESTART IDENTITY CASCADE');
+    console.log('  - Table audit_log_aud truncated.');
+
+    console.log('Finished resetting instance data tables.');
+  } catch (error) {
+    console.error(`Error resetting instance data tables: ${error}`);
+    throw error;
+  }
+}
+
+/**
  * Generates instance data for each canonical implementation plan, simulating a real migration run.
  * @param {object} config - The main configuration object.
+ * @param {object} options - Command line options, e.g., { reset: true }.
  */
-async function generateInstanceData(config) {
+async function generateInstanceData(config, options = {}) {
+  if (options.reset) {
+    await resetInstanceDataTables(client);
+  }
   console.log(`Generating instance data for all iterations and plans...`);
 
   try {
     // Fetch all master plans, iterations, and users
-    const plansRes = await client.query('SELECT plm_id FROM plans_master_plm');
-    const masterPlanIds = plansRes.rows.map(r => r.plm_id);
+    const plansRes = await client.query('SELECT plm_id, plm_name FROM plans_master_plm');
+    const masterPlans = plansRes.rows;
 
-    const iterationsRes = await client.query('SELECT ite_id FROM iterations_ite');
-    const iterationIds = iterationsRes.rows.map(r => r.ite_id);
+    const iterationsRes = await client.query('SELECT ite_id, ite_name FROM iterations_ite');
+    const iterations = iterationsRes.rows;
 
     const usersRes = await client.query('SELECT usr_id FROM users_usr');
     const userIds = usersRes.rows.map(r => r.usr_id);
 
     const statuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'SKIPPED'];
 
-    if (masterPlanIds.length === 0) {
+    if (masterPlans.length === 0) {
       throw new Error('Cannot generate instance data without master plans.');
     }
-    if (iterationIds.length === 0) {
+    if (iterations.length === 0) {
       throw new Error('Cannot generate instance data without iterations.');
     }
     if (userIds.length === 0) {
@@ -32,19 +58,20 @@ async function generateInstanceData(config) {
     }
 
     // For each iteration, create an instance of every master plan
-    for (const iteId of iterationIds) {
-      for (const plmId of masterPlanIds) {
+    for (const iteration of iterations) {
+      for (const masterPlan of masterPlans) {
         // 1. Create a Plan Instance from the master plan for this iteration
+        const pliName = `${masterPlan.plm_name} - ${iteration.ite_name}`;
         const pliRes = await client.query(
-          `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_status, usr_id_owner)
-           VALUES ($1, $2, 'IN_PROGRESS', $3) RETURNING pli_id`,
-          [plmId, iteId, faker.helpers.arrayElement(userIds)]
+          `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_status, usr_id_owner)
+           VALUES ($1, $2, $3, 'IN_PROGRESS', $4) RETURNING pli_id`,
+          [masterPlan.plm_id, iteration.ite_id, pliName, faker.helpers.arrayElement(userIds)]
         );
         const pliId = pliRes.rows[0].pli_id;
-        await logAudit(pliId, 'plan_instance', userIds[0], 'CREATED', { master_plan_id: plmId, iteration_id: iteId });
+        await logAudit(pliId, 'plan_instance', userIds[0], 'CREATED', { master_plan_id: masterPlan.plm_id, iteration_id: iteration.ite_id });
 
         // 2. Get all sequences for the master plan
-        const seqMasterRes = await client.query('SELECT sqm_id FROM sequences_master_sqm WHERE plm_id = $1', [plmId]);
+        const seqMasterRes = await client.query('SELECT sqm_id FROM sequences_master_sqm WHERE plm_id = $1', [masterPlan.plm_id]);
         for (const seqMaster of seqMasterRes.rows) {
           const sqiRes = await client.query(
             `INSERT INTO sequences_instance_sqi (pli_id, sqm_id, sqi_status) VALUES ($1, $2, 'IN_PROGRESS') RETURNING sqi_id`,
@@ -66,9 +93,9 @@ async function generateInstanceData(config) {
             for (const stepMaster of stepMasterRes.rows) {
               const randomStatus = faker.helpers.arrayElement(statuses);
               const stiRes = await client.query(
-                `INSERT INTO steps_instance_sti (phi_id, stm_id, sti_status, usr_id_assignee, sti_comment)
-                 VALUES ($1, $2, $3, $4, $5) RETURNING sti_id`,
-                [phiId, stepMaster.stm_id, randomStatus, faker.helpers.arrayElement(userIds), faker.lorem.sentence()]
+                `INSERT INTO steps_instance_sti (phi_id, stm_id, sti_status, usr_id_assignee)
+                 VALUES ($1, $2, $3, $4) RETURNING sti_id`,
+                [phiId, stepMaster.stm_id, randomStatus, faker.helpers.arrayElement(userIds)]
               );
               const stiId = stiRes.rows[0].sti_id;
 

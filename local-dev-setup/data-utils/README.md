@@ -68,10 +68,12 @@ The generation process is controlled by a configuration object embedded at the t
 
 ### Data Generation Logic and Conventions
 
-The script follows specific rules to ensure data integrity and realism:
+The script follows specific rules and principles to ensure data integrity, predictability, and safety.
 
-- **Reference Table Protection:**
-  - The `resetDatabase()` function will never truncate the `status_sts` or `step_type_stt` tables, nor the Liquibase migration tracking tables. This ensures critical reference data and migration state are always preserved, even when running with `--reset`.
+#### Core Principles
+
+- **Data Model Integrity:** The database schema is considered stable and must not be altered. All scripts and tests must conform to the existing data model. Tests adapt to the model, not the other way around.
+- **Targeted Data Reset:** All data generation scripts must support a `--reset` flag. When used, this option selectively truncates **only** the tables the script is responsible for populating. System-critical tables (e.g., `databasechangelog`, `databasechangeloglock`) are explicitly protected. Core reference tables (e.g., `roles_rls`, `step_types_stt`) are populated idempotently by the `01_generate_core_metadata.js` script and are therefore not affected by the `--reset` flag.
 
 - **Step Type Reference Data (`step_type_stt`):**
   - The script always prepopulates `step_type_stt` with a fixed set of step types, each with a code, name, description, and a hexadecimal color code (`type_color`).
@@ -174,14 +176,19 @@ npm test
   ```
 - Tests are run in verbose mode, so all conditions tested and passed will be clearly listed in the output.
 
-### Test Types
-- **Unit tests:** Validate core logic (e.g., mapping, validation, CLI parsing). No database or file system side effects.
-- **Integration/CLI tests:** Simulate CLI usage and check for correct behavior, error handling, and environment safety.
-- **Integration tests for user and team assignment:**
-  - Every team has at least one member.
-  - Every user belongs to exactly one team.
-  - Every application is assigned to exactly one team.
-  - All ADMIN and PILOT users exist in the correct numbers and are assigned to IT_CUTOVER.
+### Test Strategies and Types
+
+The project employs two primary testing strategies tailored to the different utilities:
+
+1.  **Mock-Based Testing for Data Generators:**
+    - The data generator scripts (e.g., `04_generate_environments.js`) are tested using **in-memory mocks** (via Jest). This approach isolates the script's logic from the database, allowing for fast, predictable unit tests that verify functions, query construction, and error handling without needing a live database connection or pre-existing data.
+
+2.  **Fixture-Based Testing for the CSV Importer:**
+    - The `umig_csv_importer.js` utility is tested using **static fixture files** located in `__tests__/fixtures/`. This is because testing a file importer requires reading and parsing actual files to validate its core functionality. These tests ensure the importer can handle real-world CSV structures and mappings correctly.
+
+#### Test Types
+- **Unit tests:** Validate core logic (e.g., data transformations, validation, CLI parsing). Most unit tests use mocks and have no database or file system side effects.
+- **Integration/CLI tests:** Simulate full CLI execution to check for correct behavior, error handling, and database interaction. These tests require a live database populated with generated data.
 
 ### Test Safety & Maintenance
 - **No tests will ever modify, rename, or delete your `.env` file.**

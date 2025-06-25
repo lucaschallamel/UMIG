@@ -19,7 +19,9 @@ async function generateTeams(client, config) {
   );
 
   for (let i = 1; i < config.num_teams; i++) {
-    const name = `TEAM_${faker.word.adjective().toUpperCase()}`.replace(/ /g, '_');
+    const department = faker.commerce.department();
+    const teamType = faker.helpers.arrayElement(['Team', 'Group', 'Squad', 'Unit', 'Department', 'Division']);
+    const name = `${department} ${teamType}`;
     const description = faker.company.catchPhrase();
     const email = makeTeamEmail(name, domain);
     await client.query(
@@ -82,11 +84,39 @@ async function generateTeamApplicationLinks(client) {
 }
 
 /**
+ * Truncates all tables related to teams and applications.
+ * @param {object} client - The PostgreSQL client.
+ */
+async function resetTeamsAndAppsTables(client) {
+  console.log('Resetting teams and applications tables...');
+  const tablesToReset = [
+    'teams_tms_x_applications_app',
+    'teams_tms',
+    'applications_app'
+  ];
+  try {
+    for (const table of tablesToReset) {
+      // Use CASCADE to handle foreign key dependencies
+      await client.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
+      console.log(`  - Table ${table} truncated.`);
+    }
+    console.log('Finished resetting teams and applications tables.');
+  } catch (error) {
+    console.error(`Error resetting tables: ${error}`);
+    throw error;
+  }
+}
+
+/**
  * Main function to generate teams, applications, and their links.
  * @param {object} config - The main configuration object.
+ * @param {object} options - Command line options, e.g., { reset: true }.
  */
-async function generateTeamsAndApps(config) {
+async function generateTeamsAndApps(config, options = {}) {
   try {
+    if (options.reset) {
+      await resetTeamsAndAppsTables(client);
+    }
     await generateTeams(client, config);
     await generateApplications(client, config);
     await generateTeamApplicationLinks(client);

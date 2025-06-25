@@ -25,41 +25,56 @@ async function generateEnvironmentIterationLinks(client) {
   console.log('Linking environments to iterations...');
   const envRes = await client.query('SELECT env_id, env_name FROM environments_env');
   const envs = envRes.rows;
-  const prodEnv = envs.find(e => e.env_name === 'PROD');
-  const nonProdEnvs = envs.filter(e => e.env_name !== 'PROD');
 
-  if (!prodEnv || nonProdEnvs.length < 2) {
-    console.warn('Warning: Not enough environments for iteration associations.');
+  const envRolesRes = await client.query('SELECT enr_id, enr_name FROM environment_roles_enr');
+  const envRoles = envRolesRes.rows;
+  const prodRoleId = envRoles.find(r => r.enr_name === 'PROD')?.enr_id;
+  const backupRoleId = envRoles.find(r => r.enr_name === 'BACKUP')?.enr_id;
+  const testRoleId = envRoles.find(r => r.enr_name === 'TEST')?.enr_id;
+
+  if (envs.length < 2 || !prodRoleId || !backupRoleId || !testRoleId) {
+    console.warn('Warning: Required environments or roles (PROD, BACKUP, TEST) not found.');
     return;
   }
 
-  const iterRes = await client.query('SELECT ite_id, ite_type FROM iterations_ite');
+  const iterRes = await client.query('SELECT ite_id, itt_code FROM iterations_ite');
   const iterations = iterRes.rows;
+  const prodEnv = envs.find(e => e.env_name === 'PROD');
 
   for (const iter of iterations) {
-    if (iter.ite_type === 'RUN' || iter.ite_type === 'DR') {
-      const shuffled = [...nonProdEnvs].sort(() => 0.5 - Math.random());
-      const roles = ['PROD', 'TEST', 'BACKUP'];
-      for (let i = 0; i < 3; i++) {
+    if (iter.itt_code === 'CUTOVER') {
+      // For CUTOVER, only link the PROD environment with the PROD role.
+      if (prodEnv) {
         await client.query(
-          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-          [shuffled[i % shuffled.length].env_id, iter.ite_id, roles[i]]
+          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [prodEnv.env_id, iter.ite_id, prodRoleId]
         );
       }
-    } else if (iter.ite_type === 'CUTOVER') {
-      await client.query(
-        'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [prodEnv.env_id, iter.ite_id, 'PROD']
-      );
-      const shuffled = [...nonProdEnvs].sort(() => 0.5 - Math.random());
-      await client.query(
-        'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [shuffled[0].env_id, iter.ite_id, 'TEST']
-      );
-      await client.query(
-        'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, eit_role) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [shuffled[1].env_id, iter.ite_id, 'BACKUP']
-      );
+    } else if (iter.itt_code === 'RUN' || iter.itt_code === 'DR') {
+      // For RUN/DR, link PROD, BACKUP, and some TEST environments
+      const shuffledEnvs = [...envs].sort(() => 0.5 - Math.random());
+      
+      if (shuffledEnvs.length > 0) {
+        await client.query(
+          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [shuffledEnvs[0].env_id, iter.ite_id, prodRoleId]
+        );
+      }
+
+      if (shuffledEnvs.length > 1) {
+        await client.query(
+          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [shuffledEnvs[1].env_id, iter.ite_id, backupRoleId]
+        );
+      }
+
+      const numTestEnvs = faker.number.int({ min: 1, max: Math.min(3, shuffledEnvs.length - 2) });
+      for (let k = 2; k < 2 + numTestEnvs && k < shuffledEnvs.length; k++) {
+        await client.query(
+          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [shuffledEnvs[k].env_id, iter.ite_id, testRoleId]
+        );
+      }
     }
   }
   console.log('Finished linking environments to iterations.');
@@ -92,12 +107,12 @@ async function generateEnvironmentApplicationLinks(client) {
 
   for (const app of apps) {
     await client.query(
-      'INSERT INTO environments_env_x_applications_app (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-      [prodEnv.env_id, app.app_id, faker.lorem.sentence()]
+      'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [prodEnv.env_id, app.app_id]
     );
     await client.query(
-      'INSERT INTO environments_env_x_applications_app (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-      [ev1Env.env_id, app.app_id, faker.lorem.sentence()]
+      'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [ev1Env.env_id, app.app_id]
     );
   }
 
@@ -108,8 +123,8 @@ async function generateEnvironmentApplicationLinks(client) {
     for (let i = 0; i < numLinks; i++) {
       const app = shuffled[i % apps.length];
       await client.query(
-        'INSERT INTO environments_env_x_applications_app (env_id, app_id, comments) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-        [env.env_id, app.app_id, faker.lorem.sentence()]
+        'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [env.env_id, app.app_id]
       );
     }
   }
@@ -117,10 +132,37 @@ async function generateEnvironmentApplicationLinks(client) {
 }
 
 /**
- * Main function to generate environments and all related links.
+ * Truncates all tables related to environments and their links.
+ * @param {object} client - The PostgreSQL client.
  */
-async function generateAllEnvironments() {
+async function resetEnvironmentsTables(client) {
+  console.log('Resetting environments tables...');
+  const tablesToReset = [
+    'environments_env_x_iterations_ite',
+    'environments_env_x_applications_app',
+    'environments_env'
+  ];
   try {
+    for (const table of tablesToReset) {
+      await client.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
+      console.log(`  - Table ${table} truncated.`);
+    }
+    console.log('Finished resetting environments tables.');
+  } catch (error) {
+    console.error(`Error resetting environments tables: ${error}`);
+    throw error;
+  }
+}
+
+/**
+ * Main function to generate environments and all related links.
+ * @param {object} options - Command line options, e.g., { reset: true }.
+ */
+async function generateAllEnvironments(options = {}) {
+  try {
+    if (options.reset) {
+      await resetEnvironmentsTables(client);
+    }
     await generateEnvironments(client);
     // Note: Linking functions depend on other generators (iterations, apps) having run first.
     // The main orchestrator script will handle the correct execution order.

@@ -15,18 +15,43 @@ function generateUniqueTrigrams(count) {
 }
 
 /**
+ * Truncates the users_usr table.
+ * @param {object} client - The PostgreSQL client.
+ */
+async function resetUsersTable(client) {
+  console.log('Resetting users table...');
+  try {
+    // Use CASCADE to handle any dependent records in other tables
+    await client.query('TRUNCATE TABLE "users_usr" RESTART IDENTITY CASCADE');
+    console.log('  - Table users_usr truncated.');
+  } catch (error) {
+    console.error(`Error resetting users table: ${error}`);
+    throw error;
+  }
+}
+
+/**
  * Generates users and assigns them to roles and teams.
  * @param {object} config - The main configuration object.
+ * @param {object} options - Command line options, e.g., { reset: true }.
  */
-async function generateUsers(config) {
+async function generateUsers(config, options = {}) {
+  if (options.reset) {
+    await resetUsersTable(client);
+  }
   console.log('Generating users...');
 
-  // 1. Fetch role codes
-  const rolesRes = await client.query('SELECT rls_code FROM roles_rls');
-  const roleCodes = rolesRes.rows.map(row => row.rls_code);
+  // 1. Fetch role IDs and codes
+  const rolesRes = await client.query('SELECT rls_id, rls_code FROM roles_rls');
+  const roles = rolesRes.rows;
+  const roleMap = roles.reduce((acc, role) => {
+    acc[role.rls_code] = role.rls_id;
+    return acc;
+  }, {});
+
   const requiredRoles = ['ADMIN', 'NORMAL', 'PILOT'];
-  if (!requiredRoles.every(role => roleCodes.includes(role))) {
-    throw new Error('Required roles (ADMIN, NORMAL, PILOT) not found.');
+  if (!requiredRoles.every(role => roleMap[role])) {
+    throw new Error('Required roles (ADMIN, NORMAL, PILOT) not found in database.');
   }
 
   // 2. Fetch team IDs, separating IT_CUTOVER from the rest
@@ -48,15 +73,23 @@ async function generateUsers(config) {
   // 4. Reusable user creation helper
   const createUser = async (roleCode, teamId) => {
     if (trigramIndex >= trigrams.length) return; // Avoid errors if counts mismatch
+
+    const roleId = roleMap[roleCode];
+    if (!roleId) {
+      console.warn(`Warning: Role ID for role code '${roleCode}' not found. Skipping user creation.`);
+      return;
+    }
+
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${config.teams_email_domain}`.replace(/[^a-z0-9_.-@]/g, '');
     const trigram = trigrams[trigramIndex++];
+
     await client.query(
-      `INSERT INTO users_usr (usr_first_name, usr_last_name, usr_code, usr_email, usr_is_admin)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO users_usr (usr_first_name, usr_last_name, usr_code, usr_email, usr_is_admin, tms_id, rls_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (usr_code) DO NOTHING`,
-      [firstName, lastName, trigram, email, roleCode === 'ADMIN']
+      [firstName, lastName, trigram, email, roleCode === 'ADMIN', teamId, roleId]
     );
   };
 
