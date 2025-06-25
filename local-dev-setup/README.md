@@ -127,6 +127,22 @@ Liquibase offers powerful features like tags and labels to manage database versi
 
 By adhering to these conventions, we maintain a clean, understandable, and robust database migration history.
 
+### First-Time Confluence Setup
+
+When you start the environment for the first time, you will need to configure Confluence to connect to the PostgreSQL database. You will be guided through a setup wizard in your browser at [http://localhost:8090](http://localhost:8090).
+
+When you reach the "Set up your database" screen, you must use the following settings:
+
+- **Database Type**: `PostgreSQL`
+- **Setup Type**: `Simple`
+- **Hostname**: `postgres`
+- **Port**: `5432`
+- **Database Name**: `confluence_db`
+- **Username**: `umig_user` (or the value of `POSTGRES_USER` in your `.env` file)
+- **Password**: The password you set for `POSTGRES_PASSWORD` in your `.env` file (defaults to `changeme`).
+
+**Important**: You must use `postgres` as the hostname, not `localhost`. This is because Confluence is running in its own container and needs to connect to the `postgres` container over the shared container network. `localhost` inside the Confluence container refers only to itself.
+
 ## Services
 
 *   **Confluence:** [http://localhost:8090](http://localhost:8090)

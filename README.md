@@ -20,6 +20,21 @@ The model follows a clear hierarchy:
 
 For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD), please see the **[UMIG Data Model Documentation](./docs/dataModel/README.md)**.
 
+## Application Architecture & Structure
+
+The UMIG application is built as a **pure ScriptRunner application**, not a formal, compiled Confluence plugin. This approach keeps the project lean, simplifies deployment, and relies entirely on ScriptRunner's native features (REST Endpoints, Script Macros).
+
+The source code is organized as follows:
+
+```
+src/
+├── com/umig/         # Packaged backend code (API, Repository)
+├── macros/           # ScriptRunner Script Macros for UI rendering
+└── web/              # CSS and JS assets for the frontend
+```
+
+This structure ensures a clean separation of concerns while enabling a simple, automated deployment process. For a detailed explanation of the architectural decision, see **[ADR-018: Pure ScriptRunner Application Structure](./docs/adr/ADR-018-Pure-ScriptRunner-Application-Structure.md)**.
+
 ### Naming Conventions
 - All tables use a three-letter suffix for clarity (e.g., `_plm`, `_sqm`, `_usr`).
 - Canonical tables use a `_master_` infix, while instance tables use `_instance_`.
