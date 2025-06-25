@@ -28,7 +28,7 @@ async function generateCanonicalPlans(config, options = {}) {
   if (options.reset) {
     await resetCanonicalPlansTables(client);
   }
-  console.log(`Generating ${config.num_canonical_plans} canonical implementation plans...`);
+  console.log('Generating 1 canonical implementation plan...');
 
   try {
     const teamsRes = await client.query('SELECT tms_id FROM teams_tms');
@@ -55,7 +55,8 @@ async function generateCanonicalPlans(config, options = {}) {
         throw new Error('Iteration types (RUN, DR, CUTOVER) not found.');
     }
 
-    for (let i = 0; i < config.num_canonical_plans; i++) {
+    // Per user request, generate only one master canonical plan to act as a template.
+    for (let i = 0; i < 1; i++) {
       const planRes = await client.query(
         `INSERT INTO plans_master_plm (plm_name, plm_description, tms_id, plm_status, created_by, updated_by)
          VALUES ($1, $2, $3, 'DRAFT', 'data_generator', 'data_generator') RETURNING plm_id`,

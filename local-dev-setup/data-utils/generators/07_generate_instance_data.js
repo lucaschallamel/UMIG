@@ -57,54 +57,50 @@ async function generateInstanceData(config, options = {}) {
       throw new Error('Cannot generate instance data without users.');
     }
 
-    // For each iteration, create an instance of every master plan
+    // For each iteration, create two instances (ACTIVE and DRAFT) of the single master plan.
+    const masterPlan = masterPlans[0]; // There is only one master plan now.
+
     for (const iteration of iterations) {
-      for (const masterPlan of masterPlans) {
-        // 1. Create a Plan Instance from the master plan for this iteration
-        const pliName = `${masterPlan.plm_name} - ${iteration.ite_name}`;
-        const pliRes = await client.query(
-          `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_status, usr_id_owner)
-           VALUES ($1, $2, $3, 'IN_PROGRESS', $4) RETURNING pli_id`,
-          [masterPlan.plm_id, iteration.ite_id, pliName, faker.helpers.arrayElement(userIds)]
-        );
-        const pliId = pliRes.rows[0].pli_id;
-        await logAudit(pliId, 'plan_instance', userIds[0], 'CREATED', { master_plan_id: masterPlan.plm_id, iteration_id: iteration.ite_id });
+      // --- Create the ACTIVE instance with a full hierarchy ---
+      const activePliName = `${masterPlan.plm_name} - ${iteration.ite_name} (Active)`;
+      const activePliRes = await client.query(
+        `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_status, usr_id_owner)
+         VALUES ($1, $2, $3, $4, $5) RETURNING pli_id`,
+        [masterPlan.plm_id, iteration.ite_id, activePliName, 'ACTIVE', faker.helpers.arrayElement(userIds)]
+      );
+      const activePliId = activePliRes.rows[0].pli_id;
+      await logAudit(activePliId, 'plan_instance', userIds[0], 'CREATED', { status: 'ACTIVE' });
 
-        // 2. Get all sequences for the master plan
-        const seqMasterRes = await client.query('SELECT sqm_id FROM sequences_master_sqm WHERE plm_id = $1', [masterPlan.plm_id]);
-        for (const seqMaster of seqMasterRes.rows) {
-          const sqiRes = await client.query(
-            `INSERT INTO sequences_instance_sqi (pli_id, sqm_id, sqi_status) VALUES ($1, $2, 'IN_PROGRESS') RETURNING sqi_id`,
-            [pliId, seqMaster.sqm_id]
-          );
-          const sqiId = sqiRes.rows[0].sqi_id;
+      // Generate the full instance hierarchy for the ACTIVE plan
+      const seqMasterRes = await client.query('SELECT sqm_id FROM sequences_master_sqm WHERE plm_id = $1', [masterPlan.plm_id]);
+      for (const seqMaster of seqMasterRes.rows) {
+        const sqiRes = await client.query(`INSERT INTO sequences_instance_sqi (pli_id, sqm_id, sqi_status) VALUES ($1, $2, 'IN_PROGRESS') RETURNING sqi_id`, [activePliId, seqMaster.sqm_id]);
+        const sqiId = sqiRes.rows[0].sqi_id;
 
-          // 3. Get all phases for the sequence
-          const phaseMasterRes = await client.query('SELECT phm_id FROM phases_master_phm WHERE sqm_id = $1', [seqMaster.sqm_id]);
-          for (const phaseMaster of phaseMasterRes.rows) {
-            const phiRes = await client.query(
-              `INSERT INTO phases_instance_phi (sqi_id, phm_id, phi_status) VALUES ($1, $2, 'IN_PROGRESS') RETURNING phi_id`,
-              [sqiId, phaseMaster.phm_id]
-            );
-            const phiId = phiRes.rows[0].phi_id;
+        const phaseMasterRes = await client.query('SELECT phm_id FROM phases_master_phm WHERE sqm_id = $1', [seqMaster.sqm_id]);
+        for (const phaseMaster of phaseMasterRes.rows) {
+          const phiRes = await client.query(`INSERT INTO phases_instance_phi (sqi_id, phm_id, phi_status) VALUES ($1, $2, 'IN_PROGRESS') RETURNING phi_id`, [sqiId, phaseMaster.phm_id]);
+          const phiId = phiRes.rows[0].phi_id;
 
-            // 4. Get all steps for the phase
-            const stepMasterRes = await client.query('SELECT stm_id FROM steps_master_stm WHERE phm_id = $1', [phaseMaster.phm_id]);
-            for (const stepMaster of stepMasterRes.rows) {
-              const randomStatus = faker.helpers.arrayElement(statuses);
-              const stiRes = await client.query(
-                `INSERT INTO steps_instance_sti (phi_id, stm_id, sti_status, usr_id_assignee)
-                 VALUES ($1, $2, $3, $4) RETURNING sti_id`,
-                [phiId, stepMaster.stm_id, randomStatus, faker.helpers.arrayElement(userIds)]
-              );
-              const stiId = stiRes.rows[0].sti_id;
-
-              // Log the status change for the step
-              await logAudit(stiId, 'step_instance', userIds[0], 'STATUS_CHANGED', { new_status: randomStatus });
-            }
+          const stepMasterRes = await client.query('SELECT stm_id FROM steps_master_stm WHERE phm_id = $1', [phaseMaster.phm_id]);
+          for (const stepMaster of stepMasterRes.rows) {
+            const randomStatus = faker.helpers.arrayElement(statuses);
+            const stiRes = await client.query(`INSERT INTO steps_instance_sti (phi_id, stm_id, sti_status, usr_id_assignee) VALUES ($1, $2, $3, $4) RETURNING sti_id`, [phiId, stepMaster.stm_id, randomStatus, faker.helpers.arrayElement(userIds)]);
+            const stiId = stiRes.rows[0].sti_id;
+            await logAudit(stiId, 'step_instance', userIds[0], 'STATUS_CHANGED', { new_status: randomStatus });
           }
         }
       }
+
+      // --- Create the DRAFT instance (hierarchy not needed) ---
+      const draftPliName = `${masterPlan.plm_name} - ${iteration.ite_name} (Draft)`;
+      const draftPliRes = await client.query(
+        `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_status, usr_id_owner)
+         VALUES ($1, $2, $3, $4, $5) RETURNING pli_id`,
+        [masterPlan.plm_id, iteration.ite_id, draftPliName, 'DRAFT', faker.helpers.arrayElement(userIds)]
+      );
+      const draftPliId = draftPliRes.rows[0].pli_id;
+      await logAudit(draftPliId, 'plan_instance', userIds[0], 'CREATED', { status: 'DRAFT' });
     }
 
     console.log('Finished generating instance and audit data.');

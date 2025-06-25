@@ -97,7 +97,7 @@ describe('Canonical Plans Generator (06_generate_canonical_plans.js)', () => {
     await expect(generateCanonicalPlans(CONFIG, {})).rejects.toThrow('Iteration types (RUN, DR, CUTOVER) not found.');
   });
 
-  it('should generate a full plan hierarchy correctly', async () => {
+  it('should generate exactly one canonical plan with a full hierarchy', async () => {
     // Arrange
     client.query.mockImplementation(mockHappyPathQueries);
 
@@ -107,8 +107,12 @@ describe('Canonical Plans Generator (06_generate_canonical_plans.js)', () => {
     // Assert
     const allQueries = client.query.mock.calls.map(call => call[0]);
 
-    // Check that all main entity types were inserted
-    expect(allQueries.some(q => q.includes('INSERT INTO plans_master_plm'))).toBe(true);
+    // Check that exactly ONE master plan was inserted
+    const planInsertCount = allQueries.filter(q => q.includes('INSERT INTO plans_master_plm')).length;
+    expect(planInsertCount).toBe(1);
+
+    // Check that the rest of the hierarchy was inserted for that one plan
+    expect(allQueries.some(q => q.includes('INSERT INTO sequences_master_sqm'))).toBe(true);
     expect(allQueries.some(q => q.includes('INSERT INTO sequences_master_sqm'))).toBe(true);
     expect(allQueries.some(q => q.includes('INSERT INTO phases_master_phm'))).toBe(true);
     expect(allQueries.some(q => q.includes('INSERT INTO controls_master_ctm'))).toBe(true);

@@ -22,8 +22,8 @@ describe('Instance Data Generator (07_generate_instance_data.js)', () => {
   // Helper to mock a successful run
   const mockHappyPathQueries = (query) => {
     if (query.includes('TRUNCATE')) return Promise.resolve({ rows: [] });
-    if (query.includes('FROM plans_master_plm')) return Promise.resolve({ rows: [{ plm_id: 'plm-1' }] });
-    if (query.includes('FROM iterations_ite')) return Promise.resolve({ rows: [{ ite_id: 'ite-1' }] });
+    if (query.includes('FROM plans_master_plm')) return Promise.resolve({ rows: [{ plm_id: 'plm-1', plm_name: 'Master Plan' }] });
+    if (query.includes('FROM iterations_ite')) return Promise.resolve({ rows: [{ ite_id: 'ite-1', ite_name: 'RUN 1' }, { ite_id: 'ite-2', ite_name: 'DR Test' }] });
     if (query.includes('FROM users_usr')) return Promise.resolve({ rows: [{ usr_id: 'usr-1' }] });
     if (query.includes('FROM sequences_master_sqm')) return Promise.resolve({ rows: [{ sqm_id: 'sqm-1' }] });
     if (query.includes('FROM phases_master_phm')) return Promise.resolve({ rows: [{ phm_id: 'phm-1' }] });
@@ -80,7 +80,7 @@ describe('Instance Data Generator (07_generate_instance_data.js)', () => {
     await expect(generateInstanceData(CONFIG, {})).rejects.toThrow('Cannot generate instance data without users.');
   });
 
-  it('should generate a full instance hierarchy and audit logs correctly', async () => {
+  it('should create one ACTIVE and one DRAFT plan instance per iteration', async () => {
     // Arrange
     client.query.mockImplementation(mockHappyPathQueries);
 
@@ -90,13 +90,25 @@ describe('Instance Data Generator (07_generate_instance_data.js)', () => {
     // Assert
     const allQueries = client.query.mock.calls.map(call => call[0]);
 
-    // Check that instance data was inserted
-    expect(allQueries.some(q => q.includes('INSERT INTO plans_instance_pli'))).toBe(true);
-    expect(allQueries.some(q => q.includes('INSERT INTO sequences_instance_sqi'))).toBe(true);
-    expect(allQueries.some(q => q.includes('INSERT INTO phases_instance_phi'))).toBe(true);
-    expect(allQueries.some(q => q.includes('INSERT INTO steps_instance_sti'))).toBe(true);
+    const allQueryCalls = client.query.mock.calls;
+    const planInstanceInserts = allQueryCalls.filter(([query]) => query.includes('INSERT INTO plans_instance_pli'));
+    const numIterations = 2; // Based on our mock
 
-    // Check that audit logs were created
-    expect(allQueries.some(q => q.includes('INSERT INTO audit_log_aud'))).toBe(true);
+    // 1. Assert that 2 instances (1 ACTIVE, 1 DRAFT) are created per iteration.
+    expect(planInstanceInserts.length).toBe(numIterations * 2);
+
+    const activeInstances = planInstanceInserts.filter(([query, params]) => params[3] === 'ACTIVE');
+    const draftInstances = planInstanceInserts.filter(([query, params]) => params[3] === 'DRAFT');
+    expect(activeInstances.length).toBe(numIterations);
+    expect(draftInstances.length).toBe(numIterations);
+
+    // 2. Assert that the full hierarchy is ONLY created for the ACTIVE instances.
+    // The number of sequence inserts should equal the number of active plans.
+    const sequenceInstanceInserts = allQueryCalls.filter(([query]) => query.includes('INSERT INTO sequences_instance_sqi'));
+    expect(sequenceInstanceInserts.length).toBe(activeInstances.length);
+
+    // 3. Check that audit logs were created for the status changes
+    const auditLogs = allQueryCalls.filter(([query]) => query.includes('INSERT INTO audit_log_aud'));
+    expect(auditLogs.length).toBeGreaterThan(0);
   });
 });
