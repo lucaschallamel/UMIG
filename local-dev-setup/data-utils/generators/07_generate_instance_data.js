@@ -39,7 +39,7 @@ async function generateInstanceData(config, options = {}) {
     const plansRes = await client.query('SELECT plm_id, plm_name FROM plans_master_plm');
     const masterPlans = plansRes.rows;
 
-    const iterationsRes = await client.query('SELECT ite_id, ite_name FROM iterations_ite');
+    const iterationsRes = await client.query('SELECT ite_id, ite_name, itt_code FROM iterations_ite');
     const iterations = iterationsRes.rows;
 
     const usersRes = await client.query('SELECT usr_id FROM users_usr');
@@ -63,10 +63,11 @@ async function generateInstanceData(config, options = {}) {
     for (const iteration of iterations) {
       // --- Create the ACTIVE instance with a full hierarchy ---
       const activePliName = `${masterPlan.plm_name} - ${iteration.ite_name} (Active)`;
+      const activeDescription = `Active instance of plan '${masterPlan.plm_name}' for the ${iteration.itt_code} iteration '${iteration.ite_name}'.`;
       const activePliRes = await client.query(
-        `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_status, usr_id_owner)
-         VALUES ($1, $2, $3, $4, $5) RETURNING pli_id`,
-        [masterPlan.plm_id, iteration.ite_id, activePliName, 'ACTIVE', faker.helpers.arrayElement(userIds)]
+        `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_description, pli_status, usr_id_owner)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING pli_id`,
+        [masterPlan.plm_id, iteration.ite_id, activePliName, activeDescription, 'ACTIVE', faker.helpers.arrayElement(userIds)]
       );
       const activePliId = activePliRes.rows[0].pli_id;
       await logAudit(activePliId, 'plan_instance', userIds[0], 'CREATED', { status: 'ACTIVE' });
@@ -94,10 +95,11 @@ async function generateInstanceData(config, options = {}) {
 
       // --- Create the DRAFT instance (hierarchy not needed) ---
       const draftPliName = `${masterPlan.plm_name} - ${iteration.ite_name} (Draft)`;
+      const draftDescription = `Draft instance of plan '${masterPlan.plm_name}' for the ${iteration.itt_code} iteration '${iteration.ite_name}'.`;
       const draftPliRes = await client.query(
-        `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_status, usr_id_owner)
-         VALUES ($1, $2, $3, $4, $5) RETURNING pli_id`,
-        [masterPlan.plm_id, iteration.ite_id, draftPliName, 'DRAFT', faker.helpers.arrayElement(userIds)]
+        `INSERT INTO plans_instance_pli (plm_id, ite_id, pli_name, pli_description, pli_status, usr_id_owner)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING pli_id`,
+        [masterPlan.plm_id, iteration.ite_id, draftPliName, draftDescription, 'DRAFT', faker.helpers.arrayElement(userIds)]
       );
       const draftPliId = draftPliRes.rows[0].pli_id;
       await logAudit(draftPliId, 'plan_instance', userIds[0], 'CREATED', { status: 'DRAFT' });

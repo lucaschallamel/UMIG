@@ -23,7 +23,7 @@ describe('Instance Data Generator (07_generate_instance_data.js)', () => {
   const mockHappyPathQueries = (query) => {
     if (query.includes('TRUNCATE')) return Promise.resolve({ rows: [] });
     if (query.includes('FROM plans_master_plm')) return Promise.resolve({ rows: [{ plm_id: 'plm-1', plm_name: 'Master Plan' }] });
-    if (query.includes('FROM iterations_ite')) return Promise.resolve({ rows: [{ ite_id: 'ite-1', ite_name: 'RUN 1' }, { ite_id: 'ite-2', ite_name: 'DR Test' }] });
+    if (query.includes('FROM iterations_ite')) return Promise.resolve({ rows: [{ ite_id: 'ite-1', ite_name: 'RUN 1', itt_code: 'RUN' }, { ite_id: 'ite-2', ite_name: 'DR Test', itt_code: 'DR' }] });
     if (query.includes('FROM users_usr')) return Promise.resolve({ rows: [{ usr_id: 'usr-1' }] });
     if (query.includes('FROM sequences_master_sqm')) return Promise.resolve({ rows: [{ sqm_id: 'sqm-1' }] });
     if (query.includes('FROM phases_master_phm')) return Promise.resolve({ rows: [{ phm_id: 'phm-1' }] });
@@ -97,8 +97,13 @@ describe('Instance Data Generator (07_generate_instance_data.js)', () => {
     // 1. Assert that 2 instances (1 ACTIVE, 1 DRAFT) are created per iteration.
     expect(planInstanceInserts.length).toBe(numIterations * 2);
 
-    const activeInstances = planInstanceInserts.filter(([query, params]) => params[3] === 'ACTIVE');
-    const draftInstances = planInstanceInserts.filter(([query, params]) => params[3] === 'DRAFT');
+    // The status parameter is now at index 4, after the description at index 3.
+    const activeInstances = planInstanceInserts.filter(([query, params]) => params[4] === 'ACTIVE');
+    const draftInstances = planInstanceInserts.filter(([query, params]) => params[4] === 'DRAFT');
+
+    // Also check that the description is being passed correctly.
+    expect(activeInstances[0][1][3]).toContain('Active instance of plan');
+    expect(draftInstances[0][1][3]).toContain('Draft instance of plan');
     expect(activeInstances.length).toBe(numIterations);
     expect(draftInstances.length).toBe(numIterations);
 
