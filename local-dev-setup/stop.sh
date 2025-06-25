@@ -4,12 +4,10 @@ set -e
 
 cd "$(dirname "$0")"
 
-echo "Stopping and removing all services forcefully..."
+echo "Stopping and removing all services defined in podman-compose.yml..."
 
-# Forcefully remove containers by name to prevent naming conflicts on restart.
-# The '|| true' ensures the script doesn't fail if a container doesn't exist.
-podman rm -f umig_confluence umig_postgres umig_liquibase umig_mailhog || true
-
-# Run 'down' to clean up the network and other resources.
+# 'podman-compose down' is the canonical way to stop and remove all resources
+# (containers, networks) associated with the project. It is idempotent and
+# will not produce errors if the environment is already stopped.
 podman-compose down
 echo "Environment stopped." 

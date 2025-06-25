@@ -36,3 +36,14 @@ The project includes a modular system for generating realistic fake data for dev
 
 See `/docs/dataModel/README.md` for full schema details and rationale.
 See `/local-dev-setup/data-utils/README.md` for details on the data utilities.
+
+## Local Development Environment
+
+The local development environment is managed via Podman and a set of convenient shell scripts located in the `local-dev-setup/` directory.
+
+**Quick Commands:**
+- `./local-dev-setup/start.sh`: Starts the environment.
+- `./local-dev-setup/stop.sh`: Stops the environment.
+- `./local-dev-setup/restart.sh`: Restarts the environment. Use the `--reset` flag to delete the database and start fresh.
+
+For detailed setup instructions, see the [Local Dev Setup README](./local-dev-setup/README.md).
