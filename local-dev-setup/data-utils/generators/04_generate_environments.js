@@ -113,16 +113,13 @@ async function generateEnvironmentApplicationLinks(client) {
     );
   }
 
-  // For all other TEST environments, link a random subset of apps
-  for (const env of testEnvs.slice(1)) {
-    const shuffled = [...apps].sort(() => 0.5 - Math.random());
-    const numLinks = faker.number.int({ min: 1, max: apps.length });
-    for (let i = 0; i < numLinks; i++) {
-      await client.query(
-        'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-        [env.env_id, shuffled[i].app_id]
-      );
-    }
+  // For all other TEST environments, link exactly one app to each (deterministic)
+  for (const [i, env] of testEnvs.slice(1).entries()) {
+    const app = apps[i % apps.length];
+    await client.query(
+      'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [env.env_id, app.app_id]
+    );
   }
   console.log('Finished linking applications to environments.');
 }

@@ -79,6 +79,7 @@
 - Removed legacy table definitions and references from all changelogs.
 
 #### Fixed
+- Made application-to-environment linking deterministic in `04_generate_environments.js` to ensure stable, predictable test coverage and data generation.
 - **Database Connectivity:** Resolved runtime errors in all REST endpoints by correcting the database connection pool name in `DatabaseUtil.groovy` to use the ScriptRunner Resource `umig_db_pool`.
 - **Static Type Errors:** Eliminated all IDE static analysis errors in repository classes by adding `@ClosureParams` to `DatabaseUtil.groovy` and applying explicit type casting for database-returned IDs.
 - Heavily refactored the legacy plan generator (`05_generate_legacy_plans.js`) to resolve multiple critical bugs, including syntax errors and schema mismatches with the `migrations_mig` and `iterations_ite` tables. The script now successfully generates a complete, hierarchical legacy plan dataset.

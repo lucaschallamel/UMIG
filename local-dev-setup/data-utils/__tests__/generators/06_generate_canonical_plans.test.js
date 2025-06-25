@@ -1,21 +1,9 @@
 const { client } = require('../../lib/db');
 const { generateCanonicalPlans } = require('../../generators/06_generate_canonical_plans');
-const { faker } = require('../../lib/utils');
+const utils = require('../../lib/utils'); // Import the whole module
 
 // Mock dependencies
 jest.mock('../../lib/db', () => ({ client: { query: jest.fn() } }));
-jest.mock('../../lib/utils', () => ({
-  faker: {
-    lorem: { words: jest.fn(() => 'some words'), paragraph: jest.fn(() => 'a paragraph'), sentence: jest.fn(() => 'a sentence'), paragraphs: jest.fn(() => 'some paragraphs') },
-    number: { int: jest.fn(() => 1) },
-    helpers: { arrayElement: jest.fn(arr => arr[0]), arrayElements: jest.fn(arr => [arr[0]]) },
-    company: { buzzPhrase: jest.fn(() => 'synergistic solution') },
-    word: { noun: jest.fn(() => 'noun') },
-    commerce: { productName: jest.fn(() => 'product'), productAdjective: jest.fn(() => 'adjective') },
-    datatype: { boolean: jest.fn(() => false) },
-    hacker: { verb: jest.fn(() => 'verb') },
-  },
-}));
 
 // A simplified config for testing purposes
 const CONFIG = {
@@ -25,7 +13,22 @@ const CONFIG = {
 describe('Canonical Plans Generator (06_generate_canonical_plans.js)', () => {
   beforeEach(() => {
     client.query.mockReset();
-    jest.clearAllMocks();
+    jest.restoreAllMocks(); // Use restoreAllMocks to clean up spies
+
+    // Spy on all necessary faker methods
+    jest.spyOn(utils.faker.lorem, 'words').mockReturnValue('some words');
+    jest.spyOn(utils.faker.lorem, 'paragraph').mockReturnValue('a paragraph');
+    jest.spyOn(utils.faker.lorem, 'sentence').mockReturnValue('a sentence');
+    jest.spyOn(utils.faker.lorem, 'paragraphs').mockReturnValue('some paragraphs');
+    jest.spyOn(utils.faker.number, 'int').mockReturnValue(1);
+    jest.spyOn(utils.faker.helpers, 'arrayElement').mockImplementation(arr => arr[0]);
+    jest.spyOn(utils.faker.helpers, 'arrayElements').mockImplementation((arr, num) => arr.slice(0, num || 1)); // A more robust mock
+    jest.spyOn(utils.faker.company, 'buzzPhrase').mockReturnValue('synergistic solution');
+    jest.spyOn(utils.faker.word, 'noun').mockReturnValue('noun');
+    jest.spyOn(utils.faker.commerce, 'productName').mockReturnValue('product');
+    jest.spyOn(utils.faker.commerce, 'productAdjective').mockReturnValue('adjective');
+    jest.spyOn(utils.faker.datatype, 'boolean').mockReturnValue(false);
+    jest.spyOn(utils.faker.hacker, 'verb').mockReturnValue('verb');
   });
 
   // This helper mocks all necessary SELECT queries for a successful run.
@@ -36,13 +39,12 @@ describe('Canonical Plans Generator (06_generate_canonical_plans.js)', () => {
       if (query.includes('FROM step_types_stt')) return Promise.resolve({ rows: [{ stt_code: 'MAN' }] });
       if (query.includes('FROM iteration_types_itt')) return Promise.resolve({ rows: [{ itt_code: 'RUN' }] });
       // Mock INSERT statements to return IDs for subsequent queries
-      if (query.includes('INSERT INTO plans_master_plm')) return Promise.resolve({ rows: [{ plm_id: 'plm-1' }] });
-      if (query.includes('INSERT INTO sequences_master_sqm')) return Promise.resolve({ rows: [{ sqm_id: 'sqm-1' }] });
-      if (query.includes('INSERT INTO phases_master_phm')) return Promise.resolve({ rows: [{ phm_id: 'phm-1' }] });
-      if (query.includes('INSERT INTO controls_master_ctm')) return Promise.resolve({ rows: [{ ctm_id: 'ctm-1' }] });
-      if (query.includes('INSERT INTO steps_master_stm')) return Promise.resolve({ rows: [{ stm_id: 'stm-1' }] });
-      // Default for other INSERTs (link tables)
-      return Promise.resolve({ rows: [] });
+      if (query.includes('INSERT INTO plans_master_plm')) return Promise.resolve({ rows: [{ plm_id: 'plan-1' }] });
+      if (query.includes('INSERT INTO sequences_master_sqm')) return Promise.resolve({ rows: [{ sqm_id: 'seq-1' }] });
+      if (query.includes('INSERT INTO phases_master_phm')) return Promise.resolve({ rows: [{ phm_id: 'phase-1' }] });
+      if (query.includes('INSERT INTO controls_master_ctm')) return Promise.resolve({ rows: [{ ctm_id: 'control-1' }] });
+      if (query.includes('INSERT INTO steps_master_stm')) return Promise.resolve({ rows: [{ stm_id: 'step-1' }] });
+      return Promise.resolve({ rows: [] }); // Default for other queries (e.g., link table inserts)
   };
 
   it('should call resetCanonicalPlansTables when reset option is true', async () => {

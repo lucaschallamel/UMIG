@@ -156,4 +156,17 @@ describe('Users Generator (03_generate_users.js)', () => {
     expect(consoleWarnSpy).toHaveBeenCalledWith('Warning: No non-IT_CUTOVER teams found for user assignment.');
     consoleWarnSpy.mockRestore();
   });
+
+  it('should handle errors during table reset', async () => {
+    // Arrange
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const dbError = new Error('TRUNCATE failed');
+    // Mock the first query (the truncate) to fail
+    client.query.mockRejectedValueOnce(dbError);
+
+    // Act & Assert
+    await expect(generateUsers(CONFIG, { reset: true })).rejects.toThrow(dbError);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(`Error resetting users table: ${dbError}`);
+    consoleErrorSpy.mockRestore();
+  });
 });

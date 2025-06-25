@@ -48,6 +48,9 @@ This directory contains CLI tools for generating synthetic test data and importi
 
 The script will prompt for confirmation before deleting any data when using the `--reset` flag.
 
+> **Note:**
+> As of 2025-06-25, the assignment of applications to environments during fake data generation is fully deterministic, ensuring stable and reproducible test results.
+
 ### Configuration
 
 The generation process is controlled by a configuration object embedded at the top of the `umig_generate_fake_data.js` script. This approach centralizes all parameters for easier management. The `fake_data_config.json` file is now obsolete. Below is a description of each parameter:
