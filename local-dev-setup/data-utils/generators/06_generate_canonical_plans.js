@@ -68,12 +68,20 @@ async function generateCanonicalPlans(config, options = {}) {
       );
       const plmId = planRes.rows[0].plm_id;
 
+      const sequences = [
+        { order: 1, name: 'PREMIG', description: 'Pre-migration sequence' },
+        { order: 2, name: 'CSD', description: 'Client Static Data migration sequence' },
+        { order: 3, name: 'W12', description: 'Intermin week between the 2 migration sequences' },
+        { order: 4, name: 'P&C', description: 'Positions and Contracts migration sequence' },
+        { order: 5, name: 'POSTMIG', description: 'Post-migration sequence' }
+      ];
+
       let predecessorSqmId = null;
-      for (let j = 0; j < 3; j++) { // 3 sequences per plan
+      for (const seqData of sequences) {
         const seqRes = await client.query(
           `INSERT INTO sequences_master_sqm (plm_id, sqm_order, sqm_name, sqm_description, predecessor_sqm_id)
            VALUES ($1, $2, $3, $4, $5) RETURNING sqm_id`,
-          [plmId, j + 1, `Sequence ${faker.word.noun()}`, faker.lorem.sentence(), predecessorSqmId]
+          [plmId, seqData.order, seqData.name, seqData.description, predecessorSqmId]
         );
         predecessorSqmId = seqRes.rows[0].sqm_id;
         const sqmId = seqRes.rows[0].sqm_id;

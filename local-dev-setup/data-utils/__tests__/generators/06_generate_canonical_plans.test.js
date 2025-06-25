@@ -105,15 +105,24 @@ describe('Canonical Plans Generator (06_generate_canonical_plans.js)', () => {
     await generateCanonicalPlans(CONFIG, {});
 
     // Assert
-    const allQueries = client.query.mock.calls.map(call => call[0]);
+    const allCalls = client.query.mock.calls;
 
     // Check that exactly ONE master plan was inserted
-    const planInsertCount = allQueries.filter(q => q.includes('INSERT INTO plans_master_plm')).length;
-    expect(planInsertCount).toBe(1);
+    const planInserts = allCalls.filter(([q]) => q.includes('INSERT INTO plans_master_plm'));
+    expect(planInserts.length).toBe(1);
 
-    // Check that the rest of the hierarchy was inserted for that one plan
-    expect(allQueries.some(q => q.includes('INSERT INTO sequences_master_sqm'))).toBe(true);
-    expect(allQueries.some(q => q.includes('INSERT INTO sequences_master_sqm'))).toBe(true);
+    // Check that exactly 5 specific sequences were inserted in order
+    const sequenceInserts = allCalls.filter(([q]) => q.includes('INSERT INTO sequences_master_sqm'));
+    expect(sequenceInserts.length).toBe(5);
+
+    const expectedSequences = ['PREMIG', 'CSD', 'W12', 'P&C', 'POSTMIG'];
+    sequenceInserts.forEach(([query, params], index) => {
+      expect(params[1]).toBe(index + 1); // Check order
+      expect(params[2]).toBe(expectedSequences[index]); // Check name
+    });
+
+    // Check that the rest of the hierarchy was inserted
+    const allQueries = allCalls.map(([q]) => q);
     expect(allQueries.some(q => q.includes('INSERT INTO phases_master_phm'))).toBe(true);
     expect(allQueries.some(q => q.includes('INSERT INTO controls_master_ctm'))).toBe(true);
     expect(allQueries.some(q => q.includes('INSERT INTO steps_master_stm'))).toBe(true);
