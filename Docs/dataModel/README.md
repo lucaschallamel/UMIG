@@ -1,18 +1,14 @@
 # UMIG Data Model
 
-This document provides a comprehensive overview of the UMIG application's PostgreSQL database schema. The schema is managed via Liquibase, with the baseline defined in [`001_baseline_schema.sql`](../../local-dev-setup/liquibase/changelogs/001_baseline_schema.sql).
+This document provides a comprehensive overview of the UMIG application's PostgreSQL database schema. The schema is managed via Liquibase, with the baseline defined in [`001_unified_baseline.sql`](../../local-dev-setup/liquibase/changelogs/001_unified_baseline.sql).
 
-This model is a direct translation of the original SQL Server schema, located at [`docs/dataModel/sql/UMIG.sql`](./sql/UMIG.sql).
+The data model has been designed from scratch to support a clean, template-based approach for managing IT cutover events.
 
 ## Schema Overview
 
 The database consists of tables designed to manage both canonical (template) implementation plans and instance/execution data for migrations, steps, teams, applications, and related metadata.
 
----
-
 ## Canonical Implementation Plan Hierarchy
-
-**As of ADR-015, UMIG separates canonical (template) implementation plan data from instance/execution data.**
 
 ### Purpose
 Canonical tables define the authoritative, reusable, and versionable structure of an implementation plan. They form a hierarchy that can be instantiated for specific migrations and tracked independently.
@@ -24,32 +20,11 @@ Canonical tables define the authoritative, reusable, and versionable structure o
 | implementation_plans_canonical_ipc  | Canonical implementation plan (template) | ipc_id (PK), name, description, version, status, author_user_id, created_at, updated_at |
 | sequences_master_sqm                | Canonical sequence/phase                | sqm_id (PK), ipc_id (FK), predecessor_sqm_id (FK, nullable, self), name, description, duration (min) |
 | chapters_master_chm                 | Canonical chapter                       | chm_id (PK), sqm_id (FK), predecessor_chm_id (FK, nullable, self), name, description, duration (min) |
-| steps_master_stm                    | Canonical step                          | stm_id (PK), chm_id (FK), name, description, type, duration (min), team_id (FK), env_type (enum: PROD, TEST, BACKUP), predecessor_stm_id (FK, nullable, self), step_prereq (FK, nullable, self) |
-| instructions_master_inm             | Canonical instruction                   | inm_id (PK), stm_id (FK), instruction_order, title, body, format, duration (min), ctl_id (FK, nullable) |
-| controls_master_ctl                 | Canonical control/validation check      | ctl_id (PK), code, name, critical (boolean), description, producer_team_id (FK), it_validator_team_id (FK), biz_validator_team_id (FK) |
+| steps_master_stm                    | Canonical step                          | stm_id (PK), chm_id (FK), name, description, type, duration (min), team_id (FK), env_type (enum: PROD, TEST, BACKUP), predecessor_stm_id (FK, nullable, self) |
+| instructions_master_inm             | Canonical instruction                   | inm_id (PK), stm_id (FK), name, description, type, content (jsonb), team_id (FK) |
+| controls_master_ctm                 | Canonical control                       | ctm_id (PK), stm_id (FK), name, description, type, query, expected_result, team_id (FK) |
 
-#### Hierarchy
-- implementation_plans_canonical_ipc → sequences_master_sqm → chapters_master_chm → steps_master_stm → (instructions_master_inm, controls_master_ctl)
-
-#### Key Points
-- Canonical tables are used to define templates and plans of record.
-- All *_id fields are UUID unless otherwise noted; all FKs reference the PK of the named table.
-- Predecessor fields (e.g., predecessor_sqm_id) are self-referencing and nullable.
-- Duration fields are in integer minutes.
-- Enum fields (e.g., env_type) are PostgreSQL ENUMs.
-- Boolean fields (e.g., critical) use PostgreSQL BOOLEAN.
-- Instance/execution tables (e.g., migrations_mig, steps_stp) reference these canonical tables for traceability and plan-vs-actual analysis.
-- See [ADR-015](../adr/ADR-015-canonical-implementation-plan-model.md) for rationale and detailed structure.
-
----
-
-### Naming Conventions
-
--   **Tables**: Suffixes are used to denote the entity type (e.g., `_tms` for teams, `_app` for applications).
--   **Columns**: Foreign key columns are named after the entity they reference, followed by `_id` (e.g., `tms_id`, `app_id`).
--   **Primary Keys**: All tables use a surrogate `id` column of type `SERIAL` as the primary key, except for `environments_env` which uses a natural key.
-
-## Entity Relationship Diagram (ERD)
+### ER Diagram: Canonical Plan Tables
 
 ```mermaid
 erDiagram
@@ -57,8 +32,8 @@ erDiagram
         UUID ipc_id PK
         TEXT name
         TEXT description
-        TEXT version
-        TEXT status
+        INTEGER version
+        VARCHAR status
         UUID author_user_id FK
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -70,7 +45,7 @@ erDiagram
         UUID predecessor_sqm_id FK
         TEXT name
         TEXT description
-        INT duration_min
+        INTEGER duration
     }
 
     chapters_master_chm {
@@ -79,226 +54,150 @@ erDiagram
         UUID predecessor_chm_id FK
         TEXT name
         TEXT description
-        INT duration_min
+        INTEGER duration
     }
 
     steps_master_stm {
         UUID stm_id PK
         UUID chm_id FK
+        UUID predecessor_stm_id FK
         TEXT name
         TEXT description
-        TEXT type
-        INT duration_min
+        VARCHAR type
+        INTEGER duration
         UUID team_id FK
-        ENV_TYPE env_type
-        UUID predecessor_stm_id FK
-        UUID step_prereq FK
+        VARCHAR env_type
     }
 
     instructions_master_inm {
         UUID inm_id PK
         UUID stm_id FK
-        INT instruction_order
-        TEXT title
-        TEXT body
-        TEXT format
-        INT duration_min
-        UUID ctl_id FK
-    }
-
-    controls_master_ctl {
-        UUID ctl_id PK
-        TEXT code
         TEXT name
-        BOOLEAN critical
         TEXT description
-        UUID producer_team_id FK
-        UUID it_validator_team_id FK
-        UUID biz_validator_team_id FK
+        VARCHAR type
+        JSONB content
+        UUID team_id FK
     }
 
-    implementation_plans_canonical_ipc ||--o{ sequences_master_sqm : contains
-    sequences_master_sqm ||--o{ chapters_master_chm : contains
-    chapters_master_chm ||--o{ steps_master_stm : contains
-    steps_master_stm ||--o{ instructions_master_inm : contains
-    instructions_master_inm ||--o{ controls_master_ctl : contains
-
-    users_usr {
-        UUID id PK
-        TEXT usr_first_name
-        TEXT usr_last_name
+    controls_master_ctm {
+        UUID ctm_id PK
+        UUID stm_id FK
+        TEXT name
+        TEXT description
+        VARCHAR type
+        TEXT query
+        TEXT expected_result
+        UUID team_id FK
     }
 
-    implementation_plans_canonical_ipc }o--|| users_usr : "authored by"
+    implementation_plans_canonical_ipc ||--o{ sequences_master_sqm : "has"
+    sequences_master_sqm ||--o{ chapters_master_chm : "has"
+    chapters_master_chm ||--o{ steps_master_stm : "has"
+    steps_master_stm ||--o{ instructions_master_inm : "has"
+    steps_master_stm ||--o{ controls_master_ctm : "has"
+    sequences_master_sqm }o--o| sequences_master_sqm : "precedes"
+    chapters_master_chm }o--o| chapters_master_chm : "precedes"
+    steps_master_stm }o--o| steps_master_stm : "precedes"
 ```
 
-## Table and Field Listing
+## Instance/Execution & Audit Tables
 
-#### **RELEASE_NOTES_RNT**
-- `id` SERIAL PRIMARY KEY
-- `rnt_code` VARCHAR(10)
-- `rnt_name` VARCHAR(64)
-- `rnt_description` TEXT
-- `rnt_date` TIMESTAMP
+### Purpose
+Instance tables capture the live execution of a canonical plan. They are created when a plan is instantiated for a specific migration event and track real-time progress, statuses, and assignments. The audit log provides an immutable record of all significant actions.
 
+### Instance and Audit Tables
 
-#### **ADDITIONAL_INSTRUCTIONS_AIS**
-- `id` SERIAL PRIMARY KEY
-- `stp_id` INTEGER NOT NULL
-- `instructions` TEXT
-- `usr_id` INTEGER NOT NULL
-- `ite_id` INTEGER
+| Table Name                   | Purpose                                     | Key Fields & Relationships                                                              |
+|------------------------------|---------------------------------------------|-----------------------------------------------------------------------------------------|
+| migration_iterations_mic     | A live instance of a canonical plan         | mic_id (PK), ipc_id (FK), name, description, status, start_date, end_date                |
+| sequences_instance_sqi       | A live instance of a canonical sequence     | sqi_id (PK), mic_id (FK), sqm_id (FK), status, start_date, end_date                     |
+| chapters_instance_chi        | A live instance of a canonical chapter      | chi_id (PK), sqi_id (FK), chm_id (FK), status, start_date, end_date                      |
+| steps_instance_sti           | A live instance of a canonical step         | sti_id (PK), chi_id (FK), stm_id (FK), status, assignee_usr_id (FK), start_date, end_date |
+| instructions_instance_ini    | A live instance of a canonical instruction  | ini_id (PK), sti_id (FK), inm_id (FK), status, comments                                 |
+| controls_instance_cti        | A live instance of a canonical control      | cti_id (PK), sti_id (FK), ctm_id (FK), status, result, comments                          |
+| audit_log_aud                | Immutable audit log for all major events    | aud_id (PK), entity_type, entity_id, action, user_id (FK), details (jsonb), timestamp   |
 
-#### **APPLICATIONS_APP**
-- `id` SERIAL PRIMARY KEY
-- `app_code` VARCHAR(50) NOT NULL
-- `app_name` VARCHAR(10)
-- `app_description` TEXT
+### ER Diagram: Instance/Execution Tables & Audit Log
 
-#### **CHAPTER_CHA**
-- `id` SERIAL PRIMARY KEY
-- `cha_code` VARCHAR(10)
-- `cha_name` VARCHAR(10)
-- `sqc_id` INTEGER
-- `cha_previous` INTEGER
-- `cha_start_date` TIMESTAMP
-- `cha_end_date` TIMESTAMP
-- `cha_effective_start_date` TIMESTAMP
-- `cha_effective_end_date` TIMESTAMP
+```mermaid
+erDiagram
+    migration_iterations_mic {
+        UUID mic_id PK
+        UUID ipc_id FK
+        TEXT name
+        TEXT description
+        VARCHAR status
+        TIMESTAMP start_date
+        TIMESTAMP end_date
+    }
 
-#### **CONTROLS_CTL**
-- `id` SERIAL PRIMARY KEY
-- `ctl_code` VARCHAR(10)
-- `ctl_name` TEXT
-- `ctl_producer` INTEGER
-- `ctl_it_validator` INTEGER
-- `ctl_it_comments` TEXT
-- `ctl_biz_comments` TEXT
-- `ctl_biz_validator` INTEGER
+    sequences_instance_sqi {
+        UUID sqi_id PK
+        UUID mic_id FK
+        UUID sqm_id FK
+        VARCHAR status
+        TIMESTAMP start_date
+        TIMESTAMP end_date
+    }
 
-#### **ENVIRONMENTS_ENV**
-- `id` VARCHAR(10) PRIMARY KEY
-- `env_code` VARCHAR(10)
-- `env_name` VARCHAR(64)
-- `env_description` TEXT
+    chapters_instance_chi {
+        UUID chi_id PK
+        UUID sqi_id FK
+        UUID chm_id FK
+        VARCHAR status
+        TIMESTAMP start_date
+        TIMESTAMP end_date
+    }
 
-#### **ENVIRONMENTS_APPLICATIONS_EAP**
-- `id` SERIAL PRIMARY KEY
-- `env_id` VARCHAR(10) NOT NULL
-- `app_id` INTEGER NOT NULL
-- `comments` TEXT
+    steps_instance_sti {
+        UUID sti_id PK
+        UUID chi_id FK
+        UUID stm_id FK
+        VARCHAR status
+        UUID assignee_usr_id FK
+        TIMESTAMP start_date
+        TIMESTAMP end_date
+    }
 
-#### **ENVIRONMENTS_ITERATIONS_EIT**
-- `id` SERIAL PRIMARY KEY
-- `env_id` VARCHAR(10) NOT NULL
-- `ite_id` INTEGER NOT NULL
-- `eit_role` VARCHAR(10)
+    instructions_instance_ini {
+        UUID ini_id PK
+        UUID sti_id FK
+        UUID inm_id FK
+        VARCHAR status
+        TEXT comments
+    }
 
-#### **INSTRUCTIONS_INS**
-- `id` SERIAL PRIMARY KEY
-- `ins_code` VARCHAR(10)
-- `ins_description` TEXT
-- `stp_id` INTEGER NOT NULL
-- `tms_id` INTEGER
-- `ctl_id` INTEGER
+    controls_instance_cti {
+        UUID cti_id PK
+        UUID sti_id FK
+        UUID ctm_id FK
+        VARCHAR status
+        TEXT result
+        TEXT comments
+    }
 
-#### **ITERATIONS_ITE**
-- `id` SERIAL PRIMARY KEY
-- `ite_code` VARCHAR(10)
-- `ite_name` VARCHAR(64)
-- `mig_id` INTEGER
-- `ite_type` VARCHAR(16)
-- `description` TEXT
-- `ite_start_date` TIMESTAMP
-- `ite_end_date` TIMESTAMP
+    audit_log_aud {
+        UUID aud_id PK
+        VARCHAR entity_type
+        UUID entity_id
+        VARCHAR action
+        UUID user_id FK
+        JSONB details
+        TIMESTAMP timestamp
+    }
 
-#### **ITERATIONS_TRACKING_ITT**
-- `id` VARCHAR(10) PRIMARY KEY
-- `mig_code` VARCHAR(10)
-- `ite_code` VARCHAR(10)
-- `entity_type` VARCHAR(10)
-- `entity_id` VARCHAR(10)
-- `entity_status` VARCHAR(10)
-- `start_date` TIMESTAMP
-- `end_date` TIMESTAMP
-- `comments` TEXT
+    implementation_plans_canonical_ipc ||--o{ migration_iterations_mic : "instantiates as"
+    migration_iterations_mic ||--o{ sequences_instance_sqi : "contains"
+    sequences_instance_sqi ||--o{ chapters_instance_chi : "contains"
+    chapters_instance_chi ||--o{ steps_instance_sti : "contains"
+    steps_instance_sti ||--o{ instructions_instance_ini : "contains"
+    steps_instance_sti ||--o{ controls_instance_cti : "contains"
 
-#### **MIGRATIONS_MIG**
-- `id` SERIAL PRIMARY KEY
-- `mig_code` VARCHAR(10)
-- `mig_name` VARCHAR(128)
-- `mig_description` TEXT
-- `mig_planned_start_date` TIMESTAMP
-- `mig_planned_end_date` TIMESTAMP
-- `mty_type` ENUM('EXTERNAL', 'INTERNAL')
+    sequences_master_sqm ||--o{ sequences_instance_sqi : "is instance of"
+    chapters_master_chm ||--o{ chapters_instance_chi : "is instance of"
+    steps_master_stm ||--o{ steps_instance_sti : "is instance of"
+    instructions_master_inm ||--o{ instructions_instance_ini : "is instance of"
+    controls_master_ctm ||--o{ controls_instance_cti : "is instance of"
 
-> **Note:** The migration type is now an ENUM (`migration_type_enum`) with allowed values: 'EXTERNAL', 'INTERNAL'. The `migration_type_mty` table has been removed for simplicity and clarity.
-
-#### **ROLES_RLS**
-- `id` SERIAL PRIMARY KEY
-- `rle_code` VARCHAR(10)
-- `rle_name` VARCHAR(64)
-- `rle_description` TEXT
-
-#### **SEQUENCES_SQC**
-- `id`: Surrogate PK
-- `mig_id`: FK to `migrations_mig.id`
-- `ite_id`: FK to `iterations_ite.id` (**NEW: links sequence to its iteration**)
-- `sqc_name`: Sequence name
-- `sqc_order`: Sequence order within iteration
-- `start_date`, `end_date`: Sequence timing
-- `sqc_previous`: FK to previous sequence (if any)
-
-- `id` SERIAL PRIMARY KEY
-- `mig_id` INTEGER NOT NULL
-- `sqc_name` VARCHAR(255)
-- `sqc_order` INTEGER
-- `start_date` TIMESTAMP
-- `end_date` TIMESTAMP
-- `sqc_previous` INTEGER
-
-#### **STATUS_STS**
-- `id` SERIAL PRIMARY KEY
-- `sts_code` VARCHAR(10)
-- `sts_name` VARCHAR(64)
-- `sts_description` TEXT
-
-#### **STEPS_STP**
-- `id` SERIAL PRIMARY KEY
-- `stp_code` VARCHAR(10)
-- `stp_name` VARCHAR(64)
-- `cha_id` INTEGER
-- `tms_id` INTEGER
-- `stt_type` INTEGER
-- `stp_previous` INTEGER
-- `stp_description` TEXT
-- `sts_id` INTEGER
-- `owner_id` INTEGER
-- `target_env` VARCHAR(10)
-
-#### **STEP_TYPE_STT**
-- `id` SERIAL PRIMARY KEY
-- `stt_code` VARCHAR(10)
-- `stt_name` VARCHAR(64)
-- `stt_description` TEXT
-
-#### **TEAMS_TMS**
-- `id` SERIAL PRIMARY KEY
-- `tms_code` VARCHAR(10)
-- `tms_name` VARCHAR(64)
-- `tms_description` TEXT
-- `tms_email` VARCHAR(255)
-
-#### **TEAMS_APPLICATIONS_TAP**
-- `id` SERIAL PRIMARY KEY
-- `tms_id` INTEGER NOT NULL
-- `app_id` INTEGER NOT NULL
-
-#### **USERS_USR**
-- `id` SERIAL PRIMARY KEY
-- `usr_first_name` VARCHAR(64)
-- `usr_last_name` VARCHAR(64)
-- `usr_trigram` VARCHAR(3)
-- `usr_email` VARCHAR(128)
-- `rle_id` INTEGER
-- `tms_id` INTEGER
+    migration_iterations_mic ||..o{ audit_log_aud : "is audited"
+    steps_instance_sti ||..o{ audit_log_aud : "is audited"

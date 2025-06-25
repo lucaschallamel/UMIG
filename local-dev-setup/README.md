@@ -296,6 +296,43 @@ ${jsContent}
     ./stop.sh # For daily shutdown.
     ```
 
+## Database Migrations (Liquibase)
+
+To ensure consistency and clarity in our database migration process, we follow a set of conventions for writing Liquibase changesets.
+
+### Changeset Naming Convention
+
+Every changeset must follow a strict naming format to clearly identify its author and purpose.
+
+**Format:**
+
+```
+--changeset <author>:<id> context:<context>
+```
+
+*   **`author`**: Your Git username (e.g., `lucas.challamel`). This tracks who created the change.
+*   **`id`**: The name of the SQL file containing the changeset, without the extension (e.g., `001_unified_baseline`). This provides a unique, descriptive identifier.
+*   **`context`**: The context in which the changeset should run (e.g., `all`, `dev`, `prod`).
+
+**Example:**
+
+```sql
+--changeset lucas.challamel:001_unified_baseline context:all
+```
+
+### Using Tags and Labels
+
+Liquibase offers powerful features like tags and labels to manage database versions and conditional deployments.
+
+*   **Tags**: We use tags to create a "snapshot" of the database schema at a specific release point. This is invaluable for rollbacks and version tracking. We will use semantic versioning for our tags (e.g., `v1.0.0`).
+    *   **Command**: `liquibase tag v1.0.0`
+
+*   **Labels**: Labels allow us to conditionally execute changesets. This is useful for environment-specific data or feature flags. We will adopt labels as needed, with some predefined examples:
+    *   `data-seed`: For populating test data. Should not be run in production.
+    *   `experimental`: For changes related to features that are not yet stable.
+
+By adhering to these conventions, we maintain a clean, understandable, and robust database migration history.
+
 ## Services
 
 *   **Confluence:** [http://localhost:8090](http://localhost:8090)

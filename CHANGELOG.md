@@ -1,5 +1,10 @@
 ### [Unreleased]
 #### Added
+- **2025-06-25:**
+    - **Refactored Liquibase Migrations:** Consolidated all database schema migrations into a single, unified baseline file (`001_unified_baseline.sql`). This simplifies the migration process and improves maintainability.
+    - **Idempotent Schema Script:** Made the baseline migration script idempotent by adding `DROP TABLE ... CASCADE` statements. This ensures a clean and reliable database setup on every run, resolving previous startup failures caused by persistent Docker volumes.
+    - **Legacy Data Model Removal:** Completely removed the legacy data model, including the `05_generate_legacy_plans.js` data generator and all associated table definitions from the schema.
+    - **Established Liquibase Conventions:** Defined and documented new conventions for Liquibase changesets, including author/ID naming (`<git_user>:<file_name>`) and a strategy for using tags and labels. The documentation was added to `local-dev-setup/README.md`.
 - Enhanced `umig_generate_fake_data.js` to support configurable generation of NORMAL, ADMIN, and PILOT users, with unique trigrams and correct team assignment logic (all ADMIN and PILOT users assigned to IT_CUTOVER; every team receives at least one NORMAL user).
 - Added/updated Jest integration tests to verify: every team has at least one member, every user belongs to exactly one team, every application is assigned to exactly one team, and all ADMIN/PILOT users are in IT_CUTOVER.
 - Updated `fake_data_config.json` to allow configuration of user/role counts.

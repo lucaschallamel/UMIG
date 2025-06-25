@@ -206,6 +206,9 @@ npm test
 
 ## Recent Changes
 
+- **2025-06-25:**
+  - Removed the legacy data generator (`05_generate_legacy_plans.js`) as part of the complete removal of the legacy data model. The data generation process now exclusively uses the canonical and instance models.
+
 - **2025-06-24:**
   - Refactored `status_sts` table: renamed `sts_code` to `entity_type`, widened columns, and prepopulated with entity-specific statuses via migration `011_refactor_status_sts.sql`.
   - Added unique constraint to `stt_code` in `step_type_stt` (baseline schema).

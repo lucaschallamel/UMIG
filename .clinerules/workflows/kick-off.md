@@ -4,7 +4,7 @@ description: We run this workflow at the beginning of each new Cascade session, 
 
 - Review the memories
 - Review project documentation in folder /cline-docs
-- Review the developer journal entries in folder /DevJournal
+- Review the developer journal entries in folder /docs/devJournal
 - Review the architectural decision records in folder docs/adr
 - Confirm your good understanding of the project's requirements and the current state of the development
 - Advise if there are any documentation inconsistencies to resolve

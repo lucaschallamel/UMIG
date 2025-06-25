@@ -6,8 +6,8 @@ const { generateCoreMetadata } = require('./generators/01_generate_core_metadata
 const { generateTeamsAndApps } = require('./generators/02_generate_teams_apps');
 const { generateUsers } = require('./generators/03_generate_users');
 const { generateAllEnvironments } = require('./generators/04_generate_environments');
-const { generateLegacyPlans } = require('./generators/05_generate_legacy_plans');
 const { generateCanonicalPlans } = require('./generators/06_generate_canonical_plans');
+const { generateInstanceData } = require('./generators/07_generate_instance_data');
 const readline = require('readline');
 
 // Centralized configuration for data generation
@@ -85,9 +85,9 @@ async function main() {
     await generateCoreMetadata();
     await generateTeamsAndApps(CONFIG);
     await generateUsers(CONFIG);
-    await generateLegacyPlans(CONFIG); // Must run before environments to create iterations
     await generateAllEnvironments();
-    //await generateCanonicalPlans(CONFIG); // Our new tables!
+    await generateCanonicalPlans(CONFIG); // Our new tables!
+    await generateInstanceData(CONFIG); // Generate instance data based on canonical plans
 
     console.log('\n✅ Data generation process completed successfully!');
 
