@@ -90,6 +90,33 @@ The `restart.sh` script includes an optional `--reset` flag that completely wipe
 ```
 You will be asked for confirmation before the data is deleted.
 
+## One-Time ScriptRunner Configuration
+
+After starting the Confluence instance for the first time, you must manually configure the database connection pool within ScriptRunner. This is a **one-time setup** as the configuration is persisted in the `confluence_data` volume.
+
+Our application code uses this shared connection pool to interact with the database.
+
+1.  **Navigate to ScriptRunner Resources**:
+    *   Go to Confluence Administration > **ScriptRunner** > **Resources**.
+
+2.  **Add a New Resource**:
+    *   Click on **Add a new resource** and select **Database Connection**.
+
+3.  **Fill in the Configuration Details**:
+    *   **Pool Name**: `umig_db_pool`
+        *   **Important**: This name must be exact, as it is hardcoded in the application's `DatabaseUtil.groovy`.
+    *   **Driver**: `org.postgresql.Driver`
+    *   **JDBC URL**: `jdbc:postgresql://umig_postgres:5432/umig_app_db`
+        *   **Note**: We use the container name `umig_postgres` for the host, not `localhost`.
+    *   **User**: `umig_app_user` (or the value of `UMIG_DB_USER` in your `.env` file)
+    *   **Password**: `123456` (or the value of `UMIG_DB_PASSWORD` in your `.env` file)
+    *   **JNDI Name**: Leave this field blank.
+
+4.  **Save the Resource**:
+    *   Click **Add** to save the configuration.
+
+Once this is done, ScriptRunner will be able to obtain a database connection and all API endpoints will function correctly.
+
 ## Database Migrations (Liquibase)
 
 To ensure consistency and clarity in our database migration process, we follow a set of conventions for writing Liquibase changesets.

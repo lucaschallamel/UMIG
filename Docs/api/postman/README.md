@@ -1,13 +1,13 @@
 # Postman API Collection for UMIG
 
-This directory contains the Postman collection for testing the UMIG application's REST APIs.
+This directory contains the Postman collection for testing the UMIG application's V2 REST API.
 
 ## How to Use
 
-1.  **Import the Collection**: 
+1.  **Import the Collection**:
     *   Open Postman.
     *   Click on `File` > `Import...`.
-    *   Select the `UMIG_API_Collection.postman_collection.json` file from this directory.
+    *   Select the `UMIG_API_V2_Collection.postman_collection.json` file from this directory.
 
 2.  **Configure Environment Variables**:
     This collection uses variables for authentication and the base URL to make it easy to switch between environments.
@@ -18,20 +18,23 @@ This directory contains the Postman collection for testing the UMIG application'
         *   `baseUrl`: The base URL for the API. For local development, this is `http://localhost:8090/rest/scriptrunner/latest/custom`.
         *   `username`: Your Confluence username (e.g., `admin`).
         *   `password`: Your Confluence password (e.g., `admin`).
-    *   `teamId`: (Optional) Pre-filled with `1`. Used as a default ID for team-specific requests.
-    *   `personId`: (Optional) Pre-filled with `1`. Used as a default ID for person-specific requests.
-    *   `planId`: (Optional) Pre-filled with `1`. Used as a default ID for plan-specific requests.
+    *   The collection is configured to use Basic Auth with these variables.
 
 3.  **Run the Requests**:
     *   Make sure you have selected your new environment from the dropdown in the top right.
-    *   You can now run any of the requests in the collection.
+    *   You can now run any of the requests in the collection. The requests are organized by tags (Users, Teams, Plans).
 
 ## Keeping the Collection Updated
 
-If you make changes to the API tests:
+**IMPORTANT**: This Postman collection is automatically generated from the OpenAPI specification file located at `../openapi.yaml`. **Do not edit this collection directly in Postman and export it.** Your changes will be overwritten.
 
-1.  Right-click on the collection in Postman.
-2.  Select `Export`.
-3.  Choose the `Collection v2.1` format.
-4.  Overwrite the existing `UMIG_API_Collection.postman_collection.json` file.
-5.  Commit the changes to Git.
+To update the collection after making changes to the OpenAPI specification:
+
+1.  **Navigate to this directory** (`docs/api/postman`) in your terminal.
+2.  **Run the following command**:
+    ```bash
+    npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags
+    ```
+3.  **Commit the updated collection file** (`UMIG_API_V2_Collection.postman_collection.json`) to Git.
+
+This ensures that the Postman collection always remains a true representation of the API contract.
