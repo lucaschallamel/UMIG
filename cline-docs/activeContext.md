@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-- The project is in active development of the Implementation Plan macro backend and its supporting infrastructure, with significant progress on API endpoints and database schema.
+- The project is in active development of the Implementation Plan macro backend and its supporting infrastructure, with significant progress on API endpoints and database schema. Recent work has focused on refining the data model's internal logic and improving the local development environment's usability.
 - The backend API has been structured into logical modules for Teams, Persons, and Implementation Plans, with comprehensive CRUD operations for each entity.
 - API documentation (OpenAPI specification and Postman collection) has been created and aligned with the implemented endpoints.
 - The database schema has been fully synchronised with the original SQL Server specification, ensuring consistency across all tables, fields, and constraints.
@@ -12,13 +12,16 @@
 
 ## Recent Changes
 
-- Implemented a new Canonical Implementation Plan data model (ADR-015) with new tables:
-  - `implementation_plans_canonical_ipc` (canonical plan templates)
-  - `sequences_master_sqm` (canonical sequences/phases)
-  - `chapters_master_chm` (canonical chapters)
-  - `steps_master_stm` (canonical steps)
-  - `instructions_master_inm` (canonical instructions)
-  - `controls_master_ctl` (canonical controls/validation checks)
+- Implemented a new Canonical Implementation Plan data model with refined structure:
+  - Elevated controls from step level to phase level in `controls_master_ctm`
+  - Simplified `instructions_master_inm` with clear team ownership via `tms_id` foreign key
+  - Updated canonical plan data generator (`06_generate_canonical_plans.js`)
+  - Created ADR-016 to document control and instruction model refactoring
+  - Updated data model README.md with detailed explanation and Mermaid ERD
+- Enhanced local development environment:
+  - Created new `restart.sh` script with database reset capability
+  - Simplified `stop.sh` to use only `podman-compose down`
+  - Updated root README.md and local-dev-setup/README.md with comprehensive usage instructions
 - Added Liquibase migration `013_create_canonical_implementation_plan_tables.sql` to implement the new schema.
 - Completely refactored the monolithic `umig_generate_fake_data.js` script into a modular system with single-responsibility generator files:
   - `01_generate_core_metadata.js`
