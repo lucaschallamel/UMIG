@@ -32,48 +32,38 @@ async function generateEnvironmentIterationLinks(client) {
   const backupRoleId = envRoles.find(r => r.enr_name === 'BACKUP')?.enr_id;
   const testRoleId = envRoles.find(r => r.enr_name === 'TEST')?.enr_id;
 
-  if (envs.length < 2 || !prodRoleId || !backupRoleId || !testRoleId) {
-    console.warn('Warning: Required environments or roles (PROD, BACKUP, TEST) not found.');
+  if (envs.length < 3 || !prodRoleId || !backupRoleId || !testRoleId) {
+    console.warn('Warning: At least 3 environments and all required roles (PROD, BACKUP, TEST) must exist.');
     return;
   }
 
   const iterRes = await client.query('SELECT ite_id, itt_code FROM iterations_ite');
   const iterations = iterRes.rows;
   const prodEnv = envs.find(e => e.env_name === 'PROD');
+  const nonProdEnvs = envs.filter(e => e.env_name !== 'PROD');
 
   for (const iter of iterations) {
+    const shuffledNonProd = [...nonProdEnvs].sort(() => 0.5 - Math.random());
+
     if (iter.itt_code === 'CUTOVER') {
-      // For CUTOVER, only link the PROD environment with the PROD role.
-      if (prodEnv) {
-        await client.query(
-          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-          [prodEnv.env_id, iter.ite_id, prodRoleId]
-        );
+      // Rule: CUTOVER uses the real PROD env + 1 TEST + 1 BACKUP
+      if (prodEnv && shuffledNonProd.length >= 2) {
+        // Link to real PROD with PROD role
+        await client.query('INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [prodEnv.env_id, iter.ite_id, prodRoleId]);
+        // Link to a non-prod env with TEST role
+        await client.query('INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [shuffledNonProd[0].env_id, iter.ite_id, testRoleId]);
+        // Link to another non-prod env with BACKUP role
+        await client.query('INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [shuffledNonProd[1].env_id, iter.ite_id, backupRoleId]);
       }
     } else if (iter.itt_code === 'RUN' || iter.itt_code === 'DR') {
-      // For RUN/DR, link PROD, BACKUP, and some TEST environments
-      const shuffledEnvs = [...envs].sort(() => 0.5 - Math.random());
-      
-      if (shuffledEnvs.length > 0) {
-        await client.query(
-          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-          [shuffledEnvs[0].env_id, iter.ite_id, prodRoleId]
-        );
-      }
-
-      if (shuffledEnvs.length > 1) {
-        await client.query(
-          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-          [shuffledEnvs[1].env_id, iter.ite_id, backupRoleId]
-        );
-      }
-
-      const numTestEnvs = faker.number.int({ min: 1, max: Math.min(3, shuffledEnvs.length - 2) });
-      for (let k = 2; k < 2 + numTestEnvs && k < shuffledEnvs.length; k++) {
-        await client.query(
-          'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
-          [shuffledEnvs[k].env_id, iter.ite_id, testRoleId]
-        );
+      // Rule: RUN/DR use non-prod envs for all 3 roles (PROD, TEST, BACKUP)
+      if (shuffledNonProd.length >= 3) {
+        // Link to a non-prod env with PROD role
+        await client.query('INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [shuffledNonProd[0].env_id, iter.ite_id, prodRoleId]);
+        // Link to another non-prod env with TEST role
+        await client.query('INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [shuffledNonProd[1].env_id, iter.ite_id, testRoleId]);
+        // Link to a third non-prod env with BACKUP role
+        await client.query('INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [shuffledNonProd[2].env_id, iter.ite_id, backupRoleId]);
       }
     }
   }
@@ -99,32 +89,38 @@ async function generateEnvironmentApplicationLinks(client) {
   }
 
   const prodEnv = envs.find(e => e.env_name === 'PROD');
-  const ev1Env = envs.find(e => e.env_name === 'EV1');
-  if (!prodEnv || !ev1Env) {
-      console.warn('Warning: PROD or EV1 environment not found for linking.');
-      return;
+  const testEnvs = envs.filter(e => e.env_name.startsWith('EV')); // Assuming 'EV' envs are for testing
+
+  if (!prodEnv || testEnvs.length === 0) {
+    console.warn('Warning: PROD or a suitable TEST environment not found for linking.');
+    return;
   }
 
+  // Rule 1: All apps must be on PROD
+  // Rule 2: All apps must be on at least one TEST environment.
+  const designatedTestEnv = testEnvs[0]; // We'll use the first available TEST env
+
   for (const app of apps) {
+    // Link to PROD
     await client.query(
       'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [prodEnv.env_id, app.app_id]
     );
+    // Link to the designated TEST environment
     await client.query(
       'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-      [ev1Env.env_id, app.app_id]
+      [designatedTestEnv.env_id, app.app_id]
     );
   }
 
-  for (const env of envs) {
-    if (env.env_name === 'PROD' || env.env_name === 'EV1') continue;
+  // For all other TEST environments, link a random subset of apps
+  for (const env of testEnvs.slice(1)) {
     const shuffled = [...apps].sort(() => 0.5 - Math.random());
-    const numLinks = Math.max(5, Math.floor(apps.length / 2));
+    const numLinks = faker.number.int({ min: 1, max: apps.length });
     for (let i = 0; i < numLinks; i++) {
-      const app = shuffled[i % apps.length];
       await client.query(
         'INSERT INTO environments_env_x_applications_app (env_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-        [env.env_id, app.app_id]
+        [env.env_id, shuffled[i].app_id]
       );
     }
   }
