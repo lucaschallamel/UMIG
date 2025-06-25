@@ -2,77 +2,56 @@
 
 ## Current Focus
 
-- The project is in active development of the Implementation Plan macro backend and its supporting infrastructure, with significant progress on API endpoints and database schema. Recent work has focused on refining the data model's internal logic and improving the local development environment's usability.
-- The backend API has been structured into logical modules for Teams, Persons, and Implementation Plans, with comprehensive CRUD operations for each entity.
-- API documentation (OpenAPI specification and Postman collection) has been created and aligned with the implemented endpoints.
-- The database schema has been fully synchronised with the original SQL Server specification, ensuring consistency across all tables, fields, and constraints.
-- Development of robust Node.js utilities for synthetic data generation and CSV importing, complete with comprehensive testing infrastructure.
-- Enhanced synthetic data generation for more realistic user and team data, with configurable role-based assignments.
-- Major architectural improvement: Implemented separation between canonical implementation plans (templates) and their execution instances via new tables, enabling reusability, versioning, and robust plan-vs-actual analysis.
+- The project is focused on refining the synthetic data generation pipeline to be more deterministic, efficient, and aligned with core business rules.
+- Recent work has established a single canonical plan template with a specific, unvarying structure for more robust and predictable data generation.
+- The data model now strictly separates canonical (master) entities from instance (execution) entities, providing flexibility for reusable templates and execution tracking.
+- The data generation system has been completely refactored into a modular architecture with single-responsibility components.
+- Current efforts are focused on finalizing documentation and preparing for the next development phase.
 
 ## Recent Changes
 
-- Implemented a new Canonical Implementation Plan data model with refined structure:
-  - Elevated controls from step level to phase level in `controls_master_ctm`
-  - Simplified `instructions_master_inm` with clear team ownership via `tms_id` foreign key
-  - Updated canonical plan data generator (`06_generate_canonical_plans.js`)
-  - Created ADR-016 to document control and instruction model refactoring
-  - Updated data model README.md with detailed explanation and Mermaid ERD
-- Enhanced local development environment:
-  - Created new `restart.sh` script with database reset capability
-  - Simplified `stop.sh` to use only `podman-compose down`
-  - Updated root README.md and local-dev-setup/README.md with comprehensive usage instructions
-- Added Liquibase migration `013_create_canonical_implementation_plan_tables.sql` to implement the new schema.
-- Completely refactored the monolithic `umig_generate_fake_data.js` script into a modular system with single-responsibility generator files:
-  - `01_generate_core_metadata.js`
-  - `02_generate_teams_apps.js`
-  - `03_generate_users.js`
-  - `04_generate_environments.js`
-  - `05_generate_legacy_plans.js`
-  - `06_generate_canonical_plans.js`
-- Fixed multiple critical bugs in the legacy plan generator (`05_generate_legacy_plans.js`), resolving syntax errors and schema mismatches.
-- Refactored `status_sts` table: renamed `sts_code` to `entity_type`, widened columns, prepopulated with entity-specific statuses via migration `011_refactor_status_sts.sql`.
-- Added unique constraint to `stt_code` in `step_type_stt` (baseline schema).
-- Added `type_color` column (hex color code, VARCHAR(7)) to `step_type_stt` via migration `012_add_type_color_to_step_type_stt.sql`.
-- Updated data generation script to prepopulate `step_type_stt` with codes, names, descriptions, and color codes; uses idempotent insert logic.
-- Improved `resetDatabase()` to protect reference and migration tracking tables from truncation.
-- All integration and unit tests pass, confirming robust reference data and safe resets.
-- Updated the `CHANGELOG.md` and all relevant documentation to reflect the new tables and migration.
-- Added a detailed developer journal entry narrating the session, decisions, and technical pivots.
-- All documentation is now fully aligned with the current state of the codebase and database.
-- (Historique conservé) Major architectural pivot: The project moved from a standalone NodeJS/React stack to a Confluence-integrated application, using vanilla JS for the frontend and ScriptRunner (Groovy) for the backend, as mandated by enterprise constraints.
-- (Historique conservé) API Development: Backend endpoints for Teams, Persons, and Implementation Plans have been implemented with a modular structure in `src/groovy/v1/` directories.
-- (Historique conservé) Database connectivity: The project now uses ScriptRunner's built-in Database Connection Pool resource for PostgreSQL (ADR-010), superseding the previous approach of bundling the JDBC driver.
-- (Historique conservé) REST Endpoint Configuration: Standardised the method for configuring and discovering ScriptRunner REST endpoints (ADR-011), resolving runtime errors related to file path resolution.
-- (Historique conservé) Database Management: Formalised a standardised approach for database management and documentation (ADR-012), ensuring reliable migrations and clear schema documentation.
-- (Historique conservé) Documentation: Created comprehensive API documentation in OpenAPI format and a Postman collection for testing. Added formal data model documentation with ERD diagrams.
-- (Historique conservé) Local development environment is now robust, with Liquibase managing database migrations and clear setup instructions for developers.
-- (Historique conservé) Data Utilities: Implemented robust Node.js CLI tools (`umig_generate_fake_data.js` and `umig_csv_importer.js`) for synthetic data generation and CSV importing, with comprehensive documentation and testing.
-- (Historique conservé) Testing Framework: Established a Jest-based testing framework with deterministic fixtures for reproducible tests, ensuring all utilities maintain strict environment safety and error handling.
-- (Historique conservé) Schema Synchronisation: Completed a thorough review and correction of the baseline PostgreSQL schema to match the original SQL Server specification, ensuring all tables, fields, and constraints are accurately represented.
-- (Historique conservé) Data Model Updates: Updated key tables to match specifications:
-  - `controls_ctl`: Added producer, validator and comments fields
-  - `environments_env`: Removed `env_type` field
-  - `environments_iterations_eit`: Added new join table with environment-iteration associations
-  - `iterations_ite`: Replaced `ite_sequence` with a free-text `description`
-  - `sequences_sqc`: Updated to reference `migrations_mig` instead of `iterations_ite`
-  - `environments_applications_eap`: Added a `comments` field
-  - `users_usr`: Split the name field into `usr_first_name`, `usr_last_name`, and added `usr_trigram` identifier
-- (Historique conservé) Enhanced Data Generation: Implemented role-based user creation (NORMAL, ADMIN, PILOT) with intelligent team assignment rules:
-  - All ADMIN and PILOT users are assigned exclusively to the IT_CUTOVER team
-  - Every other team has at least one NORMAL user to prevent orphaned teams
-  - Each user has a unique 3-letter trigram identifier
-- (Historique conservé) Fixed Environment Stability: Resolved issues with Podman volume persistence that were causing migration failures on restart.
-- (Historique conservé) Fixed Schema-Script Mismatch: Corrected data generation script to use the updated schema references (mig_id instead of ite_id).
+- **Data Generation Pipeline**:
+  - Implemented a single "master" canonical plan template with a predefined structure of five specific sequences (PREMIG, CSD, W12, P&C, POSTMIG)
+  - For each iteration, exactly two instances are generated: one ACTIVE (with full hierarchy) and one DRAFT
+  - Plan instances now include dynamic descriptions based on the master plan name and iteration type
+  - Refactored the monolithic data generator into modular components:
+    - `01_generate_core_metadata.js`
+    - `02_generate_teams_apps.js`
+    - `03_generate_users.js`
+    - `04_generate_environments.js`
+    - `05_generate_legacy_plans.js`
+    - `06_generate_canonical_plans.js`
+
+- **Data Model Refactoring**:
+  - Elevated `controls_master_ctm` from step level to phase level
+  - Simplified `instructions_master_inm` by removing redundant fields
+  - Added team ownership (`tms_id`) to instructions and controls
+  - Standardized table and column naming conventions
+  - Updated all foreign key constraints and relationships
+
+- **Database Improvements**:
+  - Consolidated all schema migrations into a single unified baseline file
+  - Made baseline migration script idempotent with proper DROP TABLE statements
+  - Removed legacy data model components
+  - Established Liquibase conventions for changesets
+
+- **Testing and Validation**:
+  - Enhanced Jest tests for plan and instance generation
+  - Added rigorous validation for business rules
+  - Implemented comprehensive integration tests for data generation
+  - Updated test fixtures to match current data model
+
+- **Documentation Updates**:
+  - Created detailed data model documentation with Mermaid ERD
+  - Updated all relevant README files
+  - Added comprehensive developer journal entries
+  - Documented new Liquibase conventions and migration strategies
 
 ## Next Steps
 
-- Finalize ADR-015 by updating its status from "Draft" to "Accepted" or "Implemented".
-- Implement backend logic and API endpoints to leverage the new canonical implementation plan tables for plan creation, editing, and versioning.
-- Continue frontend development for the Implementation Plan macro UI, ensuring integration with the newly implemented backend APIs and canonical plan structures.
-- Develop the Planning Feature UI for generating shareable HTML macro-plans.
-- Validate all API endpoints using the Postman collection against the local development environment.
-- Maintain strict documentation discipline for all future schema changes.
-- Extend test fixtures and integration tests as the data model evolves, particularly for canonical implementation plans.
-- Consider adding automated schema integrity checks or further integration tests as the project matures.
-- Create a dedicated document that explicitly outlines the current database naming conventions and table relationships.
+- Finalize and push all documentation updates to the remote repository
+- Begin development of backend services to leverage the new canonical plan structure
+- Implement API endpoints for plan management and execution tracking
+- Develop frontend components for plan visualization and interaction
+- Continue refining data generation based on testing feedback
+- Prepare for the next major development phase focusing on implementation plan execution
