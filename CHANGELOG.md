@@ -1,6 +1,13 @@
 ### [Unreleased]
 #### Added
 - **2025-06-25:**
+    - **Refined Plan Generation Logic:**
+        - The data generator now creates a single "master" canonical plan to serve as a template.
+        - For each iteration, exactly two instances are generated: one `ACTIVE` (with a full hierarchy) and one `DRAFT`.
+        - Plan instances now include a dynamic `pli_description` based on the master plan name and iteration type.
+    - **Standardized Plan Structure:** The canonical plan is now built using a predefined, ordered list of five specific sequences (`PREMIG`, `CSD`, `W12`, `P&C`, `POSTMIG`) instead of random ones.
+    - **Hardened Data Generation Tests:** Significantly improved the Jest tests for plan and instance generation to be more rigorous and deterministically validate the new business rules.
+- **2025-06-25:**
     - **Data Model Refactoring (Controls & Instructions):**
         - Elevated `controls_master_ctm` from the step level to the phase level, linking them via `phm_id` for better reusability and logical grouping.
         - Streamlined `instructions_master_inm` by removing `inm_title`, `inm_format`, and the self-referencing `predecessor_inm_id`.

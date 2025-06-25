@@ -92,7 +92,12 @@ The script follows specific rules and principles to ensure data integrity, predi
     | DUM      | DUMPS         | Database related activities      | #948a54    |
   - The script uses `ON CONFLICT (stt_code) DO NOTHING` to ensure idempotency: running the script multiple times will never create duplicates or errors.
 
-- **Full Hierarchy Generation:** The script generates a specified number of `migrations_mig`. For each migration, it creates a corresponding set of `iterations_ite` (RUN, DR, CUTOVER). Within each iteration, it then generates a full hierarchy of `sequences_sqc`, `chapter_cha`, `steps_stp`, and `instructions_ins`, creating a complete and realistic data structure.
+- **Canonical Plan and Instance Generation:**
+  - The script generates **one master canonical plan** to serve as a reusable template.
+  - This plan is built with a predefined, ordered set of five sequences: `PREMIG`, `CSD`, `W12`, `P&C`, and `POSTMIG`.
+  - For each iteration, the script creates exactly **two plan instances** from this master template:
+    - An **`ACTIVE`** instance, which includes the full hierarchy of sequences, phases, steps, and audit logs.
+    - A **`DRAFT`** instance, which is created without the full hierarchy to save space and reflect a realistic workflow.
 
 - **Users, Teams, and Roles:**
   - A special **`IT_CUTOVER`** team is always created first (`tms_code` = `T00`).
@@ -103,7 +108,7 @@ The script follows specific rules and principles to ensure data integrity, predi
   - A fixed list of environments (`PROD`, `EV1`, etc.) is created.
   - A specified number of applications are generated and randomly linked to teams via the `teams_applications_tap` table.
 
-- **Pending Implementation:** The script does **not** yet populate the tables for chapters, steps, tasks, controls, statuses, or their related join tables. This is the next logical area for expansion.
+
 
 - **Applications (`applications_app`):**
   - Applications are generated with unique 3-letter codes.
@@ -212,6 +217,11 @@ The project employs two primary testing strategies tailored to the different uti
 ---
 
 ## Recent Changes
+
+- **2025-06-25:**
+  - **Refined Plan Generation Logic:** Refactored the data generator to create a single master canonical plan and two instances (`ACTIVE` and `DRAFT`) per iteration.
+  - **Standardized Plan Structure:** The canonical plan is now built using a predefined, ordered list of five specific sequences (`PREMIG`, `CSD`, etc.) instead of random ones.
+  - **Enriched Instance Data:** Plan instances now include a dynamic `pli_description` based on the master plan name and iteration type.
 
 - **2025-06-25:**
   - Removed the legacy data generator (`05_generate_legacy_plans.js`) as part of the complete removal of the legacy data model. The data generation process now exclusively uses the canonical and instance models.
