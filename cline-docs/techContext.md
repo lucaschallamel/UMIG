@@ -9,15 +9,22 @@
 - **Containerisation:** Podman and Podman Compose
 - **Configuration Management:** Ansible
 - **Version Control:** Git
-- **Testing Framework:** Jest for Node.js utilities
+- **Testing Frameworks:** 
+  - Jest for Node.js utilities
+  - Groovy for integration testing
 - **Development Utilities:** Node.js for data generation and CSV importing
 - **Package Management:** NPM for Node.js utilities
+- **Environment Management:** dotenv for secure credential management
 
 ## Development Setup
 
 - Local development is orchestrated with Podman Compose and Ansible, providing containers for Confluence, PostgreSQL, and MailHog.
 - Database schema changes are managed and versioned with Liquibase, applied automatically on environment startup.
-- The codebase is structured for separation of concerns: all backend code resides in `src/com/umig/` (API, repository, utility), frontend assets in `src/web/`.
+- The codebase is structured for separation of concerns: 
+  - Backend code resides in `src/com/umig/` (API, repository, utility)
+  - Frontend assets in `src/web/`
+  - Confluence macros in `src/macros/`
+  - Integration tests in `tests/integration/`
 - ScriptRunner is installed manually via the Confluence UI Marketplace for stability and compatibility.
 - Database connectivity for ScriptRunner is managed via its built-in Database Resource Pool feature (`umig_db_pool`), with all backend access using the type-safe `withSql` pattern.
 - The PostgreSQL JDBC driver is included in the custom Confluence image.
@@ -28,6 +35,8 @@
 - All backend coding conventions and database access patterns are documented in `src/README.md`.
 - Node.js utilities are managed with NPM, with proper package.json and package-lock.json in the 'local-dev-setup/data-utils' directory.
 - Jest is configured for testing Node.js utilities, with comprehensive test coverage for all generator components.
+- Integration tests are executed via a standardised shell script (`run-integration-tests.sh`), which manages the classpath for the PostgreSQL JDBC driver.
+- Database credentials for integration tests are loaded securely from the `.env` file, removing them from source code.
 
 ## Technical Constraints
 
@@ -46,8 +55,9 @@
 ### Backend Dependencies
 
 - **ScriptRunner for Confluence:** Version 8.43.0
-- **PostgreSQL JDBC Driver:** Version 42.7.7
+- **PostgreSQL JDBC Driver:** Version 42.7.7 (for application), Version 42.2.20 (for integration tests)
 - **Groovy:** Version bundled with ScriptRunner (2.5.x)
+- **Groovy Grape:** For dependency management in integration tests
 
 ### Frontend Dependencies
 
@@ -97,3 +107,13 @@
 - **Database access** from ScriptRunner follows the type-safe `withSql` pattern with explicit type casting.
 - **REST endpoints** follow the "Pure ScriptRunner Application" pattern with proper error handling.
 - **OpenAPI specification** is maintained at version 3.0.0 for compatibility.
+- **UI components** follow a consistent pattern:
+  - ScriptRunner macro loads JavaScript asset
+  - JavaScript handles UI rendering and API calls
+  - Backend API endpoint processes requests and returns JSON
+  - Repository layer abstracts database access
+- **Integration testing** follows a standardised approach:
+  - Tests connect to the live database to validate real integration
+  - Credentials are loaded securely from environment variables
+  - Tests are executed via standardised shell scripts
+  - Validates that repository queries match the actual database schema

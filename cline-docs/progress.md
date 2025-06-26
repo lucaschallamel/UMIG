@@ -27,6 +27,7 @@
 - ✅ **Database Access**: Type-safe `withSql` pattern implemented for all database access.
 - ✅ **API Documentation**: OpenAPI specification for the REST API.
 - ✅ **Error Handling**: Basic error handling for database and API operations.
+- ✅ **Integration Testing**: Formal integration testing framework with live database validation.
 
 ### Frontend Implementation
 
@@ -35,6 +36,9 @@
 - ✅ **JavaScript Logic**: Initial JavaScript logic for the macro.
 - ✅ **UI/UX Documentation**: Comprehensive UI/UX roadmap and detailed STEP View specification.
 - ✅ **UI/UX Strategy**: Clear phased approach with prioritisation of end-user components.
+- ✅ **UI Framework Pattern**: Established lean architectural pattern for UI components with ScriptRunner macros loading JavaScript assets.
+- ✅ **User View Components**: Implemented user view and user list components as proof of concept.
+- ✅ **STEP View Backend**: Implemented backend API and repository layer for the STEP View component.
 
 ## What's Left to Build
 
@@ -60,7 +64,9 @@
 
 ### Testing and Quality Assurance
 
-- 🔲 **Integration Tests**: Implement integration tests for the backend.
+- ✅ **Integration Tests**: Implemented integration testing framework for backend API endpoints.
+- ✅ **Test Execution**: Created standardised shell script for running integration tests.
+- ✅ **Secure Credentials**: Implemented secure credential management for tests via environment variables.
 - 🔲 **End-to-End Tests**: Implement end-to-end tests for the frontend.
 - 🔲 **Performance Testing**: Implement performance testing.
 - 🔲 **Security Testing**: Implement security testing.
@@ -116,9 +122,21 @@ The project is in the **Development** phase, with a focus on:
 5. **Developing UI/UX Components**:
    - ✅ UI/UX roadmap
    - ✅ STEP View specification
-   - 🔲 STEP View implementation
+   - ✅ UI framework pattern
+   - ✅ User view components
+   - ✅ STEP View backend API
+   - 🔲 STEP View frontend completion
    - 🔲 Dashboard implementation
    - 🔲 Team Management implementation
+
+6. **Establishing Testing Framework**:
+   - ✅ Integration testing structure
+   - ✅ Database integration tests
+   - ✅ Secure credential management
+   - ✅ Standardised test execution
+   - 🔲 Expanded test coverage
+   - 🔲 Test fixtures
+   - 🔲 Coverage reporting
 
 ## Known Issues
 
@@ -133,10 +151,15 @@ The project is in the **Development** phase, with a focus on:
 3. **Frontend Integration**:
    - Confluence macro rendering can be slow with large plans.
    - JavaScript performance needs optimization.
+   - STEP View frontend implementation is incomplete.
 
 4. **Development Environment**:
    - Podman volume management can be fragile during environment restarts.
    - Liquibase migrations can be slow with large changesets.
+
+5. **Schema Drift**:
+   - Risk of misalignment between repository queries and actual database schema.
+   - Integration tests help mitigate but require vigilance.
 
 ## Evolution of Project Decisions
 
@@ -156,7 +179,13 @@ The project is in the **Development** phase, with a focus on:
 
 - **Initial Decision**: Use a custom Confluence macro with jQuery.
 - **Evolution**: Considered using a modern JavaScript framework.
-- **Current Approach**: Settled on vanilla JavaScript for compatibility and simplicity.
+- **Current Approach**: Settled on vanilla JavaScript for compatibility and simplicity, with a pattern of ScriptRunner macros loading JavaScript assets.
+
+### Testing Strategy
+
+- **Initial Decision**: Rely primarily on unit tests with mocked dependencies.
+- **Evolution**: Discovered critical integration issues that unit tests couldn't catch.
+- **Current Approach**: Established a formal integration testing framework to validate against the live database.
 
 ### Development Environment
 
