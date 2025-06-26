@@ -4,17 +4,16 @@
 
 ### Infrastructure and Environment
 
-- ✅ **Local Development Environment**: Fully functional containerized environment with Podman and Podman Compose.
-- ✅ **Database Setup**: PostgreSQL database with proper schema and migrations managed by Liquibase.
+- ✅ **Local Development Environment**: Fully functional containerised environment with Podman and Podman Compose.
+- ✅ **Database Setup**: PostgreSQL database with schema and migrations managed by Liquibase.
 - ✅ **Confluence Integration**: ScriptRunner successfully integrated with Confluence for backend logic.
 - ✅ **Environment Management**: Shell scripts for starting, stopping, and resetting the environment.
 - ✅ **Database Connectivity**: ScriptRunner Database Resource Pool configured and working.
 
 ### Data Model and Generation
 
-- ✅ **Core Data Model**: Complete database schema with tables for all entities.
-- ✅ **Canonical Plan Model**: Implemented separation between canonical (master) and instance (execution) entities.
-- ✅ **Data Generation Pipeline**: Fully modular system with single-responsibility generator files.
+- ✅ **Core Data Model**: Complete schema with canonical (master) and instance (execution) entities.
+- ✅ **Data Generation Pipeline**: Modular, single-responsibility generator files for synthetic data.
 - ✅ **Test Data**: Comprehensive synthetic data generation for development and testing.
 - ✅ **CSV Import**: Flexible CSV import utility with field mapping.
 - ✅ **Test Coverage**: Comprehensive test coverage for all generator components.
@@ -24,21 +23,20 @@
 
 - ✅ **REST API**: V2 REST API implemented using the "Pure ScriptRunner Application" pattern.
 - ✅ **Repository Layer**: Repository classes implemented with type-safe database access.
-- ✅ **Database Access**: Type-safe `withSql` pattern implemented for all database access.
+- ✅ **Database Access**: Type-safe `withSql` pattern for all database access.
 - ✅ **API Documentation**: OpenAPI specification for the REST API.
 - ✅ **Error Handling**: Basic error handling for database and API operations.
 - ✅ **Integration Testing**: Formal integration testing framework with live database validation.
+- ✅ **SPA + REST Pattern**: SPA + REST pattern (ADR020) adopted as standard for all admin UIs, with user management SPA as reference implementation.
 
 ### Frontend Implementation
 
-- ✅ **Basic Macro**: Initial implementation of the Confluence macro for rendering implementation plans.
-- ✅ **CSS Styling**: Basic CSS styling for the macro.
-- ✅ **JavaScript Logic**: Initial JavaScript logic for the macro.
+- ✅ **Macro Pattern**: Minimal Confluence macros loading dedicated JS assets for UI components.
 - ✅ **UI/UX Documentation**: Comprehensive UI/UX roadmap and detailed STEP View specification.
-- ✅ **UI/UX Strategy**: Clear phased approach with prioritisation of end-user components.
-- ✅ **UI Framework Pattern**: Established lean architectural pattern for UI components with ScriptRunner macros loading JavaScript assets.
+- ✅ **UI Framework Pattern**: Lean architectural pattern for UI components.
 - ✅ **User View Components**: Implemented user view and user list components as proof of concept.
 - ✅ **STEP View Backend**: Implemented backend API and repository layer for the STEP View component.
+- ✅ **Dynamic Forms**: Admin SPAs now render forms dynamically from entity fields, with robust type handling.
 
 ## What's Left to Build
 
@@ -46,7 +44,7 @@
 
 - 🔲 **Service Layer**: Implement a formal service layer for business logic.
 - 🔲 **Notification System**: Implement a notification system for status changes.
-- 🔲 **Authentication and Authorization**: Implement proper authentication and authorization.
+- 🔲 **Authentication and Authorisation**: Implement proper authentication and authorisation.
 - 🔲 **Validation**: Implement comprehensive validation for all API endpoints.
 - 🔲 **Error Handling**: Enhance error handling with proper error codes and messages.
 - 🔲 **Logging**: Implement comprehensive logging for all operations.
@@ -54,19 +52,23 @@
 
 ### Frontend Implementation
 
-- 🔲 **Enhanced Macro**: Enhance the Confluence macro with more features.
-- 🔲 **Interactive UI**: Implement interactive UI for plan management.
-- 🔲 **Status Updates**: Implement interactive status updates.
+- 🔲 **Broaden SPA + REST Pattern**: Scaffold admin UIs for all entities (teams, plans, etc.) using the SPA + REST pattern.
+- 🔲 **STEP View Frontend**: Complete the STEP View frontend, including interactive status updates and comments.
+- 🔲 **Dashboard Implementation**: Implement dashboard view as per UI/UX roadmap.
+- 🔲 **Team Management Implementation**: Implement team management SPA.
 - 🔲 **User-Friendly Navigation**: Implement user-friendly navigation.
 - 🔲 **Responsive Design**: Ensure responsive design for all screen sizes.
 - 🔲 **Accessibility**: Ensure accessibility compliance.
-- 🔲 **Localization**: Implement localization support.
+- 🔲 **Localisation**: Implement localisation support.
 
 ### Testing and Quality Assurance
 
-- ✅ **Integration Tests**: Implemented integration testing framework for backend API endpoints.
-- ✅ **Test Execution**: Created standardised shell script for running integration tests.
-- ✅ **Secure Credentials**: Implemented secure credential management for tests via environment variables.
+- ✅ **Integration Tests**: Integration testing framework for backend API endpoints.
+- ✅ **Test Execution**: Standardised shell script for running integration tests.
+- ✅ **Secure Credentials**: Secure credential management for tests via environment variables.
+- 🔲 **Expanded Test Coverage**: Add integration tests for all endpoints and entities.
+- 🔲 **Test Fixtures**: Implement test fixtures for consistent test data.
+- 🔲 **Coverage Reporting**: Add test coverage reporting.
 - 🔲 **End-to-End Tests**: Implement end-to-end tests for the frontend.
 - 🔲 **Performance Testing**: Implement performance testing.
 - 🔲 **Security Testing**: Implement security testing.
@@ -74,6 +76,7 @@
 
 ### Documentation
 
+- ✅ **Pattern Documentation**: All major patterns and conventions documented in ADRs and README.md files.
 - 🔲 **User Documentation**: Create comprehensive user documentation.
 - 🔲 **API Documentation**: Enhance API documentation with examples and use cases.
 - 🔲 **Developer Documentation**: Create comprehensive developer documentation.
@@ -83,60 +86,22 @@
 
 The project is in the **Development** phase, with a focus on:
 
-1. **Finalising the Node.js Data Utilities**:
-   - ✅ Modular generator structure
-   - ✅ Canonical plan template
-   - ✅ Deterministic instance generation
-   - ✅ Legacy removal
-   - ✅ Test coverage
-   - ✅ NPM integration
-   - ✅ Update .gitignore file
+1. **Adopting and Enforcing SPA + REST Pattern**:
+   - ✅ SPA + REST pattern formalised (ADR020)
+   - ✅ User admin SPA implemented as reference
+   - 🔲 Broaden adoption to all admin UIs
 
-2. **Stabilising the Backend Architecture**:
-   - ✅ REST API implementation
-   - ✅ Repository layer implementation
-   - ✅ Database access pattern
-   - ✅ API documentation
-   - 🔲 Service layer implementation
-   - 🔲 Notification system
-   - 🔲 Authentication and authorisation
+2. **Expanding Integration Testing**:
+   - ✅ Integration testing framework established
+   - 🔲 Expand test coverage to all endpoints and entities
 
-3. **Consolidating the Data Model**:
-   - ✅ Entity separation
-   - ✅ Control elevation
-   - ✅ Naming conventions
-   - ✅ Relationship updates
-   - ✅ Documentation
-   - 🔲 Validation rules
-   - 🔲 Indexing strategy
+3. **Completing STEP View Frontend**:
+   - 🔲 Finalise client-side JavaScript for STEP View
+   - 🔲 Add interactive features and error handling
 
-4. **Improving Development Environment**:
-   - ✅ Shell scripts
-   - ✅ Schema migrations
-   - ✅ Reference table protection
-   - ✅ Database connectivity
-   - 🔲 CI/CD pipeline
-   - 🔲 Automated testing
-   - 🔲 Deployment automation
-
-5. **Developing UI/UX Components**:
-   - ✅ UI/UX roadmap
-   - ✅ STEP View specification
-   - ✅ UI framework pattern
-   - ✅ User view components
-   - ✅ STEP View backend API
-   - 🔲 STEP View frontend completion
-   - 🔲 Dashboard implementation
-   - 🔲 Team Management implementation
-
-6. **Establishing Testing Framework**:
-   - ✅ Integration testing structure
-   - ✅ Database integration tests
-   - ✅ Secure credential management
-   - ✅ Standardised test execution
-   - 🔲 Expanded test coverage
-   - 🔲 Test fixtures
-   - 🔲 Coverage reporting
+4. **Ongoing Documentation and Pattern Enforcement**:
+   - ✅ All relevant documentation updated
+   - 🔲 Continue to update as new patterns emerge
 
 ## Known Issues
 
@@ -150,7 +115,7 @@ The project is in the **Development** phase, with a focus on:
 
 3. **Frontend Integration**:
    - Confluence macro rendering can be slow with large plans.
-   - JavaScript performance needs optimization.
+   - JavaScript performance needs optimisation.
    - STEP View frontend implementation is incomplete.
 
 4. **Development Environment**:
@@ -159,7 +124,7 @@ The project is in the **Development** phase, with a focus on:
 
 5. **Schema Drift**:
    - Risk of misalignment between repository queries and actual database schema.
-   - Integration tests help mitigate but require vigilance.
+   - Integration tests now mitigate this risk, but require ongoing vigilance.
 
 ## Evolution of Project Decisions
 
@@ -173,22 +138,22 @@ The project is in the **Development** phase, with a focus on:
 
 - **Initial Decision**: Use a monolithic Confluence plugin.
 - **Evolution**: Moved to a hybrid approach with ScriptRunner and a custom plugin.
-- **Current Approach**: Implemented the "Pure ScriptRunner Application" pattern.
+- **Current Approach**: "Pure ScriptRunner Application" pattern, with SPA + REST pattern for admin UIs.
 
 ### Frontend Implementation
 
 - **Initial Decision**: Use a custom Confluence macro with jQuery.
 - **Evolution**: Considered using a modern JavaScript framework.
-- **Current Approach**: Settled on vanilla JavaScript for compatibility and simplicity, with a pattern of ScriptRunner macros loading JavaScript assets.
+- **Current Approach**: Vanilla JavaScript SPA pattern, with macros loading JS assets and dynamic form rendering.
 
 ### Testing Strategy
 
 - **Initial Decision**: Rely primarily on unit tests with mocked dependencies.
-- **Evolution**: Discovered critical integration issues that unit tests couldn't catch.
-- **Current Approach**: Established a formal integration testing framework to validate against the live database.
+- **Evolution**: Discovered critical integration issues that unit tests could not catch.
+- **Current Approach**: Formal integration testing framework, validating against the live database.
 
 ### Development Environment
 
-- **Initial Decision**: Use Docker for containerization.
+- **Initial Decision**: Use Docker for containerisation.
 - **Evolution**: Evaluated Kubernetes for orchestration.
-- **Current Approach**: Settled on Podman and Ansible for simplicity and compatibility.
+- **Current Approach**: Podman and Ansible for simplicity and compatibility.
