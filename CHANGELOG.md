@@ -1,5 +1,13 @@
 ### [Unreleased]
 #### Added
+- **2025-06-26:**
+    - **UI/UX Documentation Overhaul:**
+        - Created `/docs/ui-ux/` directory to centralize all UI/UX specifications.
+        - Added a persistent `template.md` for consistent UI/UX spec authoring.
+        - Authored a detailed `step-view.md` spec for the STEP View component.
+        - Introduced a living `ROADMAP.md` outlining phased UX/UI delivery, including the decision to defer a full admin UI in favor of an API/Postman-based approach for the MVP.
+
+#### Added
 - **2025-06-25:**
     - **Implemented V2 REST API Foundation:**
         - Implemented the full "Pure ScriptRunner" architecture, including a static asset-serving REST endpoint and modernized UI macro asset loading.

@@ -33,6 +33,8 @@
 - ✅ **Basic Macro**: Initial implementation of the Confluence macro for rendering implementation plans.
 - ✅ **CSS Styling**: Basic CSS styling for the macro.
 - ✅ **JavaScript Logic**: Initial JavaScript logic for the macro.
+- ✅ **UI/UX Documentation**: Comprehensive UI/UX roadmap and detailed STEP View specification.
+- ✅ **UI/UX Strategy**: Clear phased approach with prioritisation of end-user components.
 
 ## What's Left to Build
 
@@ -75,7 +77,7 @@
 
 The project is in the **Development** phase, with a focus on:
 
-1. **Finalizing the Node.js Data Utilities**:
+1. **Finalising the Node.js Data Utilities**:
    - ✅ Modular generator structure
    - ✅ Canonical plan template
    - ✅ Deterministic instance generation
@@ -84,14 +86,14 @@ The project is in the **Development** phase, with a focus on:
    - ✅ NPM integration
    - ✅ Update .gitignore file
 
-2. **Stabilizing the Backend Architecture**:
+2. **Stabilising the Backend Architecture**:
    - ✅ REST API implementation
    - ✅ Repository layer implementation
    - ✅ Database access pattern
    - ✅ API documentation
    - 🔲 Service layer implementation
    - 🔲 Notification system
-   - 🔲 Authentication and authorization
+   - 🔲 Authentication and authorisation
 
 3. **Consolidating the Data Model**:
    - ✅ Entity separation
@@ -110,6 +112,13 @@ The project is in the **Development** phase, with a focus on:
    - 🔲 CI/CD pipeline
    - 🔲 Automated testing
    - 🔲 Deployment automation
+
+5. **Developing UI/UX Components**:
+   - ✅ UI/UX roadmap
+   - ✅ STEP View specification
+   - 🔲 STEP View implementation
+   - 🔲 Dashboard implementation
+   - 🔲 Team Management implementation
 
 ## Known Issues
 

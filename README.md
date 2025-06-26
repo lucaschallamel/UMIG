@@ -24,6 +24,15 @@ For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD
 
 The UMIG application is built as a **pure ScriptRunner application**, not a formal, compiled Confluence plugin. This approach keeps the project lean, simplifies deployment, and relies entirely on ScriptRunner's native features. The two core architectural patterns are auto-discovered REST endpoints and resource-based database connections.
 
+## UI/UX Documentation & Roadmap
+
+All user interface and user experience specifications are maintained in the `/docs/ui-ux/` directory. This includes:
+- A persistent `template.md` for all new UI/UX specs
+- Detailed specifications for each major UI component (e.g., `step-view.md`)
+- A living `ROADMAP.md` that outlines the phased rollout of UX/UI features, including the current strategy to prioritize end-user UI and defer the admin UI in favor of API/Postman-based workflows for the MVP
+
+See `/docs/ui-ux/ROADMAP.md` for the latest plan and links to all detailed specs.
+
 ### Auto-Discovered REST Endpoints
 
 The entire API is composed of Groovy scripts located in the `src/` directory. ScriptRunner is configured to automatically scan specific packages within this directory (`com.umig.api.v2` and `com.umig.api.v2.web`) for files that follow the `CustomEndpointDelegate` pattern.

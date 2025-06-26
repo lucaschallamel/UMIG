@@ -28,6 +28,11 @@ The team is currently focused on:
    - Protecting reference tables during database resets
    - Ensuring reliable database connectivity for ScriptRunner
 
+5. **Developing UI/UX Components**:
+   - Implementing the STEP View component as defined in the UI/UX specification
+   - Following the phased UI/UX roadmap with focus on end-user components
+   - Deferring admin UI in favour of API/Postman approach for MVP
+   - Ensuring accessibility and responsive design
 ## Recent Changes
 
 ### Data Generation Pipeline
@@ -62,6 +67,13 @@ The team is currently focused on:
 - **Reference Table Protection**: Protected reference tables during database resets.
 - **Liquibase Integration**: Completed Liquibase integration with established conventions for changesets, tags, and labels.
 
+### UI/UX Documentation
+
+- **UI/UX Roadmap**: Created a comprehensive roadmap outlining the phased approach to UI/UX development.
+- **STEP View Specification**: Developed detailed specifications for the STEP View component, including data requirements, UI layout, and interaction patterns.
+- **Strategic Approach**: Established a strategic decision to prioritise end-user UI components for MVP while deferring admin interfaces to API/Postman workflows.
+- **Documentation Structure**: Created a dedicated `/docs/ui-ux/` directory with standardised templates for UI/UX specifications.
+
 ## Next Steps
 
 1. **Update .gitignore File**:
@@ -78,8 +90,14 @@ The team is currently focused on:
    - Create services for execution tracking
    - Implement notification system for status changes
 
-4. **Develop Frontend Components**:
-   - Create plan visualization components
+4. **Implement STEP View Component**:
+   - Develop the UI according to the step-view.md specification
+   - Implement interactive status updates and instruction completion
+   - Create comment functionality with rich text support
+   - Ensure proper integration with backend API endpoints
+
+5. **Develop Frontend Components**:
+   - Create plan visualisation components
    - Implement interactive status updates
    - Design user-friendly navigation
 
