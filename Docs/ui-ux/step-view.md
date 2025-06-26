@@ -77,7 +77,10 @@
 - CUTOVER users must have additional controls (e.g., reassign STEP and INSTRUCTIONS to different TEAMS or ENVIRONMENTS) with role-based permissions on these interactive elements. These changes apply only to the specific STEP instance in the present ITERATION.
 - Instructions are not editable in this view; editing is only possible via ADMIN/API at this stage.
 - No pagination or lazy loading is needed for instructions/comments (assume ≤20 instructions per STEP).
-- Future enhancements (candidate features for the UX/UI roadmap): inline editing, real-time updates, advanced filtering.
+- For now, STEP instance selection is hardcoded to the first instance of the first plan of the first iteration of the first migration. Future iterations should support context/session management (e.g., via query parameters, cookies, or Confluence session).
+- User role detection is currently scaffolded with a placeholder (assume NORMAL user). Future implementation will map Confluence user ID to the user_usr table.
+- Comments feature is deferred until the appropriate table is created and integrated.
+- Future enhancements (candidate features for the UX/UI roadmap): inline editing, real-time updates, advanced filtering, robust context/session management, and full user role mapping.
 
 ---
 

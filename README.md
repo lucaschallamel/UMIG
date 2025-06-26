@@ -60,9 +60,13 @@ src/
 This structure ensures a clean separation of concerns while enabling a simple, automated deployment process. For a detailed explanation of the architectural decision, see **[ADR-018: Pure ScriptRunner Application Structure](./docs/adr/ADR-018-Pure-ScriptRunner-Application-Structure.md)**.
 
 ### Naming Conventions
-- All tables use a three-letter suffix for clarity (e.g., `_plm`, `_sqm`, `_usr`).
-- Canonical tables use a `_master_` infix, while instance tables use `_instance_`.
-- Foreign key columns follow the format `<ref_table_pk>` (e.g., `plm_id`, `sqm_id`).
+- **Database Schema:**
+  - All tables use a three-letter suffix for clarity (e.g., `_plm`, `_sqm`, `_usr`).
+  - Canonical tables use a `_master_` infix, while instance tables use `_instance_`.
+  - Foreign key columns follow the format `<ref_table_pk>` (e.g., `plm_id`, `sqm_id`).
+- **Groovy Scripts (ScriptRunner):** To avoid JVM class name collisions, all Groovy scripts must be named with a suffix indicating their type:
+  - **Macros:** `*Macro.groovy` (e.g., `stepViewMacro.groovy`)
+  - **API Endpoints:** `*Api.groovy` (e.g., `stepViewApi.groovy`)
 
 ## Data Generation Utilities
 The project includes a modular system for generating realistic fake data for development and testing. The main script `umig_generate_fake_data.js` orchestrates the following generators:
@@ -75,6 +79,15 @@ The project includes a modular system for generating realistic fake data for dev
 
 See `/docs/dataModel/README.md` for full schema details and rationale.
 See `/local-dev-setup/data-utils/README.md` for details on the data utilities.
+
+## Testing
+
+The project maintains two distinct types of tests:
+
+*   **Unit Tests**: Located in `src/test/`, these are fast, in-memory tests that validate individual components in isolation. They use mocking to simulate dependencies.
+*   **Integration Tests**: Located in the root `/tests` directory, these are designed to run against the live development environment to validate the integration between different components (e.g., API and database).
+
+For detailed instructions on how to run the integration test suite, please see the **[Testing Guide](./tests/README.md)**.
 
 ## Local Development Environment
 
