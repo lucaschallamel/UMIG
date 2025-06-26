@@ -1,10 +1,21 @@
 # Tech Context
 
+## SPA + REST Admin UI Pattern (ADR020)
+
+A dynamic SPA (Single Page Application) + REST pattern is now the standard for all administrative entity management interfaces, as formalised in ADR020. This pattern requires:
+- ScriptRunner REST endpoints for backend CRUD operations, using the repository pattern and robust type handling.
+- Dedicated JavaScript SPAs for each entity, dynamically rendering list, detail, and edit views.
+- Dynamic form generation from entity fields, with strict type safety (booleans, numbers, etc.).
+- Minimal Confluence macros that only load the relevant JS asset and container.
+- Comprehensive documentation and enforcement in all relevant README.md files and ADRs.
+
+Integration testing is now a critical safeguard against schema drift, validating backend and database integration against the live environment.
+
 ## Technologies Used
 
 - **Host Platform:** Atlassian Confluence (version 8.5.6)
-- **Frontend:** Planned custom Confluence Macro (HTML, CSS, Vanilla JavaScript ES6+)
-- **Backend:** Atlassian ScriptRunner (Groovy) exposing REST APIs, following the "Pure ScriptRunner Application" pattern
+- **Frontend:** Custom Confluence Macro (HTML, CSS, Vanilla JavaScript ES6+), SPA + REST pattern for admin UIs
+- **Backend:** Atlassian ScriptRunner (Groovy) exposing REST APIs, following the "Pure ScriptRunner Application" and SPA + REST patterns
 - **Database:** PostgreSQL, managed via Liquibase for automated migrations
 - **Containerisation:** Podman and Podman Compose
 - **Configuration Management:** Ansible
@@ -47,8 +58,8 @@
 - All major technical decisions are documented in ADRs and referenced in the memory bank.
 - Node.js utilities must be compatible with Node.js v18+ for long-term support.
 - All database access from ScriptRunner must use the type-safe `withSql` pattern.
-- All REST endpoints must follow the "Pure ScriptRunner Application" pattern.
-- All database tables must follow the standardized naming conventions.
+- All REST endpoints must follow the "Pure ScriptRunner Application" and SPA + REST patterns.
+- All database tables must follow the standardised naming conventions.
 
 ## Dependencies
 
@@ -93,7 +104,7 @@
   - `05_generate_migrations.js` - Creates migration records with realistic dates
   - `06_generate_canonical_plans.js` - Builds master plan templates with fixed sequence structure
   - `07_generate_instance_data.js` - Creates plan instances (ACTIVE and DRAFT) for each iteration
-- The main `umig_generate_fake_data.js` script orchestrates these modular components with a centralized configuration object.
+- The main `umig_generate_fake_data.js` script orchestrates these modular components with a centralised configuration object.
 - Only the **canonical implementation plan structure** is supported; all legacy generators and models have been removed.
 - **Reference tables** (`status_sts`, `step_type_stt`) and Liquibase migration tracking tables are protected during database resets.
 - **Step types** are prepopulated with codes, names, descriptions, and colour codes using idempotent insert logic.
@@ -103,9 +114,9 @@
 - All **Node.js utilities** enforce strict environment safety, refusing to run in production environments and requiring confirmation for destructive operations.
 - **Integration tests** verify data integrity rules, including team membership guarantees and role-based assignments.
 - **NPM scripts** are configured for running tests and other common tasks.
-- **Git** is configured to ignore Node.js artifacts, including node_modules, coverage reports, and npm debug logs.
+- **Git** is configured to ignore Node.js artefacts, including node_modules, coverage reports, and npm debug logs.
 - **Database access** from ScriptRunner follows the type-safe `withSql` pattern with explicit type casting.
-- **REST endpoints** follow the "Pure ScriptRunner Application" pattern with proper error handling.
+- **REST endpoints** follow the "Pure ScriptRunner Application" and SPA + REST patterns with proper error handling.
 - **OpenAPI specification** is maintained at version 3.0.0 for compatibility.
 - **UI components** follow a consistent pattern:
   - ScriptRunner macro loads JavaScript asset

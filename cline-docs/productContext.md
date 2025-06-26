@@ -23,3 +23,7 @@ It should work as follows:
 *   When a team completes their task and updates the status in the tool, the system logs the event, updates the dashboard for everyone, and automatically makes the next dependent tasks available.
 *   The system will track planned vs. actual durations and flag any delays, allowing for proactive management of the timeline.
 *   The system will provide a planning view to generate a shareable, time-based HTML macro-plan for leadership and stakeholder communication.
+
+## 3. Recent Improvements Supporting the Vision
+
+The adoption of the SPA + REST pattern (ADR020) for all administrative interfaces, together with a robust integration testing framework, has significantly improved the reliability, maintainability, and user experience of the product. Admin UIs are now dynamic, scalable, and consistent, supporting rapid onboarding and confident operation. Integration testing ensures that backend and database changes are always aligned, reducing operational risk and supporting the product's goal of being a trustworthy command and control centre.
