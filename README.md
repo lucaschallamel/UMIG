@@ -24,49 +24,25 @@ For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD
 
 The UMIG application is built as a **pure ScriptRunner application**, not a formal, compiled Confluence plugin. This approach keeps the project lean, simplifies deployment, and relies entirely on ScriptRunner's native features. The two core architectural patterns are auto-discovered REST endpoints and resource-based database connections.
 
+## Admin UI Pattern: SPA + REST (ARD020)
+
+**All administrative entity management interfaces (user, team, plan, etc.) now follow a dynamic SPA (Single Page Application) pattern, as formalized in [ADR020](./docs/adr/ARD020-spa-rest-admin-entity-management.md):**
+
+- **Backend:** ScriptRunner REST endpoints (Groovy) expose CRUD operations for each entity, using the repository pattern and robust type handling.
+- **Frontend:** Each entity has a dedicated JS SPA that dynamically renders list, detail, and edit views in a single container—no page reloads or macro HTML fetching.
+- **Dynamic forms/tables:** Both read-only and edit forms are generated from the entity’s fields, so new fields are automatically supported.
+- **Edit forms:** All fields except the primary key are editable, with input types inferred by field name and value type.
+- **Type safety:** Payloads are constructed to match backend expectations (booleans as booleans, numbers as numbers).
+- **UX:** Atlassian AUI styles, seamless navigation, and clear messaging.
+
+**This pattern is now the standard for all new admin UIs.** See `src/web/js/user-list.js` and `src/com/umig/api/v2/UserApi.groovy` for canonical examples.
+
 ## UI/UX Documentation & Roadmap
 
 All user interface and user experience specifications are maintained in the `/docs/ui-ux/` directory. This includes:
 - A persistent `template.md` for all new UI/UX specs
 - Detailed specifications for each major UI component (e.g., `step-view.md`)
-- A living `ROADMAP.md` that outlines the phased rollout of UX/UI features, including the current strategy to prioritize end-user UI and defer the admin UI in favor of API/Postman-based workflows for the MVP
-
-See `/docs/ui-ux/ROADMAP.md` for the latest plan and links to all detailed specs.
-
-### Auto-Discovered REST Endpoints
-
-The entire API is composed of Groovy scripts located in the `src/` directory. ScriptRunner is configured to automatically scan specific packages within this directory (`com.umig.api.v2` and `com.umig.api.v2.web`) for files that follow the `CustomEndpointDelegate` pattern.
-
-When the Confluence container starts, ScriptRunner discovers these scripts and dynamically exposes them as REST endpoints under the `/rest/scriptrunner/latest/custom/` path. This means there is no manual registration or compilation step required to deploy or update an endpoint; simply updating the Groovy file is sufficient.
-
-### Resource-Based Database Connection
-
-Database connectivity is managed entirely within ScriptRunner. Instead of defining a JNDI resource at the container level (e.g., in `server.xml`), we use a **ScriptRunner Database Connection Resource**.
-
-- **Configuration**: A connection pool named `umig_db_pool` is configured directly in the ScriptRunner **Resources** tab in the Confluence administration UI.
-- **Access**: The application code accesses this connection pool by its name via the `DatabaseUtil.withSql('umig_db_pool', ...)` method.
-
-This approach keeps the Confluence server configuration completely clean and standard. All application-specific configuration (database connections, script paths) is managed within ScriptRunner, making the setup more portable and easier to manage.
-
-The source code is organized as follows:
-
-```
-src/
-├── com/umig/         # Packaged backend code (API, Repository)
-├── macros/           # ScriptRunner Script Macros for UI rendering
-└── web/              # CSS and JS assets for the frontend
-```
-
-This structure ensures a clean separation of concerns while enabling a simple, automated deployment process. For a detailed explanation of the architectural decision, see **[ADR-018: Pure ScriptRunner Application Structure](./docs/adr/ADR-018-Pure-ScriptRunner-Application-Structure.md)**.
-
-### Naming Conventions
-- **Database Schema:**
-  - All tables use a three-letter suffix for clarity (e.g., `_plm`, `_sqm`, `_usr`).
-  - Canonical tables use a `_master_` infix, while instance tables use `_instance_`.
-  - Foreign key columns follow the format `<ref_table_pk>` (e.g., `plm_id`, `sqm_id`).
-- **Groovy Scripts (ScriptRunner):** To avoid JVM class name collisions, all Groovy scripts must be named with a suffix indicating their type:
-  - **Macros:** `*Macro.groovy` (e.g., `stepViewMacro.groovy`)
-  - **API Endpoints:** `*Api.groovy` (e.g., `stepViewApi.groovy`)
+- A living `ROADMAP.md` that outlines the phased rollout of UX/UI features, including the current strategy to prioritize admin UI SPA patterns for all entity management.
 
 ## Data Generation Utilities
 The project includes a modular system for generating realistic fake data for development and testing. The main script `umig_generate_fake_data.js` orchestrates the following generators:
