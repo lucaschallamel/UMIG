@@ -96,6 +96,18 @@ flowchart TD
    - Services and repositories are injected into API endpoints.
    - Promotes testability and loose coupling.
 
+6. **UI Component Pattern**:
+   - ScriptRunner macros load JavaScript assets.
+   - JavaScript handles UI rendering and API calls.
+   - Backend API endpoints process requests and return JSON.
+   - Clear separation between presentation and data access.
+
+7. **Integration Testing Pattern**:
+   - Tests connect to the live database to validate real integration.
+   - Credentials are loaded securely from environment variables.
+   - Tests are executed via standardised shell scripts.
+   - Validates that repository queries match the actual database schema.
+
 ## Component Relationships
 
 The system is composed of several key components with well-defined relationships:
@@ -246,3 +258,43 @@ classDiagram
        REPO->>REPO: Map to Entities
        REPO-->>API: Return Entities
        REPO->>POOL: Release Connection
+   ```
+
+5. **UI Component Pattern**:
+   ```mermaid
+   sequenceDiagram
+       participant PAGE as Confluence Page
+       participant MACRO as ScriptRunner Macro
+       participant JS as JavaScript Asset
+       participant API as REST API
+       participant REPO as Repository
+       participant DB as Database
+       
+       PAGE->>MACRO: Render Macro
+       MACRO->>PAGE: Load JavaScript
+       PAGE->>JS: Execute JavaScript
+       JS->>API: Fetch Data
+       API->>REPO: Query Repository
+       REPO->>DB: Execute SQL
+       DB-->>REPO: Return Data
+       REPO-->>API: Return Entities
+       API-->>JS: Return JSON
+       JS->>PAGE: Render UI
+   ```
+
+6. **Integration Testing Pattern**:
+   ```mermaid
+   sequenceDiagram
+       participant SCRIPT as Test Script
+       participant ENV as Environment File
+       participant DB as Database
+       participant ASSERT as Assertions
+       
+       SCRIPT->>ENV: Load Credentials
+       ENV-->>SCRIPT: Database Connection Info
+       SCRIPT->>DB: Connect to Live Database
+       SCRIPT->>DB: Execute Test Queries
+       DB-->>SCRIPT: Return Real Data
+       SCRIPT->>ASSERT: Validate Results
+       ASSERT-->>SCRIPT: Test Pass/Fail
+   ```

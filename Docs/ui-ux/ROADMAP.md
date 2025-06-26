@@ -28,6 +28,9 @@ For the MVP, we are prioritizing the delivery of high-impact end-user UI compone
 - Advanced filtering
 - Accessibility improvements
 - Full-featured admin UI (to replace API/Postman approach)
+- Robust context/session management for STEP/iteration selection
+- User role mapping (Confluence user to user_usr)
+- Comments system for STEP instances
 
 ## Revision History
 - 2025-06-26: Roadmap created

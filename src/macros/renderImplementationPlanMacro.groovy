@@ -1,3 +1,4 @@
+// NOTE: This import only resolves in the Confluence+ScriptRunner runtime. Safe to ignore IDE warnings locally.
 import com.onresolve.scriptrunner.canned.macros.SimpleMacro
 import groovy.xml.MarkupBuilder
 

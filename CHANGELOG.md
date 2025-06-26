@@ -1,6 +1,19 @@
 ### [Unreleased]
 #### Added
 - **2025-06-26:**
+    - **Established Formal Integration Testing Framework:**
+        - Created a new `/tests` directory to house non-unit tests.
+        - Implemented a standalone integration test for `stepViewApi` to validate against a live database.
+        - Added a shell script (`run-integration-tests.sh`) to standardize test execution.
+        - Secured database credentials by loading them from `.env` file, removing them from source code.
+        - Documented the entire process in `tests/README.md`.
+    - **Fixed `stepViewApi` Backend:**
+        - Corrected all repository queries (`StepRepository`, `InstructionRepository`) to align with the actual production database schema, resolving persistent 500 errors.
+        - Created `StepTypeRepository` to handle step type lookups correctly.
+
+
+#### Added
+- **2025-06-26:**
     - **UI/UX Documentation Overhaul:**
         - Created `/docs/ui-ux/` directory to centralize all UI/UX specifications.
         - Added a persistent `template.md` for consistent UI/UX spec authoring.

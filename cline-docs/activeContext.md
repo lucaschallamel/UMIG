@@ -33,6 +33,13 @@ The team is currently focused on:
    - Following the phased UI/UX roadmap with focus on end-user components
    - Deferring admin UI in favour of API/Postman approach for MVP
    - Ensuring accessibility and responsive design
+
+6. **Establishing Integration Testing Framework**:
+   - Creating a formal integration testing structure separate from unit tests
+   - Implementing tests that validate against the live database
+   - Securing database credentials by loading from environment variables
+   - Standardising test execution with shell scripts
+   - Documenting the testing approach in ADRs and README files
 ## Recent Changes
 
 ### Data Generation Pipeline
@@ -74,32 +81,49 @@ The team is currently focused on:
 - **Strategic Approach**: Established a strategic decision to prioritise end-user UI components for MVP while deferring admin interfaces to API/Postman workflows.
 - **Documentation Structure**: Created a dedicated `/docs/ui-ux/` directory with standardised templates for UI/UX specifications.
 
+### STEP View Implementation
+
+- **UI Framework Pattern**: Established a lean architectural pattern for UI components with ScriptRunner macros loading JavaScript assets.
+- **Backend API**: Implemented `stepViewApi.groovy` to fetch and process step data from the database.
+- **Frontend Controller**: Created `step-view.js` to handle the client-side rendering and interaction.
+- **Repository Layer**: Developed and fixed `StepRepository`, `InstructionRepository`, and `StepTypeRepository` to correctly query the database.
+- **Schema Alignment**: Corrected mismatches between repository queries and actual database schema.
+
+### Integration Testing Framework
+
+- **Testing Structure**: Created a new `/tests` directory with a dedicated `/tests/integration` subdirectory.
+- **Database Integration**: Implemented tests that connect to the live database to validate API functionality.
+- **Secure Credentials**: Added support for loading database credentials from `.env` file rather than hardcoding them.
+- **Standardised Execution**: Created `run-integration-tests.sh` to simplify test execution and manage the classpath.
+- **Documentation**: Documented the integration testing approach in `ADR-019` and `tests/README.md`.
+
 ## Next Steps
 
-1. **Update .gitignore File**:
-   - Add Node.js specific patterns for the data-utils directory
-   - Ensure proper exclusion of node_modules, coverage, and other NPM artifacts
+1. **Complete STEP View Frontend**:
+   - Finish the client-side JavaScript implementation for the STEP View
+   - Add interactive status updates and instruction completion functionality
+   - Implement comment functionality with rich text support
+   - Ensure proper error handling and loading states
 
-2. **Complete Documentation Updates**:
-   - Finalize ADR-015 (Canonical Implementation Plan Model)
-   - Create a dedicated database naming conventions document
-   - Update all README files to reflect recent changes
+2. **Expand Integration Test Coverage**:
+   - Add integration tests for other critical API endpoints
+   - Implement test fixtures for consistent test data
+   - Add test coverage reporting
 
 3. **Implement Backend Services**:
    - Develop services for canonical plan management
    - Create services for execution tracking
    - Implement notification system for status changes
 
-4. **Implement STEP View Component**:
-   - Develop the UI according to the step-view.md specification
-   - Implement interactive status updates and instruction completion
-   - Create comment functionality with rich text support
-   - Ensure proper integration with backend API endpoints
+4. **Develop Additional UI Components**:
+   - Create dashboard view according to the UI/UX roadmap
+   - Implement team management interface
+   - Design user-friendly navigation between components
 
-5. **Develop Frontend Components**:
-   - Create plan visualisation components
-   - Implement interactive status updates
-   - Design user-friendly navigation
+5. **Enhance Error Handling**:
+   - Implement comprehensive error handling across all API endpoints
+   - Add detailed logging for troubleshooting
+   - Create user-friendly error messages
 
 ## Active Decisions and Considerations
 
@@ -130,18 +154,31 @@ The team is currently focused on:
    - Frontend assets in `src/web/{css,js}`
    - Confluence macros in `src/macros`
    - Node.js utilities in `local-dev-setup/data-utils`
+   - Integration tests in `tests/integration`
 
 2. **Database Access**:
    - Use ScriptRunner's Database Resource Pool feature
    - Use the type-safe `withSql` pattern
    - Standardize on `umig_db_pool` as the resource pool name
 
-3. **Data Generation**:
+3. **UI Component Pattern**:
+   - ScriptRunner macro loads JavaScript asset
+   - JavaScript handles UI rendering and API calls
+   - Backend API endpoint processes requests and returns JSON
+   - Repository layer abstracts database access
+
+4. **Testing Strategy**:
+   - Unit tests for isolated component testing
+   - Integration tests for validating against live database
+   - Secure credential management via environment variables
+   - Standardised test execution via shell scripts
+
+5. **Data Generation**:
    - Use modular, single-responsibility generator files
    - Protect reference tables during database resets
    - Use deterministic generation for predictable test results
 
-4. **Documentation**:
+6. **Documentation**:
    - Use Mermaid for diagrams
    - Document all major technical decisions in ADRs
    - Keep memory bank up to date with latest developments
@@ -167,3 +204,9 @@ The team is currently focused on:
    - Podman and Ansible provide a reliable containerization solution
    - Liquibase simplifies database schema management
    - Shell scripts streamline environment lifecycle management
+
+5. **Integration Testing Importance**:
+   - Unit tests with mocks can hide integration issues
+   - "Schema drift" between code and database is a critical risk
+   - Integration tests against live database are essential for reliability
+   - Secure credential management is crucial for test automation

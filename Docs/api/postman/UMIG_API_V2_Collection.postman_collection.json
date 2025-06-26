@@ -1,6 +1,84 @@
 {
     "item": [
         {
+            "name": "STEP View",
+            "description": "Operations related to the STEP View component.",
+            "item": [
+                {
+                    "name": "Get STEP View by ID",
+                    "id": "f5d8a7f0-1b2c-4d3e-8f9a-0b1c2d3e4f56",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/stepViewApi_v2?stepid=BGO-4",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "stepViewApi_v2"
+                            ],
+                            "query": [
+                                {
+                                    "key": "stepid",
+                                    "value": "BGO-4",
+                                    "description": "The unique identifier for the STEP (e.g., BGO-4)."
+                                }
+                            ]
+                        },
+                        "description": "Retrieves a JSON object containing all data for a specific STEP view. The `stepid` is passed as a URL query parameter."
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test(\"Status code is 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response is valid JSON\", function () {",
+                                    "    pm.response.to.be.json;",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Response has correct top-level structure\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    pm.expect(jsonData).to.have.property('step');",
+                                    "    pm.expect(jsonData).to.have.property('instructions');",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Step object has correct properties\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.step).to.be.an('object');",
+                                    "    pm.expect(jsonData.step).to.have.property('id');",
+                                    "    pm.expect(jsonData.step).to.have.property('title');",
+                                    "    pm.expect(jsonData.step).to.have.property('phase');",
+                                    "    pm.expect(jsonData.step).to.have.property('owningTeam');",
+                                    "    pm.expect(jsonData.step).to.have.property('impactedTeams').and.is.an('array');",
+                                    "    pm.expect(jsonData.step).to.have.property('audit').and.is.an('object');",
+                                    "});",
+                                    "",
+                                    "pm.test(\"Instructions is an array\", function () {",
+                                    "    const jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.instructions).to.be.an('array');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
             "name": "Users",
             "description": "Operations about users",
             "item": [

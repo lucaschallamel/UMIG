@@ -12,9 +12,9 @@ import javax.ws.rs.core.Response
 // This script serves static assets (CSS, JS) from the 'web' directory.
 
 // --- Configuration ---
-def scriptFile = new File(getClass().protectionDomain.codeSource.location.path)
-// The script is at .../scripts/com/umig/api/v2/web/Web.groovy, assets are at .../scripts/web/
-def webRootDir = scriptFile.parentFile.parentFile.parentFile.parentFile.parentFile.toPath().resolve('web').toFile()
+// The web root is defined as an absolute path for reliability inside the Confluence runtime.
+// This avoids fragile relative path calculations from the script's own location.
+def webRootDir = new File("/var/atlassian/application-data/confluence/scripts/web")
 
 def mimeTypes = [
     'css' : 'text/css',
