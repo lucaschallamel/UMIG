@@ -61,7 +61,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function fetchAndRenderUserList() {
-        fetch('/rest/scriptrunner/latest/custom/users')
+        // RESTful: fetch all users
+        fetch('/rest/scriptrunner/latest/custom/users', {
+            method: 'GET'
+        })
             .then(response => {
                 if (!response.ok) throw new Error(`Network response was not ok. Status: ${response.status}`);
                 return response.json();
@@ -76,7 +79,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderUserDetail(userId) {
         currentView = 'detail';
         rootElement.innerHTML = '<div class="aui-message">Loading User Details...</div>';
-        fetch(`/rest/scriptrunner/latest/custom/users/${userId}`)
+        // RESTful: fetch user details
+        fetch(`/rest/scriptrunner/latest/custom/users/${userId}`, {
+            method: 'GET'
+        })
             .then(res => {
                 if (!res.ok) {
                     throw new Error(`Server error: ${res.status}`);
@@ -164,8 +170,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
 
-
     function saveUser(userId, payload) {
+        // RESTful: update user
         fetch(`/rest/scriptrunner/latest/custom/users/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
