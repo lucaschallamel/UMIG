@@ -20,8 +20,6 @@ coverage/
 # Java / Groovy (common for build artifacts, though ScriptRunner is server-side)
 *.class
 *.jar
-!groovyrunner-*.jar
-!postgresql-*.jar
 *.war
 *.ear
 target/
