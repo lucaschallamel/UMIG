@@ -35,7 +35,7 @@
 - ✅ **UI/UX Documentation**: Comprehensive UI/UX roadmap and detailed STEP View specification.
 - ✅ **UI Framework Pattern**: Lean architectural pattern for UI components.
 - ✅ **User View Components**: Implemented user view and user list components as proof of concept.
-- ✅ **STEP View Backend**: Implemented backend API and repository layer for the STEP View component.
+- ✅ **STEP View Macro & SPA MVP**: STEP View macro and SPA for rendering migration/release steps in Confluence completed and validated (27 June 2025). This serves as a reference implementation for future migration-related UIs.
 - ✅ **Dynamic Forms**: Admin SPAs now render forms dynamically from entity fields, with robust type handling.
 
 ## What's Left to Build
@@ -53,7 +53,6 @@
 ### Frontend Implementation
 
 - 🔲 **Broaden SPA + REST Pattern**: Scaffold admin UIs for all entities (teams, plans, etc.) using the SPA + REST pattern.
-- 🔲 **STEP View Frontend**: Complete the STEP View frontend, including interactive status updates and comments.
 - 🔲 **Dashboard Implementation**: Implement dashboard view as per UI/UX roadmap.
 - 🔲 **Team Management Implementation**: Implement team management SPA.
 - 🔲 **User-Friendly Navigation**: Implement user-friendly navigation.
@@ -95,9 +94,8 @@ The project is in the **Development** phase, with a focus on:
    - ✅ Integration testing framework established
    - 🔲 Expand test coverage to all endpoints and entities
 
-3. **Completing STEP View Frontend**:
-   - 🔲 Finalise client-side JavaScript for STEP View
-   - 🔲 Add interactive features and error handling
+3. **Broaden SPA + REST Pattern Adoption**:
+   - 🔲 Scaffold admin UIs for all entities using the SPA + REST pattern, using STEP View and user admin SPAs as templates
 
 4. **Ongoing Documentation and Pattern Enforcement**:
    - ✅ All relevant documentation updated
