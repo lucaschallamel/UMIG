@@ -20,6 +20,10 @@ You can use a variety of tools to view the `openapi.yaml` file in a more user-fr
 
 You can also use this file with OpenAPI Generator to produce client/server code or additional HTML documentation.
 
+## STEP View Macro & SPA
+
+- The `/stepViewApi` endpoint powers the STEP View macro and SPA, returning structured data for rendering migration/release steps in Confluence.
+
 ## API Testing with Postman
 
 A Postman collection is available for testing the API endpoints. This will be updated to reflect the V2 API.

@@ -26,6 +26,7 @@ This step is critical to avoid "tunnel vision". You must perform a deep analysis
 
 The goal is to write a detailed, insightful story, not a shallow summary. Prioritise depth and clarity over brevity.
 
+*   **Copy and Fill the Template:** For every new devJournal entry, always copy and fill in the persistent template at `docs/devJournal/devJournalEntryTemplate.md`. This ensures consistency, quality, and traceability across all devJournal entries.
 *   **Structure the Narrative:** The "How" section of the journal should follow a clear story arc:
     1.  **The Initial Problem:** Clearly describe the bug, error, or task at the start of the session.
     2.  **The Investigation:** Detail the debugging process. What did we look at first? What were our initial hypotheses? What tools did we use to investigate?

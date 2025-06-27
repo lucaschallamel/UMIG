@@ -28,8 +28,9 @@ A critical integration crisis during STEP View development led to the establishm
 
 ## Recent Changes
 
-- **SPA + REST Pattern Formalised**: ADR020 created, establishing the SPA + REST pattern as the standard for all admin UIs.
-- **User Admin SPA Implemented**: Dynamic user management SPA (`user-list.js`, `UserApi.groovy`) now serves as the reference implementation.
+- **STEP View Macro & SPA MVP Delivered**: The STEP View macro and SPA for rendering migration/release steps in Confluence have been completed and validated as of 27 June 2025. This implementation harmonises frontend and backend payloads, provides robust error handling, and serves as a reference for future migration-related UIs.
+- **SPA + REST Pattern Formalised**: ADR020 (noted as ARD020) created, establishing the SPA + REST pattern as the standard for all admin UIs.
+- **User Admin SPA Implemented**: Dynamic user management SPA (`user-list.js`, `UserApi.groovy`) now serves as a reference implementation.
 - **Type Handling and Dynamic Forms**: Frontend forms now detect and handle booleans, numbers, and emails correctly, with payloads constructed for backend compatibility.
 - **Integration Testing Framework Established**: `/tests` directory and `run-integration-tests.sh` created; integration tests now validate against the live database.
 - **Repository and API Refactoring**: All backend endpoints and repositories updated for type safety and defensive coding.
@@ -37,15 +38,19 @@ A critical integration crisis during STEP View development led to the establishm
 
 ## Next Steps
 
-1. **Broaden SPA + REST Pattern Adoption**:
-   - Apply the pattern to additional entities (teams, plans, etc.).
-   - Scaffold new admin UIs using the documented approach.
+1. **Immediate Actions**:
+   - Push the STEP View feature branch and prepare a pull request for review.
+   - Begin applying the SPA + REST pattern to other migration entities (e.g., teams, plans), using the STEP View and user admin SPAs as templates.
+   - Gather feedback from stakeholders and end-users to guide further improvements.
 
-2. **Enhance Integration Testing**:
+2. **Broaden SPA + REST Pattern Adoption**:
+   - Scaffold new admin UIs for all entities using the documented approach.
+
+3. **Enhance Integration Testing**:
    - Expand test coverage to all endpoints and entities.
    - Monitor and refine the framework as new features are added.
 
-3. **Promote Team Adoption**:
+4. **Promote Team Adoption**:
    - Reference ADR020 and updated documentation in all onboarding and code review processes.
    - Encourage feedback and further refinements as the pattern is exercised.
 

@@ -11,19 +11,14 @@
      * @param {object} step - The step data object from the API.
      * @returns {string} HTML string for the summary table.
      */
+    // Renders the summary table using the actual API response fields
     function renderSummaryTable(step) {
-        // Use a map to control order and formatting of display labels
         const summaryFields = {
-            'Title': step.title,
-            'Phase': step.phase,
-            'Owning Team': step.owningTeam,
-            'Impacted Teams': step.impactedTeams.join(', '),
-            'Environment': step.environment,
-            'Iteration Scope': step.iterationScope.join(', '),
-            'Status': step.status,
-            'Audit': `Start: ${step.audit.startTime || '-'} | End: ${step.audit.endTime || '-'} | By: ${step.audit.updatedBy || '-'} `,
-            'Duration': step.duration,
-            'Header': step.header
+            'ID': step.ID,
+            'Name': step.Name,
+            'Description': step.Description,
+            'Type': step.Type
+            // Add additional fields here if the API returns more
         };
 
         let tableRows = '';
@@ -39,20 +34,18 @@
      * @param {Array<object>} instructions - The list of instruction objects.
      * @returns {string} HTML string for the instructions table.
      */
+    // Renders the instructions table using the actual API response fields
     function renderInstructionsTable(instructions) {
-        const headers = ['Order', 'Body', 'Owning Team', 'Status', 'Completed At', 'Completed By', 'Control Code'];
+        const headers = ['Order', 'Description'];
         let headerHtml = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
 
         let bodyHtml = '<tbody>';
         if (instructions && instructions.length > 0) {
             instructions.forEach(instr => {
-                bodyHtml += '<tr>';
-                bodyHtml += `<td>${instr.order}</td>`;
-                bodyHtml += `<td>${instr.body || ''}</td>`;
-                bodyHtml += `<td>${instr.owningTeam || ''}</td>`;
-                bodyHtml += `<td>${instr.status || ''}</td>`;
-                bodyHtml += `<td>${instr.completedAt || ''}</td>`;
-                bodyHtml += `<td>${instr.completedBy || ''}</td>`;
+                bodyHtml += `<tr>
+                    <td>${instr.Order || ''}</td>
+                    <td>${instr.Description || ''}</td>
+                </tr>`;
                 bodyHtml += `<td>${instr.controlCode || ''}</td>`;
                 bodyHtml += '</tr>';
             });
@@ -79,7 +72,8 @@
         return;
     }
 
-    fetch('/rest/scriptrunner/latest/custom/stepViewApi_v2?stepid=' + encodeURIComponent(stepId))
+    // RESTful: fetch STEP view data from new API endpoint
+fetch('/rest/scriptrunner/latest/custom/stepViewApi?stepid=' + encodeURIComponent(stepId))
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -87,11 +81,12 @@
             return response.json();
         })
         .then(data => {
-            const summaryTable = renderSummaryTable(data.step);
+            // Use stepSummary property from API response
+const summaryTable = renderSummaryTable(data.stepSummary);
             const instructionsTable = renderInstructionsTable(data.instructions);
 
             container.innerHTML = `
-                <h2>STEP: ${data.step.id}</h2>
+                <h2>STEP: ${data.stepSummary.ID}</h2>
                 <div class="umig-step-summary">${summaryTable}</div>
                 <h3>Instructions</h3>
                 ${instructionsTable}

@@ -9,7 +9,7 @@ class InstructionRepository {
     /**
      * Fetches all master instructions for a STEP, ordered by istm_order.
      */
-    def findInstructionsMaster(Long stmId) {
+    def findInstructionsMaster(UUID stmId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows('''
                 SELECT inm.inm_order, inm.inm_body
@@ -23,7 +23,7 @@ class InstructionRepository {
     /**
      * Fetches all instruction instances for a given STEP instance.
      */
-    def findInstructionInstances(Long stiId) {
+    def findInstructionInstances(UUID stiId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows('''
                 SELECT isti.isti_id, isti.istm_id, isti.sti_id, isti.isti_status, isti.isti_completed_at, isti.isti_completed_by

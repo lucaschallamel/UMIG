@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response
 
 final UserRepository userRepository = new UserRepository()
 
+// Utility to extract userId from additional path
 private Integer getUserIdFromPath(HttpServletRequest request) {
     def extraPath = getAdditionalPath(request)
     if (extraPath) {
@@ -29,10 +30,20 @@ private Integer getUserIdFromPath(HttpServletRequest request) {
     return null
 }
 
+// Handles GET /users (list) and GET /users/{id} (detail)
 users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    final Integer userId = getUserIdFromPath(request)
-
+    def extraPath = getAdditionalPath(request)
+    Integer userId = null
+    if (extraPath) {
+        def pathParts = extraPath.split('/').findAll { it }
+        if (pathParts.size() == 1) {
+            try {
+                userId = pathParts[0].toInteger()
+            } catch (NumberFormatException ignored) {}
+        }
+    }
     if (userId != null) {
+        // Detail: /users/{id}
         def user = userRepository.findUserById(userId)
         if (user) {
             return Response.ok(new JsonBuilder(user).toString()).build()
@@ -40,11 +51,13 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
         }
     } else {
+        // List: /users or /users/
         def users = userRepository.findAllUsers()
         return Response.ok(new JsonBuilder(users).toString()).build()
     }
 }
 
+// Handles POST /users (create)
 users(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         Map userData = new JsonSlurper().parseText(body) as Map
@@ -59,12 +72,12 @@ users(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     }
 }
 
+// Handles PUT /users/{id} (update)
 users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    final Integer userId = getUserIdFromPath(request)
+    Integer userId = getUserIdFromPath(request)
     if (userId == null) {
         return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "User ID is required for PUT method."]).toString()).build()
     }
-
     try {
         Map userData = new JsonSlurper().parseText(body) as Map
         def updatedUser = userRepository.updateUser(userId, userData)
@@ -78,15 +91,7 @@ users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     }
 }
 
-users(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    final Integer userId = getUserIdFromPath(request)
-    if (userId == null) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "User ID is required for DELETE method."]).toString()).build()
-    }
 
-    if (userRepository.deleteUser(userId)) {
-        return Response.noContent().build()
-    } else {
-        return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} not found for deletion."]).toString()).build()
-    }
-}
+
+
+

@@ -18,7 +18,12 @@ The model follows a clear hierarchy:
 3.  **Quality Gates**: `Controls` are defined at the `Phase` level.
 4.  **Instance Layer**: Mirrors the canonical hierarchy, with `Control Instances` linked directly to the `Instruction Instance` they validate.
 
-For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD), please see the **[UMIG Data Model Documentation](./docs/dataModel/README.md)**.
+For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD), please see the## Project History and Documentation
+
+- Sprint reviews and retrospectives are documented in `/docs/devJournal/` using the `{yyyymmdd}-sprint-review.md` convention (see persistent template).
+- The STEP View macro & SPA MVP is now delivered as a reference implementation for migration/release steps (see `/src/web/step-view.js` and `/src/macros/stepViewMacro.groovy`).
+- All major milestones, ADRs, and changelogs are kept up to date and in sync.
+](./docs/dataModel/README.md)**.
 
 ## Application Architecture & Structure
 
@@ -27,6 +32,9 @@ The UMIG application is built as a **pure ScriptRunner application**, not a form
 ## Admin UI Pattern: SPA + REST (ARD020)
 
 **All administrative entity management interfaces (user, team, plan, etc.) now follow a dynamic SPA (Single Page Application) pattern, as formalized in [ADR020](./docs/adr/ARD020-spa-rest-admin-entity-management.md):**
+
+- **STEP View Macro & SPA:**
+  - The project now includes a macro and SPA for displaying migration/release steps in Confluence. This feature uses ScriptRunner REST to fetch and render step data, and is a reference implementation for future migration-related UIs.
 
 - **Backend:** ScriptRunner REST endpoints (Groovy) expose CRUD operations for each entity, using the repository pattern and robust type handling.
 - **Frontend:** Each entity has a dedicated JS SPA that dynamically renders list, detail, and edit views in a single container—no page reloads or macro HTML fetching.

@@ -36,6 +36,39 @@ Our Groovy scripts require a PostgreSQL JDBC driver to connect to the database. 
 -   The first time a script requiring the driver is run, Grape will automatically download it and cache it locally (typically in `~/.groovy/grapes/`).
 -   The `run-integration-tests.sh` script points directly to this cached driver. If the path changes or the driver is not found, you may need to update the `JDBC_DRIVER_PATH` variable in the script.
 
+### Troubleshooting: Ensuring the JDBC Driver is Downloaded
+
+If you see an error like:
+
+```
+❌ Error: PostgreSQL JDBC driver not found at ~/.groovy/grapes/org.postgresql/postgresql/jars/postgresql-42.2.20.jar
+```
+
+You need to trigger Grape to download the JDBC driver manually. Run this script from the `tests/` directory:
+
+1. Create a file called `grab-postgres-jdbc.groovy` with the following contents:
+
+    ```groovy
+    @Grab('org.postgresql:postgresql:42.2.20')
+    import org.postgresql.Driver
+
+    println "✅  PostgreSQL JDBC driver downloaded via Grape."
+    ```
+
+2. Run the script:
+
+    ```bash
+    groovy grab-postgres-jdbc.groovy
+    ```
+
+This will download the driver to the correct location. You should see:
+
+```
+✅  PostgreSQL JDBC driver downloaded via Grape.
+```
+
+You can now re-run the integration tests.
+
 ## Adding a New Integration Test
 
 1.  Create your new test script file in the `tests/integration/` directory.

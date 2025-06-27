@@ -22,7 +22,7 @@ class StepRepository {
     /**
      * Fetches all impacted team IDs for a STEP (from join table).
      */
-    def findImpactedTeamIds(Long stmId) {
+    def findImpactedTeamIds(UUID stmId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows('''
                 SELECT tms_id
