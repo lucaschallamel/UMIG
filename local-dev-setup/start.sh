@@ -9,6 +9,7 @@ cd "$(dirname "$0")"
 if [ -f .env ]; then
   # Use a robust method to load environment variables from the .env file.
   set -o allexport
+  # shellcheck disable=SC1091
   source .env
   set +o allexport
 fi
