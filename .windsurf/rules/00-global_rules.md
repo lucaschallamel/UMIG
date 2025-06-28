@@ -8,84 +8,6 @@ This document contains a consolidated summary of the key rules for this project,
 
 ---
 
-## Reference Codes & Trigrams Index
-
-Below are all reference codes and trigrams used throughout the UMIG rulebook for precise, unambiguous governance and review:
-
-### Core Coding Principles & Workflow
-- [SF] Simplicity First
-- [RP] Readability Priority
-- [DM] Dependency Minimalism
-- [ISA] Industry Standards Adherence
-- [SD] Strategic Documentation
-- [TDT] Test-Driven Thinking
-- [DM-1] Review dependencies for vulnerabilities
-- [DM-2] Prefer signed/verified packages
-- [DM-3] Remove unused/outdated dependencies
-- [DM-4] Document dependency updates
-- [WF-FOCUS] Focus on code relevant to the task
-- [WF-SCOPE] Don’t touch unrelated code
-- [WF-TEST] Write thorough tests
-- [WF-ARCH] Avoid major changes to proven patterns
-- [WF-IMPACT] Consider impact on other code
-- [AC] Atomic Changes
-- [CD] Commit Discipline
-- [TR] Transparent Reasoning
-- [CWM] Context Window Management
-- [DRY] DRY Principle
-- [CA] Clean Architecture
-- [REH] Robust Error Handling
-- [CSD] Code Smell Detection
-
-### Security & Performance
-- [IV] Input Validation
-- [RM] Resource Management
-- [CMV] Constants Over Magic Values
-- [SFT] Security-First Thinking
-- [PA] Performance Awareness
-- [RL] Rate Limit APIs
-- [RLS] Row-Level Security
-- [CAP] Captcha on Auth
-- [WAF] Web Application Firewall
-- [SEC-1] No secrets access without approval
-
-### AI Communication
-- [RAT] Rule Application Tracking
-- [EDC] Explanation Depth Control
-- [AS] Alternative Suggestions
-- [KBT] Knowledge Boundary Transparency
-
-### Microservice Patterns (Chris Richardson)
-- [MON] Monolithic Architecture
-- [MSA] Microservice Architecture
-- [DBC] Decompose by Business Capability
-- [DSD] Decompose by Subdomain
-- [RPI] Remote Procedure Invocation
-- [MSG] Messaging
-- [CBR] Circuit Breaker
-- [SDC] Service Discovery
-- [DPS] Database per Service
-- [SAG] Saga
-- [OUT] Transactional Outbox
-- [DOM] Domain Model
-- [TSF] Transaction Script
-- [AGG] Aggregate
-- [DME] Domain Events
-- [EVS] Event Sourcing
-- [APC] API Composition
-- [CQR] Command Query Responsibility Segregation
-- [APG] API Gateway
-- [BFF] Backends for Frontends
-- [CDC] Consumer-Driven Contract Test
-- [SCT] Service Component Test
-- [SVC] Service as a Container
-- [SRL] Serverless Deployment
-- [MSC] Microservice Chassis
-- [SMH] Service Mesh
-- [STR] Strangler Application
-
----
-
 ## 1. Project Guidelines
 
 ### Architecture
@@ -187,3 +109,81 @@ Below are all reference codes and trigrams used throughout the UMIG rulebook for
   - [MSC][SMH] **Microservice Chassis / Service Mesh:** Use frameworks or infrastructure layers to handle concerns like config, health checks, and tracing.
 - [STR] **Refactoring:**
   - [STR] **Strangler Application:** Incrementally migrate a monolith by building new microservices around it.
+
+## 2. Reference Codes & Trigrams Index
+
+Below are all reference codes and trigrams used throughout the UMIG rulebook for precise, unambiguous governance and review:
+
+### Core Coding Principles & Workflow
+- [SF] Simplicity First
+- [RP] Readability Priority
+- [DM] Dependency Minimalism
+- [ISA] Industry Standards Adherence
+- [SD] Strategic Documentation
+- [TDT] Test-Driven Thinking
+- [DM-1] Review dependencies for vulnerabilities
+- [DM-2] Prefer signed/verified packages
+- [DM-3] Remove unused/outdated dependencies
+- [DM-4] Document dependency updates
+- [WF-FOCUS] Focus on code relevant to the task
+- [WF-SCOPE] Don’t touch unrelated code
+- [WF-TEST] Write thorough tests
+- [WF-ARCH] Avoid major changes to proven patterns
+- [WF-IMPACT] Consider impact on other code
+- [AC] Atomic Changes
+- [CD] Commit Discipline
+- [TR] Transparent Reasoning
+- [CWM] Context Window Management
+- [DRY] DRY Principle
+- [CA] Clean Architecture
+- [REH] Robust Error Handling
+- [CSD] Code Smell Detection
+
+### Security & Performance
+- [IV] Input Validation
+- [RM] Resource Management
+- [CMV] Constants Over Magic Values
+- [SFT] Security-First Thinking
+- [PA] Performance Awareness
+- [RL] Rate Limit APIs
+- [RLS] Row-Level Security
+- [CAP] Captcha on Auth
+- [WAF] Web Application Firewall
+- [SEC-1] No secrets access without approval
+
+### AI Communication
+- [RAT] Rule Application Tracking
+- [EDC] Explanation Depth Control
+- [AS] Alternative Suggestions
+- [KBT] Knowledge Boundary Transparency
+
+### Microservice Patterns (Chris Richardson)
+- [MON] Monolithic Architecture
+- [MSA] Microservice Architecture
+- [DBC] Decompose by Business Capability
+- [DSD] Decompose by Subdomain
+- [RPI] Remote Procedure Invocation
+- [MSG] Messaging
+- [CBR] Circuit Breaker
+- [SDC] Service Discovery
+- [DPS] Database per Service
+- [SAG] Saga
+- [OUT] Transactional Outbox
+- [DOM] Domain Model
+- [TSF] Transaction Script
+- [AGG] Aggregate
+- [DME] Domain Events
+- [EVS] Event Sourcing
+- [APC] API Composition
+- [CQR] Command Query Responsibility Segregation
+- [APG] API Gateway
+- [BFF] Backends for Frontends
+- [CDC] Consumer-Driven Contract Test
+- [SCT] Service Component Test
+- [SVC] Service as a Container
+- [SRL] Serverless Deployment
+- [MSC] Microservice Chassis
+- [SMH] Service Mesh
+- [STR] Strangler Application
+
+---
