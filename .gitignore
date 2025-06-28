@@ -123,3 +123,16 @@ Desktop.ini
 .env
 *.swp
 *.swo
+
+# Semgrep output (if used)
+semgrep-output/
+semgrep-results.json
+
+# MegaLinter reports and temp files
+megalinter-reports/
+mega-linter-reports/
+mega-linter.log
+mega-linter.tmp/
+
+# Linting containers (if you ever output to a local dir)
+tmp/lint/

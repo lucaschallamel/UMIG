@@ -1,0 +1,41 @@
+# Mega-Linter Configuration File
+# https://megalinter.io/latest/configuration/
+
+# Disable validating all files and enable only specified linters
+VALIDATE_ALL_CODEBASE: false
+
+# Enable linters for technologies found in your project
+ENABLE_LINTERS:
+  - ANSIBLE_ANSIBLE_LINT
+  - DOCKERFILE_HADOLINT
+  - JAVASCRIPT_ES
+  - JAVASCRIPT_PRETTIER
+  - JSON_JSONLINT
+  - MARKDOWN_MARKDOWNLINT
+  - OPENAPI_SPECTRAL
+  - BASH_SHELLCHECK
+  
+  - SQL_SQLFLUFF
+  - XML_XMLLINT
+  - YAML_YAMLLINT
+
+# Apply automated fixes for formatters
+APPLY_FIXES: [JAVASCRIPT_PRETTIER, SQL_SQLFLUFF, MARKDOWN_MARKDOWNLINT]
+
+# --- Linter-specific configurations ---
+
+# --- Global configurations ---
+
+# Ignore specific files and directories
+FILTER_REGEX_EXCLUDE: (^\.archive/|node_modules/)
+
+# Show elapsed time for each linter
+SHOW_ELAPSED_TIME: true
+
+# Set log level
+LOG_LEVEL: INFO
+
+# Disable linters that can be noisy or require extra configuration
+DISABLE:
+  - COPYPASTE # Detects copy-pasted code, can be noisy initially
+  - SPELL     # Checks for spelling errors, requires a dictionary for custom words

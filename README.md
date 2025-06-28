@@ -83,3 +83,40 @@ The local development environment is managed via Podman and a set of convenient 
 - `./local-dev-setup/restart.sh`: Restarts the environment. Use the `--reset` flag to delete the database and start fresh.
 
 For detailed setup instructions, see the [Local Dev Setup README](./local-dev-setup/README.md).
+
+## AI Assistant Integration
+
+This project integrates with AI assistants to streamline development workflows. Detailed guidelines and configurations for specific AI tools are provided in dedicated documentation files:
+
+*   **Claude AI Assistant**: Refer to [CLAUDE.md](./CLAUDE.md) for usage instructions and project-specific guidelines.
+*   **Gemini CLI**: Refer to [GEMINI.md](./GEMINI.md) for details on leveraging Gemini CLI for various tasks.
+
+## Code Quality & Security Scanning
+
+This project uses **Semgrep** and **MegaLinter** to enforce code quality, security, and consistency.
+
+### Semgrep
+- **Purpose:** Static analysis and security scanning.
+- **Ignore rules:** See `.semgrepignore` at the project root.
+- **Install on Mac:**
+  ```sh
+  brew install semgrep
+  ```
+- **Usage:**
+  ```sh
+  semgrep scan --config=auto .
+  ```
+
+### MegaLinter
+- **Purpose:** Multi-language linting and formatting.
+- **Configuration:** See `.mega-linter.yml` at the project root.
+- **Run via Podman:**
+  ```sh
+  podman run --rm \
+    -v $(pwd):/tmp/lint \
+    oxsecurity/megalinter:v7
+  ```
+  (You can also use Docker if available.)
+
+- **Note:** The linter will only analyze files that match the configuration and are not excluded by `.gitignore` or `.mega-linter.yml`.
+

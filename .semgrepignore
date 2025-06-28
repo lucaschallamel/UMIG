@@ -1,0 +1,11 @@
+# Ignore the node_modules directory
+local-dev-setup/data-utils/node_modules/*
+
+docs/*
+Docs/*
+cline-docs/*
+tests/*
+
+.archives/*
+.clinerules/*
+.windsurf/*
