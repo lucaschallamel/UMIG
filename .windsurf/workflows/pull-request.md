@@ -6,36 +6,36 @@ This workflow guides the creation of a high-quality, comprehensive Pull Request 
 
 **1. Identify the Scope:**
 
-*   **Determine the Base Branch:** Identify the target branch for the merge (e.g., `main`, `develop`).
-*   **List Commits:** Run `git log <base_branch>..HEAD --oneline` to get a concise list of all commits that will be included in this pull request. This provides the raw material for the description.
+* **Determine the Base Branch:** Identify the target branch for the merge (e.g., `main`, `develop`).
+* **List Commits:** Run `git log <base_branch>..HEAD --oneline` to get a concise list of all commits that will be included in this pull request. This provides the raw material for the description.
 
 **2. Synthesise the Narrative:**
 
 A PR is a story. You need to explain the "why," the "what," and the "how."
 
-*   **The "Why" (Motivation):**
-    *   Review the session context, dev journals, and any associated tickets (e.g., Jira, GitHub Issues).
-    *   Clearly articulate the problem being solved or the feature being added. What was the state of the application before this change, and what will it be after?
+* **The "Why" (Motivation):**
+  * Review the session context, dev journals, and any associated tickets (e.g., Jira, GitHub Issues).
+  * Clearly articulate the problem being solved or the feature being added. What was the state of the application before this change, and what will it be after?
 
-*   **The "What" (Implementation):**
-    *   Summarise the list of commits from step 1 into a coherent narrative. Don't just list the commit messages.
-    *   Describe the technical approach taken. Were there any significant architectural decisions? Did you add a new library? Why did you choose this solution over others?
+* **The "What" (Implementation):**
+  * Summarise the list of commits from step 1 into a coherent narrative. Don't just list the commit messages.
+  * Describe the technical approach taken. Were there any significant architectural decisions? Did you add a new library? Why did you choose this solution over others?
 
 **3. Provide Instructions for Reviewers:**
 
 Make it easy for others to review your work.
 
-*   **How to Test:**
-    *   Provide clear, step-by-step instructions on how a reviewer can manually test and verify the changes.
-    *   What should they look for? What are the expected outcomes? Are there specific edge cases to check?
-    *   If there are UI changes, include screenshots or GIFs to demonstrate the new behavior.
+* **How to Test:**
+  * Provide clear, step-by-step instructions on how a reviewer can manually test and verify the changes.
+  * What should they look for? What are the expected outcomes? Are there specific edge cases to check?
+  * If there are UI changes, include screenshots or GIFs to demonstrate the new behavior.
 
 **4. Draft the Pull Request Description (Markdown):**
 
 Use a structured template to present the information clearly.
 
-*   **Title:** The title should follow the Conventional Commits standard (e.g., `feat(api): Add user profile endpoint`).
-*   **Body Template:**
+* **Title:** The title should follow the Conventional Commits standard (e.g., `feat(api): Add user profile endpoint`).
+* **Body Template:**
 
     ```markdown
     ## Description
@@ -69,4 +69,4 @@ Use a structured template to present the information clearly.
 
 **5. Final Review:**
 
-*   Present the generated PR title and body to the user for final review and approval before they create the pull request on their Git platform.
+* Present the generated PR title and body to the user for final review and approval before they create the pull request on their Git platform.

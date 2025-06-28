@@ -10,7 +10,7 @@ Specifically, this custom image now includes the **PostgreSQL JDBC driver**, whi
 
 ## ScriptRunner Installation
 
-**Important:** Unlike previous iterations, the ScriptRunner for Confluence plugin is **NOT** pre-installed or copied into this image during the build process. 
+**Important:** Unlike previous iterations, the ScriptRunner for Confluence plugin is **NOT** pre-installed or copied into this image during the build process.
 
 As per `ADR-007: local-dev-setup-plugin-installation`, ScriptRunner is installed **manually** via the Confluence UI Marketplace *after* the Confluence service has been started by the `podman-compose.yml` configuration in the parent `local-dev-setup` directory.
 

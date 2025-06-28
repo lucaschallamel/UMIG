@@ -8,16 +8,16 @@ You must have Liquibase CLI, Ansible, Podman, and `podman-compose` installed on 
 
 ### Liquibase CLI Installation
 Install the Liquibase command-line interface (CLI).
-    *   **General Steps**:
+    ***General Steps**:
         1.  Download the Liquibase installation files (typically a ZIP archive) from the [official Liquibase website](https://www.liquibase.com/download).
         2.  Extract the archive to a directory on your local system (e.g., `~/liquibase` on macOS/Linux, `C:\liquibase` on Windows).
         3.  Add the directory where you extracted Liquibase to your system's PATH environment variable. This allows you to run the `liquibase` command from any terminal window.
     *   **macOS Specific**:
-        *   **Recommended (Homebrew)**: `brew install liquibase`
+        ***Recommended (Homebrew)**: `brew install liquibase`
         *   **Manual**: Follow the general steps above. You might add something like `export PATH=~/liquibase:$PATH` to your shell profile (e.g., `~/.zshrc`, `~/.bash_profile`).
-    *   **Linux Specific**:
+    ***Linux Specific**:
         *   **Manual**: Follow the general steps above. You might add something like `export PATH=/opt/liquibase:$PATH` (if you extracted it to `/opt/liquibase`) to your shell profile (e.g., `~/.bashrc`, `~/.zshrc`). Ensure the `liquibase` script is executable (`chmod +x liquibase`).
-    *   **Windows Specific**:
+    ***Windows Specific**:
         *   **Manual**: Follow the general steps above. To add Liquibase to your PATH:
             1.  In the Windows Start Menu Search, type `env` and select "Edit the system environment variables".
             2.  In the System Properties window, click the "Environment Variables..." button.
@@ -26,24 +26,24 @@ Install the Liquibase command-line interface (CLI).
 
 ### Ansible Installation
 Install Ansible.
-    *   **macOS Specific**:
+    ***macOS Specific**:
         *   **Recommended (Homebrew)**: `brew install ansible`
-    *   **Linux Specific**:
+    ***Linux Specific**:
         *   **Recommended (pip)**: `python3 -m pip install --user ansible`
-    *   **Windows Specific**:
+    ***Windows Specific**:
         *   **Recommended (WSL)**: Install Ansible inside the Windows Subsystem for Linux (WSL).
 
 ### Podman & Podman-Compose Installation
 Install Podman and `podman-compose`.
-    *   **macOS Specific**:
+    ***macOS Specific**:
         *   **Recommended (Homebrew)**:
             ```bash
             brew install podman
             brew install podman-compose
             ```
-    *   **Linux Specific**:
+    ***Linux Specific**:
         *   Follow the official installation instructions for your distribution.
-    *   **Windows Specific**:
+    ***Windows Specific**:
         *   Follow the official installation instructions.
 
 ## Usage
@@ -96,24 +96,24 @@ After starting the Confluence instance for the first time, you must manually con
 
 Our application code uses this shared connection pool to interact with the database.
 
-1.  **Navigate to ScriptRunner Resources**:
-    *   Go to Confluence Administration > **ScriptRunner** > **Resources**.
+1. **Navigate to ScriptRunner Resources**:
+    * Go to Confluence Administration > **ScriptRunner** > **Resources**.
 
-2.  **Add a New Resource**:
-    *   Click on **Add a new resource** and select **Database Connection**.
+2. **Add a New Resource**:
+    * Click on **Add a new resource** and select **Database Connection**.
 
-3.  **Fill in the Configuration Details**:
-    *   **Pool Name**: `umig_db_pool`
-        *   **Important**: This name must be exact, as it is hardcoded in the application's `DatabaseUtil.groovy`.
-    *   **Driver**: `org.postgresql.Driver`
-    *   **JDBC URL**: `jdbc:postgresql://umig_postgres:5432/umig_app_db`
-        *   **Note**: We use the container name `umig_postgres` for the host, not `localhost`.
-    *   **User**: `umig_app_user` (or the value of `UMIG_DB_USER` in your `.env` file)
-    *   **Password**: `123456` (or the value of `UMIG_DB_PASSWORD` in your `.env` file)
-    *   **JNDI Name**: Leave this field blank.
+3. **Fill in the Configuration Details**:
+    * **Pool Name**: `umig_db_pool`
+        * **Important**: This name must be exact, as it is hardcoded in the application's `DatabaseUtil.groovy`.
+    * **Driver**: `org.postgresql.Driver`
+    * **JDBC URL**: `jdbc:postgresql://umig_postgres:5432/umig_app_db`
+        * **Note**: We use the container name `umig_postgres` for the host, not `localhost`.
+    * **User**: `umig_app_user` (or the value of `UMIG_DB_USER` in your `.env` file)
+    * **Password**: `123456` (or the value of `UMIG_DB_PASSWORD` in your `.env` file)
+    * **JNDI Name**: Leave this field blank.
 
-4.  **Save the Resource**:
-    *   Click **Add** to save the configuration.
+4. **Save the Resource**:
+    * Click **Add** to save the configuration.
 
 Once this is done, ScriptRunner will be able to obtain a database connection and all API endpoints will function correctly.
 
@@ -131,9 +131,9 @@ Every changeset must follow a strict naming format to clearly identify its autho
 --changeset <author>:<id> context:<context>
 ```
 
-*   **`author`**: Your Git username (e.g., `lucas.challamel`). This tracks who created the change.
-*   **`id`**: The name of the SQL file containing the changeset, without the extension (e.g., `001_unified_baseline`). This provides a unique, descriptive identifier.
-*   **`context`**: The context in which the changeset should run (e.g., `all`, `dev`, `prod`).
+* **`author`**: Your Git username (e.g., `lucas.challamel`). This tracks who created the change.
+* **`id`**: The name of the SQL file containing the changeset, without the extension (e.g., `001_unified_baseline`). This provides a unique, descriptive identifier.
+* **`context`**: The context in which the changeset should run (e.g., `all`, `dev`, `prod`).
 
 **Example:**
 
@@ -145,12 +145,12 @@ Every changeset must follow a strict naming format to clearly identify its autho
 
 Liquibase offers powerful features like tags and labels to manage database versions and conditional deployments.
 
-*   **Tags**: We use tags to create a "snapshot" of the database schema at a specific release point. This is invaluable for rollbacks and version tracking. We will use semantic versioning for our tags (e.g., `v1.0.0`).
-    *   **Command**: `liquibase tag v1.0.0`
+* **Tags**: We use tags to create a "snapshot" of the database schema at a specific release point. This is invaluable for rollbacks and version tracking. We will use semantic versioning for our tags (e.g., `v1.0.0`).
+  * **Command**: `liquibase tag v1.0.0`
 
-*   **Labels**: Labels allow us to conditionally execute changesets. This is useful for environment-specific data or feature flags. We will adopt labels as needed, with some predefined examples:
-    *   `data-seed`: For populating test data. Should not be run in production.
-    *   `experimental`: For changes related to features that are not yet stable.
+* **Labels**: Labels allow us to conditionally execute changesets. This is useful for environment-specific data or feature flags. We will adopt labels as needed, with some predefined examples:
+  * `data-seed`: For populating test data. Should not be run in production.
+  * `experimental`: For changes related to features that are not yet stable.
 
 By adhering to these conventions, we maintain a clean, understandable, and robust database migration history.
 
@@ -172,6 +172,6 @@ When you reach the "Set up your database" screen, you must use the following set
 
 ## Services
 
-*   **Confluence:** [http://localhost:8090](http://localhost:8090)
-*   **PostgreSQL:** `localhost:5432`
-*   **MailHog (SMTP Mock):** [http://localhost:8025](http://localhost:8025) (SMTP server is at `localhost:1025`)
+* **Confluence:** [http://localhost:8090](http://localhost:8090)
+* **PostgreSQL:** `localhost:5432`
+* **MailHog (SMTP Mock):** [http://localhost:8025](http://localhost:8025) (SMTP server is at `localhost:1025`)

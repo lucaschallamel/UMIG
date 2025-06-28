@@ -1,9 +1,9 @@
 # ADR-016: Control and Instruction Model Refactoring
 
-*   **Status:** Accepted
-*   **Date:** 2025-06-25
-*   **Deciders:** Lucas Challamel, Cascade
-*   **Technical Story:** N/A
+* **Status:** Accepted
+* **Date:** 2025-06-25
+* **Deciders:** Lucas Challamel, Cascade
+* **Technical Story:** N/A
 
 ## Context and Problem Statement
 
@@ -11,23 +11,23 @@ The initial data model linked master controls (`controls_master_ctm`) directly t
 
 ## Decision Drivers
 
-*   **Logical Cohesion:** Controls are conceptually "quality gates" for a phase of work, not for a single, granular step.
-*   **Reusability:** A single control definition should be reusable across multiple steps within a phase.
-*   **Simplicity:** The data model should be as simple as possible, removing redundant or unnecessary fields and relationships (as per ADR-014).
-*   **Clear Ownership:** Every instruction should have a clear, designated owner team.
-*   **Maintainability:** A cleaner, more logical schema is easier to understand, maintain, and extend.
+* **Logical Cohesion:** Controls are conceptually "quality gates" for a phase of work, not for a single, granular step.
+* **Reusability:** A single control definition should be reusable across multiple steps within a phase.
+* **Simplicity:** The data model should be as simple as possible, removing redundant or unnecessary fields and relationships (as per ADR-014).
+* **Clear Ownership:** Every instruction should have a clear, designated owner team.
+* **Maintainability:** A cleaner, more logical schema is easier to understand, maintain, and extend.
 
 ## Considered Options
 
-*   **Option 1: Keep the existing model.**
-    *   Description: Leave controls linked to steps and retain the existing fields in the instruction table.
-    *   Pros: No changes required.
-    *   Cons: Retains the logical inconsistencies, limits reusability, and adds unnecessary complexity to the data model.
+* **Option 1: Keep the existing model.**
+  * Description: Leave controls linked to steps and retain the existing fields in the instruction table.
+  * Pros: No changes required.
+  * Cons: Retains the logical inconsistencies, limits reusability, and adds unnecessary complexity to the data model.
 
-*   **Option 2: Elevate Controls to Phases and Streamline Instructions.**
-    *   Description: Refactor the `controls_master_ctm` table to link to `phases_master_phm` via a `phm_id`. Refactor the `instructions_master_inm` table to remove redundant fields, eliminate the self-referencing predecessor, and add explicit team ownership (`tms_id`).
-    *   Pros: Creates a more logical and flexible data model, significantly improves control reusability, simplifies the instruction entity, and clarifies ownership.
-    *   Cons: Requires changes to the database schema and data generation scripts.
+* **Option 2: Elevate Controls to Phases and Streamline Instructions.**
+  * Description: Refactor the `controls_master_ctm` table to link to `phases_master_phm` via a `phm_id`. Refactor the `instructions_master_inm` table to remove redundant fields, eliminate the self-referencing predecessor, and add explicit team ownership (`tms_id`).
+  * Pros: Creates a more logical and flexible data model, significantly improves control reusability, simplifies the instruction entity, and clarifies ownership.
+  * Cons: Requires changes to the database schema and data generation scripts.
 
 ## Decision Outcome
 
@@ -35,14 +35,14 @@ Chosen option: **"Option 2: Elevate Controls to Phases and Streamline Instructio
 
 ### Positive Consequences
 
-*   Controls are now logically scoped to an entire phase of work.
-*   The `instructions_master_inm` table is simpler and easier to manage.
-*   The data model is more flexible and easier to extend in the future.
-*   Team ownership of individual instructions is now explicitly tracked.
+* Controls are now logically scoped to an entire phase of work.
+* The `instructions_master_inm` table is simpler and easier to manage.
+* The data model is more flexible and easier to extend in the future.
+* Team ownership of individual instructions is now explicitly tracked.
 
 ### Negative Consequences (if any)
 
-*   None. The required refactoring has been completed.
+* None. The required refactoring has been completed.
 
 ## Validation
 
@@ -52,19 +52,19 @@ The success of this decision is validated by the successful execution of the upd
 
 ### Keep the existing model
 
-*   Pros:
-    *   No immediate development effort required.
-*   Cons:
-    *   Poor logical cohesion between controls and their intended scope.
-    *   Limited reusability of control definitions.
-    *   Unnecessary complexity in the `instructions_master_inm` table.
+* Pros:
+  * No immediate development effort required.
+* Cons:
+  * Poor logical cohesion between controls and their intended scope.
+  * Limited reusability of control definitions.
+  * Unnecessary complexity in the `instructions_master_inm` table.
 
 ### Elevate Controls to Phases and Streamline Instructions
 
-*   Pros:
-    *   Creates a more logical and architecturally sound data model.
-    *   Maximizes the reusability of control definitions.
-    *   Simplifies the schema by removing redundant fields and relationships.
-    *   Improves long-term maintainability.
-*   Cons:
-    *   Required a one-time effort to refactor the schema and data generation scripts.
+* Pros:
+  * Creates a more logical and architecturally sound data model.
+  * Maximizes the reusability of control definitions.
+  * Simplifies the schema by removing redundant fields and relationships.
+  * Improves long-term maintainability.
+* Cons:
+  * Required a one-time effort to refactor the schema and data generation scripts.

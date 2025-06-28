@@ -6,17 +6,17 @@ The UMIG project utilizes a sophisticated, two-part data model that separates re
 
 ### Core Philosophy: Canonical vs. Instance
 
-*   **Canonical (Master) Model**: Defines the reusable playbooks for a migration (`plans_master_plm`, `sequences_master_sqm`, `phases_master_phm`, etc.). These are the "what" and "how."
-*   **Instance Model**: Represents a specific, live execution of a canonical plan for a given iteration (`plans_instance_pli`, `sequences_instance_sqi`, etc.). These track the "when" and "what happened."
+* **Canonical (Master) Model**: Defines the reusable playbooks for a migration (`plans_master_plm`, `sequences_master_sqm`, `phases_master_phm`, etc.). These are the "what" and "how."
+* **Instance Model**: Represents a specific, live execution of a canonical plan for a given iteration (`plans_instance_pli`, `sequences_instance_sqi`, etc.). These track the "when" and "what happened."
 
 ### Hierarchy
 
 The model follows a clear hierarchy:
 
-1.  **Strategic Layer**: `Migrations` > `Iterations`
-2.  **Canonical Layer**: `Plans` > `Sequences` > `Phases` > `Steps` > `Instructions`
-3.  **Quality Gates**: `Controls` are defined at the `Phase` level.
-4.  **Instance Layer**: Mirrors the canonical hierarchy, with `Control Instances` linked directly to the `Instruction Instance` they validate.
+1. **Strategic Layer**: `Migrations` > `Iterations`
+2. **Canonical Layer**: `Plans` > `Sequences` > `Phases` > `Steps` > `Instructions`
+3. **Quality Gates**: `Controls` are defined at the `Phase` level.
+4. **Instance Layer**: Mirrors the canonical hierarchy, with `Control Instances` linked directly to the `Instruction Instance` they validate.
 
 For a complete, in-depth explanation and a full Entity Relationship Diagram (ERD), please see the## Project History and Documentation
 
@@ -68,8 +68,8 @@ See `/local-dev-setup/data-utils/README.md` for details on the data utilities.
 
 The project maintains two distinct types of tests:
 
-*   **Unit Tests**: Located in `src/test/`, these are fast, in-memory tests that validate individual components in isolation. They use mocking to simulate dependencies.
-*   **Integration Tests**: Located in the root `/tests` directory, these are designed to run against the live development environment to validate the integration between different components (e.g., API and database).
+* **Unit Tests**: Located in `src/test/`, these are fast, in-memory tests that validate individual components in isolation. They use mocking to simulate dependencies.
+* **Integration Tests**: Located in the root `/tests` directory, these are designed to run against the live development environment to validate the integration between different components (e.g., API and database).
 
 For detailed instructions on how to run the integration test suite, please see the **[Testing Guide](./tests/README.md)**.
 
@@ -88,8 +88,8 @@ For detailed setup instructions, see the [Local Dev Setup README](./local-dev-se
 
 This project integrates with AI assistants to streamline development workflows. Detailed guidelines and configurations for specific AI tools are provided in dedicated documentation files:
 
-*   **Claude AI Assistant**: Refer to [CLAUDE.md](./CLAUDE.md) for usage instructions and project-specific guidelines.
-*   **Gemini CLI**: Refer to [GEMINI.md](./GEMINI.md) for details on leveraging Gemini CLI for various tasks.
+* **Claude AI Assistant**: Refer to [CLAUDE.md](./CLAUDE.md) for usage instructions and project-specific guidelines.
+* **Gemini CLI**: Refer to [GEMINI.md](./GEMINI.md) for details on leveraging Gemini CLI for various tasks.
 
 ## Code Quality & Security Scanning
 

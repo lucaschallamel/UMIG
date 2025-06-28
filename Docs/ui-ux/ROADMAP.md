@@ -4,7 +4,7 @@
 This roadmap outlines the planned rollout and evolution of UX/UI features for the UMIG MVP and beyond. It references all detailed specifications and explains the strategic, phased approach adopted by the team.
 
 ## Phased Strategy & Rationale
-For the MVP, we are prioritizing the delivery of high-impact end-user UI components (e.g., STEP View) to validate usability and business value early. 
+For the MVP, we are prioritizing the delivery of high-impact end-user UI components (e.g., STEP View) to validate usability and business value early.
 
 - **Admin and backend management features** (e.g., managing migrations, iterations, teams, users, environments) will initially be handled via API endpoints and Postman workflows. This allows for rapid progress and robust backend validation before investing in a full-fledged admin UI.
 - This phased approach is intentional: it enables faster feedback, reduces complexity for the initial release, and ensures that future admin UIs are built on a stable, proven API foundation.

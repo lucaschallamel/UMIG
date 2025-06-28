@@ -186,9 +186,9 @@ DatabaseUtil.withSql { sql ->
 ## Services & Ports
 
 When development environment is running:
-- **Confluence**: http://localhost:8090
+- **Confluence**: <http://localhost:8090>
 - **PostgreSQL**: localhost:5432
-- **MailHog**: http://localhost:8025 (email testing)
+- **MailHog**: <http://localhost:8025> (email testing)
 
 ## Key Documentation
 

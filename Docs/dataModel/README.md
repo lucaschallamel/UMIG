@@ -6,9 +6,9 @@ This document provides a comprehensive overview of the Unified Migration (UMIG) 
 
 The UMIG data model is built on a fundamental design principle: the strict separation of **Canonical (Master)** entities from **Instance (Execution)** entities.
 
--   **Canonical Entities**: These are the master templates or "playbooks." They define *what* should be done, in what order, and who is responsible. They are reusable, version-controlled, and represent the standardized process for a migration. All canonical tables use the `_master_` suffix (e.g., `plans_master_plm`).
+- **Canonical Entities**: These are the master templates or "playbooks." They define *what* should be done, in what order, and who is responsible. They are reusable, version-controlled, and represent the standardized process for a migration. All canonical tables use the `_master_` suffix (e.g., `plans_master_plm`).
 
--   **Instance Entities**: These are time-bound, execution-specific records. They represent a single, real-world "run" of a canonical plan, such as a disaster recovery test, a dress rehearsal, or the actual go-live event. They track *when* something was done, by whom, and what the outcome was. All instance tables use the `_instance_` suffix (e.g., `plans_instance_pli`).
+- **Instance Entities**: These are time-bound, execution-specific records. They represent a single, real-world "run" of a canonical plan, such as a disaster recovery test, a dress rehearsal, or the actual go-live event. They track *when* something was done, by whom, and what the outcome was. All instance tables use the `_instance_` suffix (e.g., `plans_instance_pli`).
 
 This separation provides critical flexibility, allowing a single canonical plan to be executed multiple times for different purposes (iterations), with each execution having its own distinct history, status, and audit trail.
 
@@ -18,30 +18,30 @@ The data model follows a clear hierarchical structure, flowing from high-level s
 
 ### 1. The Strategic Layer
 
--   **Migration (`migrations_mig`)**: The highest-level container representing a complete strategic initiative (e.g., "Data Center Consolidation 2025"). It has a business owner and a final cutover date.
--   **Iteration (`iterations_ite`)**: A specific, time-bound execution event under a Migration (e.g., "Go-Live Weekend," "Q3 Disaster Recovery Test"). It has its own technical cutover dates and is linked to a specific set of environments.
+- **Migration (`migrations_mig`)**: The highest-level container representing a complete strategic initiative (e.g., "Data Center Consolidation 2025"). It has a business owner and a final cutover date.
+- **Iteration (`iterations_ite`)**: A specific, time-bound execution event under a Migration (e.g., "Go-Live Weekend," "Q3 Disaster Recovery Test"). It has its own technical cutover dates and is linked to a specific set of environments.
 
 ### 2. The Canonical (Master) Layer
 
 This layer defines the reusable playbook.
 
--   **Plan (`plans_master_plm`)**: The master playbook containing the end-to-end set of procedures.
--   **Sequence (`sequences_master_sqm`)**: A major chapter in the plan (e.g., "Pre-Migration Setup," "Application Failover").
--   **Phase (`phases_master_phm`)**: A distinct stage of work within a sequence (e.g., "Configure Network ACLs," "Start Database Replication").
--   **Control (`controls_master_ctm`)**: A quality gate or verification checkpoint linked to a **Phase**. It defines a standard check that must be performed (e.g., "Verify End-to-End Connectivity").
--   **Step (`steps_master_stm`)**: A granular, executable task within a phase (e.g., "Restart the primary application server").
--   **Instruction (`instructions_master_inm`)**: The most detailed level of the playbook, providing the specific command or procedure for a step. An instruction can be optionally linked to a master **Control** to indicate that this specific procedure satisfies the phase-level quality check.
+- **Plan (`plans_master_plm`)**: The master playbook containing the end-to-end set of procedures.
+- **Sequence (`sequences_master_sqm`)**: A major chapter in the plan (e.g., "Pre-Migration Setup," "Application Failover").
+- **Phase (`phases_master_phm`)**: A distinct stage of work within a sequence (e.g., "Configure Network ACLs," "Start Database Replication").
+- **Control (`controls_master_ctm`)**: A quality gate or verification checkpoint linked to a **Phase**. It defines a standard check that must be performed (e.g., "Verify End-to-End Connectivity").
+- **Step (`steps_master_stm`)**: A granular, executable task within a phase (e.g., "Restart the primary application server").
+- **Instruction (`instructions_master_inm`)**: The most detailed level of the playbook, providing the specific command or procedure for a step. An instruction can be optionally linked to a master **Control** to indicate that this specific procedure satisfies the phase-level quality check.
 
 ### 3. The Instance (Execution) Layer
 
 This layer is a direct, time-stamped snapshot of the canonical layer for a specific iteration.
 
--   **Plan Instance (`plans_instance_pli`)**: A snapshot of a master plan, created for and linked to a single **Iteration**.
--   **Sequence Instance (`sequences_instance_sqi`)**: An instance of a sequence for a specific plan instance.
--   **Phase Instance (`phases_instance_phi`)**: An instance of a phase.
--   **Step Instance (`steps_instance_sti`)**: An instance of a step, where status (e.g., 'COMPLETED', 'FAILED') is tracked.
--   **Instruction Instance (`instructions_instance_ini`)**: The record of a specific instruction being performed at a specific time by a specific user.
--   **Control Instance (`controls_instance_cti`)**: The record of a control being executed, linked directly to the **Step Instance** it validates. This provides an audit trail confirming that the phase-level quality check was performed for a given step.
+- **Plan Instance (`plans_instance_pli`)**: A snapshot of a master plan, created for and linked to a single **Iteration**.
+- **Sequence Instance (`sequences_instance_sqi`)**: An instance of a sequence for a specific plan instance.
+- **Phase Instance (`phases_instance_phi`)**: An instance of a phase.
+- **Step Instance (`steps_instance_sti`)**: An instance of a step, where status (e.g., 'COMPLETED', 'FAILED') is tracked.
+- **Instruction Instance (`instructions_instance_ini`)**: The record of a specific instruction being performed at a specific time by a specific user.
+- **Control Instance (`controls_instance_cti`)**: The record of a control being executed, linked directly to the **Step Instance** it validates. This provides an audit trail confirming that the phase-level quality check was performed for a given step.
 
 ## Entity Relationship Diagram (ERD)
 

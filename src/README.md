@@ -8,11 +8,11 @@ All REST endpoints **must** be implemented using the `CustomEndpointDelegate` pa
 
 **Key Requirements:**
 
--   Annotate the script with `@BaseScript CustomEndpointDelegate delegate`.
--   Define endpoints as methods named after the resource (e.g., `plans`, `teams`).
--   The method must accept `httpMethod`, `request`, and `binding` as arguments.
--   The method must return a `javax.ws.rs.core.Response` object.
--   Secure endpoints by default by including `groups: ["confluence-users"]`.
+- Annotate the script with `@BaseScript CustomEndpointDelegate delegate`.
+- Define endpoints as methods named after the resource (e.g., `plans`, `teams`).
+- The method must accept `httpMethod`, `request`, and `binding` as arguments.
+- The method must return a `javax.ws.rs.core.Response` object.
+- Secure endpoints by default by including `groups: ["confluence-users"]`.
 
 **Example:**
 ```groovy
@@ -58,9 +58,9 @@ def findAllTeams() {
 
 **Why this pattern?**
 
--   **Safe:** It prevents connection leaks by ensuring the database connection is always closed correctly, even if errors occur.
--   **IDE-Friendly:** It resolves all static analysis warnings in the IDE.
--   **Correct:** It is the officially recommended approach by Adaptavist for database interactions.
+- **Safe:** It prevents connection leaks by ensuring the database connection is always closed correctly, even if errors occur.
+- **IDE-Friendly:** It resolves all static analysis warnings in the IDE.
+- **Correct:** It is the officially recommended approach by Adaptavist for database interactions.
 
 ## 3. Handling Static Type Checking
 

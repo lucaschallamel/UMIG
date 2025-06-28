@@ -1,9 +1,9 @@
 # ADR-XXX: [Title of ADR]
 
-*   **Status:** [Proposed | Accepted | Deprecated | Superseded by ADR-YYY]
-*   **Date:** [YYYY-MM-DD]
-*   **Deciders:** [List of names or roles]
-*   **Technical Story:** [Link to JIRA Story/Epic if applicable]
+* **Status:** [Proposed | Accepted | Deprecated | Superseded by ADR-YYY]
+* **Date:** [YYYY-MM-DD]
+* **Deciders:** [List of names or roles]
+* **Technical Story:** [Link to JIRA Story/Epic if applicable]
 
 ## Context and Problem Statement
 
@@ -12,26 +12,26 @@
 ## Decision Drivers
 
 [List the key drivers, requirements, and constraints that influenced the decision. Examples:
-*   Performance requirements
-*   Security considerations
-*   Maintainability
-*   Existing infrastructure
-*   Team skills
-*   Project timeline]
+* Performance requirements
+* Security considerations
+* Maintainability
+* Existing infrastructure
+* Team skills
+* Project timeline]
 
 ## Considered Options
 
 [List the options that were considered. For each option, provide a brief description and its pros and cons.]
 
-*   **Option 1: [Name of Option 1]**
-    *   Description: ...
-    *   Pros: ...
-    *   Cons: ...
-*   **Option 2: [Name of Option 2]**
-    *   Description: ...
-    *   Pros: ...
-    *   Cons: ...
-*   **(etc.)**
+* **Option 1: [Name of Option 1]**
+  * Description: ...
+  * Pros: ...
+  * Cons: ...
+* **Option 2: [Name of Option 2]**
+  * Description: ...
+  * Pros: ...
+  * Cons: ...
+* **(etc.)**
 
 ## Decision Outcome
 
@@ -53,26 +53,26 @@ Chosen option: **"[Name of Chosen Option]"**, because [justify the decision. Exp
 
 ### [Option 1 Name]
 
-*   Pros:
-    *   [benefit 1]
-    *   [benefit 2]
-*   Cons:
-    *   [drawback 1]
-    *   [drawback 2]
+* Pros:
+  * [benefit 1]
+  * [benefit 2]
+* Cons:
+  * [drawback 1]
+  * [drawback 2]
 
 ### [Option 2 Name]
 
-*   Pros:
-    *   [benefit 1]
-    *   [benefit 2]
-*   Cons:
-    *   [drawback 1]
-    *   [drawback 2]
+* Pros:
+  * [benefit 1]
+  * [benefit 2]
+* Cons:
+  * [drawback 1]
+  * [drawback 2]
 
 ## Links
 
-*   [Link to related documents, discussions, etc.]
+* [Link to related documents, discussions, etc.]
 
 ## Amendment History
 
-*   [YYYY-MM-DD]: [Description of amendment, if any]
+* [YYYY-MM-DD]: [Description of amendment, if any]

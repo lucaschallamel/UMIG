@@ -188,10 +188,10 @@ npm test
 
 The project employs two primary testing strategies tailored to the different utilities:
 
-1.  **Mock-Based Testing for Data Generators:**
+1. **Mock-Based Testing for Data Generators:**
     - The data generator scripts (e.g., `04_generate_environments.js`) are tested using **in-memory mocks** (via Jest). This approach isolates the script's logic from the database, allowing for fast, predictable unit tests that verify functions, query construction, and error handling without needing a live database connection or pre-existing data.
 
-2.  **Fixture-Based Testing for the CSV Importer:**
+2. **Fixture-Based Testing for the CSV Importer:**
     - The `umig_csv_importer.js` utility is tested using **static fixture files** located in `__tests__/fixtures/`. This is because testing a file importer requires reading and parsing actual files to validate its core functionality. These tests ensure the importer can handle real-world CSV structures and mappings correctly.
 
 #### Test Types

@@ -20,7 +20,7 @@ Integration testing is now a critical safeguard against schema drift, validating
 - **Containerisation:** Podman and Podman Compose
 - **Configuration Management:** Ansible
 - **Version Control:** Git
-- **Testing Frameworks:** 
+- **Testing Frameworks:**
   - Jest for Node.js utilities
   - Groovy for integration testing
 - **Development Utilities:** Node.js for data generation and CSV importing
@@ -31,7 +31,7 @@ Integration testing is now a critical safeguard against schema drift, validating
 
 - Local development is orchestrated with Podman Compose and Ansible, providing containers for Confluence, PostgreSQL, and MailHog.
 - Database schema changes are managed and versioned with Liquibase, applied automatically on environment startup.
-- The codebase is structured for separation of concerns: 
+- The codebase is structured for separation of concerns:
   - Backend code resides in `src/com/umig/` (API, repository, utility)
   - Frontend assets in `src/web/`
   - Confluence macros in `src/macros/`

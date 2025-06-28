@@ -17,9 +17,9 @@ The UMIG application must be deployed into a Confluence environment using only S
 
 ## Considered Options
 
-1.  **Standard Confluence Plugin Structure**: Using `src/main/java`, `src/main/resources`, and `atlassian-plugin.xml`. This was rejected as it introduces unnecessary build complexity and does not align with the goal of a simple, script-based deployment.
-2.  **Flat Script Structure**: Placing all Groovy scripts, macros, and assets in a single folder. This was rejected as it lacks organization, separation of concerns, and poses a high risk of naming conflicts.
-3.  **Packaged Pure ScriptRunner Structure**: A structured, packaged layout within a single source directory, relying entirely on ScriptRunner's features.
+1. **Standard Confluence Plugin Structure**: Using `src/main/java`, `src/main/resources`, and `atlassian-plugin.xml`. This was rejected as it introduces unnecessary build complexity and does not align with the goal of a simple, script-based deployment.
+2. **Flat Script Structure**: Placing all Groovy scripts, macros, and assets in a single folder. This was rejected as it lacks organization, separation of concerns, and poses a high risk of naming conflicts.
+3. **Packaged Pure ScriptRunner Structure**: A structured, packaged layout within a single source directory, relying entirely on ScriptRunner's features.
 
 ## Decision Outcome
 

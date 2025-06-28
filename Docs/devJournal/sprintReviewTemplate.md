@@ -46,18 +46,18 @@ _Use this template to document the review and retrospective for each sprint or m
 
 ## 6. Retrospective
 ### What Went Well
-- 
+-
 ### What Didn’t Go Well
-- 
+-
 ### What We Learned
-- 
+-
 ### What We’ll Try Next
-- 
+-
 
 ---
 
 ## 7. Action Items & Next Steps
-- 
+-
 
 ---
 

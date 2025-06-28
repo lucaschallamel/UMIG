@@ -21,11 +21,11 @@ This workflow guides the team through a structured review and retrospective at t
     git branch --format='%(refname:short) %(creatordate:short)' | grep 'YYYY-MM'
     ```
 - **Metrics:** (Run the following commands, replacing dates as appropriate)
-    - **Commits:**
+  - **Commits:**
       ```sh
       git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline | wc -l
       ```
-    - **PRs Merged:**
+  - **PRs Merged:**
       ```sh
       git log --merges --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline | wc -l
       ```
@@ -33,7 +33,7 @@ This workflow guides the team through a structured review and retrospective at t
       ```sh
       git log --merges --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline
       ```
-    - **Issues Closed:**
+  - **Issues Closed:**
       ```sh
       git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --grep="close[sd]\\|fixe[sd]" --oneline | wc -l
       ```
@@ -126,9 +126,9 @@ Once the above context is filled, generate a new file named `{yyyymmdd}-sprint-r
 - **Dev Journal Entries:** (List all relevant `/docs/devJournal/YYYYMMDD-nn.md` files)
 - **ADR(s):** (Link to any new or updated ADRs)
 - **Changelog/Docs:** (Links to major documentation changes)
-    - CHANGELOG.md
-    - .cline-docs/progress.md
-    - .cline-docs/activeContext.md
+  - CHANGELOG.md
+  - .cline-docs/progress.md
+  - .cline-docs/activeContext.md
 
 ---
 
