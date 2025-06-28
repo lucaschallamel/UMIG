@@ -6,59 +6,139 @@ trigger: always_on
 
 This document contains a consolidated summary of the key rules for this project, derived from the detailed rule files in the repository. Its purpose is to provide a central, scannable reference for all development work.
 
+---
+
+## Reference Codes & Trigrams Index
+
+Below are all reference codes and trigrams used throughout the UMIG rulebook for precise, unambiguous governance and review:
+
+### Core Coding Principles & Workflow
+- [SF] Simplicity First
+- [RP] Readability Priority
+- [DM] Dependency Minimalism
+- [ISA] Industry Standards Adherence
+- [SD] Strategic Documentation
+- [TDT] Test-Driven Thinking
+- [DM-1] Review dependencies for vulnerabilities
+- [DM-2] Prefer signed/verified packages
+- [DM-3] Remove unused/outdated dependencies
+- [DM-4] Document dependency updates
+- [WF-FOCUS] Focus on code relevant to the task
+- [WF-SCOPE] Don’t touch unrelated code
+- [WF-TEST] Write thorough tests
+- [WF-ARCH] Avoid major changes to proven patterns
+- [WF-IMPACT] Consider impact on other code
+- [AC] Atomic Changes
+- [CD] Commit Discipline
+- [TR] Transparent Reasoning
+- [CWM] Context Window Management
+- [DRY] DRY Principle
+- [CA] Clean Architecture
+- [REH] Robust Error Handling
+- [CSD] Code Smell Detection
+
+### Security & Performance
+- [IV] Input Validation
+- [RM] Resource Management
+- [CMV] Constants Over Magic Values
+- [SFT] Security-First Thinking
+- [PA] Performance Awareness
+- [RL] Rate Limit APIs
+- [RLS] Row-Level Security
+- [CAP] Captcha on Auth
+- [WAF] Web Application Firewall
+- [SEC-1] No secrets access without approval
+
+### AI Communication
+- [RAT] Rule Application Tracking
+- [EDC] Explanation Depth Control
+- [AS] Alternative Suggestions
+- [KBT] Knowledge Boundary Transparency
+
+### Microservice Patterns (Chris Richardson)
+- [MON] Monolithic Architecture
+- [MSA] Microservice Architecture
+- [DBC] Decompose by Business Capability
+- [DSD] Decompose by Subdomain
+- [RPI] Remote Procedure Invocation
+- [MSG] Messaging
+- [CBR] Circuit Breaker
+- [SDC] Service Discovery
+- [DPS] Database per Service
+- [SAG] Saga
+- [OUT] Transactional Outbox
+- [DOM] Domain Model
+- [TSF] Transaction Script
+- [AGG] Aggregate
+- [DME] Domain Events
+- [EVS] Event Sourcing
+- [APC] API Composition
+- [CQR] Command Query Responsibility Segregation
+- [APG] API Gateway
+- [BFF] Backends for Frontends
+- [CDC] Consumer-Driven Contract Test
+- [SCT] Service Component Test
+- [SVC] Service as a Container
+- [SRL] Serverless Deployment
+- [MSC] Microservice Chassis
+- [SMH] Service Mesh
+- [STR] Strangler Application
+
+---
+
 ## 1. Project Guidelines
 
 ### Architecture
-- The project follows a **Microservice-Oriented Architecture**.
-- All development must adhere to the principles in the **Twelve-Factor App** and **Microservice Patterns** rule files.
+- [MSA] The project follows a **Microservice-Oriented Architecture**.
+- [TFA][MSA] All development must adhere to the principles in the **Twelve-Factor App** and [MSA] **Microservice Patterns** rule files.
 
 ### Documentation & ADRs
-- Keep `README.md`, `CHANGELOG.md`, and other documentation in `/docs` continuously updated.
-- Create Architecture Decision Records (ADRs) in `/docs/adr` for all significant architectural changes, including dependency changes, new patterns, or schema modifications.
+- [SD] Keep `README.md`, `CHANGELOG.md`, and other documentation in `/docs` continuously updated.
+- [SD] Create Architecture Decision Records (ADRs) in `/docs/adr` for all significant architectural changes, including dependency changes, new patterns, or schema modifications.
 
 ### Code Style & Patterns
-- Use OpenAPI Generator for generating API clients.
-- Prefer composition over inheritance.
-- Use the repository pattern for data access.
-- Follow established error handling patterns.
+- [ISA] Use OpenAPI Generator for generating API clients.
+- [CA] Prefer composition over inheritance.
+- [CA] Use the repository pattern for data access.
+- [REH] Follow established error handling patterns.
 
 ### Testing
-- Mandate unit tests for business logic, integration tests for API endpoints, and E2E tests for critical user flows.
-- Ensure all synthetic data generation scripts are idempotent and robust.
-- All tests must pass in CI before merging code.
+- [WF-TEST] Mandate unit tests for business logic, integration tests for API endpoints, and E2E tests for critical user flows.
+- [AC][CSD] Ensure all synthetic data generation scripts are idempotent and robust.
+- [WF-TEST] All tests must pass in CI before merging code.
 
 ### Security & Quality
-- **Input Validation (IV):** Validate all external data before processing.
-- **Resource Management (RM):** Close connections and free resources appropriately.
-- **Constants Over Magic Values (CMV):** Use named constants instead of magic strings/numbers.
-- **Automation:** Use Semgrep for static analysis and MegaLinter for multi-language linting. All tools must pass in CI.
-- **Access Control:** Implement Row-Level Security (RLS), rate limiting, and CAPTCHA on authentication routes.
-- **CRITICAL: Do not read or modify `.env` or any other secrets files without explicit user approval.**
+- [IV] **Input Validation:** Validate all external data before processing.
+- [RM] **Resource Management:** Close connections and free resources appropriately.
+- [CMV] **Constants Over Magic Values:** Use named constants instead of magic strings/numbers.
+- [SFT][PA] **Automation:** Use Semgrep for static analysis and MegaLinter for multi-language linting. All tools must pass in CI.
+- [RLS][RL][CAP] **Access Control:** Implement Row-Level Security (RLS), rate limiting, and CAPTCHA on authentication routes.
+- [SEC-1] **CRITICAL: Do not read or modify `.env` or any other secrets files without explicit user approval.**
 
 ### Local Development & CI/CD
-- The local environment must be managed via the provided wrapper scripts for Podman/Docker and Ansible.
-- All environment configuration must be version-controlled.
+- [CA] The local environment must be managed via the provided wrapper scripts for Podman/Docker and Ansible.
+- [DM] All environment configuration must be version-controlled.
 - CI/CD pipelines must run all linting, testing, and security scans, blocking merges on failure.
 
 ### Database Management
-- Use a dedicated tool (e.g., Liquibase) for automated, version-controlled migrations. Manual schema changes are prohibited.
-- Maintain an up-to-date Entity Relationship Diagram (ERD) and a changelog for all database changes.
-- Adhere to consistent, project-wide naming conventions (e.g., snake_case).
+- [DPS] Use a dedicated tool (e.g., Liquibase) for automated, version-controlled migrations. Manual schema changes are prohibited.
+- [DME] Maintain an up-to-date Entity Relationship Diagram (ERD) and a changelog for all database changes.
+- [CA] Adhere to consistent, project-wide naming conventions (e.g., snake_case).
 
 ## 2. Core Coding Principles
 
-- **Simplicity First (SF):** Always choose the simplest viable solution.
-- **Readability Priority (RP):** Code must be immediately understandable by others.
-- **Dependency Minimalism (DM):** Do not add new libraries without clear justification.
-- **Industry Standards Adherence (ISA):** Follow established conventions for the language and stack.
-- **Strategic Documentation (SD):** Comment only on complex logic, not the obvious.
-- **Test-Driven Thinking (TDT):** Design all code to be inherently testable.
-- **Atomic Changes (AC):** Make small, self-contained modifications.
-- **Commit Discipline (CD):** Use Conventional Commit messages (`type(scope): message`).
-- **DRY Principle:** Do not repeat yourself; reuse and extend existing functionality.
-- **Clean Architecture (CA):** Generate cleanly formatted, logically structured code.
-- **Robust Error Handling (REH):** Integrate comprehensive error handling for all edge cases.
-- **Code Smell Detection (CSD):** Proactively refactor functions/files that are too long or have deep nesting.
+- [SF] **Simplicity First:** Always choose the simplest viable solution.
+- [RP] **Readability Priority:** Code must be immediately understandable by others.
+- [DM] **Dependency Minimalism:** Do not add new libraries without clear justification.
+- [ISA] **Industry Standards Adherence:** Follow established conventions for the language and stack.
+- [SD] **Strategic Documentation:** Comment only on complex logic, not the obvious.
+- [TDT] **Test-Driven Thinking:** Design all code to be inherently testable.
+- [AC] **Atomic Changes:** Make small, self-contained modifications.
+- [CD] **Commit Discipline:** Use Conventional Commit messages (`type(scope): message`).
+- [DRY] **DRY Principle:** Do not repeat yourself; reuse and extend existing functionality.
+- [CA] **Clean Architecture:** Generate cleanly formatted, logically structured code.
+- [REH] **Robust Error Handling:** Integrate comprehensive error handling for all edge cases.
+- [CSD] **Code Smell Detection:** Proactively refactor functions/files that are too long or have deep nesting.
 
 ## 3. Project Scaffolding
 
@@ -81,29 +161,29 @@ This document contains a consolidated summary of the key rules for this project,
 
 ## 5. Microservice Architecture Patterns
 
-- **Decomposition:**
-  - **By Business Capability:** Define services based on what a business *does* (e.g., Order Management).
-  - **By Subdomain (DDD):** Define services around specific problem subdomains.
-- **Communication:**
-  - **Asynchronous Messaging:** Prefer for inter-service communication to promote loose coupling and resilience.
-  - **Synchronous RPI (REST/gRPC):** Use where appropriate, but be aware of tighter coupling.
-  - **Circuit Breaker:** Prevent network or service failures from cascading.
-  - **Service Discovery:** Enable clients to find service instances in a dynamic environment.
-- **Data Management:**
-  - **Database per Service:** Each microservice owns and is solely responsible for its own data.
-  - **Saga Pattern:** Manage data consistency across services using a sequence of local transactions.
-  - **Transactional Outbox:** Reliably publish events/messages as part of a local database transaction.
-- **Querying:**
-  - **API Composition:** A client or API Gateway retrieves and joins data from multiple services. Simple but can be inefficient.
-  - **CQRS (Command Query Responsibility Segregation):** Maintain denormalized, read-optimized view databases for complex queries.
-- **External APIs:**
-  - **API Gateway:** A single entry point for all external clients, handling routing, composition, and cross-cutting concerns.
-  - **Backends for Frontends (BFF):** A tailored API gateway for each specific client type (e.g., mobile vs. web).
-- **Testing:**
-  - **Consumer-Driven Contract Tests:** Ensure services can communicate correctly without full end-to-end tests.
-  - **Service Component Tests:** Test individual services in isolation, using stubs for dependencies.
-- **Deployment & Cross-Cutting Concerns:**
-  - **Containerization:** Package each service as a container (e.g., Docker).
-  - **Microservice Chassis / Service Mesh:** Use frameworks or infrastructure layers to handle concerns like config, health checks, and tracing.
-- **Refactoring:**
-  - **Strangler Application:** Incrementally migrate a monolith by building new microservices around it.
+- [DBC] **Decomposition:**
+  - [DBC] **By Business Capability:** Define services based on what a business *does* (e.g., Order Management).
+  - [DSD] **By Subdomain:** Define services around specific problem subdomains.
+- [MSG][RPI][CBR][SDC] **Communication:**
+  - [MSG] **Asynchronous Messaging:** Prefer for inter-service communication to promote loose coupling and resilience.
+  - [RPI] **Synchronous RPI (REST/gRPC):** Use where appropriate, but be aware of tighter coupling.
+  - [CBR] **Circuit Breaker:** Prevent network or service failures from cascading.
+  - [SDC] **Service Discovery:** Enable clients to find service instances in a dynamic environment.
+- [DPS][SAG][OUT] **Data Management:**
+  - [DPS] **Database per Service:** Each microservice owns and is solely responsible for its own data.
+  - [SAG] **Saga Pattern:** Manage data consistency across services using a sequence of local transactions.
+  - [OUT] **Transactional Outbox:** Reliably publish events/messages as part of a local database transaction.
+- [APC][CQR] **Querying:**
+  - [APC] **API Composition:** A client or API Gateway retrieves and joins data from multiple services. Simple but can be inefficient.
+  - [CQR] **CQRS (Command Query Responsibility Segregation):** Maintain denormalized, read-optimized view databases for complex queries.
+- [APG][BFF] **External APIs:**
+  - [APG] **API Gateway:** A single entry point for all external clients, handling routing, composition, and cross-cutting concerns.
+  - [BFF] **Backends for Frontends (BFF):** A tailored API gateway for each specific client type (e.g., mobile vs. web).
+- [CDC][SCT] **Testing:**
+  - [CDC] **Consumer-Driven Contract Tests:** Ensure services can communicate correctly without full end-to-end tests.
+  - [SCT] **Service Component Tests:** Test individual services in isolation, using stubs for dependencies.
+- [SVC][MSC][SMH] **Deployment & Cross-Cutting Concerns:**
+  - [SVC] **Containerization:** Package each service as a container (e.g., Docker).
+  - [MSC][SMH] **Microservice Chassis / Service Mesh:** Use frameworks or infrastructure layers to handle concerns like config, health checks, and tracing.
+- [STR] **Refactoring:**
+  - [STR] **Strangler Application:** Incrementally migrate a monolith by building new microservices around it.
