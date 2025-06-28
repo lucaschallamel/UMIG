@@ -84,6 +84,19 @@ The local development environment is managed via Podman and a set of convenient 
 
 For detailed setup instructions, see the [Local Dev Setup README](./local-dev-setup/README.md).
 
+## Project Governance & Coding Standards
+
+This project adheres to a strict set of rules and principles to ensure code quality, consistency, and maintainability. These rules are defined in detail within the `.clinerules/rules/` directory and are mandatory for all contributors, including AI assistants.
+
+The rulebook covers:
+- **Project Guidelines:** High-level policies and standards.
+- **Core Coding Principles:** Universal rules of software craftsmanship.
+- **Project Scaffolding:** Mandatory file and folder structure.
+- **The Twelve-Factor App:** Principles for building cloud-native applications.
+- **Microservice Architecture:** Patterns for designing and implementing microservices.
+
+All contributors are expected to familiarize themselves with these rules before starting work.
+
 ## AI Assistant Integration
 
 This project integrates with AI assistants to streamline development workflows. Detailed guidelines and configurations for specific AI tools are provided in dedicated documentation files:
@@ -112,9 +125,10 @@ This project uses **Semgrep** and **MegaLinter** to enforce code quality, securi
 - **Configuration:** See `.mega-linter.yml` at the project root.
 - **Run via Podman:**
   ```sh
-  podman run --rm \
-    -v $(pwd):/tmp/lint \
-    oxsecurity/megalinter:v7
+podman run --rm \
+  -e VALIDATE_ALL_CODEBASE=true \
+  -v $(pwd):/tmp/lint \
+  oxsecurity/megalinter:v8
   ```
   (You can also use Docker if available.)
 

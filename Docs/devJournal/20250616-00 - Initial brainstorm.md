@@ -339,12 +339,14 @@ Here's the revised database schema. This is what we'd instruct our system (or a 
 **Core Hierarchy Tables**
 
 **1. `implementation_plans`** (The top-level container)
+
 | Column | Type | Description                                   |
 | ------ | ---- | --------------------------------------------- |
 | `id`   | UUID | Primary Key. System-generated, never changes. |
 | `name` | Text | e.g., "Geneva Bank Data Migration 2025"       |
 
 **2. `macro_phases`** (Was `macro_sequences`)
+
 | Column          | Type    | Description                            |
 | --------------- | ------- | -------------------------------------- |
 | `id`            | UUID    | Primary Key.                           |
@@ -353,6 +355,7 @@ Here's the revised database schema. This is what we'd instruct our system (or a 
 | `display_order` | Integer | To keep them sorted (1, 2, 3...).      |
 
 **3. `chapters`** (The new layer in the hierarchy)
+
 | Column          | Type    | Description                                             |
 | --------------- | ------- | ------------------------------------------------------- |
 | `id`            | UUID    | Primary Key.                                            |
@@ -365,6 +368,7 @@ Here's the revised database schema. This is what we'd instruct our system (or a 
 **The Main Work-Horse Tables**
 
 **4. `steps`**
+
 | Column             | Type    | Description                                                  |
 | ------------------ | ------- | ------------------------------------------------------------ |
 | `id`               | UUID    | Primary Key.                                                 |
@@ -378,6 +382,7 @@ Here's the revised database schema. This is what we'd instruct our system (or a 
 | `duration_minutes` | Integer | Indicative duration.                                         |
 
 **5. `tasks`**
+
 | Column             | Type    | Description                                                  |
 | ------------------ | ------- | ------------------------------------------------------------ |
 | `id`               | UUID    | Primary Key.                                                 |
@@ -393,36 +398,42 @@ Here's the revised database schema. This is what we'd instruct our system (or a 
 **Supporting & Association Tables (The "Glue")**
 
 **6. `teams`** (A list of all possible assignee teams)
+
 | Column | Type | Description                                        |
 | ------ | ---- | -------------------------------------------------- |
 | `id`   | UUID | Primary Key.                                       |
 | `name` | Text | "Operations", "Engine", "CRM". **Must be unique.** |
 
 **7. `environments`** (A list of all possible environments)
+
 | Column | Type | Description                                |
 | ------ | ---- | ------------------------------------------ |
 | `id`   | UUID | Primary Key.                               |
 | `name` | Text | "PROD", "TEST", "EVx". **Must be unique.** |
 
 **8. `iterations`** (A list of all possible Runs, DRs, etc.)
+
 | Column | Type | Description                                           |
 | ------ | ---- | ----------------------------------------------------- |
 | `id`   | UUID | Primary Key.                                          |
 | `name` | Text | "Run0", "Run1", "DR1", "Cutover". **Must be unique.** |
 
 **9. `step_iteration_scope`** (Defines which steps are in which run - a Many-to-Many join table)
+
 | Column         | Type | Description                  |
 | -------------- | ---- | ---------------------------- |
 | `step_id`      | UUID | Foreign Key to `steps`.      |
 | `iteration_id` | UUID | Foreign Key to `iterations`. |
 
 **10. `step_dependencies`** (Defines predecessors for steps - a Many-to-Many join table)
+
 | Column                | Type | Description                                               |
 | --------------------- | ---- | --------------------------------------------------------- |
 | `predecessor_step_id` | UUID | The step that must be done first. Foreign key to `steps`. |
 | `successor_step_id`   | UUID | The step that is blocked. Foreign key to `steps`.         |
 
 **11. `task_controls_link`** (Placeholder for linking Tasks to Controls - a Many-to-Many join table)
+
 | Column       | Type | Description                                 |
 | ------------ | ---- | ------------------------------------------- |
 | `task_id`    | UUID | Foreign Key to `tasks`.                     |
@@ -583,6 +594,7 @@ Here is the updated data model with the new Control-related tables.
 **New Core Table**
 
 **12. `controls`** (The library of all possible controls)
+
 | Column               | Type | Description                                                 |
 | -------------------- | ---- | ----------------------------------------------------------- |
 | `id`                 | UUID | Primary Key (System-generated).                             |
@@ -597,6 +609,7 @@ Here is the updated data model with the new Control-related tables.
 This is the clever bit that handles the "status per iteration" requirement.
 
 **13. `control_iteration_status`** (Tracks the status of each Control for each Run)
+
 | Column         | Type      | Description                                          |
 | -------------- | --------- | ---------------------------------------------------- |
 | `control_id`   | UUID      | Foreign Key to `controls`.                           |
@@ -611,6 +624,7 @@ This is the clever bit that handles the "status per iteration" requirement.
 We anticipated this table before, but now it has its proper place.
 
 **11. `task_controls_link`** (The many-to-many link between Tasks and Controls)
+
 | Column       | Type | Description                |
 | ------------ | ---- | -------------------------- |
 | `task_id`    | UUID | Foreign Key to `tasks`.    |
@@ -1145,6 +1159,7 @@ To store the schedule, we cannot simply add a date to the `chapters` table, beca
 Therefore, I will add a new table to our PostgreSQL database schema. This follows the same robust pattern we used for `control_iteration_status`.
 
 **New Table: `chapter_schedules`**
+
 | Column                   | Type       | Description                                                  |
 | ------------------------ | ---------- | ------------------------------------------------------------ |
 | `chapter_id`             | UUID       | Foreign Key to `chapters`.                                   |

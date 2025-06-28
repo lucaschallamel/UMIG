@@ -39,12 +39,6 @@ markdownlint (MARKDOWN)
   - vscode:
     - vscode-markdownlint: https://marketplace.visualstudio.com/items/DavidAnson.vscode-markdownlint
 
-spectral (OPENAPI)
-  - stoplight:
-    - Native integration: https://stoplight.io/studio
-  - vscode:
-    - vscode-spectral: https://github.com/stoplightio/vscode-spectral
-
 yamllint (YAML)
   - emacs:
     - flycheck: https://github.com/krzysztof-magosa/flycheck-yamllint

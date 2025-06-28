@@ -1,6 +1,7 @@
 ### [Unreleased]
 
 ### Added
+- **Formalized Project Governance and AI Rules:** Established a comprehensive, MECE-structured rule system in `.clinerules/rules` covering Project Guidelines, Core Coding Principles, Scaffolding, Twelve-Factor App, and Microservice Architecture. All rules were refined to ensure consistency and remove redundancy. A detailed, consolidated `global_rules.md` was also created for Windsurf AI to provide a centralized, actionable guide for development.
 - First sprint review & retrospective documented as `20250627-sprint-review.md` in `/docs/devJournal/`.
 - STEP View macro & SPA MVP for migration/release steps in Confluence delivered and validated.
 - SPA + REST pattern formalized (ADR020), integration testing framework established, and robust data utilities implemented.
