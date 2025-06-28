@@ -20,10 +20,10 @@ if [ ! -f "$JDBC_DRIVER_PATH" ]; then
 fi
 
 # --- Test Execution ---
-echo "\n🧪 Running Step View API Integration Test..."
+printf "\n🧪 Running Step View API Integration Test...\n"
 groovy -cp "$JDBC_DRIVER_PATH" tests/integration/stepViewApiIntegrationTest.groovy
 
 # --- Add future integration tests here ---
 
 
-echo "\n✅ All integration tests passed successfully!"
+printf "\n✅ All integration tests passed successfully!\n"

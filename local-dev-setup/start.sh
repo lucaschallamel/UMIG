@@ -23,7 +23,7 @@ while [[ "$(podman inspect --format '{{.State.Health.Status}}' umig_postgres 2>/
     sleep 3
     echo -n "."
 done
-echo "\nPostgreSQL is healthy."
+printf "\nPostgreSQL is healthy.\n"
 
 # Actively poll the PostgreSQL port to ensure it's ready for connections before proceeding.
 # This is more reliable than a fixed sleep, preventing race conditions.
@@ -32,7 +32,7 @@ while ! nc -z localhost 5432; do
   sleep 1 # wait for 1 second before checking again
   echo -n "."
 done
-echo "\nPostgreSQL is ready for connections."
+printf "\nPostgreSQL is ready for connections.\n"
 
 echo "[3/4] Running database migrations with local Liquibase..."
 # Run liquibase from the host, passing credentials directly to the command.
@@ -47,9 +47,9 @@ liquibase \
     update
 echo "Liquibase migrations complete."
 
-echo "[4/4] Starting Confluence and MailHog..."
+printf "[4/4] Starting Confluence and MailHog...\n"
 podman-compose up -d confluence mailhog
 
-echo "\n🚀 Development environment is up and running!"
+printf "\n🚀 Development environment is up and running!\n"
 echo "Confluence: http://localhost:8090"
 echo "MailHog:    http://localhost:8025"
