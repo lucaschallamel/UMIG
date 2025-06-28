@@ -15,7 +15,6 @@ ENABLE_LINTERS:
   - MARKDOWN_MARKDOWNLINT
   - OPENAPI_SPECTRAL
   - BASH_SHELLCHECK
-
   - SQL_SQLFLUFF
   - XML_XMLLINT
   - YAML_YAMLLINT
@@ -28,7 +27,7 @@ APPLY_FIXES: [JAVASCRIPT_PRETTIER, SQL_SQLFLUFF, MARKDOWN_MARKDOWNLINT]
 # --- Global configurations ---
 
 # Ignore specific files and directories
-FILTER_REGEX_EXCLUDE: (^\.archive/|node_modules/)
+FILTER_REGEX_EXCLUDE: (^\.archive/|node_modules/|local-dev-setup/data-utils/coverage/|megalinter-reports/)
 
 # Show elapsed time for each linter
 SHOW_ELAPSED_TIME: true

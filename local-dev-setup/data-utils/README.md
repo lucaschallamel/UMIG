@@ -82,6 +82,7 @@ The script follows specific rules and principles to ensure data integrity, predi
   - The script always prepopulates `step_type_stt` with a fixed set of step types, each with a code, name, description, and a hexadecimal color code (`type_color`).
   - Color codes are stored in the `type_color` field (`VARCHAR(7)`, e.g., `#1ba1e2`).
   - The current reference set is:
+
     | stt_code | stt_name      | stt_description                 | type_color |
     |----------|---------------|----------------------------------|------------|
     | TRT      | TREATMENTS    | Treatments steps                 | #1ba1e2    |
@@ -93,6 +94,7 @@ The script follows specific rules and principles to ensure data integrity, predi
     | GON      | GO/NOGO       | Go/No Go steps                   | #ff0000    |
     | BGO      | BUSINESS GO   | Business Validation steps        | #ffc000    |
     | DUM      | DUMPS         | Database related activities      | #948a54    |
+
   - The script uses `ON CONFLICT (stt_code) DO NOTHING` to ensure idempotency: running the script multiple times will never create duplicates or errors.
 
 - **Canonical Plan and Instance Generation:**

@@ -112,9 +112,10 @@ This project uses **Semgrep** and **MegaLinter** to enforce code quality, securi
 - **Configuration:** See `.mega-linter.yml` at the project root.
 - **Run via Podman:**
   ```sh
-  podman run --rm \
-    -v $(pwd):/tmp/lint \
-    oxsecurity/megalinter:v7
+podman run --rm \
+  -e VALIDATE_ALL_CODEBASE=true \
+  -v $(pwd):/tmp/lint \
+  oxsecurity/megalinter:v8
   ```
   (You can also use Docker if available.)
 
