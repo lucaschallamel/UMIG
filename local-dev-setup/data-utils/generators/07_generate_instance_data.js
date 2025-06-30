@@ -89,6 +89,14 @@ async function generateInstanceData(config, options = {}) {
             const stiRes = await client.query(`INSERT INTO steps_instance_sti (phi_id, stm_id, sti_status, usr_id_assignee) VALUES ($1, $2, $3, $4) RETURNING sti_id`, [phiId, stepMaster.stm_id, randomStatus, faker.helpers.arrayElement(userIds)]);
             const stiId = stiRes.rows[0].sti_id;
             await logAudit(stiId, 'step_instance', userIds[0], 'STATUS_CHANGED', { new_status: randomStatus });
+
+            // --- Add one comment per step instance ---
+            const commentBody = faker.lorem.sentence();
+            const commentAuthorId = faker.helpers.arrayElement(userIds);
+            await client.query(
+              `INSERT INTO step_instance_comments_sic (sti_id, comment_body, created_by) VALUES ($1, $2, $3)`,
+              [stiId, commentBody, commentAuthorId]
+            );
           }
         }
       }

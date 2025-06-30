@@ -36,13 +36,16 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
     // Arrange
     client.query.mockImplementation(query => {
       if (query.includes('TRUNCATE')) return Promise.resolve({ rows: [] });
-      if (query.includes('FROM users_usr')) return Promise.resolve({ rows: [{ usr_id: 'user-1' }] });
-      if (query.includes('FROM environments_env')) return Promise.resolve({ rows: [{ env_id: 'env-1' }, { env_id: 'env-2' }] });
+      if (query.includes('FROM users_usr')) return Promise.resolve({ rows: [{ usr_id: 1 }] });
+      if (query.includes('FROM environments_env')) return Promise.resolve({ rows: [
+        { env_id: '22222222-2222-2222-2222-222222222222' },
+        { env_id: '33333333-3333-3333-3333-333333333333' }
+      ] });
       if (query.includes('FROM environment_roles_enr')) {
         return Promise.resolve({ rows: [
-          { enr_id: 'prod-role-id', enr_name: 'PROD' },
-          { enr_id: 'test-role-id', enr_name: 'TEST' },
-          { enr_id: 'backup-role-id', enr_name: 'BACKUP' },
+          { enr_id: '44444444-4444-4444-4444-444444444444', enr_name: 'PROD' },
+          { enr_id: '55555555-5555-5555-5555-555555555555', enr_name: 'TEST' },
+          { enr_id: '66666666-6666-6666-6666-666666666666', enr_name: 'BACKUP' },
         ]});
       }
       // Default for INSERTs
@@ -87,12 +90,16 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
 
   it('should generate migrations and iterations correctly in a happy path scenario', async () => {
     // Arrange
-    const mockUsers = [{ usr_id: 'user-1' }];
-    const mockEnvs = [{ env_id: 'env-1' }, { env_id: 'env-2' }, { env_id: 'env-3' }];
+    const mockUsers = [{ usr_id: 1 }];
+    const mockEnvs = [
+      { env_id: '22222222-2222-2222-2222-222222222222' },
+      { env_id: '33333333-3333-3333-3333-333333333333' },
+      { env_id: '44444444-4444-4444-4444-444444444444' }
+    ];
     const mockEnvRoles = [
-      { enr_id: 'prod-role-id', enr_name: 'PROD' },
-      { enr_id: 'test-role-id', enr_name: 'TEST' },
-      { enr_id: 'backup-role-id', enr_name: 'BACKUP' },
+      { enr_id: '55555555-5555-5555-5555-555555555555', enr_name: 'PROD' },
+      { enr_id: '66666666-6666-6666-6666-666666666666', enr_name: 'TEST' },
+      { enr_id: '77777777-7777-7777-7777-777777777777', enr_name: 'BACKUP' },
     ];
 
     client.query.mockImplementation(query => {

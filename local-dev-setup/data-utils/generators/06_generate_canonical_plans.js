@@ -37,6 +37,11 @@ async function generateCanonicalPlans(config, options = {}) {
       throw new Error('Cannot generate canonical plans without teams to assign as owners.');
     }
 
+    // Fetch user IDs only once per generator run
+    const usersRes = await client.query('SELECT usr_id FROM users_usr');
+    const userIds = usersRes.rows.map(r => r.usr_id);
+    if (userIds.length === 0) throw new Error('No users found to assign as comment authors.');
+
     const envRolesRes = await client.query('SELECT enr_id FROM environment_roles_enr');
     const envRoleIds = envRolesRes.rows.map(r => r.enr_id);
     if (envRoleIds.length === 0) {
@@ -180,6 +185,36 @@ async function generateCanonicalPlans(config, options = {}) {
                 ]
               );
             }
+
+            // --- UPDATED: Generate pilot comments for ~10% of steps with audit fields ---
+            if (faker.number.int({ min: 1, max: 10 }) === 1) { // ~10% chance
+              const numComments = faker.number.int({ min: 1, max: 3 });
+              for (let c = 0; c < numComments; c++) {
+                const createdBy = faker.helpers.arrayElement(userIds);
+                const createdAt = faker.date.recent({ days: 60 });
+                // 50% chance to have an update
+                let updatedBy = null, updatedAt = null;
+                if (faker.number.int({ min: 1, max: 2 }) === 1) {
+                  updatedBy = faker.helpers.arrayElement(userIds);
+                  // Ensure updatedAt is after createdAt
+                  updatedAt = faker.date.between({ from: createdAt, to: new Date() });
+                }
+                await client.query(
+                  `INSERT INTO step_pilot_comments_spc (stm_id, comment_body, created_by, created_at, updated_by, updated_at, visibility)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                  [
+                    stmId,
+                    faker.lorem.sentences(faker.number.int({ min: 1, max: 3 })),
+                    createdBy,
+                    createdAt,
+                    updatedBy,
+                    updatedAt,
+                    'pilot'
+                  ]
+                );
+              }
+            }
+            // --- END UPDATED ---
           }
         }
       }
