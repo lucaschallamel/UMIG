@@ -28,7 +28,7 @@ async function generateMigrations(config, options = {}) {
   if (options.reset) {
     await resetMigrationsTables(client);
   }
-  console.log(`Generating ${config.num_migrations} migrations...`);
+  console.log(`Generating ${config.MIGRATIONS.COUNT} migrations...`);
 
   try {
     const usersRes = await client.query('SELECT usr_id FROM users_usr');
@@ -52,10 +52,10 @@ async function generateMigrations(config, options = {}) {
         throw new Error('Required environment roles (PROD, TEST, BACKUP) not found.');
     }
 
-    for (let i = 0; i < config.num_migrations; i++) {
-      const startDate = faker.date.between({ from: config.mig_start_date_range[0], to: config.mig_start_date_range[1] });
+    for (let i = 0; i < config.MIGRATIONS.COUNT; i++) {
+      const startDate = faker.date.between({ from: config.MIGRATIONS.START_DATE_RANGE[0], to: config.MIGRATIONS.START_DATE_RANGE[1] });
       const endDate = new Date(startDate);
-      endDate.setMonth(startDate.getMonth() + config.mig_duration_months);
+      endDate.setMonth(startDate.getMonth() + config.MIGRATIONS.DURATION_MONTHS);
       const businessCutoverDate = faker.date.soon({ days: 10, refDate: endDate });
 
       const migRes = await client.query(
@@ -64,7 +64,7 @@ async function generateMigrations(config, options = {}) {
         [
           `Migration for ${faker.company.name()}`,
           faker.lorem.paragraph(),
-          faker.helpers.arrayElement(['MIGRATION', 'DR_TEST']),
+          config.MIGRATIONS.TYPE,
           startDate,
           endDate,
           businessCutoverDate,
@@ -73,9 +73,9 @@ async function generateMigrations(config, options = {}) {
       );
       const migId = migRes.rows[0].mig_id;
 
-      // Generate between 1 and 3 iterations for this Migration
+      // Generate iterations for this Migration
       for (const iteType of ['RUN', 'DR', 'CUTOVER']) {
-        const typeConfig = config.iterations[iteType.toLowerCase()];
+        const typeConfig = config.MIGRATIONS.ITERATIONS[iteType];
         const count = typeof typeConfig === 'number' ? typeConfig : faker.number.int(typeConfig);
 
         for (let j = 0; j < count; j++) {
@@ -101,23 +101,25 @@ async function generateMigrations(config, options = {}) {
           
           // Assign PROD
           await client.query(
-            'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3)',
+            'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
             [shuffledEnvIds[0], iteId, prodRoleId]
           );
 
           // Assign BACKUP
           await client.query(
-            'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3)',
+            'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
             [shuffledEnvIds[1], iteId, backupRoleId]
           );
 
-          // Assign TEST to a few others
-          const numTestEnvs = faker.number.int({ min: 1, max: Math.min(3, shuffledEnvIds.length - 2) });
-          for (let k = 2; k < 2 + numTestEnvs && k < shuffledEnvIds.length; k++) {
-            await client.query(
-              'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3)',
-              [shuffledEnvIds[k], iteId, testRoleId]
-            );
+          // Assign TEST to a few others, if available
+          if (shuffledEnvIds.length > 2) {
+            const numTestEnvs = faker.number.int({ min: 1, max: Math.min(3, shuffledEnvIds.length - 2) });
+            for (let k = 2; k < 2 + numTestEnvs && k < shuffledEnvIds.length; k++) {
+              await client.query(
+                'INSERT INTO environments_env_x_iterations_ite (env_id, ite_id, enr_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+                [shuffledEnvIds[k], iteId, testRoleId]
+              );
+            }
           }
         }
       }

@@ -32,6 +32,19 @@ const DB_CONFIG = {
 // Create a new client instance
 const client = new Client(DB_CONFIG);
 
+// Add detailed event logging for diagnostics
+client.on('connect', () => {
+  console.log('[DB_LOG] Client has connected');
+});
+
+client.on('end', () => {
+  console.log('[DB_LOG] Client has disconnected');
+});
+
+client.on('error', (err) => {
+  console.error('[DB_LOG] Database client error:', err.stack);
+});
+
 // Export the client and connect/disconnect functions
 module.exports = {
   client,

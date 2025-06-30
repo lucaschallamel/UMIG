@@ -7,23 +7,27 @@ const { faker, makeTeamEmail } = require('../lib/utils');
  * @param {object} config - Configuration object with num_teams and teams_email_domain.
  */
 async function generateTeams(client, config) {
-  console.log(`Generating ${config.num_teams} teams...`);
-  const domain = config.teams_email_domain;
+  console.log(`Generating ${config.TEAMS.COUNT} teams...`);
+  const domain = config.TEAMS.EMAIL_DOMAIN;
 
-  // Always create IT_CUTOVER first for user assignment stability
-  const specialTeamName = 'IT_CUTOVER';
-  await client.query(
-    `INSERT INTO teams_tms (tms_name, tms_description, tms_email) VALUES ($1, $2, $3)
-     ON CONFLICT (tms_email) DO NOTHING`,
-    [specialTeamName, 'Team for IT Cutover activities', makeTeamEmail(specialTeamName, domain)]
-  );
+  // A single loop to generate all teams, ensuring IT_CUTOVER is always first.
+  for (let i = 0; i < config.TEAMS.COUNT; i++) {
+    let name, description, email;
 
-  for (let i = 1; i < config.num_teams; i++) {
-    const department = faker.commerce.department();
-    const teamType = faker.helpers.arrayElement(['Team', 'Group', 'Squad', 'Unit', 'Department', 'Division']);
-    const name = `${department} ${teamType}`;
-    const description = faker.company.catchPhrase();
-    const email = makeTeamEmail(name, domain);
+    if (i === 0) {
+      // The first team is always IT_CUTOVER for consistency in user assignments.
+      name = 'IT_CUTOVER';
+      description = 'Team for IT Cutover activities';
+      email = makeTeamEmail(name, domain);
+    } else {
+      // Generate random teams for the rest.
+      const department = faker.commerce.department();
+      const teamType = faker.helpers.arrayElement(['Team', 'Group', 'Squad', 'Unit', 'Department', 'Division']);
+      name = `${department} ${teamType}`;
+      description = faker.company.catchPhrase();
+      email = makeTeamEmail(name, domain);
+    }
+
     await client.query(
       `INSERT INTO teams_tms (tms_name, tms_description, tms_email) VALUES ($1, $2, $3)
        ON CONFLICT (tms_email) DO NOTHING`,
@@ -39,8 +43,8 @@ async function generateTeams(client, config) {
  * @param {object} config - Configuration object with num_apps.
  */
 async function generateApplications(client, config) {
-  console.log(`Generating ${config.num_apps} applications...`);
-  for (let i = 1; i <= config.num_apps; i++) {
+  console.log(`Generating ${config.APPLICATIONS.COUNT} applications...`);
+  for (let i = 1; i <= config.APPLICATIONS.COUNT; i++) {
     const app_code = `APP${String(i).padStart(3, '0')}`;
     const app_name = faker.commerce.productName();
     const app_description = faker.lorem.sentence();
@@ -65,15 +69,20 @@ async function generateTeamApplicationLinks(client) {
   const apps = appRes.rows;
 
   if (teams.length === 0 || apps.length === 0) {
-    console.warn('Warning: No teams or applications found to link.');
-    return;
+    // Fails loudly if there's nothing to link, preventing silent data inconsistencies.
+    throw new Error('Cannot link teams and applications: No teams or applications found.');
   }
 
   // Each team is linked to a random number of apps (between 1 and 5)
   for (const team of teams) {
     const shuffledApps = [...apps].sort(() => 0.5 - Math.random());
     const numLinks = faker.number.int({ min: 1, max: Math.min(5, apps.length) });
-    for (let i = 0; i < numLinks; i++) {
+
+    // Defensively ensure the number of links does not exceed the number of available apps.
+    // This is especially important in a testing context where mocks might not respect bounds.
+    const linksToCreate = Math.min(numLinks, apps.length);
+
+    for (let i = 0; i < linksToCreate; i++) {
       await client.query(
         'INSERT INTO teams_tms_x_applications_app (tms_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
         [team.tms_id, shuffledApps[i].app_id]
@@ -102,15 +111,15 @@ async function resetTeamsAndAppsTables(client) {
     }
     console.log('Finished resetting teams and applications tables.');
   } catch (error) {
-    console.error(`Error resetting tables: ${error}`);
+    console.error(`Error resetting teams and applications tables: ${error}`);
     throw error;
   }
 }
 
 /**
- * Main function to generate teams, applications, and their links.
+ * Main orchestrator function for generating teams, applications, and their links.
  * @param {object} config - The main configuration object.
- * @param {object} options - Command line options, e.g., { reset: true }.
+ * @param {object} options - Generation options, e.g., { reset: boolean }.
  */
 async function generateTeamsAndApps(config, options = {}) {
   try {
@@ -126,4 +135,10 @@ async function generateTeamsAndApps(config, options = {}) {
   }
 }
 
-module.exports = { generateTeamsAndApps };
+module.exports = {
+  generateTeamsAndApps,
+  generateTeams,
+  generateApplications,
+  generateTeamApplicationLinks,
+  resetTeamsAndAppsTables,
+};

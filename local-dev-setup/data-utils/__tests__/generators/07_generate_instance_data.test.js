@@ -1,63 +1,81 @@
-const { client, connect, disconnect } = require('../../lib/db');
+const { client } = require('../../lib/db');
+const { generateInstanceData } = require('../../generators/07_generate_instance_data');
+const utils = require('../../lib/utils');
+const { v4: uuidv4 } = require('uuid');
 
-// Helper to count rows in a table
-async function countRows(table) {
-  const res = await client.query(`SELECT COUNT(*) FROM ${table}`);
-  return parseInt(res.rows[0].count, 10);
-}
+// Mock dependencies
+jest.mock('../../lib/db', () => ({ client: { query: jest.fn() } }));
 
-describe('Step instance comments generation', () => {
-  beforeAll(async () => {
-    await connect();
-    // The main test suite should have already run the generator.
-    // If running this test in isolation, you might need to run the generator first.
+const CONFIG = {}; // This generator doesn't use config values directly
+
+describe('Instance Data Generator (07_generate_instance_data.js)', () => {
+
+  beforeEach(() => {
+    client.query.mockReset();
+    jest.restoreAllMocks();
+
+    // Spy on faker and silence console for cleaner test results
+    jest.spyOn(utils.faker.helpers, 'arrayElement').mockImplementation(arr => arr[0]);
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Default mock: all queries return empty results unless overridden
+    client.query.mockResolvedValue({ rows: [] });
   });
 
-  afterAll(async () => {
-    await disconnect();
+  it('should throw an error if no master plans are found', async () => {
+    // The default mock returns empty rows, triggering the error
+    await expect(generateInstanceData(CONFIG, { clientOverride: client })).rejects.toThrow('Cannot generate instance data without master plans.');
   });
 
-  it('should generate exactly one comment for every step instance', async () => {
-    const numStepInstances = await countRows('steps_instance_sti');
-    const numStepInstanceComments = await countRows('step_instance_comments_sic');
-
-    expect(numStepInstances).toBeGreaterThan(0);
-    expect(numStepInstanceComments).toBe(numStepInstances);
+  it('should throw an error if no iterations are found', async () => {
+    client.query.mockImplementation(query => {
+      if (query.startsWith('SELECT plm_id')) return Promise.resolve({ rows: [{ plm_id: uuidv4() }] });
+      return Promise.resolve({ rows: [] }); // iterations query will be empty
+    });
+    await expect(generateInstanceData(CONFIG, { clientOverride: client })).rejects.toThrow('Cannot generate instance data without iterations.');
   });
 
-  it('should link each comment to a valid step instance and have plausible content, with audit fields', async () => {
-    // Fetch all valid user and step instance IDs
-    const usersRes = await client.query('SELECT usr_id FROM users_usr');
-    const userIds = usersRes.rows.map(r => r.usr_id);
-    expect(userIds.length).toBeGreaterThan(0);
+  it('should throw an error if no users are found', async () => {
+    client.query.mockImplementation(query => {
+      if (query.startsWith('SELECT plm_id')) return Promise.resolve({ rows: [{ plm_id: uuidv4() }] });
+      if (query.startsWith('SELECT ite_id')) return Promise.resolve({ rows: [{ ite_id: uuidv4() }] });
+      return Promise.resolve({ rows: [] }); // users query will be empty
+    });
+    await expect(generateInstanceData(CONFIG, { clientOverride: client })).rejects.toThrow('Cannot generate instance data without users.');
+  });
 
-    const stepInstancesRes = await client.query('SELECT sti_id FROM steps_instance_sti');
-    const stepInstanceIds = stepInstancesRes.rows.map(r => r.sti_id);
-    expect(stepInstanceIds.length).toBeGreaterThan(0);
+  it('should successfully generate instances on a happy path', async () => {
+    const fakePlanId = uuidv4();
+    const fakeIterationId = uuidv4();
+    const fakeUserId = 1;
+    const fakeSequenceId = uuidv4();
+    const fakePhaseId = uuidv4();
+    const fakeStepId = uuidv4();
+    const fakeInstanceId = uuidv4();
 
-    const res = await client.query('SELECT sic_id, sti_id, comment_body, created_by, created_at, updated_by, updated_at FROM step_instance_comments_sic');
-    expect(res.rows.length).toBeGreaterThan(0);
+    // This mock is now self-contained and explicit
+    client.query.mockImplementation((query, params) => {
+      // console.log(`[TEST_DEBUG] Query: ${query}`, params || ''); // Uncomment for deep debugging
+      if (query.startsWith('SELECT plm_id')) return Promise.resolve({ rows: [{ plm_id: fakePlanId, plm_name: 'Master Plan' }] });
+      if (query.startsWith('SELECT ite_id')) return Promise.resolve({ rows: [{ ite_id: fakeIterationId, ite_name: 'Test Iteration', itt_code: 'RUN' }] });
+      if (query.startsWith('SELECT usr_id')) return Promise.resolve({ rows: [{ usr_id: fakeUserId }] });
+      if (query.startsWith('SELECT sqm_id')) return Promise.resolve({ rows: [{ sqm_id: fakeSequenceId }] });
+      if (query.startsWith('SELECT phm_id')) return Promise.resolve({ rows: [{ phm_id: fakePhaseId }] });
+      if (query.startsWith('SELECT stm_id')) return Promise.resolve({ rows: [{ stm_id: fakeStepId }] });
+      if (query.startsWith('INSERT INTO plans_instance_pli')) return Promise.resolve({ rows: [{ pli_id: fakeInstanceId }] });
+      
+      // Default for other INSERTs (sequences, phases, steps, audit) which don't need a specific return value
+      if (query.startsWith('INSERT INTO')) return Promise.resolve({ rows: [{ id: uuidv4() }] });
 
-    for (const row of res.rows) {
-      expect(typeof row.sic_id).toBe('number');
-      expect(typeof row.sti_id).toBe('string'); // UUID
-      expect(stepInstanceIds.includes(row.sti_id)).toBe(true);
+      // Fallback for any unexpected queries
+      return Promise.resolve({ rows: [] });
+    });
 
-      expect(typeof row.comment_body).toBe('string');
-      expect(row.comment_body.length).toBeGreaterThan(5);
+    // Run the generator and expect it not to fail
+    await expect(generateInstanceData(CONFIG, { clientOverride: client })).resolves.not.toThrow();
 
-      // created_by must be a valid user ID
-      expect(userIds.includes(row.created_by)).toBe(true);
-      expect(new Date(row.created_at).toString()).not.toBe('Invalid Date');
-
-      // updated_by/updated_at are nullable, but if present, must be valid
-      if (row.updated_by !== null) {
-        expect(userIds.includes(row.updated_by)).toBe(true);
-        expect(new Date(row.updated_at).toString()).not.toBe('Invalid Date');
-        expect(new Date(row.updated_at) >= new Date(row.created_at)).toBe(true);
-      } else {
-        expect(row.updated_at).toBeNull();
-      }
-    }
+    // Verify that the main INSERT was called, indicating the main logic ran
+    expect(client.query).toHaveBeenCalledWith(expect.stringContaining('INSERT INTO plans_instance_pli'), expect.any(Array));
   });
 });

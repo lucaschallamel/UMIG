@@ -28,9 +28,16 @@ async function generateCanonicalPlans(config, options = {}) {
   if (options.reset) {
     await resetCanonicalPlansTables(client);
   }
-  console.log('Generating 1 canonical implementation plan...');
+  const numPlansToGenerate = config.MIGRATIONS.COUNT * config.CANONICAL_PLANS.PER_MIGRATION;
+  console.log(`Generating ${numPlansToGenerate} canonical implementation plan(s)...`);
 
   try {
+    const migsRes = await client.query('SELECT mig_id FROM migrations_mig');
+    const migIds = migsRes.rows.map(r => r.mig_id);
+    if (migIds.length === 0) {
+      throw new Error('Cannot generate canonical plans without any migrations defined.');
+    }
+
     const teamsRes = await client.query('SELECT tms_id FROM teams_tms');
     const teamIds = teamsRes.rows.map(r => r.tms_id);
     if (teamIds.length === 0) {
@@ -60,8 +67,8 @@ async function generateCanonicalPlans(config, options = {}) {
         throw new Error('Iteration types (RUN, DR, CUTOVER) not found.');
     }
 
-    // Per user request, generate only one master canonical plan to act as a template.
-    for (let i = 0; i < 1; i++) {
+    // Create a canonical plan for each migration to satisfy downstream dependencies (e.g., labels).
+    for (let i = 0; i < numPlansToGenerate; i++) {
       const planRes = await client.query(
         `INSERT INTO plans_master_plm (plm_name, plm_description, tms_id, plm_status, created_by, updated_by)
          VALUES ($1, $2, $3, 'DRAFT', 'data_generator', 'data_generator') RETURNING plm_id`,
@@ -82,11 +89,13 @@ async function generateCanonicalPlans(config, options = {}) {
       ];
 
       let predecessorSqmId = null;
+      // Determine which migration this plan belongs to.
+      const migId = migIds[Math.floor(i / config.CANONICAL_PLANS.PER_MIGRATION)];
       for (const seqData of sequences) {
         const seqRes = await client.query(
-          `INSERT INTO sequences_master_sqm (plm_id, sqm_order, sqm_name, sqm_description, predecessor_sqm_id)
-           VALUES ($1, $2, $3, $4, $5) RETURNING sqm_id`,
-          [plmId, seqData.order, seqData.name, seqData.description, predecessorSqmId]
+          `INSERT INTO sequences_master_sqm (plm_id, mig_id, sqm_order, sqm_name, sqm_description, predecessor_sqm_id)
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING sqm_id`,
+          [plmId, migId, seqData.order, seqData.name, seqData.description, predecessorSqmId]
         );
         predecessorSqmId = seqRes.rows[0].sqm_id;
         const sqmId = seqRes.rows[0].sqm_id;

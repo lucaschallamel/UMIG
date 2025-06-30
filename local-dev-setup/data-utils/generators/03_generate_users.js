@@ -66,7 +66,7 @@ async function generateUsers(config, options = {}) {
   }
 
   // 3. Generate all required unique trigrams at once
-  const totalUsers = config.num_users + config.num_admin_users + config.num_pilot_users;
+  const totalUsers = config.USERS.NORMAL.COUNT + config.USERS.ADMIN.COUNT + config.USERS.PILOT.COUNT;
   const trigrams = generateUniqueTrigrams(totalUsers);
   let trigramIndex = 0;
 
@@ -78,7 +78,7 @@ async function generateUsers(config, options = {}) {
 
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${config.teams_email_domain}`.replace(/[^a-z0-9_.-@]/g, '');
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${config.TEAMS.EMAIL_DOMAIN}`.replace(/[^a-z0-9_.-@]/g, '');
     const trigram = trigrams[trigramIndex++];
 
     await client.query(
@@ -90,21 +90,21 @@ async function generateUsers(config, options = {}) {
   };
 
   // 5. Generate NORMAL users with specific team assignment logic
-  console.log(`Generating ${config.num_users} NORMAL users...`);
-  if (config.num_users > 0 && normalTeamIds.length > 0) {
+  console.log(`Generating ${config.USERS.NORMAL.COUNT} NORMAL users...`);
+  if (config.USERS.NORMAL.COUNT > 0 && normalTeamIds.length > 0) {
     const shuffledTeamIds = [...normalTeamIds].sort(() => 0.5 - Math.random());
-    for (let i = 0; i < config.num_users; i++) {
+    for (let i = 0; i < config.USERS.NORMAL.COUNT; i++) {
       const teamId = shuffledTeamIds[i % shuffledTeamIds.length]; // Cycle through teams
       await createUser('NORMAL', teamId);
     }
   }
 
   // 6. Generate ADMIN and PILOT users, assigning them to IT_CUTOVER team
-  console.log(`Generating ${config.num_admin_users} ADMIN users...`);
-  for (let i = 0; i < config.num_admin_users; i++) { await createUser('ADMIN', itCutoverTeamId); }
+  console.log(`Generating ${config.USERS.ADMIN.COUNT} ADMIN users...`);
+  for (let i = 0; i < config.USERS.ADMIN.COUNT; i++) { await createUser('ADMIN', itCutoverTeamId); }
 
-  console.log(`Generating ${config.num_pilot_users} PILOT users...`);
-  for (let i = 0; i < config.num_pilot_users; i++) { await createUser('PILOT', itCutoverTeamId); }
+  console.log(`Generating ${config.USERS.PILOT.COUNT} PILOT users...`);
+  for (let i = 0; i < config.USERS.PILOT.COUNT; i++) { await createUser('PILOT', itCutoverTeamId); }
 
   console.log('Finished generating users.');
 }
