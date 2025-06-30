@@ -64,7 +64,14 @@ Starts all services. The first time you run this, it will execute an Ansible pla
 ```
 
 ### `stop.sh`
-Stops and removes all running containers and networks defined in `podman-compose.yml`. This is the standard way to shut down the environment.
+Stops and removes all running containers and networks. By default, this is a non-destructive operation.
+
+To perform a full cleanup and delete all persistent data volumes, use the `--reset` flag.
+
+**Command with Reset:**
+```bash
+./stop.sh --reset
+```
 
 **Command:**
 ```bash
@@ -72,23 +79,23 @@ Stops and removes all running containers and networks defined in `podman-compose
 ```
 
 ### `restart.sh`
-A utility script that stops and then starts the environment. It's useful for applying changes that require a full restart.
+A convenience script that stops and then starts the environment. It passes any arguments directly to `stop.sh`, allowing you to perform a reset.
 
-**Command:**
-```bash
-./restart.sh
-```
+#### Resetting Data Volumes
+To perform a full reset, use the `--reset` flag. This will stop the services, wipe all persistent data volumes, and then start the services again.
 
-#### Resetting the Database
-The `restart.sh` script includes an optional `--reset` flag that completely wipes the PostgreSQL database volume before starting the environment again. This is useful when you need to start with a fresh, empty database.
-
-**Warning:** This action is irreversible and will delete all data in your local database.
+**Warning:** This action is irreversible and will delete all local data.
 
 **Command with Reset:**
 ```bash
 ./restart.sh --reset
 ```
-You will be asked for confirmation before the data is deleted.
+You will be asked for confirmation before any data is deleted.
+
+**Command:**
+```bash
+./restart.sh
+```
 
 ## One-Time ScriptRunner Configuration
 

@@ -141,11 +141,13 @@ CREATE TABLE plans_master_plm (
 CREATE TABLE sequences_master_sqm (
     sqm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plm_id UUID NOT NULL,
+    mig_id UUID, -- This can be null for true plan templates, but will be set for migration-specific canonical plans
     sqm_order INTEGER NOT NULL,
     sqm_name VARCHAR(255) NOT NULL,
     sqm_description TEXT,
     predecessor_sqm_id UUID, -- Self-referencing FK for dependency
     CONSTRAINT fk_sqm_plm_plm_id FOREIGN KEY (plm_id) REFERENCES plans_master_plm(plm_id),
+    CONSTRAINT fk_sqm_mig_mig_id FOREIGN KEY (mig_id) REFERENCES migrations_mig(mig_id),
     CONSTRAINT fk_sqm_sqm_predecessor FOREIGN KEY (predecessor_sqm_id) REFERENCES sequences_master_sqm(sqm_id)
 );
 

@@ -6,13 +6,16 @@ const utils = require('../../lib/utils');
 jest.mock('../../lib/db', () => ({ client: { query: jest.fn() } }));
 
 const CONFIG = {
-  num_migrations: 2,
-  mig_start_date_range: ['2023-01-01', '2023-06-01'],
-  mig_duration_months: 6,
-  iterations: {
-    run: 1,
-    dr: 1,
-    cutover: 1,
+  MIGRATIONS: {
+    COUNT: 2,
+    TYPE: 'MIGRATION',
+    START_DATE_RANGE: ['2023-01-01', '2023-06-01'],
+    DURATION_MONTHS: 6,
+    ITERATIONS: {
+      RUN: 1,
+      DR: 1,
+      CUTOVER: 1,
+    },
   },
 };
 
@@ -30,19 +33,26 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
     jest.spyOn(utils.faker.date, 'between').mockReturnValue(new Date('2023-04-15T00:00:00.000Z'));
     jest.spyOn(utils.faker.date, 'soon').mockReturnValue(new Date('2023-10-25T00:00:00.000Z'));
     jest.spyOn(utils.faker.number, 'int').mockReturnValue(1);
+
+    // Silence console output for cleaner test results
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('should call resetMigrationsTables when reset option is true', async () => {
     // Arrange
     client.query.mockImplementation(query => {
       if (query.includes('TRUNCATE')) return Promise.resolve({ rows: [] });
-      if (query.includes('FROM users_usr')) return Promise.resolve({ rows: [{ usr_id: 'user-1' }] });
-      if (query.includes('FROM environments_env')) return Promise.resolve({ rows: [{ env_id: 'env-1' }, { env_id: 'env-2' }] });
+      if (query.includes('FROM users_usr')) return Promise.resolve({ rows: [{ usr_id: 1 }] });
+      if (query.includes('FROM environments_env')) return Promise.resolve({ rows: [
+        { env_id: '22222222-2222-2222-2222-222222222222' },
+        { env_id: '33333333-3333-3333-3333-333333333333' }
+      ] });
       if (query.includes('FROM environment_roles_enr')) {
         return Promise.resolve({ rows: [
-          { enr_id: 'prod-role-id', enr_name: 'PROD' },
-          { enr_id: 'test-role-id', enr_name: 'TEST' },
-          { enr_id: 'backup-role-id', enr_name: 'BACKUP' },
+          { enr_id: '44444444-4444-4444-4444-444444444444', enr_name: 'PROD' },
+          { enr_id: '55555555-5555-5555-5555-555555555555', enr_name: 'TEST' },
+          { enr_id: '66666666-6666-6666-6666-666666666666', enr_name: 'BACKUP' },
         ]});
       }
       // Default for INSERTs
@@ -87,12 +97,16 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
 
   it('should generate migrations and iterations correctly in a happy path scenario', async () => {
     // Arrange
-    const mockUsers = [{ usr_id: 'user-1' }];
-    const mockEnvs = [{ env_id: 'env-1' }, { env_id: 'env-2' }, { env_id: 'env-3' }];
+    const mockUsers = [{ usr_id: 1 }];
+    const mockEnvs = [
+      { env_id: '22222222-2222-2222-2222-222222222222' },
+      { env_id: '33333333-3333-3333-3333-333333333333' },
+      { env_id: '44444444-4444-4444-4444-444444444444' }
+    ];
     const mockEnvRoles = [
-      { enr_id: 'prod-role-id', enr_name: 'PROD' },
-      { enr_id: 'test-role-id', enr_name: 'TEST' },
-      { enr_id: 'backup-role-id', enr_name: 'BACKUP' },
+      { enr_id: '55555555-5555-5555-5555-555555555555', enr_name: 'PROD' },
+      { enr_id: '66666666-6666-6666-6666-666666666666', enr_name: 'TEST' },
+      { enr_id: '77777777-7777-7777-7777-777777777777', enr_name: 'BACKUP' },
     ];
 
     client.query.mockImplementation(query => {
@@ -101,7 +115,7 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
       if (query.includes('FROM environment_roles_enr')) return Promise.resolve({ rows: mockEnvRoles });
       if (query.includes('INSERT INTO migrations_mig')) return Promise.resolve({ rows: [{ mig_id: 'mig-1' }] });
       if (query.includes('INSERT INTO iterations_ite')) return Promise.resolve({ rows: [{ ite_id: 'ite-1' }] });
-      if (query.includes('INSERT INTO iteration_environments_ien')) return Promise.resolve({ rows: [] });
+      if (query.includes('INSERT INTO environments_env_x_iterations_ite')) return Promise.resolve({ rows: [] });
       return Promise.resolve({ rows: [] });
     });
 
@@ -110,13 +124,10 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
 
     // Assert
     const migrationInserts = client.query.mock.calls.filter(c => c[0].includes('INSERT INTO migrations_mig'));
-    expect(migrationInserts.length).toBe(CONFIG.num_migrations);
+    expect(migrationInserts.length).toBe(CONFIG.MIGRATIONS.COUNT);
 
     const iterationInserts = client.query.mock.calls.filter(c => c[0].includes('INSERT INTO iterations_ite'));
-    const totalExpectedIterations = CONFIG.num_migrations * (CONFIG.iterations.run + CONFIG.iterations.dr + CONFIG.iterations.cutover);
+    const totalExpectedIterations = CONFIG.MIGRATIONS.COUNT * (CONFIG.MIGRATIONS.ITERATIONS.RUN + CONFIG.MIGRATIONS.ITERATIONS.DR + CONFIG.MIGRATIONS.ITERATIONS.CUTOVER);
     expect(iterationInserts.length).toBe(totalExpectedIterations);
-
-    // Check that a CUTOVER iteration was created
-    expect(utils.faker.helpers.arrayElement).toHaveBeenCalledWith(['MIGRATION', 'DR_TEST']);
   });
 });

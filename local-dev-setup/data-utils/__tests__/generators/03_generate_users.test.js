@@ -7,10 +7,14 @@ jest.mock('../../lib/db', () => ({ client: { query: jest.fn() } }));
 jest.mock('../../lib/utils', () => ({ faker: { string: { alpha: jest.fn() }, person: { firstName: jest.fn(), lastName: jest.fn() } } }));
 
 const CONFIG = {
-  num_users: 5,
-  num_admin_users: 2,
-  num_pilot_users: 1,
-  teams_email_domain: 'test.com',
+  USERS: {
+    NORMAL: { COUNT: 5 },
+    ADMIN: { COUNT: 2 },
+    PILOT: { COUNT: 1 },
+  },
+  TEAMS: {
+    EMAIL_DOMAIN: 'test.com',
+  },
 };
 
 describe('Users Generator (03_generate_users.js)', () => {
@@ -62,24 +66,24 @@ describe('Users Generator (03_generate_users.js)', () => {
 
     // Assert
     const insertCalls = client.query.mock.calls.filter(call => call[0].startsWith('INSERT'));
-    const totalUsers = CONFIG.num_users + CONFIG.num_admin_users + CONFIG.num_pilot_users;
+    const totalUsers = CONFIG.USERS.NORMAL.COUNT + CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT;
     expect(insertCalls.length).toBe(totalUsers);
 
     // Check that each user was inserted with the correct team and role ID
     const adminUsers = insertCalls.filter(call => call[1][6] === 'admin-role-id');
-    expect(adminUsers.length).toBe(CONFIG.num_admin_users);
+    expect(adminUsers.length).toBe(CONFIG.USERS.ADMIN.COUNT);
     adminUsers.forEach(call => {
       expect(call[1][5]).toBe('it-team-id'); // tms_id
     });
 
     const pilotUsers = insertCalls.filter(call => call[1][6] === 'pilot-role-id');
-    expect(pilotUsers.length).toBe(CONFIG.num_pilot_users);
+    expect(pilotUsers.length).toBe(CONFIG.USERS.PILOT.COUNT);
     pilotUsers.forEach(call => {
       expect(call[1][5]).toBe('it-team-id'); // tms_id
     });
 
     const normalUsers = insertCalls.filter(call => call[1][6] === 'normal-role-id');
-    expect(normalUsers.length).toBe(CONFIG.num_users);
+    expect(normalUsers.length).toBe(CONFIG.USERS.NORMAL.COUNT);
     normalUsers.forEach(call => {
       expect(call[1][5]).toBe('normal-team-id'); // tms_id
     });

@@ -9,6 +9,13 @@ The UMIG project utilizes a sophisticated, two-part data model that separates re
 
 ### Core Philosophy: Canonical vs. Instance
 
+### New Commenting Features (2025-06-30)
+UMIG now supports rich commenting for both canonical plan steps and executed step instances:
+- `step_pilot_comments_spc`: Stores pilot/release manager comments on canonical steps (design-time feedback, instructions, etc.).
+- `step_instance_comments_sic`: Stores user comments on step instances (real-time execution feedback, issues, and discussion).
+
+The data generation utilities now populate these tables with realistic synthetic comments for development and testing. See the data-utils README for details.
+
 * **Canonical (Master) Model**: Defines the reusable playbooks for a migration (`plans_master_plm`, `sequences_master_sqm`, `phases_master_phm`, etc.). These are the "what" and "how."
 * **Instance Model**: Represents a specific, live execution of a canonical plan for a given iteration (`plans_instance_pli`, `sequences_instance_sqi`, etc.). These track the "when" and "what happened."
 

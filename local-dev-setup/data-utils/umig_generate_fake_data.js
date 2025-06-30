@@ -9,25 +9,41 @@ const { generateAllEnvironments } = require('./generators/04_generate_environmen
 const { generateMigrations } = require('./generators/05_generate_migrations');
 const { generateCanonicalPlans } = require('./generators/06_generate_canonical_plans');
 const { generateInstanceData } = require('./generators/07_generate_instance_data');
+const { generateLabels } = require('./generators/08_generate_labels');
 // Centralized configuration for data generation
 const CONFIG = {
-  num_migrations: 5,
-  mig_type: 'EXTERNAL',
-  mig_start_date_range: ['2024-11-01', '2025-06-01'],
-  mig_duration_months: 6,
-  iterations: {
-    run: { min: 2, max: 4 },
-    dr: { min: 1, max: 3 },
-    cutover: 1
+  MIGRATIONS: {
+    COUNT: 5,
+    TYPE: 'EXTERNAL',
+    START_DATE_RANGE: ['2024-11-01', '2025-06-01'],
+    DURATION_MONTHS: 6,
+    ITERATIONS: {
+      RUN: { min: 2, max: 4 },
+      DR: { min: 1, max: 3 },
+      CUTOVER: 1,
+    },
   },
-  num_teams: 20,
-  teams_email_domain: 'umig.com',
-  num_apps: 12,
-  num_users: 50,
-  num_pilot_users: 4,
-  num_admin_users: 2,
-  num_controls: 30,
-  num_canonical_plans: 5
+  TEAMS: {
+    COUNT: 20,
+    EMAIL_DOMAIN: 'umig.com',
+  },
+  APPLICATIONS: {
+    COUNT: 12,
+  },
+  USERS: {
+    NORMAL: { COUNT: 50 },
+    ADMIN: { COUNT: 2 },
+    PILOT: { COUNT: 4 },
+  },
+  CONTROLS: {
+    COUNT: 30,
+  },
+  CANONICAL_PLANS: {
+    PER_MIGRATION: 1,
+  },
+  LABELS: {
+    PER_MIGRATION: { MIN: 3, MAX: 8 },
+  },
 };
 
 async function main() {
@@ -41,12 +57,13 @@ async function main() {
 
   const generators = {
     '01': () => generateCoreMetadata(), // No reset needed
-    '02': () => generateTeamsAndApps(CONFIG, options),
-    '03': () => generateUsers(CONFIG, options),
-    '04': () => generateAllEnvironments(options),
-    '05': () => generateMigrations(CONFIG, options),
-    '06': () => generateCanonicalPlans(CONFIG, options),
-    '07': () => generateInstanceData(CONFIG, options)
+    '02': () => generateTeamsAndApps(CONFIG, { ...options, clientOverride: client }),
+    '03': () => generateUsers(CONFIG, { ...options, clientOverride: client }),
+    '04': () => generateAllEnvironments({ ...options, clientOverride: client }),
+    '05': () => generateMigrations(CONFIG, { ...options, clientOverride: client }),
+    '06': () => generateCanonicalPlans(CONFIG, { ...options, clientOverride: client }),
+    '07': () => generateInstanceData(CONFIG, { ...options, clientOverride: client }),
+    '08': () => generateLabels(CONFIG, { ...options, clientOverride: client })
   };
 
   try {

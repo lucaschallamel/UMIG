@@ -28,6 +28,7 @@ A critical integration crisis during STEP View development led to the establishm
 
 ## Recent Changes
 
+- **Confluence HTML Importer Utility Initiated**: A new cross-platform utility for importing and extracting structured data from Confluence-exported HTML files has been added (`local-dev-setup/data-utils/Confluence_Importer`). The tool is a work in progress, with documentation updated in the root and utility-specific READMEs. No core application logic was changed during this session.
 - **STEP View Macro & SPA MVP Delivered**: The STEP View macro and SPA for rendering migration/release steps in Confluence have been completed and validated as of 27 June 2025. This implementation harmonises frontend and backend payloads, provides robust error handling, and serves as a reference for future migration-related UIs.
 - **SPA + REST Pattern Formalised**: ADR020 (noted as ARD020) created, establishing the SPA + REST pattern as the standard for all admin UIs.
 - **User Admin SPA Implemented**: Dynamic user management SPA (`user-list.js`, `UserApi.groovy`) now serves as a reference implementation.

@@ -16,6 +16,16 @@ This separation provides critical flexibility, allowing a single canonical plan 
 
 The data model follows a clear hierarchical structure, flowing from high-level strategic projects down to granular, executable instructions.
 
+### Label & Stream Assignment (Matrix Grouping for Steps)
+
+In addition to the strict hierarchy, UMIG supports flexible, migration-specific grouping of canonical steps ("streams" or other labels) via a normalized label system:
+
+- **labels_lbl**: Stores labels scoped to a migration (fields: lbl_id, mig_id, lbl_name, lbl_description, lbl_color, created_at, created_by).
+- **labels_lbl_x_steps_master_stm**: Join table linking labels to canonical steps (fields: lbl_x_stm_id, lbl_id, stm_id, created_at, created_by).
+- Each label is unique within a migration. Steps can have multiple labels, and labels can be reused across steps within the same migration.
+- This enables matrix/faceted views such as "streams" for steps, supporting advanced planning and reporting.
+
+
 ### 1. The Strategic Layer
 
 - **Migration (`migrations_mig`)**: The highest-level container representing a complete strategic initiative (e.g., "Data Center Consolidation 2025"). It has a business owner and a final cutover date.
@@ -23,7 +33,26 @@ The data model follows a clear hierarchical structure, flowing from high-level s
 
 ### 2. The Canonical (Master) Layer
 
-This layer defines the reusable playbook.
+This layer defines 
+
+#### Table: step_pilot_comments_spc
+
+- **Purpose:** Stores accrued comments, tips, and recommendations for each canonical step, specifically for pilots and release managers. These are distinct from formal instructions and intended to capture operational wisdom and context.
+- **Fields:**
+  - `spc_id`: Primary key.
+  - `stm_id`: Foreign key to `steps_master_stm` (the step this comment relates to).
+  - `comment_body`: The comment or tip content.
+  - `author`: (Optional) Who wrote the comment.
+  - `created_at`: Timestamp of creation.
+  - `visibility`: Intended audience (default: 'pilot').
+
+**Relationship:**  
+Each `steps_master_stm` row can have zero or more related `step_pilot_comments_spc` rows (one-to-many).
+
+**ERD Update:**  
+Add a one-to-many arrow from `steps_master_stm` to `step_pilot_comments_spc`.
+
+the reusable playbook.
 
 - **Plan (`plans_master_plm`)**: The master playbook containing the end-to-end set of procedures.
 - **Sequence (`sequences_master_sqm`)**: A major chapter in the plan (e.g., "Pre-Migration Setup," "Application Failover").
@@ -34,7 +63,27 @@ This layer defines the reusable playbook.
 
 ### 3. The Instance (Execution) Layer
 
-This layer is a direct, time-stamped snapshot of the canonical layer for a specific iteration.
+This layer defines 
+
+#### Table: step_instance_comments_sic
+
+- **Purpose:** Stores user comments on the execution of a specific step instance (`steps_instance_sti`). Enables collaborative, auditable commentary during plan/iteration runs.
+- **Fields:**
+  - `sic_id`: Primary key.
+  - `sti_id`: Foreign key to `steps_instance_sti` (the executed step).
+  - `comment_body`: The comment text (long, unbounded).
+  - `created_by`: User who wrote the comment (FK to `users_usr`).
+  - `created_at`: Timestamp of creation.
+  - `updated_by`: User who last edited (nullable, FK to `users_usr`).
+  - `updated_at`: Timestamp of last update (nullable).
+
+**Relationship:**  
+Each `steps_instance_sti` row can have zero or more related `step_instance_comments_sic` rows (one-to-many).
+
+**ERD Update:**  
+Add a one-to-many arrow from `steps_instance_sti` to `step_instance_comments_sic`.
+
+a direct, time-stamped snapshot of the canonical layer for a specific iteration.
 
 - **Plan Instance (`plans_instance_pli`)**: A snapshot of a master plan, created for and linked to a single **Iteration**.
 - **Sequence Instance (`sequences_instance_sqi`)**: An instance of a sequence for a specific plan instance.
