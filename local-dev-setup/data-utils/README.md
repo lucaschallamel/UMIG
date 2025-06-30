@@ -26,6 +26,13 @@ This directory contains CLI tools for generating synthetic test data and importi
 
 ## 1. Fake Data Generator
 
+### Comment Generation (2025-06-30)
+- The generator now creates:
+  - Pilot/release manager comments for a subset of canonical steps (`step_pilot_comments_spc`)
+  - One user comment per step instance (`step_instance_comments_sic`)
+- This ensures richer, more realistic test data and enables new features for collaboration and audit.
+- See `06_generate_canonical_plans.js` and `07_generate_instance_data.js` for implementation details.
+
 **Script:** `umig_generate_fake_data.js`
 
 **Purpose:** Populates the local database with a comprehensive, hierarchical set of synthetic data for development and testing. It generates a complete structure of migrations, iterations, sequences, chapters, steps, and instructions, along with all necessary supporting data like users, teams, applications, and environments.

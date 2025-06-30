@@ -1,5 +1,15 @@
 ### [Unreleased]
 
+#### 2025-06-30
+- Added tables: `step_pilot_comments_spc` (pilot/release manager comments on canonical steps) and `step_instance_comments_sic` (user comments on instance steps)
+- Added Liquibase migrations: `002_add_step_pilot_comments.sql`, `003_add_step_instance_comments.sql`
+- Canonical plan generator now creates pilot comments for master steps
+- Instance data generator now creates one comment per step instance
+- New Jest integration test for step instance comments (`07_generate_instance_data.test.js`)
+- Added `uuid` dependency for UUID generation
+- Fixed and stabilized data generation tests (`05_generate_migrations.test.js`, `06_generate_canonical_plans.test.js`)
+- Improved audit fields and data realism in all generators
+
 ### Added
 - Introduced a new cross-platform utility (`local-dev-setup/data-utils/Confluence_Importer`) for importing and extracting structured data from Confluence-exported HTML files.
   - Includes Bash (`scrape_html.sh`) and PowerShell (`scrape_html.ps1`) scripts, a sample output template (`template.json`), and a dedicated README.
