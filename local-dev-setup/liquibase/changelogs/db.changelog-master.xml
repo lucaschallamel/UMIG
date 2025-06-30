@@ -8,6 +8,7 @@
     <include file="001_unified_baseline.sql" relativeToChangelogFile="true"/>
     <include file="002_add_step_pilot_comments.sql" relativeToChangelogFile="true"/>
     <include file="003_add_step_instance_comments.sql" relativeToChangelogFile="true"/>
+    <include file="004_add_labels_and_step_label_join.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
