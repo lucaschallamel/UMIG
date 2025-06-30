@@ -11,9 +11,20 @@ echo "Stopping and removing all services defined in podman-compose.yml..."
 # will not produce errors if the environment is already stopped.
 podman-compose down
 
-echo "Removing persistent data volumes to ensure a clean start..."
-# The '|| true' part ensures that the script doesn't fail if the volume doesn't exist
-podman volume rm local-dev-setup_postgres_data || true
-podman volume rm local-dev-setup_confluence_data || true
+echo "Environment stopped."
 
-echo "Environment stopped and cleaned." 
+# --- Handle optional data reset ---
+if [[ "$1" == "--reset" ]]; then
+  # Ask for confirmation before deleting the volumes
+  read -p "❓ Are you sure you want to permanently delete all persistent data volumes (PostgreSQL and Confluence)? [y/N] " -n 1 -r
+  echo # Move to a new line
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "🗑️  Deleting persistent data volumes..."
+    # Use '|| true' to prevent script failure if a volume doesn't exist
+    podman volume rm local-dev-setup_postgres_data || true
+    podman volume rm local-dev-setup_confluence_data || true
+    echo "All persistent data volumes have been removed."
+  else
+    echo "Skipping volume deletion."
+  fi
+fi 

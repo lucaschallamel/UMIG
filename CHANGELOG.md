@@ -1,14 +1,22 @@
 ### [Unreleased]
 
 #### 2025-06-30
-- Added tables: `step_pilot_comments_spc` (pilot/release manager comments on canonical steps) and `step_instance_comments_sic` (user comments on instance steps)
-- Added Liquibase migrations: `002_add_step_pilot_comments.sql`, `003_add_step_instance_comments.sql`
-- Canonical plan generator now creates pilot comments for master steps
-- Instance data generator now creates one comment per step instance
-- New Jest integration test for step instance comments (`07_generate_instance_data.test.js`)
-- Added `uuid` dependency for UUID generation
-- Fixed and stabilized data generation tests (`05_generate_migrations.test.js`, `06_generate_canonical_plans.test.js`)
-- Improved audit fields and data realism in all generators
+- **Feature: Added flexible labeling system for canonical steps.**
+  - Introduced `labels_lbl` and `labels_lbl_x_steps_master_stm` tables to allow grouping steps into "streams" or other logical categories within a migration.
+  - Added Liquibase changelog `004_add_labels_and_step_label_join.sql`.
+  - Updated `sequences_master_sqm` with a `mig_id` foreign key for better data integrity.
+- **Test: Stabilized and refactored the entire data generator test suite.**
+  - Converted slow, hanging integration tests (`07_generate_instance_data.test.js`, `08_generate_labels.test.js`) into fast, isolated unit tests using dependency injection and full mocking.
+  - Fixed a critical memory leak in a test mock and removed a redundant integration test to eliminate instability.
+  - Updated all generator scripts and the main orchestrator to support the new testing pattern.
+- **Chore: Improved local development environment stability.**
+  - The `stop.sh` script now automatically removes PostgreSQL and Confluence data volumes to ensure a clean start.
+- Added tables: `step_pilot_comments_spc` (pilot/release manager comments on canonical steps) and `step_instance_comments_sic` (user comments on instance steps).
+- Added Liquibase migrations: `002_add_step_pilot_comments.sql`, `003_add_step_instance_comments.sql`.
+- Canonical plan generator now creates pilot comments for master steps.
+- Instance data generator now creates one comment per step instance.
+- Added `uuid` dependency for UUID generation.
+- Improved audit fields and data realism in all generators.
 
 ### Added
 - Introduced a new cross-platform utility (`local-dev-setup/data-utils/Confluence_Importer`) for importing and extracting structured data from Confluence-exported HTML files.

@@ -26,55 +26,50 @@ This directory contains CLI tools for generating synthetic test data and importi
 
 ## 1. Fake Data Generator
 
-### Comment Generation (2025-06-30)
-- The generator now creates:
-  - Pilot/release manager comments for a subset of canonical steps (`step_pilot_comments_spc`)
-  - One user comment per step instance (`step_instance_comments_sic`)
-- This ensures richer, more realistic test data and enables new features for collaboration and audit.
-- See `06_generate_canonical_plans.js` and `07_generate_instance_data.js` for implementation details.
-
 **Script:** `umig_generate_fake_data.js`
 
-**Purpose:** Populates the local database with a comprehensive, hierarchical set of synthetic data for development and testing. It generates a complete structure of migrations, iterations, sequences, chapters, steps, and instructions, along with all necessary supporting data like users, teams, applications, and environments.
+**Purpose:** Populates the local database with a comprehensive, hierarchical set of synthetic data. It generates migrations, canonical plans, users, teams, applications, and all supporting data required for development and testing.
+
+**Key Features:**
+- **Hierarchical Plans:** Creates a full structure of migrations, iterations, sequences, phases, and steps.
+- **Rich Supporting Data:** Generates users with distinct roles (`NORMAL`, `ADMIN`, `PILOT`), teams, and applications.
+- **Label Generation:** Creates migration-specific labels (e.g., "Stream 1") and associates them with canonical steps, enabling flexible, matrix-style reporting.
+- **Comment Generation:** Populates pilot comments on canonical steps and user comments on instance steps to simulate real-world collaboration.
 
 **Environment Safety:** The script includes critical safety checks:
-- It will **only** run if the `--env dev` or `--env test` flag is explicitly provided.
-- If the `--reset` flag is used, it will prompt for confirmation before truncating tables to prevent accidental data loss.
 - It will fail with a clear error if any required database connection variables from `.env` are missing.
 
 ### Usage
 
-- **Generate data (without resetting):**
-  ```sh
-  node umig_generate_fake_data.js
-  ```
-- **Reset and generate new data:**
+- **Generate data (with full reset):**
   ```sh
   node umig_generate_fake_data.js --reset
   ```
-
-The script will prompt for confirmation before deleting any data when using the `--reset` flag.
-
-> **Note:**
-> As of 2025-06-25, the assignment of applications to environments during fake data generation is fully deterministic, ensuring stable and reproducible test results.
+- **Run a single generator script:**
+  ```sh
+  node umig_generate_fake_data.js --script 08
+  ```
 
 ### Configuration
 
-The generation process is controlled by a configuration object embedded at the top of the `umig_generate_fake_data.js` script. This approach centralizes all parameters for easier management. The `fake_data_config.json` file is now obsolete. Below is a description of each parameter:
+The generation process is controlled by the `CONFIG` object at the top of `umig_generate_fake_data.js`. This centralizes all parameters for easy management.
 
 | Parameter | Type | Description |
 | :--- | :--- | :--- |
-| `num_migrations` | Number | The total number of migrations (`migrations_mig`) to create. |
-| `mig_type` | String | The type assigned to all generated migrations (e.g., "EXTERNAL"). |
-| `mig_start_date_range`| Array | A `[start, end]` string array defining the date range for migration start dates. |
-| `mig_duration_months`| Number | The duration in months for each migration, used to calculate the end date. |
-| `iterations` | Object | Defines the number of `RUN`, `DR`, and `CUTOVER` iterations per migration. |
-| `num_teams` | Number | The number of regular teams to generate (in addition to the special `IT_CUTOVER` team). |
-| `teams_email_domain` | String | The email domain used for all generated users (e.g., "example.com"). |
-| `num_applications` | Number | The number of applications to generate. |
-| `num_users` | Number | The number of users with the `NORMAL` role to generate. |
-| `num_pilot_users` | Number | The number of users with the `PILOT` role to generate. |
-| `num_admin_users` | Number | The number of users with the `ADMIN` role to generate. |
+| `MIGRATIONS.COUNT` | Number | The total number of migrations to create. |
+| `MIGRATIONS.TYPE` | String | The type for all generated migrations (e.g., "EXTERNAL"). |
+| `MIGRATIONS.START_DATE_RANGE`| Array | Date range `[start, end]` for migration start dates. |
+| `MIGRATIONS.DURATION_MONTHS`| Number | Duration in months for each migration. |
+| `MIGRATIONS.ITERATIONS` | Object | Defines the min/max number of `RUN`, `DR`, and `CUTOVER` iterations per migration. |
+| `TEAMS.COUNT` | Number | The number of teams to generate. |
+| `TEAMS.EMAIL_DOMAIN` | String | The email domain for all generated users. |
+| `APPLICATIONS.COUNT` | Number | The number of applications to generate. |
+| `USERS.NORMAL.COUNT` | Number | The number of users with the `NORMAL` role. |
+| `USERS.ADMIN.COUNT` | Number | The number of users with the `ADMIN` role. |
+| `USERS.PILOT.COUNT` | Number | The number of users with the `PILOT` role. |
+| `CONTROLS.COUNT` | Number | The number of controls to generate. |
+| `CANONICAL_PLANS.PER_MIGRATION`| Number | The number of canonical plans to generate for each migration. |
+| `LABELS.PER_MIGRATION` | Object | Defines the min/max number of labels to generate per migration. |
 
 ### Data Generation Logic and Conventions
 
