@@ -2,6 +2,9 @@
 
 ## Data Model Overview
 
+### Confluence HTML Importer (In Progress)
+A new utility is being developed in `local-dev-setup/data-utils/Confluence_Importer` for importing and extracting structured data from Confluence pages exported as HTML. It supports both Bash and PowerShell environments and outputs structured step/instruction data. The tool is not yet complete—see the README in that folder for details and usage.
+
 The UMIG project utilizes a sophisticated, two-part data model that separates reusable "Canonical" templates from time-bound "Instance" executions. This design provides maximum flexibility for managing complex migrations.
 
 ### Core Philosophy: Canonical vs. Instance
