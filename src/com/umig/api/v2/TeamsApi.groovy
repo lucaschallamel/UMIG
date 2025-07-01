@@ -14,6 +14,23 @@ import javax.ws.rs.core.Response
 
 final TeamRepository teamRepository = new TeamRepository()
 
+/**
+ * Returns all users for a given team, including audit fields from the join table.
+ * Endpoint: GET /teams/{teamId}/members
+ */
+teamsMembers(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    final Integer teamId = getTeamIdFromPath(request)
+    if (teamId == null) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Team ID is required in the path for members endpoint."]).toString()).build()
+    }
+    def team = teamRepository.findTeamById(teamId)
+    if (!team) {
+        return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found."]).toString()).build()
+    }
+    def members = teamRepository.findTeamMembers(teamId)
+    return Response.ok(new JsonBuilder(members).toString()).build()
+}
+
 private Integer getTeamIdFromPath(HttpServletRequest request) {
     def extraPath = getAdditionalPath(request)
     if (extraPath) {

@@ -107,4 +107,29 @@ class TeamRepository {
             return rowsAffected > 0
         }
     }
+
+    /**
+     * Returns all users for a given team, including audit fields from the join table.
+     * @param teamId The team ID.
+     * @return List of user+membership maps.
+     */
+    def findTeamMembers(int teamId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT
+                    u.usr_id,
+                    u.usr_trigram,
+                    u.usr_first_name,
+                    u.usr_last_name,
+                    u.usr_email,
+                    u.rls_id,
+                    j.created_at,
+                    j.created_by
+                FROM teams_tms_x_users_usr j
+                JOIN users_usr u ON u.usr_id = j.usr_id
+                WHERE j.tms_id = :teamId
+                ORDER BY u.usr_last_name, u.usr_first_name
+            """, [teamId: teamId])
+        }
+    }
 }
