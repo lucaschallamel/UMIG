@@ -514,8 +514,9 @@ components:
         usr_email:
           type: string
           format: email
-        usr_confluence_id:
+        usr_code:
           type: string
+          description: "The user's unique 3-letter code, mapping to the Confluence user ID."
         rls_id:
           type: integer
 
@@ -524,7 +525,7 @@ components:
       required:
         - usr_name
         - usr_email
-        - usr_confluence_id
+        - usr_code
       properties:
         usr_name:
           type: string

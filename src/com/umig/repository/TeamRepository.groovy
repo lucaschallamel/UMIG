@@ -16,7 +16,7 @@ class TeamRepository {
     def findTeamById(int teamId) {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
-                SELECT tms_id, tms_name, tms_description
+                SELECT tms_id, tms_name, tms_description, tms_email
                 FROM teams_tms
                 WHERE tms_id = :teamId
             """, [teamId: teamId])
@@ -30,7 +30,7 @@ class TeamRepository {
     def findAllTeams() {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT tms_id, tms_name, tms_description
+                SELECT tms_id, tms_name, tms_description, tms_email
                 FROM teams_tms
                 ORDER BY tms_name
             """)
@@ -45,8 +45,8 @@ class TeamRepository {
     def createTeam(Map teamData) {
         DatabaseUtil.withSql { sql ->
             def insertQuery = """
-                INSERT INTO teams_tms (tms_name, tms_description)
-                VALUES (:tms_name, :tms_description)
+                INSERT INTO teams_tms (tms_name, tms_description, tms_email)
+                VALUES (:tms_name, :tms_description, :tms_email)
             """
 
             def generatedKeys = sql.executeInsert(insertQuery, teamData, ['tms_id'])
@@ -74,7 +74,7 @@ class TeamRepository {
 
             def setClauses = []
             def queryParams = [:]
-            def updatableFields = ['tms_name', 'tms_description']
+            def updatableFields = ['tms_name', 'tms_description', 'tms_email']
 
             teamData.each { key, value ->
                 if (key in updatableFields) {
@@ -116,20 +116,19 @@ class TeamRepository {
     def findTeamMembers(int teamId) {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT
-                    u.usr_id,
-                    u.usr_trigram,
-                    u.usr_first_name,
-                    u.usr_last_name,
-                    u.usr_email,
-                    u.rls_id,
-                    j.created_at,
-                    j.created_by
-                FROM teams_tms_x_users_usr j
-                JOIN users_usr u ON u.usr_id = j.usr_id
-                WHERE j.tms_id = :teamId
-                ORDER BY u.usr_last_name, u.usr_first_name
-            """, [teamId: teamId])
+            SELECT
+                u.usr_id,
+                (u.usr_first_name || ' ' || u.usr_last_name) AS usr_name,
+                u.usr_email,
+                u.usr_code,
+                u.rls_id,
+                j.created_at,
+                j.created_by
+            FROM teams_tms_x_users_usr j
+            JOIN users_usr u ON u.usr_id = j.usr_id
+            WHERE j.tms_id = :teamId
+            ORDER BY u.usr_last_name, u.usr_first_name
+        """, [teamId: teamId])
         }
     }
 }
