@@ -1,5 +1,14 @@
 ### [Unreleased]
 
+#### 2025-07-01 (API)
+- **Feature: Enhanced Teams API for Membership Management.**
+  - Implemented robust routing in `TeamsApi.groovy` to correctly handle nested endpoints for adding (`PUT /teams/{id}/users/{userId}`) and removing (`DELETE /teams/{id}/users/{userId}`) users from teams.
+  - Improved error handling to return `409 Conflict` when attempting to delete a team that is still referenced by other resources.
+- **Documentation: Synchronized API documentation with implementation.**
+  - Updated `openapi.yaml` to include the `409 Conflict` response for the team deletion endpoint.
+  - Regenerated the Postman collection from the OpenAPI specification to ensure tests are aligned with the current API contract.
+  - Formalized API implementation standards in a new developer guide (`src/groovy/README.md`) and a new architectural record (`ADR-023-Standardized-Rest-Api-Patterns.md`).
+
 #### 2025-07-01
 - **Breaking Change:** Migrated user-team relationship to many-to-many (N-N) via `teams_tms_x_users_usr` join table. Removed `tms_id` from `users_usr`.
 - **Migration:** Added `006_add_teams_users_join.sql` to migrate data and update schema; join table `created_by` is now integer (`usr_id`).

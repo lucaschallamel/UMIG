@@ -16,7 +16,7 @@ class TeamRepository {
     def findTeamById(int teamId) {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
-                SELECT tms_id, tms_name, tms_description
+                SELECT tms_id, tms_name, tms_description, tms_email
                 FROM teams_tms
                 WHERE tms_id = :teamId
             """, [teamId: teamId])
@@ -30,7 +30,7 @@ class TeamRepository {
     def findAllTeams() {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
-                SELECT tms_id, tms_name, tms_description
+                SELECT tms_id, tms_name, tms_description, tms_email
                 FROM teams_tms
                 ORDER BY tms_name
             """)
@@ -45,8 +45,8 @@ class TeamRepository {
     def createTeam(Map teamData) {
         DatabaseUtil.withSql { sql ->
             def insertQuery = """
-                INSERT INTO teams_tms (tms_name, tms_description)
-                VALUES (:tms_name, :tms_description)
+                INSERT INTO teams_tms (tms_name, tms_description, tms_email)
+                VALUES (:tms_name, :tms_description, :tms_email)
             """
 
             def generatedKeys = sql.executeInsert(insertQuery, teamData, ['tms_id'])
@@ -74,7 +74,7 @@ class TeamRepository {
 
             def setClauses = []
             def queryParams = [:]
-            def updatableFields = ['tms_name', 'tms_description']
+            def updatableFields = ['tms_name', 'tms_description', 'tms_email']
 
             teamData.each { key, value ->
                 if (key in updatableFields) {
@@ -105,6 +105,65 @@ class TeamRepository {
             def deleteQuery = "DELETE FROM teams_tms WHERE tms_id = :teamId"
             def rowsAffected = sql.executeUpdate(deleteQuery, [teamId: teamId])
             return rowsAffected > 0
+        }
+    }
+
+    /**
+     * Returns all users for a given team, including audit fields from the join table.
+     * @param teamId The team ID.
+     * @return List of user+membership maps.
+     */
+    def findTeamMembers(int teamId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+            SELECT
+                u.usr_id,
+                (u.usr_first_name || ' ' || u.usr_last_name) AS usr_name,
+                u.usr_email,
+                u.usr_code,
+                u.rls_id,
+                j.created_at,
+                j.created_by
+            FROM teams_tms_x_users_usr j
+            JOIN users_usr u ON u.usr_id = j.usr_id
+            WHERE j.tms_id = :teamId
+            ORDER BY u.usr_last_name, u.usr_first_name
+        """, [teamId: teamId])
+        }
+    }
+
+    /**
+     * Adds a user to a team.
+     * @param teamId The ID of the team.
+     * @param userId The ID of the user.
+     * @return A map with status: 'created' on success, 'exists' if already a member.
+     */
+    def addUserToTeam(int teamId, int userId) {
+        DatabaseUtil.withSql { sql ->
+            def existing = sql.firstRow("""SELECT 1 FROM teams_tms_x_users_usr WHERE tms_id = :teamId AND usr_id = :userId""", [teamId: teamId, userId: userId])
+            if (existing) {
+                return [status: 'exists']
+            }
+
+            def insertQuery = """
+                INSERT INTO teams_tms_x_users_usr (tms_id, usr_id, created_at, created_by)
+                VALUES (:teamId, :userId, now(), null) -- Assuming created_by can be null or has a default
+            """
+            def rowsAffected = sql.executeUpdate(insertQuery, [teamId: teamId, userId: userId])
+            return rowsAffected > 0 ? [status: 'created'] : [status: 'error']
+        }
+    }
+
+    /**
+     * Removes a user from a team.
+     * @param teamId The ID of the team.
+     * @param userId The ID of the user.
+     * @return The number of rows affected (1 if successful, 0 if not).
+     */
+    def removeUserFromTeam(int teamId, int userId) {
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM teams_tms_x_users_usr WHERE tms_id = :teamId AND usr_id = :userId"
+            return sql.executeUpdate(deleteQuery, [teamId: teamId, userId: userId])
         }
     }
 }

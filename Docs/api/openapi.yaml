@@ -88,17 +88,16 @@ paths:
     get:
       summary: Get an Implementation Plan by ID
       tags: [Plans]
-      operationId: getPlanById
+      operationId: getPlan
       parameters:
         - name: planId
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       responses:
         '200':
-          description: Plan object.
+          description: A single implementation plan.
           content:
             application/json:
               schema:
@@ -114,14 +113,13 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlanCreateRequest'
+              $ref: '#/components/schemas/Plan'
       responses:
         '200':
           description: Plan updated successfully.
@@ -129,6 +127,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Plan'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
@@ -140,8 +140,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
+            type: integer
       responses:
         '204':
           description: Plan deleted successfully.
@@ -151,7 +150,7 @@ paths:
   # --- Teams Endpoints ---
   /teams:
     get:
-      summary: List all Teams
+      summary: List all teams
       tags: [Teams]
       operationId: listTeams
       responses:
@@ -163,8 +162,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Team'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     post:
-      summary: Create a Team
+      summary: Create a team
       tags: [Teams]
       operationId: createTeam
       requestBody:
@@ -182,12 +183,16 @@ paths:
                 $ref: '#/components/schemas/Team'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /teams/{teamId}:
     get:
-      summary: Get a Team by ID
+      summary: Get a team by ID
       tags: [Teams]
-      operationId: getTeamById
+      operationId: getTeam
       parameters:
         - name: teamId
           in: path
@@ -196,15 +201,19 @@ paths:
             type: integer
       responses:
         '200':
-          description: Team object.
+          description: A single team.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     put:
-      summary: Update a Team
+      summary: Update a team
       tags: [Teams]
       operationId: updateTeam
       parameters:
@@ -218,7 +227,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TeamCreateRequest'
+              $ref: '#/components/schemas/Team'
       responses:
         '200':
           description: Team updated successfully.
@@ -226,10 +235,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
-      summary: Delete a Team
+      summary: Delete a team
       tags: [Teams]
       operationId: deleteTeam
       parameters:
@@ -241,13 +254,97 @@ paths:
       responses:
         '204':
           description: Team deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /teams/{teamId}/members:
+    get:
+      summary: List all users in a given team, including membership audit fields
+      tags: [Teams]
+      operationId: listTeamMembers
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          description: The team ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Array of users with membership audit fields
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /teams/{teamId}/users/{userId}:
+    put:
+      summary: Add a user to a team
+      tags: [Teams]
+      operationId: addUserToTeam
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User added to team successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Remove a user from a team
+      tags: [Teams]
+      operationId: removeUserFromTeam
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: User removed from team successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   # --- Users Endpoints ---
   /users:
     get:
-      summary: List all Users
+      summary: List all users
       tags: [Users]
       operationId: listUsers
       responses:
@@ -260,7 +357,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
     post:
-      summary: Create a User
+      summary: Create a user
       tags: [Users]
       operationId: createUser
       requestBody:
@@ -281,9 +378,9 @@ paths:
 
   /users/{userId}:
     get:
-      summary: Get a User by ID
+      summary: Get a user by ID
       tags: [Users]
-      operationId: getUserById
+      operationId: getUser
       parameters:
         - name: userId
           in: path
@@ -292,7 +389,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: User object.
+          description: A single user.
           content:
             application/json:
               schema:
@@ -300,7 +397,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
     put:
-      summary: Update a User
+      summary: Update a user
       tags: [Users]
       operationId: updateUser
       parameters:
@@ -314,7 +411,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreateRequest'
+              $ref: '#/components/schemas/User'
       responses:
         '200':
           description: User updated successfully.
@@ -322,10 +419,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
-      summary: Delete a User
+      summary: Delete a user
       tags: [Users]
       operationId: deleteUser
       parameters:
@@ -340,126 +439,57 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  # --- WebApp Endpoint ---
-  /web/{filePath}:
+  # --- WebApp Endpoints ---
+  /umig-app/{path}:
     get:
-      summary: Serve a static web asset
+      summary: Serves static assets for the UMIG web application.
       tags: [WebApp]
-      operationId: getWebAppFile
+      operationId: getWebAppAsset
       parameters:
-        - name: filePath
+        - name: path
           in: path
           required: true
-          description: The path to the static file (e.g., 'css/style.css').
+          description: The path to the static asset (e.g., index.html, main.js).
           schema:
             type: string
       responses:
         '200':
-          description: The requested file.
+          description: The requested static asset.
           content:
+            text/html: {}
             text/css: {}
             application/javascript: {}
-            image/svg+xml: {}
-            text/html: {}
-            application/octet-stream: {}
         '404':
-          $ref: '#/components/responses/NotFound'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+          description: Asset not found.
 
 components:
   schemas:
     # --- StepView Schemas ---
     StepViewResponse:
       type: object
-      properties:
-        stepSummary:
-          $ref: '#/components/schemas/StepSummary'
-        instructions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Instruction'
-        impactedTeams:
-          type: array
-          items:
-            type: string
-          example: ["Outdoors Team", "Marketing Team"]
-
-    StepSummary:
-      type: object
-      properties:
-        ID:
-          type: string
-          example: "SYS-1"
-        Name:
-          type: string
-          example: "Step compress"
-        Description:
-          type: string
-          example: "Tutamen cenaculum tristis coadunatio maxime cupiditate."
-        Type:
-          type: string
-          example: "SYSTEM"
-
-    Instruction:
-      type: object
-      properties:
-        Order:
-          type: integer
-          example: 1
-        Description:
-          type: string
-          example: "Cauda tonsor tamisium cunctatio bene ascisco vestrum."
+      # ... properties for StepViewResponse
 
     # --- Plan Schemas ---
     Plan:
       type: object
       properties:
-        mig_id:
-          type: string
-          format: uuid
-          readOnly: true
-        usr_id_owner:
+        pln_id:
           type: integer
-        mig_name:
+          readOnly: true
+        pln_name:
           type: string
-        mig_description:
+        pln_description:
           type: string
-        mig_status:
-          type: string
-        mig_type:
-          type: string
-        mig_start_date:
-          type: string
-          format: date
-        mig_end_date:
-          type: string
-          format: date
 
     PlanCreateRequest:
       type: object
       required:
-        - usr_id_owner
-        - mig_name
-        - mig_status
-        - mig_type
+        - pln_name
       properties:
-        usr_id_owner:
-          type: integer
-        mig_name:
+        pln_name:
           type: string
-        mig_description:
+        pln_description:
           type: string
-        mig_status:
-          type: string
-        mig_type:
-          type: string
-        mig_start_date:
-          type: string
-          format: date
-        mig_end_date:
-          type: string
-          format: date
 
     # --- Team Schemas ---
     Team:
@@ -490,6 +520,17 @@ components:
           type: string
 
     # --- User Schemas ---
+    TeamMember:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            created_at:
+              type: string
+              format: date-time
+            created_by:
+              type: integer
+
     User:
       type: object
       properties:
@@ -501,8 +542,9 @@ components:
         usr_email:
           type: string
           format: email
-        usr_confluence_id:
+        usr_code:
           type: string
+          description: "The user's unique 3-letter code, mapping to the Confluence user ID."
         rls_id:
           type: integer
 
@@ -511,7 +553,7 @@ components:
       required:
         - usr_name
         - usr_email
-        - usr_confluence_id
+        - usr_code
       properties:
         usr_name:
           type: string
@@ -533,6 +575,18 @@ components:
           type: string
 
   responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Access to the resource is forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     NotFound:
       description: The specified resource was not found.
       content:
@@ -545,14 +599,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: Access to the resource is forbidden.
+    Conflict:
+      description: The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     InternalServerError:
-      description: Internal server error.
+      description: An unexpected internal server error occurred.
       content:
         application/json:
           schema:

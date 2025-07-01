@@ -171,11 +171,29 @@ When you reach the "Set up your database" screen, you must use the following set
 - **Setup Type**: `Simple`
 - **Hostname**: `postgres`
 - **Port**: `5432`
-- **Database Name**: `confluence_db`
+- **Database Name**: `umig_app_db`
 - **Username**: `umig_user` (or the value of `POSTGRES_USER` in your `.env` file)
 - **Password**: The password you set for `POSTGRES_PASSWORD` in your `.env` file (defaults to `changeme`).
 
 **Important**: You must use `postgres` as the hostname, not `localhost`. This is because Confluence is running in its own container and needs to connect to the `postgres` container over the shared container network. `localhost` inside the Confluence container refers only to itself.
+
+### ScriptRunner Database Connection Setup
+
+After completing the initial Confluence setup, you must configure a database connection pool within ScriptRunner itself. This is what allows the custom API endpoints (Groovy scripts) to connect to the database.
+
+1.  **Log into Confluence** as an administrator.
+2.  Go to **General Configuration** > **ScriptRunner** (under "Add-ons" in the left sidebar).
+3.  Click on the **Resources** tab.
+4.  Click **Add New Item** and select **Database Connection Pool**.
+5.  Fill out the form with the following details:
+    *   **Pool Name:** `umig_db_pool` (This exact name is referenced by the `DatabaseUtil` in the project's Groovy code).
+    *   **JNDI Name:** `jdbc/umig_db` (This provides a unique JNDI name for the connection).
+    *   **Driver Class Name:** `org.postgresql.Driver`
+    *   **Database URL:** `jdbc:postgresql://postgres:5432/umig_app_db`
+    *   **Username:** The value of `POSTGRES_USER` from your `.env` file (e.g., `umig_user`).
+    *   **Password:** The value of `POSTGRES_PASSWORD` from your `.env` file.
+    *   **Validation Query:** `SELECT 1`
+6.  Click **Add**.
 
 ## Services
 

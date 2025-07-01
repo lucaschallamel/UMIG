@@ -1,130 +1,26 @@
-# Tech Context
-
-## SPA + REST Admin UI Pattern (ADR020)
-
-A dynamic SPA (Single Page Application) + REST pattern is now the standard for all administrative entity management interfaces, as formalised in ADR020. This pattern requires:
-- ScriptRunner REST endpoints for backend CRUD operations, using the repository pattern and robust type handling.
-- Dedicated JavaScript SPAs for each entity, dynamically rendering list, detail, and edit views.
-- Dynamic form generation from entity fields, with strict type safety (booleans, numbers, etc.).
-- Minimal Confluence macros that only load the relevant JS asset and container.
-- Comprehensive documentation and enforcement in all relevant README.md files and ADRs.
-
-Integration testing is now a critical safeguard against schema drift, validating backend and database integration against the live environment.
+# Technical Context
 
 ## Technologies Used
 
-- **Host Platform:** Atlassian Confluence (version 8.5.6)
-- **Frontend:** Custom Confluence Macro (HTML, CSS, Vanilla JavaScript ES6+), SPA + REST pattern for admin UIs
-- **Backend:** Atlassian ScriptRunner (Groovy) exposing REST APIs, following the "Pure ScriptRunner Application" and SPA + REST patterns
-- **Database:** PostgreSQL, managed via Liquibase for automated migrations
-- **Containerisation:** Podman and Podman Compose
-- **Configuration Management:** Ansible
-- **Version Control:** Git
-- **Testing Frameworks:**
-  - Jest for Node.js utilities
-  - Groovy for integration testing
-- **Development Utilities:** Node.js for data generation and CSV importing
-- **Package Management:** NPM for Node.js utilities
-- **Environment Management:** dotenv for secure credential management
+- **Backend:** Groovy (ScriptRunner) for REST API endpoints and business logic.
+- **API Specification:** OpenAPI (`docs/api/openapi.yaml`) as the definitive contract for all endpoints.
+- **Database:** PostgreSQL, with schema migrations managed via Liquibase.
+- **Testing:** Automated tests (Jest for data utilities, Postman for API), with collections regenerated from the OpenAPI spec.
+- **Containerisation:** Podman and Ansible for local development and deployment.
 
 ## Development Setup
 
-- Local development is orchestrated with Podman Compose and Ansible, providing containers for Confluence, PostgreSQL, and MailHog.
-- Database schema changes are managed and versioned with Liquibase, applied automatically on environment startup.
-- The codebase is structured for separation of concerns:
-  - Backend code resides in `src/com/umig/` (API, repository, utility)
-  - Frontend assets in `src/web/`
-  - Confluence macros in `src/macros/`
-  - Integration tests in `tests/integration/`
-- ScriptRunner is installed manually via the Confluence UI Marketplace for stability and compatibility.
-- Database connectivity for ScriptRunner is managed via its built-in Database Resource Pool feature (`umig_db_pool`), with all backend access using the type-safe `withSql` pattern.
-- The PostgreSQL JDBC driver is included in the custom Confluence image.
-- REST endpoints are auto-discovered by ScriptRunner from the `src/com/umig/api/v2` directory.
-- OpenAPI specification is maintained at version 3.0.0 for compatibility.
-- Podman named volumes are used for PostgreSQL data persistence, with proper volume management required during environment restarts.
-- Improved shell scripts (`start.sh`, `stop.sh`, `restart.sh` with `--reset`) manage the environment lifecycle.
-- All backend coding conventions and database access patterns are documented in `src/README.md`.
-- Node.js utilities are managed with NPM, with proper package.json and package-lock.json in the 'local-dev-setup/data-utils' directory.
-- Jest is configured for testing Node.js utilities, with comprehensive test coverage for all generator components.
-- Integration tests are executed via a standardised shell script (`run-integration-tests.sh`), which manages the classpath for the PostgreSQL JDBC driver.
-- Database credentials for integration tests are loaded securely from the `.env` file, removing them from source code.
+- All API changes must begin with updates to the OpenAPI specification, ensuring the implementation and documentation remain synchronised.
+- The backend is implemented in Groovy scripts, following formalised patterns for routing, idempotency, and error handling.
+- Postman collections are regenerated after OpenAPI changes to keep automated tests aligned with the current API contract.
 
-## Technical Constraints
+## Technical Constraints and Conventions
 
-- No modern JavaScript frameworks (React, Vue, Angular, etc.) are permitted; all frontend logic must use vanilla JS.
-- Only Atlassian ScriptRunner (Groovy) or a containerised NodeJS application are allowed for backend logic, but ScriptRunner is preferred for deep Confluence integration.
-- PostgreSQL is the only approved database; SQLite and other embedded databases are not permitted.
-- All authentication must use the enterprise Active Directory; email notifications must use Exchange.
-- All major technical decisions are documented in ADRs and referenced in the memory bank.
-- Node.js utilities must be compatible with Node.js v18+ for long-term support.
-- All database access from ScriptRunner must use the type-safe `withSql` pattern.
-- All REST endpoints must follow the "Pure ScriptRunner Application" and SPA + REST patterns.
-- All database tables must follow the standardised naming conventions.
+- **Error Handling:** All database and application errors are mapped to precise HTTP status codes, as per the new standard (see ADR-023).
+- **Idempotency:** PUT and DELETE operations on associations are idempotent.
+- **Documentation:** Developer guides and ADRs are maintained to ensure onboarding and ongoing development are efficient and consistent.
 
 ## Dependencies
 
-### Backend Dependencies
-
-- **ScriptRunner for Confluence:** Version 8.43.0
-- **PostgreSQL JDBC Driver:** Version 42.7.7 (for application), Version 42.2.20 (for integration tests)
-- **Groovy:** Version bundled with ScriptRunner (2.5.x)
-- **Groovy Grape:** For dependency management in integration tests
-
-### Frontend Dependencies
-
-- **Vanilla JavaScript:** ES6+
-- **HTML/CSS:** Standard web technologies
-
-### Development Dependencies
-
-- **Node.js:** Version 18+ (LTS)
-- **NPM:** Version 9+
-- **Jest:** Version 29.7.0 (Testing framework)
-- **Faker.js:** Version 8.4.1 (Synthetic data generation)
-- **pg:** Version 8.16.2 (PostgreSQL client for Node.js)
-- **commander:** Version 11.1.0 (Command-line interface)
-- **dotenv:** Version 16.5.0 (Environment variable management)
-- **csv-parser:** Version 3.0.0 (CSV parsing)
-- **Podman:** Version 4.5+
-- **Podman Compose:** Version 1.0.6+
-- **Ansible:** Version 2.15+
-- **Liquibase:** Version 4.23+
-
-## Tool Usage Patterns
-
-- **Ansible** is used for initial environment setup and rebuilding the custom Confluence image.
-- **Daily development** is managed with `start.sh`, `stop.sh`, and `restart.sh` scripts for starting, stopping, and resetting all services and running migrations.
-- **Live-reload** for backend and frontend code is supported via volume mounts.
-- **ScriptRunner database connectivity** is validated by running a simple `SELECT 1` in the ScriptRunner console.
-- **Data generation** is fully modular, with single-responsibility generator files:
-  - `01_generate_core_metadata.js` - Prepopulates reference tables with idempotent inserts
-  - `02_generate_teams_apps.js` - Creates teams and applications with deterministic codes
-  - `03_generate_users.js` - Generates users with role-based team assignments
-  - `04_generate_environments.js` - Creates environments with consistent naming
-  - `05_generate_migrations.js` - Creates migration records with realistic dates
-  - `06_generate_canonical_plans.js` - Builds master plan templates with fixed sequence structure
-  - `07_generate_instance_data.js` - Creates plan instances (ACTIVE and DRAFT) for each iteration
-- The main `umig_generate_fake_data.js` script orchestrates these modular components with a centralised configuration object.
-- Only the **canonical implementation plan structure** is supported; all legacy generators and models have been removed.
-- **Reference tables** (`status_sts`, `step_type_stt`) and Liquibase migration tracking tables are protected during database resets.
-- **Step types** are prepopulated with codes, names, descriptions, and colour codes using idempotent insert logic.
-- **CSV importing** is supported via `umig_csv_importer.js` with flexible field mapping between CSV headers and database columns.
-- **Enhanced synthetic data generation** supports role-based user creation (NORMAL, ADMIN, PILOT) with intelligent team assignment logic.
-- **Jest** is used for testing Node.js utilities, with deterministic fixtures ensuring reproducible test results.
-- All **Node.js utilities** enforce strict environment safety, refusing to run in production environments and requiring confirmation for destructive operations.
-- **Integration tests** verify data integrity rules, including team membership guarantees and role-based assignments.
-- **NPM scripts** are configured for running tests and other common tasks.
-- **Git** is configured to ignore Node.js artefacts, including node_modules, coverage reports, and npm debug logs.
-- **Database access** from ScriptRunner follows the type-safe `withSql` pattern with explicit type casting.
-- **REST endpoints** follow the "Pure ScriptRunner Application" and SPA + REST patterns with proper error handling.
-- **OpenAPI specification** is maintained at version 3.0.0 for compatibility.
-- **UI components** follow a consistent pattern:
-  - ScriptRunner macro loads JavaScript asset
-  - JavaScript handles UI rendering and API calls
-  - Backend API endpoint processes requests and returns JSON
-  - Repository layer abstracts database access
-- **Integration testing** follows a standardised approach:
-  - Tests connect to the live database to validate real integration
-  - Credentials are loaded securely from environment variables
-  - Tests are executed via standardised shell scripts
-  - Validates that repository queries match the actual database schema
+- All dependencies are declared explicitly and managed via project manifests.
+- No implicit reliance on system-wide packages.
