@@ -162,6 +162,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Team'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     post:
       summary: Create a team
       tags: [Teams]
@@ -181,6 +183,10 @@ paths:
                 $ref: '#/components/schemas/Team'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /teams/{teamId}:
     get:
@@ -200,8 +206,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     put:
       summary: Update a team
       tags: [Teams]
@@ -229,6 +239,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       summary: Delete a team
       tags: [Teams]
@@ -242,8 +254,14 @@ paths:
       responses:
         '204':
           description: Team deleted successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /teams/{teamId}/members:
     get:
@@ -270,6 +288,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /teams/{teamId}/users/{userId}:
     put:
@@ -290,8 +310,12 @@ paths:
       responses:
         '204':
           description: User added to team successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       summary: Remove a user from a team
       tags: [Teams]
@@ -310,8 +334,12 @@ paths:
       responses:
         '204':
           description: User removed from team successfully.
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   # --- Users Endpoints ---
   /users:
@@ -547,6 +575,18 @@ components:
           type: string
 
   responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Access to the resource is forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
     NotFound:
       description: The specified resource was not found.
       content:
@@ -559,14 +599,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: Access to the resource is forbidden.
+    Conflict:
+      description: The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     InternalServerError:
-      description: Internal server error.
+      description: An unexpected internal server error occurred.
       content:
         application/json:
           schema:

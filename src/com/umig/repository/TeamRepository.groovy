@@ -131,4 +131,39 @@ class TeamRepository {
         """, [teamId: teamId])
         }
     }
+
+    /**
+     * Adds a user to a team.
+     * @param teamId The ID of the team.
+     * @param userId The ID of the user.
+     * @return A map with status: 'created' on success, 'exists' if already a member.
+     */
+    def addUserToTeam(int teamId, int userId) {
+        DatabaseUtil.withSql { sql ->
+            def existing = sql.firstRow("""SELECT 1 FROM teams_tms_x_users_usr WHERE tms_id = :teamId AND usr_id = :userId""", [teamId: teamId, userId: userId])
+            if (existing) {
+                return [status: 'exists']
+            }
+
+            def insertQuery = """
+                INSERT INTO teams_tms_x_users_usr (tms_id, usr_id, created_at, created_by)
+                VALUES (:teamId, :userId, now(), null) -- Assuming created_by can be null or has a default
+            """
+            def rowsAffected = sql.executeUpdate(insertQuery, [teamId: teamId, userId: userId])
+            return rowsAffected > 0 ? [status: 'created'] : [status: 'error']
+        }
+    }
+
+    /**
+     * Removes a user from a team.
+     * @param teamId The ID of the team.
+     * @param userId The ID of the user.
+     * @return The number of rows affected (1 if successful, 0 if not).
+     */
+    def removeUserFromTeam(int teamId, int userId) {
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM teams_tms_x_users_usr WHERE tms_id = :teamId AND usr_id = :userId"
+            return sql.executeUpdate(deleteQuery, [teamId: teamId, userId: userId])
+        }
+    }
 }

@@ -96,38 +96,70 @@ teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
-    if (pathParts.size() != 1) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid path. Expecting /teams/{teamId}."]).toString()).build()
-    }
-
-    def teamId
-    try {
-        teamId = pathParts[0].toInteger()
-    } catch (NumberFormatException e) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team ID format: '${pathParts[0]}'"]).toString()).build()
-    }
-
-    try {
-        Map teamData = new JsonSlurper().parseText(body) as Map
-        def updatedTeam = teamRepository.updateTeam(teamId, teamData)
-
-        if (updatedTeam) {
-            return Response.ok(new JsonBuilder(updatedTeam).toString()).build()
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found for update."]).toString()).build()
+    // Route: PUT /teams/{teamId}/users/{userId} -> Add user to team
+    if (pathParts.size() == 3 && pathParts[1] == 'users') {
+        def teamId
+        def userId
+        try {
+            teamId = pathParts[0].toInteger()
+            userId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team or User ID format."]).toString()).build()
         }
-    } catch (JsonException e) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid JSON format in request body."]).toString()).build()
-    } catch (SQLException e) {
-        if (e.getSQLState() == '23505' && e.getMessage().contains("teams_tms_tms_email_key")) {
-            return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "A team with this email already exists."]).toString()).build()
+
+        try {
+            def result = teamRepository.addUserToTeam(teamId, userId)
+            if (result.status == 'created' || result.status == 'exists') {
+                return Response.noContent().build() // Idempotent PUT
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to add user to team."]).toString()).build()
+            }
+        } catch (SQLException e) {
+            if (e.getSQLState() == '23503') { // Foreign key violation
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} or User with ID ${userId} not found."]).toString()).build()
+            }
+            log.warn("Database error adding user ${userId} to team ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error adding user ${userId} to team ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
         }
-        log.warn("An unexpected database error occurred during team update.", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
-    } catch (Exception e) {
-        log.error("An unexpected error occurred during team update.", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
     }
+
+    // Route: PUT /teams/{teamId} -> Update team details
+    if (pathParts.size() == 1) {
+        def teamId
+        try {
+            teamId = pathParts[0].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team ID format: '${pathParts[0]}'"]).toString()).build()
+        }
+
+        try {
+            Map teamData = new JsonSlurper().parseText(body) as Map
+            def updatedTeam = teamRepository.updateTeam(teamId, teamData)
+
+            if (updatedTeam) {
+                return Response.ok(new JsonBuilder(updatedTeam).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found for update."]).toString()).build()
+            }
+        } catch (JsonException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid JSON format in request body."]).toString()).build()
+        } catch (SQLException e) {
+            if (e.getSQLState() == '23505' && e.getMessage().contains("teams_tms_tms_email_key")) {
+                return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "A team with this email already exists."]).toString()).build()
+            }
+            log.warn("An unexpected database error occurred during team update.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
+        } catch (Exception e) {
+            log.error("An unexpected error occurred during team update.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
+        }
+    }
+
+    // Fallback for invalid PUT paths
+    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid path for PUT request."]).toString()).build()
 }
 
 /**
@@ -138,20 +170,58 @@ teams(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
-    if (pathParts.size() != 1) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid path. Expecting /teams/{teamId}."]).toString()).build()
+    // Route: DELETE /teams/{teamId}/users/{userId} -> Remove user from team
+    if (pathParts.size() == 3 && pathParts[1] == 'users') {
+        def teamId
+        def userId
+        try {
+            teamId = pathParts[0].toInteger()
+            userId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team or User ID format."]).toString()).build()
+        }
+
+        try {
+            def rowsAffected = teamRepository.removeUserFromTeam(teamId, userId)
+            if (rowsAffected > 0) {
+                return Response.noContent().build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} was not a member of team ${teamId}, or IDs are invalid."]).toString()).build()
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error removing user ${userId} from team ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
+        }
     }
 
-    def teamId
-    try {
-        teamId = pathParts[0].toInteger()
-    } catch (NumberFormatException e) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team ID format: '${pathParts[0]}'"]).toString()).build()
+    // Route: DELETE /teams/{teamId} -> Delete a team
+    if (pathParts.size() == 1) {
+        def teamId
+        try {
+            teamId = pathParts[0].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team ID format: '${pathParts[0]}'"]).toString()).build()
+        }
+
+        if (teamRepository.findTeamById(teamId) == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found."]).toString()).build()
+        }
+
+        try {
+            teamRepository.deleteTeam(teamId)
+            return Response.noContent().build()
+        } catch (SQLException e) {
+            if (e.getSQLState() == '23503') {
+                return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Cannot delete team with ID ${teamId} because it is still referenced by other resources (e.g., as a step owner)."]).toString()).build()
+            }
+            log.warn("An unexpected database error occurred during team deletion for ID ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
+        } catch (Exception e) {
+            log.error("An unexpected error occurred during team deletion for ID ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
+        }
     }
 
-    if (teamRepository.deleteTeam(teamId)) {
-        return Response.noContent().build()
-    } else {
-        return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} not found for deletion."]).toString()).build()
-    }
+    // Fallback for invalid DELETE paths
+    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid path for DELETE request."]).toString()).build()
 }
