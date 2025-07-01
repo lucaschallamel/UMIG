@@ -20,8 +20,11 @@ The data model follows a clear hierarchical structure, flowing from high-level s
 
 In addition to the strict hierarchy, UMIG supports flexible, migration-specific grouping of canonical steps ("streams" or other labels) via a normalized label system:
 
+> **labels_lbl_x_applications_app**: This join table enables flexible, many-to-many assignment of labels to applications, supporting categorization by business, technical, or operational perspective.
+
 - **labels_lbl**: Stores labels scoped to a migration (fields: lbl_id, mig_id, lbl_name, lbl_description, lbl_color, created_at, created_by).
 - **labels_lbl_x_steps_master_stm**: Join table linking labels to canonical steps (fields: lbl_x_stm_id, lbl_id, stm_id, created_at, created_by).
+- **labels_lbl_x_applications_app**: Join table linking labels to applications for flexible categorization (fields: lbl_x_app_id, lbl_id, app_id, created_at, created_by).
 - Each label is unique within a migration. Steps can have multiple labels, and labels can be reused across steps within the same migration.
 - This enables matrix/faceted views such as "streams" for steps, supporting advanced planning and reporting.
 
@@ -98,6 +101,8 @@ The following ERD illustrates the relationships between all entities in the UMIG
 
 ```mermaid
 erDiagram
+    labels_lbl_x_applications_app }o--|| labels_lbl : "label"
+    labels_lbl_x_applications_app }o--|| applications_app : "application"
     applications_app {
         INT app_id PK
         VARCHAR app_code

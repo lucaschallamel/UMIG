@@ -108,4 +108,65 @@ describe('Label Generator (08_generate_labels.js)', () => {
       [fakeLabelId, fakeStepId, 1]
     );
   });
+
+  it('should assign labels to applications and prevent duplicates', async () => {
+    const fakeMigId = uuidv4();
+    const fakeLabelId = 42;
+    const fakeAppIds = [123, 456];
+    utils.faker.number.int.mockReturnValueOnce(2).mockReturnValue(1); // 2 labels, then 1 label per app
+    let nounCounter = 0;
+    utils.faker.word.noun.mockImplementation(() => `Label${nounCounter++}`);
+    utils.faker.string.alpha.mockReturnValue('XYZ');
+    utils.faker.lorem.sentence.mockReturnValue('desc');
+    utils.faker.internet.color.mockReturnValue('#abcdef');
+    utils.faker.helpers.arrayElements = jest.fn((arr, n) => arr.slice(0, n));
+
+    client.query.mockImplementation(query => {
+      if (query.startsWith('SELECT mig_id')) return Promise.resolve({ rows: [{ mig_id: fakeMigId }] });
+      if (query.startsWith('SELECT stm.stm_id')) return Promise.resolve({ rows: [] });
+      if (query.startsWith('SELECT app_id')) return Promise.resolve({ rows: fakeAppIds.map(app_id => ({ app_id })) });
+      if (query.startsWith('INSERT INTO labels_lbl')) return Promise.resolve({ rows: [{ lbl_id: fakeLabelId }] });
+      if (query.startsWith('INSERT INTO labels_lbl_x_applications_app')) return Promise.resolve({ rows: [] });
+      return Promise.resolve({ rows: [] });
+    });
+
+    await expect(generateLabels(CONFIG, { clientOverride: client })).resolves.not.toThrow();
+
+    // Should attempt to insert for each app-label pair, but no duplicates
+    expect(client.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO labels_lbl_x_applications_app'),
+      [fakeLabelId, fakeAppIds[0], 1]
+    );
+    expect(client.query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO labels_lbl_x_applications_app'),
+      [fakeLabelId, fakeAppIds[1], 1]
+    );
+  });
+
+  it('should not insert application-label associations if there are no applications', async () => {
+    const fakeMigId = uuidv4();
+    const fakeLabelId = 42;
+    utils.faker.number.int.mockReturnValueOnce(1); // 1 label
+    utils.faker.word.noun.mockReturnValue('Label');
+    utils.faker.string.alpha.mockReturnValue('XYZ');
+    utils.faker.lorem.sentence.mockReturnValue('desc');
+    utils.faker.internet.color.mockReturnValue('#abcdef');
+    utils.faker.helpers.arrayElements = jest.fn((arr, n) => arr.slice(0, n));
+
+    client.query.mockImplementation(query => {
+      if (query.startsWith('SELECT mig_id')) return Promise.resolve({ rows: [{ mig_id: fakeMigId }] });
+      if (query.startsWith('SELECT stm.stm_id')) return Promise.resolve({ rows: [] });
+      if (query.startsWith('SELECT app_id')) return Promise.resolve({ rows: [] }); // No apps
+      if (query.startsWith('INSERT INTO labels_lbl')) return Promise.resolve({ rows: [{ lbl_id: fakeLabelId }] });
+      return Promise.resolve({ rows: [] });
+    });
+
+    await expect(generateLabels(CONFIG, { clientOverride: client })).resolves.not.toThrow();
+
+    // Should not call insert for labels_lbl_x_applications_app
+    expect(client.query).not.toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO labels_lbl_x_applications_app'),
+      expect.any(Array)
+    );
+  });
 });
