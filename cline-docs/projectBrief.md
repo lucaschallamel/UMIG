@@ -1,22 +1,16 @@
-# Project Brief: Runsheet Orchestration Engine
+# Project Brief
 
-## 1. High-Level Overview
+## Overview
 
-This project is to design and build a bespoke, multi-user, real-time web application to manage and orchestrate complex IT cutover events for a private bank's data migration project. The application will serve as a central command and control platform, replacing a less efficient system based on Confluence, Draw.io diagrams, and manual email notifications.
+UMIG is a unified migration and integration guide platform designed to streamline and standardise complex migration processes. The project aims to provide robust, maintainable, and user-friendly tools for managing migration steps, team membership, and associated data, with a strong emphasis on clarity, consistency, and automation.
 
-**Note:** As of June 2025, the architecture and local development environment are finalized and stable. All technical and architectural decisions are now locked for the MVP phase, as documented in the ADRs and memory bank.
+## Recent Milestone
 
-## 2. Core Requirements
+On 1 July 2025, the project formalised standard REST API implementation patterns across the platform. This milestone significantly improves the consistency, robustness, and maintainability of all backend endpoints, ensuring a predictable and high-quality client experience.
 
-* **Real-Time Orchestration:** Provide a live, single-source-of-truth dashboard displaying the status of the entire implementation plan.
-* **Multi-User Collaboration:** Support multiple concurrent pilots managing the plan and up to 100 end-users executing tasks.
-* **Hierarchical Plan Management:** Model a hierarchical structure: `Implementation Plan > Macro-Phase > Chapter > Step > Task`.
-* **Dependency Management:** Enforce predecessor/successor relationships between steps.
-* **Automated Notifications:** Automate email notifications for task activation and status changes.
-* **Auditing and Logging:** Maintain an immutable audit trail of all actions, status changes, and communications for compliance and post-mortem analysis.
-* **Quality Assurance:** Integrate a system of `Controls` to validate the successful completion of tasks within specific iterations (e.g., `RUN1`, `DR1`).
-* **Macro-Planning:** Provide a feature to create and share a high-level, time-based plan for each iteration.
+## Core Goals
 
-## 3. Primary Goal
-
-The primary goal is to deliver a Minimum Viable Product (MVP) within a strict four-week timeframe. This MVP must replace the core orchestration functionality of the current system, reducing manual effort, minimising human error, and providing clear, real-time visibility into the cutover progress, all while operating within the bank's approved technology portfolio.
+- Deliver a reliable, extensible migration management system.
+- Ensure all APIs and user interfaces are consistent, well-documented, and easy to use.
+- Maintain a single source of truth for all API contracts via OpenAPI specifications.
+- Foster a development culture of clarity, error resilience, and best practice adherence.
