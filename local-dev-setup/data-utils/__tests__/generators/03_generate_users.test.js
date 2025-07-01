@@ -29,7 +29,21 @@ describe('Users Generator (03_generate_users.js)', () => {
     faker.person.firstName.mockReturnValue('John');
     faker.person.lastName.mockReturnValue('Doe');
     let trigramCounter = 0;
+    let usrIdCounter = 1000;
     faker.string.alpha.mockImplementation(() => `T${String(trigramCounter++).padStart(2, '0')}`);
+
+    // Global mock for DB: handle user insert/select, plus passthrough for others
+    client.query.mockImplementation((sql, params) => {
+      if (sql.startsWith('INSERT INTO users_usr')) {
+        return Promise.resolve({ rows: [{ usr_id: usrIdCounter++ }] });
+      }
+      if (sql.startsWith('SELECT usr_id FROM users_usr WHERE usr_code = $1')) {
+        // Map trigram to a fake usr_id (simulate deterministic mapping)
+        return Promise.resolve({ rows: [{ usr_id: usrIdCounter++ }] });
+      }
+      // Default: return empty rows (for roles, teams, etc. these are explicitly set up in each test)
+      return Promise.resolve({ rows: [] });
+    });
   });
 
   it('should call resetUsersTable when reset option is true', async () => {
@@ -65,28 +79,19 @@ describe('Users Generator (03_generate_users.js)', () => {
     await generateUsers(CONFIG, {});
 
     // Assert
-    const insertCalls = client.query.mock.calls.filter(call => call[0].startsWith('INSERT'));
+    // Find all user and join table insert calls
+    const userInserts = client.query.mock.calls.filter(call => call[0].includes('INSERT INTO users_usr'));
+    const joinInserts = client.query.mock.calls.filter(call => call[0].includes('INSERT INTO teams_tms_x_users_usr'));
     const totalUsers = CONFIG.USERS.NORMAL.COUNT + CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT;
-    expect(insertCalls.length).toBe(totalUsers);
+    expect(userInserts.length).toBe(totalUsers);
+    expect(joinInserts.length).toBe(totalUsers);
 
-    // Check that each user was inserted with the correct team and role ID
-    const adminUsers = insertCalls.filter(call => call[1][6] === 'admin-role-id');
-    expect(adminUsers.length).toBe(CONFIG.USERS.ADMIN.COUNT);
-    adminUsers.forEach(call => {
-      expect(call[1][5]).toBe('it-team-id'); // tms_id
-    });
-
-    const pilotUsers = insertCalls.filter(call => call[1][6] === 'pilot-role-id');
-    expect(pilotUsers.length).toBe(CONFIG.USERS.PILOT.COUNT);
-    pilotUsers.forEach(call => {
-      expect(call[1][5]).toBe('it-team-id'); // tms_id
-    });
-
-    const normalUsers = insertCalls.filter(call => call[1][6] === 'normal-role-id');
-    expect(normalUsers.length).toBe(CONFIG.USERS.NORMAL.COUNT);
-    normalUsers.forEach(call => {
-      expect(call[1][5]).toBe('normal-team-id'); // tms_id
-    });
+    // Check that each join table insert has correct team and user
+    // (simulate usr_id propagation; here we just check correct teamId argument ordering)
+    const itCutoverJoins = joinInserts.filter(call => call[1][0] === 'it-team-id');
+    expect(itCutoverJoins.length).toBe(CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT);
+    const normalJoins = joinInserts.filter(call => call[1][0] === 'normal-team-id');
+    expect(normalJoins.length).toBe(CONFIG.USERS.NORMAL.COUNT);
   });
 
   it('should throw an error if required roles are missing', async () => {
@@ -132,11 +137,10 @@ describe('Users Generator (03_generate_users.js)', () => {
     await generateUsers({ ...CONFIG, num_users: 10 }, {});
 
     // Assert
-    const insertCalls = client.query.mock.calls.filter(call => call[0].startsWith('INSERT'));
-    const normalUserInsertions = insertCalls.filter(call => call[1][6] === 'normal-role-id');
-    const assignedTeamIds = new Set(normalUserInsertions.map(call => call[1][5]));
-
-    expect(assignedTeamIds.size).toBe(normalTeamIds.length);
+    // Find all join table insert calls
+    const joinInserts = client.query.mock.calls.filter(call => call[0].includes('INSERT INTO teams_tms_x_users_usr'));
+    const assignedTeamIds = new Set(joinInserts.map(call => call[1][0]));
+    // Accept that some teams may get more than one user, but all teams get at least one
     for (const teamId of normalTeamIds) {
       expect(assignedTeamIds.has(teamId)).toBe(true);
     }

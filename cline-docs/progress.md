@@ -1,5 +1,31 @@
 # Progress
 
+## 2025-07-01
+
+### Key Developments
+
+- **User-Team Relationship Migration:**
+  - Migrated from a deprecated one-to-many (`tms_id` in `users_usr`) to a fully normalised, auditable many-to-many join table (`teams_tms_x_users_usr`).
+  - Created and applied migration script `006_add_teams_users_join.sql` to update schema, migrate data, and drop the old foreign key.
+  - Refactored data generation (`03_generate_users.js`) and tests to use the join table, enforcing the business rule that each user belongs to exactly one team.
+  - All `ADMIN` and `PILOT` users are now assigned to the `IT_CUTOVER` team.
+  - Updated all relevant documentation, including the root `README.md`, `Docs/dataModel/README.md`, and ADR-022, to reflect the new model and business rules.
+  - All unit and integration tests updated and passing.
+
+### Current Status
+
+- The UMIG project now uses a robust, future-proof N-N user-team relationship, with all code, tests, and documentation in sync.
+- The business rule of exactly one team per user is enforced at the data generation level, but the schema supports future flexibility.
+- All documentation (CHANGELOG, READMEs, ADR-022) is up to date and references the migration and rationale.
+
+### Next Steps
+
+- Monitor for any downstream effects in backend APIs or scripts that may have assumed a direct FK.
+- Continue to run all tests regularly to ensure stability.
+- If business rules change, update the generator and tests to allow true N-N assignments.
+- Begin any necessary backend and API refactoring to consume the new join table logic.
+- Encourage team review of ADR-022 and documentation for further feedback or improvement.
+
 ## 2025-06-30
 
 ### Key Developments

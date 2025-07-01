@@ -17,6 +17,8 @@ async function generateLabels(config, options = {}) {
     const migrations = migRes.rows;
     if (migrations.length === 0) throw new Error('No migrations found.');
 
+    // Collect all label IDs across all migrations
+    const allLabelIds = [];
     for (const migration of migrations) {
       const { mig_id } = migration;
 
@@ -38,6 +40,7 @@ async function generateLabels(config, options = {}) {
         );
         labelIds.push(insertRes.rows[0].lbl_id);
       }
+      allLabelIds.push(...labelIds);
 
       // Fetch all canonical steps for this migration
       const stepsRes = await client.query(
@@ -57,6 +60,26 @@ async function generateLabels(config, options = {}) {
             [lbl_id, stm_id, 1]
           );
         }
+      }
+    }
+    // --- Assign labels to applications ---
+    // Fetch all applications
+    const appsRes = await client.query('SELECT app_id FROM applications_app');
+    const applications = appsRes.rows;
+    for (const { app_id } of applications) {
+      // Randomly assign 0–2 labels per application
+      const numAppLabels = faker.number.int({ min: 0, max: 2 });
+      // Ensure no duplicates and handle case where numAppLabels > allLabelIds.length
+      const assignedLabelIds = faker.helpers.arrayElements(allLabelIds, Math.min(numAppLabels, allLabelIds.length));
+      for (const lbl_id of assignedLabelIds) {
+        // Insert if not already present (avoid duplicate assignments)
+        await client.query(
+          `INSERT INTO labels_lbl_x_applications_app (lbl_id, app_id, created_by)
+           SELECT $1, $2, $3 WHERE NOT EXISTS (
+             SELECT 1 FROM labels_lbl_x_applications_app WHERE lbl_id = $1 AND app_id = $2
+           )`,
+          [lbl_id, app_id, 1]
+        );
       }
     }
     console.log('Finished generating labels and associations.');
