@@ -1,5 +1,12 @@
 ### [Unreleased]
 
+#### 2025-07-01
+- **Breaking Change:** Migrated user-team relationship to many-to-many (N-N) via `teams_tms_x_users_usr` join table. Removed `tms_id` from `users_usr`.
+- **Migration:** Added `006_add_teams_users_join.sql` to migrate data and update schema; join table `created_by` is now integer (`usr_id`).
+- **Data Generation:** Refactored `03_generate_users.js` to use join table for all user-team assignments. Each user now belongs to exactly one team; all `ADMIN` and `PILOT` users are assigned to `IT_CUTOVER`.
+- **Testing:** Updated Jest tests for user generation to match new schema and business rules.
+- **Documentation:** Created ADR-022 documenting rationale and implementation of this migration.
+
 #### 2025-06-30
 - **Feature: Added flexible labeling system for canonical steps.**
   - Introduced `labels_lbl` and `labels_lbl_x_steps_master_stm` tables to allow grouping steps into "streams" or other logical categories within a migration.

@@ -2,6 +2,13 @@
 
 ## Data Model Overview
 
+### User-Team Membership (2025-07-01)
+- User-team membership is now managed exclusively via the many-to-many join table `teams_tms_x_users_usr`.
+- The `users_usr` table no longer has a `tms_id` foreign key.
+- Each user belongs to exactly one team (current business rule), but the schema supports many-to-many assignments for future flexibility.
+- All `ADMIN` and `PILOT` users are assigned to the `IT_CUTOVER` team during data generation (see `03_generate_users.js`).
+- See [ADR-022](docs/adr/ADR-022-user-team-nn-relationship.md) and the migration script `006_add_teams_users_join.sql` for rationale and implementation details.
+
 ### Confluence HTML Importer (In Progress)
 A new utility is being developed in `local-dev-setup/data-utils/Confluence_Importer` for importing and extracting structured data from Confluence pages exported as HTML. It supports both Bash and PowerShell environments and outputs structured step/instruction data. The tool is not yet complete—see the README in that folder for details and usage.
 

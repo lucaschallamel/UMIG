@@ -81,12 +81,28 @@ async function generateUsers(config, options = {}) {
     const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${config.TEAMS.EMAIL_DOMAIN}`.replace(/[^a-z0-9_.-@]/g, '');
     const trigram = trigrams[trigramIndex++];
 
-    await client.query(
-      `INSERT INTO users_usr (usr_first_name, usr_last_name, usr_code, usr_email, usr_is_admin, tms_id, rls_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       ON CONFLICT (usr_code) DO NOTHING`,
-      [firstName, lastName, trigram, email, roleCode === 'ADMIN', teamId, roleId]
+    // Insert user (no tms_id)
+    const userInsertRes = await client.query(
+      `INSERT INTO users_usr (usr_first_name, usr_last_name, usr_code, usr_email, usr_is_admin, rls_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (usr_code) DO NOTHING
+       RETURNING usr_id`,
+      [firstName, lastName, trigram, email, roleCode === 'ADMIN', roleId]
     );
+    // Get usr_id (if already existed, fetch from DB)
+    let usr_id = userInsertRes.rows[0]?.usr_id;
+    if (!usr_id) {
+      const res = await client.query('SELECT usr_id FROM users_usr WHERE usr_code = $1', [trigram]);
+      usr_id = res.rows[0]?.usr_id;
+    }
+    if (!usr_id) throw new Error(`Could not determine usr_id for trigram ${trigram}`);
+    // Insert into teams_tms_x_users_usr
+    await client.query(
+      `INSERT INTO teams_tms_x_users_usr (tms_id, usr_id, created_at, created_by)
+       VALUES ($1, $2, NOW(), $3)
+       ON CONFLICT (tms_id, usr_id) DO NOTHING`,
+      [teamId, usr_id, usr_id]
+    ); // created_by is the user's usr_id (integer)
   };
 
   // 5. Generate NORMAL users with specific team assignment logic
