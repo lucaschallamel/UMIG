@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-The primary focus as of July 2025 is the continued application and hardening of standardised REST API implementation patterns across all existing endpoints, building upon the successful refactoring of the Teams API. This also includes maintaining the integrity of the new iteration-centric data model and the streamlined Node.js-based local development environment.
+The primary focus as of July 2025 is the continued application and hardening of standardised REST API implementation patterns across all existing endpoints, building upon the successful refactoring of the Teams API. This also includes maintaining the integrity of the new iteration-centric data model, the streamlined Node.js-based local development environment, and ensuring the stability and reliability of the test suite.
 
 ## Recent Changes
 
@@ -15,10 +15,15 @@ The primary focus as of July 2025 is the continued application and hardening of 
   - Established ADR-023 as the formal architectural record for REST API standards.
 - **Data Model Refactoring:**
   - Implemented an iteration-centric data model ("Model C"), linking migrations to master plans via the `iterations_ite` table.
+  - Added `ctm_code` to the `controls_master_ctm` table for unique, human-readable business keys.
   - Documented the rationale in ADR-024.
 - **Local Development Orchestration:**
-  - Refactored the entire local development setup to use a Node.js-based orchestration layer, replacing shell scripts with Node.js equivalents.
+  - Refactored the entire local development setup to use a Node.js-based orchestration layer, replacing shell scripts with Node.js equivalents and introducing a unified `umig-local` CLI.
   - Documented the new architecture in ADR-025.
+- **Test Suite Stability & Reliability:**
+  - Stabilised the test suite with precise SQL query mocks and improved test isolation, adhering to the new `ADR-026` standard for specific mocks.
+  - Corrected module system compatibility issues and ensured comprehensive mock resets.
+  - Adapted tests to respect [SEC-1] principle by using mock scripts.
 - Updated documentation and changelog to reflect these enhancements.
 
 ## Next Steps
@@ -27,9 +32,11 @@ The primary focus as of July 2025 is the continued application and hardening of 
 - Continue to validate and document the standards through code review and automated testing.
 - Monitor for any further edge cases or inconsistencies as the standards are rolled out project-wide.
 - Continuously improve onboarding materials and documentation to reflect the latest best practices and architectural decisions.
+- Further develop the Confluence HTML Importer utility.
 
 ## Key Considerations
 
 - Maintain synchronisation between OpenAPI specification, implementation, and documentation.
 - Ensure all new development adheres to the established patterns for consistency and maintainability.
 - Validate the stability and performance of the new data model and local development setup.
+- Ensure all tests remain robust and reliable, following `ADR-026`.

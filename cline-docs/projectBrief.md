@@ -13,7 +13,10 @@ The project formalised standard REST API implementation patterns across the plat
 The core data model has been refactored to be "iteration-centric" ("Model C"). The `iterations_ite` table now links a migration to a master plan via `plm_id`, allowing a single migration to use different plans for different iterations.
 
 ### Node.js-based Local Development Orchestration (2025-07-02)
-The entire local development setup has been refactored to use a Node.js-based orchestration layer, replacing shell scripts with Node.js equivalents and consolidating all scripts into `local-dev-setup/scripts/`.
+The entire local development setup has been refactored to use a Node.js-based orchestration layer, replacing shell scripts with Node.js equivalents and introducing a unified `umig-local` CLI for environment management.
+
+### Test Suite Stability and Reliability (2025-07-02)
+The project's test suite has been significantly stabilised and hardened through precise SQL query mocks and improved test isolation, adhering to the new `ADR-026` standard for specific mocks in tests.
 
 ## Core Goals
 

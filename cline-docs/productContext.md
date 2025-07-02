@@ -15,4 +15,4 @@ UMIG exists to simplify and standardise the management of complex migration and 
 
 As of July 2025, the adoption of standardised REST API implementation patterns has significantly improved the client experience and maintainability of the platform. Team membership management, in particular, now benefits from robust routing, idempotent operations, and precise error handling, ensuring users can interact with the system confidently and reliably.
 
-Furthermore, the refactoring to an iteration-centric data model provides greater flexibility for managing migration plans across different iterations, and the new Node.js-based local development orchestration streamlines the development setup, enhancing overall efficiency.
+Furthermore, the refactoring to an iteration-centric data model provides greater flexibility for managing migration plans across different iterations, the new Node.js-based local development orchestration streamlines the development setup, and the enhanced test suite stability ensures a more reliable development and deployment process. The addition of `ctm_code` to controls also improves data clarity and usability.

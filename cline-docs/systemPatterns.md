@@ -19,13 +19,18 @@ Following ADR-023, the project has adopted formalised patterns for all Groovy-ba
 
 ## Data Model
 
-As of July 2025, the core data model has been refactored to be iteration-centric ("Model C"). This means the `iterations_ite` table now links a migration to a master plan via `plm_id`, allowing a single migration to use different plans for different iterations (e.g., a DR test versus a production run). This change enhances flexibility and aligns with evolving project requirements.
+As of July 2025, the core data model has been refactored to be iteration-centric ("Model C"). This means the `iterations_ite` table now links a migration to a master plan via `plm_id`, allowing a single migration to use different plans for different iterations (e.g., a DR test versus a production run). Additionally, the `controls_master_ctm` table now includes a `ctm_code` for unique, human-readable business keys, enhancing data clarity.
 - See [ADR-024: Iteration-Centric Data Model](../docs/adr/ADR-024-iteration-centric-data-model.md) for the formal architectural decision and rationale.
 
 ## Local Development Environment
 
-The local development setup has been refactored to use a Node.js-based orchestration layer. This replaces traditional shell scripts with Node.js equivalents for starting, stopping, and managing the environment, consolidating all scripts into `local-dev-setup/scripts/`. This change streamlines the development workflow and improves cross-platform consistency.
+The local development setup has been refactored to use a Node.js-based orchestration layer. This replaces traditional shell scripts with Node.js equivalents for starting, stopping, and managing the environment, and introduces a unified `umig-local` CLI. This change streamlines the development workflow and improves cross-platform consistency.
 - See [ADR-025: Node.js-based Dev Environment Orchestration](../docs/adr/ADR-025-NodeJS-based-Dev-Environment-Orchestration.md) for the formal architectural decision and rationale.
+
+## Testing Standards
+
+The project's test suite has been significantly stabilised and hardened. A new standard, formalised in `ADR-026`, mandates the use of precise SQL query mocks and improved test isolation to ensure reliability and prevent regressions. Tests are adapted to respect security principles by using mock scripts instead of modifying sensitive files.
+- See [ADR-026: Specific Mocks In Tests](../docs/adr/ADR-026-Specific-Mocks-In-Tests.md) for the formal architectural decision and rationale.
 
 ## Reference
 
