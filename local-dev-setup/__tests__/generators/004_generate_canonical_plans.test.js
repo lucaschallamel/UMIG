@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import { generateCanonicalPlans, eraseCanonicalPlanTables } from '../../scripts/generators/04_generate_canonical_plans.js';
+import { generateCanonicalPlans, eraseCanonicalPlanTables } from '../../scripts/generators/004_generate_canonical_plans.js';
 import { faker } from '../../scripts/lib/utils.js';
 
 // Mock dependencies

@@ -83,6 +83,10 @@ For a complete database schema diagram and details, see the [Data Model Document
 
 ## Getting Started
 
+### Generator and Test Naming Convention
+
+All data generator scripts and their tests use a 3-digit numeric prefix (e.g., `001_generate_core_metadata.js`, `099_generate_instance_data.js`) to ensure robust ordering, traceability, and consistency. Each generator and its corresponding test share the same prefix for clarity. This convention guarantees correct execution order and simplifies maintenance as the project grows.
+
 ### Local Development Setup
 
 The project uses a Node.js-based orchestration layer for local development, with Podman/Docker and Ansible for containerization.

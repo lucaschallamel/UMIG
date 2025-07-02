@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import { generateMigrations, eraseMigrationTables } from '../../scripts/generators/05_generate_migrations.js';
+import { generateMigrations, eraseMigrationTables } from '../../scripts/generators/005_generate_migrations.js';
 import { faker, randomDateInRange, nextThursday } from '../../scripts/lib/utils.js';
 
 // Mock dependencies

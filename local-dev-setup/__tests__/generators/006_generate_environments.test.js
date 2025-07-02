@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import { generateAllEnvironments, eraseEnvironmentsTable } from '../../scripts/generators/06_generate_environments.js';
+import { generateAllEnvironments, eraseEnvironmentsTable } from '../../scripts/generators/006_generate_environments.js';
 import { faker } from '@faker-js/faker';
 
 // Mock dependencies

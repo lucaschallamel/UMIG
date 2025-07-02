@@ -21,6 +21,7 @@
 ## Current Status
 
 - The codebase is consistent, maintainable, and well-documented.
+- All data generator scripts and their tests now use a 3-digit numeric prefix for robust ordering and traceability. Test imports and documentation have been updated accordingly. All tests pass and data generation works end-to-end after the renaming.
 - The foundation for future API and feature development is solid, with a clear path for further standardisation and enhancement.
 
 ## Known Issues

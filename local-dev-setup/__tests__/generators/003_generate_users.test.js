@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import { generateUsers } from '../../scripts/generators/03_generate_users.js';
+import { generateUsers } from '../../scripts/generators/003_generate_users.js';
 import { faker } from '../../scripts/lib/utils.js';
 
 // Mock the database client and faker

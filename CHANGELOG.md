@@ -1,5 +1,10 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Generator Naming Convention Overhaul)
+- **Refactor:** All data generator scripts and their tests now use a 3-digit numeric prefix (e.g., `001_generate_core_metadata.js`, `099_generate_instance_data.js`) to ensure robust ordering and traceability.
+- **Chore:** Updated all test imports to match new generator filenames.
+- **Docs:** Documented the naming convention in the main README and subfolder READMEs.
+
 #### 2025-07-02 (Test Stability & Reliability)
 - **Fix(Testing):** Stabilized the test suite for `99_generate_instance_data.js` with precise SQL query mocks and improved test isolation.
 - **Fix(Testing):** Corrected `umig_csv_importer.test.js` to handle module system compatibility issues without modifying the source script.

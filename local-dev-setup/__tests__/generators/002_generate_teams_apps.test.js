@@ -4,7 +4,7 @@ import {
   generateApplications,
   generateTeamApplicationLinks,
   eraseTeamsAndAppsTables
-} from '../../scripts/generators/02_generate_teams_apps.js';
+} from '../../scripts/generators/002_generate_teams_apps.js';
 import { client } from '../../scripts/lib/db.js';
 import { faker } from '../../scripts/lib/utils.js';
 

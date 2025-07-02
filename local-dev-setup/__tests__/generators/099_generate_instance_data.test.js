@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import * as generator from '../../scripts/generators/99_generate_instance_data.js';
+import * as generator from '../../scripts/generators/099_generate_instance_data.js';
 
 // Mock dependencies
 jest.mock('../../scripts/lib/db.js', () => ({ client: { query: jest.fn() } }));

@@ -2,15 +2,17 @@
 
 import { Command } from 'commander';
 import { client, connect, disconnect } from './lib/db.js';
-import { generateCoreMetadata } from './generators/01_generate_core_metadata.js';
-import { generateTeamsAndApps } from './generators/02_generate_teams_apps.js';
-import { generateUsers } from './generators/03_generate_users.js';
-import { generateCanonicalPlans } from './generators/04_generate_canonical_plans.js';
-import { generateMigrations } from './generators/05_generate_migrations.js';
-import { generateAllEnvironments } from './generators/06_generate_environments.js';
-import { generateInstanceData } from './generators/99_generate_instance_data.js';
-import { generateLabels } from './generators/08_generate_labels.js';
-import { generateControls } from './generators/07_generate_controls.js';
+import { generateCoreMetadata } from './generators/001_generate_core_metadata.js';
+import { generateTeamsAndApps } from './generators/002_generate_teams_apps.js';
+import { generateUsers } from './generators/003_generate_users.js';
+import { generateCanonicalPlans } from './generators/004_generate_canonical_plans.js';
+import { generateStepPilotComments } from './generators/009_generate_step_pilot_comments.js';
+import { generateStepInstanceComments } from './generators/100_generate_step_instance_comments.js';
+import { generateMigrations } from './generators/005_generate_migrations.js';
+import { generateAllEnvironments } from './generators/006_generate_environments.js';
+import { generateInstanceData } from './generators/099_generate_instance_data.js';
+import { generateLabels } from './generators/008_generate_labels.js';
+import { generateControls } from './generators/007_generate_controls.js';
 
 import { ENVIRONMENTS } from './lib/utils.js';
 
@@ -61,15 +63,19 @@ async function main() {
   const options = program.opts();
 
   const generators = {
-    '01': () => generateCoreMetadata(), // No reset needed
-    '02': () => generateTeamsAndApps(CONFIG, { ...options, clientOverride: client }),
-    '03': () => generateUsers(CONFIG, { ...options, clientOverride: client }),
-    '04': () => generateCanonicalPlans(CONFIG, { ...options, clientOverride: client }),
-    '05': () => generateMigrations(CONFIG, { ...options, clientOverride: client }),
-    '06': () => generateAllEnvironments(CONFIG.ENVIRONMENTS, { ...options, clientOverride: client }),
-    '08': () => generateLabels(CONFIG, { ...options, clientOverride: client }),
-    '07': () => generateControls(CONFIG, { ...options, clientOverride: client }),
-    '99': () => generateInstanceData(CONFIG, { ...options, clientOverride: client })
+    '001': () => generateCoreMetadata(), // No reset needed
+    '002': () => generateTeamsAndApps(CONFIG, { ...options, clientOverride: client }),
+    '003': () => generateUsers(CONFIG, { ...options, clientOverride: client }),
+    '004': () => generateCanonicalPlans(CONFIG, { ...options, clientOverride: client }),
+    // Insert pilot comments after canonical plans
+    '009': () => generateStepPilotComments(CONFIG, { ...options, clientOverride: client }),
+    '005': () => generateMigrations(CONFIG, { ...options, clientOverride: client }),
+    '006': () => generateAllEnvironments(CONFIG.ENVIRONMENTS, { ...options, clientOverride: client }),
+    '008': () => generateLabels(CONFIG, { ...options, clientOverride: client }),
+    '007': () => generateControls(CONFIG, { ...options, clientOverride: client }),
+    '099': () => generateInstanceData(CONFIG, { ...options, clientOverride: client }),
+    // Insert instance comments after all instance data
+    '100': () => generateStepInstanceComments(CONFIG, { ...options, clientOverride: client })
   };
 
   try {
@@ -87,7 +93,8 @@ async function main() {
     } else {
       console.log('\nStarting full data generation process...');
       // The order of execution is critical to respect foreign key constraints
-      const scriptKeys = Object.keys(generators).sort();
+      const scriptKeys = Object.keys(generators)
+        .sort((a, b) => Number(a) - Number(b));
       for (const key of scriptKeys) {
         console.log(`\n[INFO] Running generator ${key}...`);
         await generators[key]();

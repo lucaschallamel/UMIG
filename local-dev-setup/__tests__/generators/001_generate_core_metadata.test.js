@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import { generateCoreMetadata } from '../../scripts/generators/01_generate_core_metadata.js';
+import { generateCoreMetadata } from '../../scripts/generators/001_generate_core_metadata.js';
 
 // Mock the database client to prevent Jest from parsing the actual db.js file
 jest.mock('../../scripts/lib/db', () => ({

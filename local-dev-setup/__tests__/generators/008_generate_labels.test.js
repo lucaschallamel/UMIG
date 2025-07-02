@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import { generateLabels, eraseLabelsTables } from '../../scripts/generators/08_generate_labels.js';
+import { generateLabels, eraseLabelsTables } from '../../scripts/generators/008_generate_labels.js';
 import { faker } from '../../scripts/lib/utils.js';
 
 // Mock dependencies

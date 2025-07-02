@@ -1,5 +1,5 @@
 import { client } from '../../scripts/lib/db.js';
-import { generateControls, eraseControlsTables } from '../../scripts/generators/07_generate_controls.js';
+import { generateControls, eraseControlsTables } from '../../scripts/generators/007_generate_controls.js';
 import { faker } from '../../scripts/lib/utils.js';
 
 // Mock dependencies
