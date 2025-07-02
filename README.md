@@ -2,6 +2,13 @@
 
 ## Data Model Overview
 
+### Iteration-Centric Data Model (2025-07-02)
+- **Breaking Change:** The core data model has been refactored to be "iteration-centric".
+- The `iterations_ite` table now links a migration to a master plan via `plm_id`.
+- The direct link from `migrations_mig` to plans has been removed.
+- This allows a single migration to use different plans for different iterations (e.g., a DR test vs. a production run).
+- See [ADR-024](docs/adr/ADR-024-iteration-centric-data-model.md) and the updated [Data Model Documentation](./docs/dataModel/README.md) for full details.
+
 ### User-Team Membership (2025-07-01)
 - User-team membership is now managed exclusively via the many-to-many join table `teams_tms_x_users_usr`.
 - The `users_usr` table no longer has a `tms_id` foreign key.
@@ -70,16 +77,13 @@ All user interface and user experience specifications are maintained in the `/do
 - A living `ROADMAP.md` that outlines the phased rollout of UX/UI features, including the current strategy to prioritize admin UI SPA patterns for all entity management.
 
 ## Data Generation Utilities
-The project includes a modular system for generating realistic fake data for development and testing. The main script `umig_generate_fake_data.js` orchestrates the following generators:
-- `01_generate_core_metadata.js`: Populates reference data (roles, statuses).
-- `02_generate_teams_apps.js`: Creates teams and applications.
-- `03_generate_users.js`: Generates users and assigns them to teams.
-- `04_generate_environments.js`: Creates different environments (e.g., DEV, PROD).
-- `06_generate_canonical_plans.js`: Builds the reusable canonical plan templates.
-- `07_generate_instance_data.js`: Creates live instances from the canonical plans.
+The project includes a modular system for generating realistic fake data for development and testing. All data utilities are managed via `npm` scripts defined in `local-dev-setup/package.json`.
+
+- **To generate all data (with reset):** `npm run generate-data:erase`
+- **To generate data without resetting:** `npm run generate-data`
 
 See `/docs/dataModel/README.md` for full schema details and rationale.
-See `/local-dev-setup/data-utils/README.md` for details on the data utilities.
+See `/local-dev-setup/README.md` for more details on the data utilities and other commands.
 
 ## Testing
 
@@ -92,14 +96,15 @@ For detailed instructions on how to run the integration test suite, please see t
 
 ## Local Development Environment
 
-The local development environment is managed via Podman and a set of convenient shell scripts located in the `local-dev-setup/` directory.
+The local development environment is managed via a unified Node.js application and Podman. All commands are run via `npm` from the `local-dev-setup/` directory.
 
-**Quick Commands:**
-- `./local-dev-setup/start.sh`: Starts the environment.
-- `./local-dev-setup/stop.sh`: Stops the environment.
-- `./local-dev-setup/restart.sh`: Restarts the environment. Use the `--reset` flag to delete the database and start fresh.
+**Quick Commands (run from `local-dev-setup/`):**
+- `npm start`: Starts the environment.
+- `npm stop`: Stops the environment.
+- `npm run restart`: Restarts the environment.
+- `npm run restart:erase`: Wipes all data and restarts the environment for a clean slate.
 
-For detailed setup instructions, see the [Local Dev Setup README](./local-dev-setup/README.md).
+For detailed setup instructions and all available commands, see the **[Local Dev Setup README](./local-dev-setup/README.md)**.
 
 ## Project Governance & Coding Standards
 

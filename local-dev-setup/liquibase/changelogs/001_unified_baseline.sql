@@ -79,6 +79,19 @@ CREATE TABLE users_usr (
     CONSTRAINT fk_usr_rls_rls_id FOREIGN KEY (rls_id) REFERENCES roles_rls(rls_id)
 );
 
+CREATE TABLE plans_master_plm (
+    plm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tms_id INTEGER NOT NULL,
+    plm_name VARCHAR(255) NOT NULL,
+    plm_description TEXT,
+    plm_status VARCHAR(50) NOT NULL, -- e.g., DRAFT, ACTIVE, ARCHIVED
+    created_by VARCHAR(255) DEFAULT 'system',
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(255) DEFAULT 'system',
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_plm_tms_tms_id FOREIGN KEY (tms_id) REFERENCES teams_tms(tms_id)
+);
+
 CREATE TABLE migrations_mig (
     mig_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     usr_id_owner INTEGER NOT NULL,
@@ -111,6 +124,7 @@ INSERT INTO iteration_types_itt (itt_code, itt_name) VALUES
 CREATE TABLE iterations_ite (
     ite_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     mig_id UUID NOT NULL,
+    plm_id UUID NOT NULL,
     itt_code VARCHAR(10) NOT NULL,
     ite_name VARCHAR(255) NOT NULL,
     ite_description TEXT,
@@ -122,32 +136,18 @@ CREATE TABLE iterations_ite (
     updated_by VARCHAR(255) DEFAULT 'system',
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_ite_mig_mig_id FOREIGN KEY (mig_id) REFERENCES migrations_mig(mig_id),
+    CONSTRAINT fk_ite_plm_plm_id FOREIGN KEY (plm_id) REFERENCES plans_master_plm(plm_id),
     CONSTRAINT fk_ite_itt_code FOREIGN KEY (itt_code) REFERENCES iteration_types_itt(itt_code)
-);
-
-CREATE TABLE plans_master_plm (
-    plm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tms_id INTEGER NOT NULL,
-    plm_name VARCHAR(255) NOT NULL,
-    plm_description TEXT,
-    plm_status VARCHAR(50) NOT NULL, -- e.g., DRAFT, ACTIVE, ARCHIVED
-    created_by VARCHAR(255) DEFAULT 'system',
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_by VARCHAR(255) DEFAULT 'system',
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_plm_tms_tms_id FOREIGN KEY (tms_id) REFERENCES teams_tms(tms_id)
 );
 
 CREATE TABLE sequences_master_sqm (
     sqm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     plm_id UUID NOT NULL,
-    mig_id UUID, -- This can be null for true plan templates, but will be set for migration-specific canonical plans
     sqm_order INTEGER NOT NULL,
     sqm_name VARCHAR(255) NOT NULL,
     sqm_description TEXT,
     predecessor_sqm_id UUID, -- Self-referencing FK for dependency
     CONSTRAINT fk_sqm_plm_plm_id FOREIGN KEY (plm_id) REFERENCES plans_master_plm(plm_id),
-    CONSTRAINT fk_sqm_mig_mig_id FOREIGN KEY (mig_id) REFERENCES migrations_mig(mig_id),
     CONSTRAINT fk_sqm_sqm_predecessor FOREIGN KEY (predecessor_sqm_id) REFERENCES sequences_master_sqm(sqm_id)
 );
 

@@ -27,6 +27,7 @@ UMIG is built on:
 ### 2.2. Iterations (`iterations_ite`)
 - **ite_id** (UUID, PK)
 - **mig_id** (UUID, FK → migrations_mig)
+- **plm_id** (UUID, FK → plans_master_plm): The master plan for this iteration
 - **itt_code** (VARCHAR, FK → iteration_types_itt): Iteration type
 - **ite_name**, **ite_description** (VARCHAR, TEXT)
 - **ite_static_cutover_date**, **ite_dynamic_cutover_date** (TIMESTAMPTZ): Cutover dates
@@ -79,7 +80,6 @@ UMIG is built on:
 ### 3.2. Sequences (`sequences_master_sqm`)
 - **sqm_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
-- **mig_id** (UUID, FK → migrations_mig, nullable)
 - **sqm_order** (INT)
 - **sqm_name**, **sqm_description** (VARCHAR, TEXT)
 - **predecessor_sqm_id** (UUID, FK → sequences_master_sqm, nullable)
@@ -243,6 +243,7 @@ erDiagram
     iterations_ite {
         UUID ite_id PK
         UUID mig_id FK
+        UUID plm_id FK
         VARCHAR itt_code FK
         VARCHAR ite_name
         TEXT ite_description
@@ -291,7 +292,6 @@ erDiagram
     sequences_master_sqm {
         UUID sqm_id PK
         UUID plm_id FK
-        UUID mig_id FK
         INT sqm_order
         VARCHAR sqm_name
         TEXT sqm_description

@@ -1,5 +1,21 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Local Development)
+- **Breaking Change: Refactored the entire local development setup to use a Node.js-based orchestration layer.**
+  - Replaced all shell scripts (`start.sh`, `stop.sh`, `restart.sh`) with Node.js equivalents in `local-dev-setup/scripts/`.
+  - Introduced `local-dev-setup/package.json` to manage all commands via `npm` scripts (e.g., `npm start`, `npm run generate-data`).
+  - Consolidated all scripts, including data generators, into the `local-dev-setup/scripts/` directory.
+  - Added `commander` for advanced command-line argument parsing and `execa` for robust execution of external tools.
+- **Documentation:** Created ADR-025 to document the new architecture and updated all relevant README files.
+
+#### 2025-07-02 (Data Model)
+- **Breaking Change: Refactored the core data model to be iteration-centric ("Model C").**
+  - Removed the direct `plm_id` foreign key from `migrations_mig`.
+  - Added a `plm_id` foreign key to `iterations_ite`, making the iteration the link between a migration and a master plan. This allows a single migration to use different plans for different iterations (e.g., DR test vs. production run).
+- **Fix: Corrected table creation order in `001_unified_baseline.sql` to resolve Liquibase foreign key dependency errors.**
+- **Data Generation:** Aligned data generators (`05_generate_migrations.js`, `07_generate_instance_data.js`) with the new data model.
+- **Documentation:** Created ADR-024 to document the rationale for the new model.
+
 #### 2025-07-01 (API)
 - **Feature: Enhanced Teams API for Membership Management.**
   - Implemented robust routing in `TeamsApi.groovy` to correctly handle nested endpoints for adding (`PUT /teams/{id}/users/{userId}`) and removing (`DELETE /teams/{id}/users/{userId}`) users from teams.

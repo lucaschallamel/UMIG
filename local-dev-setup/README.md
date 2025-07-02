@@ -1,10 +1,10 @@
 # UMIG Local Development Environment Setup
 
-This directory contains all the necessary files to run a complete local development environment for the UMIG project using Podman and Ansible.
+This directory contains a unified Node.js application to run and manage a complete local development environment for the UMIG project using Podman and Ansible.
 
 ## Prerequisites
 
-You must have Liquibase CLI, Ansible, Podman, and `podman-compose` installed on your local machine.
+You must have **Node.js (v18+), npm, Podman, and Ansible** installed on your local machine. Liquibase CLI is no longer a direct prerequisite as it is managed by the orchestration layer.
 
 ### Liquibase CLI Installation
 Install the Liquibase command-line interface (CLI).
@@ -48,54 +48,72 @@ Install Podman and `podman-compose`.
 
 ## Usage
 
-This setup provides simple shell scripts to manage the entire lifecycle of the development environment.
+This setup is managed entirely through `npm` scripts defined in `package.json`. All commands should be run from the `local-dev-setup` directory.
 
-**Important:** Before running the scripts for the first time, make them executable:
+**First-Time Setup:**
 ```bash
-chmod +x start.sh stop.sh restart.sh
+npm install
 ```
 
-### `start.sh`
-Starts all services. The first time you run this, it will execute an Ansible playbook to perform initial setup, such as creating necessary directories.
+### Environment Management
 
-**Command:**
-```bash
-./start.sh
-```
+- **Start Environment:**
+  ```bash
+  npm start
+  ```
 
-### `stop.sh`
-Stops and removes all running containers and networks. By default, this is a non-destructive operation.
+- **Stop Environment:**
+  ```bash
+  npm stop
+  ```
 
-To perform a full cleanup and delete all persistent data volumes, use the `--reset` flag.
+- **Restart Environment:**
+  ```bash
+  npm run restart
+  ```
 
-**Command with Reset:**
-```bash
-./stop.sh --reset
-```
+### Data & Volume Management (Erase/Reset)
 
-**Command:**
-```bash
-./stop.sh
-```
+The `stop` and `restart` commands accept flags to erase persistent data volumes, which is useful for starting with a clean slate. You can erase all data or target specific volumes.
 
-### `restart.sh`
-A convenience script that stops and then starts the environment. It passes any arguments directly to `stop.sh`, allowing you to perform a reset.
+- **Restart and Erase Everything:**
+  ```bash
+  npm run restart:erase
+  ```
 
-#### Resetting Data Volumes
-To perform a full reset, use the `--reset` flag. This will stop the services, wipe all persistent data volumes, and then start the services again.
+- **Restart and Erase Only UMIG DB:**
+  ```bash
+  npm run restart:erase:umig
+  ```
 
-**Warning:** This action is irreversible and will delete all local data.
+- **Stop and Erase Everything:**
+  ```bash
+  npm run stop:erase
+  ```
 
-**Command with Reset:**
-```bash
-./restart.sh --reset
-```
-You will be asked for confirmation before any data is deleted.
+### Data Generation & Utilities
 
-**Command:**
-```bash
-./restart.sh
-```
+- **Generate All Fake Data (with reset):**
+  ```bash
+  npm run generate-data:erase
+  ```
+
+- **Generate Fake Data (without reset):**
+  ```bash
+  npm run generate-data
+  ```
+
+- **Run CSV Importer:**
+  ```bash
+  npm run import-csv -- --file path/to/your/file.csv
+  ```
+
+### Testing
+
+- **Run All Tests:**
+  ```bash
+  npm test
+  ```
 
 ## One-Time ScriptRunner Configuration
 

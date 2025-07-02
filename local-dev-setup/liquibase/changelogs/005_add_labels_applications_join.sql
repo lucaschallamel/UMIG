@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset cascade:005_add_labels_applications_join context:all
+--changeset lucas.challamel:005_add_labels_applications_join context:all
 --comment: Add join table for associating labels with applications (labels_lbl_x_applications_app)
 
 CREATE TABLE labels_lbl_x_applications_app (

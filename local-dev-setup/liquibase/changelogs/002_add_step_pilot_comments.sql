@@ -1,7 +1,8 @@
--- 002_add_step_pilot_comments.sql
--- Adds step_pilot_comments_spc to support accrued pilot/release manager comments per step
+--liquibase formatted sql
+--changeset lucas.challamel:002_add_step_pilot_comments context:all
+--comment: Adds step_pilot_comments_spc to support accrued pilot/release manager comments per step
 
-CREATE TABLE step_pilot_comments_spc (
+CREATE TABLE IF NOT EXISTS step_pilot_comments_spc (
     spc_id        SERIAL PRIMARY KEY,
     stm_id        UUID NOT NULL REFERENCES steps_master_stm(stm_id) ON DELETE CASCADE,
     comment_body  TEXT NOT NULL,
@@ -12,4 +13,4 @@ CREATE TABLE step_pilot_comments_spc (
     visibility    VARCHAR(30) DEFAULT 'pilot'
 );
 
-CREATE INDEX idx_spc_stm_id ON step_pilot_comments_spc(stm_id);
+CREATE INDEX IF NOT EXISTS idx_spc_stm_id ON step_pilot_comments_spc(stm_id);
