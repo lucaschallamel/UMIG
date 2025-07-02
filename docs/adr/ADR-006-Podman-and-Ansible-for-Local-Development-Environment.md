@@ -1,6 +1,6 @@
 # ADR-006: Podman and Ansible for Local Development Environment
 
-* **Status:** Proposed
+* **Status:** Superseded by ADR-025
 * **Date:** 2025-06-16
 * **Deciders:** UMIG Project Team
 * **Technical Story:** N/A
