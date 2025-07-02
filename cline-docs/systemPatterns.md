@@ -29,8 +29,12 @@ The local development setup has been refactored to use a Node.js-based orchestra
 
 ## Testing Standards
 
-The project's test suite has been significantly stabilised and hardened. A new standard, formalised in `ADR-026`, mandates the use of precise SQL query mocks and improved test isolation to ensure reliability and prevent regressions. Tests are adapted to respect security principles by using mock scripts instead of modifying sensitive files.
+The project's test suite has been significantly stabilised and hardened. A new standard, formalised in `ADR-026`, mandates the use of precise SQL query mocks and improved test isolation to ensure reliability and prevent regressions. Tests are adapted to respect security principles by using mock scripts instead of modifying sensitive files. Additionally, deprecated `faker` API calls have been replaced, and critical Jest configuration issues have been resolved, ensuring the test suite runs successfully without warnings.
 - See [ADR-026: Specific Mocks In Tests](../docs/adr/ADR-026-Specific-Mocks-In-Tests.md) for the formal architectural decision and rationale.
+
+## Data Generation Standards
+
+All data generator scripts and their corresponding tests now adhere to a consistent 3-digit numeric prefix naming convention (e.g., `001_generate_core_metadata.js`, `099_generate_instance_data.js`). This ensures robust ordering, traceability, and simplified maintenance for all data generation processes.
 
 ## Reference
 

@@ -15,13 +15,14 @@
 - The backend is implemented in Groovy scripts, following formalised patterns for routing, idempotency, and error handling.
 - Postman collections are regenerated after OpenAPI changes to keep automated tests aligned with the current API contract.
 - The local development environment is now orchestrated via the `umig-local` CLI, providing a streamlined and consistent setup.
+- All data generator scripts and their tests adhere to a consistent 3-digit numeric prefix naming convention for robust ordering and traceability.
 
 ## Technical Constraints and Conventions
 
 - **Error Handling:** All database and application errors are mapped to precise HTTP status codes, as per the new standard (see ADR-023).
 - **Idempotency:** PUT and DELETE operations on associations are idempotent.
 - **Data Model:** The core data model is iteration-centric, providing flexibility for managing migration plans across different iterations (see ADR-024). The `controls_master_ctm` table now includes a `ctm_code` for enhanced data clarity.
-- **Testing:** The test suite adheres to `ADR-026`, mandating precise SQL query mocks and improved test isolation for reliability.
+- **Testing:** The test suite adheres to `ADR-026`, mandating precise SQL query mocks and improved test isolation for reliability. Deprecated `faker` API calls have been replaced, and critical Jest configuration issues have been resolved, ensuring the test suite runs successfully without warnings.
 - **Documentation:** Developer guides and ADRs are maintained to ensure onboarding and ongoing development are efficient and consistent.
 
 ## Dependencies

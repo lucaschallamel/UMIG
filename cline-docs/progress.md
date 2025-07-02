@@ -5,9 +5,10 @@
 - The Teams API is now robust, fully standardised, and aligned with formal REST API implementation patterns, with consistent API routing, error handling, and idempotency across team membership management endpoints.
 - The core data model has been successfully refactored to an iteration-centric design, enhancing flexibility for managing migration plans, and the `controls_master_ctm` table now includes a `ctm_code` for improved data clarity.
 - The local development environment has been streamlined with a Node.js-based orchestration layer and a unified `umig-local` CLI, significantly improving setup and management.
-- The project's test suite has been significantly stabilised and hardened through precise SQL query mocks and improved test isolation, adhering to the new `ADR-026` standard.
+- The project's test suite has been significantly stabilised and hardened through precise SQL query mocks and improved test isolation, adhering to the new `ADR-026` standard. Deprecated `faker` API calls have been replaced, and critical Jest configuration issues have been resolved, ensuring the test suite runs successfully without warnings.
 - The OpenAPI specification, implementation, and documentation are synchronised, ensuring clarity for both developers and clients.
 - Automated tests (Postman, Jest) are up-to-date and validate the new standards, data model, and test stability.
+- All data generator scripts and their tests now use a 3-digit numeric prefix for robust ordering and traceability.
 - Developer guides and architectural records (ADR-023, ADR-024, ADR-025, ADR-026) provide clear reference for ongoing and future development.
 
 ## What's Left to Build
@@ -21,7 +22,6 @@
 ## Current Status
 
 - The codebase is consistent, maintainable, and well-documented.
-- All data generator scripts and their tests now use a 3-digit numeric prefix for robust ordering and traceability. Test imports and documentation have been updated accordingly. All tests pass and data generation works end-to-end after the renaming.
 - The foundation for future API and feature development is solid, with a clear path for further standardisation and enhancement.
 
 ## Known Issues
