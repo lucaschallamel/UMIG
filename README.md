@@ -206,6 +206,8 @@ The rulebook covers:
 
 All contributors are expected to familiarize themselves with these rules before starting work.
 
+In addition to the rulebook, the project's comprehensive technical architecture and design decisions are consolidated in the **[Solution Architecture & Design](./docs/solution-architecture.md)** document. This is the primary reference for understanding the system's structure, patterns, and implementation standards.
+
 ## AI Assistant Integration
 
 This project integrates with AI assistants to streamline development workflows. Detailed guidelines and configurations for specific AI tools are provided in dedicated documentation files:

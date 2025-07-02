@@ -1,5 +1,10 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Architecture Documentation Consolidation)
+- **Docs(Architecture):** Consolidated all 26 individual ADRs into a single, comprehensive `docs/solution-architecture.md` document. This document is now the single source of truth for all architectural decisions.
+- **Docs(Archive):** Archived all original ADR files into the `docs/adr/archive/` directory to preserve historical context.
+- **Docs(Architecture):** Enhanced the new consolidated document with a hyperlinked table of contents and more detailed implementation standards for clarity and ease of use.
+
 #### 2025-07-02 (Teams API Robustness & Membership Endpoints)
 - Enhancement(API): PUT and DELETE for `/teams/{teamId}/users/{userId}` now enforce robust existence checks for both team and user, prevent duplicate associations, and return clear RESTful responses for all cases.
 - Refactor(API): TeamRepository and UserRepository updated for explicit existence checks and robust error reporting.

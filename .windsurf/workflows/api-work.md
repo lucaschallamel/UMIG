@@ -4,7 +4,13 @@ description: The standard workflow for creating or modifying Groovy REST API end
 
 This workflow ensures all API development adheres to the project's established, stable patterns to prevent bugs and maintain consistency.
 
-**The definitive guide for this pattern is [ADR-023](../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md). All developers must read it before writing API code.**
+## Key Reference Documents
+
+**PRIMARY REFERENCE**: `/docs/solution-architecture.md` — Comprehensive solution architecture and API design standards
+
+**SUPPORTING REFERENCES**: 
+- Current ADRs in `/docs/adr/` (skip `/docs/adr/archive/` - consolidated in solution-architecture.md)
+- Working examples: `src/com/umig/api/v2/TeamsApi.groovy`
 
 1. **Analyze the Existing Pattern**:
     * Before writing any code, thoroughly review a working, stable API file like `src/com/umig/api/v2/TeamsApi.groovy`.
