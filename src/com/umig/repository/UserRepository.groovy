@@ -16,11 +16,20 @@ class UserRepository {
      */
     def findUserById(int userId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id
+            def user = sql.firstRow("""
+                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id
                 FROM users_usr
                 WHERE usr_id = :userId
             """, [userId: userId])
+            if (!user) return null
+            // Always attach teams array
+            user.teams = sql.rows("""
+                SELECT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                FROM teams_tms_x_users_usr j
+                JOIN teams_tms t ON t.tms_id = j.tms_id
+                WHERE j.usr_id = :userId
+            """, [userId: user.usr_id])
+            return user
         }
     }
 
@@ -30,11 +39,21 @@ class UserRepository {
      */
     def findAllUsers() {
         DatabaseUtil.withSql { sql ->
-            return sql.rows("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id
+            def users = sql.rows("""
+                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id
                 FROM users_usr
                 ORDER BY usr_id
             """)
+            // Attach teams for each user
+            users.each { user ->
+                user.teams = sql.rows("""
+                    SELECT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                    FROM teams_tms_x_users_usr j
+                    JOIN teams_tms t ON t.tms_id = j.tms_id
+                    WHERE j.usr_id = :userId
+                """, [userId: user.usr_id])
+            }
+            return users
         }
     }
 
@@ -46,18 +65,22 @@ class UserRepository {
     def createUser(Map userData) {
         DatabaseUtil.withSql { sql ->
             def insertQuery = """
-                INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id)
-                VALUES (:usr_code, :usr_first_name, :usr_last_name, :usr_email, :usr_is_admin, :tms_id, :rls_id)
+                INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id)
+                VALUES (:usr_code, :usr_first_name, :usr_last_name, :usr_email, :usr_is_admin, :rls_id)
             """
-
-            def generatedKeys = sql.executeInsert(insertQuery, userData, ['usr_id'])
-
+            def userInsertData = userData.findAll { k, v -> ["usr_code", "usr_first_name", "usr_last_name", "usr_email", "usr_is_admin", "rls_id"].contains(k) }
+            def generatedKeys = sql.executeInsert(insertQuery, userInsertData, ['usr_id'])
             if (generatedKeys && generatedKeys[0]) {
                 def newId = generatedKeys[0][0] as int
+                // If team assignment provided, insert into join table
+                if (userData.teams && userData.teams instanceof List) {
+                    userData.teams.each { tmsId ->
+                        sql.executeInsert("INSERT INTO teams_tms_x_users_usr (tms_id, usr_id, created_at) VALUES (:tmsId, :usrId, now())", [tmsId: tmsId, usrId: newId])
+                    }
+                }
                 return findUserById(newId)
             }
-
-            return null // Should not happen if insert is successful
+            return null
         }
     }
 
@@ -79,26 +102,28 @@ class UserRepository {
             // Build the SET part of the query dynamically from a whitelist of fields
             def setClauses = []
             def queryParams = [:]
-            def updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'tms_id', 'rls_id']
-
+            def updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'rls_id']
             userData.each { key, value ->
                 if (key in updatableFields) {
                     setClauses.add("${key} = :${key}")
                     queryParams[key] = value
                 }
             }
-
-            if (setClauses.isEmpty()) {
-                // If no valid fields were provided for update, return the current user data
-                return findUserById(userId)
+            if (!setClauses.isEmpty()) {
+                queryParams['usr_id'] = userId
+                def updateQuery = "UPDATE users_usr SET ${setClauses.join(', ')} WHERE usr_id = :usr_id"
+                sql.executeUpdate(updateQuery, queryParams)
             }
-
-            queryParams['usr_id'] = userId
-            def updateQuery = "UPDATE users_usr SET ${setClauses.join(', ')} WHERE usr_id = :usr_id"
-
-            sql.executeUpdate(updateQuery, queryParams)
+            // Handle team assignment updates if provided
+            if (userData.teams && userData.teams instanceof List) {
+                // Remove existing memberships
+                sql.executeUpdate("DELETE FROM teams_tms_x_users_usr WHERE usr_id = :usrId", [usrId: userId])
+                // Add new memberships
+                userData.teams.each { tmsId ->
+                    sql.executeInsert("INSERT INTO teams_tms_x_users_usr (tms_id, usr_id, created_at) VALUES (:tmsId, :usrId, now())", [tmsId: tmsId, usrId: userId])
+                }
+            }
         }
-        // Return the updated user data by calling findUserById outside the transaction
         return findUserById(userId)
     }
 
