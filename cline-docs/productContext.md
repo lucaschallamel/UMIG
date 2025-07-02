@@ -11,6 +11,8 @@ UMIG exists to simplify and standardise the management of complex migration and 
 - Comprehensive documentation and synchronisation between API implementation and specification.
 - Easy onboarding for new developers and users, supported by formalised patterns and guides.
 
-## Recent Enhancement
+## Recent Enhancements
 
 As of July 2025, the adoption of standardised REST API implementation patterns has significantly improved the client experience and maintainability of the platform. Team membership management, in particular, now benefits from robust routing, idempotent operations, and precise error handling, ensuring users can interact with the system confidently and reliably.
+
+Furthermore, the refactoring to an iteration-centric data model provides greater flexibility for managing migration plans across different iterations, and the new Node.js-based local development orchestration streamlines the development setup, enhancing overall efficiency.

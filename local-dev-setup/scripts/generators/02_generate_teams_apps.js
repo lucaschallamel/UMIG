@@ -68,24 +68,22 @@ async function generateTeamApplicationLinks(client) {
   const appsResult = await client.query('SELECT app_id FROM applications_app');
   const apps = appsResult.rows;
 
-  if (apps.length === 0) {
-    console.log('No applications found to link. Skipping.');
-    return;
+  if (teams.length === 0 || apps.length === 0) {
+    throw new Error('Cannot link teams and applications: No teams or applications found.');
   }
 
   for (const team of teams) {
     const numLinks = faker.number.int({ min: 1, max: 5 });
-    const shuffledApps = faker.helpers.shuffle(apps);
-
-    // Ensure the number of links does not exceed the number of available apps.
-    // This is especially important in a testing context where mocks might not respect bounds.
     const linksToCreate = Math.min(numLinks, apps.length);
 
-    for (let i = 0; i < linksToCreate; i++) {
-      await client.query(
-        'INSERT INTO teams_tms_x_applications_app (tms_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-        [team.tms_id, shuffledApps[i].app_id]
-      );
+    if (linksToCreate > 0) {
+      const appsToLink = faker.helpers.arrayElements(apps, linksToCreate);
+      for (const appToLink of appsToLink) {
+        await client.query(
+          'INSERT INTO teams_tms_x_applications_app (tms_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [team.tms_id, appToLink.app_id]
+        );
+      }
     }
   }
   console.log('Finished linking teams to applications.');

@@ -1,23 +1,23 @@
-const {
+import {
   generateTeamsAndApps,
   generateTeams,
   generateApplications,
   generateTeamApplicationLinks,
-  resetTeamsAndAppsTables
-} = require('../../generators/02_generate_teams_apps');
-const { client } = require('../../lib/db');
-const { faker } = require('../../lib/utils');
+  eraseTeamsAndAppsTables
+} from '../../scripts/generators/02_generate_teams_apps.js';
+import { client } from '../../scripts/lib/db.js';
+import { faker } from '../../scripts/lib/utils.js';
 
 // Mock the database client to avoid actual DB calls during tests
-jest.mock('../../lib/db', () => ({
+jest.mock('../../scripts/lib/db', () => ({
   client: {
     query: jest.fn().mockResolvedValue({ rows: [] }),
   },
 }));
 
 // Mock faker to ensure we get deterministic and predictable results for our tests
-jest.mock('../../lib/utils', () => ({
-  ...jest.requireActual('../../lib/utils'), // Retain other utilities
+jest.mock('../../scripts/lib/utils', () => ({
+  ...jest.requireActual('../../scripts/lib/utils.js'), // Retain other utilities
   faker: {
     commerce: {
       department: jest.fn(),
@@ -31,6 +31,7 @@ jest.mock('../../lib/utils', () => ({
     },
     helpers: {
       arrayElement: jest.fn(),
+      arrayElements: jest.fn(),
     },
     number: {
       int: jest.fn(),
@@ -136,6 +137,7 @@ describe('Data Generator: Teams and Applications', () => {
       });
 
       faker.number.int.mockReturnValue(linksPerTeam);
+      faker.helpers.arrayElements.mockImplementation((arr, count) => arr.slice(0, count));
 
       await generateTeamsAndApps(config);
 

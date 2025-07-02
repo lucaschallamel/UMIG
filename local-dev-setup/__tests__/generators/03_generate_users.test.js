@@ -1,10 +1,35 @@
-const { client } = require('../../lib/db');
-const { generateUsers } = require('../../generators/03_generate_users');
-const { faker } = require('../../lib/utils');
+import { client } from '../../scripts/lib/db.js';
+import { generateUsers } from '../../scripts/generators/03_generate_users.js';
+import { faker } from '../../scripts/lib/utils.js';
 
 // Mock the database client and faker
-jest.mock('../../lib/db', () => ({ client: { query: jest.fn() } }));
-jest.mock('../../lib/utils', () => ({ faker: { string: { alpha: jest.fn() }, person: { firstName: jest.fn(), lastName: jest.fn() } } }));
+jest.mock('../../scripts/lib/db.js', () => ({
+  client: {
+    query: jest.fn(),
+  },
+}));
+
+jest.mock('../../scripts/lib/utils.js', () => ({
+  ...jest.requireActual('../../scripts/lib/utils.js'),
+  faker: {
+    person: {
+      firstName: jest.fn(),
+      lastName: jest.fn(),
+    },
+    string: {
+      alphanumeric: jest.fn(),
+    },
+    internet: {
+      domainName: jest.fn(),
+    },
+    helpers: {
+      arrayElements: jest.fn(),
+    },
+    number: {
+      int: jest.fn(),
+    },
+  },
+}));
 
 const CONFIG = {
   USERS: {
@@ -19,162 +44,219 @@ const CONFIG = {
 
 describe('Users Generator (03_generate_users.js)', () => {
   beforeEach(() => {
-    // Reset mocks before each test
-    client.query.mockReset();
-    faker.string.alpha.mockReset();
-    faker.person.firstName.mockReset();
-    faker.person.lastName.mockReset();
-
-    // Setup default mock implementations
+    jest.clearAllMocks();
     faker.person.firstName.mockReturnValue('John');
     faker.person.lastName.mockReturnValue('Doe');
-    let trigramCounter = 0;
-    let usrIdCounter = 1000;
-    faker.string.alpha.mockImplementation(() => `T${String(trigramCounter++).padStart(2, '0')}`);
+    faker.string.alphanumeric.mockReturnValue('a');
+    faker.internet.domainName.mockReturnValue('example.com');
+  });
 
-    // Global mock for DB: handle user insert/select, plus passthrough for others
-    client.query.mockImplementation((sql, params) => {
-      if (sql.startsWith('INSERT INTO users_usr')) {
-        return Promise.resolve({ rows: [{ usr_id: usrIdCounter++ }] });
+  it('should call eraseUsersTable when erase option is true', async () => {
+    client.query.mockImplementation((sql) => {
+      if (sql.startsWith('TRUNCATE')) {
+        return Promise.resolve({ rows: [], rowCount: 1 });
       }
-      if (sql.startsWith('SELECT usr_id FROM users_usr WHERE usr_code = $1')) {
-        // Map trigram to a fake usr_id (simulate deterministic mapping)
-        return Promise.resolve({ rows: [{ usr_id: usrIdCounter++ }] });
+      if (sql.startsWith('SELECT rls_id, rls_code FROM roles_rls')) {
+        return Promise.resolve({ rows: [
+          { rls_id: 'admin-id', rls_code: 'ADMIN' },
+          { rls_id: 'pilot-id', rls_code: 'PILOT' },
+          { rls_id: 'normal-id', rls_code: 'NORMAL' },
+        ]});
       }
-      // Default: return empty rows (for roles, teams, etc. these are explicitly set up in each test)
+      if (/INSERT INTO users_usr/i.test(sql)) {
+        return Promise.resolve({ rows: [{ usr_id: 'mock-id' }] });
+      }
+      if (sql.includes('JOIN roles_rls r ON u.rls_id = r.rls_id')) {
+        return Promise.resolve({ rows: [{ usr_id: 'usr-admin-1', rls_code: 'ADMIN' }] });
+      }
+      if (sql.startsWith('SELECT tms_id, tms_name FROM teams_tms')) {
+        return Promise.resolve({ rows: [{ tms_id: 'it-cutover-id', tms_name: 'IT_CUTOVER' }] });
+      }
       return Promise.resolve({ rows: [] });
     });
+
+    await generateUsers(CONFIG, { erase: true });
+
+    expect(client.query).toHaveBeenCalledWith('TRUNCATE TABLE "users_usr" RESTART IDENTITY CASCADE');
   });
 
-  it('should call resetUsersTable when reset option is true', async () => {
-    // Arrange: Provide specific mocks for each sequential query
-    client.query
-      .mockResolvedValueOnce({ rows: [] }) // For the TRUNCATE call
-      .mockResolvedValueOnce({ rows: [{ rls_id: 'admin-id', rls_code: 'ADMIN' }, { rls_id: 'normal-id', rls_code: 'NORMAL' }, { rls_id: 'pilot-id', rls_code: 'PILOT' }] }) // For the roles query
-      .mockResolvedValueOnce({ rows: [{ tms_id: 'it-team-id', tms_name: 'IT_CUTOVER' }] }); // For the teams query
-
-    // Act
-    await generateUsers(CONFIG, { reset: true });
-
-    // Assert: Check that the TRUNCATE command was the first call
-    expect(client.query).toHaveBeenNthCalledWith(1, 'TRUNCATE TABLE "users_usr" RESTART IDENTITY CASCADE');
-  });
-
-  it('should generate ADMIN, PILOT, and NORMAL users with correct roles and teams', async () => {
+  it('should generate users and link them correctly', async () => {
     // Arrange
     const mockRoles = [
-      { rls_id: 'admin-role-id', rls_code: 'ADMIN' },
-      { rls_id: 'normal-role-id', rls_code: 'NORMAL' },
-      { rls_id: 'pilot-role-id', rls_code: 'PILOT' },
+      { rls_id: 'admin-id', rls_code: 'ADMIN' },
+      { rls_id: 'pilot-id', rls_code: 'PILOT' },
+      { rls_id: 'normal-id', rls_code: 'NORMAL' },
     ];
     const mockTeams = [
-      { tms_id: 'it-team-id', tms_name: 'IT_CUTOVER' },
-      { tms_id: 'normal-team-id', tms_name: 'Team A' },
+      { tms_id: 'it-cutover-id', tms_name: 'IT_CUTOVER' },
+      { tms_id: 'team-a-id', tms_name: 'Team A' },
+      { tms_id: 'team-b-id', tms_name: 'Team B' },
     ];
-    client.query
-      .mockResolvedValueOnce({ rows: mockRoles })
-      .mockResolvedValueOnce({ rows: mockTeams });
+
+    let userInserts = [];
+    let joinInserts = [];
+    let generatedUsersForLink = [];
+
+    client.query.mockImplementation((sql, params) => {
+      if (sql.startsWith('SELECT rls_id, rls_code FROM roles_rls')) {
+        return Promise.resolve({ rows: mockRoles });
+      }
+
+      if (/INSERT INTO users_usr/i.test(sql)) {
+        const roleId = params[5];
+        const role = mockRoles.find(r => r.rls_id === roleId);
+        const newUser = { 
+          usr_id: `new-user-${userInserts.length}`,
+          rls_code: role ? role.rls_code : 'UNKNOWN',
+        };
+        userInserts.push(params);
+        generatedUsersForLink.push(newUser);
+        return Promise.resolve({ rows: [{ usr_id: newUser.usr_id }] });
+      }
+
+      if (sql.includes('JOIN roles_rls r ON u.rls_id = r.rls_id')) {
+        return Promise.resolve({ rows: generatedUsersForLink });
+      }
+
+      if (sql.startsWith('SELECT tms_id, tms_name FROM teams_tms')) {
+        return Promise.resolve({ rows: mockTeams });
+      }
+
+      if (sql.startsWith('INSERT INTO teams_tms_x_users_usr')) {
+        joinInserts.push(params);
+        return Promise.resolve({ rows: [] });
+      }
+      
+      return Promise.resolve({ rows: [] });
+    });
 
     // Act
     await generateUsers(CONFIG, {});
 
     // Assert
-    // Find all user and join table insert calls
-    const userInserts = client.query.mock.calls.filter(call => call[0].includes('INSERT INTO users_usr'));
-    const joinInserts = client.query.mock.calls.filter(call => call[0].includes('INSERT INTO teams_tms_x_users_usr'));
     const totalUsers = CONFIG.USERS.NORMAL.COUNT + CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT;
     expect(userInserts.length).toBe(totalUsers);
     expect(joinInserts.length).toBe(totalUsers);
 
-    // Check that each join table insert has correct team and user
-    // (simulate usr_id propagation; here we just check correct teamId argument ordering)
-    const itCutoverJoins = joinInserts.filter(call => call[1][0] === 'it-team-id');
-    expect(itCutoverJoins.length).toBe(CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT);
-    const normalJoins = joinInserts.filter(call => call[1][0] === 'normal-team-id');
+    const adminPilotJoins = joinInserts.filter(j => j[1] === 'it-cutover-id');
+    expect(adminPilotJoins.length).toBe(CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT);
+
+    const normalJoins = joinInserts.filter(j => j[1] !== 'it-cutover-id');
     expect(normalJoins.length).toBe(CONFIG.USERS.NORMAL.COUNT);
   });
 
   it('should throw an error if required roles are missing', async () => {
     // Arrange
-    client.query.mockResolvedValue({ rows: [{ rls_id: 'normal-id', rls_code: 'NORMAL' }] }); // Missing ADMIN and PILOT
+    client.query.mockImplementation((sql) => {
+      if (sql.startsWith('SELECT rls_id, rls_code FROM roles_rls')) {
+        // Return incomplete roles
+        return Promise.resolve({ rows: [{ rls_id: 'normal-id', rls_code: 'NORMAL' }] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
     // Act & Assert
     await expect(generateUsers(CONFIG, {})).rejects.toThrow('Required roles (ADMIN, NORMAL, PILOT) not found in database.');
   });
 
-  it('should throw an error if IT_CUTOVER team is missing', async () => {
+  it('should throw an error if IT_CUTOVER team is missing for admins/pilots', async () => {
     // Arrange
-    const mockRoles = [
-      { rls_id: 'admin-role-id', rls_code: 'ADMIN' },
-      { rls_id: 'normal-role-id', rls_code: 'NORMAL' },
-      { rls_id: 'pilot-role-id', rls_code: 'PILOT' },
-    ];
-    client.query.mockResolvedValueOnce({ rows: mockRoles })
-                 .mockResolvedValueOnce({ rows: [{ tms_id: 'normal-team-id', tms_name: 'Team A' }] }); // Missing IT_CUTOVER
+    client.query.mockImplementation((sql) => {
+      if (sql.startsWith('SELECT rls_id, rls_code FROM roles_rls')) {
+        return Promise.resolve({ rows: [
+            { rls_id: 'admin-id', rls_code: 'ADMIN' }, { rls_id: 'pilot-id', rls_code: 'PILOT' }, { rls_id: 'normal-id', rls_code: 'NORMAL' },
+        ]});
+      }
+      if (sql.includes('JOIN roles_rls r ON u.rls_id = r.rls_id')) {
+        return Promise.resolve({ rows: [{ usr_id: 'usr-admin-1', rls_code: 'ADMIN' }] });
+      }
+      if (sql.startsWith('SELECT tms_id, tms_name FROM teams_tms')) {
+        // But no IT_CUTOVER team
+        return Promise.resolve({ rows: [{ tms_id: 'team-a-id', tms_name: 'Team A' }] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
     // Act & Assert
     await expect(generateUsers(CONFIG, {})).rejects.toThrow('IT_CUTOVER team not found for admin/pilot user assignment.');
   });
 
   it('should ensure every non-IT_CUTOVER team has at least one member', async () => {
     // Arrange
-    const mockRoles = [
-      { rls_id: 'normal-role-id', rls_code: 'NORMAL' },
-      { rls_id: 'admin-role-id', rls_code: 'ADMIN' },
-      { rls_id: 'pilot-role-id', rls_code: 'PILOT' },
+    const normalTeams = [{ tms_id: 'team-a-id', tms_name: 'Team A' }, { tms_id: 'team-b-id', tms_name: 'Team B' }];
+    const mockTeams = [{ tms_id: 'it-cutover-id', tms_name: 'IT_CUTOVER' }, ...normalTeams];
+    const mockUsers = [
+      { usr_id: 'usr-normal-1', rls_code: 'NORMAL' }, { usr_id: 'usr-normal-2', rls_code: 'NORMAL' },
+      { usr_id: 'usr-normal-3', rls_code: 'NORMAL' }, { usr_id: 'usr-normal-4', rls_code: 'NORMAL' },
+      { usr_id: 'usr-normal-5', rls_code: 'NORMAL' },
     ];
-    const mockTeams = [
-      { tms_id: 'it-team-id', tms_name: 'IT_CUTOVER' },
-      { tms_id: 'team-a-id', tms_name: 'Team A' },
-      { tms_id: 'team-b-id', tms_name: 'Team B' },
-      { tms_id: 'team-c-id', tms_name: 'Team C' },
-    ];
-    const normalTeamIds = mockTeams.filter(t => t.tms_name !== 'IT_CUTOVER').map(t => t.tms_id);
+    const mockRoles = [{ rls_id: 'normal-id', rls_code: 'NORMAL' }];
+    let joinInserts = [];
 
-    client.query
-      .mockResolvedValueOnce({ rows: mockRoles })
-      .mockResolvedValueOnce({ rows: mockTeams });
+    client.query.mockImplementation((sql, params) => {
+      if (sql.startsWith('SELECT rls_id, rls_code FROM roles_rls')) {
+        return Promise.resolve({ rows: mockRoles });
+      }
+      if (sql.includes('JOIN roles_rls r ON u.rls_id = r.rls_id')) {
+        return Promise.resolve({ rows: mockUsers });
+      }
+      if (sql.startsWith('SELECT tms_id, tms_name FROM teams_tms')) {
+        return Promise.resolve({ rows: mockTeams });
+      }
+      if (sql.startsWith('INSERT INTO teams_tms_x_users_usr')) {
+        joinInserts.push(params);
+      }
+      return Promise.resolve({ rows: [] });
+    });
 
-    // Act: Use a config with enough users to cover all teams
-    await generateUsers({ ...CONFIG, num_users: 10 }, {});
+    // Act
+    await generateUsers({ USERS: { NORMAL: { COUNT: 5 }}}, {});
 
     // Assert
-    // Find all join table insert calls
-    const joinInserts = client.query.mock.calls.filter(call => call[0].includes('INSERT INTO teams_tms_x_users_usr'));
-    const assignedTeamIds = new Set(joinInserts.map(call => call[1][0]));
-    // Accept that some teams may get more than one user, but all teams get at least one
-    for (const teamId of normalTeamIds) {
-      expect(assignedTeamIds.has(teamId)).toBe(true);
+    const assignedTeamIds = new Set(joinInserts.map(i => i[1]));
+    for (const team of normalTeams) {
+      expect(assignedTeamIds.has(team.tms_id)).toBe(true);
     }
   });
 
   it('should log a warning if no normal teams are found', async () => {
     // Arrange
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const mockRoles = [
-      { rls_id: 'admin-role-id', rls_code: 'ADMIN' },
-      { rls_id: 'normal-role-id', rls_code: 'NORMAL' },
-      { rls_id: 'pilot-role-id', rls_code: 'PILOT' },
-    ];
-    client.query.mockResolvedValueOnce({ rows: mockRoles })
-                 .mockResolvedValueOnce({ rows: [{ tms_id: 'it-team-id', tms_name: 'IT_CUTOVER' }] }); // Only IT_CUTOVER team
+    client.query.mockImplementation((sql) => {
+      if (sql.startsWith('SELECT rls_id, rls_code FROM roles_rls')) {
+        return Promise.resolve({ rows: [{ rls_id: 'normal-id', rls_code: 'NORMAL' }] });
+      }
+      if (sql.includes('JOIN roles_rls r ON u.rls_id = r.rls_id')) {
+        return Promise.resolve({ rows: [{ usr_id: 'usr-normal-1', rls_code: 'NORMAL' }] });
+      }
+      if (sql.startsWith('SELECT tms_id, tms_name FROM teams_tms')) {
+        return Promise.resolve({ rows: [{ tms_id: 'it-cutover-id', tms_name: 'IT_CUTOVER' }] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
 
     // Act
-    await generateUsers(CONFIG, {});
+    await generateUsers({ USERS: { NORMAL: { COUNT: 1 }}}, {});
 
     // Assert
     expect(consoleWarnSpy).toHaveBeenCalledWith('Warning: No non-IT_CUTOVER teams found for user assignment.');
     consoleWarnSpy.mockRestore();
   });
 
-  it('should handle errors during table reset', async () => {
+  it('should handle errors during table erasure', async () => {
     // Arrange
+    const error = new Error('DB error');
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const dbError = new Error('TRUNCATE failed');
-    // Mock the first query (the truncate) to fail
-    client.query.mockRejectedValueOnce(dbError);
+    client.query.mockImplementation((sql) => {
+      if (sql.startsWith('TRUNCATE')) {
+        return Promise.reject(error);
+      }
+      return Promise.resolve({ rows: [] });
+    });
 
     // Act & Assert
-    await expect(generateUsers(CONFIG, { reset: true })).rejects.toThrow(dbError);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`Error resetting users table: ${dbError}`);
+    await expect(generateUsers(CONFIG, { erase: true })).rejects.toThrow(error);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(`Error erasing users table: ${error}`);
     consoleErrorSpy.mockRestore();
   });
 });

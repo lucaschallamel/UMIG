@@ -1,8 +1,8 @@
-const { client } = require('../../lib/db');
-const { generateCoreMetadata } = require('../../generators/01_generate_core_metadata');
+import { client } from '../../scripts/lib/db.js';
+import { generateCoreMetadata } from '../../scripts/generators/01_generate_core_metadata.js';
 
 // Mock the database client
-jest.mock('../../lib/db', () => ({
+jest.mock('../../scripts/lib/db', () => ({
   client: {
     query: jest.fn(),
   },

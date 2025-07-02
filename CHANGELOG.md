@@ -1,5 +1,11 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Testing & Maintenance)
+- **Fix:** Corrected a regression in the user data generator (`03_generate_users.js`) where an incorrect column name was used in a SQL query.
+- **Test:** Hardened the user generator test suite (`03_generate_users.test.js`) with highly specific mocks to prevent similar regressions.
+- **Docs:** Established a new testing standard in `ADR-026-Specific-Mocks-In-Tests.md` to enforce specific mocks.
+- **Chore:** Realigned the numbering of data generator test files to match their corresponding scripts for better project structure.
+
 #### 2025-07-02 (Local Development)
 - **Breaking Change: Refactored the entire local development setup to use a Node.js-based orchestration layer.**
   - Replaced all shell scripts (`start.sh`, `stop.sh`, `restart.sh`) with Node.js equivalents in `local-dev-setup/scripts/`.

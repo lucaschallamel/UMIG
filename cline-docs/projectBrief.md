@@ -4,9 +4,16 @@
 
 UMIG is a unified migration and integration guide platform designed to streamline and standardise complex migration processes. The project aims to provide robust, maintainable, and user-friendly tools for managing migration steps, team membership, and associated data, with a strong emphasis on clarity, consistency, and automation.
 
-## Recent Milestone
+## Recent Milestones
 
-On 1 July 2025, the project formalised standard REST API implementation patterns across the platform. This milestone significantly improves the consistency, robustness, and maintainability of all backend endpoints, ensuring a predictable and high-quality client experience.
+### Standard REST API Implementation Patterns (2025-07-01)
+The project formalised standard REST API implementation patterns across the platform. This milestone significantly improves the consistency, robustness, and maintainability of all backend endpoints, ensuring a predictable and high-quality client experience.
+
+### Iteration-Centric Data Model (2025-07-02)
+The core data model has been refactored to be "iteration-centric" ("Model C"). The `iterations_ite` table now links a migration to a master plan via `plm_id`, allowing a single migration to use different plans for different iterations.
+
+### Node.js-based Local Development Orchestration (2025-07-02)
+The entire local development setup has been refactored to use a Node.js-based orchestration layer, replacing shell scripts with Node.js equivalents and consolidating all scripts into `local-dev-setup/scripts/`.
 
 ## Core Goals
 

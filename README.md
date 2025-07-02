@@ -87,10 +87,13 @@ See `/local-dev-setup/README.md` for more details on the data utilities and othe
 
 ## Testing
 
-The project maintains two distinct types of tests:
+The project maintains three distinct types of tests:
 
 * **Unit Tests**: Located in `src/test/`, these are fast, in-memory tests that validate individual components in isolation. They use mocking to simulate dependencies.
 * **Integration Tests**: Located in the root `/tests` directory, these are designed to run against the live development environment to validate the integration between different components (e.g., API and database).
+* **Data Generator Tests**: Located in `local-dev-setup/__tests__/`, these are Jest-based tests that validate the correctness of our synthetic data generation scripts.
+
+**Testing Standard for Mocks:** To ensure reliability, all tests that use mocks (especially for database queries) must use **highly specific matchers**. Generic mocks are discouraged as they can hide regressions. For more details, see **[ADR-026: Enforcing Specificity in Test Mocks](./docs/adr/ADR-026-Specific-Mocks-In-Tests.md)**.
 
 For detailed instructions on how to run the integration test suite, please see the **[Testing Guide](./tests/README.md)**.
 
