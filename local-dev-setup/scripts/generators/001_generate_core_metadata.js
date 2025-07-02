@@ -1,3 +1,9 @@
+
+
+/**
+ * Pre-populates the roles_rls table with default roles.
+ * @param {object} client - The PostgreSQL client.
+ */
 import { client } from '../lib/db.js';
 
 /**
@@ -51,10 +57,11 @@ async function generateStepTypes(client) {
 /**
  * Main function to generate all core metadata.
  */
-async function generateCoreMetadata() {
+async function generateCoreMetadata(options = {}) {
+  const dbClient = options.clientOverride || client;
   try {
-    await generateRoles(client);
-    await generateStepTypes(client);
+        await generateRoles(dbClient);
+        await generateStepTypes(dbClient);
   } catch (error) {
     console.error('Error generating core metadata:', error);
     throw error;

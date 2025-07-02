@@ -1,8 +1,8 @@
-const { client } = require('../../lib/db');
-const { generateCoreMetadata } = require('../../generators/01_generate_core_metadata');
+import { client } from '../../scripts/lib/db.js';
+import { generateCoreMetadata } from '../../scripts/generators/001_generate_core_metadata.js';
 
-// Mock the database client
-jest.mock('../../lib/db', () => ({
+// Mock the database client to prevent Jest from parsing the actual db.js file
+jest.mock('../../scripts/lib/db', () => ({
   client: {
     query: jest.fn(),
   },
@@ -12,6 +12,13 @@ describe('Core Metadata Generator (01_generate_core_metadata.js)', () => {
   beforeEach(() => {
     // Clear mock history before each test
     client.query.mockReset();
+    // Silence console output
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should populate roles and step types with correct, idempotent queries', async () => {
@@ -44,16 +51,10 @@ describe('Core Metadata Generator (01_generate_core_metadata.js)', () => {
     const mockError = new Error('Database connection error');
     client.query.mockRejectedValue(mockError);
 
-    // Spy on console.error to ensure it's called
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
     // Act & Assert: Expect the function to reject with the mocked error
     await expect(generateCoreMetadata()).rejects.toThrow(mockError);
 
     // Assert that the error was logged
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error generating core metadata:', mockError);
-
-    // Clean up the spy
-    consoleErrorSpy.mockRestore();
+    expect(console.error).toHaveBeenCalledWith('Error generating core metadata:', mockError);
   });
 });

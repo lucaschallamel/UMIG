@@ -13,9 +13,12 @@ const config = {
   clearMocks: true,
   resetMocks: true,
   testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+  transform: {
+    '^.+\.js$': 'babel-jest',
+  },
   // setupFiles: ["<rootDir>/jest.setup.js"],
-  globalSetup: './jest.global-setup.js',
-  globalTeardown: './jest.global-teardown.js',
+  globalSetup: './jest.global-setup.cjs',
+  globalTeardown: './jest.global-teardown.cjs',
 };
 
-module.exports = config;
+export default config;

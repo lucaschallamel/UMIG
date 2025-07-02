@@ -1,23 +1,23 @@
-const {
+import {
   generateTeamsAndApps,
   generateTeams,
   generateApplications,
   generateTeamApplicationLinks,
-  resetTeamsAndAppsTables
-} = require('../../generators/02_generate_teams_apps');
-const { client } = require('../../lib/db');
-const { faker } = require('../../lib/utils');
+  eraseTeamsAndAppsTables
+} from '../../scripts/generators/002_generate_teams_apps.js';
+import { client } from '../../scripts/lib/db.js';
+import { faker } from '../../scripts/lib/utils.js';
 
 // Mock the database client to avoid actual DB calls during tests
-jest.mock('../../lib/db', () => ({
+jest.mock('../../scripts/lib/db', () => ({
   client: {
     query: jest.fn().mockResolvedValue({ rows: [] }),
   },
 }));
 
 // Mock faker to ensure we get deterministic and predictable results for our tests
-jest.mock('../../lib/utils', () => ({
-  ...jest.requireActual('../../lib/utils'), // Retain other utilities
+jest.mock('../../scripts/lib/utils', () => ({
+  ...jest.requireActual('../../scripts/lib/utils.js'), // Retain other utilities
   faker: {
     commerce: {
       department: jest.fn(),
@@ -31,6 +31,7 @@ jest.mock('../../lib/utils', () => ({
     },
     helpers: {
       arrayElement: jest.fn(),
+      arrayElements: jest.fn(),
     },
     number: {
       int: jest.fn(),
@@ -109,6 +110,17 @@ describe('Data Generator: Teams and Applications', () => {
     });
   });
 
+  describe('eraseTeamsAndAppsTables', () => {
+    test('it should truncate all related tables', async () => {
+      await eraseTeamsAndAppsTables(client);
+      // It should call TRUNCATE for 3 tables
+      expect(client.query).toHaveBeenCalledTimes(3);
+      expect(client.query).toHaveBeenCalledWith('TRUNCATE TABLE "teams_tms_x_applications_app" RESTART IDENTITY CASCADE');
+      expect(client.query).toHaveBeenCalledWith('TRUNCATE TABLE "teams_tms" RESTART IDENTITY CASCADE');
+      expect(client.query).toHaveBeenCalledWith('TRUNCATE TABLE "applications_app" RESTART IDENTITY CASCADE');
+    });
+  });
+
   // --- Tests for the Main Orchestrator Function ---
 
   describe('generateTeamsAndApps (Orchestrator)', () => {
@@ -136,6 +148,7 @@ describe('Data Generator: Teams and Applications', () => {
       });
 
       faker.number.int.mockReturnValue(linksPerTeam);
+      faker.helpers.arrayElements.mockImplementation((arr, count) => arr.slice(0, count));
 
       await generateTeamsAndApps(config);
 
@@ -143,13 +156,33 @@ describe('Data Generator: Teams and Applications', () => {
       expect(linkInsertCalls.length).toBe(mockTeams.length * linksPerTeam);
     });
 
-    test('it should handle and throw an error if table reset fails', async () => {
-      const dbError = new Error('DB Reset Failed');
-      client.query.mockRejectedValue(dbError);
-      const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    test('it should call erase when the erase option is true', async () => {
+      // Spy on faker.helpers.arrayElements to prevent the "not iterable" error.
+      // This happens when it's asked for 1 element and returns an object instead of an array.
+      // We mock it to always return a valid array, allowing the test to proceed.
+      jest.spyOn(faker.helpers, 'arrayElements').mockReturnValue([{ app_id: 101 }]);
 
-      await expect(generateTeamsAndApps(config, { reset: true })).rejects.toThrow(dbError);
-      expect(errorSpy).toHaveBeenCalledWith('Error generating teams and applications:', dbError);
+      const mockTeams = [{ tms_id: 1 }];
+      const mockApps = [{ app_id: 101 }, { app_id: 102 }];
+      client.query.mockImplementation((query) => {
+        if (query.startsWith('SELECT tms_id')) return Promise.resolve({ rows: mockTeams });
+        if (query.startsWith('SELECT app_id')) return Promise.resolve({ rows: mockApps });
+        return Promise.resolve({ rows: [] });
+      });
+
+      await generateTeamsAndApps(config, { erase: true });
+
+      // Check if TRUNCATE was called on at least one of the tables
+      const truncateCall = client.query.mock.calls.find(call => call[0].includes('TRUNCATE'));
+      expect(truncateCall).toBeDefined();
+    });
+
+    test('it should handle and throw an error if table erase fails', async () => {
+      const dbError = new Error('DB Erase Failed');
+      client.query.mockRejectedValue(dbError);
+
+      await expect(generateTeamsAndApps(config, { erase: true })).rejects.toThrow(dbError);
+      expect(console.error).toHaveBeenCalledWith('Error generating teams and applications:', dbError);
     });
   });
 });

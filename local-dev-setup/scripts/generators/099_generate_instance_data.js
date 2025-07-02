@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '../lib/utils.js';
 import { client } from '../lib/db.js';
 
 /**
@@ -8,6 +8,7 @@ async function eraseInstanceDataTables(client) {
   console.log('Erasing instance data tables...');
   // Order is important for truncation due to foreign keys. Start from the "bottom" up.
   const tablesToReset = [
+    'controls_instance_cti',
     'instructions_instance_ini',
     'steps_instance_sti',
     'phases_instance_phi',
@@ -46,9 +47,8 @@ async function generateInstanceData(config, options = {}) {
   const iterations = await client.query('SELECT ite_id, plm_id FROM iterations_ite');
   const users = await client.query('SELECT usr_id FROM users_usr');
 
-  if (iterations.rows.length === 0 || users.rows.length === 0) {
-    console.error('Cannot generate instance data: Missing master data (iterations or users).');
-    return;
+    if (iterations.rows.length === 0 || users.rows.length === 0) {
+    throw new Error('Cannot generate instance data: Missing master data (iterations or users).');
   }
 
   // For each iteration, create an instance of the specific master plan it is linked to.
@@ -114,9 +114,20 @@ async function generateInstanceData(config, options = {}) {
           for (const masterInstruction of masterInstructions.rows) {
             // 5. Create Instruction Instance (ini)
             await client.query(
-              `INSERT INTO instructions_instance_ini (sti_id, inm_id, ini_status)
+              `INSERT INTO instructions_instance_ini (sti_id, inm_id, ini_is_completed)
                VALUES ($1, $2, $3)`,
-              [stepInstanceId, masterInstruction.inm_id, 'NOT_STARTED']
+              [stepInstanceId, masterInstruction.inm_id, false]
+            );
+          }
+
+          // 6. Create Control Instances (cti) for the step's phase
+          const masterControls = await client.query('SELECT ctm_id FROM controls_master_ctm WHERE phm_id = $1', [masterPhase.phm_id]);
+
+          for (const masterControl of masterControls.rows) {
+            await client.query(
+              `INSERT INTO controls_instance_cti (sti_id, ctm_id, cti_status)
+               VALUES ($1, $2, $3)`,
+              [stepInstanceId, masterControl.ctm_id, 'PENDING']
             );
           }
         }

@@ -1,21 +1,22 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '../lib/utils.js';
 import { client } from '../lib/db.js';
 
 /**
  * Truncates tables related to labels in the correct order.
- * @param {object} client - The PostgreSQL client.
+ * @param {object} dbClient - The PostgreSQL client.
  */
-async function eraseLabelsTables(client) {
+async function eraseLabelsTables(dbClient) {
   console.log('Erasing labels tables...');
   // Truncate join tables first, then the main labels table.
   const tablesToReset = [
     'labels_lbl_x_steps_master_stm',
     'labels_lbl_x_applications_app',
+    'labels_lbl_x_controls_master_ctm',
     'labels_lbl',
   ];
   try {
     for (const table of tablesToReset) {
-      await client.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
+      await dbClient.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
       console.log(`  - Table ${table} truncated.`);
     }
     console.log('Finished erasing labels tables.');
@@ -28,20 +29,23 @@ async function eraseLabelsTables(client) {
 /**
  * Generates labels and associates them with steps and applications.
  * @param {object} config - The main configuration object.
- * @param {object} options - Generation options, e.g., { reset: boolean }.
+ * @param {object} options - Generation options, e.g., { reset: boolean, clientOverride: object }.
  */
 async function generateLabels(config, options = {}) {
+  const dbClient = options.clientOverride || client;
+
   if (options.erase) {
-    await eraseLabelsTables(client);
+    await eraseLabelsTables(dbClient);
   }
 
   console.log('Generating labels and associations...');
 
   // Fetch all necessary parent data
-  const migrations = await client.query('SELECT mig_id FROM migrations_mig');
-  const masterSteps = await client.query('SELECT stm_id FROM steps_master_stm');
-  const applications = await client.query('SELECT app_id FROM applications_app');
-  const users = await client.query('SELECT usr_id FROM users_usr');
+  const migrations = await dbClient.query('SELECT mig_id FROM migrations_mig');
+  const masterSteps = await dbClient.query('SELECT stm_id FROM steps_master_stm');
+  const applications = await dbClient.query('SELECT app_id FROM applications_app');
+  const controls = await dbClient.query('SELECT ctm_id FROM controls_master_ctm');
+  const users = await dbClient.query('SELECT usr_id FROM users_usr');
 
   if (migrations.rows.length === 0 || users.rows.length === 0) {
     console.error('Cannot generate labels without migrations and users. Please generate them first.');
@@ -56,7 +60,7 @@ async function generateLabels(config, options = {}) {
     const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
 
     for (let i = 0; i < numLabels; i++) {
-      const res = await client.query(
+      const res = await dbClient.query(
         `INSERT INTO labels_lbl (mig_id, lbl_name, lbl_description, lbl_color, created_by)
          VALUES ($1, $2, $3, $4, $5) RETURNING lbl_id`,
         [
@@ -82,7 +86,7 @@ async function generateLabels(config, options = {}) {
     for (const { stm_id } of stepsToLabel) {
       const labelId = faker.helpers.arrayElement(allLabelIds);
       const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
-      await client.query(
+      await dbClient.query(
         `INSERT INTO labels_lbl_x_steps_master_stm (lbl_id, stm_id, created_by)
          VALUES ($1, $2, $3) ON CONFLICT (lbl_id, stm_id) DO NOTHING`,
         [labelId, stm_id, creatorId]
@@ -96,10 +100,24 @@ async function generateLabels(config, options = {}) {
     for (const { app_id } of appsToLabel) {
       const labelId = faker.helpers.arrayElement(allLabelIds);
       const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
-      await client.query(
+      await dbClient.query(
         `INSERT INTO labels_lbl_x_applications_app (lbl_id, app_id, created_by)
          VALUES ($1, $2, $3) ON CONFLICT (lbl_id, app_id) DO NOTHING`,
         [labelId, app_id, creatorId.toString()] // created_by is VARCHAR in this table
+      );
+    }
+  }
+
+  // 4. Associate labels with a random subset of controls
+  if (controls.rows.length > 0) {
+    const controlsToLabel = faker.helpers.arrayElements(controls.rows, Math.floor(controls.rows.length / 2)); // Label half the controls
+    for (const { ctm_id } of controlsToLabel) {
+      const labelId = faker.helpers.arrayElement(allLabelIds);
+      const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
+      await dbClient.query(
+        `INSERT INTO labels_lbl_x_controls_master_ctm (lbl_id, ctm_id, created_by)
+         VALUES ($1, $2, $3) ON CONFLICT (lbl_id, ctm_id) DO NOTHING`,
+        [labelId, ctm_id, creatorId]
       );
     }
   }

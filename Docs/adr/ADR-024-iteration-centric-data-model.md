@@ -1,4 +1,4 @@
-# ADR 001: Iteration-Centric Data Model for Migrations and Plans
+# ADR 024: Iteration-Centric Data Model for Migrations and Plans
 
 **Date:** 2025-07-02
 

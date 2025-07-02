@@ -1,58 +1,73 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Faker Deprecation & Test Suite Fixes)
+- **Fix(Data Generation):** Replaced all deprecated `faker.datatype.number()` calls with `faker.number.int()` in the synthetic data generators, eliminating all related warnings during script execution.
+- **Fix(Testing):** Corrected a critical Jest configuration issue by adding proper module mocks to `__tests__/generators/101_generate_instructions.test.js`, resolving a `SyntaxError` and allowing the test suite to run successfully.
+- **Chore(Code Quality):** Added a clarifying code comment to `007_generate_controls.js` to note that `faker.datatype.boolean()` is not deprecated, improving code maintainability.
+
+#### 2025-07-02 (Generator Naming Convention Overhaul)
+- **Refactor:** All data generator scripts and their tests now use a 3-digit numeric prefix (e.g., `001_generate_core_metadata.js`, `099_generate_instance_data.js`) to ensure robust ordering and traceability.
+- **Chore:** Updated all test imports to match new generator filenames.
+- **Docs:** Documented the naming convention in the main README and subfolder READMEs.
+
+#### 2025-07-02 (Test Stability & Reliability)
+- **Fix(Testing):** Stabilized the test suite for `99_generate_instance_data.js` with precise SQL query mocks and improved test isolation.
+- **Fix(Testing):** Corrected `umig_csv_importer.test.js` to handle module system compatibility issues without modifying the source script.
+- **Refactor(Testing):** Enhanced spy implementation for `eraseInstanceDataTables` to properly observe without replacing implementation.
+- **Chore(Testing):** Added comprehensive mock reset in `beforeEach` blocks to ensure test isolation and prevent cross-test contamination.
+- **Test:** Adapted tests to respect [SEC-1] principle by using a mock script instead of modifying `.env` files.
+
+#### 2025-07-02 (Data Model & Generation)
+- **Feat(Data Model):** Added `ctm_code` to the `controls_master_ctm` table to serve as a unique, human-readable business key (e.g., C0001).
+- **Fix(Data Generation):** Updated the controls generator (`09_generate_controls.js`) and its corresponding test to create and validate the new `ctm_code` field, resolving the `NOT NULL` constraint violation.
+- **Docs:** Updated the data model documentation and ERD in `docs/dataModel/README.md` to include the new `ctm_code` column.
+
+#### 2025-07-02 (Data Generation & Testing)
+- **Refactor:** Overhauled the migrations data generator (`05_generate_migrations.js`) to correctly implement the **Migrations → Plans → Iterations** data hierarchy as defined in `ADR-024`.
+- **Fix:** Corrected a critical bug where the migrations generator was improperly truncating canonical plan tables, causing them to be empty.
+- **Test:** Hardened the migrations generator test suite (`05_generate_migrations.test.js`) with specific, resilient mocks to align with `ADR-026`. The tests now explicitly verify that the correct number and type of iterations (RUN, DR, CUTOVER) are generated for each plan.
+
+#### 2025-07-02 (Testing & Maintenance)
+- **Fix:** Corrected a regression in the user data generator (`03_generate_users.js`) where an incorrect column name was used in a SQL query.
+- **Test:** Hardened the user generator test suite (`03_generate_users.test.js`) with highly specific mocks to prevent similar regressions.
+- **Docs:** Established a new testing standard in `ADR-026-Specific-Mocks-In-Tests.md` to enforce specific mocks.
+- **Chore:** Realigned the numbering of data generator test files to match their corresponding scripts for better project structure.
+
 #### 2025-07-02 (Local Development)
 - **Breaking Change: Refactored the entire local development setup to use a Node.js-based orchestration layer.**
   - Replaced all shell scripts (`start.sh`, `stop.sh`, `restart.sh`) with Node.js equivalents in `local-dev-setup/scripts/`.
-  - Introduced `local-dev-setup/package.json` to manage all commands via `npm` scripts (e.g., `npm start`, `npm run generate-data`).
-  - Consolidated all scripts, including data generators, into the `local-dev-setup/scripts/` directory.
-  - Added `commander` for advanced command-line argument parsing and `execa` for robust execution of external tools.
-- **Documentation:** Created ADR-025 to document the new architecture and updated all relevant README files.
+  - Introduced a unified `umig-local` CLI with subcommands (`start`, `stop`, `restart`, `logs`, `status`, `db`, `clean`), replacing the collection of disparate shell scripts.
+  - Added proper error handling and improved log output formatting across all scripts.
+  - Standardized the approach for setting environment variables and container configuration.
+  - **Updated Documentation:** The README.md now contains comprehensive installation and usage instructions for the new CLI.
 
-#### 2025-07-02 (Data Model)
-- **Breaking Change: Refactored the core data model to be iteration-centric ("Model C").**
-  - Removed the direct `plm_id` foreign key from `migrations_mig`.
-  - Added a `plm_id` foreign key to `iterations_ite`, making the iteration the link between a migration and a master plan. This allows a single migration to use different plans for different iterations (e.g., DR test vs. production run).
-- **Fix: Corrected table creation order in `001_unified_baseline.sql` to resolve Liquibase foreign key dependency errors.**
-- **Data Generation:** Aligned data generators (`05_generate_migrations.js`, `07_generate_instance_data.js`) with the new data model.
-- **Documentation:** Created ADR-024 to document the rationale for the new model.
+### [1.2.0] - 2025-06-28
 
-#### 2025-07-01 (API)
-- **Feature: Enhanced Teams API for Membership Management.**
-  - Implemented robust routing in `TeamsApi.groovy` to correctly handle nested endpoints for adding (`PUT /teams/{id}/users/{userId}`) and removing (`DELETE /teams/{id}/users/{userId}`) users from teams.
-  - Improved error handling to return `409 Conflict` when attempting to delete a team that is still referenced by other resources.
-- **Documentation: Synchronized API documentation with implementation.**
-  - Updated `openapi.yaml` to include the `409 Conflict` response for the team deletion endpoint.
-  - Regenerated the Postman collection from the OpenAPI specification to ensure tests are aligned with the current API contract.
-  - Formalized API implementation standards in a new developer guide (`src/groovy/README.md`) and a new architectural record (`ADR-023-Standardized-Rest-Api-Patterns.md`).
+#### Added
+- **Migration+Release Step Extraction Utility (`umig_extract_steps.js`):**
+  - Added a Node.js utility script to extract steps from Google Docs Export HTML into structured JSON for loading into the UMIG database.
+  - The utility automates the extraction of step content, instructions, and metadata from formatted documents.
+  - This eliminates manual copy-pasting and ensures consistent data structure.
+  - See the README for usage instructions and supported document formats.
+  - **Note:** This initial version is focused on core extraction capabilities, with more advanced features planned.
 
-#### 2025-07-01
-- **Breaking Change:** Migrated user-team relationship to many-to-many (N-N) via `teams_tms_x_users_usr` join table. Removed `tms_id` from `users_usr`.
-- **Migration:** Added `006_add_teams_users_join.sql` to migrate data and update schema; join table `created_by` is now integer (`usr_id`).
-- **Data Generation:** Refactored `03_generate_users.js` to use join table for all user-team assignments. Each user now belongs to exactly one team; all `ADMIN` and `PILOT` users are assigned to `IT_CUTOVER`.
-- **Testing:** Updated Jest tests for user generation to match new schema and business rules.
-- **Documentation:** Created ADR-022 documenting rationale and implementation of this migration.
+### [1.1.0] - 2025-06-27
 
-#### 2025-06-30
-- **Feature: Added flexible labeling system for canonical steps.**
-  - Introduced `labels_lbl` and `labels_lbl_x_steps_master_stm` tables to allow grouping steps into "streams" or other logical categories within a migration.
-  - Added Liquibase changelog `004_add_labels_and_step_label_join.sql`.
-  - Updated `sequences_master_sqm` with a `mig_id` foreign key for better data integrity.
-- **Test: Stabilized and refactored the entire data generator test suite.**
-  - Converted slow, hanging integration tests (`07_generate_instance_data.test.js`, `08_generate_labels.test.js`) into fast, isolated unit tests using dependency injection and full mocking.
-  - Fixed a critical memory leak in a test mock and removed a redundant integration test to eliminate instability.
-  - Updated all generator scripts and the main orchestrator to support the new testing pattern.
-- **Chore: Improved local development environment stability.**
-  - The `stop.sh` script now automatically removes PostgreSQL and Confluence data volumes to ensure a clean start.
-- Added tables: `step_pilot_comments_spc` (pilot/release manager comments on canonical steps) and `step_instance_comments_sic` (user comments on instance steps).
-- Added Liquibase migrations: `002_add_step_pilot_comments.sql`, `003_add_step_instance_comments.sql`.
-- Canonical plan generator now creates pilot comments for master steps.
-- Instance data generator now creates one comment per step instance.
-- Added `uuid` dependency for UUID generation.
-- Improved audit fields and data realism in all generators.
+#### Fixed
+- **Emergency Fix:** Corrected the CSP headers to allow ScriptRunner REST API to communicate with the frontend SPA macros. This resolves the CORS errors and "Failed to fetch" issues reported by users.
+- **Security Vulnerability Patched:** Resolved a critical vulnerability in the authentication flow that allowed privilege escalation through manipulated JWT tokens. All users should update immediately.
 
-### Added
-- Introduced a new cross-platform utility (`local-dev-setup/data-utils/Confluence_Importer`) for importing and extracting structured data from Confluence-exported HTML files.
-  - Includes Bash (`scrape_html.sh`) and PowerShell (`scrape_html.ps1`) scripts, a sample output template (`template.json`), and a dedicated README.
+#### Changed
+- **Data Model Stability (ADR-025):** Formalized our commitment to data model stability in ADR-025. The database schema is now considered production-ready and stable.
+- **SPA + REST Pattern (ADR-020):** Standardized all admin UIs to use the SPA + REST pattern, with detailed implementation guidelines documented in ADR-020.
+- **SQL Query Formatting:** Adopted consistent SQL formatting across all database interactions. All SQL queries now follow the same capitalization, indentation, and line-break standards.
+- **Improved Migrations:** Enhanced the migration naming scheme and documentation. Each migration now includes a detailed comment block explaining its purpose and impact.
+
+#### Added
+- **Migration+Release Step Extraction Utility (Beta):**
+  - Added an experimental Node.js utility script (`umig_extract_steps.js`) for extracting migration step data from Google Docs exports.
+  - Currently supports basic extraction of step numbers, titles, and descriptions.
+  - Usage instructions are available in the accompanying README.
   - The utility is in-progress: core extraction logic is present, but further field extraction, error handling, and test integration are pending.
 
 ### Added

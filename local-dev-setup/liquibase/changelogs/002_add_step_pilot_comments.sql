@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset lucas.challamel:002_add_step_pilot_comments context:all
+--changeset lucas.challamel:002_add_step_pilot_comments_v1 context:all
 --comment: Adds step_pilot_comments_spc to support accrued pilot/release manager comments per step
 
 CREATE TABLE IF NOT EXISTS step_pilot_comments_spc (
