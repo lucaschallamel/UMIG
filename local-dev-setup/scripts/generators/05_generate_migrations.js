@@ -1,10 +1,8 @@
-import { faker } from '@faker-js/faker';
 import { client } from '../lib/db.js';
 import {
+  faker,
   randomDateInRange,
   nextThursday,
-  getSequenceWindows,
-  SEQUENCE_NAMES,
 } from '../lib/utils.js';
 
 /**
@@ -13,23 +11,19 @@ import {
  */
 async function eraseMigrationTables(client) {
   console.log('Erasing migration-related tables...');
-  const tables = [
-    'iterations_ite',
-    'steps_master_stm',
-    'phases_master_phm',
-    'sequences_master_sqm',
-    'migrations_mig',
-  ];
-  try {
-    for (const table of tables) {
+  // This script is only responsible for migrations_mig and iterations_ite.
+  // The canonical plan tables (sequences, phases, steps) are managed by 04_generate_canonical_plans.js.
+  const tables = ['iterations_ite', 'migrations_mig'];
+  for (const table of tables.reverse()) { // Reverse to respect foreign key constraints
+    try {
       await client.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
       console.log(`  - Table ${table} truncated.`);
+    } catch (error) {
+      console.error(`Error truncating table ${table}:`, error);
+      throw error;
     }
-    console.log('Finished erasing migration tables.');
-  } catch (error) {
-    console.error(`Error erasing migration tables: ${error}`);
-    throw error;
   }
+  console.log('Finished erasing migration tables.');
 }
 
 /**
@@ -42,18 +36,25 @@ async function generateMigrations(config, options = {}) {
     await eraseMigrationTables(client);
   }
 
-  console.log('Generating migrations...');
-  const { COUNT, START_DATE_RANGE, DURATION_MONTHS, ITERATIONS } = config.MIGRATIONS;
+  console.log('Generating migrations and their associated plans and iterations...');
+  const { COUNT, START_DATE_RANGE, DURATION_MONTHS, ITERATIONS, TYPE } = config.MIGRATIONS;
+  const { PER_MIGRATION } = config.CANONICAL_PLANS;
 
-  // Get all users to assign as owners
-  const users = await client.query('SELECT usr_id FROM users_usr');
-  if (users.rows.length === 0) {
-    console.error('Cannot generate migrations without users. Please generate users first.');
-    return;
+  const usersResult = await client.query('SELECT usr_id FROM users_usr');
+  if (usersResult.rows.length === 0) {
+    throw new Error('Cannot generate migrations: No users found in the database.');
   }
+  const users = usersResult.rows;
+
+  const plansResult = await client.query('SELECT plm_id FROM plans_master_plm');
+  const requiredPlans = COUNT * PER_MIGRATION;
+  if (plansResult.rows.length < requiredPlans) {
+    throw new Error(`Cannot generate migrations: Not enough canonical plans available. Need ${requiredPlans}, found ${plansResult.rows.length}.`);
+  }
+  const plans = [...plansResult.rows]; // Create a mutable copy
 
   for (let i = 0; i < COUNT; i++) {
-    const ownerId = faker.helpers.arrayElement(users.rows).usr_id;
+    const ownerId = faker.helpers.arrayElement(users).usr_id;
     const startDate = randomDateInRange(START_DATE_RANGE[0], START_DATE_RANGE[1]);
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + DURATION_MONTHS);
@@ -68,41 +69,32 @@ async function generateMigrations(config, options = {}) {
       `Migration ${i + 1}: ${faker.company.catchPhrase()}`,
       faker.lorem.sentence(),
       faker.helpers.arrayElement(['PLANNING', 'IN_PROGRESS', 'COMPLETED']),
-      'MIGRATION',
+      TYPE,
       startDate,
       endDate,
     ]);
     const migId = migResult.rows[0].mig_id;
 
-    // Generate iterations for this migration
-    await generateIterationsForMigration(migId, startDate, ITERATIONS);
+    // Assign plans to this migration and generate iterations for each plan
+    const assignedPlans = plans.splice(0, PER_MIGRATION);
+    for (const plan of assignedPlans) {
+      await generateIterationsForPlan(migId, plan.plm_id, ITERATIONS, startDate);
+    }
   }
 
   console.log('Finished generating migrations.');
 }
 
-/**
- * Generates iterations for a given migration.
- * @param {string} migId - The UUID of the migration.
- * @param {Date} migStartDate - The start date of the migration.
- * @param {object} iterationConfig - The configuration for iterations.
- */
-async function generateIterationsForMigration(migId, migStartDate, iterationConfig) {
-  // Fetch all master plans to link to iterations
-  const masterPlans = await client.query('SELECT plm_id FROM plans_master_plm');
-  if (masterPlans.rows.length === 0) {
-    console.error('Cannot generate iterations without master plans. Please generate canonical plans first.');
-    return;
-  }
-
+async function generateIterationsForPlan(migId, planId, iterationConfig, migStartDate) {
+  console.log(`  - Generating iterations for plan ${planId} in migration ${migId}`);
   for (const type in iterationConfig) {
-    const count = faker.number.int(iterationConfig[type]);
+    const config = iterationConfig[type];
+    const count = typeof config === 'number' ? config : faker.number.int(config);
+
     for (let i = 0; i < count; i++) {
       const iterStartDate = nextThursday(migStartDate);
       const iterEndDate = new Date(iterStartDate);
-      iterEndDate.setDate(iterEndDate.getDate() + 13);
-
-      const planId = faker.helpers.arrayElement(masterPlans.rows).plm_id;
+      iterEndDate.setDate(iterEndDate.getDate() + 13); // 2 weeks duration
 
       const iteQuery = `
         INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status)
@@ -111,9 +103,9 @@ async function generateIterationsForMigration(migId, migStartDate, iterationConf
       await client.query(iteQuery, [
         migId,
         planId,
-        type,
-        `${type} Iteration ${i + 1}`,
-        `This is the ${i + 1} iteration of type ${type} for migration ${migId}`,
+        type.toUpperCase(),
+        `${type.toUpperCase()} Iteration ${i + 1} for Plan ${planId}`,
+        `This is the ${i + 1} iteration of type ${type.toUpperCase()} for migration ${migId} under plan ${planId}`,
         faker.helpers.arrayElement(['PENDING', 'IN_PROGRESS', 'COMPLETED']),
       ]);
     }

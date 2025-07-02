@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker } from '../lib/utils.js';
 import { client } from '../lib/db.js';
 
 async function eraseCanonicalPlanTables(client) {
@@ -32,8 +32,7 @@ async function generateCanonicalPlans(config, options = {}) {
   const envRoles = await client.query('SELECT enr_id FROM environment_roles_enr');
 
   if (teams.rows.length === 0 || stepTypes.rows.length === 0 || envRoles.rows.length === 0) {
-    console.error('Cannot generate plans: Missing master data (teams, step types, or environment roles).');
-    return;
+    throw new Error('Cannot generate plans: Missing master data (teams, step types, or environment roles).');
   }
 
   for (let i = 0; i < config.CANONICAL_PLANS.PER_MIGRATION * config.MIGRATIONS.COUNT; i++) {
