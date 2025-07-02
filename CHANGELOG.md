@@ -1,5 +1,12 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Data Integration)
+- **Fix: Robustified Confluence HTML → PostgreSQL import pipeline.**
+  - Updated `scrape_html.sh` and added `scrape_html_oneline.sh` to ensure generated JSON is compact (one-line per object) and PostgreSQL-compatible.
+  - Strengthened escaping of double quotes in text fields to prevent JSON syntax errors during import.
+  - Documented the full diagnostic and correction process in the Developer Journal (`20250702-01.md`).
+  - Added new ADR describing the import strategy for Confluence JSON data.
+
 #### 2025-07-01 (API)
 - **Feature: Enhanced Teams API for Membership Management.**
   - Implemented robust routing in `TeamsApi.groovy` to correctly handle nested endpoints for adding (`PUT /teams/{id}/users/{userId}`) and removing (`DELETE /teams/{id}/users/{userId}`) users from teams.
