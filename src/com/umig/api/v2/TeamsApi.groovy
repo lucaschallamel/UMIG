@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response
 @BaseScript CustomEndpointDelegate delegate
 
 final TeamRepository teamRepository = new TeamRepository()
+final com.umig.repository.UserRepository userRepository = new com.umig.repository.UserRepository()
 
 /**
  * Handles GET requests for Teams.
@@ -107,17 +108,27 @@ teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team or User ID format."]).toString()).build()
         }
 
+        // Robust: Check both team and user existence before adding
+        def team = teamRepository.findTeamById(teamId)
+        if (!team) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([error: "Team with ID ${teamId} not found."]).toString()).build()
+        }
+        def user = userRepository.findUserById(userId)
+        if (!user) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
+        }
         try {
             def result = teamRepository.addUserToTeam(teamId, userId)
-            if (result.status == 'created' || result.status == 'exists') {
-                return Response.noContent().build() // Idempotent PUT
-            } else {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to add user to team."]).toString()).build()
+            if (result.status == 'created') {
+                return Response.status(Response.Status.CREATED).entity(new JsonBuilder([message: "User ${userId} added to team ${teamId}."]).toString()).build()
             }
+            if (result.status == 'exists') {
+                return Response.status(Response.Status.OK).entity(new JsonBuilder([message: "User ${userId} is already a member of team ${teamId}."]).toString()).build()
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to add user to team."]).toString()).build()
         } catch (SQLException e) {
-            if (e.getSQLState() == '23503') { // Foreign key violation
-                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Team with ID ${teamId} or User with ID ${userId} not found."]).toString()).build()
-            }
             log.warn("Database error adding user ${userId} to team ${teamId}.", e)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
         } catch (Exception e) {
@@ -181,12 +192,23 @@ teams(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team or User ID format."]).toString()).build()
         }
 
+        // Robust: Check both team and user existence before removing
+        def team = teamRepository.findTeamById(teamId)
+        if (!team) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([error: "Team with ID ${teamId} not found."]).toString()).build()
+        }
+        def user = userRepository.findUserById(userId)
+        if (!user) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([error: "User with ID ${userId} not found."]).toString()).build()
+        }
         try {
             def rowsAffected = teamRepository.removeUserFromTeam(teamId, userId)
             if (rowsAffected > 0) {
                 return Response.noContent().build()
             } else {
-                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} was not a member of team ${teamId}, or IDs are invalid."]).toString()).build()
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} was not a member of team ${teamId}."]).toString()).build()
             }
         } catch (Exception e) {
             log.error("Unexpected error removing user ${userId} from team ${teamId}.", e)

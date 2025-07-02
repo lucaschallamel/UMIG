@@ -1,5 +1,18 @@
 # UMIG Project
 
+## API Robustness & Error Handling (2025-07-02)
+
+### Teams API Membership Endpoints (2025-07-02)
+- `PUT /teams/{teamId}/users/{userId}` and `DELETE /teams/{teamId}/users/{userId}` now:
+  - Explicitly check for existence of both the team and user before acting.
+  - Prevent duplicate associations.
+  - Return clear, RESTful status codes and actionable JSON error messages for all cases.
+  - Are fully idempotent and robust for repeated calls.
+
+- The DELETE `/users/{id}` endpoint now returns a detailed JSON object listing all blocking relationships (across all foreign key constraints) that prevent deletion. No associations are deleted unless the user is deleted.
+- The POST `/users` endpoint features robust input validation and returns specific, actionable error messages for missing fields, type errors, unknown fields, and constraint violations.
+- See the API README and [ADR-023](docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md) for details and examples.
+
 ## Data Model Overview
 
 ### Iteration-Centric Data Model (2025-07-02)

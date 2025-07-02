@@ -505,7 +505,7 @@ erDiagram
 
 ### 2. The Canonical (Master) Layer
 
-This layer defines 
+This layer defines
 
 #### Table: teams_tms_x_users_usr
 
@@ -552,7 +552,7 @@ the reusable playbook.
 
 ### 3. The Instance (Execution) Layer
 
-This layer defines 
+This layer defines
 
 #### Table: step_instance_comments_sic
 
