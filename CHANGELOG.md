@@ -1,5 +1,15 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Data Model & Generation)
+- **Feat(Data Model):** Added `ctm_code` to the `controls_master_ctm` table to serve as a unique, human-readable business key (e.g., C0001).
+- **Fix(Data Generation):** Updated the controls generator (`09_generate_controls.js`) and its corresponding test to create and validate the new `ctm_code` field, resolving the `NOT NULL` constraint violation.
+- **Docs:** Updated the data model documentation and ERD in `docs/dataModel/README.md` to include the new `ctm_code` column.
+
+#### 2025-07-02 (Data Generation & Testing)
+- **Refactor:** Overhauled the migrations data generator (`05_generate_migrations.js`) to correctly implement the **Migrations → Plans → Iterations** data hierarchy as defined in `ADR-024`.
+- **Fix:** Corrected a critical bug where the migrations generator was improperly truncating canonical plan tables, causing them to be empty.
+- **Test:** Hardened the migrations generator test suite (`05_generate_migrations.test.js`) with specific, resilient mocks to align with `ADR-026`. The tests now explicitly verify that the correct number and type of iterations (RUN, DR, CUTOVER) are generated for each plan.
+
 #### 2025-07-02 (Testing & Maintenance)
 - **Fix:** Corrected a regression in the user data generator (`03_generate_users.js`) where an incorrect column name was used in a SQL query.
 - **Test:** Hardened the user generator test suite (`03_generate_users.test.js`) with highly specific mocks to prevent similar regressions.

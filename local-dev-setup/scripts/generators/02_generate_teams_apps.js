@@ -119,13 +119,14 @@ async function eraseTeamsAndAppsTables(client) {
  * @param {object} options - Generation options, e.g., { reset: boolean }.
  */
 async function generateTeamsAndApps(config, options = {}) {
+  const dbClient = options.clientOverride || client;
   try {
     if (options.erase) {
-      await eraseTeamsAndAppsTables(client);
+      await eraseTeamsAndAppsTables(dbClient);
     }
-    await generateTeams(client, config);
-    await generateApplications(client, config);
-    await generateTeamApplicationLinks(client);
+    await generateTeams(dbClient, config);
+    await generateApplications(dbClient, config);
+    await generateTeamApplicationLinks(dbClient);
   } catch (error) {
     console.error('Error generating teams and applications:', error);
     throw error;

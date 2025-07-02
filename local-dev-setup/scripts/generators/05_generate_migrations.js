@@ -13,8 +13,10 @@ async function eraseMigrationTables(client) {
   console.log('Erasing migration-related tables...');
   // This script is only responsible for migrations_mig and iterations_ite.
   // The canonical plan tables (sequences, phases, steps) are managed by 04_generate_canonical_plans.js.
+  // Tables are listed in order of dependency to respect foreign key constraints
+  // (e.g., iterations_ite depends on migrations_mig).
   const tables = ['iterations_ite', 'migrations_mig'];
-  for (const table of tables.reverse()) { // Reverse to respect foreign key constraints
+  for (const table of tables) {
     try {
       await client.query(`TRUNCATE TABLE "${table}" RESTART IDENTITY CASCADE`);
       console.log(`  - Table ${table} truncated.`);

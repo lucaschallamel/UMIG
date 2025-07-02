@@ -8,8 +8,9 @@ import { generateUsers } from './generators/03_generate_users.js';
 import { generateCanonicalPlans } from './generators/04_generate_canonical_plans.js';
 import { generateMigrations } from './generators/05_generate_migrations.js';
 import { generateAllEnvironments } from './generators/06_generate_environments.js';
-import { generateInstanceData } from './generators/07_generate_instance_data.js';
+import { generateInstanceData } from './generators/99_generate_instance_data.js';
 import { generateLabels } from './generators/08_generate_labels.js';
+import { generateControls } from './generators/07_generate_controls.js';
 
 import { ENVIRONMENTS } from './lib/utils.js';
 
@@ -66,8 +67,9 @@ async function main() {
     '04': () => generateCanonicalPlans(CONFIG, { ...options, clientOverride: client }),
     '05': () => generateMigrations(CONFIG, { ...options, clientOverride: client }),
     '06': () => generateAllEnvironments(CONFIG.ENVIRONMENTS, { ...options, clientOverride: client }),
-    '07': () => generateInstanceData(CONFIG, { ...options, clientOverride: client }),
-    '08': () => generateLabels(CONFIG, { ...options, clientOverride: client })
+    '08': () => generateLabels(CONFIG, { ...options, clientOverride: client }),
+    '07': () => generateControls(CONFIG, { ...options, clientOverride: client }),
+    '99': () => generateInstanceData(CONFIG, { ...options, clientOverride: client })
   };
 
   try {
@@ -85,7 +87,9 @@ async function main() {
     } else {
       console.log('\nStarting full data generation process...');
       // The order of execution is critical to respect foreign key constraints
-      for (const key in generators) {
+      const scriptKeys = Object.keys(generators).sort();
+      for (const key of scriptKeys) {
+        console.log(`\n[INFO] Running generator ${key}...`);
         await generators[key]();
       }
       console.log('\n✅ Full data generation process completed successfully!');

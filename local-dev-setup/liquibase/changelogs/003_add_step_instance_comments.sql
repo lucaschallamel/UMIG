@@ -1,5 +1,5 @@
 --liquibase formatted sql
---changeset lucas.challamel:003_add_step_instance_comments context:all
+--changeset lucas.challamel:003_add_step_instance_comments_v1 context:all
 --comment: Adds step_instance_comments_sic to support user comments on step execution (steps_instance_sti)
 
 CREATE TABLE step_instance_comments_sic (

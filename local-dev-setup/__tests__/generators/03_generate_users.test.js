@@ -259,4 +259,31 @@ describe('Users Generator (03_generate_users.js)', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith(`Error erasing users table: ${error}`);
     consoleErrorSpy.mockRestore();
   });
+
+  test('should re-throw non-unique-constraint errors during user insertion', async () => {
+    const genericDbError = new Error('Generic DB Error');
+    // Mock roles and teams fetches to proceed to user insertion
+    client.query.mockImplementation((query) => {
+      if (query.includes('FROM roles_rls')) {
+        return Promise.resolve({ rows: [
+          { rls_id: 1, rls_code: 'NORMAL' },
+          { rls_id: 2, rls_code: 'ADMIN' },
+          { rls_id: 3, rls_code: 'PILOT' }
+        ] });
+      }
+      if (query.includes('INSERT INTO users_usr')) {
+        return Promise.reject(genericDbError); // Simulate the error
+      }
+      // Mock queries for linkUsersToTeams to prevent downstream errors
+      if (query.includes('FROM users_usr')) {
+        return Promise.resolve({ rows: [] });
+      }
+      if (query.includes('FROM teams_tms')) {
+        return Promise.resolve({ rows: [] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
+    await expect(generateUsers(CONFIG, { erase: false })).rejects.toThrow(genericDbError);
+  });
 });

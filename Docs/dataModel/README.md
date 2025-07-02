@@ -103,6 +103,7 @@ UMIG is built on:
 ### 3.5. Controls (`controls_master_ctm`)
 - **ctm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
+- **ctm_code** (VARCHAR, unique): Unique business key (e.g., C0001, K0001)
 - **ctm_order** (INT)
 - **ctm_name**, **ctm_description** (VARCHAR, TEXT)
 - **ctm_type** (VARCHAR)
@@ -317,6 +318,7 @@ erDiagram
     controls_master_ctm {
         UUID ctm_id PK
         UUID phm_id FK
+        VARCHAR ctm_code
         INT ctm_order
         VARCHAR ctm_name
         TEXT ctm_description
