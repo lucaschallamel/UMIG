@@ -1,33 +1,95 @@
 # API Coding Patterns (UMIG)
 
-This document outlines the required coding patterns and conventions for all REST API endpoints in the UMIG project, as formalized in [ADR020](../../../../docs/adr/ARD020-spa-rest-admin-entity-management.md).
+## Teams Membership Robustness (2025-07-02)
+- All membership endpoints (`PUT`/`DELETE /teams/{teamId}/users/{userId}`) enforce robust existence checks for both team and user.
+- Duplicate associations are prevented; removal is idempotent and returns 404 if the user is not a member.
+- Clear, actionable error messages and RESTful status codes are returned for all cases.
 
-## General Principles
-- **Use ScriptRunner REST endpoints** for all API exposure (`CustomEndpointDelegate`).
-- **One Groovy file per entity** (e.g., `UserApi.groovy`, `TeamApi.groovy`).
-- **Repository Pattern:** All DB access must go through repository classes in `../repository/`.
-- **CRUD Methods:** Each API should expose standard CRUD endpoints (GET, POST, PUT, DELETE) as appropriate.
-- **Return JSON:** All endpoints must return JSON responses with appropriate status codes and error messages.
-- **Type Safety:** Explicitly handle booleans, numbers, and nulls. Coerce types defensively before DB writes.
-- **Error Handling:** Use consistent error response structure: `{ "error": "message" }`.
-- **Documentation:** Document endpoint paths, parameters, and expected payloads in OpenAPI format if possible.
+This document outlines the **mandatory** coding patterns for all REST API endpoints in the UMIG project. These standards are critical for ensuring stability and maintainability within the ScriptRunner environment.
 
-## Example Structure
+**The definitive guide for this pattern is [ADR-023](../../../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md). All developers must read it before writing API code.**
+
+For a step-by-step guide, see the [api-work.md workflow](../../../../.clinerules/workflows/api-work.md).
+
+## Enhanced Error Handling (2025-07-02)
+
+- **DELETE /users/{id}:**
+  - If deletion is blocked by any referencing records (teams, plans, steps, comments, etc.), the API returns:
+    ```json
+    {
+      "error": "Cannot delete user with ID 3 as they are still referenced by other resources.",
+      "blocking_relationships": {
+        "teams": [{ "tms_id": 4, "tms_name": "Tools Group" }],
+        "step_comments_created": [{ "sic_id": 7 }, ...]
+        // ...all other referencing records
+      }
+    }
+    ```
+  - No associations are deleted unless the user is deleted.
+
+- **POST /users:**
+  - Required fields: `usr_first_name`, `usr_last_name`, `usr_email`, `usr_is_admin`, `usr_code`, `rls_id`.
+  - Returns clear errors for missing/unknown fields, type errors, and constraint violations. Example:
+    ```json
+    { "error": "Missing required fields: usr_code, rls_id" }
+    { "error": "Unknown fields: usr_confluence_id" }
+    { "error": "rls_id must be an integer." }
+    { "error": "A user with this email or code already exists." }
+    { "error": "Invalid rls_id: referenced role does not exist." }
+    ```
+
+## Core Principles
+- **One Endpoint per HTTP Method:** Each HTTP verb (`GET`, `POST`, `PUT`, `DELETE`) must have its own, separate endpoint definition. Do not use a central dispatcher.
+- **Simplicity is Required:** The API implementation must be simple and direct. Avoid complex abstractions, custom exception classes, or advanced Groovy features like `@CompileStatic`.
+- **Repository Pattern:** All database access must go through the appropriate repository class in `../repository/`.
+- **Standard `Response` Objects:** All endpoints must return a standard `javax.ws.rs.core.Response` object.
+- **`204 No Content` for `DELETE`:** A successful `DELETE` operation **must** return `Response.noContent().build()`. This is non-negotiable.
+- **Inline Error Handling:** Each endpoint must handle its own errors using standard `try-catch` blocks.
+
+## Mandatory Structure Example
 ```groovy
-// src/com/umig/api/v2/UserApi.groovy
-import com.umig.repository.UserRepository
+// src/com/umig/api/v2/UsersApi.groovy
+package com.umig.api.v2
 
-user(httpMethod: "GET") { req ->
-    def id = getAdditionalPath(req)?.getAt(0)
-    // ... fetch user, return JSON
-}
+import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
+import groovy.transform.BaseScript
+import groovy.json.JsonBuilder
+import javax.ws.rs.core.Response
+import java.sql.SQLException
 
-user(httpMethod: "PUT") { req ->
-    // ... parse body, type check, update user
+@BaseScript CustomEndpointDelegate delegate
+
+// ... import UserRepository
+
+users(httpMethod: "DELETE", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    // 1. Get and validate path parameter
+    Integer userId = getUserIdFromPath(request)
+    if (userId == null) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "User ID is required."]).toString()).build()
+    }
+
+    try {
+        // 2. Business logic
+        if (userRepository.findUserById(userId) == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User not found."]).toString()).build()
+        }
+        userRepository.deleteUser(userId)
+
+        // 3. Return correct success response
+        return Response.noContent().build()
+
+    } catch (SQLException e) {
+        // 4. Handle specific errors
+        log.error("Database error deleting user ${userId}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
+    } catch (Exception e) {
+        // 5. Handle generic errors
+        log.error("Unexpected error deleting user ${userId}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An internal error occurred."]).toString()).build()
+    }
 }
 ```
 
 ## See Also
+- [ADR-023: Standardized REST API Implementation Patterns](../../../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md)
 - [Repository Pattern Guidelines](../repository/README.md)
-- [Frontend SPA Pattern](../../../web/README.md)
-- [ADR020 - SPA+REST Pattern](../../../../docs/adr/ARD020-spa-rest-admin-entity-management.md)

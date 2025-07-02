@@ -1,5 +1,22 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Teams API Robustness & Membership Endpoints)
+- Enhancement(API): PUT and DELETE for `/teams/{teamId}/users/{userId}` now enforce robust existence checks for both team and user, prevent duplicate associations, and return clear RESTful responses for all cases.
+- Refactor(API): TeamRepository and UserRepository updated for explicit existence checks and robust error reporting.
+- Docs: Updated API and subfolder READMEs to document new behaviors and error responses.
+
+#### 2025-07-02 (Users API Robustness & Error Reporting)
+- **Enhancement(API):** DELETE `/users/{id}` now returns a detailed JSON object listing all blocking relationships (across all foreign key constraints) that prevent deletion. No associations are deleted unless the user is deleted.
+- **Refactor(API):** `UserRepository.deleteUser` now only attempts to delete the user row; all referential integrity is enforced by the database.
+- **Enhancement(API):** POST `/users` endpoint now performs robust input validation and returns specific, actionable error messages for missing fields, type errors, unknown fields, and constraint violations.
+- **Docs:** Updated API documentation and error examples for new behaviors.
+
+#### 2025-07-02 (API Stability and Pattern Standardization)
+- **Refactor(API):** Completely rewrote the `UsersApi.groovy` to align with the simple, stable pattern established in `TeamsApi.groovy`. This resolves critical runtime and serialization errors.
+- **Fix(API):** Corrected the `DELETE /users/{id}` endpoint to return a `204 No Content` response, fixing a persistent serialization bug and adhering to REST standards.
+- **Docs(Architecture):** Consolidated and updated `ADR-023` with mandatory, specific implementation patterns for API stability, based on lessons from the `UsersApi` refactor.
+- **Docs(Workflow):** Created a new `api-work.md` workflow to guide developers in creating and modifying API endpoints according to the updated standard in `ADR-023`.
+
 #### 2025-07-02 (Faker Deprecation & Test Suite Fixes)
 - **Fix(Data Generation):** Replaced all deprecated `faker.datatype.number()` calls with `faker.number.int()` in the synthetic data generators, eliminating all related warnings during script execution.
 - **Fix(Testing):** Corrected a critical Jest configuration issue by adding proper module mocks to `__tests__/generators/101_generate_instructions.test.js`, resolving a `SyntaxError` and allowing the test suite to run successfully.

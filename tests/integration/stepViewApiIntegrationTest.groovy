@@ -1,3 +1,5 @@
+import groovy.lang.Grab
+@Grab('org.codehaus.groovy:groovy-sql:3.0.9')
 import groovy.sql.Sql
 
 /**

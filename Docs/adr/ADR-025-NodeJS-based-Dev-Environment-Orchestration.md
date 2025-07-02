@@ -17,11 +17,11 @@ The local development environment was previously managed by a collection of shel
 We will replace the shell script-based orchestration layer with a unified Node.js application, managed via `npm` scripts defined in `local-dev-setup/package.json`.
 
 This decision entails:
-1.  **Consolidating all logic** into Node.js scripts within the `local-dev-setup/scripts/` directory.
-2.  **Using `execa`** for robustly executing external commands (e.g., `podman`, `ansible-playbook`).
-3.  **Using `commander`** to provide a rich, expressive command-line interface with flags and options (e.g., `npm run restart -- --erase --confluence`).
-4.  **Centralizing all project dependencies** (like `@faker-js/faker`, `pg`, etc.) and dev dependencies (`jest`) in `package.json`.
-5.  **Defining all user-facing commands** as `npm` scripts for consistency and ease of use.
+1. **Consolidating all logic** into Node.js scripts within the `local-dev-setup/scripts/` directory.
+2. **Using `execa`** for robustly executing external commands (e.g., `podman`, `ansible-playbook`).
+3. **Using `commander`** to provide a rich, expressive command-line interface with flags and options (e.g., `npm run restart -- --erase --confluence`).
+4. **Centralizing all project dependencies** (like `@faker-js/faker`, `pg`, etc.) and dev dependencies (`jest`) in `package.json`.
+5. **Defining all user-facing commands** as `npm` scripts for consistency and ease of use.
 
 ## Consequences
 

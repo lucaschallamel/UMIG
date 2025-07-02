@@ -132,11 +132,79 @@ class UserRepository {
      * @param userId The ID of the user to delete.
      * @return true if the user was deleted, false otherwise.
      */
+    /**
+     * Deletes a user and all their team associations.
+     * @param userId The ID of the user to delete.
+     * @return [deleted: true/false, deletedTeams: List<Map>]
+     */
+    // Only attempt to delete the user row; do NOT delete team associations or other referencing records here.
     def deleteUser(int userId) {
         DatabaseUtil.withSql { sql ->
             def deleteQuery = "DELETE FROM users_usr WHERE usr_id = :userId"
             def rowsAffected = sql.executeUpdate(deleteQuery, [userId: userId])
-            return rowsAffected > 0
+            return [deleted: rowsAffected > 0]
+        }
+    }
+
+    /**
+     * Returns all relationships that block deletion of a user.
+     * @param userId The ID of the user.
+     * @return Map of relationship type to list of referencing records.
+     */
+    def getUserBlockingRelationships(int userId) {
+        DatabaseUtil.withSql { sql ->
+            def blocking = [:]
+
+            // Teams
+            def teams = sql.rows("""
+                SELECT t.tms_id, t.tms_name
+                FROM teams_tms_x_users_usr j
+                JOIN teams_tms t ON t.tms_id = j.tms_id
+                WHERE j.usr_id = :userId
+            """, [userId: userId])
+            if (teams) blocking['teams'] = teams
+
+            // Migrations owned
+            def migrations = sql.rows("SELECT mig_id FROM migrations_mig WHERE usr_id_owner = :userId", [userId: userId])
+            if (migrations) blocking['migrations_owned'] = migrations
+
+            // Plan instances owned
+            def plans = sql.rows("SELECT pli_id FROM plans_instance_pli WHERE usr_id_owner = :userId", [userId: userId])
+            if (plans) blocking['plan_instances_owned'] = plans
+
+            // Step instances owned/assigned
+            def step_instances_owned = sql.rows("SELECT sti_id FROM steps_instance_sti WHERE usr_id_owner = :userId", [userId: userId])
+            if (step_instances_owned) blocking['step_instances_owned'] = step_instances_owned
+            def step_instances_assigned = sql.rows("SELECT sti_id FROM steps_instance_sti WHERE usr_id_assignee = :userId", [userId: userId])
+            if (step_instances_assigned) blocking['step_instances_assigned'] = step_instances_assigned
+
+            // Instructions completed
+            def instructions = sql.rows("SELECT ini_id FROM instructions_instance_ini WHERE usr_id_completed_by = :userId", [userId: userId])
+            if (instructions) blocking['instructions_completed'] = instructions
+
+            // Controls validated
+            def controls_it = sql.rows("SELECT cti_id FROM controls_instance_cti WHERE usr_id_it_validator = :userId", [userId: userId])
+            if (controls_it) blocking['controls_it_validated'] = controls_it
+            def controls_biz = sql.rows("SELECT cti_id FROM controls_instance_cti WHERE usr_id_biz_validator = :userId", [userId: userId])
+            if (controls_biz) blocking['controls_biz_validated'] = controls_biz
+
+            // Audit logs
+            def audit_logs = sql.rows("SELECT aud_id FROM audit_log_aud WHERE usr_id = :userId", [userId: userId])
+            if (audit_logs) blocking['audit_logs'] = audit_logs
+
+            // Step pilot comments
+            def pilot_comments_created = sql.rows("SELECT spc_id FROM step_pilot_comments_spc WHERE created_by = :userId", [userId: userId])
+            if (pilot_comments_created) blocking['pilot_comments_created'] = pilot_comments_created
+            def pilot_comments_updated = sql.rows("SELECT spc_id FROM step_pilot_comments_spc WHERE updated_by = :userId", [userId: userId])
+            if (pilot_comments_updated) blocking['pilot_comments_updated'] = pilot_comments_updated
+
+            // Step instance comments
+            def step_comments_created = sql.rows("SELECT sic_id FROM step_instance_comments_sic WHERE created_by = :userId", [userId: userId])
+            if (step_comments_created) blocking['step_comments_created'] = step_comments_created
+            def step_comments_updated = sql.rows("SELECT sic_id FROM step_instance_comments_sic WHERE updated_by = :userId", [userId: userId])
+            if (step_comments_updated) blocking['step_comments_updated'] = step_comments_updated
+
+            return blocking
         }
     }
 }
