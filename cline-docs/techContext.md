@@ -1,34 +1,34 @@
 # Technical Context
 
-## Technologies Used
+## 1. Approved Core Technologies
 
-- **Backend:** Groovy (ScriptRunner) for REST API endpoints and business logic.
-- **API Specification:** OpenAPI (`docs/api/openapi.yaml`) as the definitive contract for all endpoints.
-- **Database:** PostgreSQL, with schema migrations managed via Liquibase.
-- **Testing:** Automated tests (Jest for data utilities, Postman for API), with collections regenerated from the OpenAPI spec. Integration tests run against a live database (ADR-019).
-- **Containerisation:** Podman for local development and deployment.
-- **Local Development Orchestration:** Node.js and the `umig-local` CLI for managing the local development environment scripts (ADR-025).
+*   **Platform Host:** Atlassian Confluence.
+*   **Backend Logic:** Atlassian ScriptRunner for Confluence (using the Groovy language).
+*   **Frontend:** Standard HTML5, CSS3, and JavaScript (ES6+).
+*   **Database:** PostgreSQL.
+*   **Visualisation Aid:** Draw.io (Diagrams.net) plugin for Confluence (as a visual reference, not the source of truth).
+*   **Deployment & Configuration:**
+    *   **Containerisation:** Podman for local development environment.
+    *   **Scripting:** Ansible for environment setup and configuration management.
+    *   **Local Dev Orchestration:** Node.js for managing the local development environment scripts (`umig-local` CLI).
+*   **Enterprise Integrations:**
+    *   **Authentication:** Enterprise Active Directory (via Confluence's native integration).
+    *   **Email:** Enterprise Exchange Server (via ScriptRunner's built-in mail functions).
 
-## Development Setup
+## 2. Development Setup
 
-- All API changes must begin with updates to the OpenAPI specification, ensuring the implementation and documentation remain synchronised.
-- The backend is implemented in Groovy scripts, following formalised patterns for routing, idempotency, and error handling (ADR-023).
-- Postman collections are regenerated after OpenAPI changes to keep automated tests aligned with the current API contract.
-- The local development environment is now orchestrated via the `umig-local` CLI, providing a streamlined and consistent setup (ADR-025).
-- All data generator scripts and their tests adhere to a consistent 3-digit numeric prefix naming convention for robust ordering and traceability.
-- ScriptRunner is installed manually via the Confluence UI (ADR-007) and uses its built-in database connection pooling (ADR-010).
+*   **Version Control:** Git.
+*   **IDE:** Visual Studio Code with relevant plugins for JavaScript and Groovy.
+*   **Collaboration Tools:** Atlassian JIRA for task management.
+*   **Database Migrations:** Liquibase is the exclusive tool for managing all database schema changes.
+*   **Database Connectivity:** ScriptRunner's built-in Database Resource Pool (`umig_db_pool`) is used for all database connections.
+*   **Data Utilities:** All data generation, import, and utility scripts are written in Node.js.
+*   **Testing:** Jest for unit tests (Node.js scripts) and Groovy-based integration tests for backend APIs.
 
-## Technical Constraints and Conventions
+## 3. Technical Constraints
 
-- **Error Handling:** All database and application errors are mapped to precise HTTP status codes, as per the new standard (ADR-023).
-- **Idempotency:** PUT and DELETE operations on associations are idempotent.
-- **Data Model:** The core data model is iteration-centric, providing flexibility for managing migration plans across different iterations (ADR-024). The `controls_master_ctm` table now includes a `ctm_code` for enhanced data clarity. User-team membership is now many-to-many (ADR-022). Dedicated comment tables for step-level and instance-level comments have been introduced (ADR-021).
-- **Testing:** The test suite adheres to `ADR-026`, mandating precise SQL query mocks and improved test isolation for reliability. Deprecated `faker` API calls have been replaced, and critical Jest configuration issues have been resolved, ensuring the test suite runs successfully without warnings. Integration tests are a separate suite (ADR-019).
-- **Documentation:** Developer guides and ADRs are maintained to ensure onboarding and ongoing development are efficient and consistent. Database naming conventions are formalised (ADR-014).
-- **Frontend:** Built with vanilla JavaScript due to "no external frameworks" constraint (ADR-004). AJAX polling is used for real-time updates (ADR-005). SPA + REST pattern for admin UIs (ADR-020).
-- **Application Structure:** Pure ScriptRunner application structure with packaged backend code, macros, and web assets (ADR-018).
-
-## Dependencies
-
-- All dependencies are declared explicitly and managed via project manifests.
-- No implicit reliance on system-wide packages.
+*   **No External Frontend Frameworks:** The frontend must be built with "vanilla" JavaScript. No external libraries like React, Vue, or Angular are permitted. Careful DOM management and state handling in pure JavaScript will be critical.
+*   **Platform Dependency:** The application's performance and availability are tightly coupled to the enterprise Confluence instance.
+*   **Database Choice:** SQLite is explicitly disallowed for this project due to concurrency requirements.
+*   **Time:** The four-week deadline for the MVP is the primary constraint and dictates a pragmatic approach that prioritises speed and core functionality.
+*   **Security:** All authentication, API endpoints, and data storage must be secure.

@@ -1,49 +1,38 @@
 # Active Context
 
-## Current Focus
+## 1. Current Work Focus
 
-The primary focus as of July 2025 is the continued application and hardening of standardised REST API implementation patterns across all existing endpoints, building upon the successful refactoring of the Teams and Users APIs. This also includes maintaining the integrity of the new iteration-centric data model, the streamlined Node.js-based local development environment, ensuring the stability and reliability of the test suite, adhering to the new generator naming conventions, and leveraging the enhanced user-team relationship and commenting features.
+The project is currently in the **implementation phase**, focusing on building out the core backend APIs and frontend UI components within the Confluence-integrated architecture. Recent efforts have also concentrated on stabilising the local development environment, enhancing data generation, and formalising project-wide coding and testing standards.
 
-## Recent Changes
+## 2. Recent Changes & Decisions
 
-- **API Standardisation (ADR-023):**
-  - Refactored Teams API routing logic to correctly handle nested endpoints for team membership management.
-  - Improved error handling, mapping database errors to appropriate HTTP status codes (`409 Conflict`, `404 Not Found`).
-  - Updated the OpenAPI specification to reflect new response codes and ensure synchronisation with implementation.
-  - Regenerated Postman collection to align automated tests with the updated API contract.
-  - Authored a new developer guide (`src/groovy/README.md`) detailing the new API patterns.
-  - `UsersApi.groovy` completely refactored to align with the simple, stable pattern established in `TeamsApi.groovy`, resolving critical runtime and serialization errors.
-  - `DELETE /users/{id}` now returns a detailed JSON object listing all blocking relationships.
-  - `POST /users` endpoint now performs robust input validation.
-- **Data Model Refactoring:**
-  - Implemented an iteration-centric data model ("Model C"), linking migrations to master plans via the `iterations_ite` table (ADR-024).
-  - Added `ctm_code` to the `controls_master_ctm` table for unique, human-readable business keys.
-  - Migrated to a many-to-many user-team relationship using `teams_tms_x_users_usr` join table (ADR-022).
-  - Introduced dedicated comment tables for step-level and instance-level comments (`step_pilot_comments_spc`, `step_instance_comments_sic`) (ADR-021).
-- **Local Development Orchestration:**
-  - Refactored the entire local development setup to use a Node.js-based orchestration layer, replacing shell scripts with Node.js equivalents and introducing a unified `umig-local` CLI (ADR-025).
-- **Test Suite Stability & Reliability:**
-  - Stabilised the test suite with precise SQL query mocks and improved test isolation, adhering to the new `ADR-026` standard for specific mocks.
-  - Corrected module system compatibility issues and ensured comprehensive mock resets.
-  - Adapted tests to respect [SEC-1] principle by using mock scripts.
-  - Replaced deprecated `faker` API calls and resolved critical Jest configuration issues.
-- **Generator Naming Convention:**
-  - Overhauled all data generator scripts and their tests to use a consistent 3-digit numeric prefix for robust ordering and traceability.
-- Updated documentation and changelog to reflect these enhancements.
+*   **Architectural Confirmation:** The **Confluence-Integrated Application** model is confirmed. This leverages Atlassian ScriptRunner (Groovy) for the backend, vanilla HTML/JavaScript/CSS for the frontend (as a Confluence macro), and PostgreSQL as the database. This decision was driven by the bank's existing technology portfolio and the aggressive four-week MVP timeline.
+*   **Local Development Environment Overhaul:** The entire local development setup has been refactored to use a Node.js-based orchestration layer, replacing shell scripts with a unified `umig-local` CLI. This significantly improves consistency and developer experience.
+*   **Data Model Refinements:**
+    *   Implemented an iteration-centric data model ("Model C"), linking migrations to master plans via the `iterations_ite` table.
+    *   Added `ctm_code` to the `controls_master_ctm` table for unique, human-readable business keys.
+    *   Migrated to a many-to-many user-team relationship using `teams_tms_x_users_usr` join table.
+    *   Introduced dedicated comment tables for step-level and instance-level comments (`step_pilot_comments_spc`, `step_instance_comments_sic`).
+*   **API Standardisation (ADR-023):** Formalised and applied robust REST API implementation patterns, including explicit routing for nested resources, idempotency for `PUT`/`DELETE` operations, and precise error handling (mapping SQL exceptions to HTTP status codes). The Teams and Users APIs have been refactored to adhere to these standards.
+*   **Test Suite Stability & Reliability (ADR-026):** Stabilised the test suite with precise SQL query mocks and improved test isolation. Deprecated `faker` API calls have been replaced, and critical Jest configuration issues resolved.
+*   **Generator Naming Convention:** All data generator scripts and their tests now use a consistent 3-digit numeric prefix for robust ordering and traceability.
+*   **Planning Feature:** A new feature has been designed and partially implemented to allow pilots to generate a shareable HTML macro-plan for each iteration, stored in a new `chapter_schedules` table.
+*   **Project Governance:** A comprehensive, MECE-structured rule system has been established in `.clinerules/rules`, covering project guidelines, core coding principles, scaffolding, Twelve-Factor App, and Microservice Architecture. All individual ADRs have been consolidated into `docs/solution-architecture.md`.
 
-## Next Steps
+## 3. Next Steps
 
-- Apply the new REST API implementation patterns to all other existing endpoints.
-- Continue to validate and document the standards through code review and automated testing.
-- Monitor for any further edge cases or inconsistencies as the standards are rolled out project-wide.
-- Continuously improve onboarding materials and documentation to reflect the latest best practices and architectural decisions.
-- Further develop the Confluence HTML Importer utility.
-- Continue to enhance data generation scripts for realism and coverage.
+1.  Continue implementing the remaining backend REST API endpoints in ScriptRunner for all core entities (Plans, Chapters, Steps, Tasks, Controls, Instructions, Labels).
+2.  Develop the frontend JavaScript for the main dashboard, ensuring it consumes the new APIs and provides real-time updates via AJAX polling.
+3.  Build the UI for the "Planning Feature" to allow input and generation of the HTML macro-plan.
+4.  Finalise the data import strategy for existing runbook data.
+5.  Conduct comprehensive integration and end-to-end testing.
+6.  Gather user feedback on the implemented features.
 
-## Key Considerations
+## 4. Important Patterns and Learnings
 
-- Maintain synchronisation between OpenAPI specification, implementation, and documentation.
-- Ensure all new development adheres to the established patterns for consistency and maintainability.
-- Validate the stability and performance of the new data model and local development setup.
-- Ensure all tests remain robust and reliable, following `ADR-026`.
-- Adhere to the new generator naming conventions for all new and modified data generation scripts.
+*   **Confluence-Integrated Architecture:** Leveraging ScriptRunner and Confluence's native capabilities (authentication, email) significantly accelerates development within the bank's ecosystem.
+*   **Vanilla JavaScript Challenges:** Building complex UIs without a modern framework requires meticulous DOM management and state handling.
+*   **Database per Service (Conceptual):** While not true microservices, the clear separation of data in PostgreSQL from Confluence's internal storage is crucial.
+*   **Test-Driven Thinking:** The importance of robust, specific integration tests (ADR-026) was highlighted by "schema drift" issues.
+*   **Documentation Discipline:** Maintaining synchronisation between OpenAPI specification, implementation, and all layers of documentation (ADRs, READMEs, Changelog, Dev Journals) is paramount for project continuity and onboarding.
+*   **Pragmatism over Purity:** The aggressive timeline necessitates pragmatic architectural compromises (e.g., AJAX polling instead of WebSockets).
