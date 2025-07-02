@@ -50,7 +50,7 @@ export async function generateControls(config, options = {}) {
         `Control: ${faker.lorem.words(3)}`,
         faker.lorem.sentence(),
         faker.helpers.arrayElement(CONTROL_TYPES),
-        faker.datatype.boolean(),
+        faker.datatype.boolean(), // Not deprecated, but consider updating if faker v9+ deprecates this in future
         code,
       ],
     };

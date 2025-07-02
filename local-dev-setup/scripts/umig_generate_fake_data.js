@@ -8,6 +8,7 @@ import { generateUsers } from './generators/003_generate_users.js';
 import { generateCanonicalPlans } from './generators/004_generate_canonical_plans.js';
 import { generateStepPilotComments } from './generators/009_generate_step_pilot_comments.js';
 import { generateStepInstanceComments } from './generators/100_generate_step_instance_comments.js';
+import { generateInstructions } from './generators/101_generate_instructions.js';
 import { generateMigrations } from './generators/005_generate_migrations.js';
 import { generateAllEnvironments } from './generators/006_generate_environments.js';
 import { generateInstanceData } from './generators/099_generate_instance_data.js';
@@ -51,6 +52,17 @@ const CONFIG = {
   LABELS: {
     PER_MIGRATION: { MIN: 3, MAX: 8 },
   },
+  INSTRUCTIONS: {
+    // For instructions_master_inm
+    PER_STEP: { MIN: 1, MAX: 5 }, // Each step gets 1-5 instructions
+    BODY_TYPE: 'sentence', // faker.lorem.sentence()
+    DURATION_MIN: 5,       // minutes
+    DURATION_MAX: 30,      // minutes
+    REQUIRE_TEAM: true,    // tms_id is required
+    OPTIONAL_CONTROL: true, // ctm_id can be null or random
+    // For instructions_instance_ini
+    INSTANTIATE_FOR_ALL_STEP_INSTANCES: true
+  }
 };
 
 async function main() {
@@ -75,7 +87,8 @@ async function main() {
     '007': () => generateControls(CONFIG, { ...options, clientOverride: client }),
     '099': () => generateInstanceData(CONFIG, { ...options, clientOverride: client }),
     // Insert instance comments after all instance data
-    '100': () => generateStepInstanceComments(CONFIG, { ...options, clientOverride: client })
+    '100': () => generateStepInstanceComments(CONFIG, { ...options, clientOverride: client }),
+    '101': () => generateInstructions(CONFIG, { ...options, clientOverride: client })
   };
 
   try {

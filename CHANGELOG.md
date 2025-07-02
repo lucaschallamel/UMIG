@@ -1,5 +1,10 @@
 ### [Unreleased]
 
+#### 2025-07-02 (Faker Deprecation & Test Suite Fixes)
+- **Fix(Data Generation):** Replaced all deprecated `faker.datatype.number()` calls with `faker.number.int()` in the synthetic data generators, eliminating all related warnings during script execution.
+- **Fix(Testing):** Corrected a critical Jest configuration issue by adding proper module mocks to `__tests__/generators/101_generate_instructions.test.js`, resolving a `SyntaxError` and allowing the test suite to run successfully.
+- **Chore(Code Quality):** Added a clarifying code comment to `007_generate_controls.js` to note that `faker.datatype.boolean()` is not deprecated, improving code maintainability.
+
 #### 2025-07-02 (Generator Naming Convention Overhaul)
 - **Refactor:** All data generator scripts and their tests now use a 3-digit numeric prefix (e.g., `001_generate_core_metadata.js`, `099_generate_instance_data.js`) to ensure robust ordering and traceability.
 - **Chore:** Updated all test imports to match new generator filenames.
