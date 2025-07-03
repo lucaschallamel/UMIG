@@ -130,9 +130,13 @@ semgrep-results.json
 
 # MegaLinter reports and temp files
 megalinter-reports/
+megalinter-reports/*
 mega-linter-reports/
 mega-linter.log
 mega-linter.tmp/
 
 # Linting containers (if you ever output to a local dir)
 tmp/lint/
+
+#Claude
+.claude/

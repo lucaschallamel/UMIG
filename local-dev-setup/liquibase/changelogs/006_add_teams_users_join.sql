@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset cascade:006_add_teams_users_join context:all
+--changeset lucas.challamel:006_add_teams_users_join_v1 context:all
 --comment: Add join table for associating users with multiple teams (teams_tms_x_users_usr), migrate existing data, and drop users_usr.tms_id
 
 -- 1. Create the join table

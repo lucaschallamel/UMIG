@@ -1,5 +1,6 @@
 --liquibase formatted sql
---changeset cascade:20250630-004-add-labels-and-step-label-join
+--changeset lucas.challamel:004_add_labels_and_step_label_join_v1 context:all
+--comment: Create labels table (labels_lbl) and join table for labels and steps_master (labels_lbl_x_steps_master_stm)
 
 -- Create labels table (labels_lbl)
 CREATE TABLE labels_lbl (

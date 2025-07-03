@@ -11,8 +11,10 @@
     <include file="004_add_labels_and_step_label_join.sql" relativeToChangelogFile="true"/>
     <include file="005_add_labels_applications_join.sql" relativeToChangelogFile="true"/>
     <include file="006_add_teams_users_join.sql" relativeToChangelogFile="true"/>
-    <include file="007_create_cutover_import_tables.sql" relativeToChangelogFile="true"/>
-    <include file="008_create_stg_import_tables.sql" relativeToChangelogFile="true"/>
+    <include file="007_add_ctm_code_to_controls.sql" relativeToChangelogFile="true"/>
+    <include file="008_add_labels_controls_join.sql" relativeToChangelogFile="true"/>
+    <include file="009_create_cutover_import_tables.sql" relativeToChangelogFile="true"/>
+    <include file="010_create_stg_import_tables.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

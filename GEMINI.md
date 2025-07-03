@@ -1,4 +1,4 @@
-# UMIG Project - Claude AI Assistant Guide
+# UMIG Project - Gemini AI Assistant Guide
 
 ## Project Overview
 
@@ -46,39 +46,56 @@ UMIG/
 │   ├── dataModel/                    # Database schema & ERD
 │   ├── devJournal/                   # Sprint reviews & dev notes
 │   └── ui-ux/                        # UI/UX specifications
-├── local-dev-setup/                  # Development environment
-│   ├── data-utils/                   # Node.js data generation tools
+├── local-dev-setup/                  # Node.js development environment
+│   ├── scripts/                      # Data generation and utilities
+│   │   ├── generators/               # Individual data generators
+│   │   ├── lib/                      # Shared utilities (db.js, utils.js)
+│   │   ├── start.js, stop.js         # Environment management
+│   │   └── umig_generate_fake_data.js # Main data generation script
+│   ├── __tests__/                    # Jest unit tests and fixtures
 │   ├── liquibase/                    # Database migrations
-│   └── *.sh                          # Environment management scripts
+│   ├── confluence/                   # Container configuration
+│   ├── postgres/                     # Database initialization
+│   ├── package.json                  # npm scripts and dependencies
+│   └── podman-compose.yml            # Container orchestration
 ├── tests/                            # Integration tests (Groovy)
 └── cline-docs/                       # AI assistant context docs
 ```
 
 ## Build & Development Commands
 
-### Environment Management
+### Environment Management (Node.js Only - No Shell Scripts)
 ```bash
-# Start development environment
-./local-dev-setup/start.sh
+# From local-dev-setup/ directory - npm scripts only
+cd local-dev-setup
 
-# Stop environment  
-./local-dev-setup/stop.sh
+npm install            # First-time setup
+npm start              # Start complete development stack
+npm stop               # Graceful shutdown of all services  
+npm run restart        # Restart environment
+npm run restart:erase  # Restart and erase all data volumes
+npm test               # Run all tests
 
-# Restart environment (--reset flag deletes database)
-./local-dev-setup/restart.sh [--reset]
+# Advanced data management
+npm run generate-data:erase  # Generate fake data with reset
+npm run generate-data        # Generate fake data without reset
 ```
 
 ### Data Generation & Testing
 ```bash
-# Generate synthetic data (from local-dev-setup/data-utils/)
-npm run start
-# or
-node umig_generate_fake_data.js
+# All commands from local-dev-setup/ directory
+cd local-dev-setup
+
+# Generate synthetic data
+npm run generate-data        # Generate without reset
+npm run generate-data:erase  # Generate with full reset
+node scripts/umig_generate_fake_data.js  # Direct script execution
 
 # Run Node.js unit tests
 npm test
 
 # Run Groovy integration tests (from project root)
+cd ..
 ./tests/run-integration-tests.sh
 ```
 
@@ -94,17 +111,20 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 - **Canonical (Master) Entities**: Reusable templates/playbooks (`_master_` suffix)
 - **Instance Entities**: Time-bound execution records (`_instance_` suffix)
 
-### Entity Hierarchy
-1. **Strategic Layer**: `Migrations` → `Iterations`
+### Entity Hierarchy (Current - Iteration-Centric Model)
+1. **Strategic Layer**: `Migrations` → `Iterations` → `Plans`
 2. **Canonical Layer**: `Plans` → `Sequences` → `Phases` → `Steps` → `Instructions`
 3. **Quality Gates**: `Controls` defined at Phase level
 4. **Instance Layer**: Mirrors canonical hierarchy with execution tracking
+5. **Collaboration**: Comments at both master and instance levels
 
-### Key Tables
+### Key Tables (Updated July 2025)
 - `migrations_mig`: Strategic initiatives
+- `iterations_itr`: Links migrations to plans for iterative delivery
 - `plans_master_plm`: Master playbooks
 - `steps_master_stm`: Granular executable tasks
 - `instructions_master_inm`: Detailed procedures
+- `step_master_comments`, `step_instance_comments`: Collaboration features
 - `*_instance_*`: Live execution tracking
 
 ## Architecture Patterns
@@ -192,49 +212,49 @@ When development environment is running:
 
 ## Key Documentation
 
-### Must-Read ADRs
-- **ADR-018**: Pure ScriptRunner Application Structure
-- **ADR020**: SPA+REST Admin Entity Management Pattern
-- **ADR-017**: V2 REST API Architecture
+### **PRIMARY REFERENCE (MANDATORY)**
+- **`docs/solution-architecture.md`**: Complete solution architecture consolidating all 26 ADRs - ALWAYS REVIEW FIRST
 
-### Technical References
-- **API Spec**: `docs/api/openapi.yaml`
-- **Data Model**: `docs/dataModel/README.md` (includes full ERD)
-- **Groovy Guidelines**: `src/README.md`
-- **Testing Guide**: `tests/README.md`
+### Critical References
+- **API Spec**: `docs/api/openapi.yaml` - OpenAPI specification
+- **Data Model**: `docs/dataModel/README.md` - Database schema and ERD
+- **Current ADRs**: `docs/adr/` (skip `docs/adr/archive/` - consolidated in solution-architecture.md)
 
-### Current Development
-- **Dev Journal**: `docs/devJournal/` (sprint reviews, daily notes)
-- **UI/UX Specs**: `docs/ui-ux/`
-- **Progress Tracking**: `cline-docs/progress.md`
+### Development Context
+- **Dev Journal**: `docs/devJournal/` - Sprint reviews and progress tracking
+- **Project Context**: `cline-docs/` - AI assistant context and progress
+- **UI/UX Specs**: `docs/ui-ux/` - Interface specifications
 
-## Key Features Implemented
+## Implementation Status (July 2025)
 
-### Admin UI (SPA Pattern)
-- User management (`user-list.js`, `UsersApi.groovy`)
-- Team management
-- Dynamic form generation
-- Seamless navigation
+### ✅ Completed Features
+- **Local Development Environment**: Node.js orchestrated Podman containers
+- **Admin UI (SPA Pattern)**: Complete user/team management with robust error handling
+- **API Standards**: Comprehensive REST patterns (ADR-023) with specific error mappings
+- **Data Generation**: Modular synthetic data generators with 3-digit prefixes
+- **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026)
+- **Architecture Documentation**: All 26 ADRs consolidated into solution-architecture.md
 
-### STEP View System
+### 🚧 MVP Remaining Work
+- **Core REST APIs**: Plans, Chapters, Steps, Tasks, Controls, Instructions, Labels endpoints
+- **Main Dashboard UI**: Real-time interface with AJAX polling
+- **Planning Feature**: HTML macro-plan generation and export
+- **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
+
+### STEP View System (Existing)
 - Macro: `stepViewMacro.groovy`
 - Frontend: `step-view.js`
 - API: `stepViewApi.groovy`
 - Purpose: Display migration/release steps in Confluence
 
-### Data Generation
-- Modular fake data generators
-- CSV import utilities
-- Comprehensive test fixtures
-
 ## Development Workflow
 
-1. **Environment Setup**: Run `./local-dev-setup/start.sh`
-2. **Database Changes**: Create Liquibase changesets in `liquibase/changelogs/`
+1. **Environment Setup**: `cd local-dev-setup && npm install && npm start`
+2. **Database Changes**: Create Liquibase changesets in `local-dev-setup/liquibase/changelogs/`
 3. **Backend Development**: Add Groovy classes in `src/com/umig/`
 4. **Frontend Development**: Create/modify JS files in `src/web/js/`
-5. **Testing**: Run unit tests (`npm test`) and integration tests (`./tests/run-integration-tests.sh`)
-6. **Documentation**: Update relevant ADRs and README files
+5. **Testing**: Run unit tests (`npm test` in local-dev-setup) and integration tests (`./tests/run-integration-tests.sh`)
+6. **Documentation**: Update relevant documentation, primarily `docs/solution-architecture.md`
 
 ## Important Notes
 
@@ -246,11 +266,19 @@ When development environment is running:
 
 ## AI Assistant Guidelines
 
-When working on this project:
-1. Follow the established SPA+REST pattern for new admin interfaces
-2. Use the required Groovy patterns for database access and REST endpoints
-3. Maintain consistency with existing code style and architecture
-4. Update relevant documentation when making changes
-5. Consider the canonical vs instance data model when working with entities
-6. Test changes using both unit and integration test suites
-7. Reference existing implementations as patterns for new features
+### **CRITICAL: Always Start Here**
+1. **MANDATORY FIRST STEP**: Review `/docs/solution-architecture.md` for complete architectural context
+2. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
+
+### Development Standards (Non-Negotiable)
+1. **API Pattern**: Use established SPA+REST pattern - reference `TeamsApi.groovy` and `UsersApi.groovy`
+2. **Database Access**: MANDATORY `DatabaseUtil.withSql` pattern - no exceptions
+3. **Testing**: Specific SQL query mocks required (ADR-026) - prevent regressions
+4. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
+5. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
+
+### Project Context (Current State)
+- **Maturity**: Proof-of-concept with solid architectural foundation
+- **Timeline**: 4-week MVP deadline - ruthless scope management required
+- **Focus**: Complete core REST APIs and main dashboard implementation
+- **Pattern**: Reference existing user/team management as implementation template

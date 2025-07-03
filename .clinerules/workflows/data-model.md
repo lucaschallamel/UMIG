@@ -11,11 +11,10 @@ This workflow ensures every data model change is robust, consistent, and reflect
 ## 1. Reference the Authoritative Sources
 
 Before making or reviewing any data model change, consult these key documents:
+- `/docs/solution-architecture.md` — **PRIMARY**: Comprehensive solution architecture and design decisions
 - `/docs/dataModel/README.md` — Data model documentation and ERD
 - `/local-dev-setup/liquibase/changelogs/001_unified_baseline.sql` — Baseline schema (Liquibase)
-- `/docs/adr/ADR-008-Database-Migration-Strategy-with-Liquibase.md` — Migration strategy
-- `/docs/adr/ADR-014-database-naming-conventions.md` — Naming conventions
-- `/docs/adr/ADR-012_standardized_database_management_and_documentation.md` — Schema/documentation discipline
+- `/docs/adr/` — Current ADRs (skip `/docs/adr/archive/` - consolidated in solution-architecture.md)
 
 ## 2. Plan the Change
 

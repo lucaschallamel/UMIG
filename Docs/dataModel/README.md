@@ -27,6 +27,7 @@ UMIG is built on:
 ### 2.2. Iterations (`iterations_ite`)
 - **ite_id** (UUID, PK)
 - **mig_id** (UUID, FK → migrations_mig)
+- **plm_id** (UUID, FK → plans_master_plm): The master plan for this iteration
 - **itt_code** (VARCHAR, FK → iteration_types_itt): Iteration type
 - **ite_name**, **ite_description** (VARCHAR, TEXT)
 - **ite_static_cutover_date**, **ite_dynamic_cutover_date** (TIMESTAMPTZ): Cutover dates
@@ -79,7 +80,6 @@ UMIG is built on:
 ### 3.2. Sequences (`sequences_master_sqm`)
 - **sqm_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
-- **mig_id** (UUID, FK → migrations_mig, nullable)
 - **sqm_order** (INT)
 - **sqm_name**, **sqm_description** (VARCHAR, TEXT)
 - **predecessor_sqm_id** (UUID, FK → sequences_master_sqm, nullable)
@@ -103,6 +103,7 @@ UMIG is built on:
 ### 3.5. Controls (`controls_master_ctm`)
 - **ctm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
+- **ctm_code** (VARCHAR, unique): Unique business key (e.g., C0001, K0001)
 - **ctm_order** (INT)
 - **ctm_name**, **ctm_description** (VARCHAR, TEXT)
 - **ctm_type** (VARCHAR)
@@ -243,6 +244,7 @@ erDiagram
     iterations_ite {
         UUID ite_id PK
         UUID mig_id FK
+        UUID plm_id FK
         VARCHAR itt_code FK
         VARCHAR ite_name
         TEXT ite_description
@@ -291,7 +293,6 @@ erDiagram
     sequences_master_sqm {
         UUID sqm_id PK
         UUID plm_id FK
-        UUID mig_id FK
         INT sqm_order
         VARCHAR sqm_name
         TEXT sqm_description
@@ -317,6 +318,7 @@ erDiagram
     controls_master_ctm {
         UUID ctm_id PK
         UUID phm_id FK
+        VARCHAR ctm_code
         INT ctm_order
         VARCHAR ctm_name
         TEXT ctm_description
@@ -503,7 +505,7 @@ erDiagram
 
 ### 2. The Canonical (Master) Layer
 
-This layer defines 
+This layer defines
 
 #### Table: teams_tms_x_users_usr
 
@@ -550,7 +552,7 @@ the reusable playbook.
 
 ### 3. The Instance (Execution) Layer
 
-This layer defines 
+This layer defines
 
 #### Table: step_instance_comments_sic
 

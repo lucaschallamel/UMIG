@@ -9,6 +9,40 @@ import com.umig.utils.DatabaseUtil
 class TeamRepository {
 
     /**
+     * Returns all relationships that block deletion of a team.
+     * @param teamId The ID of the team.
+     * @return Map of relationship type to list of referencing records.
+     */
+    def getTeamBlockingRelationships(int teamId) {
+        DatabaseUtil.withSql { sql ->
+            def blocking = [:]
+
+            // Team memberships (users)
+            def members = sql.rows("""
+                SELECT u.usr_id, (u.usr_first_name || ' ' || u.usr_last_name) AS usr_name, u.usr_email
+                FROM teams_tms_x_users_usr j
+                JOIN users_usr u ON u.usr_id = j.usr_id
+                WHERE j.tms_id = :teamId
+            """, [teamId: teamId])
+            if (members) blocking['team_members'] = members
+
+            // Impacted steps (steps_master_stm_x_teams_tms_impacted)
+            def impacted_steps = sql.rows("""
+                SELECT s.stm_id, s.stm_name, s.stm_description
+                FROM steps_master_stm_x_teams_tms_impacted i
+                JOIN steps_master_stm s ON s.stm_id = i.stm_id
+                WHERE i.tms_id = :teamId
+            """, [teamId: teamId])
+            if (impacted_steps) blocking['impacted_steps'] = impacted_steps
+
+            // Add more referencing tables as needed (future-proof)
+
+            return blocking
+        }
+    }
+
+
+    /**
      * Finds a team by its ID.
      * @param teamId The ID of the team to find.
      * @return A map representing the team, or null if not found.

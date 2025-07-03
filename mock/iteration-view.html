@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMIG - Iteration View Mockup</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="iteration-view">
+        <!-- Top Selector Bar -->
+        <header class="selector-bar">
+            <div class="selector-container">
+                <h1 class="view-title">ITERATION VIEW - IMPLEMENTATION PLAN RUNSHEET</h1>
+                <div class="selector-controls">
+                    <div class="selector-group">
+                        <label for="migration-select">🔄 MIGRATION:</label>
+                        <select id="migration-select" class="selector">
+                            <option value="mig-001">Data Center Migration Q3 2025</option>
+                            <option value="mig-002">Cloud Migration Phase 1</option>
+                            <option value="mig-003">Legacy System Modernization</option>
+                        </select>
+                    </div>
+                    <div class="selector-group">
+                        <label for="iteration-select">🗓️ ITERATION:</label>
+                        <select id="iteration-select" class="selector">
+                            <option value="ite-001">Iteration 1 - Core Infrastructure</option>
+                            <option value="ite-002">Iteration 2 - Application Migration</option>
+                            <option value="ite-003">Iteration 3 - Data Migration</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Filter Bar -->
+        <section class="filter-bar">
+            <div class="filter-container">
+                <h2>RUNSHEET FILTERS</h2>
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label for="sequence-filter">SEQUENCE:</label>
+                        <select id="sequence-filter" class="filter-select">
+                            <option value="">All</option>
+                            <option value="seq-001">1 - Pre-Migration Preparation</option>
+                            <option value="seq-002">2 - Data Migration</option>
+                            <option value="seq-003">3 - Post-Migration Validation</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="phase-filter">PHASE:</label>
+                        <select id="phase-filter" class="filter-select">
+                            <option value="">All</option>
+                            <option value="pha-001">1.1 - Environment Setup</option>
+                            <option value="pha-002">2.1 - Database Cutover</option>
+                            <option value="pha-003">3.1 - System Testing</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="team-filter">TEAM:</label>
+                        <select id="team-filter" class="filter-select">
+                            <option value="">All</option>
+                            <option value="db-team">DB-Team</option>
+                            <option value="net-team">NET-Team</option>
+                            <option value="app-team">APP-Team</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="label-filter">LABEL:</label>
+                        <select id="label-filter" class="filter-select">
+                            <option value="">All</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High Priority</option>
+                            <option value="medium">Medium Priority</option>
+                        </select>
+                    </div>
+                    <div class="filter-group checkbox-group">
+                        <input type="checkbox" id="my-teams-only" class="filter-checkbox">
+                        <label for="my-teams-only">My Teams Only</label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Left Panel: Runsheet -->
+            <section class="runsheet-panel">
+                <div class="runsheet-header">
+                    <h2>RUNSHEET</h2>
+                    <div class="summary-stats">
+                        <span class="stat">Total Steps: 47</span>
+                        <span class="stat stat-pending">Pending: 42</span>
+                        <span class="stat stat-progress">In Progress: 3</span>
+                        <span class="stat stat-completed">Completed: 2</span>
+                        <span class="stat stat-failed">Failed: 0</span>
+                    </div>
+                </div>
+                
+                <div class="runsheet-content">
+                    <!-- Sequence 1 -->
+                    <div class="sequence-section">
+                        <div class="sequence-header">
+                            <span class="expand-icon">▼</span>
+                            <h3>SEQUENCE 1: Pre-Migration Preparation</h3>
+                        </div>
+                        
+                        <div class="phase-section">
+                            <div class="phase-header">
+                                <span class="expand-icon">▼</span>
+                                <h4>PHASE 1.1: Environment Setup</h4>
+                            </div>
+                            
+                            <div class="steps-table">
+                                <div class="steps-header">
+                                    <div class="col-code">Code</div>
+                                    <div class="col-title">Title</div>
+                                    <div class="col-team">Team</div>
+                                    <div class="col-status">Status</div>
+                                    <div class="col-duration">Duration</div>
+                                </div>
+                                
+                                <div class="step-row selected" data-step="INF-001-010">
+                                    <div class="col-code">INF-001-010</div>
+                                    <div class="col-title">Backup Primary Database</div>
+                                    <div class="col-team">DB-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">45 min</div>
+                                </div>
+                                
+                                <div class="step-row" data-step="INF-001-020">
+                                    <div class="col-code">INF-001-020</div>
+                                    <div class="col-title">Validate Network Connectivity</div>
+                                    <div class="col-team">NET-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">30 min</div>
+                                </div>
+                                
+                                <div class="step-row" data-step="INF-001-030">
+                                    <div class="col-code">INF-001-030</div>
+                                    <div class="col-title">Configure Load Balancer</div>
+                                    <div class="col-team">NET-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">60 min</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sequence 2 -->
+                    <div class="sequence-section">
+                        <div class="sequence-header">
+                            <span class="expand-icon">▼</span>
+                            <h3>SEQUENCE 2: Data Migration</h3>
+                        </div>
+                        
+                        <div class="phase-section">
+                            <div class="phase-header">
+                                <span class="expand-icon">▼</span>
+                                <h4>PHASE 2.1: Database Cutover</h4>
+                            </div>
+                            
+                            <div class="steps-table">
+                                <div class="steps-header">
+                                    <div class="col-code">Code</div>
+                                    <div class="col-title">Title</div>
+                                    <div class="col-team">Team</div>
+                                    <div class="col-status">Status</div>
+                                    <div class="col-duration">Duration</div>
+                                </div>
+                                
+                                <div class="step-row" data-step="DAT-002-010">
+                                    <div class="col-code">DAT-002-010</div>
+                                    <div class="col-title">Stop Application Services</div>
+                                    <div class="col-team">APP-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">15 min</div>
+                                </div>
+                                
+                                <div class="step-row" data-step="DAT-002-020">
+                                    <div class="col-code">DAT-002-020</div>
+                                    <div class="col-title">Export Database Schema</div>
+                                    <div class="col-team">DB-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">30 min</div>
+                                </div>
+                                
+                                <div class="step-row" data-step="DAT-002-030">
+                                    <div class="col-code">DAT-002-030</div>
+                                    <div class="col-title">Transfer Data Files</div>
+                                    <div class="col-team">DB-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">120 min</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sequence 3 -->
+                    <div class="sequence-section">
+                        <div class="sequence-header">
+                            <span class="expand-icon">▼</span>
+                            <h3>SEQUENCE 3: Post-Migration Validation</h3>
+                        </div>
+                        
+                        <div class="phase-section">
+                            <div class="phase-header">
+                                <span class="expand-icon">▼</span>
+                                <h4>PHASE 3.1: System Testing</h4>
+                            </div>
+                            
+                            <div class="steps-table">
+                                <div class="steps-header">
+                                    <div class="col-code">Code</div>
+                                    <div class="col-title">Title</div>
+                                    <div class="col-team">Team</div>
+                                    <div class="col-status">Status</div>
+                                    <div class="col-duration">Duration</div>
+                                </div>
+                                
+                                <div class="step-row" data-step="VAL-003-010">
+                                    <div class="col-code">VAL-003-010</div>
+                                    <div class="col-title">Smoke Test Applications</div>
+                                    <div class="col-team">APP-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">45 min</div>
+                                </div>
+                                
+                                <div class="step-row" data-step="VAL-003-020">
+                                    <div class="col-code">VAL-003-020</div>
+                                    <div class="col-title">Performance Baseline Test</div>
+                                    <div class="col-team">APP-Team</div>
+                                    <div class="col-status status-pending">Pending</div>
+                                    <div class="col-duration">60 min</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Step Details -->
+            <section class="step-details-panel">
+                <div class="step-details-header">
+                    <h2>STEP DETAILS</h2>
+                </div>
+                
+                <div class="step-details-content">
+                    <div class="step-info">
+                        <div class="step-title">
+                            <h3>📋 INF-001-010: Backup Primary Database</h3>
+                        </div>
+                        
+                        <div class="step-metadata">
+                            <div class="metadata-item">
+                                <span class="label">🎯 Target Environment:</span>
+                                <span class="value">Production</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="label">🔄 Scope:</span>
+                                <span class="value">
+                                    <span class="scope-tag">RUN</span>
+                                    <span class="scope-tag">DR</span>
+                                    <span class="scope-tag">CUTOVER</span>
+                                </span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="label">👥 Teams:</span>
+                                <span class="value">Assigned: DB-Team | Impacted: NET-Team, APP-Team</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="label">📂 Location:</span>
+                                <span class="value">Sequence: 1 - Pre-Migration | Phase: 1.1 - Environment Setup</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="label">⏱️ Duration:</span>
+                                <span class="value">45 minutes</span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="label">📊 Status:</span>
+                                <span class="value status-pending">Pending</span>
+                            </div>
+                        </div>
+                        
+                        <div class="step-description">
+                            <h4>📝 Description:</h4>
+                            <p>Perform full backup of primary database before migration begins. Ensure backup completes successfully and verify integrity.</p>
+                        </div>
+                    </div>
+
+                    <div class="instructions-section">
+                        <h4>📋 INSTRUCTIONS</h4>
+                        <div class="instructions-table">
+                            <div class="instructions-header">
+                                <div class="col-num">#</div>
+                                <div class="col-instruction">Instruction</div>
+                                <div class="col-team">Team</div>
+                                <div class="col-control">Control</div>
+                                <div class="col-duration">Duration</div>
+                                <div class="col-complete">✓</div>
+                            </div>
+                            
+                            <div class="instruction-row">
+                                <div class="col-num">1</div>
+                                <div class="col-instruction">Access backup server console</div>
+                                <div class="col-team">DB-Team</div>
+                                <div class="col-control">CTRL-01</div>
+                                <div class="col-duration">5 min</div>
+                                <div class="col-complete"><input type="checkbox"></div>
+                            </div>
+                            
+                            <div class="instruction-row">
+                                <div class="col-num">2</div>
+                                <div class="col-instruction">Execute backup script</div>
+                                <div class="col-team">DB-Team</div>
+                                <div class="col-control">CTRL-02</div>
+                                <div class="col-duration">35 min</div>
+                                <div class="col-complete"><input type="checkbox"></div>
+                            </div>
+                            
+                            <div class="instruction-row">
+                                <div class="col-num">3</div>
+                                <div class="col-instruction">Verify backup file integrity</div>
+                                <div class="col-team">DB-Team</div>
+                                <div class="col-control">CTRL-03</div>
+                                <div class="col-duration">5 min</div>
+                                <div class="col-complete"><input type="checkbox"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comments-section">
+                        <h4>💬 COMMENTS (3)</h4>
+                        <div class="comments-list">
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">John Smith (DB-Team)</span>
+                                    <span class="comment-time">2 hours ago</span>
+                                </div>
+                                <div class="comment-body">
+                                    "Backup server space verified - 2TB available"
+                                </div>
+                            </div>
+                            
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">Sarah Johnson (NET-Team)</span>
+                                    <span class="comment-time">1 hour ago</span>
+                                </div>
+                                <div class="comment-body">
+                                    "Network connectivity to backup server confirmed"
+                                </div>
+                            </div>
+                            
+                            <div class="comment">
+                                <div class="comment-header">
+                                    <span class="comment-author">Mike Chen (DB-Team)</span>
+                                    <span class="comment-time">30 minutes ago</span>
+                                </div>
+                                <div class="comment-body">
+                                    "Ready to begin backup process"
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="comment-form">
+                            <textarea placeholder="Add a comment..." rows="3"></textarea>
+                            <button type="button" class="btn-primary">Add Comment</button>
+                        </div>
+                    </div>
+
+                    <div class="step-actions">
+                        <button type="button" class="btn-secondary">Mark Instructions Complete</button>
+                        <button type="button" class="btn-primary">Update Status</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

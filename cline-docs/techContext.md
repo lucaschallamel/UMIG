@@ -1,26 +1,34 @@
 # Technical Context
 
-## Technologies Used
+## 1. Approved Core Technologies
 
-- **Backend:** Groovy (ScriptRunner) for REST API endpoints and business logic.
-- **API Specification:** OpenAPI (`docs/api/openapi.yaml`) as the definitive contract for all endpoints.
-- **Database:** PostgreSQL, with schema migrations managed via Liquibase.
-- **Testing:** Automated tests (Jest for data utilities, Postman for API), with collections regenerated from the OpenAPI spec.
-- **Containerisation:** Podman and Ansible for local development and deployment.
+*   **Platform Host:** Atlassian Confluence.
+*   **Backend Logic:** Atlassian ScriptRunner for Confluence (using the Groovy language).
+*   **Frontend:** Standard HTML5, CSS3, and JavaScript (ES6+).
+*   **Database:** PostgreSQL.
+*   **Visualisation Aid:** Draw.io (Diagrams.net) plugin for Confluence (as a visual reference, not the source of truth).
+*   **Deployment & Configuration:**
+    *   **Containerisation:** Podman for local development environment.
+    *   **Scripting:** Ansible for environment setup and configuration management.
+    *   **Local Dev Orchestration:** Node.js for managing the local development environment scripts (`umig-local` CLI).
+*   **Enterprise Integrations:**
+    *   **Authentication:** Enterprise Active Directory (via Confluence's native integration).
+    *   **Email:** Enterprise Exchange Server (via ScriptRunner's built-in mail functions).
 
-## Development Setup
+## 2. Development Setup
 
-- All API changes must begin with updates to the OpenAPI specification, ensuring the implementation and documentation remain synchronised.
-- The backend is implemented in Groovy scripts, following formalised patterns for routing, idempotency, and error handling.
-- Postman collections are regenerated after OpenAPI changes to keep automated tests aligned with the current API contract.
+*   **Version Control:** Git.
+*   **IDE:** Visual Studio Code with relevant plugins for JavaScript and Groovy.
+*   **Collaboration Tools:** Atlassian JIRA for task management.
+*   **Database Migrations:** Liquibase is the exclusive tool for managing all database schema changes.
+*   **Database Connectivity:** ScriptRunner's built-in Database Resource Pool (`umig_db_pool`) is used for all database connections.
+*   **Data Utilities:** All data generation, import, and utility scripts are written in Node.js.
+*   **Testing:** Jest for unit tests (Node.js scripts) and Groovy-based integration tests for backend APIs.
 
-## Technical Constraints and Conventions
+## 3. Technical Constraints
 
-- **Error Handling:** All database and application errors are mapped to precise HTTP status codes, as per the new standard (see ADR-023).
-- **Idempotency:** PUT and DELETE operations on associations are idempotent.
-- **Documentation:** Developer guides and ADRs are maintained to ensure onboarding and ongoing development are efficient and consistent.
-
-## Dependencies
-
-- All dependencies are declared explicitly and managed via project manifests.
-- No implicit reliance on system-wide packages.
+*   **No External Frontend Frameworks:** The frontend must be built with "vanilla" JavaScript. No external libraries like React, Vue, or Angular are permitted. Careful DOM management and state handling in pure JavaScript will be critical.
+*   **Platform Dependency:** The application's performance and availability are tightly coupled to the enterprise Confluence instance.
+*   **Database Choice:** SQLite is explicitly disallowed for this project due to concurrency requirements.
+*   **Time:** The four-week deadline for the MVP is the primary constraint and dictates a pragmatic approach that prioritises speed and core functionality.
+*   **Security:** All authentication, API endpoints, and data storage must be secure.
