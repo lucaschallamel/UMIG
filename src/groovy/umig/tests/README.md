@@ -1,10 +1,12 @@
-# UMIG Project - Testing Guide
+# Testing Guide (UMIG)
 
-This directory contains all non-unit tests for the UMIG project.
+This folder contains all Groovy-based tests for the UMIG project.
 
-## Overview
-
-- `/integration`: Contains integration tests that validate the interaction between different components, often requiring a live database connection. These tests are slower and are run separately from unit tests.
+## Structure
+- `apis/`: Unit tests for individual API endpoints
+- `integration/`: Integration tests requiring live database connections
+- `grab-postgres-jdbc.groovy`: JDBC driver dependency setup
+- `run-integration-tests.sh`: Test runner script
 
 ## Prerequisites
 
@@ -26,7 +28,7 @@ The easiest way to run all integration tests is to use the provided test runner 
 From the **root of the project**, run:
 
 ```bash
-./tests/run-integration-tests.sh
+./src/groovy/umig/tests/run-integration-tests.sh
 ```
 
 ### How Dependencies are Managed (Grape)

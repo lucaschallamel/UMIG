@@ -38,14 +38,6 @@ For a step-by-step guide, see the [api-work.md workflow](../../../../.clinerules
     { "error": "Invalid rls_id: referenced role does not exist." }
     ```
 
-## Core Principles
-- **One Endpoint per HTTP Method:** Each HTTP verb (`GET`, `POST`, `PUT`, `DELETE`) must have its own, separate endpoint definition. Do not use a central dispatcher.
-- **Simplicity is Required:** The API implementation must be simple and direct. Avoid complex abstractions, custom exception classes, or advanced Groovy features like `@CompileStatic`.
-- **Repository Pattern:** All database access must go through the appropriate repository class in `../repository/`.
-- **Standard `Response` Objects:** All endpoints must return a standard `javax.ws.rs.core.Response` object.
-- **`204 No Content` for `DELETE`:** A successful `DELETE` operation **must** return `Response.noContent().build()`. This is non-negotiable.
-- **Inline Error Handling:** Each endpoint must handle its own errors using standard `try-catch` blocks.
-
 ## Mandatory Structure Example
 ```groovy
 // src/com/umig/api/v2/UsersApi.groovy

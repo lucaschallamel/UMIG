@@ -1,5 +1,21 @@
 ### [Unreleased]
 
+#### 2025-07-03 (Source Tree Consolidation)
+- **Refactor(Structure):** Major consolidation of the UMIG source tree under `src/groovy/umig/` namespace for clarity and future-proofing.
+  - Moved all macros from `src/macros/` to `src/groovy/umig/macros/`
+  - Moved all API endpoints from `src/com/umig/api/` to `src/groovy/umig/api/`
+  - Moved all repositories from `src/com/umig/repository/` to `src/groovy/umig/repository/`
+  - Moved all web assets from `src/web/` to `src/groovy/umig/web/`
+  - Moved all tests from `tests/` to `src/groovy/umig/tests/`
+- **Docs(Structure):** Updated `src/groovy/README.md` to provide high-level source tree overview with folder map and key principles.
+- **Docs(READMEs):** Created comprehensive README files for each subfolder:
+  - `macros/README.md`: Macro responsibilities, naming conventions, asset loading patterns
+  - `api/README.md`: REST API conventions, versioning, OpenAPI alignment
+  - `repository/README.md`: Repository pattern rationale and usage
+  - `web/README.md`: Frontend asset management and serving strategies
+- **Docs(Architecture):** Updated `docs/solution-architecture.md` to reflect the new consolidated structure and versioning approach.
+- **Impact:** Maintains separation of concerns while improving project organization, ScriptRunner compatibility, and developer onboarding experience.
+
 #### 2025-07-02 (Architecture Documentation Consolidation)
 - **Docs(Architecture):** Consolidated all 26 individual ADRs into a single, comprehensive `docs/solution-architecture.md` document. This document is now the single source of truth for all architectural decisions.
 - **Docs(Archive):** Archived all original ADR files into the `docs/adr/archive/` directory to preserve historical context.

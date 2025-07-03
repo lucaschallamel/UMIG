@@ -1,43 +1,31 @@
-# Groovy Development Guidelines for UMIG
+# UMIG ScriptRunner Source Tree Overview
 
-This document provides conventions and best practices for writing Groovy code for the UMIG project, specifically for ScriptRunner REST endpoints.
+This document describes the structure and conventions for all Groovy backend code and frontend assets used by ScriptRunner in the UMIG project.
 
-## Core Principles
+## Folder Map
 
-- **Clarity and Readability:** Code should be easy to understand. Use meaningful variable names and add comments for complex logic.
-- **Robust Error Handling:** Never expose raw database or system errors to the client. Always catch exceptions and return standardized, informative JSON error messages.
-- **Single Source of Truth:** The OpenAPI specification (`docs/api/openapi.yaml`) is the definitive source for all API contracts. All backend implementations must align with it.
+| Folder                       | Purpose                                   |
+|------------------------------|-------------------------------------------|
+| `umig/macros/`               | UI macro scripts (container only)         |
+| `umig/api/`                  | REST API endpoint scripts                 |
+| `umig/repository/`           | Data access layer (repository pattern)    |
+| `umig/utils/`                | Shared Groovy utilities                   |
+| `umig/web/js/`, `web/css/`   | Frontend JS/CSS assets for macros         |
+| `umig/tests/`                | Groovy-based tests (integration/unit)     |
 
-## Standard API Implementation Patterns
+All folders are under the `umig/` namespace for clarity, future-proofing, and to avoid name collisions. This structure supports ScriptRunner's scan path and project scalability ([CA], [SF], [ISA]).
 
-The following patterns were established during the development of the Teams API and should be applied to all new and existing endpoints for consistency.
+## Key Principles
+- **Separation of Concerns:** Macros only render containers/load assets; business logic is in APIs and repositories.
+- **Versioning:** Use `v1/`, `v2/` subfolders for breaking changes in macros/APIs.
+- **Repository Pattern:** All DB access is via repository classes for testability and clarity.
+- **Frontend Assets:** All JS/CSS is versioned and referenced by macros; see `web/README.md` for serving details.
+- **Testing:** See `tests/README.md` for how to add/run tests and manage dependencies.
 
-### 1. Routing for Nested Resources
-
-To handle nested paths (e.g., `/teams/{teamId}/users/{userId}`), the script must parse the `extraPath` provided by the `getAdditionalPath(request)` method.
-
-**Pattern:**
-- Check the number of path segments (`pathParts.size()`).
-- Check the value of specific segments (e.g., `pathParts[1] == 'users'`) to distinguish between operations on a parent resource versus a child resource.
-
-**Example:**
-```groovy
-// Distinguishes between DELETE /teams/{id} and DELETE /teams/{id}/users/{id}
-def extraPath = getAdditionalPath(request)
-def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-
-if (pathParts.size() == 3 && pathParts[1] == 'users') {
-    // Handle remove user from team
-} else if (pathParts.size() == 1) {
-    // Handle delete team
-} else {
-    // Return 400 Bad Request
-}
-```
-
-### 2. Idempotency
-
-- **`PUT` for Membership/Association:** Adding a resource to a collection (e.g., adding a user to a team) should be idempotent. If the association already exists, the API should return `204 No Content`. The goal is to ensure a final state, not to create a new record on every call.
+## References
+- See `/docs/solution-architecture.md` and ADRs for architectural decisions.
+- See each subfolder's README for detailed usage and conventions.
+a new record on every call.
 - **`DELETE` for Membership/Association:** Removing a resource from a collection is also idempotent. If the association does not exist, the API should still return `204 No Content`, as the desired state (the resource is not in the collection) is met.
 
 ### 3. Error Handling and HTTP Response Codes

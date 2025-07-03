@@ -1,6 +1,6 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-07-02  
+**Version:** 2025-07-03  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 26 archived ADRs. For full historical context, see the original ADRs in `/docs/adr/archive/`.
 
@@ -81,18 +81,32 @@ The UMIG application consists of four primary, decoupled components:
 
 ### 3.2. Project Structure ([ADR-018])
 
-To support this architecture, the project follows a "Pure ScriptRunner" file structure, avoiding the complexity of a formal Atlassian plugin:
+To support this architecture, the project follows a "Pure ScriptRunner" file structure, avoiding the complexity of a formal Atlassian plugin. **Updated July 2025** to use a consolidated `umig/` namespace:
 
 ```
 src/
-├── com/umig/         # Packaged backend code (API, Repository, Services)
-├── macros/           # ScriptRunner Script Macros for UI rendering
-└── web/              # Static frontend assets (CSS, JS, images)
+└── groovy/
+    └── umig/              # UMIG namespace for all backend code
+        ├── macros/        # ScriptRunner Script Macros for UI rendering
+        │   └── v1/        # Versioned macro implementations
+        ├── api/           # REST API endpoint scripts
+        │   ├── v1/, v2/   # Versioned API implementations
+        ├── repository/    # Data access layer (repository pattern)
+        ├── utils/         # Shared Groovy utilities
+        ├── web/           # Frontend assets (JS/CSS) for macros
+        │   ├── js/        # JavaScript assets
+        │   └── css/       # CSS assets
+        └── tests/         # Groovy-based tests (integration/unit)
+            ├── apis/      # API endpoint tests
+            └── integration/ # Integration tests
 ```
 
-- **`com/umig/`**: All backend Groovy code is placed in a Java-style package to prevent class-loading conflicts.
-- **`macros/`**: Groovy scripts that render the initial HTML shell and load the required JavaScript controllers for the UI.
-- **`web/`**: All static assets, served via a dedicated REST endpoint.
+- **`groovy/umig/`**: All code is under the UMIG namespace for clarity, future-proofing, and avoiding name collisions.
+- **`macros/`**: Groovy scripts that render container HTML and load JS/CSS assets; no business logic.
+- **`api/`**: REST endpoint scripts using ScriptRunner's CustomEndpointDelegate pattern.
+- **`repository/`**: Data access layer following repository pattern for testability and separation of concerns.
+- **`web/`**: All frontend assets, versioned and referenced by macros.
+- **`tests/`**: Comprehensive test suite for APIs and integration scenarios.
 
 ---
 
