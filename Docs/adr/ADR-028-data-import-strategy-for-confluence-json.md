@@ -1,4 +1,4 @@
-# ADR-025: Data Import Strategy for Confluence JSON Exports
+# ADR-028: Data Import Strategy for Confluence JSON Exports
 
 * **Status:** Proposed
 * **Date:** 2025-07-02

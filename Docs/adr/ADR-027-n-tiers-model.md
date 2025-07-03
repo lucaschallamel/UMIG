@@ -1,4 +1,4 @@
-# ADR-024: N-Tier Architecture Model
+# ADR-027: N-Tier Architecture Model
 
 **Date**: 2025-07-02
 **Status**: Proposed
