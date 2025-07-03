@@ -15,6 +15,45 @@ For the MVP, we are prioritizing the delivery of high-impact end-user UI compone
 
 ## Iteration Plan
 
+---
+
+### Iteration View (Implementation Plan View)
+[Spec: iteration-view.md](./iteration-view.md)
+
+**Epic:** As an end user or IT Cutover team member, I want a comprehensive, interactive runsheet view (Iteration View) to track, filter, and explore all steps and instructions for a selected migration and iteration, so I can execute my cutover tasks efficiently and with full context.
+
+**User Stories:**
+
+1. **Context Selection**
+   - As a user, I can select a Migration and Iteration from dropdowns, so that the runsheet view is scoped to the relevant implementation plan context.
+
+2. **Runsheet Browsing & Filtering**
+   - As a user, I can browse all steps grouped by sequence and phase, and filter by sequence, phase, team, label, or my own teams, so I can quickly find the steps relevant to me.
+
+3. **Step Detail Exploration**
+   - As a user, when I click on a step in the runsheet, I see a detailed view of its attributes, instructions, and comments, so I have all the information I need to execute or review the step.
+
+4. **Responsive, Accessible Layout**
+   - As a user, the view adapts responsively to my screen and supports keyboard navigation and accessibility standards, so I can use it comfortably regardless of device or ability.
+
+5. **Read-Only State (MVP)**
+   - As a user, I can view all steps, instructions, and comments, but cannot yet make changes (future interactive features will be added in later phases).
+
+6. **State Synchronization**
+   - As a user, all filters, selections, and context are synchronized across the three subviews (selector, runsheet, step detail), so my navigation is intuitive and consistent.
+
+7. **Error & Empty States**
+   - As a user, I receive clear feedback if there are no steps, if data fails to load, or if I lack permissions, so I always know what’s happening.
+
+**Future Enhancements (Backlog):**
+- Mark steps/instructions as complete (with audit trail)
+- Add/edit comments inline
+- Inline status changes (with permissions)
+- Export runsheet to PDF/CSV
+- Custom user dashboards
+
+---
+
 | Iteration | Features/Views                         | Linked Specs              | Status      |
 |-----------|----------------------------------------|---------------------------|-------------|
 | 1         | STEP View (Normal, Cutover)            | step-view.md              | In progress |
