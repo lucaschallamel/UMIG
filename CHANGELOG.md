@@ -5,6 +5,22 @@
 - **Docs(Archive):** Archived all original ADR files into the `docs/adr/archive/` directory to preserve historical context.
 - **Docs(Architecture):** Enhanced the new consolidated document with a hyperlinked table of contents and more detailed implementation standards for clarity and ease of use.
 
+#### 2025-07-02 (Data Integration)
+- **Fix: Robustified Confluence HTML → PostgreSQL import pipeline.**
+  - Updated `scrape_html.sh` and added `scrape_html_oneline.sh` to ensure generated JSON is compact (one-line per object) and PostgreSQL-compatible.
+  - Strengthened escaping of double quotes in text fields to prevent JSON syntax errors during import.
+  - Documented the full diagnostic and correction process in the Developer Journal (`20250702-01.md`).
+  - Added new ADR describing the import strategy for Confluence JSON data.
+
+#### 2025-07-01 (API)
+- **Feature: Enhanced Teams API for Membership Management.**
+  - Implemented robust routing in `TeamsApi.groovy` to correctly handle nested endpoints for adding (`PUT /teams/{id}/users/{userId}`) and removing (`DELETE /teams/{id}/users/{userId}`) users from teams.
+  - Improved error handling to return `409 Conflict` when attempting to delete a team that is still referenced by other resources.
+- **Documentation: Synchronized API documentation with implementation.**
+  - Updated `openapi.yaml` to include the `409 Conflict` response for the team deletion endpoint.
+  - Regenerated the Postman collection from the OpenAPI specification to ensure tests are aligned with the current API contract.
+  - Formalized API implementation standards in a new developer guide (`src/groovy/README.md`) and a new architectural record (`ADR-023-Standardized-Rest-Api-Patterns.md`).
+
 #### 2025-07-02 (Teams API Robustness & Membership Endpoints)
 - Enhancement(API): PUT and DELETE for `/teams/{teamId}/users/{userId}` now enforce robust existence checks for both team and user, prevent duplicate associations, and return clear RESTful responses for all cases.
 - Refactor(API): TeamRepository and UserRepository updated for explicit existence checks and robust error reporting.
