@@ -12,12 +12,13 @@ This leads to several critical issues:
 
 ## 2. Product Vision
 
-This product will be the definitive command and control centre for all IT cutover activities. It will transform the runsheet from a static document into a living, breathing execution plan.
+This product will be the definitive command and control centre for all IT cutover activities. It will transform the runsheet from a static document into a living, breathing execution plan, supported by a robust N-Tier architecture and a consolidated, maintainable codebase.
 
 It should work as follows:
-* A Cutover Pilot opens a designated Confluence page and interacts with a live dashboard.
-* The system clearly shows which steps are ready to start based on dependency rules.
-* When a pilot activates a step, the assigned team is automatically notified with a link to their detailed instructions.
-* When a team completes their task and updates the status in the tool, the system logs the event, updates the dashboard for everyone, and automatically makes the next dependent tasks available.
-* The system will track planned vs. actual durations and flag any delays, allowing for proactive management of the timeline.
-* The system will provide a planning view to generate a shareable, time-based HTML macro-plan for leadership and stakeholder communication.
+*   A Cutover Pilot opens a designated Confluence page and interacts with a live dashboard. The Iteration View macro now renders correctly, providing a reliable and interactive user interface.
+*   The system clearly shows which steps are ready to start based on dependency rules, leveraging the new iteration-centric data model for flexible plan execution.
+*   When a pilot activates a step, the assigned team is automatically notified with a link to their detailed instructions.
+*   When a team completes their task and updates the status in the tool, the system logs the event, updates the dashboard for everyone, and automatically makes the next dependent tasks available. The backend APIs ensure robust handling of these updates, with enhanced error reporting for reliability.
+*   The system will track planned vs. actual durations and flag any delays, allowing for proactive management of the timeline.
+*   The system will provide a planning view to generate a shareable, time-based HTML macro-plan for leadership and stakeholder communication.
+*   A robust data import pipeline, utilising `psql \copy` with staging tables, ensures efficient and reliable ingestion of large volumes of structured data from Confluence JSON exports, maintaining data integrity and performance.
