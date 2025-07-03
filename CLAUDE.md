@@ -32,20 +32,66 @@ UMIG (Unified Migration Implementation Guide) is a bespoke, multi-user, real-tim
 
 ```
 UMIG/
-├── src/                              # Main application source
-│   ├── com/umig/                     # Packaged backend (Java-style)
-│   │   ├── api/v2/                   # REST API endpoints
-│   │   ├── repository/               # Data access layer
-│   │   └── utils/                    # Utility classes
-│   ├── macros/                       # ScriptRunner macros for UI
-│   ├── test/                         # Unit tests (Groovy)
-│   └── web/                          # Frontend assets (CSS/JS)
+├── src/                              # Main application source (REORGANIZED 2025)
+│   └── groovy/                       # Groovy source code root
+│       └── umig/                     # Main package namespace
+│           ├── api/                  # REST API endpoints
+│           │   └── v2/               # Version 2 APIs
+│           │       ├── PlansApi.groovy
+│           │       ├── TeamMembersApi.groovy
+│           │       ├── TeamsApi.groovy
+│           │       ├── UsersApi.groovy
+│           │       ├── stepViewApi.groovy
+│           │       └── web/          # Web-specific APIs
+│           │           └── WebApi.groovy
+│           ├── macros/               # ScriptRunner macros for UI
+│           │   ├── stepViewMacro.groovy
+│           │   ├── userDetailMacro.groovy
+│           │   ├── userListMacro.groovy
+│           │   ├── userViewMacro.groovy
+│           │   └── v1/               # Version 1 macros
+│           │       └── iterationViewMacro.groovy
+│           ├── repository/           # Data access layer
+│           │   ├── ImplementationPlanRepository.groovy
+│           │   ├── InstructionRepository.groovy
+│           │   ├── LookupRepository.groovy
+│           │   ├── StepRepository.groovy
+│           │   ├── StepTypeRepository.groovy
+│           │   ├── TeamMembersRepository.groovy
+│           │   ├── TeamRepository.groovy
+│           │   └── UserRepository.groovy
+│           ├── tests/                # Testing infrastructure
+│           │   ├── apis/             # API unit tests
+│           │   │   └── stepViewApiUnitTest.groovy
+│           │   ├── integration/      # Integration tests
+│           │   │   └── stepViewApiIntegrationTest.groovy
+│           │   ├── grab-postgres-jdbc.groovy
+│           │   └── run-integration-tests.sh
+│           ├── utils/                # Utility classes
+│           │   └── DatabaseUtil.groovy
+│           └── web/                  # Frontend assets
+│               ├── css/              # Stylesheets
+│               │   ├── hello-world.css
+│               │   └── umig-ip-macro.css
+│               └── js/               # JavaScript files
+│                   ├── hello-world.js
+│                   ├── step-view.js
+│                   ├── umig-ip-macro.js
+│                   ├── user-detail.js
+│                   ├── user-list.js
+│                   └── user-view.js
+├── mock/                             # UI/UX mockups and prototypes
+│   ├── iteration-view.html           # Iteration view HTML mockup
+│   ├── styles.css                    # Mockup CSS (100% vanilla)
+│   ├── script.js                     # Mockup JavaScript (zero dependencies)
+│   └── README.md                     # Mockup documentation
 ├── docs/                             # Comprehensive documentation
 │   ├── adr/                          # Architecture Decision Records
 │   ├── api/                          # API documentation & OpenAPI spec
 │   ├── dataModel/                    # Database schema & ERD
 │   ├── devJournal/                   # Sprint reviews & dev notes
 │   └── ui-ux/                        # UI/UX specifications
+│       └── iteration-view.md         # Iteration view specification
 ├── local-dev-setup/                  # Node.js development environment
 │   ├── scripts/                      # Data generation and utilities
 │   │   ├── generators/               # Individual data generators
@@ -181,12 +227,12 @@ DatabaseUtil.withSql { sql ->
 ## Testing Strategy
 
 ### Unit Tests
-- **Location**: `src/test/` (Groovy), `local-dev-setup/data-utils/__tests__/` (Node.js)
+- **Location**: `src/groovy/umig/tests/apis/` (Groovy), `local-dev-setup/__tests__/` (Node.js)
 - **Purpose**: Fast, isolated component validation
 - **Technology**: Groovy for backend, Jest for Node.js utilities
 
 ### Integration Tests
-- **Location**: `tests/integration/`
+- **Location**: `src/groovy/umig/tests/integration/`
 - **Purpose**: End-to-end validation against live environment
 - **Requirements**: Running local development stack
 - **Technology**: Groovy with PostgreSQL JDBC
@@ -234,26 +280,35 @@ When development environment is running:
 - **Data Generation**: Modular synthetic data generators with 3-digit prefixes
 - **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026)
 - **Architecture Documentation**: All 26 ADRs consolidated into solution-architecture.md
+- **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
+- **Iteration View Mockup**: Complete HTML/CSS/JS mockup with zero dependencies (`mock/`)
 
 ### 🚧 MVP Remaining Work
+- **Iteration View Implementation**: Convert mockup to ScriptRunner macro (`iterationViewMacro.groovy`)
 - **Core REST APIs**: Plans, Chapters, Steps, Tasks, Controls, Instructions, Labels endpoints
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
 
 ### STEP View System (Existing)
-- Macro: `stepViewMacro.groovy`
-- Frontend: `step-view.js`
-- API: `stepViewApi.groovy`
+- Macro: `src/groovy/umig/macros/stepViewMacro.groovy`
+- Frontend: `src/groovy/umig/web/js/step-view.js`
+- API: `src/groovy/umig/api/v2/stepViewApi.groovy`
 - Purpose: Display migration/release steps in Confluence
+
+### Iteration View System (In Development)
+- Specification: `docs/ui-ux/iteration-view.md`
+- Mockup: `mock/iteration-view.html` (functional prototype)
+- Target Macro: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
+- Purpose: Primary runsheet interface for cutover events
 
 ## Development Workflow
 
 1. **Environment Setup**: `cd local-dev-setup && npm install && npm start`
 2. **Database Changes**: Create Liquibase changesets in `local-dev-setup/liquibase/changelogs/`
-3. **Backend Development**: Add Groovy classes in `src/com/umig/`
-4. **Frontend Development**: Create/modify JS files in `src/web/js/`
-5. **Testing**: Run unit tests (`npm test` in local-dev-setup) and integration tests (`./tests/run-integration-tests.sh`)
+3. **Backend Development**: Add Groovy classes in `src/groovy/umig/`
+4. **Frontend Development**: Create/modify JS files in `src/groovy/umig/web/js/`
+5. **Testing**: Run unit tests (`npm test` in local-dev-setup) and integration tests (`src/groovy/umig/tests/run-integration-tests.sh`)
 6. **Documentation**: Update relevant documentation, primarily `docs/solution-architecture.md`
 
 ## Important Notes
@@ -271,14 +326,22 @@ When development environment is running:
 2. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
 
 ### Development Standards (Non-Negotiable)
-1. **API Pattern**: Use established SPA+REST pattern - reference `TeamsApi.groovy` and `UsersApi.groovy`
+1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/TeamsApi.groovy` and `UsersApi.groovy`
 2. **Database Access**: MANDATORY `DatabaseUtil.withSql` pattern - no exceptions
 3. **Testing**: Specific SQL query mocks required (ADR-026) - prevent regressions
 4. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
 5. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
+6. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
 
 ### Project Context (Current State)
-- **Maturity**: Proof-of-concept with solid architectural foundation
+- **Maturity**: Proof-of-concept with solid architectural foundation and working mockup
 - **Timeline**: 4-week MVP deadline - ruthless scope management required
-- **Focus**: Complete core REST APIs and main dashboard implementation
+- **Current Focus**: Implement iteration view based on completed mockup in `mock/`
+- **Next Priority**: Convert mockup to ScriptRunner macro with backend API integration
 - **Pattern**: Reference existing user/team management as implementation template
+
+### Recent Achievements (January 2025)
+- **Complete UI/UX Mockup**: Functional iteration view prototype with zero external dependencies
+- **Clean Architecture**: Reorganized `src/` structure following Java package conventions
+- **Validated Design**: Three-panel layout confirmed through interactive mockup
+- **Implementation Ready**: All frontend components proven functional in vanilla JavaScript

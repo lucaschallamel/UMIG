@@ -1,6 +1,6 @@
-package com.umig.repository
+package umig.repository
 
-import com.umig.utils.DatabaseUtil
+import umig.utils.DatabaseUtil
 
 /**
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.

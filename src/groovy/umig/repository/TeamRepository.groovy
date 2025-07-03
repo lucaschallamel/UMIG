@@ -1,6 +1,6 @@
-package com.umig.repository
+package umig.repository
 
-import com.umig.utils.DatabaseUtil
+import umig.utils.DatabaseUtil
 
 /**
  * Repository class for managing Team data.

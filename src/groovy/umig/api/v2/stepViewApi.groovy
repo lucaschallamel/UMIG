@@ -1,10 +1,10 @@
-package com.umig.api.v2
+package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
-import com.umig.repository.StepRepository
-import com.umig.repository.InstructionRepository
-import com.umig.repository.TeamRepository
-import com.umig.repository.StepTypeRepository
+import umig.repository.StepRepository
+import umig.repository.InstructionRepository
+import umig.repository.TeamRepository
+import umig.repository.StepTypeRepository
 import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
 

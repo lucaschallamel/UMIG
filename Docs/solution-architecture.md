@@ -74,10 +74,10 @@ The UMIG project adheres to a set of core principles that guide all development 
 
 The UMIG application consists of four primary, decoupled components:
 
-1.  **Frontend (UI):** A client-side application running within the user's browser, rendered inside Confluence pages. It is built with vanilla JavaScript and Atlassian User Interface (AUI) components.
-2.  **Backend (API):** A set of RESTful endpoints implemented as Groovy scripts within Atlassian ScriptRunner. This layer handles all business logic and data access.
-3.  **Database:** A PostgreSQL database that serves as the persistent data store for all application entities.
-4.  **Development Environment:** A containerized local development stack managed by Podman and orchestrated by NodeJS scripts.
+1. **Frontend (UI):** A client-side application running within the user's browser, rendered inside Confluence pages. It is built with vanilla JavaScript and Atlassian User Interface (AUI) components.
+2. **Backend (API):** A set of RESTful endpoints implemented as Groovy scripts within Atlassian ScriptRunner. This layer handles all business logic and data access.
+3. **Database:** A PostgreSQL database that serves as the persistent data store for all application entities.
+4. **Development Environment:** A containerized local development stack managed by Podman and orchestrated by NodeJS scripts.
 
 ### 3.2. Project Structure ([ADR-018])
 
@@ -122,8 +122,8 @@ src/
 #### Core Requirements
 - **Pattern:** All REST endpoints **must** use the `com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate` pattern. This is the **only** approved pattern and ensures stability.
 - **Configuration:** Endpoints are discovered via **Script Root Scanning**. This requires two system properties to be set in `CATALINA_OPTS`:
-    - `plugin.script.roots`: Points to the directory containing the script packages (e.g., `/var/atlassian/application-data/confluence/scripts`).
-    - `plugin.rest.scripts.package`: A comma-delimited list of packages to scan (e.g., `com.umig.api.v1,com.umig.api.v2`).
+  - `plugin.script.roots`: Points to the directory containing the script packages (e.g., `/var/atlassian/application-data/confluence/scripts`).
+  - `plugin.rest.scripts.package`: A comma-delimited list of packages to scan (e.g., `com.umig.api.v1,com.umig.api.v2`).
 
 #### File Structure Standards
 - **Package Declaration:** Each endpoint file **must** declare its package at the top (mandatory for class loading).
@@ -132,7 +132,7 @@ src/
 
 #### API Design Standards ([ADR-023])
 - **Endpoint Separation:** Each HTTP method **must** have separate endpoint handlers (no central dispatcher pattern).
-- **Error Handling:** 
+- **Error Handling:**
   - Inline error handling using standard `try-catch` blocks within each endpoint.
   - No complex, centralized exception handlers.
   - Specific SQL state error mappings:
@@ -181,9 +181,9 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 
 - **Tool:** **Liquibase** is the exclusive tool for managing all database schema changes.
 - **Process:**
-    - All schema changes are defined in version-controlled Liquibase changelog files.
-    - **Manual schema changes are strictly forbidden.**
-    - An up-to-date Entity Relationship Diagram (ERD) and a database changelog must be maintained.
+  - All schema changes are defined in version-controlled Liquibase changelog files.
+  - **Manual schema changes are strictly forbidden.**
+  - An up-to-date Entity Relationship Diagram (ERD) and a database changelog must be maintained.
 
 ### 6.3. Database Connectivity ([ADR-009], [ADR-010])
 
@@ -217,11 +217,11 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 - **Status Fields:** Use `status` suffix (e.g., `execution_status`, `approval_status`)
 
 #### Data Types & Constraints
-- **Text Fields:** 
+- **Text Fields:**
   - Short text (< 255 chars): `VARCHAR(n)` with explicit length
   - Long text: `TEXT` for unlimited content (descriptions, comments, etc.)
 - **Dates:** Always use `TIMESTAMP WITH TIME ZONE` for temporal data
-- **Numbers:** 
+- **Numbers:**
   - Identifiers: `INTEGER` or `BIGINT`
   - Decimals: `NUMERIC(precision, scale)` for financial/precise calculations
 - **Enums:** Use `VARCHAR` with CHECK constraints rather than ENUM types
@@ -263,7 +263,7 @@ The data model follows a hierarchical structure with canonical vs instance patte
 #### Validation Rules
 - **No Reserved Words:** Avoid SQL reserved words as table/column names
 - **Descriptive Names:** Names must clearly indicate purpose (no cryptic abbreviations)
-- **Length Limits:** 
+- **Length Limits:**
   - Table names: Maximum 63 characters (PostgreSQL limit)
   - Column names: Maximum 63 characters
 - **Consistency Check:** All similar concepts use identical naming patterns across tables
@@ -345,7 +345,7 @@ The development environment has evolved to prioritize reliability and developer 
 
 #### Historical Evolution
 - **Original Approach:** Shell scripts (bash/sh) for environment management
-- **Migration Rationale:** 
+- **Migration Rationale:**
   - Improved cross-platform compatibility (Windows, macOS, Linux)
   - Better error handling and process management
   - Enhanced developer feedback and logging

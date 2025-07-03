@@ -1,4 +1,4 @@
-package com.umig.utils
+package umig.utils
 
 import com.onresolve.scriptrunner.db.DatabaseUtil as SRDatabaseUtil
 import groovy.transform.stc.ClosureParams

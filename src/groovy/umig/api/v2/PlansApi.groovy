@@ -1,7 +1,7 @@
-package com.umig.api.v2
+package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
-import com.umig.repository.ImplementationPlanRepository
+import umig.repository.ImplementationPlanRepository
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript

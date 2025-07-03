@@ -1,4 +1,4 @@
-package com.umig.api.v2.web
+package umig.api.v2.web
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import groovy.transform.BaseScript

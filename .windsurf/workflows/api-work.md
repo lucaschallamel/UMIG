@@ -8,7 +8,7 @@ This workflow ensures all API development adheres to the project's established, 
 
 **PRIMARY REFERENCE**: `/docs/solution-architecture.md` — Comprehensive solution architecture and API design standards
 
-**SUPPORTING REFERENCES**: 
+**SUPPORTING REFERENCES**:
 - Current ADRs in `/docs/adr/` (skip `/docs/adr/archive/` - consolidated in solution-architecture.md)
 - Working examples: `src/com/umig/api/v2/TeamsApi.groovy`
 
