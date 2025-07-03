@@ -2,6 +2,7 @@ package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.TeamRepository
+import umig.repository.UserRepository
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
@@ -15,7 +16,7 @@ import javax.ws.rs.core.Response
 @BaseScript CustomEndpointDelegate delegate
 
 final TeamRepository teamRepository = new TeamRepository()
-final com.umig.repository.UserRepository userRepository = new com.umig.repository.UserRepository()
+final UserRepository userRepository = new UserRepository()
 
 /**
  * Handles GET requests for Teams.
@@ -121,10 +122,10 @@ teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
         }
         try {
             def result = teamRepository.addUserToTeam(teamId, userId)
-            if (result.status == 'created') {
+            if (result instanceof Map && result['status'] == 'created') {
                 return Response.status(Response.Status.CREATED).entity(new JsonBuilder([message: "User ${userId} added to team ${teamId}."]).toString()).build()
             }
-            if (result.status == 'exists') {
+            if (result instanceof Map && result['status'] == 'exists') {
                 return Response.status(Response.Status.OK).entity(new JsonBuilder([message: "User ${userId} is already a member of team ${teamId}."]).toString()).build()
             }
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to add user to team."]).toString()).build()
@@ -205,7 +206,7 @@ teams(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
         }
         try {
             def rowsAffected = teamRepository.removeUserFromTeam(teamId, userId)
-            if (rowsAffected > 0) {
+            if ((rowsAffected instanceof Number ? rowsAffected.intValue() : 0) > 0) {
                 return Response.noContent().build()
             } else {
                 return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with ID ${userId} was not a member of team ${teamId}."]).toString()).build()

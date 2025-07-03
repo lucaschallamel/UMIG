@@ -1,92 +1,135 @@
-import com.atlassian.confluence.macro.Macro
-import com.atlassian.confluence.macro.MacroExecutionException
-import com.atlassian.confluence.macro.MacroParameters
-import com.atlassian.confluence.renderer.v2.macro.BasicMacroBody
-import com.atlassian.confluence.content.render.xhtml.ConversionContext
-import java.io.StringWriter
+import groovy.xml.MarkupBuilder
 
 /**
- * Macro: Iteration View (Implementation Plan View)
- * Renders the three-pane UI for viewing implementation plan iterations (read-only MVP).
- * Injects HTML, CSS, and JS from the validated mockup. Future: Replace static data with REST API integration.
+ * UMIG Iteration View Macro v1
+ * 
+ * ScriptRunner Custom Macro for rendering the three-panel Implementation Plan runsheet interface.
+ * Integrated from mock assets: iteration-view.html, styles.css, script.js
+ * 
+ * Features:
+ * - Migration and Iteration selection
+ * - Runsheet view with steps, instructions, and details
+ * - Real-time status updates and commenting
+ * - Backend API integration ready
+ * 
+ * @author UMIG Development Team
+ * @version 1.0.0
+ * @since ScriptRunner 6.x
  */
-class iterationViewMacro implements Macro {
-    @Override
-    String execute(Map macroParameters, String body, ConversionContext context) throws MacroExecutionException {
-        def writer = new StringWriter()
-        writer << '''
-<div id="umig-iteration-view-root"></div>
-<style>
-/* --- Iteration View Styles (from mock/styles.css) --- */
-:root {
-    --color-primary: #0052cc;
-    --color-bg-primary: #f4f5f7;
-    --color-bg-secondary: #fff;
-    --color-bg-tertiary: #e9edf5;
-    --color-border: #dfe1e6;
-    --color-text-primary: #172b4d;
-    --color-text-secondary: #505f79;
-    --color-text-tertiary: #a5adba;
-    --color-in-progress: #0065ff;
-    --color-completed: #00875a;
-    --color-failed: #de350b;
-    --font-family: 'Segoe UI', Arial, sans-serif;
-    --font-size-base: 16px;
-    --font-size-sm: 14px;
-    --font-size-lg: 20px;
-    --font-size-xl: 24px;
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --border-radius: 4px;
-    --box-shadow-hover: 0 2px 8px rgba(0,0,0,0.08);
-}
-body, html {
-    font-family: var(--font-family);
-    font-size: var(--font-size-base);
-    background: var(--color-bg-primary);
-    color: var(--color-text-primary);
-    margin: 0;
-    padding: 0;
-}
-/* ... (CSS truncated for brevity, full mockup CSS should be inlined here) ... */
-</style>
-<script>
-// --- Iteration View JS (from mock/script.js) ---
-(function() {
-    // Sample static data (replace with AJAX fetch in future)
-    const sampleData = {
-        migrations: [
-            { id: 'mig-1', name: 'Migration Alpha' },
-            { id: 'mig-2', name: 'Migration Beta' }
-        ],
-        iterations: [
-            { id: 'ite-1', migrationId: 'mig-1', name: 'Iteration 1' },
-            { id: 'ite-2', migrationId: 'mig-1', name: 'Iteration 2' }
-        ],
-        steps: [
-            { id: 'step-1', seq: 1, phase: 'Prep', title: 'Validate Source', team: 'Data', status: 'In Progress' },
-            { id: 'step-2', seq: 2, phase: 'Cutover', title: 'Run Migration', team: 'IT', status: 'Not Started' }
-        ]
-    };
-    // Render function (simplified)
-    function renderIterationView(root, data) {
-        root.innerHTML = '<div class="view-title">Iteration View (MVP)</div>' +
-            '<div style="margin:16px 0;">' +
-            '  <strong>Migrations:</strong> ' + data.migrations.map(m => m.name).join(', ') + '<br>' +
-            '  <strong>Iterations:</strong> ' + data.iterations.map(i => i.name).join(', ') + '<br>' +
-            '  <strong>Steps:</strong> ' + data.steps.map(s => s.title).join(', ') +
-            '</div>';
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        const root = document.getElementById('umig-iteration-view-root');
-        if (root) renderIterationView(root, sampleData);
-    });
-})();
-// (Full mockup JS should be inlined here for MVP)
-</script>
+
+// ScriptRunner macro - returns HTML content as string
+// The base path for the REST endpoint that serves web resources.
+// Assumes an endpoint is configured at '/rest/scriptrunner/latest/custom/web' that serves files from 'src/groovy/umig/web'.
+def webResourcesPath = "/rest/scriptrunner/latest/custom/web"
+
+def writer = new StringWriter()
+
+// Build the macro HTML content
+writer << '''
+<!-- UMIG Iteration View Macro Container -->
+<div id="umig-iteration-view-root" class="umig-iteration-view">
+    <!-- Load external CSS from ScriptRunner source tree -->
+    <link rel="stylesheet" href="${webResourcesPath}/css/iteration-view.css">
+    
+    <!-- Top Selector Bar -->
+    <header class="selector-bar">
+        <div class="selector-container">
+            <h1 class="view-title">ITERATION VIEW - IMPLEMENTATION PLAN RUNSHEET</h1>
+            <div class="selector-controls">
+                <div class="selector-group">
+                    <label for="migration-select">🔄 MIGRATION:</label>
+                    <select id="migration-select" class="selector">
+                        <option value="">Loading migrations...</option>
+                    </select>
+                </div>
+                <div class="selector-group">
+                    <label for="iteration-select">🗓️ ITERATION:</label>
+                    <select id="iteration-select" class="selector">
+                        <option value="">Select migration first</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filter Bar -->
+    <section class="filter-bar">
+        <div class="filter-container">
+            <h2>RUNSHEET FILTERS</h2>
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="sequence-filter">SEQUENCE:</label>
+                    <select id="sequence-filter" class="filter-select">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="phase-filter">PHASE:</label>
+                    <select id="phase-filter" class="filter-select">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="team-filter">TEAM:</label>
+                    <select id="team-filter" class="filter-select">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="label-filter">LABEL:</label>
+                    <select id="label-filter" class="filter-select">
+                        <option value="">All</option>
+                    </select>
+                </div>
+                <div class="filter-group checkbox-group">
+                    <input type="checkbox" id="my-teams-only" class="filter-checkbox">
+                    <label for="my-teams-only">My Teams Only</label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Left Panel: Runsheet -->
+        <section class="runsheet-panel">
+            <div class="runsheet-header">
+                <h2>RUNSHEET</h2>
+                <div class="summary-stats">
+                    <span class="stat">Total Steps: <span id="total-steps">0</span></span>
+                    <span class="stat stat-pending">Pending: <span id="pending-steps">0</span></span>
+                    <span class="stat stat-progress">In Progress: <span id="progress-steps">0</span></span>
+                    <span class="stat stat-completed">Completed: <span id="completed-steps">0</span></span>
+                    <span class="stat stat-failed">Failed: <span id="failed-steps">0</span></span>
+                </div>
+            </div>
+            
+            <div class="runsheet-content">
+                <!-- Steps will be dynamically loaded here -->
+                <div class="loading-state">
+                    <p>Select a migration and iteration to view the runsheet.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Panel: Step Details -->
+        <section class="step-details-panel">
+            <div class="step-details-header">
+                <h2>STEP DETAILS</h2>
+            </div>
+            
+            <div class="step-details-content">
+                <div class="no-selection-state">
+                    <p>Select a step from the runsheet to view details.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Load external JavaScript from ScriptRunner source tree -->
+<script src="${webResourcesPath}/js/iteration-view.js"></script>
 '''
-        return writer.toString()
-    }
-}
+        
+// Return the HTML content
+return writer.toString()

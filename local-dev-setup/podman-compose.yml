@@ -18,7 +18,7 @@ services:
       # - CONFLUENCE_CONTEXT_PATH=/umig # If you want confluence on a subpath
     volumes:
       - confluence_data:/var/atlassian/application-data/confluence # Persist Confluence data
-      - ../src/groovy:/var/atlassian/application-data/confluence/scripts/groovy # Mount the entire src/groovy directory as a script root
+      - ../src/groovy/umig:/var/atlassian/application-data/confluence/scripts/umig # Mount the umig namespace directly as a script root
 
 
     networks:

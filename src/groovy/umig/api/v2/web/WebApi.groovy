@@ -12,9 +12,19 @@ import javax.ws.rs.core.Response
 // This script serves static assets (CSS, JS) from the 'web' directory.
 
 // --- Configuration ---
-// The web root is defined as an absolute path for reliability inside the Confluence runtime.
-// This avoids fragile relative path calculations from the script's own location.
-def webRootDir = new File("/var/atlassian/application-data/confluence/scripts/web")
+/**
+ * UMIG Web Resource Endpoint
+ *
+ * Serves static assets (CSS, JS, images, etc.) for UMIG macros and SPA.
+ *
+ * The root directory is configurable via the UMIG_WEB_ROOT environment variable.
+ * If not set, defaults to the production scripts directory.
+ *
+ * Example usage:
+ *   export UMIG_WEB_ROOT=/Users/youruser/Documents/GitHub/UMIG/src/groovy/umig/web
+ *   (or set in your container environment)
+ */
+def webRootDir = new File(System.getenv('UMIG_WEB_ROOT') ?: '/var/atlassian/application-data/confluence/scripts/umig/web')
 
 def mimeTypes = [
     'css' : 'text/css',
@@ -35,8 +45,9 @@ web(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]
         return Response.status(Response.Status.BAD_REQUEST).entity('File path is required.').build()
     }
 
-    // Construct the full path to the requested file, removing leading slash.
-    def requestedFile = new File(webRootDir, requestedPath.substring(1))
+    // Construct the full path to the requested file, removing leading slash if present.
+    def safePath = requestedPath.startsWith("/") ? requestedPath.substring(1) : requestedPath
+    def requestedFile = new File(webRootDir, safePath)
 
     // ** Security Check **
     // Prevent directory traversal attacks. Ensure the requested file is actually inside the web root directory.
@@ -44,15 +55,17 @@ web(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]
         return Response.status(Response.Status.FORBIDDEN).entity('Access denied.').build()
     }
 
-    if (!requestedFile.exists() || requestedFile.isDirectory()) {
-        return Response.status(Response.Status.NOT_FOUND).entity("File not found: ${requestedPath}").build()
+    if (!requestedFile.exists() || !requestedFile.isFile()) {
+        return Response.status(Response.Status.NOT_FOUND).entity('File not found: ' + safePath).build()
     }
 
-    // Determine the content type from the file extension.
-    def fileExtension = requestedFile.name.split(/\./).last()
-    def contentType = mimeTypes.get(fileExtension, 'application/octet-stream') // Default to binary stream
+    def ext = requestedFile.name.tokenize('.').last().toLowerCase()
+    def mimeType = mimeTypes.get(ext, 'application/octet-stream')
 
-    // Serve the file.
-    return Response.ok(requestedFile.newInputStream()).type(contentType).build()
+    // Use binary streaming for non-text files
+    if (['png','jpg','jpeg','gif','svg'].contains(ext)) {
+        return Response.ok(requestedFile.bytes).type(mimeType).build()
+    } else {
+        return Response.ok(requestedFile.text).type(mimeType).build()
+    }
 }
-
