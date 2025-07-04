@@ -18,7 +18,9 @@ return """
                 <div class=\"selector-group\">
                     <label for=\"migration-select\">🔄 MIGRATION:</label>
                     <select id=\"migration-select\" class=\"selector\">
-                        <option value="">Loading migrations...</option>
+                        <option value=\"mig-001\">Data Center Migration Q3 2025</option>
+                        <option value=\"mig-002\">Cloud Migration Phase 1</option>
+                        <option value=\"mig-003\">Legacy System Modernization</option>
                     </select>
                 </div>
                 <div class=\"selector-group\">

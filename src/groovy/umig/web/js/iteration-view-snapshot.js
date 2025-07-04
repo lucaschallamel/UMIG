@@ -3,7 +3,6 @@
 
 class IterationView {
     constructor() {
-        this.populateMigrationSelector();
         this.selectedStep = 'INF-001-010';
         this.filters = {
             migration: 'mig-001',
@@ -183,25 +182,7 @@ class IterationView {
             commentBtn.addEventListener('click', () => this.addComment());
         }
     }
-    async loadMigrations() {
-        const select = document.getElementById('migration-select');
-        select.innerHTML = '<option>Loading migrations...</option>';
-        try {
-          const response = await fetch('/rest/scriptrunner/latest/custom/migrations');
-          if (!response.ok) throw new Error('Failed to fetch');
-          const migrations = await response.json();
-          if (migrations.length === 0) {
-            select.innerHTML = '<option>No migrations found</option>';
-          } else {
-            select.innerHTML = migrations.map(m =>
-              `<option value="${m.id}">${m.name}</option>`
-            ).join('');
-          }
-        } catch (e) {
-          select.innerHTML = '<option>Error loading migrations</option>';
-        }
-      }
-    
+
     onMigrationChange() {
         // In production, this would fetch iterations for the selected migration
         this.showNotification('Loading iterations for selected migration...', 'info');
@@ -479,36 +460,6 @@ class IterationView {
 document.addEventListener('DOMContentLoaded', () => {
     new IterationView();
 });
-
-IterationView.prototype.populateMigrationSelector = function() {
-    const select = document.getElementById('migration-select');
-    if (!select) return;
-    // Show loading state
-    select.innerHTML = '<option value="">Loading migrations...</option>';
-
-    fetch('/rest/scriptrunner/latest/custom/migrations')
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(migrations => {
-            select.innerHTML = '';
-            if (Array.isArray(migrations) && migrations.length > 0) {
-                migrations.forEach(migration => {
-                    const option = document.createElement('option');
-                    option.value = migration.id || migration.mig_id || '';
-                    option.textContent = migration.name || migration.mig_name || '(Unnamed Migration)';
-                    select.appendChild(option);
-                });
-            } else {
-                select.innerHTML = '<option value="">No migrations found</option>';
-            }
-        })
-        .catch(error => {
-            select.innerHTML = '<option value="">Failed to load migrations</option>';
-        });
-};
-
 
 // Export for potential module use
 if (typeof module !== 'undefined' && module.exports) {

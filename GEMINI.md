@@ -1,4 +1,4 @@
-# UMIG Project - Gemini AI Assistant Guide
+# UMIG Project - Claude AI Assistant Guide
 
 ## Project Overview
 
@@ -34,8 +34,10 @@ UMIG (Unified Migration Implementation Guide) is a bespoke, multi-user, real-tim
 UMIG/
 ├── src/                              # Main application source (REORGANIZED 2025)
 │   └── groovy/                       # Groovy source code root
+│       ├── README.md                 # Source code documentation
 │       └── umig/                     # Main package namespace
 │           ├── api/                  # REST API endpoints
+│           │   ├── README.md         # API documentation
 │           │   └── v2/               # Version 2 APIs
 │           │       ├── PlansApi.groovy
 │           │       ├── TeamMembersApi.groovy
@@ -45,6 +47,7 @@ UMIG/
 │           │       └── web/          # Web-specific APIs
 │           │           └── WebApi.groovy
 │           ├── macros/               # ScriptRunner macros for UI
+│           │   ├── README.md         # Macro documentation
 │           │   ├── stepViewMacro.groovy
 │           │   ├── userDetailMacro.groovy
 │           │   ├── userListMacro.groovy
@@ -52,6 +55,7 @@ UMIG/
 │           │   └── v1/               # Version 1 macros
 │           │       └── iterationViewMacro.groovy
 │           ├── repository/           # Data access layer
+│           │   ├── README.md         # Repository documentation
 │           │   ├── ImplementationPlanRepository.groovy
 │           │   ├── InstructionRepository.groovy
 │           │   ├── LookupRepository.groovy
@@ -61,7 +65,9 @@ UMIG/
 │           │   ├── TeamRepository.groovy
 │           │   └── UserRepository.groovy
 │           ├── tests/                # Testing infrastructure
+│           │   ├── README.md         # Testing documentation
 │           │   ├── apis/             # API unit tests
+│           │   │   ├── README.md     # API test documentation
 │           │   │   └── stepViewApiUnitTest.groovy
 │           │   ├── integration/      # Integration tests
 │           │   │   └── stepViewApiIntegrationTest.groovy
@@ -70,11 +76,14 @@ UMIG/
 │           ├── utils/                # Utility classes
 │           │   └── DatabaseUtil.groovy
 │           └── web/                  # Frontend assets
+│               ├── README.md         # Web assets documentation
 │               ├── css/              # Stylesheets
 │               │   ├── hello-world.css
+│               │   ├── iteration-view.css
 │               │   └── umig-ip-macro.css
 │               └── js/               # JavaScript files
 │                   ├── hello-world.js
+│                   ├── iteration-view.js
 │                   ├── step-view.js
 │                   ├── umig-ip-macro.js
 │                   ├── user-detail.js
@@ -87,25 +96,89 @@ UMIG/
 │   └── README.md                     # Mockup documentation
 ├── docs/                             # Comprehensive documentation
 │   ├── adr/                          # Architecture Decision Records
+│   │   ├── ADR-027-n-tiers-model.md # N-tiers model architecture
+│   │   ├── ADR-028-data-import-strategy-for-confluence-json.md # Data import strategy
+│   │   ├── archive/                  # Archived ADRs (consolidated)
+│   │   └── template.md               # ADR template
 │   ├── api/                          # API documentation & OpenAPI spec
+│   │   ├── README.md                 # API documentation
+│   │   ├── openapi.yaml              # OpenAPI specification
+│   │   ├── redoc-static.html         # API documentation viewer
+│   │   └── postman/                  # Postman collection
+│   │       ├── README.md             # Postman documentation
+│   │       └── UMIG_API_V2_Collection.postman_collection.json
 │   ├── dataModel/                    # Database schema & ERD
+│   │   └── README.md                 # Data model documentation
 │   ├── devJournal/                   # Sprint reviews & dev notes
+│   │   ├── README.md                 # Development journal index
+│   │   ├── devJournalEntryTemplate.md # Journal entry template
+│   │   ├── sprintReviewTemplate.md   # Sprint review template
+│   │   └── 20250616-00 - Initial brainstorm.md # (and other entries)
+│   ├── solution-architecture.md      # Complete solution architecture
 │   └── ui-ux/                        # UI/UX specifications
-│       └── iteration-view.md         # Iteration view specification
+│       ├── ROADMAP.md                # UI/UX roadmap
+│       ├── iteration-view.md         # Iteration view specification
+│       ├── step-view.md              # Step view specification
+│       └── template.md               # UI/UX template
 ├── local-dev-setup/                  # Node.js development environment
+│   ├── README.md                     # Development setup documentation
 │   ├── scripts/                      # Data generation and utilities
-│   │   ├── generators/               # Individual data generators
+│   │   ├── generators/               # Individual data generators (001-101)
 │   │   ├── lib/                      # Shared utilities (db.js, utils.js)
-│   │   ├── start.js, stop.js         # Environment management
-│   │   └── umig_generate_fake_data.js # Main data generation script
+│   │   ├── start.js, stop.js, restart.js # Environment management
+│   │   ├── umig_generate_fake_data.js # Main data generation script
+│   │   └── umig_csv_importer.js      # CSV import utility
 │   ├── __tests__/                    # Jest unit tests and fixtures
+│   │   ├── fixtures/                 # Test data fixtures
+│   │   ├── generators/               # Generator unit tests
+│   │   ├── umig_csv_importer.test.js # CSV importer tests
+│   │   └── umig_csv_importer.unit.test.js # CSV importer unit tests
+│   ├── data/                         # Sample data files
+│   │   ├── sample_team_members.csv   # Sample team member data
+│   │   ├── sample_team_members_mapping.json # Team member mapping
+│   │   ├── sample_teams.csv          # Sample team data
+│   │   └── sample_teams_mapping.json # Team mapping
+│   ├── data-utils/                   # Data utilities and importers
+│   │   └── Confluence_Importer/      # Confluence data import tools
+│   │       ├── README.md             # Import documentation
+│   │       ├── rawData/              # Raw JSON data from Confluence
+│   │       ├── Data_Integration/     # Integration scripts
+│   │       ├── scrape_html.sh        # HTML scraping utility
+│   │       └── test_scrape_html_oneline.sh # Test script
+│   ├── coverage/                     # Test coverage reports
 │   ├── liquibase/                    # Database migrations
+│   │   ├── changelogs/               # SQL migration files
+│   │   └── liquibase.properties      # Liquibase configuration
 │   ├── confluence/                   # Container configuration
+│   │   ├── Containerfile             # Confluence container build
+│   │   └── README.md                 # Container documentation
 │   ├── postgres/                     # Database initialization
+│   │   └── init-db.sh               # Database initialization script
+│   ├── jest.config.js                # Jest test configuration
+│   ├── jest.global-setup.cjs         # Jest global setup
+│   ├── jest.global-teardown.cjs      # Jest global teardown
+│   ├── babel.config.cjs              # Babel configuration
+│   ├── setup.yml                     # Setup configuration
 │   ├── package.json                  # npm scripts and dependencies
+│   ├── package-lock.json             # npm dependency lock
 │   └── podman-compose.yml            # Container orchestration
 ├── tests/                            # Integration tests (Groovy)
+├── megalinter-reports/               # Code quality and linting reports
+│   ├── IDE-config.txt                # IDE configuration
+│   ├── megalinter.log                # Linter execution log
+│   ├── linters_logs/                 # Individual linter logs
+│   └── updated_sources/              # Auto-fixed source files
+├── CHANGELOG.md                      # Project changelog
+├── GEMINI.md                         # Gemini AI assistant guide
+├── LICENSE                           # Project license
+├── README.md                         # Project overview
 └── cline-docs/                       # AI assistant context docs
+    ├── activeContext.md              # Current development context
+    ├── productContext.md             # Product context and requirements
+    ├── progress.md                   # Progress tracking
+    ├── projectBrief.md               # Project brief
+    ├── systemPatterns.md             # System patterns
+    └── techContext.md                # Technical context
 ```
 
 ## Build & Development Commands
@@ -261,6 +334,10 @@ When development environment is running:
 ### **PRIMARY REFERENCE (MANDATORY)**
 - **`docs/solution-architecture.md`**: Complete solution architecture consolidating all 26 ADRs - ALWAYS REVIEW FIRST
 
+### **Current Active ADRs**
+- **`docs/adr/ADR-027-n-tiers-model.md`**: N-tiers model architecture
+- **`docs/adr/ADR-028-data-import-strategy-for-confluence-json.md`**: Data import strategy
+
 ### Critical References
 - **API Spec**: `docs/api/openapi.yaml` - OpenAPI specification
 - **Data Model**: `docs/dataModel/README.md` - Database schema and ERD
@@ -323,7 +400,8 @@ When development environment is running:
 
 ### **CRITICAL: Always Start Here**
 1. **MANDATORY FIRST STEP**: Review `/docs/solution-architecture.md` for complete architectural context
-2. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
+2. **Current ADRs**: Review ADR-027 (N-tiers model) and ADR-028 (data import strategy) for latest decisions
+3. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
 
 ### Development Standards (Non-Negotiable)
 1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/TeamsApi.groovy` and `UsersApi.groovy`
