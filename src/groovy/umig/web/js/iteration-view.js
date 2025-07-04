@@ -1,25 +1,12 @@
-/**
- * UMIG Iteration View JavaScript
- * ScriptRunner Macro Integration - Namespaced to avoid Confluence conflicts
- * Handles UI interactions and state management for the Implementation Plan runsheet
- */
+// UMIG Iteration View - Canonical JavaScript Logic
+// Ported from mock/script.js with full fidelity
 
-// Namespace to avoid conflicts with other Confluence scripts
-window.UMIG = window.UMIG || {};
-
-window.UMIG.IterationView = class {
-    constructor(containerId = 'umig-iteration-view-root') {
-        this.containerId = containerId;
-        this.container = document.getElementById(containerId);
-        if (!this.container) {
-            console.error(`UMIG IterationView: Container element with ID '${containerId}' not found`);
-            return;
-        }
-        
-        this.selectedStep = null;
+class IterationView {
+    constructor() {
+        this.selectedStep = 'INF-001-010';
         this.filters = {
-            migration: '',
-            iteration: '',
+            migration: 'mig-001',
+            iteration: 'ite-001',
             sequence: '',
             phase: '',
             team: '',
@@ -27,397 +14,369 @@ window.UMIG.IterationView = class {
             myTeamsOnly: false
         };
         
-        // API endpoints - will be configured based on ScriptRunner REST paths
-        this.apiEndpoints = {
-            migrations: '/rest/scriptrunner/latest/custom/umig/api/v2/migrations',
-            iterations: '/rest/scriptrunner/latest/custom/umig/api/v2/iterations',
-            steps: '/rest/scriptrunner/latest/custom/umig/api/v2/steps',
-            users: '/rest/scriptrunner/latest/custom/umig/api/v2/users'
-        };
+        // Sample data - in production this would come from API
+        this.steps = [
+            {
+                id: 'INF-001-010',
+                sequence: 'S01',
+                phase: 'Infrastructure',
+                team: 'Platform Team',
+                title: 'Setup Core Network Infrastructure',
+                labels: ['Critical', 'Network'],
+                status: 'Not Started',
+                description: 'Establish the foundational network infrastructure including VPCs, subnets, routing tables, and security groups. This step is critical for all subsequent infrastructure deployment.',
+                requirements: 'AWS account with appropriate permissions, network architecture design approved',
+                deliverables: 'Configured VPC with subnets, routing tables, security groups, and network ACLs',
+                comments: [
+                    {
+                        author: 'Sarah Johnson',
+                        time: '2024-03-15 14:30',
+                        text: 'Network design has been approved by security team. Ready to proceed with implementation.'
+                    }
+                ]
+            },
+            {
+                id: 'INF-001-020',
+                sequence: 'S01',
+                phase: 'Infrastructure',
+                team: 'Platform Team',
+                title: 'Deploy Container Platform',
+                labels: ['Critical', 'Containers'],
+                status: 'Not Started',
+                description: 'Deploy and configure the container orchestration platform (Kubernetes) including worker nodes, control plane, and essential system pods.',
+                requirements: 'Network infrastructure completed (INF-001-010)',
+                deliverables: 'Functioning Kubernetes cluster with monitoring and logging'
+            },
+            {
+                id: 'APP-002-010',
+                sequence: 'S02',
+                phase: 'Application',
+                team: 'Development Team',
+                title: 'Migrate Core Services',
+                labels: ['High Priority', 'API'],
+                status: 'In Progress',
+                description: 'Migrate core application services to the new platform including user authentication, data processing, and external integrations.',
+                requirements: 'Container platform ready (INF-001-020)',
+                deliverables: 'Core services running on new platform with full functionality'
+            },
+            {
+                id: 'DATA-003-010',
+                sequence: 'S03',
+                phase: 'Data',
+                team: 'Data Team',
+                title: 'Database Migration Strategy',
+                labels: ['Critical', 'Database'],
+                status: 'Completed',
+                description: 'Execute database migration including schema updates, data transfer, and validation procedures.',
+                requirements: 'Application services migrated (APP-002-010)',
+                deliverables: 'Migrated database with validated data integrity'
+            },
+            {
+                id: 'TEST-004-010',
+                sequence: 'S04',
+                phase: 'Testing',
+                team: 'QA Team',
+                title: 'End-to-End Testing',
+                labels: ['Testing', 'Validation'],
+                status: 'Blocked',
+                description: 'Comprehensive testing of all migrated systems including functional, performance, and security testing.',
+                requirements: 'All previous steps completed',
+                deliverables: 'Test reports and sign-off documentation'
+            }
+        ];
         
         this.init();
     }
 
     init() {
-        this.loadInitialData();
         this.bindEvents();
+        this.renderSteps();
+        this.loadStepDetails(this.selectedStep);
         this.updateFilters();
     }
 
-    async loadInitialData() {
-        try {
-            // Load migrations for dropdown
-            await this.loadMigrations();
-            
-            // Load iterations based on first migration
-            if (this.filters.migration) {
-                await this.loadIterations(this.filters.migration);
-            }
-            
-            // Load steps for current iteration
-            if (this.filters.iteration) {
-                await this.loadSteps();
-            }
-        } catch (error) {
-            console.error('UMIG IterationView: Error loading initial data:', error);
-            this.showNotification('Error loading data. Using mock data.', 'warning');
-            this.loadMockData();
-        }
-    }
-
-    async loadMigrations() {
-        try {
-            const response = await fetch(this.apiEndpoints.migrations);
-            if (response.ok) {
-                const migrations = await response.json();
-                this.populateMigrationSelect(migrations);
-                if (migrations.length > 0) {
-                    this.filters.migration = migrations[0].id;
-                }
-            } else {
-                throw new Error(`HTTP ${response.status}`);
-            }
-        } catch (error) {
-            console.warn('UMIG IterationView: Failed to load migrations, using mock data:', error);
-            this.loadMockMigrations();
-        }
-    }
-
-    async loadIterations(migrationId) {
-        try {
-            const response = await fetch(`${this.apiEndpoints.iterations}?migration=${migrationId}`);
-            if (response.ok) {
-                const iterations = await response.json();
-                this.populateIterationSelect(iterations);
-                if (iterations.length > 0) {
-                    this.filters.iteration = iterations[0].id;
-                }
-            } else {
-                throw new Error(`HTTP ${response.status}`);
-            }
-        } catch (error) {
-            console.warn('UMIG IterationView: Failed to load iterations, using mock data:', error);
-            this.loadMockIterations();
-        }
-    }
-
-    async loadSteps() {
-        try {
-            const params = new URLSearchParams({
-                migration: this.filters.migration,
-                iteration: this.filters.iteration
-            });
-            
-            const response = await fetch(`${this.apiEndpoints.steps}?${params}`);
-            if (response.ok) {
-                const steps = await response.json();
-                this.renderStepsTable(steps);
-                if (steps.length > 0 && !this.selectedStep) {
-                    this.selectStep(steps[0].id);
-                }
-            } else {
-                throw new Error(`HTTP ${response.status}`);
-            }
-        } catch (error) {
-            console.warn('UMIG IterationView: Failed to load steps, using mock data:', error);
-            this.loadMockSteps();
-        }
-    }
-
-    loadMockData() {
-        // Fallback to static mock data when API is unavailable
-        this.loadMockMigrations();
-        this.loadMockIterations();
-        this.loadMockSteps();
-    }
-
-    loadMockMigrations() {
-        const mockMigrations = [
-            { id: 'mig-001', name: 'Data Center Migration Q3 2025' },
-            { id: 'mig-002', name: 'Cloud Migration Phase 1' },
-            { id: 'mig-003', name: 'Legacy System Modernization' }
-        ];
-        this.populateMigrationSelect(mockMigrations);
-        this.filters.migration = mockMigrations[0].id;
-    }
-
-    loadMockIterations() {
-        const mockIterations = [
-            { id: 'ite-001', name: 'Iteration 1 - Core Infrastructure' },
-            { id: 'ite-002', name: 'Iteration 2 - Application Migration' },
-            { id: 'ite-003', name: 'Iteration 3 - Data Migration' }
-        ];
-        this.populateIterationSelect(mockIterations);
-        this.filters.iteration = mockIterations[0].id;
-    }
-
-    loadMockSteps() {
-        const mockSteps = [
-            {
-                id: 'INF-001-010',
-                name: 'Network Infrastructure Preparation',
-                sequence: 'Pre-Migration Preparation',
-                phase: 'Infrastructure Setup',
-                team: 'Network Team',
-                status: 'pending',
-                priority: 1,
-                duration: '2h',
-                instructions: [
-                    { id: 'INF-001-010-01', text: 'Verify network connectivity between source and destination', completed: false },
-                    { id: 'INF-001-010-02', text: 'Configure firewall rules for migration traffic', completed: false }
-                ]
-            },
-            {
-                id: 'INF-001-020',
-                name: 'Server Preparation and Validation',
-                sequence: 'Pre-Migration Preparation',
-                phase: 'Infrastructure Setup',
-                team: 'Server Team',
-                status: 'in-progress',
-                priority: 1,
-                duration: '4h',
-                instructions: [
-                    { id: 'INF-001-020-01', text: 'Validate server specifications meet requirements', completed: true },
-                    { id: 'INF-001-020-02', text: 'Install required software packages', completed: false }
-                ]
-            }
-        ];
-        this.renderStepsTable(mockSteps);
-        if (mockSteps.length > 0) {
-            this.selectStep(mockSteps[0].id);
-            this.loadStepDetails(mockSteps[0]);
-        }
-    }
-
-    populateMigrationSelect(migrations) {
-        const select = this.container.querySelector('#migration-select');
-        if (select) {
-            select.innerHTML = '';
-            migrations.forEach(migration => {
-                const option = document.createElement('option');
-                option.value = migration.id;
-                option.textContent = migration.name;
-                select.appendChild(option);
-            });
-        }
-    }
-
-    populateIterationSelect(iterations) {
-        const select = this.container.querySelector('#iteration-select');
-        if (select) {
-            select.innerHTML = '';
-            iterations.forEach(iteration => {
-                const option = document.createElement('option');
-                option.value = iteration.id;
-                option.textContent = iteration.name;
-                select.appendChild(option);
-            });
-        }
-    }
-
-    renderStepsTable(steps) {
-        const container = this.container.querySelector('.runsheet-content');
-        if (!container) return;
-
-        const html = `
-            <div class="steps-container">
-                <div class="steps-header">
-                    <div class="col-id">ID</div>
-                    <div class="col-name">STEP NAME</div>
-                    <div class="col-team">TEAM</div>
-                    <div class="col-status">STATUS</div>
-                    <div class="col-duration">DURATION</div>
-                    <div class="col-priority">PRI</div>
-                </div>
-                ${steps.map(step => `
-                    <div class="step-row" data-step="${step.id}">
-                        <div class="col-id step-id">${step.id}</div>
-                        <div class="col-name step-name">${step.name}</div>
-                        <div class="col-team step-team">${step.team}</div>
-                        <div class="col-status">
-                            <span class="status ${step.status}">${step.status.replace('-', ' ')}</span>
-                        </div>
-                        <div class="col-duration step-duration">${step.duration}</div>
-                        <div class="col-priority">
-                            <span class="priority ${step.priority === 1 ? 'high' : step.priority === 2 ? 'medium' : 'low'}">
-                                ${step.priority}
-                            </span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        
-        container.innerHTML = html;
-    }
-
     bindEvents() {
-        // Use event delegation to handle dynamically created elements
-        this.container.addEventListener('change', (e) => {
-            if (e.target.id === 'migration-select') {
+        // Migration and Iteration selectors
+        const migrationSelect = document.getElementById('migration-select');
+        const iterationSelect = document.getElementById('iteration-select');
+        
+        if (migrationSelect) {
+            migrationSelect.addEventListener('change', (e) => {
                 this.filters.migration = e.target.value;
                 this.onMigrationChange();
-            } else if (e.target.id === 'iteration-select') {
+            });
+        }
+
+        if (iterationSelect) {
+            iterationSelect.addEventListener('change', (e) => {
                 this.filters.iteration = e.target.value;
                 this.onIterationChange();
-            } else if (e.target.id === 'sequence-filter') {
+            });
+        }
+
+        // Filter controls
+        const sequenceFilter = document.getElementById('sequence-filter');
+        const phaseFilter = document.getElementById('phase-filter');
+        const teamFilter = document.getElementById('team-filter');
+        const labelFilter = document.getElementById('label-filter');
+        const myTeamsOnly = document.getElementById('my-teams-only');
+        
+        if (sequenceFilter) {
+            sequenceFilter.addEventListener('change', (e) => {
                 this.filters.sequence = e.target.value;
                 this.applyFilters();
-            } else if (e.target.id === 'phase-filter') {
+            });
+        }
+
+        if (phaseFilter) {
+            phaseFilter.addEventListener('change', (e) => {
                 this.filters.phase = e.target.value;
                 this.applyFilters();
-            } else if (e.target.id === 'team-filter') {
+            });
+        }
+
+        if (teamFilter) {
+            teamFilter.addEventListener('change', (e) => {
                 this.filters.team = e.target.value;
                 this.applyFilters();
-            } else if (e.target.id === 'label-filter') {
+            });
+        }
+
+        if (labelFilter) {
+            labelFilter.addEventListener('change', (e) => {
                 this.filters.label = e.target.value;
                 this.applyFilters();
-            } else if (e.target.id === 'my-teams-only') {
+            });
+        }
+
+        if (myTeamsOnly) {
+            myTeamsOnly.addEventListener('change', (e) => {
                 this.filters.myTeamsOnly = e.target.checked;
                 this.applyFilters();
-            }
-        });
+            });
+        }
 
-        this.container.addEventListener('click', (e) => {
-            // Step row selection
-            if (e.target.closest('.step-row')) {
-                const stepId = e.target.closest('.step-row').dataset.step;
-                this.selectStep(stepId);
+        // Step action buttons
+        this.bindStepActions();
+    }
+
+    bindStepActions() {
+        const startBtn = document.getElementById('start-step');
+        const completeBtn = document.getElementById('complete-step');
+        const blockBtn = document.getElementById('block-step');
+        const commentBtn = document.getElementById('add-comment');
+        
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startStep());
+        }
+        
+        if (completeBtn) {
+            completeBtn.addEventListener('click', () => this.completeStep());
+        }
+        
+        if (blockBtn) {
+            blockBtn.addEventListener('click', () => this.blockStep());
+        }
+        
+        if (commentBtn) {
+            commentBtn.addEventListener('click', () => this.addComment());
+        }
+    }
+
+    onMigrationChange() {
+        // In production, this would fetch iterations for the selected migration
+        this.showNotification('Loading iterations for selected migration...', 'info');
+        this.renderSteps();
+    }
+
+    onIterationChange() {
+        // In production, this would fetch steps for the selected iteration
+        this.showNotification('Loading steps for selected iteration...', 'info');
+        this.renderSteps();
+    }
+
+    renderSteps() {
+        const tbody = document.querySelector('.runsheet-table tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        
+        const filteredSteps = this.getFilteredSteps();
+        
+        filteredSteps.forEach(step => {
+            const row = document.createElement('tr');
+            row.className = 'step-row';
+            row.dataset.step = step.id;
+            
+            if (step.id === this.selectedStep) {
+                row.classList.add('selected');
             }
+            
+            row.innerHTML = `
+                <td class="col-step">${step.id}</td>
+                <td class="col-sequence">${step.sequence}</td>
+                <td class="col-phase">${step.phase}</td>
+                <td class="col-team">${step.team}</td>
+                <td class="col-title">${step.title}</td>
+                <td class="col-labels">
+                    ${step.labels ? step.labels.map(label => `<span class="label-tag">${label}</span>`).join('') : ''}
+                </td>
+                <td class="col-status status-${step.status.toLowerCase().replace(' ', '-')}">${step.status}</td>
+            `;
+            
+            row.addEventListener('click', () => {
+                this.selectStep(step.id);
+            });
+            
+            tbody.appendChild(row);
         });
     }
 
-    async onMigrationChange() {
-        await this.loadIterations(this.filters.migration);
-        await this.loadSteps();
-    }
-
-    async onIterationChange() {
-        await this.loadSteps();
+    getFilteredSteps() {
+        return this.steps.filter(step => {
+            if (this.filters.sequence && step.sequence !== this.filters.sequence) return false;
+            if (this.filters.phase && step.phase !== this.filters.phase) return false;
+            if (this.filters.team && step.team !== this.filters.team) return false;
+            if (this.filters.label && (!step.labels || !step.labels.includes(this.filters.label))) return false;
+            // myTeamsOnly filter would be implemented based on user's team membership
+            return true;
+        });
     }
 
     selectStep(stepId) {
-        // Update visual selection
-        this.container.querySelectorAll('.step-row').forEach(row => {
+        // Update selected step
+        document.querySelectorAll('.step-row').forEach(row => {
             row.classList.remove('selected');
         });
         
-        const selectedRow = this.container.querySelector(`[data-step="${stepId}"]`);
+        const selectedRow = document.querySelector(`[data-step="${stepId}"]`);
         if (selectedRow) {
             selectedRow.classList.add('selected');
-            this.selectedStep = stepId;
-            this.loadStepDetails({ id: stepId }); // Load full step details
+        }
+        
+        this.selectedStep = stepId;
+        this.loadStepDetails(stepId);
+    }
+
+    loadStepDetails(stepId) {
+        const step = this.steps.find(s => s.id === stepId);
+        if (!step) return;
+
+        // Update step details panel
+        const stepIdEl = document.querySelector('.step-id');
+        const stepTitleEl = document.querySelector('.step-title');
+        const stepDescEl = document.querySelector('.step-description');
+        const stepMetaEls = document.querySelectorAll('.meta-value');
+        const commentsListEl = document.querySelector('.comments-list');
+        
+        if (stepIdEl) stepIdEl.textContent = step.id;
+        if (stepTitleEl) stepTitleEl.textContent = step.title;
+        if (stepDescEl) stepDescEl.textContent = step.description;
+        
+        // Update meta information
+        if (stepMetaEls.length >= 4) {
+            stepMetaEls[0].textContent = step.sequence;
+            stepMetaEls[1].textContent = step.phase;
+            stepMetaEls[2].textContent = step.team;
+            stepMetaEls[3].textContent = step.status;
+        }
+        
+        // Update comments
+        if (commentsListEl) {
+            commentsListEl.innerHTML = '';
+            if (step.comments) {
+                step.comments.forEach(comment => {
+                    const commentEl = document.createElement('div');
+                    commentEl.className = 'comment-item';
+                    commentEl.innerHTML = `
+                        <div class="comment-header">
+                            <span class="comment-author">${comment.author}</span>
+                            <span class="comment-time">${comment.time}</span>
+                        </div>
+                        <div class="comment-text">${comment.text}</div>
+                    `;
+                    commentsListEl.appendChild(commentEl);
+                });
+            }
         }
     }
 
-    loadStepDetails(step) {
-        const detailsContent = this.container.querySelector('.step-details-content');
-        if (!detailsContent) return;
-
-        // Mock step details - replace with API call
-        const mockDetails = {
-            id: step.id || 'INF-001-010',
-            name: 'Network Infrastructure Preparation',
-            description: 'Prepare network infrastructure for the migration process',
-            team: 'Network Team',
-            status: 'pending',
-            priority: 1,
-            estimatedDuration: '2h',
-            actualDuration: null,
-            startTime: null,
-            endTime: null,
-            assignee: 'John Smith',
-            instructions: [
-                { id: '01', text: 'Verify network connectivity between source and destination', completed: false, team: 'Network', duration: '30m' },
-                { id: '02', text: 'Configure firewall rules for migration traffic', completed: false, team: 'Security', duration: '45m' }
-            ]
-        };
-
-        const html = `
-            <div class="step-metadata">
-                <div class="metadata-grid">
-                    <div class="metadata-item">
-                        <span class="label">Team:</span>
-                        <span class="value">${mockDetails.team}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">Status:</span>
-                        <span class="value status ${mockDetails.status}">${mockDetails.status.replace('-', ' ')}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">Priority:</span>
-                        <span class="value priority ${mockDetails.priority === 1 ? 'high' : 'medium'}">${mockDetails.priority}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">Duration:</span>
-                        <span class="value">${mockDetails.estimatedDuration}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">Assignee:</span>
-                        <span class="value">${mockDetails.assignee}</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="instructions-section">
-                <h3>Instructions</h3>
-                <div class="instructions-container">
-                    <div class="instructions-header">
-                        <div class="col-id">ID</div>
-                        <div class="col-instruction">INSTRUCTION</div>
-                        <div class="col-team">TEAM</div>
-                        <div class="col-duration">DURATION</div>
-                        <div class="col-status">STATUS</div>
-                        <div class="col-control">✓</div>
-                    </div>
-                    ${mockDetails.instructions.map(instruction => `
-                        <div class="instruction-row">
-                            <div class="col-id instruction-id">${instruction.id}</div>
-                            <div class="col-instruction instruction-text">${instruction.text}</div>
-                            <div class="col-team instruction-team">${instruction.team}</div>
-                            <div class="col-duration instruction-duration">${instruction.duration}</div>
-                            <div class="col-status">
-                                <span class="status ${instruction.completed ? 'completed' : 'pending'}">
-                                    ${instruction.completed ? 'Done' : 'Pending'}
-                                </span>
-                            </div>
-                            <div class="col-control instruction-control">
-                                <input type="checkbox" ${instruction.completed ? 'checked' : ''} 
-                                       data-instruction="${instruction.id}">
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-        
-        detailsContent.innerHTML = html;
+    applyFilters() {
+        this.renderSteps();
+        this.showNotification('Filters applied', 'info');
     }
 
-    applyFilters() {
-        // Filter logic - show/hide steps based on current filters
-        const steps = this.container.querySelectorAll('.step-row');
-        steps.forEach(step => {
-            let show = true;
-            
-            // Apply team filter
-            if (this.filters.team && step.querySelector('.step-team').textContent !== this.filters.team) {
-                show = false;
+    startStep() {
+        const step = this.steps.find(s => s.id === this.selectedStep);
+        if (step) {
+            step.status = 'In Progress';
+            this.updateStepStatus(this.selectedStep, 'In Progress');
+            this.loadStepDetails(this.selectedStep);
+            this.showNotification('Step started successfully', 'success');
+        }
+    }
+
+    completeStep() {
+        const step = this.steps.find(s => s.id === this.selectedStep);
+        if (step) {
+            step.status = 'Completed';
+            this.updateStepStatus(this.selectedStep, 'Completed');
+            this.loadStepDetails(this.selectedStep);
+            this.showNotification('Step completed successfully', 'success');
+        }
+    }
+
+    blockStep() {
+        const step = this.steps.find(s => s.id === this.selectedStep);
+        if (step) {
+            step.status = 'Blocked';
+            this.updateStepStatus(this.selectedStep, 'Blocked');
+            this.loadStepDetails(this.selectedStep);
+            this.showNotification('Step marked as blocked', 'warning');
+        }
+    }
+
+    addComment() {
+        const commentInput = document.getElementById('new-comment');
+        if (commentInput && commentInput.value.trim()) {
+            const step = this.steps.find(s => s.id === this.selectedStep);
+            if (step) {
+                if (!step.comments) step.comments = [];
+                step.comments.push({
+                    author: 'Current User',
+                    time: new Date().toLocaleString(),
+                    text: commentInput.value.trim()
+                });
+                commentInput.value = '';
+                this.loadStepDetails(this.selectedStep);
+                this.showNotification('Comment added successfully', 'success');
             }
-            
-            // Apply my teams only filter
-            if (this.filters.myTeamsOnly) {
-                // TODO: Check if step team matches current user's teams
+        }
+    }
+
+    updateStepStatus(stepId, status) {
+        // Update the table row
+        const row = document.querySelector(`[data-step="${stepId}"]`);
+        if (row) {
+            const statusCell = row.querySelector('.col-status');
+            if (statusCell) {
+                statusCell.textContent = status;
+                statusCell.className = `col-status status-${status.toLowerCase().replace(' ', '-')}`;
             }
-            
-            step.style.display = show ? 'grid' : 'none';
-        });
+        }
+        
+        this.updateSummaryStats();
+    }
+
+    updateSummaryStats() {
+        // This would update summary statistics in a real implementation
+        console.log('Summary stats updated');
     }
 
     showNotification(message, type = 'info') {
         // Create notification element
         const notification = document.createElement('div');
-        notification.className = `umig-notification notification-${type}`;
+        notification.className = `notification notification-${type}`;
         notification.textContent = message;
         notification.style.cssText = `
             position: fixed;
@@ -427,7 +386,7 @@ window.UMIG.IterationView = class {
             border-radius: 4px;
             color: white;
             font-weight: 600;
-            z-index: 10000;
+            z-index: 1000;
             animation: slideIn 0.3s ease;
         `;
 
@@ -440,29 +399,69 @@ window.UMIG.IterationView = class {
         };
         notification.style.backgroundColor = colors[type] || colors.info;
 
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
         // Add to DOM
         document.body.appendChild(notification);
 
         // Remove after 3 seconds
         setTimeout(() => {
             notification.remove();
+            style.remove();
         }, 3000);
     }
-};
 
-// Auto-initialize when DOM is ready and container exists
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('umig-iteration-view-root')) {
-        window.UMIG.iterationViewInstance = new window.UMIG.IterationView();
+    updateFilters() {
+        // Initialize filter state and populate dropdowns
+        this.populateFilterOptions();
+        this.applyFilters();
     }
+
+    populateFilterOptions() {
+        // Extract unique values from steps for filter options
+        const sequences = [...new Set(this.steps.map(s => s.sequence))];
+        const phases = [...new Set(this.steps.map(s => s.phase))];
+        const teams = [...new Set(this.steps.map(s => s.team))];
+        const labels = [...new Set(this.steps.flatMap(s => s.labels || []))];
+        
+        this.populateSelect('sequence-filter', sequences);
+        this.populateSelect('phase-filter', phases);
+        this.populateSelect('team-filter', teams);
+        this.populateSelect('label-filter', labels);
+    }
+
+    populateSelect(selectId, options) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        
+        // Keep the first option (usually "All" or empty)
+        const firstOption = select.firstElementChild;
+        select.innerHTML = '';
+        if (firstOption) select.appendChild(firstOption);
+        
+        options.forEach(option => {
+            const optionEl = document.createElement('option');
+            optionEl.value = option;
+            optionEl.textContent = option;
+            select.appendChild(optionEl);
+        });
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new IterationView();
 });
 
-// CSS animation for notifications
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
+// Export for potential module use
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = IterationView;
+}
