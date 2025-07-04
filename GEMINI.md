@@ -218,6 +218,15 @@ cd ..
 ./tests/run-integration-tests.sh
 ```
 
+### Generator Execution Order (Critical)
+Data generators run in numerical order (001-100) to respect foreign key dependencies:
+1. **001-097**: Master data (core metadata, teams, users, plans, sequences, phases, steps, controls)
+2. **098**: Instruction masters (`098_generate_instructions.js`)
+3. **099**: All instance data (`099_generate_instance_data.js`) - creates complete execution hierarchy
+4. **100**: Instance comments (`100_generate_step_instance_comments.js`)
+
+**Important**: Instruction masters (098) must be created before instances (099) to enable proper field population.
+
 ### Database Operations
 ```bash
 # Run Liquibase migrations manually
@@ -239,12 +248,19 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 
 ### Key Tables (Updated July 2025)
 - `migrations_mig`: Strategic initiatives
-- `iterations_itr`: Links migrations to plans for iterative delivery
+- `iterations_itr`: Links migrations to plans for iterative delivery  
 - `plans_master_plm`: Master playbooks
 - `steps_master_stm`: Granular executable tasks
 - `instructions_master_inm`: Detailed procedures
 - `step_master_comments`, `step_instance_comments`: Collaboration features
-- `*_instance_*`: Live execution tracking
+- `*_instance_*`: Live execution tracking with override capabilities
+
+### Current Data Scale (Post-Generation)
+- **5 migrations** with realistic statuses and dates
+- **30 iterations** following pattern: 2-4 RUNS, 1-3 DRs, exactly 1 CUTOVER per migration
+- **5 canonical plans** → **13 sequences** → **43 phases** → **hundreds of steps** → **712 instructions**
+- **Complete instance hierarchy**: 30 plan instances → 80 sequence instances → 271 phase instances → 1,443 step instances → 4,286 instruction instances
+- **Override field population**: All instance tables properly inherit master values with 30% override probability
 
 ## Architecture Patterns
 
@@ -354,8 +370,10 @@ When development environment is running:
 - **Local Development Environment**: Node.js orchestrated Podman containers
 - **Admin UI (SPA Pattern)**: Complete user/team management with robust error handling
 - **API Standards**: Comprehensive REST patterns (ADR-023) with specific error mappings
-- **Data Generation**: Modular synthetic data generators with 3-digit prefixes
-- **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026)
+- **Data Generation**: Modular synthetic data generators with 3-digit prefixes and correct execution order
+- **Instance Data Generation**: Full canonical→instance replication with override field population
+- **Schema Corrections**: Fixed type mismatches in migration 010 for instruction instance fields
+- **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026) and updated test coverage
 - **Architecture Documentation**: All 26 ADRs consolidated into solution-architecture.md
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
 - **Iteration View Mockup**: Complete HTML/CSS/JS mockup with zero dependencies (`mock/`)

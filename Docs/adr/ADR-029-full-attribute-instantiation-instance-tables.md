@@ -1,4 +1,4 @@
-# ADR029: Full Attribute Instantiation for Instance Tables
+# ADR-029: Full Attribute Instantiation for Instance Tables
 
 **Status:** Proposed  
 **Date:** 2025-07-04
