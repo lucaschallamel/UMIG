@@ -20,7 +20,7 @@
 | DELETE | /rest/scriptrunner/latest/custom/migrations/{id}    | Delete migration by ID |
 | GET    | /rest/scriptrunner/latest/custom/migrations/{id}/plans | List plans for a migration |
 | POST   | /rest/scriptrunner/latest/custom/migrations/{id}/plans | Create a plan under a migration |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations | List iterations for a migration |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations | List iterations for a migration (fields: staticCutoverDate, dynamicCutoverDate; see data model in Liquibase changelogs) |
 | POST   | /rest/scriptrunner/latest/custom/migrations/{id}/iterations | Create an iteration under a migration |
 | GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences | List sequences for an iteration |
 | POST   | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences | Create a sequence under an iteration |
@@ -32,6 +32,8 @@
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | id   | string | yes | Migration/Plan/Iteration/Sequence/Phase ID |
+
+> **Note:** All API field mappings must be cross-checked with the latest Liquibase changelogs in `local-dev-setup/liquibase` before implementation or update. This prevents mapping errors and ensures alignment with the real data model.
 
 ### 3.2. Query Parameters
 | Name | Type | Required | Description |

@@ -36,4 +36,21 @@ class MigrationRepository {
             """, [migrationId: migrationId])
         }
     }
+
+    /**
+     * Finds all iterations for a given migration ID.
+     * @param migrationId The UUID of the migration.
+     * @return A list of maps, each representing an iteration.
+     */
+    def findIterationsByMigrationId(UUID migrationId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT ite_id, mig_id, plm_id, itt_code, ite_name, ite_description, ite_status,
+                       ite_static_cutover_date, ite_dynamic_cutover_date, created_by, created_at, updated_by, updated_at
+                FROM iterations_ite
+                WHERE mig_id = :migrationId
+                ORDER BY ite_static_cutover_date
+            """, [migrationId: migrationId])
+        }
+    }
 }

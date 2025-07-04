@@ -509,6 +509,41 @@ IterationView.prototype.populateMigrationSelector = function() {
         });
 };
 
+document.addEventListener('DOMContentLoaded', () => {
+    const migrationSelect = document.getElementById('migration-select');
+    const iterationSelect = document.getElementById('iteration-select');
+    if (migrationSelect && iterationSelect) {
+        migrationSelect.addEventListener('change', function() {
+            const migrationId = this.value;
+            if (!migrationId) {
+                iterationSelect.innerHTML = '<option value="">Select a migration first</option>';
+                return;
+            }
+            iterationSelect.innerHTML = '<option value="">Loading iterations...</option>';
+            fetch(`/rest/scriptrunner/latest/custom/migrations/${migrationId}/iterations`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(iterations => {
+                    iterationSelect.innerHTML = '';
+                    if (Array.isArray(iterations) && iterations.length > 0) {
+                        iterations.forEach(iter => {
+                            const option = document.createElement('option');
+                            option.value = iter.id;
+                            option.textContent = iter.name || '(Unnamed Iteration)';
+                            iterationSelect.appendChild(option);
+                        });
+                    } else {
+                        iterationSelect.innerHTML = '<option value="">No iterations found</option>';
+                    }
+                })
+                .catch(() => {
+                    iterationSelect.innerHTML = '<option value="">Failed to load iterations</option>';
+                });
+        });
+    }
+});
 
 // Export for potential module use
 if (typeof module !== 'undefined' && module.exports) {

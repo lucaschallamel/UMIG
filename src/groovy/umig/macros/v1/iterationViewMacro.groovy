@@ -24,9 +24,7 @@ return """
                 <div class=\"selector-group\">
                     <label for=\"iteration-select\">🗓️ ITERATION:</label>
                     <select id=\"iteration-select\" class=\"selector\">
-                        <option value=\"ite-001\">Iteration 1 - Core Infrastructure</option>
-                        <option value=\"ite-002\">Iteration 2 - Application Migration</option>
-                        <option value=\"ite-003\">Iteration 3 - Data Migration</option>
+                        <option value="">Select a migration first</option>
                     </select>
                 </div>
             </div>
