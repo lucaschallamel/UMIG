@@ -16,7 +16,7 @@ import java.util.UUID
 final MigrationRepository migrationRepository = new MigrationRepository()
 
 // GET /migrations, /migrations/{id}, /migrations/{id}/iterations
-migrations(httpMethod: "GET") { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+migrations(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
 

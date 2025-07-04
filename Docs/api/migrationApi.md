@@ -11,6 +11,7 @@
 - **Related ADRs:** See `/docs/adr/` and `/docs/solution-architecture.md`
 
 ## 2. Endpoints
+
 | Method | Path | Description |
 |--------|------|-------------|
 | GET    | /rest/scriptrunner/latest/custom/migrations         | List all migrations |
@@ -29,6 +30,7 @@
 
 ## 3. Request Details
 ### 3.1. Path Parameters
+
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | id   | string | yes | Migration/Plan/Iteration/Sequence/Phase ID |
@@ -36,6 +38,7 @@
 > **Note:** All API field mappings must be cross-checked with the latest Liquibase changelogs in `local-dev-setup/liquibase` before implementation or update. This prevents mapping errors and ensures alignment with the real data model.
 
 ### 3.2. Query Parameters
+
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 |      |      |          |             |
@@ -91,6 +94,7 @@
 ```
 
 ### 4.2. Error Responses
+
 | Status Code | Content-Type | Schema | Example | Description |
 |-------------|--------------|--------|---------|-------------|
 | 400 | application/json | {"error": "string"} | {"error": "Invalid input"} | Bad request |

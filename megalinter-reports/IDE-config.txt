@@ -23,12 +23,6 @@ shellcheck (BASH)
   - vscode:
     - vscode-shellcheck: https://marketplace.visualstudio.com/items?itemName=timonwong.shellcheck
 
-hadolint (DOCKERFILE)
-  - atom:
-    - linter-hadolint: https://atom.io/packages/linter-hadolint
-  - vscode:
-    - hadolint: https://marketplace.visualstudio.com/items?itemName=exiasr.hadolint
-
 markdownlint (MARKDOWN)
   - atom:
     - linter-node-markdownlint: https://atom.io/packages/linter-node-markdownlint

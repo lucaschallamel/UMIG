@@ -11,17 +11,20 @@
 - **Related ADRs:**
 
 ## 2. Endpoints
+
 | Method | Path | Description |
 |--------|------|-------------|
 |        |      |             |
 
 ## 3. Request Details
 ### 3.1. Path Parameters
+
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 |      |      |          |             |
 
 ### 3.2. Query Parameters
+
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 |      |      |          |             |
@@ -59,6 +62,7 @@
 ```
 
 ### 4.2. Error Responses
+
 | Status Code | Content-Type | Schema | Example | Description |
 |-------------|--------------|--------|---------|-------------|
 |             |              |        |         |             |

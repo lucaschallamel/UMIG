@@ -81,24 +81,7 @@ async function generateInstructions(config, options = {}) {
     inmIdMap.get(instr.stm_id).push(res.rows[0].inm_id);
   }
 
-  // Fetch all step instances
-  const stepInstancesRes = await dbClient.query('SELECT sti_id, stm_id FROM steps_instance_sti');
-  if (!stepInstancesRes.rows.length) {
-    throw new Error('Cannot generate instruction instances: no step instances found.');
-  }
-
-  // Insert instructions_instance_ini for every instruction master on every step instance
-  for (const { sti_id, stm_id } of stepInstancesRes.rows) {
-    const inm_ids = inmIdMap.get(stm_id) || [];
-    for (const inm_id of inm_ids) {
-      await dbClient.query(
-        `INSERT INTO instructions_instance_ini (sti_id, inm_id) VALUES ($1, $2)`,
-        [sti_id, inm_id]
-      );
-    }
-  }
-
-  console.log(`Inserted ${instructionsMasters.length} instructions masters and their instances.`);
+  console.log(`Inserted ${instructionsMasters.length} instruction masters.`);
 }
 
 export { generateInstructions, eraseInstructionsTables };

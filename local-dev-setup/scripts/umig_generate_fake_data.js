@@ -8,7 +8,7 @@ import { generateUsers } from './generators/003_generate_users.js';
 import { generateCanonicalPlans } from './generators/004_generate_canonical_plans.js';
 import { generateStepPilotComments } from './generators/009_generate_step_pilot_comments.js';
 import { generateStepInstanceComments } from './generators/100_generate_step_instance_comments.js';
-import { generateInstructions } from './generators/101_generate_instructions.js';
+import { generateInstructions } from './generators/098_generate_instructions.js';
 import { generateMigrations } from './generators/005_generate_migrations.js';
 import { generateAllEnvironments } from './generators/006_generate_environments.js';
 import { generateInstanceData } from './generators/099_generate_instance_data.js';
@@ -68,11 +68,14 @@ const CONFIG = {
 async function main() {
   const program = new Command();
   program
+    .allowUnknownOption(true)
     .option('--erase', 'Erase the relevant database tables before generating data')
     .option('--script <number>', 'Run only a specific generator script (e.g., 01, 02, etc.)')
     .parse(process.argv);
 
   const options = program.opts();
+  // Detect --<3-digit> generator flags (e.g., --099)
+  const argGenerators = process.argv.filter(arg => /^--\d{3}$/.test(arg)).map(arg => arg.slice(2));
 
   const generators = {
     '001': () => generateCoreMetadata(), // No reset needed
@@ -85,16 +88,27 @@ async function main() {
     '006': () => generateAllEnvironments(CONFIG.ENVIRONMENTS, { ...options, clientOverride: client }),
     '008': () => generateLabels(CONFIG, { ...options, clientOverride: client }),
     '007': () => generateControls(CONFIG, { ...options, clientOverride: client }),
+    '098': () => generateInstructions(CONFIG, { ...options, clientOverride: client }),
     '099': () => generateInstanceData(CONFIG, { ...options, clientOverride: client }),
     // Insert instance comments after all instance data
-    '100': () => generateStepInstanceComments(CONFIG, { ...options, clientOverride: client }),
-    '101': () => generateInstructions(CONFIG, { ...options, clientOverride: client })
+    '100': () => generateStepInstanceComments(CONFIG, { ...options, clientOverride: client })
   };
 
   try {
     await connect();
 
-    if (options.script) {
+    if (argGenerators.length > 0) {
+      for (const genNum of argGenerators) {
+        if (generators[genNum]) {
+          console.log(`\n[INFO] Running generator ${genNum}...`);
+          await generators[genNum]();
+          console.log(`\n✅ Script ${genNum} completed successfully!`);
+        } else {
+          console.error(`\n❌ Error: Script '${genNum}' not found. Available scripts are: ${Object.keys(generators).join(', ')}`);
+          process.exit(1);
+        }
+      }
+    } else if (options.script) {
       if (generators[options.script]) {
         console.log(`\nRunning generator script ${options.script}...`);
         await generators[options.script]();

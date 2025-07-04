@@ -14,6 +14,7 @@
     <include file="007_add_ctm_code_to_controls.sql" relativeToChangelogFile="true"/>
     <include file="008_add_labels_controls_join.sql" relativeToChangelogFile="true"/>
     <include file="009_create_stg_import_tables.sql" relativeToChangelogFile="true"/>
+    <include file="010_replicate_seq_master_fields_in_instance.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
