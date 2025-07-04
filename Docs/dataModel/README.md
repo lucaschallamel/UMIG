@@ -143,26 +143,51 @@ UMIG is built on:
 - **sqi_id** (UUID, PK)
 - **pli_id** (UUID, FK → plans_instance_pli)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
+- **sqi_status** (VARCHAR): Status of this sequence instance
+- **sqi_name** (VARCHAR): Override name for the sequence instance
+- **sqi_description** (TEXT): Override description for the sequence instance
+- **sqi_order** (INTEGER): Override order for the sequence instance
+- **predecessor_sqi_id** (UUID): Override predecessor sequence instance
 
 ### 4.3. Phase Instance (`phases_instance_phi`)
 - **phi_id** (UUID, PK)
 - **sqi_id** (UUID, FK → sequences_instance_sqi)
 - **phm_id** (UUID, FK → phases_master_phm)
+- **phi_order** (INTEGER): Override order for the phase instance
+- **phi_name** (VARCHAR): Override name for the phase instance
+- **phi_description** (TEXT): Override description for the phase instance
+- **predecessor_phi_id** (UUID): Override predecessor phase instance
 
 ### 4.4. Step Instance (`steps_instance_sti`)
 - **sti_id** (UUID, PK)
 - **phi_id** (UUID, FK → phases_instance_phi)
 - **stm_id** (UUID, FK → steps_master_stm)
+- **sti_name** (VARCHAR): Override name for the step instance
+- **sti_description** (TEXT): Override description for the step instance
+- **sti_duration_minutes** (INTEGER): Override duration for the step instance
+- **sti_id_predecessor** (UUID): Override predecessor step master ID
+- **enr_id_target** (UUID): Override target entity reference
 
 ### 4.5. Instruction Instance (`instructions_instance_ini`)
 - **ini_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
 - **inm_id** (UUID, FK → instructions_master_inm)
+- **tms_id** (UUID): Override template step ID
+- **cti_id** (UUID): Override custom template ID
+- **ini_order** (INTEGER): Override order for the instruction instance
+- **ini_body** (TEXT): Override body for the instruction instance
+- **ini_duration_minutes** (INTEGER): Override duration for the instruction instance
 
 ### 4.6. Control Instance (`controls_instance_cti`)
 - **cti_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
 - **ctm_id** (UUID, FK → controls_master_ctm)
+- **cti_order** (INTEGER): Override order for the control instance
+- **cti_name** (VARCHAR): Override name for the control instance
+- **cti_description** (TEXT): Override description for the control instance
+- **cti_type** (VARCHAR): Override type for the control instance
+- **cti_is_critical** (BOOLEAN): Override criticality for the control instance
+- **cti_code** (TEXT): Override code for the control instance
 
 ### 4.7. Comments (`step_instance_comments_sic`, `step_pilot_comments_spc`)
 - **step_instance_comments_sic**: Comments on step executions (FKs: sti_id, created_by, updated_by)
@@ -353,26 +378,51 @@ erDiagram
         UUID sqi_id PK
         UUID pli_id FK
         UUID sqm_id FK
+        VARCHAR sqi_status
+        VARCHAR sqi_name
+        TEXT sqi_description
+        INTEGER sqi_order
+        UUID predecessor_sqi_id
     }
     phases_instance_phi {
         UUID phi_id PK
         UUID sqi_id FK
         UUID phm_id FK
+        INTEGER phi_order
+        VARCHAR phi_name
+        TEXT phi_description
+        UUID predecessor_phi_id
     }
     steps_instance_sti {
         UUID sti_id PK
         UUID phi_id FK
         UUID stm_id FK
+        VARCHAR sti_name
+        TEXT sti_description
+        INTEGER sti_duration_minutes
+        UUID sti_id_predecessor
+        UUID enr_id_target
     }
     instructions_instance_ini {
         UUID ini_id PK
         UUID sti_id FK
         UUID inm_id FK
+        UUID tms_id
+        UUID cti_id
+        INTEGER ini_order
+        TEXT ini_body
+        INTEGER ini_duration_minutes
     }
     controls_instance_cti {
         UUID cti_id PK
         UUID sti_id FK
         UUID ctm_id FK
+        INTEGER cti_order
+        VARCHAR cti_name
+        TEXT cti_description
+        VARCHAR cti_type
+        BOOLEAN cti_is_critical
+        TEXT cti_code
     }
     step_instance_comments_sic {
         INT sic_id PK
@@ -485,6 +535,7 @@ erDiagram
 
 ## 7. Recent Changes & Migration Notes
 
+- **2025-07:** Added full attribute replication to all instance tables (sequences, phases, steps, instructions, controls) to enable per-instance overrides, auditability, and future promotion capabilities. See [ADR029](../adr/ADR029-full-attribute-instantiation-instance-tables.md) for design rationale.
 - **2025-07:** Introduced `teams_tms_x_users_usr` for N-N user-team membership; dropped `tms_id` from `users_usr`.
 - **2025-06:** Added `labels_lbl_x_applications_app` for flexible application labeling.
 - All changes are reflected in this document and the ERD.

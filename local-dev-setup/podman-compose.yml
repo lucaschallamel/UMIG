@@ -14,11 +14,11 @@ services:
       - JVM_MINIMUM_MEMORY=1024m
       - JVM_MAXIMUM_MEMORY=6144m
       - ATL_LICENSE_KEY=${CONFLUENCE_LICENSE_KEY:-} # Developer license key (optional here, can be set in UI)
-      - CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluence/scripts -Dplugin.rest.scripts.package=com.umig.api.v2,com.umig.api.v2.web
+      - CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluence/scripts -Dplugin.rest.scripts.package=umig.api.v2,umig.api.v2.web
       # - CONFLUENCE_CONTEXT_PATH=/umig # If you want confluence on a subpath
     volumes:
       - confluence_data:/var/atlassian/application-data/confluence # Persist Confluence data
-      - ../src:/var/atlassian/application-data/confluence/scripts # Mount the entire src directory as a script root
+      - ../src/groovy/umig:/var/atlassian/application-data/confluence/scripts/umig # Mount the umig namespace directly as a script root
 
 
     networks:

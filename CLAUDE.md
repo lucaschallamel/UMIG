@@ -32,34 +32,153 @@ UMIG (Unified Migration Implementation Guide) is a bespoke, multi-user, real-tim
 
 ```
 UMIG/
-├── src/                              # Main application source
-│   ├── com/umig/                     # Packaged backend (Java-style)
-│   │   ├── api/v2/                   # REST API endpoints
-│   │   ├── repository/               # Data access layer
-│   │   └── utils/                    # Utility classes
-│   ├── macros/                       # ScriptRunner macros for UI
-│   ├── test/                         # Unit tests (Groovy)
-│   └── web/                          # Frontend assets (CSS/JS)
+├── src/                              # Main application source (REORGANIZED 2025)
+│   └── groovy/                       # Groovy source code root
+│       ├── README.md                 # Source code documentation
+│       └── umig/                     # Main package namespace
+│           ├── api/                  # REST API endpoints
+│           │   ├── README.md         # API documentation
+│           │   └── v2/               # Version 2 APIs
+│           │       ├── PlansApi.groovy
+│           │       ├── TeamMembersApi.groovy
+│           │       ├── TeamsApi.groovy
+│           │       ├── UsersApi.groovy
+│           │       ├── stepViewApi.groovy
+│           │       └── web/          # Web-specific APIs
+│           │           └── WebApi.groovy
+│           ├── macros/               # ScriptRunner macros for UI
+│           │   ├── README.md         # Macro documentation
+│           │   ├── stepViewMacro.groovy
+│           │   ├── userDetailMacro.groovy
+│           │   ├── userListMacro.groovy
+│           │   ├── userViewMacro.groovy
+│           │   └── v1/               # Version 1 macros
+│           │       └── iterationViewMacro.groovy
+│           ├── repository/           # Data access layer
+│           │   ├── README.md         # Repository documentation
+│           │   ├── ImplementationPlanRepository.groovy
+│           │   ├── InstructionRepository.groovy
+│           │   ├── LookupRepository.groovy
+│           │   ├── StepRepository.groovy
+│           │   ├── StepTypeRepository.groovy
+│           │   ├── TeamMembersRepository.groovy
+│           │   ├── TeamRepository.groovy
+│           │   └── UserRepository.groovy
+│           ├── tests/                # Testing infrastructure
+│           │   ├── README.md         # Testing documentation
+│           │   ├── apis/             # API unit tests
+│           │   │   ├── README.md     # API test documentation
+│           │   │   └── stepViewApiUnitTest.groovy
+│           │   ├── integration/      # Integration tests
+│           │   │   └── stepViewApiIntegrationTest.groovy
+│           │   ├── grab-postgres-jdbc.groovy
+│           │   └── run-integration-tests.sh
+│           ├── utils/                # Utility classes
+│           │   └── DatabaseUtil.groovy
+│           └── web/                  # Frontend assets
+│               ├── README.md         # Web assets documentation
+│               ├── css/              # Stylesheets
+│               │   ├── hello-world.css
+│               │   ├── iteration-view.css
+│               │   └── umig-ip-macro.css
+│               └── js/               # JavaScript files
+│                   ├── hello-world.js
+│                   ├── iteration-view.js
+│                   ├── step-view.js
+│                   ├── umig-ip-macro.js
+│                   ├── user-detail.js
+│                   ├── user-list.js
+│                   └── user-view.js
+├── mock/                             # UI/UX mockups and prototypes
+│   ├── iteration-view.html           # Iteration view HTML mockup
+│   ├── styles.css                    # Mockup CSS (100% vanilla)
+│   ├── script.js                     # Mockup JavaScript (zero dependencies)
+│   └── README.md                     # Mockup documentation
 ├── docs/                             # Comprehensive documentation
 │   ├── adr/                          # Architecture Decision Records
+│   │   ├── ADR-027-n-tiers-model.md # N-tiers model architecture
+│   │   ├── ADR-028-data-import-strategy-for-confluence-json.md # Data import strategy
+│   │   ├── archive/                  # Archived ADRs (consolidated)
+│   │   └── template.md               # ADR template
 │   ├── api/                          # API documentation & OpenAPI spec
+│   │   ├── README.md                 # API documentation
+│   │   ├── openapi.yaml              # OpenAPI specification
+│   │   ├── redoc-static.html         # API documentation viewer
+│   │   └── postman/                  # Postman collection
+│   │       ├── README.md             # Postman documentation
+│   │       └── UMIG_API_V2_Collection.postman_collection.json
 │   ├── dataModel/                    # Database schema & ERD
+│   │   └── README.md                 # Data model documentation
 │   ├── devJournal/                   # Sprint reviews & dev notes
+│   │   ├── README.md                 # Development journal index
+│   │   ├── devJournalEntryTemplate.md # Journal entry template
+│   │   ├── sprintReviewTemplate.md   # Sprint review template
+│   │   └── 20250616-00 - Initial brainstorm.md # (and other entries)
+│   ├── solution-architecture.md      # Complete solution architecture
 │   └── ui-ux/                        # UI/UX specifications
+│       ├── ROADMAP.md                # UI/UX roadmap
+│       ├── iteration-view.md         # Iteration view specification
+│       ├── step-view.md              # Step view specification
+│       └── template.md               # UI/UX template
 ├── local-dev-setup/                  # Node.js development environment
+│   ├── README.md                     # Development setup documentation
 │   ├── scripts/                      # Data generation and utilities
-│   │   ├── generators/               # Individual data generators
+│   │   ├── generators/               # Individual data generators (001-101)
 │   │   ├── lib/                      # Shared utilities (db.js, utils.js)
-│   │   ├── start.js, stop.js         # Environment management
-│   │   └── umig_generate_fake_data.js # Main data generation script
+│   │   ├── start.js, stop.js, restart.js # Environment management
+│   │   ├── umig_generate_fake_data.js # Main data generation script
+│   │   └── umig_csv_importer.js      # CSV import utility
 │   ├── __tests__/                    # Jest unit tests and fixtures
+│   │   ├── fixtures/                 # Test data fixtures
+│   │   ├── generators/               # Generator unit tests
+│   │   ├── umig_csv_importer.test.js # CSV importer tests
+│   │   └── umig_csv_importer.unit.test.js # CSV importer unit tests
+│   ├── data/                         # Sample data files
+│   │   ├── sample_team_members.csv   # Sample team member data
+│   │   ├── sample_team_members_mapping.json # Team member mapping
+│   │   ├── sample_teams.csv          # Sample team data
+│   │   └── sample_teams_mapping.json # Team mapping
+│   ├── data-utils/                   # Data utilities and importers
+│   │   └── Confluence_Importer/      # Confluence data import tools
+│   │       ├── README.md             # Import documentation
+│   │       ├── rawData/              # Raw JSON data from Confluence
+│   │       ├── Data_Integration/     # Integration scripts
+│   │       ├── scrape_html.sh        # HTML scraping utility
+│   │       └── test_scrape_html_oneline.sh # Test script
+│   ├── coverage/                     # Test coverage reports
 │   ├── liquibase/                    # Database migrations
+│   │   ├── changelogs/               # SQL migration files
+│   │   └── liquibase.properties      # Liquibase configuration
 │   ├── confluence/                   # Container configuration
+│   │   ├── Containerfile             # Confluence container build
+│   │   └── README.md                 # Container documentation
 │   ├── postgres/                     # Database initialization
+│   │   └── init-db.sh               # Database initialization script
+│   ├── jest.config.js                # Jest test configuration
+│   ├── jest.global-setup.cjs         # Jest global setup
+│   ├── jest.global-teardown.cjs      # Jest global teardown
+│   ├── babel.config.cjs              # Babel configuration
+│   ├── setup.yml                     # Setup configuration
 │   ├── package.json                  # npm scripts and dependencies
+│   ├── package-lock.json             # npm dependency lock
 │   └── podman-compose.yml            # Container orchestration
 ├── tests/                            # Integration tests (Groovy)
+├── megalinter-reports/               # Code quality and linting reports
+│   ├── IDE-config.txt                # IDE configuration
+│   ├── megalinter.log                # Linter execution log
+│   ├── linters_logs/                 # Individual linter logs
+│   └── updated_sources/              # Auto-fixed source files
+├── CHANGELOG.md                      # Project changelog
+├── GEMINI.md                         # Gemini AI assistant guide
+├── LICENSE                           # Project license
+├── README.md                         # Project overview
 └── cline-docs/                       # AI assistant context docs
+    ├── activeContext.md              # Current development context
+    ├── productContext.md             # Product context and requirements
+    ├── progress.md                   # Progress tracking
+    ├── projectBrief.md               # Project brief
+    ├── systemPatterns.md             # System patterns
+    └── techContext.md                # Technical context
 ```
 
 ## Build & Development Commands
@@ -99,6 +218,15 @@ cd ..
 ./tests/run-integration-tests.sh
 ```
 
+### Generator Execution Order (Critical)
+Data generators run in numerical order (001-100) to respect foreign key dependencies:
+1. **001-097**: Master data (core metadata, teams, users, plans, sequences, phases, steps, controls)
+2. **098**: Instruction masters (`098_generate_instructions.js`)
+3. **099**: All instance data (`099_generate_instance_data.js`) - creates complete execution hierarchy
+4. **100**: Instance comments (`100_generate_step_instance_comments.js`)
+
+**Important**: Instruction masters (098) must be created before instances (099) to enable proper field population.
+
 ### Database Operations
 ```bash
 # Run Liquibase migrations manually
@@ -120,12 +248,19 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 
 ### Key Tables (Updated July 2025)
 - `migrations_mig`: Strategic initiatives
-- `iterations_itr`: Links migrations to plans for iterative delivery
+- `iterations_itr`: Links migrations to plans for iterative delivery  
 - `plans_master_plm`: Master playbooks
 - `steps_master_stm`: Granular executable tasks
 - `instructions_master_inm`: Detailed procedures
 - `step_master_comments`, `step_instance_comments`: Collaboration features
-- `*_instance_*`: Live execution tracking
+- `*_instance_*`: Live execution tracking with override capabilities
+
+### Current Data Scale (Post-Generation)
+- **5 migrations** with realistic statuses and dates
+- **30 iterations** following pattern: 2-4 RUNS, 1-3 DRs, exactly 1 CUTOVER per migration
+- **5 canonical plans** → **13 sequences** → **43 phases** → **hundreds of steps** → **712 instructions**
+- **Complete instance hierarchy**: 30 plan instances → 80 sequence instances → 271 phase instances → 1,443 step instances → 4,286 instruction instances
+- **Override field population**: All instance tables properly inherit master values with 30% override probability
 
 ## Architecture Patterns
 
@@ -181,12 +316,12 @@ DatabaseUtil.withSql { sql ->
 ## Testing Strategy
 
 ### Unit Tests
-- **Location**: `src/test/` (Groovy), `local-dev-setup/data-utils/__tests__/` (Node.js)
+- **Location**: `src/groovy/umig/tests/apis/` (Groovy), `local-dev-setup/__tests__/` (Node.js)
 - **Purpose**: Fast, isolated component validation
 - **Technology**: Groovy for backend, Jest for Node.js utilities
 
 ### Integration Tests
-- **Location**: `tests/integration/`
+- **Location**: `src/groovy/umig/tests/integration/`
 - **Purpose**: End-to-end validation against live environment
 - **Requirements**: Running local development stack
 - **Technology**: Groovy with PostgreSQL JDBC
@@ -215,6 +350,10 @@ When development environment is running:
 ### **PRIMARY REFERENCE (MANDATORY)**
 - **`docs/solution-architecture.md`**: Complete solution architecture consolidating all 26 ADRs - ALWAYS REVIEW FIRST
 
+### **Current Active ADRs**
+- **`docs/adr/ADR-027-n-tiers-model.md`**: N-tiers model architecture
+- **`docs/adr/ADR-028-data-import-strategy-for-confluence-json.md`**: Data import strategy
+
 ### Critical References
 - **API Spec**: `docs/api/openapi.yaml` - OpenAPI specification
 - **Data Model**: `docs/dataModel/README.md` - Database schema and ERD
@@ -231,29 +370,40 @@ When development environment is running:
 - **Local Development Environment**: Node.js orchestrated Podman containers
 - **Admin UI (SPA Pattern)**: Complete user/team management with robust error handling
 - **API Standards**: Comprehensive REST patterns (ADR-023) with specific error mappings
-- **Data Generation**: Modular synthetic data generators with 3-digit prefixes
-- **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026)
+- **Data Generation**: Modular synthetic data generators with 3-digit prefixes and correct execution order
+- **Instance Data Generation**: Full canonical→instance replication with override field population
+- **Schema Corrections**: Fixed type mismatches in migration 010 for instruction instance fields
+- **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026) and updated test coverage
 - **Architecture Documentation**: All 26 ADRs consolidated into solution-architecture.md
+- **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
+- **Iteration View Mockup**: Complete HTML/CSS/JS mockup with zero dependencies (`mock/`)
 
 ### 🚧 MVP Remaining Work
+- **Iteration View Implementation**: Convert mockup to ScriptRunner macro (`iterationViewMacro.groovy`)
 - **Core REST APIs**: Plans, Chapters, Steps, Tasks, Controls, Instructions, Labels endpoints
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
 
 ### STEP View System (Existing)
-- Macro: `stepViewMacro.groovy`
-- Frontend: `step-view.js`
-- API: `stepViewApi.groovy`
+- Macro: `src/groovy/umig/macros/stepViewMacro.groovy`
+- Frontend: `src/groovy/umig/web/js/step-view.js`
+- API: `src/groovy/umig/api/v2/stepViewApi.groovy`
 - Purpose: Display migration/release steps in Confluence
+
+### Iteration View System (In Development)
+- Specification: `docs/ui-ux/iteration-view.md`
+- Mockup: `mock/iteration-view.html` (functional prototype)
+- Target Macro: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
+- Purpose: Primary runsheet interface for cutover events
 
 ## Development Workflow
 
 1. **Environment Setup**: `cd local-dev-setup && npm install && npm start`
 2. **Database Changes**: Create Liquibase changesets in `local-dev-setup/liquibase/changelogs/`
-3. **Backend Development**: Add Groovy classes in `src/com/umig/`
-4. **Frontend Development**: Create/modify JS files in `src/web/js/`
-5. **Testing**: Run unit tests (`npm test` in local-dev-setup) and integration tests (`./tests/run-integration-tests.sh`)
+3. **Backend Development**: Add Groovy classes in `src/groovy/umig/`
+4. **Frontend Development**: Create/modify JS files in `src/groovy/umig/web/js/`
+5. **Testing**: Run unit tests (`npm test` in local-dev-setup) and integration tests (`src/groovy/umig/tests/run-integration-tests.sh`)
 6. **Documentation**: Update relevant documentation, primarily `docs/solution-architecture.md`
 
 ## Important Notes
@@ -268,17 +418,26 @@ When development environment is running:
 
 ### **CRITICAL: Always Start Here**
 1. **MANDATORY FIRST STEP**: Review `/docs/solution-architecture.md` for complete architectural context
-2. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
+2. **Current ADRs**: Review ADR-027 (N-tiers model) and ADR-028 (data import strategy) for latest decisions
+3. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
 
 ### Development Standards (Non-Negotiable)
-1. **API Pattern**: Use established SPA+REST pattern - reference `TeamsApi.groovy` and `UsersApi.groovy`
+1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/TeamsApi.groovy` and `UsersApi.groovy`
 2. **Database Access**: MANDATORY `DatabaseUtil.withSql` pattern - no exceptions
 3. **Testing**: Specific SQL query mocks required (ADR-026) - prevent regressions
 4. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
 5. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
+6. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
 
 ### Project Context (Current State)
-- **Maturity**: Proof-of-concept with solid architectural foundation
+- **Maturity**: Proof-of-concept with solid architectural foundation and working mockup
 - **Timeline**: 4-week MVP deadline - ruthless scope management required
-- **Focus**: Complete core REST APIs and main dashboard implementation
+- **Current Focus**: Implement iteration view based on completed mockup in `mock/`
+- **Next Priority**: Convert mockup to ScriptRunner macro with backend API integration
 - **Pattern**: Reference existing user/team management as implementation template
+
+### Recent Achievements (January 2025)
+- **Complete UI/UX Mockup**: Functional iteration view prototype with zero external dependencies
+- **Clean Architecture**: Reorganized `src/` structure following Java package conventions
+- **Validated Design**: Three-panel layout confirmed through interactive mockup
+- **Implementation Ready**: All frontend components proven functional in vanilla JavaScript

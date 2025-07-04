@@ -103,6 +103,53 @@ The `stop` and `restart` commands accept flags to erase persistent data volumes,
   npm run generate-data
   ```
 
+- **Generate Single Generator:**
+  ```bash
+  npm run generate -- --script=<generator-number>
+  # Example: Run only the instance data generator
+  npm run generate -- --script=099
+  # Alternative syntax using numerical flag
+  npm run generate -- --099
+  ```
+
+#### Data Generation Pipeline Order
+
+Generators execute in numerical order, respecting dependencies:
+
+1. `001_generate_core_metadata.js` - Core lookup tables and roles
+2. `002_generate_teams_apps.js` - Teams and applications
+3. `003_generate_users.js` - Users and team assignments
+4. `004_generate_canonical_plans.js` - Master plan hierarchy (plans, sequences, phases, steps)
+5. `005_generate_migrations.js` - Migrations and iterations
+6. `006_generate_environments.js` - Environments for applications
+7. `007_generate_controls.js` - Master controls
+8. `008_generate_labels.js` - Labels for various entities
+9. `009_generate_step_pilot_comments.js` - Pilot comments for steps
+10. `098_generate_instructions.js` - Master instructions for steps
+11. `099_generate_instance_data.js` - All instance records (plans, sequences, phases, steps, instructions, controls)
+12. `100_generate_step_instance_comments.js` - Comments for step instances
+
+**Important**: The generator order is critical - master data (templates) must exist before creating instance data.
+
+#### Master-Instance Data Pattern
+
+UMIG follows a canonical-instance pattern for data:
+
+- **Master Records** (e.g., `plans_master_plm`) are templates/blueprints that define the standard migration process.
+- **Instance Records** (e.g., `plans_instance_pli`) are execution-specific copies of master records, linked to iterations.
+- Instance records inherit all fields from master records by default.
+- Any field in an instance can be overridden to customize a specific execution.
+- This pattern enables continuous process improvement without compromising the canonical templates.
+
+- **Test Single Generator:**
+  ```bash
+  npm test -- __tests__/generators/<test-file-name>.test.js
+  # Example: Test only the instance data generator
+  npm test -- __tests__/generators/099_generate_instance_data.test.js
+  # Or use a pattern match
+  npm test -- 099
+  ```
+
 - **Run CSV Importer:**
   ```bash
   npm run import-csv -- --file path/to/your/file.csv
@@ -114,6 +161,42 @@ The `stop` and `restart` commands accept flags to erase persistent data volumes,
   ```bash
   npm test
   ```
+
+### Code Quality & Linting
+
+- **Run MegaLinter (Code Quality Analysis):**
+  ```bash
+  # From the project root directory (not local-dev-setup)
+  cd ..
+  podman run --rm \
+    -v $(pwd):/tmp/lint:rw,Z \
+    oxsecurity/megalinter:v8
+  ```
+
+  **Note**: MegaLinter must be run from the project root directory where the `.mega-linter.yml` configuration file is located. It will analyze the entire codebase for code quality, formatting, and best practices across multiple languages including:
+  - Groovy/Java code
+  - JavaScript files
+  - SQL scripts
+  - Markdown documentation
+  - YAML/JSON configuration files
+  - Dockerfile and container configurations
+
+  Results are generated in the `megalinter-reports/` directory with detailed reports and suggestions for code improvements.
+
+- **Run Semgrep Security Scan:**
+  ```bash
+  # From the project root directory (not local-dev-setup)
+  cd ..
+  podman run --rm \
+    -v $(pwd):/src:rw,Z \
+    semgrep/semgrep:latest \
+    --config=auto \
+    --output=/src/semgrep-results.json \
+    --json \
+    /src
+  ```
+
+  **Semgrep** performs static analysis security scanning to identify potential security vulnerabilities, bugs, and anti-patterns in the codebase. The scan results will be saved to `semgrep-results.json` in the project root.
 
 ## One-Time ScriptRunner Configuration
 

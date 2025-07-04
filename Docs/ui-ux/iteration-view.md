@@ -17,16 +17,16 @@
 
 ## 3. Data Requirements
 - **Primary Data Sources:** We are only relying on our umig_app_db database, and this view will be pretty much reliant on all the tables
-- **Key Data Fields:** All fields in all tables really, since we are going to parse the entirety of the data model to generate this view. 
+- **Key Data Fields:** All fields in all tables really, since we are going to parse the entirety of the data model to generate this view.
 - **Derived/Computed Data:** None at this stage
 
 ## 4. UI Layout & Structure
 - **Sections:** We imagine to have 3 areas on screen
-  - A top bar (aka the iteration selector subview)  in which we have 
+  - A top bar (aka the iteration selector subview)  in which we have
     - a dropdown selector for the migrations
     - a dropdown selector for the iterations/plans
 
-  - A left screen area in which we are going to display the entire run sheet (aka the runsheet subview) , to list all the STEPS, grouped by ordered SEQUENCES, and by ordered PHASES within each SEQUENCE. 
+  - A left screen area in which we are going to display the entire run sheet (aka the runsheet subview) , to list all the STEPS, grouped by ordered SEQUENCES, and by ordered PHASES within each SEQUENCE.
     - Steps are listed in a table form, with main attributes in columns: Step code, Step title, team, status, duration ...
     - This area offers the ability to filter the list according to the following attributes to get a custom subset of the run sheet:
       - Filter by SEQUENCE
@@ -37,7 +37,7 @@
 
   - A right screen area (aka the step subview) in which we have a lookup view of the STEP currently selected or clicked on in the LEFTHAND screen area (the runsheet subview), with all their attributes, the list of instructions attached to it and the list of comments attached to it.
 
-- **Field/Table Layout:** 
+- **Field/Table Layout:**
   - As specified above at a high level.
   - For the step subview we will present the fields in the followinh order:
     - STEP CODE - STEP NUMBER
@@ -46,7 +46,7 @@
     - SCOPE ARRAY: List of Iteration Types to which the step is associated: RUN, DR, CUTOVER
     - ASSIGNED TEAM + IMPACTED TEAMS
     - SEQUENCE + PHASE associated
-    - DURATION in minutes 
+    - DURATION in minutes
     - Current STATUS
     - HADER description
     - Table of associated INSTRUCTIONS
@@ -62,7 +62,7 @@
 - **Wireframe/Sketch:** _(Optional)_
 
 ## 5. UX & Interaction
-- **User Actions:** 
+- **User Actions:**
 
   - Select a **MIGRATION** from the dropdown selector in the selector subview -> Create a context variable to filter in only the records attached to this migration (a sort of append to a master SQL statement: and mig_id=n)
   - Select an **ITERATION** from the second droopdown selector in the selector subview -> Narrows down the context to records for a specific iteration ID (and ite_id=n)
