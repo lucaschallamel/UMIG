@@ -1,3 +1,29 @@
+const populateFilter = (selector, url, defaultOptionText) => {
+    const select = document.querySelector(selector);
+    if (!select) return;
+
+    select.innerHTML = `<option value="">Loading...</option>`;
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error(`Network response was not ok for ${url}`);
+            return response.json();
+        })
+        .then(items => {
+            select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+            if (Array.isArray(items)) {
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name || '(Unnamed)';
+                    select.appendChild(option);
+                });
+            }
+        })
+        .catch(() => {
+            select.innerHTML = `<option value="">Failed to load</option>`;
+        });
+};
+
 // UMIG Iteration View - Canonical JavaScript Logic
 // Ported from mock/script.js with full fidelity
 
@@ -542,6 +568,61 @@ document.addEventListener('DOMContentLoaded', () => {
                     iterationSelect.innerHTML = '<option value="">Failed to load iterations</option>';
                 });
         });
+
+        iterationSelect.addEventListener('change', function () {
+            const migrationId = migrationSelect.value;
+            const iterationId = this.value;
+            const planFilter = document.getElementById('plan-filter');
+            const sequenceFilter = document.getElementById('sequence-filter');
+            const phaseFilter = document.getElementById('phase-filter');
+
+            // Clear subsequent filters
+            if(planFilter) planFilter.innerHTML = '<option value="">Select an iteration first</option>';
+            if(sequenceFilter) sequenceFilter.innerHTML = '<option value="">Select a plan first</option>';
+            if(phaseFilter) phaseFilter.innerHTML = '<option value="">Select a plan first</option>';
+
+            if (!iterationId) return;
+
+            // Populate plan instances
+            populateFilter(
+                '#plan-filter',
+                `/rest/scriptrunner/latest/custom/migrations/${migrationId}/iterations/${iterationId}/plan-instances`,
+                'All Plan Instances'
+            );
+        });
+
+        const planFilter = document.getElementById('plan-filter');
+        if (planFilter) {
+            planFilter.addEventListener('change', function () {
+                const migrationId = migrationSelect.value;
+                const iterationId = iterationSelect.value;
+                const planInstanceId = this.value;
+                const sequenceFilter = document.getElementById('sequence-filter');
+                const phaseFilter = document.getElementById('phase-filter');
+
+                // Clear subsequent filters
+                if(sequenceFilter) sequenceFilter.innerHTML = '<option value="">Select a plan first</option>';
+                if(phaseFilter) phaseFilter.innerHTML = '<option value="">Select a plan first</option>';
+
+                if (!planInstanceId) return;
+
+                const baseUrl = `/rest/scriptrunner/latest/custom/migrations/${migrationId}/iterations/${iterationId}/plan-instances/${planInstanceId}`;
+
+                // Populate sequences
+                populateFilter(
+                    '#sequence-filter',
+                    `${baseUrl}/sequences`,
+                    'All Sequences'
+                );
+
+                // Populate phases
+                populateFilter(
+                    '#phase-filter',
+                    `${baseUrl}/phases`,
+                    'All Phases'
+                );
+            });
+        }
     }
 });
 

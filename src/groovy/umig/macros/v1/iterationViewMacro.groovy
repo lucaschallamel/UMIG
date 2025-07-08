@@ -36,6 +36,16 @@ return """
         <div class=\"filter-container\">
             <h2>RUNSHEET FILTERS</h2>
             <div class=\"filter-controls\">
+                 <div class=\"filter-group\">
+                    <label for=\"plan-filter\">PLAN:</label>
+                    <select id=\"plan-filter\" class=\"filter-select\">
+                        <option value=\"\">All Plans</option>
+                        <option value=\"P01\">P01</option>
+                        <option value=\"P02\">P02</option>
+                        <option value=\"P03\">P03</option>
+                        <option value=\"P04\">P04</option>
+                    </select>
+                </div>
                 <div class=\"filter-group\">
                     <label for=\"sequence-filter\">SEQUENCE:</label>
                     <select id=\"sequence-filter\" class=\"filter-select\">
