@@ -1,4 +1,3 @@
----
 openapi: 3.0.0
 info:
   title: UMIG API V2
@@ -14,8 +13,8 @@ servers:
 tags:
   - name: StepView
     description: Operations related to the STEP View component.
-  - name: Plans
-    description: Operations about implementation plans.
+  - name: Migrations
+    description: Operations about migrations, iterations, sequences and phases.
   - name: Teams
     description: Operations about teams.
   - name: Users
@@ -24,138 +23,276 @@ tags:
     description: Serves static web assets.
 
 paths:
-  # --- StepView Endpoint ---
-  /stepViewApi:
+  /migrations/{migId}/iterations/{iteId}:
     get:
-      summary: Get STEP View by ID
-      tags: [StepView]
-      operationId: getStepView
+      summary: Get a specific iteration
+      tags: [Migrations]
+      operationId: getIterationById
       parameters:
-        - name: stepid
-          in: query
+        - name: migId
+          in: path
           required: true
-          description: The unique identifier for the STEP (e.g., SYS-1).
           schema:
             type: string
+            format: uuid
+        - name: iteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
-          description: A JSON object containing all data for a specific STEP view.
+          description: A single iteration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StepViewResponse'
+                $ref: '#/components/schemas/Iteration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  # --- Plans Endpoints ---
-  /plans:
+  /migrations/{migId}/iterations/{iteId}/plan-instances:
     get:
-      summary: List all Implementation Plans
-      tags: [Plans]
-      operationId: listPlans
+      summary: List all plan instances for an iteration
+      tags: [Migrations]
+      operationId: listPlanInstancesForIteration
+      parameters:
+        - name: migId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
-          description: A list of all implementation plans.
+          description: All plan instances for the given iteration
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Plan'
-    post:
-      summary: Create an Implementation Plan
-      tags: [Plans]
-      operationId: createPlan
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PlanCreateRequest'
-      responses:
-        '201':
-          description: Plan created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Plan'
+                  $ref: '#/components/schemas/PlanInstanceSummary'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
-  /plans/{planId}:
+  /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences:
     get:
-      summary: Get an Implementation Plan by ID
-      tags: [Plans]
-      operationId: getPlan
+      summary: List all sequences for a plan instance
+      tags: [Migrations]
+      operationId: listSequencesForPlanInstance
       parameters:
-        - name: planId
+        - name: migId
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
+        - name: iteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: pliId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
-          description: A single implementation plan.
+          description: All sequences for the given plan instance
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Plan'
+                type: array
+                items:
+                  $ref: '#/components/schemas/SequenceSummary'
+
+  /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/phases:
+    get:
+      summary: List all phases for a plan instance
+      tags: [Migrations]
+      operationId: listPhasesForPlanInstance
+      parameters:
+        - name: migId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: pliId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: All phases for the given plan instance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhaseSummary'
+
+  /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences/{seqId}/phases:
+    get:
+      summary: List all phases for a sequence
+      tags: [Migrations]
+      operationId: listPhasesForSequence
+      parameters:
+        - name: migId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: pliId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: seqId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: All phases for the given sequence
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhaseSummary'
+
+  /migrations:
+    get:
+      summary: List all migrations
+      tags: [Migrations]
+      operationId: listMigrations
+      responses:
+        '200':
+          description: A list of migrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MigrationSummary'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /migrations/{id}:
+    get:
+      summary: Get a single migration by ID
+      tags: [Migrations]
+      operationId: getMigrationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The migration object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Migration'
         '404':
           $ref: '#/components/responses/NotFound'
-    put:
-      summary: Update an Implementation Plan
-      tags: [Plans]
-      operationId: updatePlan
+
+  /migrations/{migId}/iterations:
+    get:
+      summary: List all iterations for a migration
+      tags: [Migrations]
+      operationId: listIterationsForMigration
       parameters:
-        - name: planId
+        - name: migId
           in: path
           required: true
           schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Plan'
+            type: string
+            format: uuid
       responses:
         '200':
-          description: Plan updated successfully.
+          description: All iterations for the given migration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Plan'
+                type: array
+                items:
+                  $ref: '#/components/schemas/IterationSummary'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-    delete:
-      summary: Delete an Implementation Plan
-      tags: [Plans]
-      operationId: deletePlan
-      parameters:
-        - name: planId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: Plan deleted successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
-  # --- Teams Endpoints ---
+  /step-view:
+    get:
+      tags:
+        - StepView
+      summary: Get all step view data
+      description: Retrieves all data for the step view component.
+      operationId: getStepViewData
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StepView'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /teams:
     get:
-      summary: List all teams
-      tags: [Teams]
-      operationId: listTeams
+      tags:
+        - Teams
+      summary: Get all teams
+      description: Retrieves a list of all teams.
+      operationId: getAllTeams
       responses:
         '200':
-          description: A list of all teams.
+          description: A list of teams.
           content:
             application/json:
               schema:
@@ -165,8 +302,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
-      summary: Create a team
-      tags: [Teams]
+      tags:
+        - Teams
+      summary: Create a new team
+      description: Creates a new team with the provided details.
       operationId: createTeam
       requestBody:
         required: true
@@ -177,371 +316,296 @@ paths:
       responses:
         '201':
           description: Team created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Team'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
-  /teams/{teamId}:
+  /teams/{id}:
     get:
+      tags:
+        - Teams
       summary: Get a team by ID
-      tags: [Teams]
-      operationId: getTeam
+      description: Retrieves a single team by its unique ID.
+      operationId: getTeamById
       parameters:
-        - name: teamId
+        - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '200':
-          description: A single team.
+          description: The requested team.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Team'
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
     put:
+      tags:
+        - Teams
       summary: Update a team
-      tags: [Teams]
+      description: Updates an existing team's details.
       operationId: updateTeam
       parameters:
-        - name: teamId
+        - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Team'
+              $ref: '#/components/schemas/TeamCreateRequest'
       responses:
-        '200':
+        '204':
           description: Team updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Team'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
     delete:
+      tags:
+        - Teams
       summary: Delete a team
-      tags: [Teams]
+      description: Deletes a team by its unique ID.
       operationId: deleteTeam
       parameters:
-        - name: teamId
+        - name: id
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '204':
           description: Team deleted successfully.
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /teams/{teamId}/members:
-    get:
-      summary: List all users in a given team, including membership audit fields
-      tags: [Teams]
-      operationId: listTeamMembers
-      parameters:
-        - name: teamId
-          in: path
-          required: true
-          description: The team ID
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Array of users with membership audit fields
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TeamMember'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
   /teams/{teamId}/users/{userId}:
     put:
+      tags:
+        - Teams
       summary: Add a user to a team
-      tags: [Teams]
+      description: Adds a user to a team, creating the membership link.
       operationId: addUserToTeam
       parameters:
         - name: teamId
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
         - name: userId
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '204':
           description: User added to team successfully.
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
     delete:
+      tags:
+        - Teams
       summary: Remove a user from a team
-      tags: [Teams]
+      description: Removes a user from a team, deleting the membership link.
       operationId: removeUserFromTeam
       parameters:
         - name: teamId
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
         - name: userId
           in: path
           required: true
           schema:
-            type: integer
+            type: string
+            format: uuid
       responses:
         '204':
           description: User removed from team successfully.
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
-  # --- Users Endpoints ---
   /users:
     get:
-      summary: List all users
-      tags: [Users]
-      operationId: listUsers
+      tags:
+        - Users
+      summary: Get all users
+      description: Retrieves a list of all users.
+      operationId: getAllUsers
       responses:
         '200':
-          description: A list of all users.
+          description: A list of users.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-    post:
-      summary: Create a user
-      tags: [Users]
-      operationId: createUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserCreateRequest'
-      responses:
-        '201':
-          description: User created successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
-  /users/{userId}:
+  /webapp/{path+}:
     get:
-      summary: Get a user by ID
-      tags: [Users]
-      operationId: getUser
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: A single user.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    put:
-      summary: Update a user
-      tags: [Users]
-      operationId: updateUser
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-      responses:
-        '200':
-          description: User updated successfully.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    delete:
-      summary: Delete a user
-      tags: [Users]
-      operationId: deleteUser
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '204':
-          description: User deleted successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  # --- WebApp Endpoints ---
-  /umig-app/{path}:
-    get:
-      summary: Serves static assets for the UMIG web application.
-      tags: [WebApp]
+      tags:
+        - WebApp
+      summary: Serve a static asset
+      description: Serves a static asset from the webapp resources.
       operationId: getWebAppAsset
       parameters:
         - name: path
           in: path
           required: true
-          description: The path to the static asset (e.g., index.html, main.js).
           schema:
             type: string
       responses:
         '200':
-          description: The requested static asset.
+          description: The requested asset.
           content:
-            text/html: {}
-            text/css: {}
             application/javascript: {}
+            text/css: {}
+            image/png: {}
+            image/jpeg: {}
+            image/svg+xml: {}
         '404':
-          description: Asset not found.
+          $ref: '#/components/responses/NotFound'
 
 components:
   schemas:
-    # --- StepView Schemas ---
-    StepViewResponse:
-      type: object
-      # ... properties for StepViewResponse
-
-    # --- Plan Schemas ---
-    Plan:
+    # --- View Models ---
+    StepView:
       type: object
       properties:
-        pln_id:
-          type: integer
-          readOnly: true
-        pln_name:
+        id:
           type: string
-        pln_description:
+        name:
+          type: string
+        description:
+          type: string
+        status:
           type: string
 
-    PlanCreateRequest:
+    MigrationSummary:
       type: object
-      required:
-        - pln_name
       properties:
-        pln_name:
+        id:
           type: string
-        pln_description:
+          format: uuid
+        name:
           type: string
 
-    # --- Team Schemas ---
+    Migration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        type:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        businessCutoverDate:
+          type: string
+          format: date
+
+    Iteration:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        staticCutoverDate:
+          type: string
+          format: date
+        dynamicCutoverDate:
+          type: string
+          format: date
+
+    IterationSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+        staticCutoverDate:
+          type: string
+          format: date
+        dynamicCutoverDate:
+          type: string
+          format: date
+
     Team:
       type: object
       properties:
-        tms_id:
-          type: integer
-          readOnly: true
-        tms_name:
+        id:
           type: string
-        tms_email:
+          format: uuid
+        name:
+          type: string
+        email:
           type: string
           format: email
-        tms_description:
-          type: string
 
     TeamCreateRequest:
       type: object
       required:
-        - tms_name
+        - name
+        - email
       properties:
-        tms_name:
+        name:
           type: string
-        tms_email:
+        email:
           type: string
           format: email
-        tms_description:
-          type: string
-
-    # --- User Schemas ---
-    TeamMember:
-      allOf:
-        - $ref: '#/components/schemas/User'
-        - type: object
-          properties:
-            created_at:
-              type: string
-              format: date-time
-            created_by:
-              type: integer
 
     User:
       type: object
       properties:
         usr_id:
-          type: integer
-          readOnly: true
+          type: string
+          format: uuid
         usr_name:
           type: string
         usr_email:
           type: string
           format: email
+        usr_confluence_id:
+          type: string
         usr_code:
           type: string
           description: "The user's unique 3-letter code, mapping to the Confluence user ID."
@@ -565,6 +629,31 @@ components:
         rls_id:
           type: integer
 
+    PlanInstanceSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
+    SequenceSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    PhaseSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
     # --- Generic Schemas ---
     Error:
       type: object

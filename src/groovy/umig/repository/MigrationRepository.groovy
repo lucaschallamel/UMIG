@@ -53,4 +53,85 @@ class MigrationRepository {
             """, [migrationId: migrationId])
         }
     }
+
+    /**
+     * Finds a single iteration by its UUID.
+     * @param iterationId The UUID of the iteration to find.
+     * @return A map representing the iteration, or null if not found.
+     */
+    def findIterationById(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.firstRow("""
+                SELECT ite_id, mig_id, plm_id, itt_code, ite_name, ite_description, ite_status,
+                       ite_static_cutover_date, ite_dynamic_cutover_date, created_by, created_at, updated_by, updated_at
+                FROM iterations_ite
+                WHERE ite_id = :iterationId
+            """, [iterationId: iterationId])
+        }
+    }
+    /**
+     * Finds all plan instances for a given iteration ID.
+     * @param iterationId The UUID of the iteration.
+     * @return A list of maps, each representing a plan instance (pli_id, plm_name).
+     */
+    def findPlanInstancesByIterationId(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT pli.pli_id, plm.plm_name
+                FROM plans_instance_pli pli
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                WHERE pli.ite_id = :iterationId
+                ORDER BY plm.plm_name
+            """, [iterationId: iterationId])
+        }
+    }
+
+    /**
+     * Finds all sequences for a given plan instance ID.
+     * @param planInstanceId The UUID of the plan instance.
+     * @return A list of maps, each representing a sequence (sqi_id, sqi_name).
+     */
+    def findSequencesByPlanInstanceId(UUID planInstanceId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT sqi_id, sqi_name
+                FROM sequences_instance_sqi
+                WHERE pli_id = :planInstanceId
+                ORDER BY sqi_name
+            """, [planInstanceId: planInstanceId])
+        }
+    }
+
+    /**
+     * Finds all phases for a given plan instance ID.
+     * @param planInstanceId The UUID of the plan instance.
+     * @return A list of maps, each representing a phase (phi_id, phi_name).
+     */
+    def findPhasesByPlanInstanceId(UUID planInstanceId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT phi.phi_id, phi.phi_name
+                FROM phases_instance_phi phi
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                WHERE sqi.pli_id = :planInstanceId
+                ORDER BY phi.phi_name
+            """, [planInstanceId: planInstanceId])
+        }
+    }
+
+    /**
+     * Finds all phases for a given sequence ID.
+     * @param sequenceId The UUID of the sequence.
+     * @return A list of maps, each representing a phase (phi_id, phi_name).
+     */
+    def findPhasesBySequenceId(UUID sequenceId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT phi.phi_id, phi.phi_name
+                FROM phases_instance_phi phi
+                WHERE phi.sqi_id = :sequenceId
+                ORDER BY phi.phi_name
+            """, [sequenceId: sequenceId])
+        }
+    }
 }
