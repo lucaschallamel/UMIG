@@ -22,6 +22,12 @@
   * Standardised database management and documentation (ADR-012) and naming conventions (ADR-014).
 * **API & Frontend Patterns:**
   * Teams and Users APIs are robust, fully standardised, and aligned with formal REST API implementation patterns (ADR-017, ADR-023), with consistent API routing, error handling, and idempotency. Enhanced error reporting for blocking relationships and input validation is now in place.
+  * **Hierarchical Filtering Pattern (2025-07-09, ADR-030):** Implemented comprehensive hierarchical filtering across multiple APIs:
+    * Created `LabelsApi.groovy` with full hierarchical filtering capabilities
+    * Enhanced `TeamsApi.groovy` with query parameter filtering for all hierarchy levels
+    * Established consistent pattern: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`
+    * Frontend filters cascade dynamically based on parent selections
+    * Comprehensive API documentation created (TeamsAPI.md, LabelsAPI.md, API_Updates_Summary.md)
   * The SPA + REST pattern for admin UIs (ADR-020) has been formalised and implemented for user management.
   * **Dynamic Data Integration Pattern (2025-07-04):** The Iteration View macro now implements a robust pattern where UI selectors are populated dynamically via REST APIs rather than hardcoded in Groovy. This includes:
     * `MigrationRepository.groovy` implementing the repository pattern for encapsulated database access
@@ -51,10 +57,12 @@
 ## 2. What's Left to Build (MVP Scope)
 
 * **Backend Development (ScriptRunner):**
-  * Continue implementing remaining core REST endpoints for Plans, Sequences, Phases, Steps, Instructions, Controls, and Labels.
+  * Continue implementing remaining core REST endpoints for Plans, Sequences, Phases, Steps, Instructions, and Controls (Labels API now complete).
+  * Apply hierarchical filtering pattern to remaining APIs.
   * Finalise backend logic for the Planning Feature, including the HTML export endpoint.
   * Integrate email notification sending via the enterprise Exchange server.
 * **Frontend Development (Confluence Macro):**
+  * Complete the Iteration View macro with full filtering and step management capabilities.
   * Build the main dashboard UI for viewing the runbook, consuming the new APIs and providing real-time updates via AJAX polling.
   * Develop the UI for the "Planning Feature" to allow input and generation of the HTML macro-plan.
   * Implement UI components for changing status, adding comments, and interacting with controls for all entities.
@@ -69,7 +77,8 @@
 
 - The codebase is consistent, maintainable, and well-documented, with a consolidated source tree under `src/groovy/umig/`.
 - The foundation for future API and feature development is solid, with clear patterns for further standardisation and enhancement.
-- The project has reached a proof-of-concept stage with a fully working SPA+REST integration and admin UI pattern, and the Iteration View macro is now functional.
+- The project has reached a proof-of-concept stage with a fully working SPA+REST integration and admin UI pattern, and the Iteration View macro is now functional with hierarchical filtering.
+- Teams and Labels APIs are complete with comprehensive hierarchical filtering capabilities, setting the pattern for remaining API development.
 
 ## 4. Known Issues & Risks
 
@@ -82,6 +91,7 @@
 
 ## 5. Evolution of Project Decisions
 
+- **Hierarchical Filtering Pattern (ADR-030, 2025-07-09):** The implementation of consistent query parameter filtering across all resources demonstrates the project's commitment to intuitive, performant navigation of complex data hierarchies. This pattern will be applied to all remaining APIs.
 - **Dynamic Data Integration Pattern (2025-07-04):** The successful implementation of the repository pattern and API-driven UI population for the Iteration View macro establishes a reusable pattern for all future macro development, promoting clean architecture principles within ScriptRunner constraints.
 - **Full Attribute Instantiation (ADR-029, 2025-07-04):** The decision to replicate all relevant master table attributes into instance tables provides runtime flexibility and auditability, supporting the project's requirements for iterative execution and continuous improvement.
 - **Data Generation Pipeline Maturity:** The refactoring of the instance data generation pipeline demonstrates the project's evolution towards more robust, dependency-aware data management practices.

@@ -22,8 +22,13 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   * **Many-to-Many Relationships:** Association (join) tables are used for `step_dependencies`, `step_iteration_scope`, `task_controls_link`, and `teams_tms_x_users_usr` (for user-team membership) (ADR-022).
   * **Control Status per Iteration:** The status of a `Control` is tracked per-iteration using a join table (`control_iteration_status`) that contains the status (`PASSED`, `FAILED`) as payload. Controls are logically scoped to phases (ADR-016).
   * **Comments:** Dedicated tables for step-level and instance-level comments (`step_pilot_comments_spc`, `step_instance_comments_sic`) (ADR-021).
+* **Hierarchical Filtering Pattern (ADR-030, 2025-07-09):** Consistent query parameter filtering across all resources for intuitive navigation of complex data hierarchies:
+  * **Unified Query Parameters:** All resources support filtering by hierarchy level: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`
+  * **Database-Level Filtering:** Efficient SQL queries with appropriate joins to filter data at the source
+  * **Cascading UI Behaviour:** Frontend filters dynamically update based on parent selections, reducing cognitive load
+  * **Progressive Refinement:** Each filter level narrows the available options in dependent filters
 * **Dynamic Data Integration Pattern (2025-07-04):** A robust pattern for macro development where UI selectors are populated dynamically via REST APIs rather than hardcoded in Groovy:
-  * **Repository Pattern:** Encapsulated database access using `DatabaseUtil.withSql` (e.g., `MigrationRepository.groovy`)
+  * **Repository Pattern:** Encapsulated database access using `DatabaseUtil.withSql` (e.g., `MigrationRepository.groovy`, `LabelRepository.groovy`, `TeamRepository.groovy`)
   * **API-Driven UI Population:** Macros provide skeleton HTML with loading states; JavaScript handles all data fetching and UI population
   * **Clean Architecture Separation:** Clear separation between data access (repository), business logic (API), and presentation (macro/JavaScript)
 * **Full Attribute Instantiation Pattern (ADR-029):** Instance tables replicate all relevant master table attributes for runtime flexibility and auditability, enabling pilots to override any attribute without affecting master templates.

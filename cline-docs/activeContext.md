@@ -2,10 +2,15 @@
 
 ## 1. Current Work Focus
 
-The project is currently in the **implementation phase**, focusing on building out the core backend APIs and frontend UI components within the Confluence-integrated architecture. Recent efforts have concentrated on **dynamic data integration for the Iteration View macro** and **resolving critical data generation pipeline issues**. Key achievements include implementing the repository pattern for clean architecture, establishing dynamic API-driven UI population, and fixing instance data inheritance problems that were preventing proper testing and development.
+The project is currently in the **implementation phase**, focusing on building out the core backend APIs and frontend UI components within the Confluence-integrated architecture. Recent efforts have concentrated on **hierarchical filtering implementation for the Iteration View** and **completing the Labels and enhanced Teams APIs**. Key achievements include implementing cascading filters that dynamically update based on parent selections, establishing consistent query parameter patterns across all resources, and creating comprehensive API documentation for the new filtering capabilities.
 
 ## 2. Recent Changes & Decisions
 
+* **Hierarchical Filtering Pattern (2025-07-09, ADR-030):** Implemented comprehensive hierarchical filtering across Teams and Labels APIs:
+  * **Consistent Query Parameters:** All resources now support filtering by hierarchy level (`?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`)
+  * **Repository Pattern Extension:** Created `LabelRepository.groovy` and enhanced `TeamRepository.groovy` with hierarchical filtering methods
+  * **Cascading Filter Behaviour:** Frontend filters dynamically update based on parent selections, providing progressive refinement
+  * **API Documentation:** Created detailed API specifications (TeamsAPI.md, LabelsAPI.md) and updated OpenAPI spec
 * **Architectural Confirmation:** The **Confluence-Integrated Application** model is confirmed, leveraging Atlassian ScriptRunner (Groovy) for the backend, vanilla HTML/JavaScript/CSS for the frontend (as a Confluence macro), and PostgreSQL as the database. The project explicitly adopts an **N-Tier architecture** model for improved structure and clarity (ADR-027).
 * **Dynamic Data Integration Pattern (2025-07-04):** Established a robust pattern for macro development where UI selectors are populated dynamically via REST APIs rather than hardcoded in Groovy. This includes:
   * **Repository Pattern Implementation:** Created `MigrationRepository.groovy` for encapsulated database access using `DatabaseUtil.withSql`
@@ -30,20 +35,23 @@ The project is currently in the **implementation phase**, focusing on building o
 
 ## 3. Next Steps
 
-1. **Complete Iteration View Functionality:** Build out the full functionality of the Iteration View UI with the established dynamic data pattern, including step details, filtering, and status updates.
-2. **Expand Repository Pattern:** Apply the repository pattern established with `MigrationRepository.groovy` to other data access areas of the application for consistency.
-3. **Additional API Endpoints:** Implement remaining backend REST API endpoints for Plans, Sequences, Phases, Steps, Instructions, Controls, and Labels using the established patterns.
-4. **Enhanced Data Validation:** Add validation to ensure instance data completeness and integrity in the generators.
-5. **Integration Testing:** Add comprehensive integration tests for the macro and import pipeline, particularly testing the dynamic data loading patterns.
-6. **Planning Feature Implementation:** Build the UI for the "Planning Feature" to allow input and generation of the HTML macro-plan.
-7. **Real-time Dashboard:** Develop the frontend JavaScript for the main dashboard with AJAX polling for real-time updates.
-8. **Data Import Finalisation:** Complete the data import strategy for migrating existing runbook data from Confluence/Draw.io/Excel sources.
+1. **Complete Iteration View Implementation:** Finalise the ScriptRunner macro integration with full filtering capabilities and step management features.
+2. **Core API Development:** Implement remaining backend REST API endpoints for Plans, Sequences, Phases, Steps, Instructions, and Controls using the established hierarchical filtering pattern.
+3. **Frontend Enhancement:** Extend the Iteration View JavaScript to handle step details, status updates, and real-time data refresh.
+4. **Integration Testing:** Add comprehensive tests for the hierarchical filtering functionality across all affected APIs.
+5. **Planning Feature Implementation:** Build the UI for the "Planning Feature" to allow input and generation of the HTML macro-plan.
+6. **Real-time Dashboard:** Develop the frontend JavaScript for the main dashboard with AJAX polling for real-time updates.
+7. **Data Import Finalisation:** Complete the data import strategy for migrating existing runbook data from Confluence/Draw.io/Excel sources.
+8. **Performance Testing:** Validate the performance of hierarchical queries under load conditions.
 9. **End-to-End Testing:** Conduct comprehensive testing with real user scenarios and data.
 
 ## 4. Important Patterns and Learnings
 
+* **Hierarchical Filtering Pattern:** The implementation of ADR-030 demonstrates how consistent query parameter filtering across all resources provides an intuitive and performant way to navigate complex data hierarchies.
 * **Dynamic Data Integration Pattern:** The successful implementation of the Iteration View macro established a reusable pattern where UI selectors are populated dynamically via REST APIs rather than hardcoded in Groovy, promoting maintainability and testability.
-* **Repository Pattern Benefits:** The `MigrationRepository.groovy` implementation demonstrated the value of encapsulating database access, providing clean separation of concerns and consistent error handling patterns.
+* **Repository Pattern Benefits:** The `MigrationRepository.groovy`, `LabelRepository.groovy`, and enhanced `TeamRepository.groovy` implementations demonstrated the value of encapsulating database access, providing clean separation of concerns and consistent error handling patterns.
+* **Cascading Filter UX:** The frontend implementation showed that progressive refinement through cascading filters significantly improves user experience by reducing cognitive load and preventing invalid selections.
+* **API Documentation Discipline:** Creating detailed API specifications alongside implementation ensures consistency and facilitates future development and integration.
 * **Instance Data Inheritance Complexity:** The data generation pipeline refactor highlighted the critical importance of proper execution order and complete field inheritance between master and instance records for data integrity.
 * **Clean Architecture in ScriptRunner:** Successfully implemented clean architecture principles within ScriptRunner constraints, demonstrating that proper separation of concerns is achievable even in plugin environments.
 * **Generator Execution Dependencies:** The experience with the instructions generator running after instance generation underscored the importance of carefully managing dependencies in data generation pipelines.
