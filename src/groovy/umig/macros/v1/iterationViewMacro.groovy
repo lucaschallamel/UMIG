@@ -78,53 +78,21 @@ return """
     <main class=\"main-content\">
         <!-- Runsheet Panel with Foldable Sequences & Phases -->
         <section class=\"runsheet-panel\">
-            <div class=\"panel-header\">📋 IMPLEMENTATION RUNSHEET</div>
-            <div class=\"runsheet-sequence\">
-                <div class=\"sequence-header\">SEQUENCE 1: Pre-Migration Preparation</div>
-                <div class=\"phase-header\">PHASE 1.1: Environment Setup</div>
-                <table class=\"runsheet-table\">
-                    <thead>
-                        <tr>
-                            <th>CODE</th><th>TITLE</th><th>TEAM</th><th>STATUS</th><th>DURATION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class=\"step-row\"><td>INF-001-010</td><td>Backup Primary Database</td><td>DB-Team</td><td class=\"status-pending\">Pending</td><td>45 min</td></tr>
-                        <tr class=\"step-row\"><td>INF-001-020</td><td>Validate Network Connectivity</td><td>NET-Team</td><td class=\"status-pending\">Pending</td><td>30 min</td></tr>
-                        <tr class=\"step-row\"><td>INF-001-030</td><td>Configure Load Balancer</td><td>NET-Team</td><td class=\"status-pending\">Pending</td><td>60 min</td></tr>
-                    </tbody>
-                </table>
+            <div class=\"runsheet-header\">
+                <h2>RUNSHEET</h2>
+                <div class=\"summary-stats\">
+                    <span class=\"stat\">Total Steps: <span id=\"total-steps\">0</span></span>
+                    <span class=\"stat stat-pending\">Pending: <span id=\"pending-steps\">0</span></span>
+                    <span class=\"stat stat-progress\">In Progress: <span id=\"progress-steps\">0</span></span>
+                    <span class=\"stat stat-completed\">Completed: <span id=\"completed-steps\">0</span></span>
+                    <span class=\"stat stat-failed\">Failed: <span id=\"failed-steps\">0</span></span>
+                </div>
             </div>
-            <div class=\"runsheet-sequence\">
-                <div class=\"sequence-header\">SEQUENCE 2: Data Migration</div>
-                <div class=\"phase-header\">PHASE 2.1: Database Cutover</div>
-                <table class=\"runsheet-table\">
-                    <thead>
-                        <tr>
-                            <th>CODE</th><th>TITLE</th><th>TEAM</th><th>STATUS</th><th>DURATION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class=\"step-row\"><td>DAT-002-010</td><td>Stop Application Services</td><td>APP-Team</td><td class=\"status-pending\">Pending</td><td>15 min</td></tr>
-                        <tr class=\"step-row\"><td>DAT-002-020</td><td>Export Database Schema</td><td>DB-Team</td><td class=\"status-pending\">Pending</td><td>30 min</td></tr>
-                        <tr class=\"step-row\"><td>DAT-002-030</td><td>Transfer Data Files</td><td>DB-Team</td><td class=\"status-pending\">Pending</td><td>120 min</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class=\"runsheet-sequence\">
-                <div class=\"sequence-header\">SEQUENCE 3: Post-Migration Validation</div>
-                <div class=\"phase-header\">PHASE 3.1: System Testing</div>
-                <table class=\"runsheet-table\">
-                    <thead>
-                        <tr>
-                            <th>CODE</th><th>TITLE</th><th>TEAM</th><th>STATUS</th><th>DURATION</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class=\"step-row\"><td>VAL-003-010</td><td>Smoke Test Applications</td><td>APP-Team</td><td class=\"status-pending\">Pending</td><td>45 min</td></tr>
-                        <tr class=\"step-row\"><td>VAL-003-020</td><td>Performance Baseline Test</td><td>APP-Team</td><td class=\"status-pending\">Pending</td><td>60 min</td></tr>
-                    </tbody>
-                </table>
+            <div class=\"runsheet-content\" id=\"runsheet-content\">
+                <div class=\"loading-message\">
+                    <p>🔄 Loading steps...</p>
+                    <p>Please select a migration and iteration to view the runsheet.</p>
+                </div>
             </div>
         </section>
 
