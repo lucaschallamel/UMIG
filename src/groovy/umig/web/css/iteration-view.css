@@ -160,12 +160,13 @@
     margin-bottom: var(--spacing-sm);
 }
 
-.runsheet-sequence {
+/* Sequence and Phase Sections */
+.sequence-section {
     margin-bottom: var(--spacing-lg);
-    background: var(--color-bg-tertiary);
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
     border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-    padding: var(--spacing-sm);
+    overflow: hidden;
 }
 
 .sequence-header {
@@ -173,9 +174,26 @@
     color: #fff;
     font-weight: 700;
     font-size: var(--font-size-base);
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
-    padding: var(--spacing-xs) var(--spacing-md);
-    margin-bottom: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+
+.sequence-header h3 {
+    margin: 0;
+    font-size: var(--font-size-base);
+    font-weight: 700;
+}
+
+.expand-icon {
+    font-size: var(--font-size-sm);
+    transition: transform 0.2s ease;
+}
+
+.phase-section {
+    border-top: 1px solid var(--color-border);
 }
 
 .phase-header {
@@ -183,44 +201,125 @@
     color: #fff;
     font-weight: 600;
     font-size: var(--font-size-sm);
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-    padding: var(--spacing-xs) var(--spacing-md);
-    margin-bottom: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
 }
 
+.phase-header h4 {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+/* Steps Table - HTML Table Structure */
 .runsheet-table {
     width: 100%;
     border-collapse: collapse;
     background: var(--color-bg-primary);
     font-size: var(--font-size-base);
-    margin-bottom: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
 }
 
 .runsheet-table th, .runsheet-table td {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-bottom: 1px solid var(--color-border);
+    padding: var(--spacing-sm) var(--spacing-md);
     text-align: left;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .runsheet-table th {
     background: var(--color-bg-tertiary);
-    color: var(--color-secondary);
+    color: var(--color-text-secondary);
     font-weight: 600;
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
 }
 
-.step-row {
+.runsheet-table .col-code {
+    width: 100px;
+    font-family: monospace;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.runsheet-table .col-title {
+    font-weight: 500;
+}
+
+.runsheet-table .col-team {
+    width: 100px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.runsheet-table .col-status {
+    width: 100px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-align: center;
+}
+
+.runsheet-table .col-duration {
+    width: 80px;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    text-align: right;
+}
+
+.runsheet-table tbody .step-row {
     background: var(--color-bg-primary);
     cursor: pointer;
-    transition: background 0.1s;
+    transition: background-color 0.2s ease;
 }
 
-.step-row:hover {
-    background: #E9F2FF;
+.runsheet-table tbody .step-row:hover {
+    background: var(--color-bg-secondary);
 }
 
+.runsheet-table tbody .step-row.selected {
+    background: rgba(0, 82, 204, 0.1);
+    border-left: 4px solid var(--color-primary);
+}
+
+.runsheet-table tbody .step-row:last-child td {
+    border-bottom: none;
+}
+
+/* Status styling for table cells */
+.runsheet-table .col-status.status-pending {
+    background: rgba(101, 84, 192, 0.1);
+    color: var(--color-pending);
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius);
+}
+
+.runsheet-table .col-status.status-progress {
+    background: rgba(0, 101, 255, 0.1);
+    color: var(--color-in-progress);
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius);
+}
+
+.runsheet-table .col-status.status-completed {
+    background: rgba(0, 135, 90, 0.1);
+    color: var(--color-completed);
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius);
+}
+
+.runsheet-table .col-status.status-failed {
+    background: rgba(222, 53, 11, 0.1);
+    color: var(--color-failed);
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius);
+}
+
+/* Legacy status styling for backwards compatibility */
 .status-pending {
     color: var(--color-pending);
-    background: #F4F5F7;
+    background: rgba(101, 84, 192, 0.1);
     border-radius: var(--border-radius);
     padding: 2px 8px;
     font-weight: 500;
@@ -229,7 +328,7 @@
 
 .status-in-progress {
     color: var(--color-in-progress);
-    background: #DEEBFF;
+    background: rgba(0, 101, 255, 0.1);
     border-radius: var(--border-radius);
     padding: 2px 8px;
     font-weight: 500;
@@ -238,7 +337,7 @@
 
 .status-completed {
     color: var(--color-completed);
-    background: #E3FCEF;
+    background: rgba(0, 135, 90, 0.1);
     border-radius: var(--border-radius);
     padding: 2px 8px;
     font-weight: 500;
@@ -247,7 +346,7 @@
 
 .status-blocked {
     color: var(--color-error);
-    background: #FFEBE6;
+    background: rgba(222, 53, 11, 0.1);
     border-radius: var(--border-radius);
     padding: 2px 8px;
     font-weight: 500;
