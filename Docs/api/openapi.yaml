@@ -17,6 +17,8 @@ tags:
     description: Operations about migrations, iterations, sequences and phases.
   - name: Teams
     description: Operations about teams.
+  - name: Labels
+    description: Operations about labels and hierarchical filtering.
   - name: Users
     description: Operations about users.
   - name: WebApp
@@ -82,6 +84,74 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/PlanInstanceSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /migrations/{migId}/iterations/{iteId}/sequences:
+    get:
+      summary: List all sequences for an iteration
+      tags: [Migrations]
+      operationId: listSequencesForIteration
+      parameters:
+        - name: migId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: All sequences for the given iteration
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SequenceSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /migrations/{migId}/iterations/{iteId}/phases:
+    get:
+      summary: List all phases for an iteration
+      tags: [Migrations]
+      operationId: listPhasesForIteration
+      parameters:
+        - name: migId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: iteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: All phases for the given iteration
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhaseSummary'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -287,9 +357,47 @@ paths:
     get:
       tags:
         - Teams
-      summary: Get all teams
-      description: Retrieves a list of all teams.
+      summary: Get teams with optional hierarchical filtering
+      description: |
+        Retrieves a list of teams. Can be filtered by hierarchical entities to show only teams 
+        involved in specific migrations, iterations, plans, sequences, or phases.
       operationId: getAllTeams
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter teams by migration ID
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter teams by iteration ID
+        - name: planId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter teams by plan instance ID
+        - name: sequenceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter teams by sequence instance ID
+        - name: phaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter teams by phase instance ID
       responses:
         '200':
           description: A list of teams.
@@ -299,6 +407,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalServerError'
     post:
@@ -441,6 +551,65 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /labels:
+    get:
+      tags:
+        - Labels
+      summary: Get labels with optional hierarchical filtering
+      description: |
+        Retrieves a list of labels. Can be filtered by hierarchical entities to show only labels 
+        associated with step instances in specific migrations, iterations, plans, sequences, or phases.
+      operationId: getAllLabels
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter labels by migration ID
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter labels by iteration ID
+        - name: planId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter labels by plan instance ID
+        - name: sequenceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter labels by sequence instance ID
+        - name: phaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter labels by phase instance ID
+      responses:
+        '200':
+          description: A list of labels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Label'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /users:
     get:
       tags:
@@ -580,6 +749,23 @@ components:
         email:
           type: string
           format: email
+
+    Label:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the label
+        name:
+          type: string
+          description: Name of the label
+        description:
+          type: string
+          description: Description of the label
+        color:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Hex color code for the label
 
     TeamCreateRequest:
       type: object

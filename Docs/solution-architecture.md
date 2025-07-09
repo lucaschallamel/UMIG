@@ -143,6 +143,23 @@ src/
   - `PUT` and `DELETE` operations **must** be idempotent
 - **Association Endpoints:** Dedicated endpoints for managing relationships (e.g., team membership) following RESTful conventions.
 
+#### API Patterns
+
+##### Hierarchical Filtering Pattern
+- **Definition:** Endpoints support query parameters that filter resources based on their position in the entity hierarchy.
+- **Implementation:** Resources like Teams and Labels can be filtered by their relationship to entities at any level of the hierarchy:
+  - `?migrationId={uuid}` - Filter by migration
+  - `?iterationId={uuid}` - Filter by iteration
+  - `?planId={uuid}` - Filter by plan instance
+  - `?sequenceId={uuid}` - Filter by sequence instance
+  - `?phaseId={uuid}` - Filter by phase instance
+- **UI Integration:** Frontend components progressively filter options based on user selections, creating a cascading refinement pattern.
+- **Progressive Filtering Example:**
+  - Teams at migration level: 18 teams
+  - Teams at sequence level: 12 teams (subset of migration teams)
+  - Teams at phase level: 5 teams (subset of sequence teams)
+- **Database Pattern:** Repositories implement methods that JOIN through the entity hierarchy to retrieve contextually relevant data.
+
 #### Validation & Constraints
 - **CustomEndpointDelegate Only:** No other REST endpoint patterns are permitted (WebWork, JAX-RS, etc.).
 - **No Central Dispatchers:** Each endpoint must handle its specific HTTP method and logic directly.

@@ -18,13 +18,13 @@ return """
                 <div class=\"selector-group\">
                     <label for=\"migration-select\">🔄 MIGRATION:</label>
                     <select id=\"migration-select\" class=\"selector\">
-                        <option value="">Loading migrations...</option>
+                        <option value="">SELECT A MIGRATION</option>
                     </select>
                 </div>
                 <div class=\"selector-group\">
                     <label for=\"iteration-select\">🗓️ ITERATION:</label>
                     <select id=\"iteration-select\" class=\"selector\">
-                        <option value="">Select a migration first</option>
+                        <option value="">SELECT AN ITERATION</option>
                     </select>
                 </div>
             </div>
@@ -40,52 +40,30 @@ return """
                     <label for=\"plan-filter\">PLAN:</label>
                     <select id=\"plan-filter\" class=\"filter-select\">
                         <option value=\"\">All Plans</option>
-                        <option value=\"P01\">P01</option>
-                        <option value=\"P02\">P02</option>
-                        <option value=\"P03\">P03</option>
-                        <option value=\"P04\">P04</option>
                     </select>
                 </div>
                 <div class=\"filter-group\">
                     <label for=\"sequence-filter\">SEQUENCE:</label>
                     <select id=\"sequence-filter\" class=\"filter-select\">
                         <option value=\"\">All Sequences</option>
-                        <option value=\"S01\">S01</option>
-                        <option value=\"S02\">S02</option>
-                        <option value=\"S03\">S03</option>
-                        <option value=\"S04\">S04</option>
                     </select>
                 </div>
                 <div class=\"filter-group\">
                     <label for=\"phase-filter\">PHASE:</label>
                     <select id=\"phase-filter\" class=\"filter-select\">
                         <option value=\"\">All Phases</option>
-                        <option value=\"Infrastructure\">Infrastructure</option>
-                        <option value=\"Application\">Application</option>
-                        <option value=\"Data\">Data</option>
-                        <option value=\"Testing\">Testing</option>
                     </select>
                 </div>
                 <div class=\"filter-group\">
                     <label for=\"team-filter\">TEAM:</label>
                     <select id=\"team-filter\" class=\"filter-select\">
                         <option value=\"\">All Teams</option>
-                        <option value=\"Platform Team\">Platform Team</option>
-                        <option value=\"Development Team\">Development Team</option>
-                        <option value=\"Data Team\">Data Team</option>
-                        <option value=\"QA Team\">QA Team</option>
                     </select>
                 </div>
                 <div class=\"filter-group\">
                     <label for=\"label-filter\">LABEL:</label>
                     <select id=\"label-filter\" class=\"filter-select\">
                         <option value=\"\">All Labels</option>
-                        <option value=\"Critical\">Critical</option>
-                        <option value=\"High Priority\">High Priority</option>
-                        <option value=\"Network\">Network</option>
-                        <option value=\"Database\">Database</option>
-                        <option value=\"API\">API</option>
-                        <option value=\"Testing\">Testing</option>
                     </select>
                 </div>
                 <div class=\"checkbox-group\">

@@ -1,5 +1,23 @@
 ### [Unreleased]
 
+#### 2025-07-09 (Hierarchical Filtering for Teams and Labels)
+- **Feat(API/UI):** Implemented cascading hierarchical filtering for Teams and Labels in Iteration View.
+  - Enhanced TeamRepository with 5 new filtering methods (by migration, iteration, plan, sequence, and phase).
+  - Created LabelRepository with hierarchical filtering capabilities for all levels.
+  - Extended TeamsApi and created LabelsApi with consistent query parameter support (`?migrationId`, `?iterationId`, etc.).
+  - Updated frontend to refresh Teams and Labels selectors based on hierarchical context.
+- **Docs(API):** Comprehensive documentation updates:
+  - Updated OpenAPI specification with new endpoints and query parameters.
+  - Created detailed API specs for Teams and Labels (TeamsAPI.md, LabelsAPI.md).
+  - Regenerated Postman collection to reflect new API capabilities.
+- **UI(Iteration View):** Improved filter behavior with progressive refinement:
+  - Migration selector now shows "SELECT A MIGRATION" as default text.
+  - Iteration selector now shows "SELECT AN ITERATION" as default text.
+  - All dependent filters reset on migration or iteration change.
+  - Phase filter updates dynamically based on sequence selection.
+
+### [Unreleased]
+
 #### 2025-07-04 (Data Generation Pipeline Refactor)
 - **Fix(Data Generation):** Resolved instance data inheritance issues by refactoring the data generation pipeline.
   - Reordered generators: renamed `101_generate_instructions.js` to `098_generate_instructions.js` to ensure master data exists before instance creation.
