@@ -134,4 +134,39 @@ class MigrationRepository {
             """, [sequenceId: sequenceId])
         }
     }
+
+    /**
+     * Finds all sequences for a given iteration ID.
+     * @param iterationId The UUID of the iteration.
+     * @return A list of maps, each representing a sequence (sqi_id, sqi_name).
+     */
+    def findSequencesByIterationId(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT DISTINCT sqi.sqi_id, sqi.sqi_name
+                FROM sequences_instance_sqi sqi
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                WHERE pli.ite_id = :iterationId
+                ORDER BY sqi.sqi_name
+            """, [iterationId: iterationId])
+        }
+    }
+
+    /**
+     * Finds all phases for a given iteration ID.
+     * @param iterationId The UUID of the iteration.
+     * @return A list of maps, each representing a phase (phi_id, phi_name).
+     */
+    def findPhasesByIterationId(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT DISTINCT phi.phi_id, phi.phi_name
+                FROM phases_instance_phi phi
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                WHERE pli.ite_id = :iterationId
+                ORDER BY phi.phi_name
+            """, [iterationId: iterationId])
+        }
+    }
 }

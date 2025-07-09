@@ -29,11 +29,11 @@ const populateFilter = (selector, url, defaultOptionText) => {
 
 class IterationView {
     constructor() {
-        this.populateMigrationSelector();
         this.selectedStep = 'INF-001-010';
         this.filters = {
-            migration: 'mig-001',
-            iteration: 'ite-001',
+            migration: '',
+            iteration: '',
+            plan: '',
             sequence: '',
             phase: '',
             team: '',
@@ -116,10 +116,31 @@ class IterationView {
     }
 
     init() {
+        this.initializeSelectors();
         this.bindEvents();
         this.renderSteps();
         this.loadStepDetails(this.selectedStep);
         this.updateFilters();
+    }
+
+    initializeSelectors() {
+        // Initialize migration selector
+        this.populateMigrationSelector();
+        
+        // Initialize all other selectors with default states
+        this.resetSelector('#iteration-select', 'SELECT AN ITERATION');
+        this.resetSelector('#plan-filter', 'All Plans');
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+    }
+
+    resetSelector(selector, defaultText) {
+        const select = document.querySelector(selector);
+        if (select) {
+            select.innerHTML = `<option value="">${defaultText}</option>`;
+        }
     }
 
     bindEvents() {
@@ -142,23 +163,31 @@ class IterationView {
         }
 
         // Filter controls
+        const planFilter = document.getElementById('plan-filter');
         const sequenceFilter = document.getElementById('sequence-filter');
         const phaseFilter = document.getElementById('phase-filter');
         const teamFilter = document.getElementById('team-filter');
         const labelFilter = document.getElementById('label-filter');
         const myTeamsOnly = document.getElementById('my-teams-only');
         
+        if (planFilter) {
+            planFilter.addEventListener('change', (e) => {
+                this.filters.plan = e.target.value;
+                this.onPlanChange();
+            });
+        }
+
         if (sequenceFilter) {
             sequenceFilter.addEventListener('change', (e) => {
                 this.filters.sequence = e.target.value;
-                this.applyFilters();
+                this.onSequenceChange();
             });
         }
 
         if (phaseFilter) {
             phaseFilter.addEventListener('change', (e) => {
                 this.filters.phase = e.target.value;
-                this.applyFilters();
+                this.onPhaseChange();
             });
         }
 
@@ -229,16 +258,165 @@ class IterationView {
       }
     
     onMigrationChange() {
-        // In production, this would fetch iterations for the selected migration
-        this.showNotification('Loading iterations for selected migration...', 'info');
-        this.renderSteps();
+        const migId = this.filters.migration;
+        
+        // Reset all dependent selectors
+        this.filters.iteration = '';
+        this.filters.plan = '';
+        this.filters.sequence = '';
+        this.filters.phase = '';
+        
+        this.resetSelector('#iteration-select', 'SELECT AN ITERATION');
+        this.resetSelector('#plan-filter', 'All Plans');
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (migId) {
+            const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
+            populateFilter('#iteration-select', url, 'SELECT AN ITERATION');
+            
+            // Refresh teams and labels selectors for this migration
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?migrationId=${migId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?migrationId=${migId}`;
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        }
+        
+        this.applyFilters();
     }
 
     onIterationChange() {
-        // In production, this would fetch steps for the selected iteration
-        this.showNotification('Loading steps for selected iteration...', 'info');
-        this.renderSteps();
+        const migId = this.filters.migration;
+        const iteId = this.filters.iteration;
+
+        // Reset dependent filters
+        this.filters.plan = '';
+        this.filters.sequence = '';
+        this.filters.phase = '';
+        
+        this.resetSelector('#plan-filter', 'All Plans');
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!iteId) {
+            this.applyFilters();
+            return;
+        }
+
+        // Populate all three filters with ALL items for this iteration
+        const planUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances`;
+        const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
+        const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
+        
+        // Refresh teams and labels selectors for this iteration
+        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+
+        populateFilter('#plan-filter', planUrl, 'All Plans');
+        populateFilter('#sequence-filter', sequenceUrl, 'All Sequences');
+        populateFilter('#phase-filter', phaseUrl, 'All Phases');
+        populateFilter('#team-filter', teamsUrl, 'All Teams');
+        populateFilter('#label-filter', labelsUrl, 'All Labels');
+
+        this.showNotification('Loading data for selected iteration...', 'info');
+        this.applyFilters();
     }
+
+    onPlanChange() {
+        const { migration: migId, iteration: iteId, plan: planId } = this.filters;
+
+        // Reset dependent filters
+        this.filters.sequence = '';
+        this.filters.phase = '';
+
+        if (!planId) {
+            // 'All Plans' selected - show all sequences and phases for iteration
+            const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
+            const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+            populateFilter('#sequence-filter', sequenceUrl, 'All Sequences');
+            populateFilter('#phase-filter', phaseUrl, 'All Phases');
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        } else {
+            // Specific plan selected - show only sequences and phases for this plan
+            const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/sequences`;
+            const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+            populateFilter('#sequence-filter', sequenceUrl, 'All Sequences');
+            populateFilter('#phase-filter', phaseUrl, 'All Phases');
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        }
+        
+        this.applyFilters();
+    }
+
+    onSequenceChange() {
+        const { migration: migId, iteration: iteId, plan: planId, sequence: seqId } = this.filters;
+
+        // Reset dependent filters
+        this.filters.phase = '';
+
+        if (!seqId) {
+            // 'All Sequences' selected - show all phases for current plan or iteration
+            if (planId) {
+                const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+                populateFilter('#phase-filter', phaseUrl, 'All Phases');
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            } else {
+                const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+                populateFilter('#phase-filter', phaseUrl, 'All Phases');
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            }
+        } else {
+            // Specific sequence selected - show only phases for this sequence
+            const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences/${seqId}/phases`;
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?sequenceId=${seqId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
+            populateFilter('#phase-filter', phaseUrl, 'All Phases');
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        }
+        
+        this.applyFilters();
+    }
+
+    onPhaseChange() {
+        const { sequence: seqId, phase: phaseId } = this.filters;
+
+        if (!phaseId) {
+            // 'All Phases' selected - refresh teams and labels for current sequence or higher level
+            if (seqId) {
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?sequenceId=${seqId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            }
+            // If no sequence selected, teams and labels are already correctly populated from higher level
+        } else {
+            // Specific phase selected - show only teams and labels for this phase
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?phaseId=${phaseId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?phaseId=${phaseId}`;
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        }
+        
+        this.applyFilters();
+    }
+
 
     renderSteps() {
         const tbody = document.querySelector('.runsheet-table tbody');
@@ -509,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
 IterationView.prototype.populateMigrationSelector = function() {
     const select = document.getElementById('migration-select');
     if (!select) return;
+    
     // Show loading state
     select.innerHTML = '<option value="">Loading migrations...</option>';
 
@@ -518,7 +697,9 @@ IterationView.prototype.populateMigrationSelector = function() {
             return response.json();
         })
         .then(migrations => {
-            select.innerHTML = '';
+            // Always start with the default option
+            select.innerHTML = '<option value="">SELECT A MIGRATION</option>';
+            
             if (Array.isArray(migrations) && migrations.length > 0) {
                 migrations.forEach(migration => {
                     const option = document.createElement('option');
@@ -535,96 +716,6 @@ IterationView.prototype.populateMigrationSelector = function() {
         });
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    const migrationSelect = document.getElementById('migration-select');
-    const iterationSelect = document.getElementById('iteration-select');
-    if (migrationSelect && iterationSelect) {
-        migrationSelect.addEventListener('change', function() {
-            const migrationId = this.value;
-            if (!migrationId) {
-                iterationSelect.innerHTML = '<option value="">Select a migration first</option>';
-                return;
-            }
-            iterationSelect.innerHTML = '<option value="">Loading iterations...</option>';
-            fetch(`/rest/scriptrunner/latest/custom/migrations/${migrationId}/iterations`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(iterations => {
-                    iterationSelect.innerHTML = '';
-                    if (Array.isArray(iterations) && iterations.length > 0) {
-                        iterations.forEach(iter => {
-                            const option = document.createElement('option');
-                            option.value = iter.id;
-                            option.textContent = iter.name || '(Unnamed Iteration)';
-                            iterationSelect.appendChild(option);
-                        });
-                    } else {
-                        iterationSelect.innerHTML = '<option value="">No iterations found</option>';
-                    }
-                })
-                .catch(() => {
-                    iterationSelect.innerHTML = '<option value="">Failed to load iterations</option>';
-                });
-        });
-
-        iterationSelect.addEventListener('change', function () {
-            const migrationId = migrationSelect.value;
-            const iterationId = this.value;
-            const planFilter = document.getElementById('plan-filter');
-            const sequenceFilter = document.getElementById('sequence-filter');
-            const phaseFilter = document.getElementById('phase-filter');
-
-            // Clear subsequent filters
-            if(planFilter) planFilter.innerHTML = '<option value="">Select an iteration first</option>';
-            if(sequenceFilter) sequenceFilter.innerHTML = '<option value="">Select a plan first</option>';
-            if(phaseFilter) phaseFilter.innerHTML = '<option value="">Select a plan first</option>';
-
-            if (!iterationId) return;
-
-            // Populate plan instances
-            populateFilter(
-                '#plan-filter',
-                `/rest/scriptrunner/latest/custom/migrations/${migrationId}/iterations/${iterationId}/plan-instances`,
-                'All Plan Instances'
-            );
-        });
-
-        const planFilter = document.getElementById('plan-filter');
-        if (planFilter) {
-            planFilter.addEventListener('change', function () {
-                const migrationId = migrationSelect.value;
-                const iterationId = iterationSelect.value;
-                const planInstanceId = this.value;
-                const sequenceFilter = document.getElementById('sequence-filter');
-                const phaseFilter = document.getElementById('phase-filter');
-
-                // Clear subsequent filters
-                if(sequenceFilter) sequenceFilter.innerHTML = '<option value="">Select a plan first</option>';
-                if(phaseFilter) phaseFilter.innerHTML = '<option value="">Select a plan first</option>';
-
-                if (!planInstanceId) return;
-
-                const baseUrl = `/rest/scriptrunner/latest/custom/migrations/${migrationId}/iterations/${iterationId}/plan-instances/${planInstanceId}`;
-
-                // Populate sequences
-                populateFilter(
-                    '#sequence-filter',
-                    `${baseUrl}/sequences`,
-                    'All Sequences'
-                );
-
-                // Populate phases
-                populateFilter(
-                    '#phase-filter',
-                    `${baseUrl}/phases`,
-                    'All Phases'
-                );
-            });
-        }
-    }
-});
 
 // Export for potential module use
 if (typeof module !== 'undefined' && module.exports) {
