@@ -478,6 +478,20 @@ class IterationView {
         const instructions = stepData.instructions || [];
         const impactedTeams = stepData.impactedTeams || [];
         
+        // Helper function to get status display
+        const getStatusDisplay = (status) => {
+            if (!status) return '<span class="status-pending">Pending</span>';
+            const statusLower = status.toLowerCase();
+            if (statusLower.includes('pending')) return '<span class="status-pending">Pending</span>';
+            if (statusLower.includes('progress')) return '<span class="status-progress">In Progress</span>';
+            if (statusLower.includes('completed')) return '<span class="status-completed">Completed</span>';
+            if (statusLower.includes('failed')) return '<span class="status-failed">Failed</span>';
+            if (statusLower.includes('blocked')) return '<span class="status-blocked">Blocked</span>';
+            if (statusLower.includes('cancelled')) return '<span class="status-cancelled">Cancelled</span>';
+            if (statusLower.includes('todo') || statusLower.includes('not_started')) return '<span class="status-todo">Todo</span>';
+            return `<span class="status-pending">${status}</span>`;
+        };
+        
         let html = `
             <div class="step-info">
                 <div class="step-title">
@@ -486,12 +500,32 @@ class IterationView {
                 
                 <div class="step-metadata">
                     <div class="metadata-item">
-                        <span class="label">🎯 Type:</span>
-                        <span class="value">${summary.Type || 'Unknown'}</span>
+                        <span class="label">🎯 Target Environment:</span>
+                        <span class="value">${summary.TargetEnvironment || 'Production'}</span>
                     </div>
                     <div class="metadata-item">
-                        <span class="label">👥 Impacted Teams:</span>
-                        <span class="value">${impactedTeams.length > 0 ? impactedTeams.join(', ') : 'None'}</span>
+                        <span class="label">🔄 Scope:</span>
+                        <span class="value">
+                            <span class="scope-tag">RUN</span>
+                            <span class="scope-tag">DR</span>
+                            <span class="scope-tag">CUTOVER</span>
+                        </span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">👥 Teams:</span>
+                        <span class="value">${summary.AssignedTeam ? `Assigned: ${summary.AssignedTeam}` : 'Not assigned'}${impactedTeams.length > 0 ? ` | Impacted: ${impactedTeams.join(', ')}` : ''}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">📂 Location:</span>
+                        <span class="value">${summary.SequenceName ? `Sequence: ${summary.SequenceName}` : 'Unknown sequence'}${summary.PhaseName ? ` | Phase: ${summary.PhaseName}` : ''}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">⏱️ Duration:</span>
+                        <span class="value">${summary.Duration || summary.EstimatedDuration || '45 minutes'}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">📊 Status:</span>
+                        <span class="value">${getStatusDisplay(summary.Status)}</span>
                     </div>
                 </div>
                 
@@ -510,16 +544,22 @@ class IterationView {
                         <div class="instructions-header">
                             <div class="col-num">#</div>
                             <div class="col-instruction">Instruction</div>
+                            <div class="col-team">Team</div>
+                            <div class="col-control">Control</div>
+                            <div class="col-duration">Duration</div>
                             <div class="col-complete">✓</div>
                         </div>
             `;
             
-            instructions.forEach(instruction => {
+            instructions.forEach((instruction, index) => {
                 html += `
                     <div class="instruction-row">
-                        <div class="col-num">${instruction.Order}</div>
-                        <div class="col-instruction">${instruction.Description}</div>
-                        <div class="col-complete"><input type="checkbox"></div>
+                        <div class="col-num">${instruction.Order || (index + 1)}</div>
+                        <div class="col-instruction">${instruction.Description || instruction.Instruction || 'No description'}</div>
+                        <div class="col-team">${instruction.Team || summary.AssignedTeam || 'TBD'}</div>
+                        <div class="col-control">${instruction.Control || instruction.ControlCode || `CTRL-${String(index + 1).padStart(2, '0')}`}</div>
+                        <div class="col-duration">${instruction.Duration || instruction.EstimatedDuration || '5 min'}</div>
+                        <div class="col-complete"><input type="checkbox" ${instruction.IsCompleted ? 'checked' : ''}></div>
                     </div>
                 `;
             });
@@ -530,31 +570,51 @@ class IterationView {
             `;
         }
         
-        // Add comment section placeholder
+        // Add comment section with mock data
         html += `
             <div class="comments-section">
-                <h4>💬 COMMENTS</h4>
+                <h4>💬 COMMENTS (3)</h4>
                 <div class="comments-list">
                     <div class="comment">
                         <div class="comment-header">
-                            <span class="comment-author">System</span>
-                            <span class="comment-time">Just now</span>
+                            <span class="comment-author">John Smith (DB-Team)</span>
+                            <span class="comment-time">2 hours ago</span>
                         </div>
                         <div class="comment-body">
-                            Step details loaded successfully.
+                            "Backup server space verified - 2TB available"
+                        </div>
+                    </div>
+                    
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-author">Sarah Johnson (NET-Team)</span>
+                            <span class="comment-time">1 hour ago</span>
+                        </div>
+                        <div class="comment-body">
+                            "Network connectivity to backup server confirmed"
+                        </div>
+                    </div>
+                    
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-author">Mike Chen (DB-Team)</span>
+                            <span class="comment-time">30 minutes ago</span>
+                        </div>
+                        <div class="comment-body">
+                            "Ready to begin backup process"
                         </div>
                     </div>
                 </div>
                 
                 <div class="comment-form">
                     <textarea placeholder="Add a comment..." rows="3"></textarea>
-                    <button type="button" class="btn-primary">Add Comment</button>
+                    <button type="button" class="btn btn-primary">Add Comment</button>
                 </div>
             </div>
             
             <div class="step-actions">
-                <button type="button" class="btn-secondary">Mark Instructions Complete</button>
-                <button type="button" class="btn-primary">Update Status</button>
+                <button type="button" class="btn btn-secondary">Mark Instructions Complete</button>
+                <button type="button" class="btn btn-primary">Update Status</button>
             </div>
         `;
         
@@ -790,6 +850,9 @@ class IterationView {
         if (statusLower.includes('completed')) return 'status-completed';
         if (statusLower.includes('progress')) return 'status-progress';
         if (statusLower.includes('failed') || statusLower.includes('error')) return 'status-failed';
+        if (statusLower.includes('blocked')) return 'status-blocked';
+        if (statusLower.includes('cancelled')) return 'status-cancelled';
+        if (statusLower.includes('todo') || statusLower.includes('not_started')) return 'status-todo';
         return 'status-pending';
     }
 
@@ -813,9 +876,12 @@ class IterationView {
     calculateAndUpdateStepCounts(sequences) {
         let total = 0;
         let pending = 0;
+        let todo = 0;
         let progress = 0;
         let completed = 0;
         let failed = 0;
+        let blocked = 0;
+        let cancelled = 0;
         
         sequences.forEach(sequence => {
             sequence.phases.forEach(phase => {
@@ -833,6 +899,15 @@ class IterationView {
                         case 'status-failed':
                             failed++;
                             break;
+                        case 'status-blocked':
+                            blocked++;
+                            break;
+                        case 'status-cancelled':
+                            cancelled++;
+                            break;
+                        case 'status-todo':
+                            todo++;
+                            break;
                         default:
                             pending++;
                     }
@@ -840,19 +915,22 @@ class IterationView {
             });
         });
         
-        this.updateStepCounts(total, pending, progress, completed, failed);
+        this.updateStepCounts(total, pending, todo, progress, completed, failed, blocked, cancelled);
     }
 
     /**
      * Update step count display
      */
-    updateStepCounts(total, pending, progress, completed, failed) {
+    updateStepCounts(total, pending, todo, progress, completed, failed, blocked, cancelled) {
         const elements = {
             'total-steps': total,
             'pending-steps': pending,
+            'todo-steps': todo,
             'progress-steps': progress,
             'completed-steps': completed,
-            'failed-steps': failed
+            'failed-steps': failed,
+            'blocked-steps': blocked,
+            'cancelled-steps': cancelled
         };
         
         Object.entries(elements).forEach(([id, count]) => {
