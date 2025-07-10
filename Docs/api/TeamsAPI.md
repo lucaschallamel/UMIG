@@ -113,7 +113,7 @@
 - **Other Security Considerations:** SQL injection prevention via parameterized queries
 
 ## 7. Business Logic & Side Effects
-- **Key Logic:** 
+- **Key Logic:**
   - Hierarchical filtering uses instance→master table relationships
   - Teams are filtered by step assignments through `steps_master_stm_x_teams_tms_impacted`
   - Progressive filtering: fewer teams returned at deeper hierarchy levels
@@ -121,7 +121,7 @@
 - **Idempotency:** GET operations are idempotent; POST is not idempotent; PUT/DELETE are idempotent
 
 ## 8. Dependencies & Backing Services
-- **DB Tables/Entities:** 
+- **DB Tables/Entities:**
   - `teams_tms` (primary)
   - `steps_master_stm_x_teams_tms_impacted` (team-step relationships)
   - `steps_master_stm`, `phases_master_phm`, `sequences_master_sqm`, `plans_master_plm` (hierarchy)

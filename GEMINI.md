@@ -525,7 +525,7 @@ The project includes predefined workflows for common development tasks. These wo
 ### Executing Workflows
 
 To execute a workflow with Gemini CLI, simply reference it:
-- "Please run the memory bank update workflow" 
+- "Please run the memory bank update workflow"
 - "Execute `.clinerules/workflows/memory-bank-update.md`"
 - "Update the API documentation using the api-tests-specs-update workflow"
 

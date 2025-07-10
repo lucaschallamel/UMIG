@@ -2,10 +2,16 @@
 
 ## 1. Current Work Focus
 
-The project is currently in the **implementation phase**, focusing on building out the core backend APIs and frontend UI components within the Confluence-integrated architecture. Recent efforts have concentrated on **hierarchical filtering implementation for the Iteration View** and **completing the Labels and enhanced Teams APIs**. Key achievements include implementing cascading filters that dynamically update based on parent selections, establishing consistent query parameter patterns across all resources, and creating comprehensive API documentation for the new filtering capabilities.
+The project is currently in the **implementation phase**, focusing on building out the core backend APIs and frontend UI components within the Confluence-integrated architecture. Recent efforts have **completed the hierarchical filtering implementation for the Iteration View** with full labels integration. Key achievements include resolving critical type system issues in Groovy, implementing complete parent-child filter cascade logic, adding the labels column to the runsheet, and establishing robust patterns for future API development. The iteration view is now fully functional with dynamic filtering and real-time step management capabilities.
 
 ## 2. Recent Changes & Decisions
 
+* **Hierarchical Filtering and Labels Implementation Complete (2025-07-10, ADR-031):** Successfully resolved all critical filtering issues and completed the iteration view:
+  * **Type System Resolution:** Fixed Groovy static type checking errors using explicit casting (`as String`) for UUID and Integer parsing
+  * **Database Filtering Corrections:** Corrected master vs instance ID filtering patterns (plm_id→pli_id, sqm_id→sqi_id, phm_id→phi_id)
+  * **Labels Integration:** Added labels column to runsheet with colored tag display and proper many-to-many relationship handling
+  * **Complete Parent-Child Cascade:** Implemented hierarchical reset logic: Migration → Iteration → Plan → Sequence → Phase → Teams + Labels
+  * **API Specification Updates:** Added `/steps` endpoint to OpenAPI spec and regenerated Postman collection following api-tests-specs-update workflow
 * **Hierarchical Filtering Pattern (2025-07-09, ADR-030):** Implemented comprehensive hierarchical filtering across Teams and Labels APIs:
   * **Consistent Query Parameters:** All resources now support filtering by hierarchy level (`?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`)
   * **Repository Pattern Extension:** Created `LabelRepository.groovy` and enhanced `TeamRepository.groovy` with hierarchical filtering methods
@@ -35,18 +41,22 @@ The project is currently in the **implementation phase**, focusing on building o
 
 ## 3. Next Steps
 
-1. **Complete Iteration View Implementation:** Finalise the ScriptRunner macro integration with full filtering capabilities and step management features.
-2. **Core API Development:** Implement remaining backend REST API endpoints for Plans, Sequences, Phases, Steps, Instructions, and Controls using the established hierarchical filtering pattern.
-3. **Frontend Enhancement:** Extend the Iteration View JavaScript to handle step details, status updates, and real-time data refresh.
-4. **Integration Testing:** Add comprehensive tests for the hierarchical filtering functionality across all affected APIs.
-5. **Planning Feature Implementation:** Build the UI for the "Planning Feature" to allow input and generation of the HTML macro-plan.
-6. **Real-time Dashboard:** Develop the frontend JavaScript for the main dashboard with AJAX polling for real-time updates.
-7. **Data Import Finalisation:** Complete the data import strategy for migrating existing runbook data from Confluence/Draw.io/Excel sources.
-8. **Performance Testing:** Validate the performance of hierarchical queries under load conditions.
-9. **End-to-End Testing:** Conduct comprehensive testing with real user scenarios and data.
+1. **Core API Development:** Implement remaining backend REST API endpoints for Plans, Sequences, Phases, Instructions, and Controls using the established hierarchical filtering pattern and type safety practices from ADR-031.
+2. **Frontend Enhancement:** Extend step details functionality, status updates, and real-time data refresh using the proven patterns from the iteration view implementation.
+3. **Planning Feature Implementation:** Build the UI for the "Planning Feature" to allow input and generation of the HTML macro-plan.
+4. **Real-time Dashboard:** Develop the frontend JavaScript for the main dashboard with AJAX polling for real-time updates.
+5. **Data Import Finalisation:** Complete the data import strategy for migrating existing runbook data from Confluence/Draw.io/Excel sources.
+6. **Integration Testing:** Add comprehensive tests for the complete hierarchical filtering functionality across all APIs.
+7. **Performance Testing:** Validate the performance of hierarchical queries under load conditions.
+8. **End-to-End Testing:** Conduct comprehensive testing with real user scenarios and data.
 
 ## 4. Important Patterns and Learnings
 
+* **Groovy Type Safety Patterns (ADR-031):** The resolution of type checking errors established critical patterns for ScriptRunner development:
+  * **Explicit Casting:** Always use `as String` when passing query parameters to UUID.fromString() or Integer.parseInt()
+  * **Complete Field Selection:** Include ALL fields referenced in result mapping to prevent "No such property" errors
+  * **Master vs Instance Filtering:** Use instance IDs (pli_id, sqi_id, phi_id) for hierarchical filtering, not master IDs
+  * **Graceful Error Handling:** Handle many-to-many relationships with try-catch blocks to prevent API failures
 * **Hierarchical Filtering Pattern:** The implementation of ADR-030 demonstrates how consistent query parameter filtering across all resources provides an intuitive and performant way to navigate complex data hierarchies.
 * **Dynamic Data Integration Pattern:** The successful implementation of the Iteration View macro established a reusable pattern where UI selectors are populated dynamically via REST APIs rather than hardcoded in Groovy, promoting maintainability and testability.
 * **Repository Pattern Benefits:** The `MigrationRepository.groovy`, `LabelRepository.groovy`, and enhanced `TeamRepository.groovy` implementations demonstrated the value of encapsulating database access, providing clean separation of concerns and consistent error handling patterns.

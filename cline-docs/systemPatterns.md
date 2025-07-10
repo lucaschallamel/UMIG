@@ -22,11 +22,13 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   * **Many-to-Many Relationships:** Association (join) tables are used for `step_dependencies`, `step_iteration_scope`, `task_controls_link`, and `teams_tms_x_users_usr` (for user-team membership) (ADR-022).
   * **Control Status per Iteration:** The status of a `Control` is tracked per-iteration using a join table (`control_iteration_status`) that contains the status (`PASSED`, `FAILED`) as payload. Controls are logically scoped to phases (ADR-016).
   * **Comments:** Dedicated tables for step-level and instance-level comments (`step_pilot_comments_spc`, `step_instance_comments_sic`) (ADR-021).
-* **Hierarchical Filtering Pattern (ADR-030, 2025-07-09):** Consistent query parameter filtering across all resources for intuitive navigation of complex data hierarchies:
+* **Hierarchical Filtering Pattern (ADR-030, ADR-031, 2025-07-10):** Consistent query parameter filtering across all resources for intuitive navigation of complex data hierarchies:
   * **Unified Query Parameters:** All resources support filtering by hierarchy level: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`
   * **Database-Level Filtering:** Efficient SQL queries with appropriate joins to filter data at the source
   * **Cascading UI Behaviour:** Frontend filters dynamically update based on parent selections, reducing cognitive load
   * **Progressive Refinement:** Each filter level narrows the available options in dependent filters
+  * **Type-Safe Implementation:** Explicit casting patterns (`as String`) for all query parameter processing to prevent Groovy static type checking errors
+  * **Master vs Instance Filtering:** Always use instance IDs (pli_id, sqi_id, phi_id) for hierarchical filtering, not master IDs
 * **Dynamic Data Integration Pattern (2025-07-04):** A robust pattern for macro development where UI selectors are populated dynamically via REST APIs rather than hardcoded in Groovy:
   * **Repository Pattern:** Encapsulated database access using `DatabaseUtil.withSql` (e.g., `MigrationRepository.groovy`, `LabelRepository.groovy`, `TeamRepository.groovy`)
   * **API-Driven UI Population:** Macros provide skeleton HTML with loading states; JavaScript handles all data fetching and UI population
@@ -40,6 +42,10 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 * **Local Development Environment:** Managed by a Node.js-based orchestration layer using Podman and Ansible (ADR-025). Liquibase is used for database migrations (ADR-008).
 * **Testing:** A formal integration testing framework is established to run tests against the live database (ADR-019). Specific mocks are enforced in tests to prevent regressions (ADR-026).
 * **Data Import Strategy:** Bulk import of Confluence JSON exports uses `psql \copy` with a staging table, ensuring high performance and robustness for heterogeneous data (ADR-028).
+* **Groovy Type Safety Pattern (ADR-031):** Mandatory patterns for preventing runtime type errors in ScriptRunner environments:
+  * **Explicit Casting:** Always use `filters.migrationId as String` when passing query parameters to UUID.fromString() or Integer.parseInt()
+  * **Complete Field Selection:** Include ALL fields referenced in result mapping in SQL SELECT clauses
+  * **Graceful Error Handling:** Wrap many-to-many relationship queries in try-catch blocks to prevent API failures
 
 ## 3. Component Relationships
 

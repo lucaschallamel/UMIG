@@ -100,7 +100,7 @@
 - **Other Security Considerations:** SQL injection prevention via parameterized queries
 
 ## 7. Business Logic & Side Effects
-- **Key Logic:** 
+- **Key Logic:**
   - Hierarchical filtering follows specific path: filtered phases → step instances → master steps → labels
   - Query flow: PHI instances → STI via phi_id → STM via stm_id → labels via labels_lbl_x_steps_master_stm
   - Progressive filtering: fewer labels returned at deeper hierarchy levels
@@ -109,7 +109,7 @@
 - **Idempotency:** Yes (GET operation)
 
 ## 8. Dependencies & Backing Services
-- **DB Tables/Entities:** 
+- **DB Tables/Entities:**
   - `labels_lbl` (primary)
   - `labels_lbl_x_steps_master_stm` (label-step relationships)
   - `steps_master_stm` (master steps)
