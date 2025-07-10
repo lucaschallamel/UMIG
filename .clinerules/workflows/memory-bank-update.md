@@ -1,5 +1,5 @@
 This task is about updating the memory bank of cline, in folder cline-docs
-You will do that based on 
+You will do that based on
 - the Developer Journal entries of the day, that you will find in folder DevJournal,
 - the CHANGELOG.md file
 - the various README.md files
