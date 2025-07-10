@@ -205,12 +205,15 @@ class IterationView {
         const migId = this.filters.migration;
         console.log('onMigrationChange: Selected migration ID:', migId);
         
-        // Reset all dependent selectors
+        // Reset ALL dependent filters (everything below migration in hierarchy)
         this.filters.iteration = '';
         this.filters.plan = '';
         this.filters.sequence = '';
         this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
         
+        // Reset all dependent selectors to default state
         this.resetSelector('#iteration-select', 'SELECT AN ITERATION');
         this.resetSelector('#plan-filter', 'All Plans');
         this.resetSelector('#sequence-filter', 'All Sequences');
@@ -219,29 +222,28 @@ class IterationView {
         this.resetSelector('#label-filter', 'All Labels');
 
         if (migId) {
-            console.log('onMigrationChange: Loading dependent filters for migration:', migId);
+            console.log('onMigrationChange: Loading iterations for migration:', migId);
             const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
             populateFilter('#iteration-select', url, 'SELECT AN ITERATION');
-            
-            // Refresh teams and labels selectors for this migration
-            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?migrationId=${migId}`;
-            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?migrationId=${migId}`;
-            populateFilter('#team-filter', teamsUrl, 'All Teams');
-            populateFilter('#label-filter', labelsUrl, 'All Labels');
         }
         
-        this.applyFilters();
+        // Show blank runsheet state since no iteration is selected
+        this.showBlankRunsheetState();
     }
 
     onIterationChange() {
         const migId = this.filters.migration;
         const iteId = this.filters.iteration;
+        console.log('onIterationChange: Selected iteration ID:', iteId);
 
-        // Reset dependent filters
+        // Reset dependent filters (everything below iteration in hierarchy)
         this.filters.plan = '';
         this.filters.sequence = '';
         this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
         
+        // Reset dependent selectors to default state
         this.resetSelector('#plan-filter', 'All Plans');
         this.resetSelector('#sequence-filter', 'All Sequences');
         this.resetSelector('#phase-filter', 'All Phases');
@@ -249,16 +251,14 @@ class IterationView {
         this.resetSelector('#label-filter', 'All Labels');
 
         if (!iteId) {
-            this.applyFilters();
+            this.showBlankRunsheetState();
             return;
         }
 
-        // Populate all three filters with ALL items for this iteration
+        // Populate filters for this iteration
         const planUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances`;
         const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
         const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
-        
-        // Refresh teams and labels selectors for this iteration
         const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
         const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
 
@@ -269,15 +269,30 @@ class IterationView {
         populateFilter('#label-filter', labelsUrl, 'All Labels');
 
         this.showNotification('Loading data for selected iteration...', 'info');
-        this.applyFilters();
+        // Load steps and auto-select first step
+        this.loadStepsAndSelectFirst();
     }
 
     onPlanChange() {
         const { migration: migId, iteration: iteId, plan: planId } = this.filters;
+        console.log('onPlanChange: Selected plan ID:', planId);
 
-        // Reset dependent filters
+        // Reset dependent filters (everything below plan in hierarchy)
         this.filters.sequence = '';
         this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
+        
+        // Reset dependent selectors to default state
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!migId || !iteId) {
+            this.showBlankRunsheetState();
+            return;
+        }
 
         if (!planId) {
             // 'All Plans' selected - show all sequences and phases for iteration
@@ -290,7 +305,7 @@ class IterationView {
             populateFilter('#team-filter', teamsUrl, 'All Teams');
             populateFilter('#label-filter', labelsUrl, 'All Labels');
         } else {
-            // Specific plan selected - show only sequences and phases for this plan
+            // Specific plan selected - use nested URL pattern (migrationApi supports this)
             const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/sequences`;
             const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
             const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
@@ -301,14 +316,28 @@ class IterationView {
             populateFilter('#label-filter', labelsUrl, 'All Labels');
         }
         
+        // Apply filters to reload steps
         this.applyFilters();
     }
 
     onSequenceChange() {
         const { migration: migId, iteration: iteId, plan: planId, sequence: seqId } = this.filters;
+        console.log('onSequenceChange: Selected sequence ID:', seqId);
 
-        // Reset dependent filters
+        // Reset dependent filters (everything below sequence in hierarchy)
         this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
+        
+        // Reset dependent selectors to default state
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!migId || !iteId) {
+            this.showBlankRunsheetState();
+            return;
+        }
 
         if (!seqId) {
             // 'All Sequences' selected - show all phases for current plan or iteration
@@ -328,7 +357,7 @@ class IterationView {
                 populateFilter('#label-filter', labelsUrl, 'All Labels');
             }
         } else {
-            // Specific sequence selected - show only phases for this sequence
+            // Specific sequence selected - use nested URL pattern (migrationApi supports this)
             const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences/${seqId}/phases`;
             const teamsUrl = `/rest/scriptrunner/latest/custom/teams?sequenceId=${seqId}`;
             const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
@@ -337,11 +366,26 @@ class IterationView {
             populateFilter('#label-filter', labelsUrl, 'All Labels');
         }
         
+        // Apply filters to reload steps
         this.applyFilters();
     }
 
     onPhaseChange() {
-        const { sequence: seqId, phase: phaseId } = this.filters;
+        const { migration: migId, iteration: iteId, plan: planId, sequence: seqId, phase: phaseId } = this.filters;
+        console.log('onPhaseChange: Selected phase ID:', phaseId);
+
+        // Reset dependent filters (teams and labels - no hierarchy below phase)
+        this.filters.team = '';
+        this.filters.label = '';
+        
+        // Reset dependent selectors to default state
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!migId || !iteId) {
+            this.showBlankRunsheetState();
+            return;
+        }
 
         if (!phaseId) {
             // 'All Phases' selected - refresh teams and labels for current sequence or higher level
@@ -350,8 +394,17 @@ class IterationView {
                 const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
                 populateFilter('#team-filter', teamsUrl, 'All Teams');
                 populateFilter('#label-filter', labelsUrl, 'All Labels');
+            } else if (planId) {
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            } else {
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
             }
-            // If no sequence selected, teams and labels are already correctly populated from higher level
         } else {
             // Specific phase selected - show only teams and labels for this phase
             const teamsUrl = `/rest/scriptrunner/latest/custom/teams?phaseId=${phaseId}`;
@@ -360,6 +413,7 @@ class IterationView {
             populateFilter('#label-filter', labelsUrl, 'All Labels');
         }
         
+        // Apply filters to reload steps
         this.applyFilters();
     }
 
@@ -609,6 +663,7 @@ class IterationView {
                                     <th class="col-code">Code</th>
                                     <th class="col-title">Title</th>
                                     <th class="col-team">Team</th>
+                                    <th class="col-labels">Labels</th>
                                     <th class="col-status">Status</th>
                                     <th class="col-duration">Duration</th>
                                 </tr>
@@ -618,6 +673,7 @@ class IterationView {
                 
                 phase.steps.forEach(step => {
                     const statusClass = this.getStatusClass(step.status);
+                    const labelsHtml = this.renderLabels(step.labels || []);
                     html += `
                         <tr class="step-row ${step.id === this.selectedStep ? 'selected' : ''}" 
                             data-step="${step.id}" 
@@ -625,6 +681,7 @@ class IterationView {
                             <td class="col-code">${step.code}</td>
                             <td class="col-title">${step.name}</td>
                             <td class="col-team">${step.ownerTeamName}</td>
+                            <td class="col-labels">${labelsHtml}</td>
                             <td class="col-status ${statusClass}">${step.status}</td>
                             <td class="col-duration">${step.durationMinutes ? step.durationMinutes + ' min' : '-'}</td>
                         </tr>
@@ -645,6 +702,9 @@ class IterationView {
         
         // Bind click events to step rows
         this.bindStepRowEvents();
+        
+        // Bind fold/unfold events to sequence and phase headers
+        this.bindFoldingEvents();
     }
 
     /**
@@ -664,6 +724,63 @@ class IterationView {
     }
 
     /**
+     * Bind fold/unfold events to sequence and phase headers
+     */
+    bindFoldingEvents() {
+        // Sequence headers
+        document.querySelectorAll('.sequence-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                this.toggleSequence(e.currentTarget);
+            });
+        });
+
+        // Phase headers
+        document.querySelectorAll('.phase-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                this.togglePhase(e.currentTarget);
+            });
+        });
+    }
+
+    /**
+     * Toggle sequence visibility (fold/unfold)
+     */
+    toggleSequence(sequenceHeader) {
+        const icon = sequenceHeader.querySelector('.expand-icon');
+        const sequenceSection = sequenceHeader.closest('.sequence-section');
+        const phaseSections = sequenceSection.querySelectorAll('.phase-section');
+
+        if (icon.classList.contains('collapsed')) {
+            icon.classList.remove('collapsed');
+            phaseSections.forEach(phase => phase.style.display = 'block');
+        } else {
+            icon.classList.add('collapsed');
+            phaseSections.forEach(phase => phase.style.display = 'none');
+        }
+    }
+
+    /**
+     * Toggle phase visibility (fold/unfold)
+     */
+    togglePhase(phaseHeader) {
+        const icon = phaseHeader.querySelector('.expand-icon');
+        const phaseSection = phaseHeader.closest('.phase-section');
+        const stepsTable = phaseSection.querySelector('table.runsheet-table');
+
+        if (icon.classList.contains('collapsed')) {
+            icon.classList.remove('collapsed');
+            if (stepsTable) {
+                stepsTable.style.display = 'table';
+            }
+        } else {
+            icon.classList.add('collapsed');
+            if (stepsTable) {
+                stepsTable.style.display = 'none';
+            }
+        }
+    }
+
+    /**
      * Get CSS class for step status
      */
     getStatusClass(status) {
@@ -674,6 +791,20 @@ class IterationView {
         if (statusLower.includes('progress')) return 'status-progress';
         if (statusLower.includes('failed') || statusLower.includes('error')) return 'status-failed';
         return 'status-pending';
+    }
+
+    /**
+     * Render labels as colored tags
+     */
+    renderLabels(labels) {
+        if (!labels || labels.length === 0) {
+            return '<span class="no-labels">-</span>';
+        }
+        
+        return labels.map(label => {
+            const color = label.color || '#6B778C';
+            return `<span class="label-tag" style="background-color: ${color}; color: white;" title="${label.description || label.name}">${label.name}</span>`;
+        }).join(' ');
     }
 
     /**
@@ -826,6 +957,58 @@ class IterationView {
     updateFilters() {
         // Initialize filter state
         this.applyFilters();
+    }
+
+    /**
+     * Show blank runsheet state when no migration/iteration is selected
+     */
+    showBlankRunsheetState() {
+        const runsheetContent = document.getElementById('runsheet-content');
+        if (runsheetContent) {
+            runsheetContent.innerHTML = `
+                <div class="loading-message">
+                    <p>📋 Select a migration and iteration to view steps</p>
+                </div>
+            `;
+        }
+        
+        // Clear step details
+        const stepDetailsContent = document.querySelector('.step-details-content');
+        if (stepDetailsContent) {
+            stepDetailsContent.innerHTML = `
+                <div class="loading-message">
+                    <p>👋 Select a step from the runsheet to view details</p>
+                </div>
+            `;
+        }
+        
+        // Reset counts
+        this.updateStepCounts(0, 0, 0, 0, 0);
+    }
+
+    /**
+     * Load steps and auto-select first step of first phase in first sequence
+     */
+    async loadStepsAndSelectFirst() {
+        try {
+            // Load the steps first
+            await this.loadSteps();
+            
+            // Auto-select first step if none is selected
+            if (!this.selectedStep) {
+                const firstStepRow = document.querySelector('.step-row');
+                if (firstStepRow) {
+                    const stepId = firstStepRow.getAttribute('data-step');
+                    const stepCode = firstStepRow.getAttribute('data-step-code');
+                    if (stepId) {
+                        this.selectStep(stepId, stepCode);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('loadStepsAndSelectFirst: Error:', error);
+            this.showBlankRunsheetState();
+        }
     }
 }
 

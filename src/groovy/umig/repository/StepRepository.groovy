@@ -76,7 +76,7 @@ class StepRepository {
                     sti.sti_id, stm.stt_code, stm.stm_number, sti.sti_name, sti.sti_status, 
                     sti.sti_duration_minutes, stm.tms_id_owner,
                     -- Master step data
-                    stm.stm_name as master_name,
+                    stm.stm_id, stm.stm_name as master_name,
                     -- Sequence and phase hierarchy
                     sqm.sqm_id, sqm.sqm_name, sqm.sqm_order,
                     phm.phm_id, phm.phm_name, phm.phm_order,
@@ -108,33 +108,33 @@ class StepRepository {
             // Add hierarchical filters
             if (filters.migrationId) {
                 query += ' AND mig.mig_id = :migrationId'
-                params.migrationId = UUID.fromString(filters.migrationId)
+                params.migrationId = UUID.fromString(filters.migrationId as String)
             }
             
             if (filters.iterationId) {
                 query += ' AND ite.ite_id = :iterationId'
-                params.iterationId = UUID.fromString(filters.iterationId)
+                params.iterationId = UUID.fromString(filters.iterationId as String)
             }
             
             if (filters.planId) {
-                query += ' AND plm.plm_id = :planId'
-                params.planId = UUID.fromString(filters.planId)
+                query += ' AND pli.pli_id = :planId'
+                params.planId = UUID.fromString(filters.planId as String)
             }
             
             if (filters.sequenceId) {
-                query += ' AND sqm.sqm_id = :sequenceId'
-                params.sequenceId = UUID.fromString(filters.sequenceId)
+                query += ' AND sqi.sqi_id = :sequenceId'
+                params.sequenceId = UUID.fromString(filters.sequenceId as String)
             }
             
             if (filters.phaseId) {
-                query += ' AND phm.phm_id = :phaseId'
-                params.phaseId = UUID.fromString(filters.phaseId)
+                query += ' AND phi.phi_id = :phaseId'
+                params.phaseId = UUID.fromString(filters.phaseId as String)
             }
             
             // Add team filter
             if (filters.teamId) {
-                query += ' AND sti.tms_id_owner = :teamId'
-                params.teamId = UUID.fromString(filters.teamId)
+                query += ' AND stm.tms_id_owner = :teamId'
+                params.teamId = Integer.parseInt(filters.teamId as String)
             }
             
             // Add label filter (through step-label join table)
@@ -145,7 +145,7 @@ class StepRepository {
                         WHERE lxs.stm_id = stm.stm_id AND lxs.lbl_id = :labelId
                     )
                 '''
-                params.labelId = UUID.fromString(filters.labelId)
+                params.labelId = Integer.parseInt(filters.labelId as String)
             }
             
             // Order by sequence, phase, and step number
@@ -159,6 +159,7 @@ class StepRepository {
             return results.collect { row ->
                 [
                     id: row.sti_id,
+                    stmId: row.stm_id,
                     sttCode: row.stt_code,
                     stmNumber: row.stm_number,
                     name: row.sti_name ?: row.master_name,
@@ -181,6 +182,32 @@ class StepRepository {
                     migrationName: row.mig_name
                 ] as Map
             } as List<Map>
+        }
+    }
+
+    /**
+     * Fetches all labels associated with a step master.
+     * @param stmId The UUID of the step master
+     * @return A list of labels with id, name, description, and color
+     */
+    def findLabelsByStepId(UUID stmId) {
+        DatabaseUtil.withSql { sql ->
+            def results = sql.rows('''
+                SELECT l.lbl_id, l.lbl_name, l.lbl_description, l.lbl_color
+                FROM labels_lbl l
+                JOIN labels_lbl_x_steps_master_stm lxs ON l.lbl_id = lxs.lbl_id
+                WHERE lxs.stm_id = :stmId
+                ORDER BY l.lbl_name
+            ''', [stmId: stmId])
+            
+            return results.collect { row ->
+                [
+                    id: row.lbl_id,
+                    name: row.lbl_name,
+                    description: row.lbl_description,
+                    color: row.lbl_color
+                ]
+            }
         }
     }
 }

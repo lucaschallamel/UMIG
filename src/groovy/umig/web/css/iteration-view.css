@@ -43,15 +43,21 @@
     box-sizing: border-box;
 }
 
+body {
+    overflow: hidden;
+    height: 100vh;
+}
+
 .iteration-view {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
     max-width: 100%;
     background-color: var(--color-bg-secondary);
     color: var(--color-text-primary);
     font-family: var(--font-family);
     font-size: var(--font-size-base);
+    overflow: hidden;
 }
 
 .selector-bar {
@@ -138,19 +144,23 @@
 .main-content {
     display: flex;
     gap: var(--spacing-lg);
-    margin-top: var(--spacing-lg);
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
+    padding: var(--spacing-md);
+    flex: 1;
+    overflow: hidden;
 }
 
 .runsheet-panel {
     background: var(--color-bg-primary);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    flex: 2;
+    flex: 1;
     padding: var(--spacing-md);
-    min-width: 380px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 .panel-header {
@@ -159,6 +169,37 @@
     color: var(--color-primary);
     margin-bottom: var(--spacing-sm);
 }
+
+.runsheet-header {
+    flex-shrink: 0;
+}
+
+.runsheet-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.summary-stats {
+    display: flex;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-top: var(--spacing-sm);
+}
+
+.stat {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius);
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+}
+
+.stat-pending { background: rgba(101, 84, 192, 0.1); color: var(--color-pending); }
+.stat-progress { background: rgba(0, 101, 255, 0.1); color: var(--color-in-progress); }
+.stat-completed { background: rgba(0, 135, 90, 0.1); color: var(--color-completed); }
+.stat-failed { background: rgba(222, 53, 11, 0.1); color: var(--color-failed); }
 
 /* Sequence and Phase Sections */
 .sequence-section {
@@ -185,11 +226,17 @@
     margin: 0;
     font-size: var(--font-size-base);
     font-weight: 700;
+    color: #fff;
 }
 
 .expand-icon {
     font-size: var(--font-size-sm);
     transition: transform 0.2s ease;
+    color: #fff;
+}
+
+.expand-icon.collapsed {
+    transform: rotate(-90deg);
 }
 
 .phase-section {
@@ -212,6 +259,7 @@
     margin: 0;
     font-size: var(--font-size-sm);
     font-weight: 600;
+    color: #fff;
 }
 
 /* Steps Table - HTML Table Structure */
@@ -254,6 +302,11 @@
     color: var(--color-text-secondary);
 }
 
+.runsheet-table .col-labels {
+    width: 120px;
+    font-size: var(--font-size-sm);
+}
+
 .runsheet-table .col-status {
     width: 100px;
     font-size: var(--font-size-sm);
@@ -285,6 +338,26 @@
 
 .runsheet-table tbody .step-row:last-child td {
     border-bottom: none;
+}
+
+/* Label styling */
+.label-tag {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: var(--border-radius);
+    font-size: 10px;
+    font-weight: 600;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    cursor: help;
+}
+
+.no-labels {
+    color: var(--color-text-tertiary);
+    font-style: italic;
 }
 
 /* Status styling for table cells */
@@ -358,13 +431,20 @@
     background: var(--color-bg-primary);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    flex: 1.5;
+    flex: 1;
     padding: var(--spacing-md);
-    min-width: 340px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 .step-details-content {
     padding: var(--spacing-xs) 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .step-header {
@@ -514,17 +594,17 @@
     .runsheet-panel, .step-details-panel {
         padding: var(--spacing-sm);
         min-width: unset;
+        flex: 1;
     }
 }
 @media (max-width: 768px) {
-    .iteration-view {
-        padding: var(--spacing-xs);
-    }
     .main-content {
         gap: var(--spacing-xs);
+        padding: var(--spacing-xs);
     }
     .runsheet-panel, .step-details-panel {
         padding: var(--spacing-xs);
+        flex: 1;
     }
     .view-title {
         font-size: var(--font-size-lg);
