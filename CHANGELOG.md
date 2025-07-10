@@ -1,5 +1,35 @@
 ### [Unreleased]
 
+#### 2025-07-10 (Hierarchical Filter Cascade and Labels Implementation)
+- **Fix(API/Repository):** Resolved critical filtering and type system issues in iteration view
+  - Fixed Teams filter HTTP 400 error by correcting field reference (`sti.tms_id_owner` → `stm.tms_id_owner`) and UUID parsing for INTEGER team IDs
+  - Fixed Labels filter HTTP 400 error by correcting UUID parsing for INTEGER label IDs  
+  - Fixed StepRepository master vs instance ID filtering (plm_id→pli_id, sqm_id→sqi_id, phm_id→phi_id)
+  - Added missing `stm.stm_id` field to SELECT query to resolve "No such property" errors
+  - Implemented proper Groovy static type checking with explicit casting (`filters.migrationId as String`)
+- **Feat(UI):** Complete hierarchical cascade behavior and labels column
+  - Implemented parent-child filter reset logic: Migration → Iteration → Plan → Sequence → Phase → Teams + Labels
+  - Added Labels column to runsheet between Team and Status with colored tag display
+  - Fixed JavaScript URL patterns from query parameters to nested URLs for plan/sequence/phase filtering
+  - Enhanced CSS styling for label tags with proper responsive design
+- **Feat(Repository):** Added labels integration with proper many-to-many relationship handling
+  - Created `findLabelsByStepId()` method in StepRepository for step-label associations
+  - Integrated label fetching in StepsApi with robust error handling and type conversion
+  - Verified label relationships through database testing (140 step-label associations confirmed)
+- **Docs(API):** Updated OpenAPI specification and regenerated Postman collection
+  - Added `/steps` endpoint definition with comprehensive hierarchical filtering parameters
+  - Created new schema definitions: `SequenceWithSteps`, `PhaseWithSteps`, `StepWithLabels`
+  - Regenerated Postman collection from updated OpenAPI spec following api-tests-specs-update workflow
+
+#### 2025-07-09 (GitHub Actions Integration and Steps Display)
+- **CI/CD:** Added GitHub Actions workflows for Claude Code integration
+  - Created claude-code-review.yml for automated code review assistance
+  - Added claude.yml for PR assistant functionality
+- **UI(Iteration View):** Implemented steps display with API integration
+  - Added StepsApi.groovy for step data retrieval
+  - Enhanced iteration view to show steps for selected phases
+  - Improved API error handling and data validation
+
 #### 2025-07-09 (Hierarchical Filtering for Teams and Labels)
 - **Feat(API/UI):** Implemented cascading hierarchical filtering for Teams and Labels in Iteration View.
   - Enhanced TeamRepository with 5 new filtering methods (by migration, iteration, plan, sequence, and phase).

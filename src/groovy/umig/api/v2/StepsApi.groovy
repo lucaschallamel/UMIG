@@ -8,6 +8,7 @@ import groovy.transform.BaseScript
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
+import java.util.UUID
 
 @BaseScript CustomEndpointDelegate delegate
 
@@ -100,6 +101,17 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 def phaseMap = phasesMap[phaseKey] as Map
                 def stepsList = phaseMap.steps as List
                 
+                // Fetch labels for this step
+                def stepLabels = []
+                try {
+                    // Convert stmId to UUID if it's a string
+                    def stmId = step.stmId instanceof UUID ? step.stmId : UUID.fromString(step.stmId.toString())
+                    stepLabels = stepRepository.findLabelsByStepId(stmId)
+                } catch (Exception e) {
+                    // If label fetching fails, continue with empty labels
+                    stepLabels = []
+                }
+                
                 // Add step to phase
                 stepsList.add([
                     id: step.id,
@@ -108,7 +120,8 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     status: step.status,
                     durationMinutes: step.durationMinutes,
                     ownerTeamId: step.ownerTeamId,
-                    ownerTeamName: step.ownerTeamName ?: 'Unassigned'
+                    ownerTeamName: step.ownerTeamName ?: 'Unassigned',
+                    labels: stepLabels
                 ])
             }
             

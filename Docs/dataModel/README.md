@@ -41,9 +41,10 @@ UMIG is built on:
 
 ### 2.4. Users (`users_usr`)
 - **usr_id** (INT, PK)
-- **usr_trigram** (VARCHAR)
+- **usr_code** (VARCHAR, unique): 3-character user code
 - **usr_first_name**, **usr_last_name** (VARCHAR)
 - **usr_email** (VARCHAR, unique)
+- **usr_is_admin** (BOOLEAN): Administrative privileges flag
 - **rls_id** (INT, FK → roles_rls): Role
 - **Team membership**: Managed exclusively via the many-to-many join table `teams_tms_x_users_usr` (see below; no direct FK in `users_usr`).
 - **Business rule:** Each user currently belongs to exactly one team; all `ADMIN` and `PILOT` users are assigned to `IT_CUTOVER`. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for rationale.
@@ -103,7 +104,7 @@ UMIG is built on:
 ### 3.5. Controls (`controls_master_ctm`)
 - **ctm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
-- **ctm_code** (VARCHAR, unique): Unique business key (e.g., C0001, K0001)
+- **ctm_code** (VARCHAR, unique): Unique business key (e.g., C0001, K0001) - Added in migration 007
 - **ctm_order** (INT)
 - **ctm_name**, **ctm_description** (VARCHAR, TEXT)
 - **ctm_type** (VARCHAR)
@@ -144,39 +145,40 @@ UMIG is built on:
 - **pli_id** (UUID, FK → plans_instance_pli)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
 - **sqi_status** (VARCHAR): Status of this sequence instance
-- **sqi_name** (VARCHAR): Override name for the sequence instance
-- **sqi_description** (TEXT): Override description for the sequence instance
-- **sqi_order** (INTEGER): Override order for the sequence instance
-- **predecessor_sqi_id** (UUID): Override predecessor sequence instance
+- **sqi_name** (VARCHAR): Override name for the sequence instance - Added in migration 010
+- **sqi_description** (TEXT): Override description for the sequence instance - Added in migration 010
+- **sqi_order** (INTEGER): Override order for the sequence instance - Added in migration 010
+- **predecessor_sqi_id** (UUID): Override predecessor sequence instance - Added in migration 010
 
 ### 4.3. Phase Instance (`phases_instance_phi`)
 - **phi_id** (UUID, PK)
 - **sqi_id** (UUID, FK → sequences_instance_sqi)
 - **phm_id** (UUID, FK → phases_master_phm)
-- **phi_order** (INTEGER): Override order for the phase instance
-- **phi_name** (VARCHAR): Override name for the phase instance
-- **phi_description** (TEXT): Override description for the phase instance
-- **predecessor_phi_id** (UUID): Override predecessor phase instance
+- **phi_order** (INTEGER): Override order for the phase instance - Added in migration 010
+- **phi_name** (VARCHAR): Override name for the phase instance - Added in migration 010
+- **phi_description** (TEXT): Override description for the phase instance - Added in migration 010
+- **predecessor_phi_id** (UUID): Override predecessor phase instance - Added in migration 010
 
 ### 4.4. Step Instance (`steps_instance_sti`)
 - **sti_id** (UUID, PK)
 - **phi_id** (UUID, FK → phases_instance_phi)
 - **stm_id** (UUID, FK → steps_master_stm)
-- **sti_name** (VARCHAR): Override name for the step instance
-- **sti_description** (TEXT): Override description for the step instance
-- **sti_duration_minutes** (INTEGER): Override duration for the step instance
-- **sti_id_predecessor** (UUID): Override predecessor step master ID
-- **enr_id_target** (UUID): Override target entity reference
+- **sti_status** (VARCHAR): Execution status (e.g., NOT_STARTED, IN_PROGRESS, COMPLETED, FAILED)
+- **sti_name** (VARCHAR): Override name for the step instance - Added in migration 010
+- **sti_description** (TEXT): Override description for the step instance - Added in migration 010
+- **sti_duration_minutes** (INTEGER): Override duration for the step instance - Added in migration 010
+- **sti_id_predecessor** (UUID): Override predecessor step master ID - Added in migration 010
+- **enr_id_target** (UUID): Override target entity reference - Added in migration 010
 
 ### 4.5. Instruction Instance (`instructions_instance_ini`)
 - **ini_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
 - **inm_id** (UUID, FK → instructions_master_inm)
-- **tms_id** (UUID): Override template step ID
-- **cti_id** (UUID): Override custom template ID
-- **ini_order** (INTEGER): Override order for the instruction instance
-- **ini_body** (TEXT): Override body for the instruction instance
-- **ini_duration_minutes** (INTEGER): Override duration for the instruction instance
+- **tms_id** (INTEGER): Override team ID - Added in migration 010
+- **cti_id** (UUID): Override control instance ID - Added in migration 010
+- **ini_order** (INTEGER): Override order for the instruction instance - Added in migration 010
+- **ini_body** (TEXT): Override body for the instruction instance - Added in migration 010
+- **ini_duration_minutes** (INTEGER): Override duration for the instruction instance - Added in migration 010
 
 ### 4.6. Control Instance (`controls_instance_cti`)
 - **cti_id** (UUID, PK)
@@ -249,6 +251,15 @@ UMIG is built on:
 - **created_at** (TIMESTAMPTZ)
 - **created_by** (VARCHAR)
 - **Unique:** (lbl_id, app_id)
+
+### 5.9. Labels-Controls (`labels_lbl_x_controls_master_ctm`)
+- **lbl_x_ctm_id** (SERIAL, PK)
+- **lbl_id** (INT, FK → labels_lbl)
+- **ctm_id** (UUID, FK → controls_master_ctm)
+- **created_at** (TIMESTAMPTZ)
+- **created_by** (VARCHAR)
+- **Unique:** (lbl_id, ctm_id)
+- **Purpose:** Associates labels with control checkpoints for categorization and filtering
 
 ---
 
@@ -535,343 +546,100 @@ erDiagram
 
 ## 7. Recent Changes & Migration Notes
 
-- **2025-07:** Added full attribute replication to all instance tables (sequences, phases, steps, instructions, controls) to enable per-instance overrides, auditability, and future promotion capabilities. See [ADR029](../adr/ADR029-full-attribute-instantiation-instance-tables.md) for design rationale.
-- **2025-07:** Introduced `teams_tms_x_users_usr` for N-N user-team membership; dropped `tms_id` from `users_usr`.
-- **2025-06:** Added `labels_lbl_x_applications_app` for flexible application labeling.
-- All changes are reflected in this document and the ERD.
+### 2025-07-10: Hierarchical Filtering and Labels Implementation
+- **Fixed Type System Issues**: Resolved Groovy static type checking errors in StepRepository
+- **Corrected Field References**: Fixed master vs instance ID filtering patterns
+- **Enhanced Labels Integration**: Added proper many-to-many label-step relationship handling
+- **Database Field Selection**: Ensured all referenced fields are included in SQL queries
+
+### 2025-07-04: Full Attribute Replication (Migration 010)
+- **Instance Tables Enhancement**: Added full attribute replication to all instance tables:
+  - `sequences_instance_sqi`: Added `sqi_name`, `sqi_description`, `sqi_order`, `predecessor_sqi_id`
+  - `phases_instance_phi`: Added `phi_order`, `phi_name`, `phi_description`, `predecessor_phi_id`
+  - `steps_instance_sti`: Added `sti_name`, `sti_description`, `sti_duration_minutes`, `sti_id_predecessor`, `enr_id_target`
+  - `instructions_instance_ini`: Added `ini_order`, `ini_body`, `ini_duration_minutes`, `tms_id`, `cti_id`
+  - `controls_instance_cti`: Added `cti_order`, `cti_name`, `cti_description`, `cti_type`, `cti_is_critical`, `cti_code`
+- **Override Capability**: Enables per-instance overrides, auditability, and future promotion capabilities
+- **See**: [ADR-029](../adr/ADR-029-full-attribute-instantiation-instance-tables.md) for design rationale
+
+### 2025-07-02: Labels and Team Membership
+- **Labels System**: Created `labels_lbl` table with migration-scoped labels
+- **Step-Label Association**: Added `labels_lbl_x_steps_master_stm` join table for step labeling
+- **Application Labels**: Added `labels_lbl_x_applications_app` for application labeling
+- **Team Membership Refactor**: Introduced `teams_tms_x_users_usr` for N-N user-team membership
+- **Schema Cleanup**: Dropped `tms_id` column from `users_usr` table
+- **Comments System**: Added `step_pilot_comments_spc` and `step_instance_comments_sic` tables
+
+### 2025-06-24: Controls Enhancement
+- **Control Codes**: Added `ctm_code` field to `controls_master_ctm` for business identifiers
+- **Label-Control Association**: Added `labels_lbl_x_controls_master_ctm` join table
+
+All changes are reflected in this document and the ERD.
 
 ---
 
-## 8. References & Further Reading
-- [ADR-012: Standardized Database Management](../adr/ADR-012_standardized_database_management_and_documentation.md)
-- [ADR-014: Naming Conventions and Schema Design](../adr/ADR-014_schema_naming_conventions.md)
-- [UMIG Developer Journal]
+## 8. Implementation Patterns & Best Practices
+
+### 8.1. Type Safety in Repository Methods
+All repository methods must use explicit type casting when handling query parameters:
+
+```groovy
+// CORRECT - Explicit casting for type safety
+if (filters.migrationId) {
+    query += ' AND mig.mig_id = :migrationId'
+    params.migrationId = UUID.fromString(filters.migrationId as String)
+}
+
+if (filters.teamId) {
+    query += ' AND stm.tms_id_owner = :teamId'  
+    params.teamId = Integer.parseInt(filters.teamId as String)
+}
+```
+
+### 8.2. Master vs Instance ID Filtering
+Always use instance IDs for hierarchical filtering to ensure correct step retrieval:
+
+```groovy
+// CORRECT - filters by instance IDs
+query += ' AND pli.pli_id = :planId'     // plan instance
+query += ' AND sqi.sqi_id = :sequenceId' // sequence instance  
+query += ' AND phi.phi_id = :phaseId'    // phase instance
+
+// INCORRECT - filters by master IDs (will miss steps)
+query += ' AND plm.plm_id = :planId'     // plan master
+```
+
+### 8.3. Complete Field Selection
+All SQL queries must include ALL fields referenced in result mapping:
+
+```groovy
+// CORRECT - includes stm.stm_id for mapping
+SELECT sti.sti_id, stm.stm_id, stm.stt_code, stm.stm_number, ...
+
+// INCORRECT - missing stm.stm_id causes "No such property" error
+SELECT sti.sti_id, stm.stt_code, stm.stm_number, ...
+```
+
+### 8.4. Many-to-Many Relationship Handling
+Handle optional many-to-many relationships gracefully:
+
+```groovy
+// Graceful label fetching with error handling
+def stepLabels = []
+try {
+    def stmId = step.stmId instanceof UUID ? step.stmId : UUID.fromString(step.stmId.toString())
+    stepLabels = stepRepository.findLabelsByStepId(stmId)
+} catch (Exception e) {
+    stepLabels = [] // Continue with empty labels if fetching fails
+}
+```
+
+---
+
+## 9. References & Further Reading
+
+- [ADR-029: Full Attribute Instantiation Instance Tables](../adr/ADR-029-full-attribute-instantiation-instance-tables.md)
+- [ADR-031: Groovy Type Safety and Filtering Patterns](../adr/ADR-031-groovy-type-safety-and-filtering-patterns.md)
+- [ADR-022: User-Team N-N Relationship](../adr/ADR-022-user-team-nn-relationship.md)
+- [Solution Architecture Documentation](../solution-architecture.md)
 - [Project README](../../README.md)
-
-
-### 1. The Strategic Layer
-
-- **Migration (`migrations_mig`)**: The highest-level container representing a complete strategic initiative (e.g., "Data Center Consolidation 2025"). It has a business owner and a final cutover date.
-- **Iteration (`iterations_ite`)**: A specific, time-bound execution event under a Migration (e.g., "Go-Live Weekend," "Q3 Disaster Recovery Test"). It has its own technical cutover dates and is linked to a specific set of environments.
-
-### 2. The Canonical (Master) Layer
-
-This layer defines
-
-#### Table: teams_tms_x_users_usr
-
-- **Purpose:** Implements a normalized many-to-many relationship between users and teams, allowing each user to belong to multiple teams and each team to have multiple users.
-- **Fields:**
-  - `tms_x_usr_id`: Primary key.
-  - `tms_id`: Foreign key to `teams_tms` (the team).
-  - `usr_id`: Foreign key to `users_usr` (the user).
-  - `created_at`: Timestamp of association creation.
-  - `created_by`: User or process that created the association.
-- **Relationship:**
-  - Each user can be a member of multiple teams via this table.
-  - Each team can have multiple users.
-  - Unique constraint on (`tms_id`, `usr_id`) prevents duplicate memberships.
-
-**Note:** The previous direct `tms_id` foreign key in `users_usr` has been removed. All team membership logic is now managed exclusively through `teams_tms_x_users_usr`.
-
-
-#### Table: step_pilot_comments_spc
-
-- **Purpose:** Stores accrued comments, tips, and recommendations for each canonical step, specifically for pilots and release managers. These are distinct from formal instructions and intended to capture operational wisdom and context.
-- **Fields:**
-  - `spc_id`: Primary key.
-  - `stm_id`: Foreign key to `steps_master_stm` (the step this comment relates to).
-  - `comment_body`: The comment or tip content.
-  - `author`: (Optional) Who wrote the comment.
-  - `created_at`: Timestamp of creation.
-  - `visibility`: Intended audience (default: 'pilot').
-
-**Relationship:**  
-Each `steps_master_stm` row can have zero or more related `step_pilot_comments_spc` rows (one-to-many).
-
-**ERD Update:**  
-Add a one-to-many arrow from `steps_master_stm` to `step_pilot_comments_spc`.
-
-the reusable playbook.
-
-- **Plan (`plans_master_plm`)**: The master playbook containing the end-to-end set of procedures.
-- **Sequence (`sequences_master_sqm`)**: A major chapter in the plan (e.g., "Pre-Migration Setup," "Application Failover").
-- **Phase (`phases_master_phm`)**: A distinct stage of work within a sequence (e.g., "Configure Network ACLs," "Start Database Replication").
-- **Control (`controls_master_ctm`)**: A quality gate or verification checkpoint linked to a **Phase**. It defines a standard check that must be performed (e.g., "Verify End-to-End Connectivity").
-- **Step (`steps_master_stm`)**: A granular, executable task within a phase (e.g., "Restart the primary application server").
-- **Instruction (`instructions_master_inm`)**: The most detailed level of the playbook, providing the specific command or procedure for a step. An instruction can be optionally linked to a master **Control** to indicate that this specific procedure satisfies the phase-level quality check.
-
-### 3. The Instance (Execution) Layer
-
-This layer defines
-
-#### Table: step_instance_comments_sic
-
-- **Purpose:** Stores user comments on the execution of a specific step instance (`steps_instance_sti`). Enables collaborative, auditable commentary during plan/iteration runs.
-- **Fields:**
-  - `sic_id`: Primary key.
-  - `sti_id`: Foreign key to `steps_instance_sti` (the executed step).
-  - `comment_body`: The comment text (long, unbounded).
-  - `created_by`: User who wrote the comment (FK to `users_usr`).
-  - `created_at`: Timestamp of creation.
-  - `updated_by`: User who last edited (nullable, FK to `users_usr`).
-  - `updated_at`: Timestamp of last update (nullable).
-
-**Relationship:**  
-Each `steps_instance_sti` row can have zero or more related `step_instance_comments_sic` rows (one-to-many).
-
-**ERD Update:**  
-Add a one-to-many arrow from `steps_instance_sti` to `step_instance_comments_sic`.
-
-a direct, time-stamped snapshot of the canonical layer for a specific iteration.
-
-- **Plan Instance (`plans_instance_pli`)**: A snapshot of a master plan, created for and linked to a single **Iteration**.
-- **Sequence Instance (`sequences_instance_sqi`)**: An instance of a sequence for a specific plan instance.
-- **Phase Instance (`phases_instance_phi`)**: An instance of a phase.
-- **Step Instance (`steps_instance_sti`)**: An instance of a step, where status (e.g., 'COMPLETED', 'FAILED') is tracked.
-- **Instruction Instance (`instructions_instance_ini`)**: The record of a specific instruction being performed at a specific time by a specific user.
-- **Control Instance (`controls_instance_cti`)**: The record of a control being executed, linked directly to the **Step Instance** it validates. This provides an audit trail confirming that the phase-level quality check was performed for a given step.
-
-## Entity Relationship Diagram (ERD)
-
-The following ERD illustrates the relationships between all entities in the UMIG data model.
-
-```mermaid
-erDiagram
-    labels_lbl_x_applications_app }o--|| labels_lbl : "label"
-    labels_lbl_x_applications_app }o--|| applications_app : "application"
-    applications_app {
-        INT app_id PK
-        VARCHAR app_code
-        VARCHAR app_name
-        TEXT app_description
-    }
-
-    environments_env {
-        INT env_id PK
-        VARCHAR env_code
-        VARCHAR env_name
-        TEXT env_description
-    }
-
-    teams_tms {
-        INT tms_id PK
-        VARCHAR tms_name
-        VARCHAR tms_email
-        TEXT tms_description
-    }
-
-    users_usr {
-        INT usr_id PK
-        VARCHAR usr_trigram
-        VARCHAR usr_first_name
-        VARCHAR usr_last_name
-        VARCHAR usr_email
-    }
-
-    teams_tms_x_users_usr {
-        INT tms_x_usr_id PK
-        INT tms_id FK
-        INT usr_id FK
-        TIMESTAMPTZ created_at
-        VARCHAR created_by
-    }
-
-    teams_tms_x_users_usr }o--|| teams_tms : "team"
-    teams_tms_x_users_usr }o--|| users_usr : "user"
-
-    roles_rls {
-        INT rls_id PK
-        VARCHAR rls_name
-    }
-
-    environment_roles_enr {
-        INT enr_id PK
-        VARCHAR enr_name
-    }
-
-    step_types_stt {
-        VARCHAR stt_code PK
-        VARCHAR stt_name
-    }
-
-    iteration_types_itt {
-        VARCHAR itt_code PK
-        VARCHAR itt_name
-    }
-
-    migrations_mig {
-        UUID mig_id PK
-        UUID usr_id_owner FK
-        VARCHAR mig_name
-        TEXT mig_description
-        DATE mig_business_cutover_date
-    }
-
-    iterations_ite {
-        UUID ite_id PK
-        UUID mig_id FK
-        VARCHAR ite_name
-        TEXT ite_description
-        TIMESTAMPTZ ite_static_cutover_date
-        TIMESTAMPTZ ite_dynamic_cutover_date
-    }
-
-    plans_master_plm {
-        UUID plm_id PK
-        INT tms_id FK
-        VARCHAR plm_name
-        TEXT plm_description
-    }
-
-    sequences_master_sqm {
-        UUID sqm_id PK
-        UUID plm_id FK
-        INT sqm_order
-        VARCHAR sqm_name
-        UUID predecessor_sqm_id FK
-    }
-
-    phases_master_phm {
-        UUID phm_id PK
-        UUID sqm_id FK
-        INT phm_order
-        VARCHAR phm_name
-        UUID predecessor_phm_id FK
-    }
-
-    steps_master_stm {
-        UUID stm_id PK
-        UUID phm_id FK
-        INT tms_id_owner FK
-        VARCHAR stt_code FK
-        INT stm_number
-        VARCHAR stm_name
-        UUID stm_id_predecessor FK
-    }
-
-    controls_master_ctm {
-        UUID ctm_id PK
-        UUID phm_id FK
-        INT ctm_order
-        VARCHAR ctm_name
-        VARCHAR ctm_type
-        BOOLEAN ctm_is_critical
-    }
-
-    instructions_master_inm {
-        UUID inm_id PK
-        UUID stm_id FK
-        INT tms_id FK
-        UUID ctm_id FK
-        INT inm_order
-        TEXT inm_body
-    }
-
-    %% Instance Tables
-
-    plans_instance_pli {
-        UUID pli_id PK
-        UUID plm_id FK
-        UUID ite_id FK
-        VARCHAR pli_name
-    }
-
-    sequences_instance_sqi {
-        UUID sqi_id PK
-        UUID pli_id FK
-        UUID sqm_id FK
-    }
-
-    phases_instance_phi {
-        UUID phi_id PK
-        UUID sqi_id FK
-        UUID phm_id FK
-    }
-
-    steps_instance_sti {
-        UUID sti_id PK
-        UUID phi_id FK
-        UUID stm_id FK
-    }
-
-    instructions_instance_ini {
-        UUID ini_id PK
-        UUID sti_id FK
-        UUID inm_id FK
-    }
-
-    controls_instance_cti {
-        UUID cti_id PK
-        UUID sti_id FK
-        UUID ctm_id FK
-    }
-
-    %% Join Tables
-
-    teams_tms_x_applications_app {
-        INT tms_id FK
-        INT app_id FK
-    }
-
-    environments_env_x_applications_app {
-        INT env_id FK
-        INT app_id FK
-    }
-
-    environments_env_x_iterations_ite {
-        UUID ite_id FK
-        INT env_id FK
-        INT enr_id FK
-    }
-
-    steps_master_stm_x_iteration_types_itt {
-        UUID stm_id FK
-        VARCHAR itt_code FK
-    }
-
-    steps_master_stm_x_teams_tms_impacted {
-        UUID stm_id FK
-        INT tms_id FK
-    }
-
-    %% Relationships
-
-    users_usr }o--|| teams_tms : "belongs to"
-    migrations_mig }o--|| users_usr : "owned by"
-    iterations_ite }o--|| migrations_mig : "belongs to"
-    plans_master_plm }o--|| teams_tms : "owned by"
-    sequences_master_sqm }o--|| plans_master_plm : "belongs to"
-    phases_master_phm }o--|| sequences_master_sqm : "belongs to"
-    steps_master_stm }o--|| phases_master_phm : "belongs to"
-    steps_master_stm }o--|| teams_tms : "owned by"
-    steps_master_stm }o--|| step_types_stt : "is of type"
-    controls_master_ctm }o--|| phases_master_phm : "validates"
-    instructions_master_inm }o--|| steps_master_stm : "details"
-    instructions_master_inm }o--|| teams_tms : "owned by"
-    instructions_master_inm }o--|| controls_master_ctm : "can satisfy"
-
-    plans_instance_pli }o--|| plans_master_plm : "instantiates"
-    plans_instance_pli }o--|| iterations_ite : "executes for"
-    sequences_instance_sqi }o--|| plans_instance_pli : "part of"
-    sequences_instance_sqi }o--|| sequences_master_sqm : "instantiates"
-    phases_instance_phi }o--|| sequences_instance_sqi : "part of"
-    phases_instance_phi }o--|| phases_master_phm : "instantiates"
-    steps_instance_sti }o--|| phases_instance_phi : "part of"
-    steps_instance_sti }o--|| steps_master_stm : "instantiates"
-    instructions_instance_ini }o--|| steps_instance_sti : "part of"
-    instructions_instance_ini }o--|| instructions_master_inm : "instantiates"
-    controls_instance_cti }o--|| steps_instance_sti : "validates"
-    controls_instance_cti }o--|| controls_master_ctm : "instantiates"
-
-    teams_tms_x_applications_app }o--|| teams_tms : ""
-    teams_tms_x_applications_app }o--|| applications_app : ""
-    environments_env_x_applications_app }o--|| environments_env : ""
-    environments_env_x_applications_app }o--|| applications_app : ""
-    environments_env_x_iterations_ite }o--|| environments_env : ""
-    environments_env_x_iterations_ite }o--|| iterations_ite : ""
-    environments_env_x_iterations_ite }o--|| environment_roles_enr : ""
-    steps_master_stm_x_iteration_types_itt }o--|| steps_master_stm : ""
-    steps_master_stm_x_iteration_types_itt }o--|| iteration_types_itt : ""
-    steps_master_stm_x_teams_tms_impacted }o--|| steps_master_stm : ""
-    steps_master_stm_x_teams_tms_impacted }o--|| teams_tms : ""

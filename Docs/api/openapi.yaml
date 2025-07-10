@@ -551,6 +551,79 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /steps:
+    get:
+      tags:
+        - Steps
+      summary: Get steps with hierarchical filtering for runsheet
+      description: |
+        Retrieves step instances grouped by sequence and phase for runsheet display.
+        Supports comprehensive hierarchical filtering to show only steps matching the specified criteria.
+        Multiple filters can be combined for progressive refinement.
+        Results are ordered by sequence number, phase number, and step number.
+      operationId: getStepsForRunsheet
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter steps by migration ID
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter steps by iteration ID
+        - name: planId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter steps by plan instance ID
+        - name: sequenceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter steps by sequence instance ID
+        - name: phaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter steps by phase instance ID
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter steps by owning team ID
+        - name: labelId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter steps by label ID (steps that have this label)
+      responses:
+        '200':
+          description: Steps grouped by sequence and phase for runsheet display
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SequenceWithSteps'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /labels:
     get:
       tags:
@@ -840,6 +913,62 @@ components:
           format: uuid
         name:
           type: string
+
+    SequenceWithSteps:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        number:
+          type: integer
+        phases:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhaseWithSteps'
+
+    PhaseWithSteps:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        number:
+          type: integer
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepWithLabels'
+
+    StepWithLabels:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          description: Formatted step code (e.g., "BGO-001")
+        name:
+          type: string
+        status:
+          type: string
+          enum: [NOT_STARTED, IN_PROGRESS, COMPLETED, FAILED]
+        durationMinutes:
+          type: integer
+        ownerTeamId:
+          type: integer
+        ownerTeamName:
+          type: string
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+
     # --- Generic Schemas ---
     Error:
       type: object

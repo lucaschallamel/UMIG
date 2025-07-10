@@ -1,5 +1,12 @@
 # API Coding Patterns (UMIG)
 
+## Hierarchical Filtering and Type Safety (2025-07-10)
+- All hierarchical filtering endpoints support query parameters: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`
+- **MANDATORY**: Use explicit type casting for all parameter conversions: `UUID.fromString(id as String)`, `Integer.parseInt(id as String)`
+- **CRITICAL**: Use instance IDs (pli_id, sqi_id, phi_id) for filtering, NOT master IDs (plm_id, sqm_id, phm_id)
+- Include ALL database fields referenced in result mapping to prevent "No such property" errors
+- Handle many-to-many relationships gracefully with try-catch blocks for optional data
+
 ## Teams Membership Robustness (2025-07-02)
 - All membership endpoints (`PUT`/`DELETE /teams/{teamId}/users/{userId}`) enforce robust existence checks for both team and user.
 - Duplicate associations are prevented; removal is idempotent and returns 404 if the user is not a member.
