@@ -63,11 +63,21 @@ class TeamRepository {
      */
     def findAllTeams() {
         DatabaseUtil.withSql { sql ->
-            return sql.rows("""
+            def results = sql.rows("""
                 SELECT tms_id, tms_name, tms_description, tms_email
                 FROM teams_tms
                 ORDER BY tms_name
             """)
+            
+            // Transform to match frontend expectations
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email
+                ]
+            }
         }
     }
 
@@ -198,6 +208,160 @@ class TeamRepository {
         DatabaseUtil.withSql { sql ->
             def deleteQuery = "DELETE FROM teams_tms_x_users_usr WHERE tms_id = :teamId AND usr_id = :userId"
             return sql.executeUpdate(deleteQuery, [teamId: teamId, userId: userId])
+        }
+    }
+
+    /**
+     * Finds teams involved in a specific migration.
+     * @param migrationId The UUID of the migration.
+     * @return A list of teams involved in the migration.
+     */
+    def findTeamsByMigrationId(UUID migrationId) {
+        DatabaseUtil.withSql { sql ->
+            def results = sql.rows("""
+                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                FROM teams_tms t
+                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
+                JOIN phases_master_phm p ON s.phm_id = p.phm_id
+                JOIN sequences_master_sqm sq ON p.sqm_id = sq.sqm_id
+                JOIN plans_master_plm pl ON sq.plm_id = pl.plm_id
+                JOIN iterations_ite i ON pl.plm_id = i.plm_id
+                WHERE i.mig_id = :migrationId
+                ORDER BY t.tms_name
+            """, [migrationId: migrationId])
+            
+            // Transform to match frontend expectations
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email
+                ]
+            }
+        }
+    }
+
+    /**
+     * Finds teams involved in a specific iteration.
+     * @param iterationId The UUID of the iteration.
+     * @return A list of teams involved in the iteration.
+     */
+    def findTeamsByIterationId(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            def results = sql.rows("""
+                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                FROM teams_tms t
+                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
+                JOIN phases_master_phm p ON s.phm_id = p.phm_id
+                JOIN sequences_master_sqm sq ON p.sqm_id = sq.sqm_id
+                JOIN plans_master_plm pl ON sq.plm_id = pl.plm_id
+                JOIN iterations_ite i ON pl.plm_id = i.plm_id
+                WHERE i.ite_id = :iterationId
+                ORDER BY t.tms_name
+            """, [iterationId: iterationId])
+            
+            // Transform to match frontend expectations
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email
+                ]
+            }
+        }
+    }
+
+    /**
+     * Finds teams involved in a specific plan instance.
+     * @param planInstanceId The UUID of the plan instance.
+     * @return A list of teams involved in the plan instance.
+     */
+    def findTeamsByPlanId(UUID planInstanceId) {
+        DatabaseUtil.withSql { sql ->
+            def results = sql.rows("""
+                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                FROM teams_tms t
+                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
+                JOIN phases_master_phm p ON s.phm_id = p.phm_id
+                JOIN sequences_master_sqm sq ON p.sqm_id = sq.sqm_id
+                JOIN plans_instance_pli pli ON sq.plm_id = pli.plm_id
+                WHERE pli.pli_id = :planInstanceId
+                ORDER BY t.tms_name
+            """, [planInstanceId: planInstanceId])
+            
+            // Transform to match frontend expectations
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email
+                ]
+            }
+        }
+    }
+
+    /**
+     * Finds teams involved in a specific sequence instance.
+     * @param sequenceInstanceId The UUID of the sequence instance.
+     * @return A list of teams involved in the sequence instance.
+     */
+    def findTeamsBySequenceId(UUID sequenceInstanceId) {
+        DatabaseUtil.withSql { sql ->
+            def results = sql.rows("""
+                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                FROM teams_tms t
+                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
+                JOIN phases_master_phm p ON s.phm_id = p.phm_id
+                JOIN sequences_instance_sqi sqi ON p.sqm_id = sqi.sqm_id
+                WHERE sqi.sqi_id = :sequenceInstanceId
+                ORDER BY t.tms_name
+            """, [sequenceInstanceId: sequenceInstanceId])
+            
+            // Transform to match frontend expectations
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email
+                ]
+            }
+        }
+    }
+
+    /**
+     * Finds teams involved in a specific phase instance.
+     * @param phaseInstanceId The UUID of the phase instance.
+     * @return A list of teams involved in the phase instance.
+     */
+    def findTeamsByPhaseId(UUID phaseInstanceId) {
+        DatabaseUtil.withSql { sql ->
+            def results = sql.rows("""
+                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                FROM teams_tms t
+                JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+                JOIN steps_master_stm s ON sti.stm_id = s.stm_id
+                JOIN phases_instance_phi phi ON s.phm_id = phi.phm_id
+                WHERE phi.phi_id = :phaseInstanceId
+                ORDER BY t.tms_name
+            """, [phaseInstanceId: phaseInstanceId])
+            
+            // Transform to match frontend expectations
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email
+                ]
+            }
         }
     }
 }

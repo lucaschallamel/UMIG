@@ -48,6 +48,13 @@ This document consolidates the following architectural decisions:
 - [ADR-019](../adr/archive/ADR-019-Integration-Testing-Framework.md) - Integration Testing Framework
 - [ADR-026](../adr/archive/ADR-026-Specific-Mocks-In-Tests.md) - Specific Mocks in Tests
 
+### Current Active ADRs
+- [ADR-027](ADR-027-n-tiers-model.md) - N-tiers Model Architecture
+- [ADR-028](ADR-028-data-import-strategy-for-confluence-json.md) - Data Import Strategy for Confluence JSON
+- [ADR-029](ADR-029-full-attribute-instantiation-instance-tables.md) - Full Attribute Instantiation Instance Tables
+- [ADR-030](ADR-030-hierarchical-filtering-pattern.md) - Hierarchical Filtering Pattern
+- [ADR-031](ADR-031-groovy-type-safety-and-filtering-patterns.md) - Groovy Type Safety and Filtering Patterns
+
 ---
 
 ## 1. Introduction & Scope
@@ -142,6 +149,23 @@ src/
   - Successful `DELETE` operations **must** return `204 No Content` (`Response.noContent().build()`)
   - `PUT` and `DELETE` operations **must** be idempotent
 - **Association Endpoints:** Dedicated endpoints for managing relationships (e.g., team membership) following RESTful conventions.
+
+#### API Patterns
+
+##### Hierarchical Filtering Pattern
+- **Definition:** Endpoints support query parameters that filter resources based on their position in the entity hierarchy.
+- **Implementation:** Resources like Teams and Labels can be filtered by their relationship to entities at any level of the hierarchy:
+  - `?migrationId={uuid}` - Filter by migration
+  - `?iterationId={uuid}` - Filter by iteration
+  - `?planId={uuid}` - Filter by plan instance
+  - `?sequenceId={uuid}` - Filter by sequence instance
+  - `?phaseId={uuid}` - Filter by phase instance
+- **UI Integration:** Frontend components progressively filter options based on user selections, creating a cascading refinement pattern.
+- **Progressive Filtering Example:**
+  - Teams at migration level: 18 teams
+  - Teams at sequence level: 12 teams (subset of migration teams)
+  - Teams at phase level: 5 teams (subset of sequence teams)
+- **Database Pattern:** Repositories implement methods that JOIN through the entity hierarchy to retrieve contextually relevant data.
 
 #### Validation & Constraints
 - **CustomEndpointDelegate Only:** No other REST endpoint patterns are permitted (WebWork, JAX-RS, etc.).
@@ -386,6 +410,103 @@ The development environment has evolved to prioritize reliability and developer 
 - **Test Reliability:** Tests must fail immediately when SQL structure changes, ensuring deliberate review of database access patterns.
 - **Maintenance Overhead:** The additional maintenance burden of updating specific mocks is justified by the prevention of production SQL errors.
 - **Coverage Requirements:** All database access points must have corresponding specific mock validations.
+
+---
+
+## 9. Implementation Patterns & Best Practices
+
+### 9.1. Groovy Type Safety Patterns ([ADR-031])
+
+#### Type-Safe Parameter Handling
+All ScriptRunner repository methods must use explicit type casting when static type checking is enabled:
+
+```groovy
+// CORRECT - Explicit casting for type safety
+if (filters.migrationId) {
+    query += ' AND mig.mig_id = :migrationId'
+    params.migrationId = UUID.fromString(filters.migrationId as String)
+}
+
+if (filters.teamId) {
+    query += ' AND stm.tms_id_owner = :teamId'  
+    params.teamId = Integer.parseInt(filters.teamId as String)
+}
+```
+
+#### Complete Database Field Selection
+All SQL queries must include ALL fields referenced in result mapping to prevent runtime errors:
+
+```groovy
+// CORRECT - includes stm.stm_id for mapping
+SELECT sti.sti_id, stm.stm_id, stm.stt_code, stm.stm_number, ...
+
+// INCORRECT - missing stm.stm_id causes "No such property" error
+SELECT sti.sti_id, stm.stt_code, stm.stm_number, ...
+```
+
+### 9.2. Hierarchical Filtering Patterns ([ADR-030], [ADR-031])
+
+#### Master vs Instance ID Filtering
+Always use instance IDs for hierarchical filtering, not master IDs, to ensure correct step retrieval:
+
+```groovy
+// CORRECT - filters by instance IDs
+query += ' AND pli.pli_id = :planId'     // plan instance
+query += ' AND sqi.sqi_id = :sequenceId' // sequence instance  
+query += ' AND phi.phi_id = :phaseId'    // phase instance
+
+// INCORRECT - filters by master IDs (will miss steps)
+query += ' AND plm.plm_id = :planId'     // plan master
+```
+
+#### Cascading Filter Reset Logic
+Parent filter changes must reset all child filters in proper hierarchical sequence:
+
+```javascript
+// Migration change resets: Iteration → Plan → Sequence → Phase → Teams + Labels
+onMigrationChange() {
+    this.filters.iteration = '';
+    this.filters.plan = '';
+    this.filters.sequence = '';
+    this.filters.phase = '';
+    this.filters.team = '';
+    this.filters.label = '';
+    this.resetAllChildSelectors();
+}
+```
+
+### 9.3. Many-to-Many Relationship Handling ([ADR-031])
+
+#### Labels Integration Pattern
+Handle optional many-to-many relationships gracefully without breaking API responses:
+
+```groovy
+// Graceful label fetching with error handling
+def stepLabels = []
+try {
+    def stmId = step.stmId instanceof UUID ? step.stmId : UUID.fromString(step.stmId.toString())
+    stepLabels = stepRepository.findLabelsByStepId(stmId)
+} catch (Exception e) {
+    stepLabels = [] // Continue with empty labels if fetching fails
+}
+```
+
+### 9.4. API Error Handling Standards ([ADR-023], [ADR-031])
+
+#### Comprehensive Error Response Patterns
+```groovy
+try {
+    // API logic with potential type conversions
+} catch (IllegalArgumentException e) {
+    return Response.status(Response.Status.BAD_REQUEST)
+        .entity(new JsonBuilder([error: "Invalid parameter format: ${e.message}"]).toString())
+        .build()
+} catch (Exception e) {
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+        .entity(new JsonBuilder([error: "Internal server error: ${e.message}"]).toString())
+        .build()
+}
+```
 
 ---
 

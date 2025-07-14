@@ -22,6 +22,15 @@
   * Standardised database management and documentation (ADR-012) and naming conventions (ADR-014).
 * **API & Frontend Patterns:**
   * Teams and Users APIs are robust, fully standardised, and aligned with formal REST API implementation patterns (ADR-017, ADR-023), with consistent API routing, error handling, and idempotency. Enhanced error reporting for blocking relationships and input validation is now in place.
+  * **Hierarchical Filtering Pattern Completed (2025-07-10, ADR-031):** Fully implemented hierarchical filtering with labels integration and type safety:
+    * Created `LabelsApi.groovy` and `StepsApi.groovy` with complete hierarchical filtering capabilities
+    * Enhanced `TeamsApi.groovy` with query parameter filtering for all hierarchy levels
+    * Resolved critical Groovy type checking errors using explicit casting patterns (`as String`)
+    * Fixed master vs instance ID filtering patterns (plm_id→pli_id, sqm_id→sqi_id, phm_id→phi_id)
+    * Added labels column to iteration view runsheet with colored tag display
+    * Implemented complete parent-child filter cascade: Migration → Iteration → Plan → Sequence → Phase → Teams + Labels
+    * Updated OpenAPI specification and regenerated Postman collection following api-tests-specs-update workflow
+    * Comprehensive API documentation created (TeamsAPI.md, LabelsAPI.md, API_Updates_Summary.md)
   * The SPA + REST pattern for admin UIs (ADR-020) has been formalised and implemented for user management.
   * **Dynamic Data Integration Pattern (2025-07-04):** The Iteration View macro now implements a robust pattern where UI selectors are populated dynamically via REST APIs rather than hardcoded in Groovy. This includes:
     * `MigrationRepository.groovy` implementing the repository pattern for encapsulated database access
@@ -51,7 +60,7 @@
 ## 2. What's Left to Build (MVP Scope)
 
 * **Backend Development (ScriptRunner):**
-  * Continue implementing remaining core REST endpoints for Plans, Sequences, Phases, Steps, Instructions, Controls, and Labels.
+  * Implement remaining core REST endpoints for Plans, Sequences, Phases, Instructions, and Controls using established hierarchical filtering and type safety patterns from ADR-031.
   * Finalise backend logic for the Planning Feature, including the HTML export endpoint.
   * Integrate email notification sending via the enterprise Exchange server.
 * **Frontend Development (Confluence Macro):**
@@ -68,8 +77,10 @@
 ## 3. Current Status
 
 - The codebase is consistent, maintainable, and well-documented, with a consolidated source tree under `src/groovy/umig/`.
-- The foundation for future API and feature development is solid, with clear patterns for further standardisation and enhancement.
-- The project has reached a proof-of-concept stage with a fully working SPA+REST integration and admin UI pattern, and the Iteration View macro is now functional.
+- The foundation for future API and feature development is solid, with proven patterns for type safety, hierarchical filtering, and labels integration.
+- The project has reached a functional stage with the **Iteration View fully complete**, including working hierarchical filtering, labels integration, and dynamic step management.
+- Teams, Labels, and Steps APIs are complete with comprehensive hierarchical filtering capabilities and robust error handling, establishing the definitive pattern for remaining API development.
+- Critical Groovy type safety patterns have been established and documented (ADR-031), preventing future implementation issues.
 
 ## 4. Known Issues & Risks
 
@@ -82,6 +93,7 @@
 
 ## 5. Evolution of Project Decisions
 
+- **Hierarchical Filtering Pattern (ADR-030, 2025-07-09):** The implementation of consistent query parameter filtering across all resources demonstrates the project's commitment to intuitive, performant navigation of complex data hierarchies. This pattern will be applied to all remaining APIs.
 - **Dynamic Data Integration Pattern (2025-07-04):** The successful implementation of the repository pattern and API-driven UI population for the Iteration View macro establishes a reusable pattern for all future macro development, promoting clean architecture principles within ScriptRunner constraints.
 - **Full Attribute Instantiation (ADR-029, 2025-07-04):** The decision to replicate all relevant master table attributes into instance tables provides runtime flexibility and auditability, supporting the project's requirements for iterative execution and continuous improvement.
 - **Data Generation Pipeline Maturity:** The refactoring of the instance data generation pipeline demonstrates the project's evolution towards more robust, dependency-aware data management practices.

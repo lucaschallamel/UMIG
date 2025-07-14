@@ -24,6 +24,26 @@ You can also use this file with OpenAPI Generator to produce client/server code 
 
 - The `/stepViewApi` endpoint powers the STEP View macro and SPA, returning structured data for rendering migration/release steps in Confluence.
 
+## API Specifications
+
+Individual API specifications are available for detailed documentation:
+
+### Core APIs
+- **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
+- **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
+- **[Migrations API](MigrationsAPI.md)** - Migration and iteration management *(to be documented)*
+- **[Users API](UsersAPI.md)** - User management *(to be documented)*
+
+### Hierarchical Filtering
+The Teams and Labels APIs support hierarchical filtering based on the migration execution hierarchy:
+- **Migration Level** - Shows teams/labels involved in entire migration
+- **Iteration Level** - Shows teams/labels involved in specific iteration
+- **Plan Level** - Shows teams/labels involved in specific plan instance
+- **Sequence Level** - Shows teams/labels involved in specific sequence instance
+- **Phase Level** - Shows teams/labels involved in specific phase instance
+
+This provides progressive filtering where options become more contextually relevant as users drill down the hierarchy.
+
 ## API Testing with Postman
 
 A Postman collection is available for testing the API endpoints. This will be updated to reflect the V2 API.

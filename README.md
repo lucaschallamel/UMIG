@@ -365,16 +365,26 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Local Development Environment**: Node.js orchestrated Podman containers
 - **Admin UI (SPA Pattern)**: Complete user/team management with robust error handling
 - **API Standards**: Comprehensive REST patterns with specific error mappings
-- **Data Generation**: Modular synthetic data generators
-- **Testing Framework**: Stabilized with SQL query mocks
-- **Architecture Documentation**: Consolidated solution architecture
+- **Data Generation**: Modular synthetic data generators with complete instance data
+- **Testing Framework**: Stabilized with SQL query mocks and type safety patterns
+- **Architecture Documentation**: Consolidated solution architecture with implementation patterns
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
-- **Iteration View Mockup**: Complete HTML/CSS/JS mockup with zero dependencies
+- **Iteration View Implementation**: Complete hierarchical filtering and labels integration
+- **Labels API**: Full CRUD operations with hierarchical filtering capabilities
+- **Teams API**: Enhanced with hierarchical filtering across all levels
+- **Migration API**: Core functionality with proper error handling
+
+### ✅ Recently Completed (July 2025)
+
+- **Hierarchical Filter Cascade**: Complete parent-child reset logic across Migration → Iteration → Plan → Sequence → Phase → Teams + Labels
+- **Labels Column Integration**: Colored label tags displayed in runsheet between Team and Status
+- **Groovy Type Safety**: Comprehensive patterns for static type checking and error prevention
+- **Master vs Instance Filtering**: Proper instance ID filtering for accurate step retrieval
+- **Database Relationship Handling**: Many-to-many label-step associations with graceful error handling
 
 ### 🚧 MVP Remaining Work
 
-- **Iteration View Implementation**: Convert mockup to ScriptRunner macro
-- **Core REST APIs**: Plans, Chapters, Steps, Tasks, Controls, Instructions endpoints
+- **Core REST APIs**: Plans, Sequences, Phases, Instructions endpoints
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
@@ -402,14 +412,18 @@ The **Iteration View** is the primary runsheet interface for cutover events:
 3. **Frontend**: Pure vanilla JavaScript with Atlassian AUI styling
 4. **Testing**: Specific SQL query mocks to prevent regressions
 5. **Security**: Include `groups: ["confluence-users"]` on all endpoints
+6. **Type Safety**: Use explicit casting (`as String`, `as UUID`) for all parameter conversions
+7. **Hierarchical Filtering**: Use instance IDs (pli_id, sqi_id, phi_id) not master IDs
 
 ### Code Quality Standards
 
 - **No External Frameworks**: Pure vanilla JavaScript only
-- **Repository Pattern**: Centralized data access
+- **Repository Pattern**: Centralized data access with complete field selection
 - **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
-- **Type Safety**: Explicit casting when required
+- **Type Safety**: Mandatory explicit casting when static type checking is enabled
 - **Naming Conventions**: Strict `snake_case` database conventions
+- **Cascade Logic**: Parent filter changes must reset all child filters
+- **Many-to-Many Handling**: Graceful error handling for optional relationships
 
 ## Testing Strategy
 

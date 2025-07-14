@@ -1,13 +1,54 @@
+const populateFilter = (selector, url, defaultOptionText) => {
+    const select = document.querySelector(selector);
+    if (!select) {
+        console.error(`populateFilter: Selector "${selector}" not found in DOM`);
+        return;
+    }
+
+    console.log(`populateFilter: Loading ${url} for ${selector}`);
+    select.innerHTML = `<option value="">Loading...</option>`;
+    
+    fetch(url)
+        .then(response => {
+            console.log(`populateFilter: Response for ${url}: ${response.status} ${response.statusText}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText} for ${url}`);
+            }
+            return response.json();
+        })
+        .then(items => {
+            console.log(`populateFilter: Received ${Array.isArray(items) ? items.length : 'non-array'} items for ${selector}`, items);
+            select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+            
+            if (Array.isArray(items)) {
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.name || '(Unnamed)';
+                    select.appendChild(option);
+                });
+                console.log(`populateFilter: Successfully populated ${items.length} options for ${selector}`);
+            } else {
+                console.warn(`populateFilter: Items is not an array for ${selector}:`, items);
+            }
+        })
+        .catch(error => {
+            console.error(`populateFilter: Error loading ${url} for ${selector}:`, error);
+            select.innerHTML = `<option value="">Failed to load: ${error.message}</option>`;
+        });
+};
+
 // UMIG Iteration View - Canonical JavaScript Logic
 // Ported from mock/script.js with full fidelity
 
 class IterationView {
     constructor() {
-        this.populateMigrationSelector();
-        this.selectedStep = 'INF-001-010';
+        this.selectedStep = null;
+        this.selectedStepCode = null;
         this.filters = {
-            migration: 'mig-001',
-            iteration: 'ite-001',
+            migration: '',
+            iteration: '',
+            plan: '',
             sequence: '',
             phase: '',
             team: '',
@@ -15,85 +56,35 @@ class IterationView {
             myTeamsOnly: false
         };
         
-        // Sample data - in production this would come from API
-        this.steps = [
-            {
-                id: 'INF-001-010',
-                sequence: 'S01',
-                phase: 'Infrastructure',
-                team: 'Platform Team',
-                title: 'Setup Core Network Infrastructure',
-                labels: ['Critical', 'Network'],
-                status: 'Not Started',
-                description: 'Establish the foundational network infrastructure including VPCs, subnets, routing tables, and security groups. This step is critical for all subsequent infrastructure deployment.',
-                requirements: 'AWS account with appropriate permissions, network architecture design approved',
-                deliverables: 'Configured VPC with subnets, routing tables, security groups, and network ACLs',
-                comments: [
-                    {
-                        author: 'Sarah Johnson',
-                        time: '2024-03-15 14:30',
-                        text: 'Network design has been approved by security team. Ready to proceed with implementation.'
-                    }
-                ]
-            },
-            {
-                id: 'INF-001-020',
-                sequence: 'S01',
-                phase: 'Infrastructure',
-                team: 'Platform Team',
-                title: 'Deploy Container Platform',
-                labels: ['Critical', 'Containers'],
-                status: 'Not Started',
-                description: 'Deploy and configure the container orchestration platform (Kubernetes) including worker nodes, control plane, and essential system pods.',
-                requirements: 'Network infrastructure completed (INF-001-010)',
-                deliverables: 'Functioning Kubernetes cluster with monitoring and logging'
-            },
-            {
-                id: 'APP-002-010',
-                sequence: 'S02',
-                phase: 'Application',
-                team: 'Development Team',
-                title: 'Migrate Core Services',
-                labels: ['High Priority', 'API'],
-                status: 'In Progress',
-                description: 'Migrate core application services to the new platform including user authentication, data processing, and external integrations.',
-                requirements: 'Container platform ready (INF-001-020)',
-                deliverables: 'Core services running on new platform with full functionality'
-            },
-            {
-                id: 'DATA-003-010',
-                sequence: 'S03',
-                phase: 'Data',
-                team: 'Data Team',
-                title: 'Database Migration Strategy',
-                labels: ['Critical', 'Database'],
-                status: 'Completed',
-                description: 'Execute database migration including schema updates, data transfer, and validation procedures.',
-                requirements: 'Application services migrated (APP-002-010)',
-                deliverables: 'Migrated database with validated data integrity'
-            },
-            {
-                id: 'TEST-004-010',
-                sequence: 'S04',
-                phase: 'Testing',
-                team: 'QA Team',
-                title: 'End-to-End Testing',
-                labels: ['Testing', 'Validation'],
-                status: 'Blocked',
-                description: 'Comprehensive testing of all migrated systems including functional, performance, and security testing.',
-                requirements: 'All previous steps completed',
-                deliverables: 'Test reports and sign-off documentation'
-            }
-        ];
         
         this.init();
     }
 
     init() {
+        this.initializeSelectors();
         this.bindEvents();
-        this.renderSteps();
-        this.loadStepDetails(this.selectedStep);
+        this.loadSteps();
         this.updateFilters();
+    }
+
+    initializeSelectors() {
+        // Initialize migration selector
+        this.populateMigrationSelector();
+        
+        // Initialize all other selectors with default states
+        this.resetSelector('#iteration-select', 'SELECT AN ITERATION');
+        this.resetSelector('#plan-filter', 'All Plans');
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+    }
+
+    resetSelector(selector, defaultText) {
+        const select = document.querySelector(selector);
+        if (select) {
+            select.innerHTML = `<option value="">${defaultText}</option>`;
+        }
     }
 
     bindEvents() {
@@ -116,23 +107,31 @@ class IterationView {
         }
 
         // Filter controls
+        const planFilter = document.getElementById('plan-filter');
         const sequenceFilter = document.getElementById('sequence-filter');
         const phaseFilter = document.getElementById('phase-filter');
         const teamFilter = document.getElementById('team-filter');
         const labelFilter = document.getElementById('label-filter');
         const myTeamsOnly = document.getElementById('my-teams-only');
         
+        if (planFilter) {
+            planFilter.addEventListener('change', (e) => {
+                this.filters.plan = e.target.value;
+                this.onPlanChange();
+            });
+        }
+
         if (sequenceFilter) {
             sequenceFilter.addEventListener('change', (e) => {
                 this.filters.sequence = e.target.value;
-                this.applyFilters();
+                this.onSequenceChange();
             });
         }
 
         if (phaseFilter) {
             phaseFilter.addEventListener('change', (e) => {
                 this.filters.phase = e.target.value;
-                this.applyFilters();
+                this.onPhaseChange();
             });
         }
 
@@ -203,66 +202,225 @@ class IterationView {
       }
     
     onMigrationChange() {
-        // In production, this would fetch iterations for the selected migration
-        this.showNotification('Loading iterations for selected migration...', 'info');
-        this.renderSteps();
+        const migId = this.filters.migration;
+        console.log('onMigrationChange: Selected migration ID:', migId);
+        
+        // Reset ALL dependent filters (everything below migration in hierarchy)
+        this.filters.iteration = '';
+        this.filters.plan = '';
+        this.filters.sequence = '';
+        this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
+        
+        // Reset all dependent selectors to default state
+        this.resetSelector('#iteration-select', 'SELECT AN ITERATION');
+        this.resetSelector('#plan-filter', 'All Plans');
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (migId) {
+            console.log('onMigrationChange: Loading iterations for migration:', migId);
+            const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
+            populateFilter('#iteration-select', url, 'SELECT AN ITERATION');
+        }
+        
+        // Show blank runsheet state since no iteration is selected
+        this.showBlankRunsheetState();
     }
 
     onIterationChange() {
-        // In production, this would fetch steps for the selected iteration
-        this.showNotification('Loading steps for selected iteration...', 'info');
-        this.renderSteps();
+        const migId = this.filters.migration;
+        const iteId = this.filters.iteration;
+        console.log('onIterationChange: Selected iteration ID:', iteId);
+
+        // Reset dependent filters (everything below iteration in hierarchy)
+        this.filters.plan = '';
+        this.filters.sequence = '';
+        this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
+        
+        // Reset dependent selectors to default state
+        this.resetSelector('#plan-filter', 'All Plans');
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!iteId) {
+            this.showBlankRunsheetState();
+            return;
+        }
+
+        // Populate filters for this iteration
+        const planUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances`;
+        const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
+        const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
+        const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+        const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+
+        populateFilter('#plan-filter', planUrl, 'All Plans');
+        populateFilter('#sequence-filter', sequenceUrl, 'All Sequences');
+        populateFilter('#phase-filter', phaseUrl, 'All Phases');
+        populateFilter('#team-filter', teamsUrl, 'All Teams');
+        populateFilter('#label-filter', labelsUrl, 'All Labels');
+
+        this.showNotification('Loading data for selected iteration...', 'info');
+        // Load steps and auto-select first step
+        this.loadStepsAndSelectFirst();
     }
 
-    renderSteps() {
-        const tbody = document.querySelector('.runsheet-table tbody');
-        if (!tbody) return;
+    onPlanChange() {
+        const { migration: migId, iteration: iteId, plan: planId } = this.filters;
+        console.log('onPlanChange: Selected plan ID:', planId);
 
-        tbody.innerHTML = '';
+        // Reset dependent filters (everything below plan in hierarchy)
+        this.filters.sequence = '';
+        this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
         
-        const filteredSteps = this.getFilteredSteps();
+        // Reset dependent selectors to default state
+        this.resetSelector('#sequence-filter', 'All Sequences');
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!migId || !iteId) {
+            this.showBlankRunsheetState();
+            return;
+        }
+
+        if (!planId) {
+            // 'All Plans' selected - show all sequences and phases for iteration
+            const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences`;
+            const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+            populateFilter('#sequence-filter', sequenceUrl, 'All Sequences');
+            populateFilter('#phase-filter', phaseUrl, 'All Phases');
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        } else {
+            // Specific plan selected - use nested URL pattern (migrationApi supports this)
+            const sequenceUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/sequences`;
+            const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+            populateFilter('#sequence-filter', sequenceUrl, 'All Sequences');
+            populateFilter('#phase-filter', phaseUrl, 'All Phases');
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        }
         
-        filteredSteps.forEach(step => {
-            const row = document.createElement('tr');
-            row.className = 'step-row';
-            row.dataset.step = step.id;
-            
-            if (step.id === this.selectedStep) {
-                row.classList.add('selected');
+        // Apply filters to reload steps
+        this.applyFilters();
+    }
+
+    onSequenceChange() {
+        const { migration: migId, iteration: iteId, plan: planId, sequence: seqId } = this.filters;
+        console.log('onSequenceChange: Selected sequence ID:', seqId);
+
+        // Reset dependent filters (everything below sequence in hierarchy)
+        this.filters.phase = '';
+        this.filters.team = '';
+        this.filters.label = '';
+        
+        // Reset dependent selectors to default state
+        this.resetSelector('#phase-filter', 'All Phases');
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!migId || !iteId) {
+            this.showBlankRunsheetState();
+            return;
+        }
+
+        if (!seqId) {
+            // 'All Sequences' selected - show all phases for current plan or iteration
+            if (planId) {
+                const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/plan-instances/${planId}/phases`;
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+                populateFilter('#phase-filter', phaseUrl, 'All Phases');
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            } else {
+                const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/phases`;
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+                populateFilter('#phase-filter', phaseUrl, 'All Phases');
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
             }
-            
-            row.innerHTML = `
-                <td class="col-step">${step.id}</td>
-                <td class="col-sequence">${step.sequence}</td>
-                <td class="col-phase">${step.phase}</td>
-                <td class="col-team">${step.team}</td>
-                <td class="col-title">${step.title}</td>
-                <td class="col-labels">
-                    ${step.labels ? step.labels.map(label => `<span class="label-tag">${label}</span>`).join('') : ''}
-                </td>
-                <td class="col-status status-${step.status.toLowerCase().replace(' ', '-')}">${step.status}</td>
-            `;
-            
-            row.addEventListener('click', () => {
-                this.selectStep(step.id);
-            });
-            
-            tbody.appendChild(row);
-        });
+        } else {
+            // Specific sequence selected - use nested URL pattern (migrationApi supports this)
+            const phaseUrl = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations/${iteId}/sequences/${seqId}/phases`;
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?sequenceId=${seqId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
+            populateFilter('#phase-filter', phaseUrl, 'All Phases');
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        }
+        
+        // Apply filters to reload steps
+        this.applyFilters();
     }
 
-    getFilteredSteps() {
-        return this.steps.filter(step => {
-            if (this.filters.sequence && step.sequence !== this.filters.sequence) return false;
-            if (this.filters.phase && step.phase !== this.filters.phase) return false;
-            if (this.filters.team && step.team !== this.filters.team) return false;
-            if (this.filters.label && (!step.labels || !step.labels.includes(this.filters.label))) return false;
-            // myTeamsOnly filter would be implemented based on user's team membership
-            return true;
-        });
+    onPhaseChange() {
+        const { migration: migId, iteration: iteId, plan: planId, sequence: seqId, phase: phaseId } = this.filters;
+        console.log('onPhaseChange: Selected phase ID:', phaseId);
+
+        // Reset dependent filters (teams and labels - no hierarchy below phase)
+        this.filters.team = '';
+        this.filters.label = '';
+        
+        // Reset dependent selectors to default state
+        this.resetSelector('#team-filter', 'All Teams');
+        this.resetSelector('#label-filter', 'All Labels');
+
+        if (!migId || !iteId) {
+            this.showBlankRunsheetState();
+            return;
+        }
+
+        if (!phaseId) {
+            // 'All Phases' selected - refresh teams and labels for current sequence or higher level
+            if (seqId) {
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?sequenceId=${seqId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?sequenceId=${seqId}`;
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            } else if (planId) {
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?planId=${planId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?planId=${planId}`;
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            } else {
+                const teamsUrl = `/rest/scriptrunner/latest/custom/teams?iterationId=${iteId}`;
+                const labelsUrl = `/rest/scriptrunner/latest/custom/labels?iterationId=${iteId}`;
+                populateFilter('#team-filter', teamsUrl, 'All Teams');
+                populateFilter('#label-filter', labelsUrl, 'All Labels');
+            }
+        } else {
+            // Specific phase selected - show only teams and labels for this phase
+            const teamsUrl = `/rest/scriptrunner/latest/custom/teams?phaseId=${phaseId}`;
+            const labelsUrl = `/rest/scriptrunner/latest/custom/labels?phaseId=${phaseId}`;
+            populateFilter('#team-filter', teamsUrl, 'All Teams');
+            populateFilter('#label-filter', labelsUrl, 'All Labels');
+        }
+        
+        // Apply filters to reload steps
+        this.applyFilters();
     }
 
-    selectStep(stepId) {
+
+
+
+    selectStep(stepId, stepCode) {
         // Update selected step
         document.querySelectorAll('.step-row').forEach(row => {
             row.classList.remove('selected');
@@ -274,102 +432,542 @@ class IterationView {
         }
         
         this.selectedStep = stepId;
-        this.loadStepDetails(stepId);
+        this.selectedStepCode = stepCode;
+        this.loadStepDetails(stepCode || stepId);
     }
 
-    loadStepDetails(stepId) {
-        const step = this.steps.find(s => s.id === stepId);
-        if (!step) return;
+    async loadStepDetails(stepCode) {
+        if (!stepCode) return;
+        
+        const stepDetailsContent = document.querySelector('.step-details-content');
+        if (!stepDetailsContent) return;
 
-        // Update step details panel
-        const stepIdEl = document.querySelector('.step-id');
-        const stepTitleEl = document.querySelector('.step-title');
-        const stepDescEl = document.querySelector('.step-description');
-        const stepMetaEls = document.querySelectorAll('.meta-value');
-        const commentsListEl = document.querySelector('.comments-list');
+        // Show loading state
+        stepDetailsContent.innerHTML = '<div class="loading-message"><p>🔄 Loading step details...</p></div>';
+
+        try {
+            const response = await fetch(`/rest/scriptrunner/latest/custom/stepViewApi?stepid=${encodeURIComponent(stepCode)}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const stepData = await response.json();
+            
+            if (stepData.error) {
+                throw new Error(stepData.error);
+            }
+            
+            this.renderStepDetails(stepData);
+            
+        } catch (error) {
+            stepDetailsContent.innerHTML = `
+                <div class="error-message">
+                    <p>❌ Error loading step details: ${error.message}</p>
+                    <p>Please try again or contact support.</p>
+                </div>
+            `;
+        }
+    }
+    
+    renderStepDetails(stepData) {
+        const stepDetailsContent = document.querySelector('.step-details-content');
+        if (!stepDetailsContent) return;
         
-        if (stepIdEl) stepIdEl.textContent = step.id;
-        if (stepTitleEl) stepTitleEl.textContent = step.title;
-        if (stepDescEl) stepDescEl.textContent = step.description;
+        const summary = stepData.stepSummary || {};
+        const instructions = stepData.instructions || [];
+        const impactedTeams = stepData.impactedTeams || [];
         
-        // Update meta information
-        if (stepMetaEls.length >= 4) {
-            stepMetaEls[0].textContent = step.sequence;
-            stepMetaEls[1].textContent = step.phase;
-            stepMetaEls[2].textContent = step.team;
-            stepMetaEls[3].textContent = step.status;
+        // Helper function to get status display
+        const getStatusDisplay = (status) => {
+            if (!status) return '<span class="status-pending">Pending</span>';
+            const statusLower = status.toLowerCase();
+            if (statusLower.includes('pending')) return '<span class="status-pending">Pending</span>';
+            if (statusLower.includes('progress')) return '<span class="status-progress">In Progress</span>';
+            if (statusLower.includes('completed')) return '<span class="status-completed">Completed</span>';
+            if (statusLower.includes('failed')) return '<span class="status-failed">Failed</span>';
+            if (statusLower.includes('blocked')) return '<span class="status-blocked">Blocked</span>';
+            if (statusLower.includes('cancelled')) return '<span class="status-cancelled">Cancelled</span>';
+            if (statusLower.includes('todo') || statusLower.includes('not_started')) return '<span class="status-todo">Todo</span>';
+            return `<span class="status-pending">${status}</span>`;
+        };
+        
+        let html = `
+            <div class="step-info">
+                <div class="step-title">
+                    <h3>📋 ${summary.ID || 'Unknown'}: ${summary.Name || 'Unknown Step'}</h3>
+                </div>
+                
+                <div class="step-metadata">
+                    <div class="metadata-item">
+                        <span class="label">🎯 Target Environment:</span>
+                        <span class="value">${summary.TargetEnvironment || 'Production'}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">🔄 Scope:</span>
+                        <span class="value">
+                            <span class="scope-tag">RUN</span>
+                            <span class="scope-tag">DR</span>
+                            <span class="scope-tag">CUTOVER</span>
+                        </span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">👥 Teams:</span>
+                        <span class="value">${summary.AssignedTeam ? `Assigned: ${summary.AssignedTeam}` : 'Not assigned'}${impactedTeams.length > 0 ? ` | Impacted: ${impactedTeams.join(', ')}` : ''}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">📂 Location:</span>
+                        <span class="value">${summary.SequenceName ? `Sequence: ${summary.SequenceName}` : 'Unknown sequence'}${summary.PhaseName ? ` | Phase: ${summary.PhaseName}` : ''}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">⏱️ Duration:</span>
+                        <span class="value">${summary.Duration || summary.EstimatedDuration || '45 minutes'}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">📊 Status:</span>
+                        <span class="value">${getStatusDisplay(summary.Status)}</span>
+                    </div>
+                </div>
+                
+                <div class="step-description">
+                    <h4>📝 Description:</h4>
+                    <p>${summary.Description || 'No description available'}</p>
+                </div>
+            </div>
+        `;
+        
+        if (instructions.length > 0) {
+            html += `
+                <div class="instructions-section">
+                    <h4>📋 INSTRUCTIONS</h4>
+                    <div class="instructions-table">
+                        <div class="instructions-header">
+                            <div class="col-num">#</div>
+                            <div class="col-instruction">Instruction</div>
+                            <div class="col-team">Team</div>
+                            <div class="col-control">Control</div>
+                            <div class="col-duration">Duration</div>
+                            <div class="col-complete">✓</div>
+                        </div>
+            `;
+            
+            instructions.forEach((instruction, index) => {
+                html += `
+                    <div class="instruction-row">
+                        <div class="col-num">${instruction.Order || (index + 1)}</div>
+                        <div class="col-instruction">${instruction.Description || instruction.Instruction || 'No description'}</div>
+                        <div class="col-team">${instruction.Team || summary.AssignedTeam || 'TBD'}</div>
+                        <div class="col-control">${instruction.Control || instruction.ControlCode || `CTRL-${String(index + 1).padStart(2, '0')}`}</div>
+                        <div class="col-duration">${instruction.Duration || instruction.EstimatedDuration || '5 min'}</div>
+                        <div class="col-complete"><input type="checkbox" ${instruction.IsCompleted ? 'checked' : ''}></div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
         }
         
-        // Update comments
-        if (commentsListEl) {
-            commentsListEl.innerHTML = '';
-            if (step.comments) {
-                step.comments.forEach(comment => {
-                    const commentEl = document.createElement('div');
-                    commentEl.className = 'comment-item';
-                    commentEl.innerHTML = `
+        // Add comment section with mock data
+        html += `
+            <div class="comments-section">
+                <h4>💬 COMMENTS (3)</h4>
+                <div class="comments-list">
+                    <div class="comment">
                         <div class="comment-header">
-                            <span class="comment-author">${comment.author}</span>
-                            <span class="comment-time">${comment.time}</span>
+                            <span class="comment-author">John Smith (DB-Team)</span>
+                            <span class="comment-time">2 hours ago</span>
                         </div>
-                        <div class="comment-text">${comment.text}</div>
+                        <div class="comment-body">
+                            "Backup server space verified - 2TB available"
+                        </div>
+                    </div>
+                    
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-author">Sarah Johnson (NET-Team)</span>
+                            <span class="comment-time">1 hour ago</span>
+                        </div>
+                        <div class="comment-body">
+                            "Network connectivity to backup server confirmed"
+                        </div>
+                    </div>
+                    
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-author">Mike Chen (DB-Team)</span>
+                            <span class="comment-time">30 minutes ago</span>
+                        </div>
+                        <div class="comment-body">
+                            "Ready to begin backup process"
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comment-form">
+                    <textarea placeholder="Add a comment..." rows="3"></textarea>
+                    <button type="button" class="btn btn-primary">Add Comment</button>
+                </div>
+            </div>
+            
+            <div class="step-actions">
+                <button type="button" class="btn btn-secondary">Mark Instructions Complete</button>
+                <button type="button" class="btn btn-primary">Update Status</button>
+            </div>
+        `;
+        
+        stepDetailsContent.innerHTML = html;
+    }
+
+    applyFilters() {
+        this.loadSteps();
+        this.showNotification('Filters applied', 'info');
+    }
+
+    /**
+     * Load steps from the backend API based on current filters
+     */
+    async loadSteps() {
+        const runsheetContent = document.getElementById('runsheet-content');
+        if (!runsheetContent) return;
+
+        // Show loading state
+        runsheetContent.innerHTML = '<div class="loading-message"><p>🔄 Loading steps...</p></div>';
+
+        // Build query parameters from filters
+        const params = new URLSearchParams();
+        
+        if (this.filters.migration) params.append('migrationId', this.filters.migration);
+        if (this.filters.iteration) params.append('iterationId', this.filters.iteration);
+        if (this.filters.plan) params.append('planId', this.filters.plan);
+        if (this.filters.sequence) params.append('sequenceId', this.filters.sequence);
+        if (this.filters.phase) params.append('phaseId', this.filters.phase);
+        if (this.filters.team) params.append('teamId', this.filters.team);
+        if (this.filters.label) params.append('labelId', this.filters.label);
+
+        // Don't load steps if no migration or iteration is selected
+        if (!this.filters.migration || !this.filters.iteration) {
+            runsheetContent.innerHTML = `
+                <div class="loading-message">
+                    <p>📋 Select a migration and iteration to view steps</p>
+                </div>
+            `;
+            this.updateStepCounts(0, 0, 0, 0, 0);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/rest/scriptrunner/latest/custom/steps?${params.toString()}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const sequences = await response.json();
+            
+            if (!Array.isArray(sequences) || sequences.length === 0) {
+                runsheetContent.innerHTML = `
+                    <div class="loading-message">
+                        <p>📋 No steps found for current filters</p>
+                    </div>
+                `;
+                this.updateStepCounts(0, 0, 0, 0, 0);
+                return;
+            }
+
+            this.renderRunsheet(sequences);
+            this.calculateAndUpdateStepCounts(sequences);
+            
+        } catch (error) {
+            runsheetContent.innerHTML = `
+                <div class="error-message">
+                    <p>❌ Error loading steps: ${error.message}</p>
+                    <p>Please try again or contact support.</p>
+                </div>
+            `;
+            this.updateStepCounts(0, 0, 0, 0, 0);
+        }
+    }
+
+    /**
+     * Render the runsheet with grouped sequences and phases
+     */
+    renderRunsheet(sequences) {
+        const runsheetContent = document.getElementById('runsheet-content');
+        if (!runsheetContent) return;
+
+        let html = '';
+        
+        sequences.forEach(sequence => {
+            html += `
+                <div class="sequence-section">
+                    <div class="sequence-header">
+                        <span class="expand-icon">▼</span>
+                        <h3>SEQUENCE ${sequence.number}: ${sequence.name}</h3>
+                    </div>
+            `;
+            
+            sequence.phases.forEach(phase => {
+                html += `
+                    <div class="phase-section">
+                        <div class="phase-header">
+                            <span class="expand-icon">▼</span>
+                            <h4>PHASE ${phase.number}: ${phase.name}</h4>
+                        </div>
+                        
+                        <table class="runsheet-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-code">Code</th>
+                                    <th class="col-title">Title</th>
+                                    <th class="col-team">Team</th>
+                                    <th class="col-labels">Labels</th>
+                                    <th class="col-status">Status</th>
+                                    <th class="col-duration">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                phase.steps.forEach(step => {
+                    const statusClass = this.getStatusClass(step.status);
+                    const labelsHtml = this.renderLabels(step.labels || []);
+                    html += `
+                        <tr class="step-row ${step.id === this.selectedStep ? 'selected' : ''}" 
+                            data-step="${step.id}" 
+                            data-step-code="${step.code}">
+                            <td class="col-code">${step.code}</td>
+                            <td class="col-title">${step.name}</td>
+                            <td class="col-team">${step.ownerTeamName}</td>
+                            <td class="col-labels">${labelsHtml}</td>
+                            <td class="col-status ${statusClass}">${step.status}</td>
+                            <td class="col-duration">${step.durationMinutes ? step.durationMinutes + ' min' : '-'}</td>
+                        </tr>
                     `;
-                    commentsListEl.appendChild(commentEl);
                 });
+                
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+        });
+        
+        runsheetContent.innerHTML = html;
+        
+        // Bind click events to step rows
+        this.bindStepRowEvents();
+        
+        // Bind fold/unfold events to sequence and phase headers
+        this.bindFoldingEvents();
+    }
+
+    /**
+     * Bind click events to step rows
+     */
+    bindStepRowEvents() {
+        const stepRows = document.querySelectorAll('.step-row');
+        stepRows.forEach(row => {
+            row.addEventListener('click', () => {
+                const stepId = row.getAttribute('data-step');
+                const stepCode = row.getAttribute('data-step-code');
+                if (stepId) {
+                    this.selectStep(stepId, stepCode);
+                }
+            });
+        });
+    }
+
+    /**
+     * Bind fold/unfold events to sequence and phase headers
+     */
+    bindFoldingEvents() {
+        // Sequence headers
+        document.querySelectorAll('.sequence-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                this.toggleSequence(e.currentTarget);
+            });
+        });
+
+        // Phase headers
+        document.querySelectorAll('.phase-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                this.togglePhase(e.currentTarget);
+            });
+        });
+    }
+
+    /**
+     * Toggle sequence visibility (fold/unfold)
+     */
+    toggleSequence(sequenceHeader) {
+        const icon = sequenceHeader.querySelector('.expand-icon');
+        const sequenceSection = sequenceHeader.closest('.sequence-section');
+        const phaseSections = sequenceSection.querySelectorAll('.phase-section');
+
+        if (icon.classList.contains('collapsed')) {
+            icon.classList.remove('collapsed');
+            phaseSections.forEach(phase => phase.style.display = 'block');
+        } else {
+            icon.classList.add('collapsed');
+            phaseSections.forEach(phase => phase.style.display = 'none');
+        }
+    }
+
+    /**
+     * Toggle phase visibility (fold/unfold)
+     */
+    togglePhase(phaseHeader) {
+        const icon = phaseHeader.querySelector('.expand-icon');
+        const phaseSection = phaseHeader.closest('.phase-section');
+        const stepsTable = phaseSection.querySelector('table.runsheet-table');
+
+        if (icon.classList.contains('collapsed')) {
+            icon.classList.remove('collapsed');
+            if (stepsTable) {
+                stepsTable.style.display = 'table';
+            }
+        } else {
+            icon.classList.add('collapsed');
+            if (stepsTable) {
+                stepsTable.style.display = 'none';
             }
         }
     }
 
-    applyFilters() {
-        this.renderSteps();
-        this.showNotification('Filters applied', 'info');
+    /**
+     * Get CSS class for step status
+     */
+    getStatusClass(status) {
+        if (!status) return 'status-pending';
+        
+        const statusLower = status.toLowerCase();
+        if (statusLower.includes('completed')) return 'status-completed';
+        if (statusLower.includes('progress')) return 'status-progress';
+        if (statusLower.includes('failed') || statusLower.includes('error')) return 'status-failed';
+        if (statusLower.includes('blocked')) return 'status-blocked';
+        if (statusLower.includes('cancelled')) return 'status-cancelled';
+        if (statusLower.includes('todo') || statusLower.includes('not_started')) return 'status-todo';
+        return 'status-pending';
+    }
+
+    /**
+     * Render labels as colored tags
+     */
+    renderLabels(labels) {
+        if (!labels || labels.length === 0) {
+            return '<span class="no-labels">-</span>';
+        }
+        
+        return labels.map(label => {
+            const color = label.color || '#6B778C';
+            return `<span class="label-tag" style="background-color: ${color}; color: white;" title="${label.description || label.name}">${label.name}</span>`;
+        }).join(' ');
+    }
+
+    /**
+     * Calculate and update step counts from sequences data
+     */
+    calculateAndUpdateStepCounts(sequences) {
+        let total = 0;
+        let pending = 0;
+        let todo = 0;
+        let progress = 0;
+        let completed = 0;
+        let failed = 0;
+        let blocked = 0;
+        let cancelled = 0;
+        
+        sequences.forEach(sequence => {
+            sequence.phases.forEach(phase => {
+                phase.steps.forEach(step => {
+                    total++;
+                    const statusClass = this.getStatusClass(step.status);
+                    
+                    switch (statusClass) {
+                        case 'status-completed':
+                            completed++;
+                            break;
+                        case 'status-progress':
+                            progress++;
+                            break;
+                        case 'status-failed':
+                            failed++;
+                            break;
+                        case 'status-blocked':
+                            blocked++;
+                            break;
+                        case 'status-cancelled':
+                            cancelled++;
+                            break;
+                        case 'status-todo':
+                            todo++;
+                            break;
+                        default:
+                            pending++;
+                    }
+                });
+            });
+        });
+        
+        this.updateStepCounts(total, pending, todo, progress, completed, failed, blocked, cancelled);
+    }
+
+    /**
+     * Update step count display
+     */
+    updateStepCounts(total, pending, todo, progress, completed, failed, blocked, cancelled) {
+        const elements = {
+            'total-steps': total,
+            'pending-steps': pending,
+            'todo-steps': todo,
+            'progress-steps': progress,
+            'completed-steps': completed,
+            'failed-steps': failed,
+            'blocked-steps': blocked,
+            'cancelled-steps': cancelled
+        };
+        
+        Object.entries(elements).forEach(([id, count]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = count;
+            }
+        });
     }
 
     startStep() {
-        const step = this.steps.find(s => s.id === this.selectedStep);
-        if (step) {
-            step.status = 'In Progress';
-            this.updateStepStatus(this.selectedStep, 'In Progress');
-            this.loadStepDetails(this.selectedStep);
-            this.showNotification('Step started successfully', 'success');
+        if (this.selectedStep) {
+            // TODO: Implement step status update API call
+            this.showNotification('Step status update functionality coming soon', 'info');
         }
     }
 
     completeStep() {
-        const step = this.steps.find(s => s.id === this.selectedStep);
-        if (step) {
-            step.status = 'Completed';
-            this.updateStepStatus(this.selectedStep, 'Completed');
-            this.loadStepDetails(this.selectedStep);
-            this.showNotification('Step completed successfully', 'success');
+        if (this.selectedStep) {
+            // TODO: Implement step status update API call
+            this.showNotification('Step status update functionality coming soon', 'info');
         }
     }
 
     blockStep() {
-        const step = this.steps.find(s => s.id === this.selectedStep);
-        if (step) {
-            step.status = 'Blocked';
-            this.updateStepStatus(this.selectedStep, 'Blocked');
-            this.loadStepDetails(this.selectedStep);
-            this.showNotification('Step marked as blocked', 'warning');
+        if (this.selectedStep) {
+            // TODO: Implement step status update API call
+            this.showNotification('Step status update functionality coming soon', 'info');
         }
     }
 
     addComment() {
-        const commentInput = document.getElementById('new-comment');
+        const commentInput = document.querySelector('.comment-form textarea');
         if (commentInput && commentInput.value.trim()) {
-            const step = this.steps.find(s => s.id === this.selectedStep);
-            if (step) {
-                if (!step.comments) step.comments = [];
-                step.comments.push({
-                    author: 'Current User',
-                    time: new Date().toLocaleString(),
-                    text: commentInput.value.trim()
-                });
-                commentInput.value = '';
-                this.loadStepDetails(this.selectedStep);
-                this.showNotification('Comment added successfully', 'success');
-            }
+            // TODO: Implement comment API call
+            commentInput.value = '';
+            this.showNotification('Comment functionality coming soon', 'info');
         }
     }
 
@@ -380,16 +978,12 @@ class IterationView {
             const statusCell = row.querySelector('.col-status');
             if (statusCell) {
                 statusCell.textContent = status;
-                statusCell.className = `col-status status-${status.toLowerCase().replace(' ', '-')}`;
+                statusCell.className = `col-status ${this.getStatusClass(status)}`;
             }
         }
         
-        this.updateSummaryStats();
-    }
-
-    updateSummaryStats() {
-        // This would update summary statistics in a real implementation
-        console.log('Summary stats updated');
+        // Reload steps to update counts
+        this.loadSteps();
     }
 
     showNotification(message, type = 'info') {
@@ -439,39 +1033,60 @@ class IterationView {
     }
 
     updateFilters() {
-        // Initialize filter state and populate dropdowns
-        this.populateFilterOptions();
+        // Initialize filter state
         this.applyFilters();
     }
 
-    populateFilterOptions() {
-        // Extract unique values from steps for filter options
-        const sequences = [...new Set(this.steps.map(s => s.sequence))];
-        const phases = [...new Set(this.steps.map(s => s.phase))];
-        const teams = [...new Set(this.steps.map(s => s.team))];
-        const labels = [...new Set(this.steps.flatMap(s => s.labels || []))];
+    /**
+     * Show blank runsheet state when no migration/iteration is selected
+     */
+    showBlankRunsheetState() {
+        const runsheetContent = document.getElementById('runsheet-content');
+        if (runsheetContent) {
+            runsheetContent.innerHTML = `
+                <div class="loading-message">
+                    <p>📋 Select a migration and iteration to view steps</p>
+                </div>
+            `;
+        }
         
-        this.populateSelect('sequence-filter', sequences);
-        this.populateSelect('phase-filter', phases);
-        this.populateSelect('team-filter', teams);
-        this.populateSelect('label-filter', labels);
+        // Clear step details
+        const stepDetailsContent = document.querySelector('.step-details-content');
+        if (stepDetailsContent) {
+            stepDetailsContent.innerHTML = `
+                <div class="loading-message">
+                    <p>👋 Select a step from the runsheet to view details</p>
+                </div>
+            `;
+        }
+        
+        // Reset counts
+        this.updateStepCounts(0, 0, 0, 0, 0);
     }
 
-    populateSelect(selectId, options) {
-        const select = document.getElementById(selectId);
-        if (!select) return;
-        
-        // Keep the first option (usually "All" or empty)
-        const firstOption = select.firstElementChild;
-        select.innerHTML = '';
-        if (firstOption) select.appendChild(firstOption);
-        
-        options.forEach(option => {
-            const optionEl = document.createElement('option');
-            optionEl.value = option;
-            optionEl.textContent = option;
-            select.appendChild(optionEl);
-        });
+    /**
+     * Load steps and auto-select first step of first phase in first sequence
+     */
+    async loadStepsAndSelectFirst() {
+        try {
+            // Load the steps first
+            await this.loadSteps();
+            
+            // Auto-select first step if none is selected
+            if (!this.selectedStep) {
+                const firstStepRow = document.querySelector('.step-row');
+                if (firstStepRow) {
+                    const stepId = firstStepRow.getAttribute('data-step');
+                    const stepCode = firstStepRow.getAttribute('data-step-code');
+                    if (stepId) {
+                        this.selectStep(stepId, stepCode);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('loadStepsAndSelectFirst: Error:', error);
+            this.showBlankRunsheetState();
+        }
     }
 }
 
@@ -483,6 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
 IterationView.prototype.populateMigrationSelector = function() {
     const select = document.getElementById('migration-select');
     if (!select) return;
+    
     // Show loading state
     select.innerHTML = '<option value="">Loading migrations...</option>';
 
@@ -492,7 +1108,9 @@ IterationView.prototype.populateMigrationSelector = function() {
             return response.json();
         })
         .then(migrations => {
-            select.innerHTML = '';
+            // Always start with the default option
+            select.innerHTML = '<option value="">SELECT A MIGRATION</option>';
+            
             if (Array.isArray(migrations) && migrations.length > 0) {
                 migrations.forEach(migration => {
                     const option = document.createElement('option');
@@ -509,41 +1127,6 @@ IterationView.prototype.populateMigrationSelector = function() {
         });
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    const migrationSelect = document.getElementById('migration-select');
-    const iterationSelect = document.getElementById('iteration-select');
-    if (migrationSelect && iterationSelect) {
-        migrationSelect.addEventListener('change', function() {
-            const migrationId = this.value;
-            if (!migrationId) {
-                iterationSelect.innerHTML = '<option value="">Select a migration first</option>';
-                return;
-            }
-            iterationSelect.innerHTML = '<option value="">Loading iterations...</option>';
-            fetch(`/rest/scriptrunner/latest/custom/migrations/${migrationId}/iterations`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(iterations => {
-                    iterationSelect.innerHTML = '';
-                    if (Array.isArray(iterations) && iterations.length > 0) {
-                        iterations.forEach(iter => {
-                            const option = document.createElement('option');
-                            option.value = iter.id;
-                            option.textContent = iter.name || '(Unnamed Iteration)';
-                            iterationSelect.appendChild(option);
-                        });
-                    } else {
-                        iterationSelect.innerHTML = '<option value="">No iterations found</option>';
-                    }
-                })
-                .catch(() => {
-                    iterationSelect.innerHTML = '<option value="">Failed to load iterations</option>';
-                });
-        });
-    }
-});
 
 // Export for potential module use
 if (typeof module !== 'undefined' && module.exports) {

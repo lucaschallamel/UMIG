@@ -21,6 +21,11 @@ final UserRepository userRepository = new UserRepository()
 /**
  * Handles GET requests for Teams.
  * - GET /teams -> returns all teams
+ * - GET /teams?migrationId={uuid} -> returns teams involved in migration
+ * - GET /teams?iterationId={uuid} -> returns teams involved in iteration
+ * - GET /teams?planId={uuid} -> returns teams involved in plan
+ * - GET /teams?sequenceId={uuid} -> returns teams involved in sequence
+ * - GET /teams?phaseId={uuid} -> returns teams involved in phase
  * - GET /teams/{id} -> returns a single team
  * - GET /teams/{id}/members -> returns all members of a team
  */
@@ -28,9 +33,51 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
 
-    // GET /teams
+    // GET /teams with query parameters for hierarchical filtering
     if (pathParts.empty) {
-        def teams = teamRepository.findAllTeams()
+        def teams
+        
+        // Check for hierarchical filtering query parameters
+        if (queryParams.getFirst('migrationId')) {
+            try {
+                def migrationId = UUID.fromString(queryParams.getFirst('migrationId'))
+                teams = teamRepository.findTeamsByMigrationId(migrationId)
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid migration ID format"]).toString()).build()
+            }
+        } else if (queryParams.getFirst('iterationId')) {
+            try {
+                def iterationId = UUID.fromString(queryParams.getFirst('iterationId'))
+                teams = teamRepository.findTeamsByIterationId(iterationId)
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid iteration ID format"]).toString()).build()
+            }
+        } else if (queryParams.getFirst('planId')) {
+            try {
+                def planId = UUID.fromString(queryParams.getFirst('planId'))
+                teams = teamRepository.findTeamsByPlanId(planId)
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid plan ID format"]).toString()).build()
+            }
+        } else if (queryParams.getFirst('sequenceId')) {
+            try {
+                def sequenceId = UUID.fromString(queryParams.getFirst('sequenceId'))
+                teams = teamRepository.findTeamsBySequenceId(sequenceId)
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid sequence ID format"]).toString()).build()
+            }
+        } else if (queryParams.getFirst('phaseId')) {
+            try {
+                def phaseId = UUID.fromString(queryParams.getFirst('phaseId'))
+                teams = teamRepository.findTeamsByPhaseId(phaseId)
+            } catch (IllegalArgumentException e) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid phase ID format"]).toString()).build()
+            }
+        } else {
+            // Default: return all teams
+            teams = teamRepository.findAllTeams()
+        }
+        
         return Response.ok(new JsonBuilder(teams).toString()).build()
     }
 

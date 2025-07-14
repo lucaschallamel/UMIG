@@ -39,7 +39,10 @@ UMIG/
 │           ├── api/                  # REST API endpoints
 │           │   ├── README.md         # API documentation
 │           │   └── v2/               # Version 2 APIs
+│           │       ├── LabelsApi.groovy
+│           │       ├── migrationApi.groovy
 │           │       ├── PlansApi.groovy
+│           │       ├── StepsApi.groovy
 │           │       ├── TeamMembersApi.groovy
 │           │       ├── TeamsApi.groovy
 │           │       ├── UsersApi.groovy
@@ -58,7 +61,9 @@ UMIG/
 │           │   ├── README.md         # Repository documentation
 │           │   ├── ImplementationPlanRepository.groovy
 │           │   ├── InstructionRepository.groovy
+│           │   ├── LabelRepository.groovy
 │           │   ├── LookupRepository.groovy
+│           │   ├── MigrationRepository.groovy
 │           │   ├── StepRepository.groovy
 │           │   ├── StepTypeRepository.groovy
 │           │   ├── TeamMembersRepository.groovy
@@ -294,8 +299,36 @@ DatabaseUtil.withSql { sql ->
 
 ### REST Endpoint Structure
 - Base URL: `/rest/scriptrunner/latest/custom/`
-- Endpoints: `/users`, `/teams`, `/plans`, `/stepViewApi`
+- Endpoints: `/users`, `/teams`, `/steps`, `/labels`, `/migrations`, `/stepViewApi`
 - V2 API conventions (documented in `docs/api/openapi.yaml`)
+
+### Hierarchical Filtering Pattern (ADR-030, ADR-031)
+**Consistent query parameter filtering across all resources with type safety:**
+
+**Backend Implementation**:
+```groovy
+// Type-safe parameter handling with explicit casting
+if (filters.migrationId) {
+    query += ' AND mig.mig_id = :migrationId'
+    params.migrationId = UUID.fromString(filters.migrationId as String)
+}
+
+if (filters.teamId) {
+    query += ' AND stm.tms_id_owner = :teamId'  
+    params.teamId = Integer.parseInt(filters.teamId as String)
+}
+```
+
+**API Usage**:
+- `/teams?migrationId={uuid}` - Teams in a migration
+- `/labels?iterationId={uuid}` - Labels in an iteration
+- `/steps?planId={uuid}&teamId={int}` - Steps in a plan by team
+- `/teams?phaseId={uuid}` - Teams assigned to a phase
+
+**Frontend Integration**:
+- Complete parent-child cascade logic (Migration → Iteration → Plan → Sequence → Phase → Teams + Labels)
+- Dynamic filter updates based on parent selections
+- Progressive refinement with automatic reset of child filters
 
 ## Key Development Guidelines
 
@@ -303,8 +336,10 @@ DatabaseUtil.withSql { sql ->
 1. **REST Endpoints**: Must use `CustomEndpointDelegate` pattern
 2. **Database Access**: Must use `DatabaseUtil.withSql` pattern  
 3. **Security**: Include `groups: ["confluence-users"]` by default
-4. **Type Safety**: Use explicit casting when IDE reports errors but runtime type is certain
-5. **Path Parameters**: Use `getAdditionalPath(request)` for URL segments
+4. **Type Safety**: MANDATORY explicit casting (`as String`) for all query parameters passed to UUID.fromString() or Integer.parseInt()
+5. **Field Selection**: Include ALL fields referenced in result mapping in SQL SELECT clauses
+6. **Master vs Instance**: Use instance IDs (pli_id, sqi_id, phi_id) for hierarchical filtering, not master IDs
+7. **Path Parameters**: Use `getAdditionalPath(request)` for URL segments
 
 ### Frontend Requirements
 1. **No Frameworks**: Use vanilla JavaScript only
@@ -353,9 +388,15 @@ When development environment is running:
 ### **Current Active ADRs**
 - **`docs/adr/ADR-027-n-tiers-model.md`**: N-tiers model architecture
 - **`docs/adr/ADR-028-data-import-strategy-for-confluence-json.md`**: Data import strategy
+- **`docs/adr/ADR-030-hierarchical-filtering-pattern.md`**: Hierarchical filtering pattern for API and UI
+- **`docs/adr/ADR-031-groovy-type-safety-and-filtering-patterns.md`**: Groovy type safety and filtering patterns
 
 ### Critical References
 - **API Spec**: `docs/api/openapi.yaml` - OpenAPI specification
+- **API Documentation**: `docs/api/` - Individual API documentation files
+  - `LabelsAPI.md` - Labels API with hierarchical filtering
+  - `TeamsAPI.md` - Teams API with hierarchical filtering
+  - `API_Updates_Summary.md` - Summary of recent API changes
 - **Data Model**: `docs/dataModel/README.md` - Database schema and ERD
 - **Current ADRs**: `docs/adr/` (skip `docs/adr/archive/` - consolidated in solution-architecture.md)
 
@@ -374,13 +415,17 @@ When development environment is running:
 - **Instance Data Generation**: Full canonical→instance replication with override field population
 - **Schema Corrections**: Fixed type mismatches in migration 010 for instruction instance fields
 - **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026) and updated test coverage
-- **Architecture Documentation**: All 26 ADRs consolidated into solution-architecture.md
+- **Architecture Documentation**: All 31 ADRs consolidated into solution-architecture.md
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
-- **Iteration View Mockup**: Complete HTML/CSS/JS mockup with zero dependencies (`mock/`)
+- **Iteration View Complete**: Fully functional with hierarchical filtering, labels integration, and dynamic step management
+- **Labels API**: Complete with hierarchical filtering (ADR-030)
+- **Teams API**: Enhanced with hierarchical filtering capabilities
+- **Steps API**: Complete with hierarchical filtering and labels integration
+- **Migration API**: Core functionality implemented
+- **Type Safety Patterns**: Established Groovy static type checking patterns (ADR-031)
 
 ### 🚧 MVP Remaining Work
-- **Iteration View Implementation**: Convert mockup to ScriptRunner macro (`iterationViewMacro.groovy`)
-- **Core REST APIs**: Plans, Chapters, Steps, Tasks, Controls, Instructions, Labels endpoints
+- **Core REST APIs**: Plans, Sequences, Phases, Instructions endpoints using established patterns
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
@@ -391,11 +436,13 @@ When development environment is running:
 - API: `src/groovy/umig/api/v2/stepViewApi.groovy`
 - Purpose: Display migration/release steps in Confluence
 
-### Iteration View System (In Development)
+### Iteration View System (✅ Completed)
 - Specification: `docs/ui-ux/iteration-view.md`
 - Mockup: `mock/iteration-view.html` (functional prototype)
-- Target Macro: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
-- Purpose: Primary runsheet interface for cutover events
+- Macro: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
+- Frontend: `src/groovy/umig/web/js/iteration-view.js` and `iteration-view.css`
+- API: `src/groovy/umig/api/v2/StepsApi.groovy`
+- Purpose: Primary runsheet interface for cutover events with complete hierarchical filtering and labels
 
 ## Development Workflow
 
@@ -422,22 +469,86 @@ When development environment is running:
 3. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
 
 ### Development Standards (Non-Negotiable)
-1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/TeamsApi.groovy` and `UsersApi.groovy`
+1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/StepsApi.groovy`, `TeamsApi.groovy`, and `LabelsApi.groovy`
 2. **Database Access**: MANDATORY `DatabaseUtil.withSql` pattern - no exceptions
-3. **Testing**: Specific SQL query mocks required (ADR-026) - prevent regressions
-4. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
-5. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
-6. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
+3. **Type Safety**: MANDATORY explicit casting (`as String`) for all query parameters - see ADR-031
+4. **Filtering Logic**: Use instance IDs (pli_id, sqi_id, phi_id) for hierarchical filtering, not master IDs
+5. **Field Selection**: Include ALL fields referenced in result mapping in SQL SELECT clauses
+6. **Testing**: Specific SQL query mocks required (ADR-026) - prevent regressions
+7. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
+8. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
+9. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
 
 ### Project Context (Current State)
-- **Maturity**: Proof-of-concept with solid architectural foundation and working mockup
+- **Maturity**: Functional stage with iteration view complete and proven patterns established
 - **Timeline**: 4-week MVP deadline - ruthless scope management required
-- **Current Focus**: Implement iteration view based on completed mockup in `mock/`
-- **Next Priority**: Convert mockup to ScriptRunner macro with backend API integration
-- **Pattern**: Reference existing user/team management as implementation template
+- **Current Focus**: Implement remaining REST APIs using established hierarchical filtering and type safety patterns
+- **Next Priority**: Plans, Sequences, Phases, Instructions APIs following the StepsApi.groovy pattern
+- **Pattern**: Reference StepsApi.groovy, TeamsApi.groovy, and LabelsApi.groovy as implementation templates
 
-### Recent Achievements (January 2025)
-- **Complete UI/UX Mockup**: Functional iteration view prototype with zero external dependencies
-- **Clean Architecture**: Reorganized `src/` structure following Java package conventions
-- **Validated Design**: Three-panel layout confirmed through interactive mockup
-- **Implementation Ready**: All frontend components proven functional in vanilla JavaScript
+### Recent Achievements (July 2025)
+- **Iteration View Complete**: Fully functional hierarchical filtering with labels integration and dynamic step management
+- **Type Safety Patterns**: Established robust Groovy static type checking patterns (ADR-031) preventing runtime errors
+- **API Pattern Maturity**: Proven REST API patterns with StepsApi, TeamsApi, and LabelsApi serving as definitive templates
+- **Database Filtering Mastery**: Resolved master vs instance ID filtering patterns and complete field selection requirements
+- **Labels Integration**: Complete many-to-many relationship handling with colored tag display and graceful error handling
+
+## Workflows
+
+The project includes predefined workflows for common development tasks. These workflows are located in `.clinerules/workflows/` and can be executed by referencing their path:
+
+### Available Workflows
+
+1. **Memory Bank Update** (`.clinerules/workflows/memory-bank-update.md`)
+   - Updates Cline memory bank files in `cline-docs/` based on recent changes
+   - Uses Developer Journal entries, CHANGELOG.md, README files, and ADRs
+   - Maintains consistency across activeContext.md, progress.md, systemPatterns.md, etc.
+
+2. **API Work** (`.clinerules/workflows/api-work.md`)
+   - Guides development of new API endpoints
+   - Ensures consistency with established patterns
+
+3. **API Tests & Specs Update** (`.clinerules/workflows/api-tests-specs-update.md`)
+   - Updates API tests and OpenAPI specifications
+   - Regenerates documentation and Postman collections
+
+4. **Sprint Review** (`.clinerules/workflows/sprint-review.md`)
+   - Creates structured sprint review documentation
+   - Updates progress tracking and retrospectives
+
+5. **Development Journal** (`.clinerules/workflows/dev-journal.md`)
+   - Creates daily development journal entries
+   - Documents progress, decisions, and learnings
+
+6. **Documentation Update** (`.clinerules/workflows/doc-update.md`)
+   - Updates project documentation systematically
+   - Ensures consistency across all documentation files
+
+7. **Commit** (`.clinerules/workflows/commit.md`)
+   - Guides proper git commit creation
+   - Ensures consistent commit message format
+
+8. **Pull Request** (`.clinerules/workflows/pull-request.md`)
+   - Creates well-structured pull requests
+   - Includes proper documentation and test plans
+
+9. **Data Model** (`.clinerules/workflows/data-model.md`)
+   - Updates data model documentation
+   - Ensures ERD and schema documentation consistency
+
+10. **Kick-off** (`.clinerules/workflows/kick-off.md`)
+    - Initializes new feature development
+    - Sets up necessary files and documentation
+
+### Executing Workflows
+
+To execute a workflow, simply reference it:
+- "Please run the memory bank update workflow"
+- "Execute `.clinerules/workflows/memory-bank-update.md`"
+- "Update the API documentation using the api-tests-specs-update workflow"
+
+### Workflow Guidelines
+- Workflows ensure consistency and completeness
+- They codify best practices and project standards
+- Always check workflow output for accuracy
+- Workflows may reference other project files and patterns
