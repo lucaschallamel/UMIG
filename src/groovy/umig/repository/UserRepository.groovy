@@ -17,7 +17,7 @@ class UserRepository {
     def findUserById(int userId) {
         DatabaseUtil.withSql { sql ->
             def user = sql.firstRow("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id
+                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
                 FROM users_usr
                 WHERE usr_id = :userId
             """, [userId: userId])
@@ -34,13 +34,13 @@ class UserRepository {
     }
 
     /**
-     * Retrieves all users from the database.
+     * Retrieves all users from the database (legacy method for backward compatibility).
      * @return A list of maps, where each map is a user.
      */
     def findAllUsers() {
         DatabaseUtil.withSql { sql ->
             def users = sql.rows("""
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id
+                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
                 FROM users_usr
                 ORDER BY usr_id
             """)
@@ -58,6 +58,94 @@ class UserRepository {
     }
 
     /**
+     * Retrieves paginated users from the database with optional search and sorting.
+     * @param pageNumber The page number (1-based).
+     * @param pageSize The number of users per page.
+     * @param searchTerm Optional search term to filter users.
+     * @param sortField Optional field to sort by.
+     * @param sortDirection Sort direction ('asc' or 'desc').
+     * @return A map containing users list and pagination metadata.
+     */
+    def findAllUsers(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            // Build WHERE clause for search
+            def whereClause = ""
+            def params = [:]
+            
+            if (searchTerm && !searchTerm.trim().isEmpty()) {
+                def trimmedSearch = searchTerm.trim()
+                whereClause = "WHERE (usr_first_name ILIKE :searchTerm OR usr_last_name ILIKE :searchTerm OR usr_email ILIKE :searchTerm OR usr_code ILIKE :searchTerm)"
+                params.searchTerm = "%${trimmedSearch}%".toString()  // Convert GString to String
+            }
+            
+            // Build ORDER BY clause with validation
+            def orderClause = "ORDER BY usr_id ASC" // Default sort
+            if (sortField) {
+                // Validate sort field to prevent SQL injection
+                def validSortFields = ['usr_id', 'usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'usr_active', 'rls_id']
+                if (validSortFields.contains(sortField)) {
+                    def direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+                    orderClause = "ORDER BY ${sortField} ${direction}"
+                }
+            }
+            
+            // Get total count
+            def countQuery = "SELECT COUNT(*) as total FROM users_usr ${whereClause}"
+            def countParams = [:]
+            if (searchTerm && !searchTerm.trim().isEmpty()) {
+                countParams.searchTerm = "%${searchTerm.trim()}%".toString()  // Convert GString to String
+            }
+            
+            
+            def totalCount = sql.firstRow(countQuery, countParams).total as long
+            
+            // Calculate pagination
+            def offset = (pageNumber - 1) * pageSize
+            def totalPages = (totalCount + pageSize - 1) / pageSize as int
+            
+            // Get paginated users
+            def usersQuery = """
+                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
+                FROM users_usr
+                ${whereClause}
+                ${orderClause}
+                LIMIT :pageSize OFFSET :offset
+            """
+            
+            // Create params for main query
+            def queryParams = [pageSize: pageSize, offset: offset]
+            if (searchTerm && !searchTerm.trim().isEmpty()) {
+                queryParams.searchTerm = "%${searchTerm.trim()}%".toString()  // Convert GString to String
+            }
+            
+            
+            def users = sql.rows(usersQuery, queryParams)
+            
+            // Attach teams for each user
+            users.each { user ->
+                user.teams = sql.rows("""
+                    SELECT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                    FROM teams_tms_x_users_usr j
+                    JOIN teams_tms t ON t.tms_id = j.tms_id
+                    WHERE j.usr_id = :userId
+                """, [userId: user.usr_id])
+            }
+            
+            return [
+                content: users,
+                totalElements: totalCount,
+                totalPages: totalPages,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                hasNext: pageNumber < totalPages,
+                hasPrevious: pageNumber > 1,
+                sortField: sortField,
+                sortDirection: sortDirection
+            ]
+        }
+    }
+
+    /**
      * Creates a new user in the database.
      * @param userData A map containing the data for the new user.
      * @return A map representing the newly created user, including the generated ID.
@@ -65,10 +153,14 @@ class UserRepository {
     def createUser(Map userData) {
         DatabaseUtil.withSql { sql ->
             def insertQuery = """
-                INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id)
-                VALUES (:usr_code, :usr_first_name, :usr_last_name, :usr_email, :usr_is_admin, :rls_id)
+                INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id)
+                VALUES (:usr_code, :usr_first_name, :usr_last_name, :usr_email, :usr_is_admin, :usr_active, :rls_id)
             """
-            def userInsertData = userData.findAll { k, v -> ["usr_code", "usr_first_name", "usr_last_name", "usr_email", "usr_is_admin", "rls_id"].contains(k) }
+            // Set default value for usr_active if not provided
+            if (!userData.containsKey('usr_active')) {
+                userData.usr_active = true
+            }
+            def userInsertData = userData.findAll { k, v -> ["usr_code", "usr_first_name", "usr_last_name", "usr_email", "usr_is_admin", "usr_active", "rls_id"].contains(k) }
             def generatedKeys = sql.executeInsert(insertQuery, userInsertData, ['usr_id'])
             if (generatedKeys && generatedKeys[0]) {
                 def newId = generatedKeys[0][0] as int
@@ -102,7 +194,7 @@ class UserRepository {
             // Build the SET part of the query dynamically from a whitelist of fields
             def setClauses = []
             def queryParams = [:]
-            def updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'rls_id']
+            def updatableFields = ['usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'usr_active', 'rls_id']
             userData.each { key, value ->
                 if (key in updatableFields) {
                     setClauses.add("${key} = :${key}")

@@ -1,5 +1,33 @@
 ### [Unreleased]
 
+#### 2025-07-14 (Admin GUI System and Enhanced Error Handling)
+- **Feat(UI):** Complete Admin GUI system implementation with SPA pattern
+  - Created comprehensive administration interface for managing users, teams, applications, environments
+  - Implemented full CRUD operations with modal forms and dynamic table rendering
+  - Added pagination, sorting, and search functionality with real-time filtering
+  - Enhanced form validation with field-specific rules and client-side validation
+  - Added support for role management with proper dropdown options (Admin, User, Pilot)
+- **Feat(Database):** Enhanced timestamp management and schema improvements
+  - Added automatic `created_at` and `updated_at` timestamp fields to users_usr table
+  - Implemented database trigger for automatic timestamp updates on record modification
+  - Enhanced user data generation with proper timestamp field population
+  - Added `usr_active` field support for user status management
+- **Feat(API):** Comprehensive error handling and validation enhancements
+  - Enhanced UsersApi with detailed SQL constraint violation reporting
+  - Added field-specific error messages for NOT NULL, UNIQUE, and FOREIGN KEY violations
+  - Implemented proper error response structure with details and SQL state codes
+  - Enhanced DELETE operation with blocking relationship detection and reporting
+- **Fix(Repository):** Resolved critical user management issues
+  - Fixed missing `usr_code` field in form configuration causing NULL constraint violations
+  - Enhanced UserRepository with timestamp field support and proper query selection
+  - Improved data type conversion handling for select fields (rls_id integer conversion)
+  - Added comprehensive field validation for user code format (3-character alphanumeric)
+- **UI(Admin):** Enhanced user experience and visual feedback
+  - Implemented toast notifications for success/error states with auto-dismiss
+  - Added detailed error display with constraint violation specifics
+  - Enhanced datetime formatting (YYYY-MM-DD HH:MM:SS) for timestamp fields
+  - Improved table column sorting with proper database field mapping
+
 #### 2025-07-10 (Hierarchical Filter Cascade and Labels Implementation)
 - **Fix(API/Repository):** Resolved critical filtering and type system issues in iteration view
   - Fixed Teams filter HTTP 400 error by correcting field reference (`sti.tms_id_owner` → `stm.tms_id_owner`) and UUID parsing for INTEGER team IDs
