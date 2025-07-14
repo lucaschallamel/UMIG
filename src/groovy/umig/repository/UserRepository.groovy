@@ -66,38 +66,39 @@ class UserRepository {
      * @param sortDirection Sort direction ('asc' or 'desc').
      * @return A map containing users list and pagination metadata.
      */
-    def findAllUsers(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc') {
+    def findAllUsers(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc', Integer teamId = null) {
         DatabaseUtil.withSql { sql ->
-            // Build WHERE clause for search
-            def whereClause = ""
+            // Build WHERE clause for search and team filtering
+            def whereConditions = []
             def params = [:]
             
             if (searchTerm && !searchTerm.trim().isEmpty()) {
                 def trimmedSearch = searchTerm.trim()
-                whereClause = "WHERE (usr_first_name ILIKE :searchTerm OR usr_last_name ILIKE :searchTerm OR usr_email ILIKE :searchTerm OR usr_code ILIKE :searchTerm)"
+                whereConditions.add("(u.usr_first_name ILIKE :searchTerm OR u.usr_last_name ILIKE :searchTerm OR u.usr_email ILIKE :searchTerm OR u.usr_code ILIKE :searchTerm)")
                 params.searchTerm = "%${trimmedSearch}%".toString()  // Convert GString to String
             }
             
+            if (teamId != null) {
+                whereConditions.add("EXISTS (SELECT 1 FROM teams_tms_x_users_usr t WHERE t.usr_id = u.usr_id AND t.tms_id = :teamId)")
+                params.teamId = teamId
+            }
+            
+            def whereClause = whereConditions.empty ? "" : "WHERE " + whereConditions.join(" AND ")
+            
             // Build ORDER BY clause with validation
-            def orderClause = "ORDER BY usr_id ASC" // Default sort
+            def orderClause = "ORDER BY u.usr_id ASC" // Default sort
             if (sortField) {
                 // Validate sort field to prevent SQL injection
                 def validSortFields = ['usr_id', 'usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'usr_active', 'rls_id']
                 if (validSortFields.contains(sortField)) {
                     def direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
-                    orderClause = "ORDER BY ${sortField} ${direction}"
+                    orderClause = "ORDER BY u.${sortField} ${direction}"
                 }
             }
             
             // Get total count
-            def countQuery = "SELECT COUNT(*) as total FROM users_usr ${whereClause}"
-            def countParams = [:]
-            if (searchTerm && !searchTerm.trim().isEmpty()) {
-                countParams.searchTerm = "%${searchTerm.trim()}%".toString()  // Convert GString to String
-            }
-            
-            
-            def totalCount = sql.firstRow(countQuery, countParams).total as long
+            def countQuery = "SELECT COUNT(*) as total FROM users_usr u ${whereClause}"
+            def totalCount = sql.firstRow(countQuery, params).total as long
             
             // Calculate pagination
             def offset = (pageNumber - 1) * pageSize
@@ -105,21 +106,19 @@ class UserRepository {
             
             // Get paginated users
             def usersQuery = """
-                SELECT usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, usr_active, rls_id, created_at, updated_at
-                FROM users_usr
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at
+                FROM users_usr u
                 ${whereClause}
                 ${orderClause}
                 LIMIT :pageSize OFFSET :offset
             """
             
-            // Create params for main query
-            def queryParams = [pageSize: pageSize, offset: offset]
-            if (searchTerm && !searchTerm.trim().isEmpty()) {
-                queryParams.searchTerm = "%${searchTerm.trim()}%".toString()  // Convert GString to String
-            }
+            // Create params for main query (reuse the same params from count query)
+            params.pageSize = pageSize
+            params.offset = offset
             
             
-            def users = sql.rows(usersQuery, queryParams)
+            def users = sql.rows(usersQuery, params)
             
             // Attach teams for each user
             users.each { user ->

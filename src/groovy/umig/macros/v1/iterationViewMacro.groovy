@@ -13,7 +13,6 @@ return """
     <!-- Top Selector Bar -->
     <header class=\"selector-bar\">
         <div class=\"selector-container\">
-            <h1 class=\"view-title\">ITERATION VIEW - IMPLEMENTATION PLAN RUNSHEET</h1>
             <div class=\"selector-controls\">
                 <div class=\"selector-group\">
                     <label for=\"migration-select\">🔄 MIGRATION:</label>
@@ -34,7 +33,6 @@ return """
     <!-- Filter Bar -->
     <section class=\"filter-bar\">
         <div class=\"filter-container\">
-            <h2>RUNSHEET FILTERS</h2>
             <div class=\"filter-controls\">
                  <div class=\"filter-group\">
                     <label for=\"plan-filter\">PLAN:</label>
@@ -65,10 +63,6 @@ return """
                     <select id=\"label-filter\" class=\"filter-select\">
                         <option value=\"\">All Labels</option>
                     </select>
-                </div>
-                <div class=\"checkbox-group\">
-                    <input type=\"checkbox\" id=\"my-teams-only\">
-                    <label for=\"my-teams-only\">MY TEAMS ONLY</label>
                 </div>
             </div>
         </div>

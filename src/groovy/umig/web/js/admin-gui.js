@@ -34,7 +34,8 @@
             selectedRows: new Set(),
             data: {},
             pagination: null,
-            loading: false
+            loading: false,
+            teamFilter: null
         },
 
         // Configuration from Groovy macro
@@ -87,6 +88,17 @@
                     'role_display': 'rls_id',
                     'status_display': 'usr_active'
                 },
+                filters: [
+                    {
+                        key: 'teamId',
+                        label: 'Team',
+                        type: 'select',
+                        endpoint: '/teams',
+                        valueField: 'tms_id',
+                        textField: 'tms_name',
+                        placeholder: 'All Teams'
+                    }
+                ],
                 permissions: ['superadmin']
             },
             teams: {
@@ -97,10 +109,21 @@
                     { key: 'tms_name', label: 'Team Name', type: 'text', required: true },
                     { key: 'tms_description', label: 'Description', type: 'textarea' },
                     { key: 'tms_email', label: 'Team Email', type: 'email' },
+                    { key: 'member_count', label: 'Members', type: 'number', readonly: true, computed: true },
+                    { key: 'app_count', label: 'Applications', type: 'number', readonly: true, computed: true },
                     { key: 'created_date', label: 'Created', type: 'datetime', readonly: true },
                     { key: 'updated_date', label: 'Updated', type: 'datetime', readonly: true }
                 ],
-                tableColumns: ['tms_id', 'tms_name', 'tms_description', 'tms_email', 'member_count'],
+                tableColumns: ['tms_id', 'tms_name', 'tms_description', 'tms_email', 'member_count', 'app_count'],
+                // Map display column names to database column names for sorting
+                sortMapping: {
+                    'tms_id': 'tms_id',
+                    'tms_name': 'tms_name',
+                    'tms_description': 'tms_description',
+                    'tms_email': 'tms_email',
+                    'member_count': 'member_count',
+                    'app_count': 'app_count'
+                },
                 permissions: ['superadmin']
             }
             // Other entities will be added as needed
@@ -350,6 +373,9 @@
             this.state.currentEntity = entity;
             this.state.currentPage = 1;
             this.state.selectedRows.clear();
+            
+            // Reset filters when switching sections
+            this.state.teamFilter = null;
 
             this.updateContentHeader();
             this.loadCurrentSection();
@@ -390,6 +416,9 @@
             if (this.state.sortField) {
                 params.append('sort', this.state.sortField);
                 params.append('direction', this.state.sortDirection);
+            }
+            if (this.state.teamFilter) {
+                params.append('teamId', this.state.teamFilter);
             }
 
             const url = `${this.api.baseUrl}${endpoint}?${params.toString()}`;
@@ -452,6 +481,7 @@
                 }
                 
                 this.renderTable();
+                this.renderFilterControls();
                 this.hideLoading();
             })
             .catch(error => {
@@ -611,6 +641,9 @@
 
             if (columnKey === 'member_count') {
                 return record.member_count || '0';
+            }
+            if (columnKey === 'app_count') {
+                return record.app_count || '0';
             }
 
             // Handle null/undefined values
@@ -1289,6 +1322,121 @@
                 toast.style.opacity = '0';
                 setTimeout(() => document.body.removeChild(toast), 300);
             }, 3000);
+        },
+
+        // Render filter controls
+        renderFilterControls: function() {
+            const entity = this.entities[this.state.currentEntity];
+            const filterControlsDiv = document.querySelector('.filter-controls');
+            
+            if (!entity || !entity.filters || entity.filters.length === 0) {
+                // No filters for this entity, hide filter controls or show default buttons
+                filterControlsDiv.innerHTML = `
+                    <button class="btn-filter" id="filterBtn">Filter</button>
+                    <button class="btn-export" id="exportBtn">Export</button>
+                    <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
+                `;
+                return;
+            }
+            
+            // Render filter controls for entities that have filters configured
+            let filtersHtml = '';
+            
+            entity.filters.forEach(filter => {
+                if (filter.type === 'select') {
+                    filtersHtml += `
+                        <div class="filter-group">
+                            <label for="${filter.key}Select">${filter.label}:</label>
+                            <select id="${filter.key}Select" class="filter-select" data-filter="${filter.key}">
+                                <option value="">${filter.placeholder || 'All'}</option>
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                    `;
+                }
+            });
+            
+            filterControlsDiv.innerHTML = `
+                ${filtersHtml}
+                <button class="btn-export" id="exportBtn">Export</button>
+                <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
+            `;
+            
+            // Load filter data and bind events
+            this.loadFilterData(entity);
+            this.bindFilterEvents();
+        },
+
+        // Load data for filters (e.g., teams for team selector)
+        loadFilterData: function(entity) {
+            entity.filters.forEach(filter => {
+                if (filter.type === 'select' && filter.endpoint) {
+                    const selectElement = document.getElementById(`${filter.key}Select`);
+                    if (!selectElement) return;
+                    
+                    // Load data from the endpoint
+                    fetch(`${this.api.baseUrl}${filter.endpoint}`, {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Handle both array and paginated responses
+                        const items = Array.isArray(data) ? data : (data.content || []);
+                        
+                        // Clear existing options except the first one (placeholder)
+                        const firstOption = selectElement.firstElementChild;
+                        selectElement.innerHTML = '';
+                        selectElement.appendChild(firstOption);
+                        
+                        // Add options
+                        items.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item[filter.valueField];
+                            option.textContent = item[filter.textField];
+                            selectElement.appendChild(option);
+                        });
+                        
+                        // Set current value if any
+                        if (filter.key === 'teamId' && this.state.teamFilter) {
+                            selectElement.value = this.state.teamFilter;
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error loading ${filter.label} data:`, error);
+                    });
+                }
+            });
+        },
+
+        // Bind filter events
+        bindFilterEvents: function() {
+            // Bind events for all filter selects
+            const filterSelects = document.querySelectorAll('.filter-select');
+            filterSelects.forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const filterKey = e.target.getAttribute('data-filter');
+                    const filterValue = e.target.value;
+                    
+                    // Update state based on filter key
+                    if (filterKey === 'teamId') {
+                        this.state.teamFilter = filterValue || null;
+                    }
+                    // Add more filter types here as needed
+                    
+                    this.state.currentPage = 1; // Reset to first page when filtering
+                    this.loadCurrentSection();
+                });
+            });
         }
     };
 
