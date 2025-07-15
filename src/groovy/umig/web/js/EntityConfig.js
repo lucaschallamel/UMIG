@@ -99,6 +99,7 @@
                 'application_count': 'application_count',
                 'iteration_count': 'iteration_count'
             },
+            filters: [],
             permissions: ['superadmin']
         }
     };

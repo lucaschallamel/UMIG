@@ -5,7 +5,7 @@
             "description": "Operations related to the STEP View component.",
             "item": [
                 {
-                    "id": "dd28074c-dc8a-474c-b37f-88df25d0f1cb",
+                    "id": "9d5aad95-54e8-4e57-ac08-52105b3b4233",
                     "name": "Get all step view data",
                     "request": {
                         "name": "Get all step view data",
@@ -35,7 +35,7 @@
                     },
                     "response": [
                         {
-                            "id": "27eacb79-5f6b-445c-9551-1429bce41bf4",
+                            "id": "9a338472-e991-4919-a492-7a14801ea923",
                             "name": "Successful operation",
                             "originalRequest": {
                                 "url": {
@@ -70,7 +70,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "3573030e-9be3-42d3-a931-81cbd8a26196",
+                            "id": "370536ff-27dc-4224-940a-b88bbb67ed2e",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -117,7 +117,7 @@
             "description": "Operations about migrations, iterations, sequences and phases.",
             "item": [
                 {
-                    "id": "24a50a38-eeab-49dd-b2d2-147241fdb694",
+                    "id": "e96866b1-94b1-46e4-88ad-af725953f37f",
                     "name": "Get a specific iteration",
                     "request": {
                         "name": "Get a specific iteration",
@@ -168,7 +168,7 @@
                     },
                     "response": [
                         {
-                            "id": "a9bb99c4-1c62-4b1b-ba79-481fb353b23b",
+                            "id": "bb04c8df-8f89-44cb-9158-c4a78c7d1139",
                             "name": "A single iteration",
                             "originalRequest": {
                                 "url": {
@@ -206,7 +206,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "21efd0be-437a-48e2-8f59-287f7cb3e80a",
+                            "id": "33420920-6616-4949-ac0c-87ece13cbdf6",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -244,7 +244,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a1a04e79-1fff-42d8-8732-57553bad453a",
+                            "id": "0dff33b5-e04a-4e35-b5fa-821b6b2f194f",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -282,7 +282,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "05b3c623-9b36-49de-802e-bd244a85b0ef",
+                            "id": "9befb961-3573-4ea2-ad22-4c456d5ad899",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -326,7 +326,7 @@
                     }
                 },
                 {
-                    "id": "9a23f437-3885-4dfe-9735-aa359eb2c221",
+                    "id": "8083db72-b612-4cc1-a99d-ab9c7b64da20",
                     "name": "List all plan instances for an iteration",
                     "request": {
                         "name": "List all plan instances for an iteration",
@@ -378,7 +378,7 @@
                     },
                     "response": [
                         {
-                            "id": "e5fbe4e4-b89a-490b-b02b-86b4f3e4bbf7",
+                            "id": "af552485-1c64-4c68-aff1-de67047dfe56",
                             "name": "All plan instances for the given iteration",
                             "originalRequest": {
                                 "url": {
@@ -417,7 +417,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "999e8fe2-210e-45d4-be70-aa3257c1194a",
+                            "id": "0ab27ae7-5f22-4f9a-84b1-2b33b43aa45c",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -456,7 +456,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "d015f1ab-22fc-47c9-9aed-02eb54312756",
+                            "id": "c8a41a7f-9052-4462-b1e2-82ea46a48ede",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -495,7 +495,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e6d56901-c8fb-4c3b-81cc-09084671af63",
+                            "id": "5b6a1867-da24-4486-bde5-1c585b1b1315",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -540,7 +540,7 @@
                     }
                 },
                 {
-                    "id": "cb81404b-eabb-4f25-b8ab-7d4f73e783f6",
+                    "id": "0260112a-61cb-445a-8aba-79e25f7ddbb2",
                     "name": "List all sequences for an iteration",
                     "request": {
                         "name": "List all sequences for an iteration",
@@ -592,7 +592,7 @@
                     },
                     "response": [
                         {
-                            "id": "fef848c2-0577-45fe-9d2b-1415f7badb46",
+                            "id": "9199b988-c73e-4b54-889b-f0da899ffbcd",
                             "name": "All sequences for the given iteration",
                             "originalRequest": {
                                 "url": {
@@ -631,7 +631,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "6df58fbe-17b8-4488-a1e4-56ed7a0eb446",
+                            "id": "1a4d0961-77ff-4945-b2ef-ea48ddea862d",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -670,7 +670,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "db0695f8-049e-42c0-8dbd-08dce1d46b0c",
+                            "id": "77443b55-fdc7-46b2-a8e0-ea23d3a0709a",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -709,7 +709,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ae03f1e1-ed8c-4863-a69b-0b3387bd9006",
+                            "id": "e1222068-eb3b-4e23-912c-9308e07e363f",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -754,7 +754,7 @@
                     }
                 },
                 {
-                    "id": "eedcc83a-a4d4-4064-9b7c-7ac5ebe06026",
+                    "id": "c9ef1450-ad47-4589-bed3-b9feb39c8846",
                     "name": "List all phases for an iteration",
                     "request": {
                         "name": "List all phases for an iteration",
@@ -806,7 +806,7 @@
                     },
                     "response": [
                         {
-                            "id": "8a95b4d8-ee83-4bcc-96e4-2e961db6e1c5",
+                            "id": "5ea2b7a9-acdf-4719-9421-493935736883",
                             "name": "All phases for the given iteration",
                             "originalRequest": {
                                 "url": {
@@ -845,7 +845,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7823d2f8-9861-4505-889b-2e1f5ac29331",
+                            "id": "aa2246e2-8257-4638-b07b-5aecef2cfb8c",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -884,7 +884,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "4ab4a54d-93b0-47e8-97c8-0b12adefbf6b",
+                            "id": "a82919ef-f004-4af2-bf89-217a812f3b33",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -923,7 +923,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "dfd15907-7137-4b33-8b7e-19a97bf7443e",
+                            "id": "eebabda1-d40f-47dc-b125-615def8562e5",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -968,7 +968,7 @@
                     }
                 },
                 {
-                    "id": "138586ac-51c2-46cb-bf4a-655c51d4bee2",
+                    "id": "8e3790a3-6d95-4b47-adb1-c374dabe8b2e",
                     "name": "List all sequences for a plan instance",
                     "request": {
                         "name": "List all sequences for a plan instance",
@@ -1032,7 +1032,7 @@
                     },
                     "response": [
                         {
-                            "id": "e6c752eb-33ed-4001-9b26-63c961d0ab44",
+                            "id": "ebe28647-0c23-46e8-87a9-331009c767dd",
                             "name": "All sequences for the given plan instance",
                             "originalRequest": {
                                 "url": {
@@ -1079,7 +1079,7 @@
                     }
                 },
                 {
-                    "id": "6afd900c-068b-4eb9-b69a-c1fa56008a8d",
+                    "id": "21568a30-c7c6-4f7d-ae1f-f9cc46454150",
                     "name": "List all phases for a plan instance",
                     "request": {
                         "name": "List all phases for a plan instance",
@@ -1143,7 +1143,7 @@
                     },
                     "response": [
                         {
-                            "id": "7ba9f1c1-a5d6-4ad8-921a-9e3e8d068b2d",
+                            "id": "343ce154-bf0b-4a67-a2f1-3f70e4755945",
                             "name": "All phases for the given plan instance",
                             "originalRequest": {
                                 "url": {
@@ -1190,7 +1190,7 @@
                     }
                 },
                 {
-                    "id": "5d8bebd9-d382-4914-b594-ffe9970b3de3",
+                    "id": "fdda707b-424a-4d1c-8477-b60b398bb6ff",
                     "name": "List all phases for a sequence",
                     "request": {
                         "name": "List all phases for a sequence",
@@ -1266,7 +1266,7 @@
                     },
                     "response": [
                         {
-                            "id": "a2d13940-26d7-4fa0-9237-4c1fa6bf6677",
+                            "id": "95085e70-6ee7-4e3f-a368-0921fe93d5f5",
                             "name": "All phases for the given sequence",
                             "originalRequest": {
                                 "url": {
@@ -1315,7 +1315,7 @@
                     }
                 },
                 {
-                    "id": "73a9bca3-6355-44ae-99f3-12874c72512e",
+                    "id": "6ff2cc5b-0b9b-4fd9-b31c-c5b0d5943e1e",
                     "name": "List all migrations",
                     "request": {
                         "name": "List all migrations",
@@ -1342,7 +1342,7 @@
                     },
                     "response": [
                         {
-                            "id": "972d70b8-90c0-4bbb-8256-6db356c6a06f",
+                            "id": "ed2a0b2f-96e6-4585-b780-0173a2f43220",
                             "name": "A list of migrations",
                             "originalRequest": {
                                 "url": {
@@ -1377,7 +1377,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "58193fb7-d4e8-4b89-b6f0-6ef5e8dccc1a",
+                            "id": "92bb381d-393d-4636-97e3-d04be550429b",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -1418,7 +1418,7 @@
                     }
                 },
                 {
-                    "id": "75f3958b-892c-4301-993b-f0c74c8e6eee",
+                    "id": "3716af53-61d9-4a47-9f0f-31ee13f7d1ae",
                     "name": "Get a single migration by ID",
                     "request": {
                         "name": "Get a single migration by ID",
@@ -1457,7 +1457,7 @@
                     },
                     "response": [
                         {
-                            "id": "060b15db-a534-47d7-9a93-9607df9b5c32",
+                            "id": "23ba5bf7-9d7f-4506-9bbd-3498c0f54ce7",
                             "name": "The migration object",
                             "originalRequest": {
                                 "url": {
@@ -1493,7 +1493,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e6a285f0-cb15-4f99-a0df-f5cee2526ddf",
+                            "id": "67e18331-76be-4801-a11f-86384ce5012b",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -1535,7 +1535,7 @@
                     }
                 },
                 {
-                    "id": "f0491447-aa1d-41b3-ba65-a00037c4c47e",
+                    "id": "eeb94ef3-d61b-4c46-a496-1eb7c88ff616",
                     "name": "List all iterations for a migration",
                     "request": {
                         "name": "List all iterations for a migration",
@@ -1575,7 +1575,7 @@
                     },
                     "response": [
                         {
-                            "id": "70d8a2ee-23b0-4c8a-9913-adcb7f11d406",
+                            "id": "5876ec66-d127-4cca-9c67-d60d683b54b9",
                             "name": "All iterations for the given migration",
                             "originalRequest": {
                                 "url": {
@@ -1612,7 +1612,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e9ecab4c-3aa7-4812-aaff-5155df3b25bf",
+                            "id": "57233bcd-b20c-4a5a-bf1c-03b2cc203936",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -1649,7 +1649,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1cef4d77-4d76-4f81-ad7c-97f8c138459d",
+                            "id": "83aa0fea-dc5e-4e9e-87e0-2a3d2c39e478",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -1686,7 +1686,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "d22c735b-2636-48f5-9356-0a93a93322fa",
+                            "id": "21687979-60d0-48c9-b1b2-74843466b8e0",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -1735,7 +1735,7 @@
             "description": "Operations about teams.",
             "item": [
                 {
-                    "id": "fe3ef09c-9ac4-4e9d-bbd7-93b9744a2aee",
+                    "id": "bc37ff63-b348-4c7d-ba9a-8b155576be85",
                     "name": "Get teams with optional hierarchical filtering",
                     "request": {
                         "name": "Get teams with optional hierarchical filtering",
@@ -1811,7 +1811,7 @@
                     },
                     "response": [
                         {
-                            "id": "67cab84f-777b-4aa1-8773-a8f5934901f3",
+                            "id": "22446197-b314-41d9-b69a-114eacc0a0f0",
                             "name": "A list of teams.",
                             "originalRequest": {
                                 "url": {
@@ -1892,7 +1892,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "39780a0f-e6c2-4ae7-9a13-61c89797a770",
+                            "id": "8a40cf2c-4cba-4e91-ae55-fcd28456fdc3",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -1973,7 +1973,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "776ebd7b-1e99-4c64-9653-7bb8d73dc45e",
+                            "id": "3d14be51-ba51-4066-8cdb-9e1fbdd58efc",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -2060,7 +2060,7 @@
                     }
                 },
                 {
-                    "id": "45136bfb-1f02-4774-9c32-6319f2eb0768",
+                    "id": "013ff924-0855-43a6-ba28-ef7a6c0ada26",
                     "name": "Create a new team",
                     "request": {
                         "name": "Create a new team",
@@ -2103,7 +2103,7 @@
                     },
                     "response": [
                         {
-                            "id": "c37df7af-8bcd-4195-b309-66e8e88355f8",
+                            "id": "c83a10f9-78fa-4359-80db-33a6aebb2bf6",
                             "name": "Team created successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2141,7 +2141,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "79912bbf-e69a-48ae-8024-ccc6e98f5e56",
+                            "id": "8eaa2ba5-44b0-4b2d-9607-579aa5efbd3d",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -2189,7 +2189,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "bc4d7a18-5684-42d9-b3d1-751a5d55f475",
+                            "id": "38f2c8fc-0c11-4d4a-80c4-281d932ab463",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -2243,7 +2243,7 @@
                     }
                 },
                 {
-                    "id": "0efdc2f1-2358-465b-ba5a-39e735ad77ef",
+                    "id": "e217558b-a971-4672-889b-f9c719eb18e4",
                     "name": "Get a team by ID",
                     "request": {
                         "name": "Get a team by ID",
@@ -2285,7 +2285,7 @@
                     },
                     "response": [
                         {
-                            "id": "cfd8aa55-34b3-4598-aa0f-313a0c7c0557",
+                            "id": "2fd96126-8bd4-4436-a5b9-bfc099a72b8b",
                             "name": "The requested team.",
                             "originalRequest": {
                                 "url": {
@@ -2321,7 +2321,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "48b207b8-26a7-4396-b0f1-d19c9926bfc5",
+                            "id": "1d02f767-0597-4173-99be-95ed3e7e0abe",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2363,7 +2363,7 @@
                     }
                 },
                 {
-                    "id": "6b7828c2-ee2d-486a-a965-a43c40a10c6b",
+                    "id": "d30d1249-acce-42fb-b7a2-b75938aa55db",
                     "name": "Update a team",
                     "request": {
                         "name": "Update a team",
@@ -2418,7 +2418,7 @@
                     },
                     "response": [
                         {
-                            "id": "0e1d36f1-01f4-4bc4-a8fe-86675a3dbd0e",
+                            "id": "7de6c380-383b-4936-8d24-e6f2db4b2a5a",
                             "name": "Team updated successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2457,7 +2457,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "d6d3a563-4b10-4880-a1c7-d353f69fc23d",
+                            "id": "ee771af9-fd6a-4acf-9bed-e600b8c34992",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -2506,7 +2506,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f8e9dc48-7760-41fb-b01a-42d259641954",
+                            "id": "d83d10d5-f2f7-4ca2-9018-6ee0f8bc5560",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2561,7 +2561,7 @@
                     }
                 },
                 {
-                    "id": "459fd756-6d94-4c4f-924c-161fb9faac3a",
+                    "id": "7845bcc0-f028-415f-a452-79950d4dcdfd",
                     "name": "Delete a team",
                     "request": {
                         "name": "Delete a team",
@@ -2603,7 +2603,7 @@
                     },
                     "response": [
                         {
-                            "id": "43ebe581-8143-4552-bae2-0b6762e3044c",
+                            "id": "d189f3ce-cae5-4b2b-9949-bcc8d666881e",
                             "name": "Team deleted successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2627,7 +2627,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "b10af09d-9547-4b58-90b0-e0710f2322c5",
+                            "id": "a6a7e2e8-71f9-4a43-ab9b-617128d1c82c",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2663,7 +2663,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "04d672bb-e3d4-4762-b612-ab03c6e32c98",
+                            "id": "f0fa0800-81ad-4203-8541-365a1e4efd09",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -2705,7 +2705,7 @@
                     }
                 },
                 {
-                    "id": "fff0d075-9eb3-4d24-b378-d0ec5413361e",
+                    "id": "965212c6-b815-4047-bfeb-4eb2e7b15dbb",
                     "name": "Add a user to a team",
                     "request": {
                         "name": "Add a user to a team",
@@ -2759,7 +2759,7 @@
                     },
                     "response": [
                         {
-                            "id": "adcf6057-a761-45f9-8f16-aa95316e32f7",
+                            "id": "9aab3018-689f-401a-8347-049416a4c32b",
                             "name": "User added to team successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2785,7 +2785,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "dfee14a3-b4fc-4145-8574-4dbc911bc52a",
+                            "id": "e5a3347f-e673-4014-a339-0221de24891a",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2829,7 +2829,7 @@
                     }
                 },
                 {
-                    "id": "13cc8ff9-b007-4420-ada7-02e58118dfae",
+                    "id": "b89d3048-cd7a-4b23-a976-253d58c21829",
                     "name": "Remove a user from a team",
                     "request": {
                         "name": "Remove a user from a team",
@@ -2883,7 +2883,7 @@
                     },
                     "response": [
                         {
-                            "id": "60b4966c-516a-4f10-978f-e57ae077766a",
+                            "id": "be5a7949-af9f-44b8-8530-aebd14c4709d",
                             "name": "User removed from team successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2909,7 +2909,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "149ff344-3bb0-4028-9153-9e63336f38e8",
+                            "id": "bfa4eeeb-6004-4680-9fa5-418b69c810f1",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2951,6 +2951,440 @@
                     "protocolProfileBehavior": {
                         "disableBodyPruning": true
                     }
+                },
+                {
+                    "id": "57643a55-cbf0-4862-ae85-471161606a76",
+                    "name": "Get applications associated with a team",
+                    "request": {
+                        "name": "Get applications associated with a team",
+                        "description": {
+                            "content": "Retrieves a list of applications that are associated with the specified team.",
+                            "type": "text/plain"
+                        },
+                        "url": {
+                            "path": [
+                                "teams",
+                                ":id",
+                                "applications"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": [
+                                {
+                                    "type": "any",
+                                    "value": "<integer>",
+                                    "key": "id",
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) ",
+                                        "type": "text/plain"
+                                    }
+                                }
+                            ]
+                        },
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "GET",
+                        "body": {},
+                        "auth": null
+                    },
+                    "response": [
+                        {
+                            "id": "f3780059-9ce7-4b7b-827d-5e324619e724",
+                            "name": "A list of applications associated with the team",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":id",
+                                        "applications"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "GET",
+                                "body": {}
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "[\n  {\n    \"app_id\": \"<integer>\",\n    \"app_code\": \"<string>\",\n    \"app_name\": \"<string>\",\n    \"app_description\": \"<string>\"\n  },\n  {\n    \"app_id\": \"<integer>\",\n    \"app_code\": \"<string>\",\n    \"app_name\": \"<string>\",\n    \"app_description\": \"<string>\"\n  }\n]",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        },
+                        {
+                            "id": "89b50535-5505-45d4-ab8b-8461ae87c9e5",
+                            "name": "The specified resource was not found.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":id",
+                                        "applications"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "GET",
+                                "body": {}
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"code\": \"<string>\",\n  \"message\": \"<string>\"\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        },
+                        {
+                            "id": "2fcb359a-52b2-47bb-be99-a2c0c9420f68",
+                            "name": "An unexpected internal server error occurred.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":id",
+                                        "applications"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "GET",
+                                "body": {}
+                            },
+                            "status": "Internal Server Error",
+                            "code": 500,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"code\": \"<string>\",\n  \"message\": \"<string>\"\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        }
+                    ],
+                    "event": [],
+                    "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                    }
+                },
+                {
+                    "id": "5e3b291d-274b-48f7-bbd5-60fcf1c4ffad",
+                    "name": "Add an application to a team",
+                    "request": {
+                        "name": "Add an application to a team",
+                        "description": {
+                            "content": "Creates an association between a team and an application.",
+                            "type": "text/plain"
+                        },
+                        "url": {
+                            "path": [
+                                "teams",
+                                ":teamId",
+                                "applications",
+                                ":applicationId"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": [
+                                {
+                                    "type": "any",
+                                    "value": "<integer>",
+                                    "key": "teamId",
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) ",
+                                        "type": "text/plain"
+                                    }
+                                },
+                                {
+                                    "type": "any",
+                                    "value": "<integer>",
+                                    "key": "applicationId",
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) ",
+                                        "type": "text/plain"
+                                    }
+                                }
+                            ]
+                        },
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "PUT",
+                        "body": {},
+                        "auth": null
+                    },
+                    "response": [
+                        {
+                            "id": "2901c156-aa04-435d-85ba-ccc09ebccf89",
+                            "name": "Application added to team successfully.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":teamId",
+                                        "applications",
+                                        ":applicationId"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "method": "PUT",
+                                "body": {}
+                            },
+                            "status": "No Content",
+                            "code": 204,
+                            "header": [],
+                            "cookie": [],
+                            "_postman_previewlanguage": "text"
+                        },
+                        {
+                            "id": "05b6157d-aa85-4141-a6fb-bfa5f94026de",
+                            "name": "The specified resource was not found.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":teamId",
+                                        "applications",
+                                        ":applicationId"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "PUT",
+                                "body": {}
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"code\": \"<string>\",\n  \"message\": \"<string>\"\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        },
+                        {
+                            "id": "ecc517a9-93ad-4c5b-9a52-d08b47fad401",
+                            "name": "Application is already associated with this team.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":teamId",
+                                        "applications",
+                                        ":applicationId"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "method": "PUT",
+                                "body": {}
+                            },
+                            "status": "Conflict",
+                            "code": 409,
+                            "header": [],
+                            "cookie": [],
+                            "_postman_previewlanguage": "text"
+                        }
+                    ],
+                    "event": [],
+                    "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                    }
+                },
+                {
+                    "id": "15acd27c-63f6-4b66-9fba-991e3efaa2f5",
+                    "name": "Remove an application from a team",
+                    "request": {
+                        "name": "Remove an application from a team",
+                        "description": {
+                            "content": "Removes the association between a team and an application.",
+                            "type": "text/plain"
+                        },
+                        "url": {
+                            "path": [
+                                "teams",
+                                ":teamId",
+                                "applications",
+                                ":applicationId"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [],
+                            "variable": [
+                                {
+                                    "type": "any",
+                                    "value": "<integer>",
+                                    "key": "teamId",
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) ",
+                                        "type": "text/plain"
+                                    }
+                                },
+                                {
+                                    "type": "any",
+                                    "value": "<integer>",
+                                    "key": "applicationId",
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) ",
+                                        "type": "text/plain"
+                                    }
+                                }
+                            ]
+                        },
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "DELETE",
+                        "body": {},
+                        "auth": null
+                    },
+                    "response": [
+                        {
+                            "id": "43c0acb6-ed81-4063-b447-146776b102ba",
+                            "name": "Application removed from team successfully.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":teamId",
+                                        "applications",
+                                        ":applicationId"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "method": "DELETE",
+                                "body": {}
+                            },
+                            "status": "No Content",
+                            "code": 204,
+                            "header": [],
+                            "cookie": [],
+                            "_postman_previewlanguage": "text"
+                        },
+                        {
+                            "id": "b81b3c84-9f64-4f93-8b13-826412eb6ca8",
+                            "name": "The specified resource was not found.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "teams",
+                                        ":teamId",
+                                        "applications",
+                                        ":applicationId"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "DELETE",
+                                "body": {}
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"code\": \"<string>\",\n  \"message\": \"<string>\"\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        }
+                    ],
+                    "event": [],
+                    "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                    }
                 }
             ]
         },
@@ -2959,7 +3393,7 @@
             "description": "Operations about environments and their associations.",
             "item": [
                 {
-                    "id": "ae851d18-9064-43c4-b391-ebc89cc079a9",
+                    "id": "f2b97e57-109b-4b8c-9115-2a9c90cae48e",
                     "name": "Get all environments with counts",
                     "request": {
                         "name": "Get all environments with counts",
@@ -3018,7 +3452,7 @@
                                         "type": "text/plain"
                                     },
                                     "key": "direction",
-                                    "value": "asc"
+                                    "value": "desc"
                                 }
                             ],
                             "variable": []
@@ -3035,7 +3469,7 @@
                     },
                     "response": [
                         {
-                            "id": "d892d2d7-0f56-4987-8d8e-26361fb45e45",
+                            "id": "b5a4da22-f824-45b5-ab46-6ae2709724ae",
                             "name": "A list of environments with counts",
                             "originalRequest": {
                                 "url": {
@@ -3089,7 +3523,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "direction",
-                                            "value": "asc"
+                                            "value": "desc"
                                         }
                                     ],
                                     "variable": []
@@ -3116,7 +3550,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a1ff2dd3-7092-4b70-bd09-f4c289c77ef2",
+                            "id": "86b4d21a-8617-4839-bbac-04e6773dc533",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3170,7 +3604,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "direction",
-                                            "value": "asc"
+                                            "value": "desc"
                                         }
                                     ],
                                     "variable": []
@@ -3203,7 +3637,7 @@
                     }
                 },
                 {
-                    "id": "ee0094b4-1cf8-401a-87b1-eb2ff52c788a",
+                    "id": "64754c11-93af-42cc-9ad1-7a2b4e443c6b",
                     "name": "Create a new environment",
                     "request": {
                         "name": "Create a new environment",
@@ -3246,7 +3680,7 @@
                     },
                     "response": [
                         {
-                            "id": "dd17078b-7117-4475-b632-6c7afe4f34f5",
+                            "id": "6fe0f9c4-ae58-411f-8662-6631c304a0a1",
                             "name": "Environment created successfully",
                             "originalRequest": {
                                 "url": {
@@ -3294,7 +3728,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7e1c5cd9-9e36-4382-9600-a74645a1845a",
+                            "id": "ca845bc3-518a-46f5-979c-b2e60399fe21",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -3342,7 +3776,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "3791ec78-a916-48fd-9b8a-32449de145d7",
+                            "id": "71c0851e-7a90-4abc-9d55-9e99c4c8aa84",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -3390,7 +3824,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1e069947-88ff-4f5c-b513-42e35de1c93a",
+                            "id": "9040420a-1115-4b56-8dbd-d98d1a1e0418",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3444,7 +3878,7 @@
                     }
                 },
                 {
-                    "id": "607cc1a8-274a-481b-95e1-3348b3ee934d",
+                    "id": "eca14c03-4602-404d-a376-d8ad4e898597",
                     "name": "Get all environment roles",
                     "request": {
                         "name": "Get all environment roles",
@@ -3475,7 +3909,7 @@
                     },
                     "response": [
                         {
-                            "id": "34508eac-21d0-4afe-a3e3-ee8c5170c65c",
+                            "id": "3dae6de1-2cc1-4c9f-91a2-cb7eb49bbc4e",
                             "name": "A list of environment roles",
                             "originalRequest": {
                                 "url": {
@@ -3511,7 +3945,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e6be48fc-73ab-49c6-bade-affa0494430e",
+                            "id": "c5faf073-233b-4415-a288-138f3b895a0a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3553,7 +3987,7 @@
                     }
                 },
                 {
-                    "id": "07867fdc-2497-4102-8466-0cc2e8551959",
+                    "id": "338268cb-c0d9-4db8-b575-647095ff4752",
                     "name": "Get an environment by ID",
                     "request": {
                         "name": "Get an environment by ID",
@@ -3595,7 +4029,7 @@
                     },
                     "response": [
                         {
-                            "id": "3561337a-3d23-44f0-9793-2f20f9f977fe",
+                            "id": "fa3e00e1-1cc0-46c7-b753-b170d30ce40c",
                             "name": "Environment details",
                             "originalRequest": {
                                 "url": {
@@ -3631,7 +4065,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e169081d-f03d-49e8-a77d-600a4362a94d",
+                            "id": "217930ec-72f4-4dae-918b-736a43b9b661",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -3667,7 +4101,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "5b458ebc-0d8f-41b7-b8ac-633e99cfc20d",
+                            "id": "cbd43919-14c9-408c-a3fc-f289133a0e9c",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -3703,7 +4137,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e3adb616-7940-40f3-be5e-28714a903465",
+                            "id": "5634b86a-9504-4851-b294-6dea8abd7736",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3745,7 +4179,7 @@
                     }
                 },
                 {
-                    "id": "e852e8d9-229d-41c8-8241-c8315dfca456",
+                    "id": "ce905b94-5742-4323-aca2-ce405a6e4b93",
                     "name": "Update an environment",
                     "request": {
                         "name": "Update an environment",
@@ -3800,7 +4234,7 @@
                     },
                     "response": [
                         {
-                            "id": "fe161ad7-16d8-4f25-8ef0-3789fc3e5861",
+                            "id": "e80b5775-9a82-4285-92ed-4c41c87b6727",
                             "name": "Environment updated successfully",
                             "originalRequest": {
                                 "url": {
@@ -3849,7 +4283,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "b8ccca32-9702-4ed0-b373-00ed84aef115",
+                            "id": "7c467326-9734-44a5-a564-cc62ad1b8512",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -3898,7 +4332,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "6e5590e0-1291-479b-8044-9dc2ce315719",
+                            "id": "058f8318-680e-4edb-b0bb-63bc57ea85cd",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -3947,7 +4381,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "46118d7a-1cfe-44a6-aa68-0022fb4c3811",
+                            "id": "4dc6aed9-51d6-45eb-8c55-387a924931d4",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -3996,7 +4430,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "bca014f0-3523-49fd-8681-f5030da17913",
+                            "id": "b08a10e2-9b63-44cb-bbf0-e534a97dfcb7",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4051,7 +4485,7 @@
                     }
                 },
                 {
-                    "id": "2a952791-fb46-40ef-8531-4f17b3336764",
+                    "id": "69feb05e-849d-45e8-b8ca-57ecbd6a3ee6",
                     "name": "Delete an environment",
                     "request": {
                         "name": "Delete an environment",
@@ -4093,7 +4527,7 @@
                     },
                     "response": [
                         {
-                            "id": "74f74c0f-e77f-4569-b6c9-6262eaa89cee",
+                            "id": "c56548e9-f8c9-41f1-8148-d4e0e889fc58",
                             "name": "Environment deleted successfully",
                             "originalRequest": {
                                 "url": {
@@ -4117,7 +4551,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "ace67f8c-465b-45f9-b407-6cc24f709249",
+                            "id": "beb6dcf4-6f9d-4310-891f-485f27c962dd",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4153,7 +4587,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "bbd3073e-3a1d-4ed0-b97b-877af2a3f34b",
+                            "id": "d05703c3-eeff-46ae-a06f-9acf12668a95",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -4189,7 +4623,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1d445450-ab47-433d-96cd-38cfad8e0873",
+                            "id": "de2ced3b-1aa4-4d3a-8336-abc2187d4845",
                             "name": "Cannot delete environment due to existing relationships",
                             "originalRequest": {
                                 "url": {
@@ -4225,7 +4659,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "8ea463fa-358d-41dd-bbc0-b2e8fdb62b14",
+                            "id": "98752aba-8ef8-444a-bd08-c68403bac4b6",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4267,7 +4701,7 @@
                     }
                 },
                 {
-                    "id": "816e9ef0-806e-4f4c-a37a-6e8f3b54f938",
+                    "id": "14833e6d-4b64-4733-9eb9-400aad933efa",
                     "name": "Get iterations grouped by role",
                     "request": {
                         "name": "Get iterations grouped by role",
@@ -4310,7 +4744,7 @@
                     },
                     "response": [
                         {
-                            "id": "f8255266-eeb1-45f1-ad30-e837fff09023",
+                            "id": "96bc4393-a3c3-4fa8-96d3-c391ac77e08b",
                             "name": "Iterations grouped by role",
                             "originalRequest": {
                                 "url": {
@@ -4342,12 +4776,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"sed__3\": {\n    \"role\": {\n      \"enr_id\": \"<integer>\",\n      \"enr_code\": \"<string>\",\n      \"enr_name\": \"<string>\",\n      \"enr_description\": \"<string>\"\n    },\n    \"iterations\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      }\n    ]\n  },\n  \"pariaturd\": {\n    \"role\": {\n      \"enr_id\": \"<integer>\",\n      \"enr_code\": \"<string>\",\n      \"enr_name\": \"<string>\",\n      \"enr_description\": \"<string>\"\n    },\n    \"iterations\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      }\n    ]\n  }\n}",
+                            "body": "{\n  \"cupidatat_6db\": {\n    \"role\": {\n      \"enr_id\": \"<integer>\",\n      \"enr_code\": \"<string>\",\n      \"enr_name\": \"<string>\",\n      \"enr_description\": \"<string>\"\n    },\n    \"iterations\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      }\n    ]\n  }\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "0db6944f-cb58-49e3-9e17-abae9ed1877c",
+                            "id": "368b4330-e541-4b9b-b62e-4bd93d13fffc",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4384,7 +4818,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "821971d7-5ad1-4f6d-8489-cf2afc0cce1d",
+                            "id": "eb33649a-f614-4cde-b253-3b6f5ff370f3",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4427,7 +4861,7 @@
                     }
                 },
                 {
-                    "id": "071ffcf1-3710-4f48-87a0-7d313e54fd2c",
+                    "id": "14c3b526-0a24-4e4a-b64b-18af06fefbe1",
                     "name": "Associate an application with an environment",
                     "request": {
                         "name": "Associate an application with an environment",
@@ -4481,7 +4915,7 @@
                     },
                     "response": [
                         {
-                            "id": "d6e9324f-fadb-4468-8577-a70c8d7f55df",
+                            "id": "a32a60ff-b687-4eee-8ad5-ae1bf82c48eb",
                             "name": "Application associated successfully",
                             "originalRequest": {
                                 "url": {
@@ -4519,7 +4953,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ac4fbb0a-5217-401b-b8c2-d3cc412024bd",
+                            "id": "f928dcd3-64b2-4337-b4ef-36fb69833ec7",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4557,7 +4991,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "39c3c124-5cb3-4c05-959d-4ce4df41af65",
+                            "id": "bc1a2ffe-4a82-4c30-bd8a-65f34c7348d2",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -4595,7 +5029,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "b661b712-c5b1-42d0-a7cd-236bc6aad1fd",
+                            "id": "d1215c1e-4087-4bff-bdb4-eed9d01942b3",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4639,7 +5073,7 @@
                     }
                 },
                 {
-                    "id": "e42d6aa1-783b-441f-b89c-6ca9c5abf78d",
+                    "id": "21ce1e2f-313e-492a-82d1-d22ba0a70b60",
                     "name": "Remove application association",
                     "request": {
                         "name": "Remove application association",
@@ -4693,7 +5127,7 @@
                     },
                     "response": [
                         {
-                            "id": "462aa433-6f38-4651-b623-a535b48d21ec",
+                            "id": "3d428b46-17d8-4b42-aedd-046c4e8ec822",
                             "name": "Application disassociated successfully",
                             "originalRequest": {
                                 "url": {
@@ -4719,7 +5153,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "546afbd4-f738-400a-96bd-c1b8a3198635",
+                            "id": "575f4f19-ac6f-4a43-bc97-a4b0c56421af",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4757,7 +5191,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1f7a8c37-3a0c-43fa-91ec-3087854c2d84",
+                            "id": "b5edd83c-9fe6-46e5-a3fd-bd664b345709",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -4795,7 +5229,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c3561a79-8474-4df8-8b4c-8e51a1a9d82f",
+                            "id": "2ada3d47-f522-436f-bc65-10aac40f7413",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4839,7 +5273,7 @@
                     }
                 },
                 {
-                    "id": "9fa19e60-5cff-433a-b950-c0fcee962c28",
+                    "id": "fda2b4d7-f0de-473a-be2a-2e3a5453fbfc",
                     "name": "Associate an iteration with an environment",
                     "request": {
                         "name": "Associate an iteration with an environment",
@@ -4906,7 +5340,7 @@
                     },
                     "response": [
                         {
-                            "id": "6d311ffe-0d4b-41ae-94e7-6df86406228f",
+                            "id": "11186c14-acc5-4615-a997-aa11ee9a5fe7",
                             "name": "Iteration associated successfully",
                             "originalRequest": {
                                 "url": {
@@ -4957,7 +5391,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "bc2dbbc6-5b5b-40df-82d0-cb4b2f198baf",
+                            "id": "f9eb6794-82ea-4231-87e2-fd964da0ab41",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -5008,7 +5442,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "d9649975-ea3a-41eb-8efb-c08fa19ed872",
+                            "id": "7ca86449-5a10-4c2d-a76b-cf1354a0b059",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -5059,7 +5493,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "45bd447e-0165-40fa-82f9-8cdf7fd0bbb7",
+                            "id": "4a63a90e-34fa-48d4-8820-053e2c186f86",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5116,7 +5550,7 @@
                     }
                 },
                 {
-                    "id": "6afff3e2-8968-4fba-a65e-0f867d0c279a",
+                    "id": "b8837696-308c-4172-bc61-4d14e00c53da",
                     "name": "Remove iteration association",
                     "request": {
                         "name": "Remove iteration association",
@@ -5170,7 +5604,7 @@
                     },
                     "response": [
                         {
-                            "id": "e1fdf60b-37f6-4ede-a6ba-1a85bddc60b7",
+                            "id": "7fcd6ace-22a8-4c85-bfd6-a106be2cc257",
                             "name": "Iteration disassociated successfully",
                             "originalRequest": {
                                 "url": {
@@ -5196,7 +5630,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "5f90f2d6-3f29-425f-8c83-9dfa86fd8613",
+                            "id": "ad418d97-50e7-4e7f-a4d9-b6a60ce89ee1",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -5234,7 +5668,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "cb02b597-5ba6-409e-a925-a02e71737721",
+                            "id": "379dcdc4-e1c2-4788-b430-4532fd53f7d8",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -5272,7 +5706,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ae670acc-5d45-4b96-a8f5-b3d3775264c2",
+                            "id": "f00ecf3d-4fc6-445b-9d12-4fb7304f1947",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5322,7 +5756,7 @@
             "description": "Operations about applications.",
             "item": [
                 {
-                    "id": "3f17a76c-2c2e-4f6f-ac0b-f0620f1f0207",
+                    "id": "c50c4fb2-5f5d-43dd-8ece-f8b125c39512",
                     "name": "Get all applications",
                     "request": {
                         "name": "Get all applications",
@@ -5352,7 +5786,7 @@
                     },
                     "response": [
                         {
-                            "id": "17263ee8-cafe-4340-8fd9-e4eb86074848",
+                            "id": "6520fadb-d0d1-43c4-bd4a-119dc31f9389",
                             "name": "A list of applications",
                             "originalRequest": {
                                 "url": {
@@ -5387,7 +5821,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1b1d1eee-86c9-4d31-87b3-1355e628bea1",
+                            "id": "579babf9-d790-469b-b706-c105b27bdeeb",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5434,7 +5868,7 @@
             "description": "Operations about labels and hierarchical filtering.",
             "item": [
                 {
-                    "id": "53f8c570-80c6-48f8-a1cb-b0e75cf18898",
+                    "id": "e766074c-3038-4bc1-9f86-4535e03b3a00",
                     "name": "Get labels with optional hierarchical filtering",
                     "request": {
                         "name": "Get labels with optional hierarchical filtering",
@@ -5510,7 +5944,7 @@
                     },
                     "response": [
                         {
-                            "id": "b5f4e99f-8f21-497d-8c17-b58ea216b398",
+                            "id": "2585f354-8356-4e6c-aab6-8552e8b55301",
                             "name": "A list of labels.",
                             "originalRequest": {
                                 "url": {
@@ -5586,12 +6020,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "[\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#9bEA45\"\n  },\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#76B1a7\"\n  }\n]",
+                            "body": "[\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#c1AbB3\"\n  },\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#a4DCf3\"\n  }\n]",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "33d08e17-3477-4906-bd36-352ed8797bd4",
+                            "id": "aeaf5867-7c30-49d1-99d5-903c0a0e38c5",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -5672,7 +6106,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "3f4e79a9-7584-4501-9b17-bc53768f10e8",
+                            "id": "e44335b5-10a2-4b7d-b19f-1814883a0dc7",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5765,7 +6199,7 @@
             "description": "Operations about users.",
             "item": [
                 {
-                    "id": "95d0ee23-de9f-485f-b41f-31abd2f32174",
+                    "id": "feb972bd-613e-4151-adb4-a1ed2f82a0e1",
                     "name": "Get all users",
                     "request": {
                         "name": "Get all users",
@@ -5843,6 +6277,15 @@
                                     },
                                     "key": "userCode",
                                     "value": "<string>"
+                                },
+                                {
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "Filter users by active status (true for active, false for inactive)",
+                                        "type": "text/plain"
+                                    },
+                                    "key": "active",
+                                    "value": "<boolean>"
                                 }
                             ],
                             "variable": []
@@ -5859,7 +6302,7 @@
                     },
                     "response": [
                         {
-                            "id": "6ff2830e-bc6d-43cd-bd9c-63f6ace6c2a7",
+                            "id": "4b7f4c13-3d71-4219-9276-5794b73adbad",
                             "name": "A paginated list of users.",
                             "originalRequest": {
                                 "url": {
@@ -5932,6 +6375,15 @@
                                             },
                                             "key": "userCode",
                                             "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "Filter users by active status (true for active, false for inactive)",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "active",
+                                            "value": "<boolean>"
                                         }
                                     ],
                                     "variable": []
@@ -5958,7 +6410,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "9ea48d6e-2c21-49e4-b820-2de1dc3a35f3",
+                            "id": "a3901f87-714b-4f3d-b87d-17c04166a914",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6031,6 +6483,15 @@
                                             },
                                             "key": "userCode",
                                             "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "Filter users by active status (true for active, false for inactive)",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "active",
+                                            "value": "<boolean>"
                                         }
                                     ],
                                     "variable": []
@@ -6063,7 +6524,7 @@
                     }
                 },
                 {
-                    "id": "b21c8de5-06a2-4ed2-99c7-1b355c7980cd",
+                    "id": "e4ccc3e7-98db-4c0f-8c14-940a605d0391",
                     "name": "Create a new user",
                     "request": {
                         "name": "Create a new user",
@@ -6106,7 +6567,7 @@
                     },
                     "response": [
                         {
-                            "id": "0ce9e033-b8f2-478d-a9fb-655e6eaab0be",
+                            "id": "512f9d0b-8204-4dea-b7bf-5c4cbfc34a92",
                             "name": "User created successfully.",
                             "originalRequest": {
                                 "url": {
@@ -6154,7 +6615,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "48c64215-072e-49f6-98fa-58230ad2aca9",
+                            "id": "6237a813-94af-4135-bca4-641607b49ef8",
                             "name": "Bad request - validation errors or missing required fields.",
                             "originalRequest": {
                                 "url": {
@@ -6202,7 +6663,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f721e2e7-38d1-4c14-9ed8-d9f6edf301c3",
+                            "id": "23cff95f-df8b-41fe-ba8c-d4ab9c097c6a",
                             "name": "Conflict - user with same email or code already exists.",
                             "originalRequest": {
                                 "url": {
@@ -6250,7 +6711,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "15915b30-1061-4d69-9069-a8e7270247aa",
+                            "id": "1f9bd25d-a9f5-4f56-a515-db2dbdaa0bdc",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6304,7 +6765,7 @@
                     }
                 },
                 {
-                    "id": "da7d82d8-780a-42fa-ba17-749ace9c7894",
+                    "id": "7a3df9d7-a47b-4d6b-983e-dd20d505ad4b",
                     "name": "Get user by ID",
                     "request": {
                         "name": "Get user by ID",
@@ -6346,7 +6807,7 @@
                     },
                     "response": [
                         {
-                            "id": "8b0c9230-c374-4dd3-9395-3be002d4f8a8",
+                            "id": "ca91f158-6b13-4147-abcc-5ff13445118e",
                             "name": "User details.",
                             "originalRequest": {
                                 "url": {
@@ -6382,7 +6843,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1edd901e-ee66-4640-974d-a699597f10d9",
+                            "id": "92b3b614-9ff9-4616-942a-32733154598a",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -6418,7 +6879,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "6b99eee6-9f79-4ba8-8c26-c46ce308dada",
+                            "id": "6d969c13-4df2-4560-ae2d-45453765e8f7",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6460,7 +6921,7 @@
                     }
                 },
                 {
-                    "id": "62b06ea5-08be-4ad3-83b3-553d65438034",
+                    "id": "8bc2f9d6-54ea-4ebc-b8cf-2d2e1c56b1ff",
                     "name": "Update user",
                     "request": {
                         "name": "Update user",
@@ -6515,7 +6976,7 @@
                     },
                     "response": [
                         {
-                            "id": "789d001f-7b85-420d-b67c-ea54564b7f67",
+                            "id": "266c467b-a889-4eac-a460-d68bf5c6d30c",
                             "name": "User updated successfully.",
                             "originalRequest": {
                                 "url": {
@@ -6564,7 +7025,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f96bfe56-194d-40c7-a6b3-e63c3b164dd4",
+                            "id": "876de505-e391-4000-94ad-0ec8955dc93a",
                             "name": "Bad request - validation errors or missing required fields.",
                             "originalRequest": {
                                 "url": {
@@ -6613,7 +7074,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "48b23cff-997f-454a-9a24-8f1993217be0",
+                            "id": "095319b6-a4cb-49fc-8371-9d1d95f87a3f",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -6662,7 +7123,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f1a4a208-012b-4695-a939-35468c487e48",
+                            "id": "134c350d-de75-43cd-9cf3-f89396d9308b",
                             "name": "Conflict - email or code already exists for another user.",
                             "originalRequest": {
                                 "url": {
@@ -6711,7 +7172,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f7929d4a-aab1-49b8-8d49-e85bd94a7685",
+                            "id": "a0d2cdd8-a311-409f-8cec-7f3eca2dec42",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6766,7 +7227,7 @@
                     }
                 },
                 {
-                    "id": "cdece4c9-4761-4edd-801a-b0353c41166f",
+                    "id": "63aaf31b-0ce0-4557-a136-21799f673de3",
                     "name": "Delete user",
                     "request": {
                         "name": "Delete user",
@@ -6808,7 +7269,7 @@
                     },
                     "response": [
                         {
-                            "id": "76d04d9e-6ec8-4b69-a24c-a9e20871bbb2",
+                            "id": "39b4026e-348a-4191-a785-a783c59936d9",
                             "name": "User deleted successfully.",
                             "originalRequest": {
                                 "url": {
@@ -6832,7 +7293,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "9ce80eef-761e-413e-a550-e67b119d2d2a",
+                            "id": "5bd12800-73c9-409a-9769-7115be73d07a",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -6868,7 +7329,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "b6f6c4d3-8d3b-4dd1-a37a-4e6de535b002",
+                            "id": "d2fbc566-d45e-451f-a32e-20d451551b22",
                             "name": "Cannot delete - user is referenced by other resources.",
                             "originalRequest": {
                                 "url": {
@@ -6904,7 +7365,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "21b647d4-6d62-44ba-b159-01f9f75ec6cb",
+                            "id": "f24d9eda-0447-4856-aeac-96d241b36468",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6952,7 +7413,7 @@
             "description": "Serves static web assets.",
             "item": [
                 {
-                    "id": "4d84f884-61ac-4ec3-9c50-5a424ec081c4",
+                    "id": "6d26aae7-149e-4a91-bd92-2bae2d9d096f",
                     "name": "Serve a static asset",
                     "request": {
                         "name": "Serve a static asset",
@@ -6998,7 +7459,7 @@
                     },
                     "response": [
                         {
-                            "id": "ab992eac-9ead-420a-a9ae-c2d1531ca0d6",
+                            "id": "04214d9a-bc8c-4c1a-8346-9a13c2f0176e",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -7046,7 +7507,7 @@
             "description": "",
             "item": [
                 {
-                    "id": "dfac0919-19bc-4323-86ad-438195516781",
+                    "id": "621cc85f-1364-4564-8c98-dc8a1600cd45",
                     "name": "Get steps with hierarchical filtering for runsheet",
                     "request": {
                         "name": "Get steps with hierarchical filtering for runsheet",
@@ -7140,7 +7601,7 @@
                     },
                     "response": [
                         {
-                            "id": "cd280c78-d085-4e07-b897-84b946e7c06d",
+                            "id": "eaf62e12-ec23-4ee8-a9a9-45be0a1a379b",
                             "name": "Steps grouped by sequence and phase for runsheet display",
                             "originalRequest": {
                                 "url": {
@@ -7234,12 +7695,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "[\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#0ACd3c\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#e9Da3f\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"IN_PROGRESS\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#aDeF8f\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#0da28d\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#FBf56D\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#75D78D\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#cA60Be\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#c2e24B\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  },\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#7b3A18\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#dbc1bb\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#a5e2a1\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#eD1CCe\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#E8eD05\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#55F8cD\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#4666c3\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#618216\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  }\n]",
+                            "body": "[\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#7F50eb\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#96CDeD\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"IN_PROGRESS\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#7DD1Ad\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#b425BC\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#Eb06cc\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#7ABE0A\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#189AFe\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#6E5ffb\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  },\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#9BFcB0\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#66fCda\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"IN_PROGRESS\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#0eBB68\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#7fc26a\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#fdC5b4\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#EbEEa3\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#7265d7\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#c4Edd9\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  }\n]",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "60883ee0-a6c2-40f7-8ebb-074bfc3e3996",
+                            "id": "7604aa7e-fde9-4f41-8cfc-af275d0c4129",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -7338,7 +7799,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "389940b5-f2c7-440a-a69d-7f3ef50f3b2b",
+                            "id": "4dc786ab-033a-48c7-b4fe-774a6cbc79f7",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -7453,7 +7914,7 @@
         }
     ],
     "info": {
-        "_postman_id": "022e2c3a-efb5-4c6d-85ed-5d0baf71ab5f",
+        "_postman_id": "246f14c8-445a-45e5-9e5f-1574a6e3acc0",
         "name": "UMIG API V2",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": {

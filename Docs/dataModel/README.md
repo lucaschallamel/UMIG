@@ -45,7 +45,9 @@ UMIG is built on:
 - **usr_first_name**, **usr_last_name** (VARCHAR)
 - **usr_email** (VARCHAR, unique)
 - **usr_is_admin** (BOOLEAN): Administrative privileges flag
+- **usr_active** (BOOLEAN, NOT NULL, DEFAULT TRUE): Active/inactive status - Added in migration 011
 - **rls_id** (INT, FK → roles_rls): Role
+- **created_at**, **updated_at** (TIMESTAMPTZ): Audit timestamps - Added in migration 012
 - **Team membership**: Managed exclusively via the many-to-many join table `teams_tms_x_users_usr` (see below; no direct FK in `users_usr`).
 - **Business rule:** Each user currently belongs to exactly one team; all `ADMIN` and `PILOT` users are assigned to `IT_CUTOVER`. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for rationale.
 
@@ -295,11 +297,15 @@ erDiagram
     }
     users_usr {
         INT usr_id PK
-        VARCHAR usr_trigram
+        VARCHAR usr_code
         VARCHAR usr_first_name
         VARCHAR usr_last_name
         VARCHAR usr_email
+        BOOLEAN usr_is_admin
+        BOOLEAN usr_active
         INT rls_id FK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
     roles_rls {
         INT rls_id PK
@@ -546,6 +552,23 @@ erDiagram
 
 ## 7. Recent Changes & Migration Notes
 
+### 2025-07-15: Teams Association Management and Environment Search Enhancement
+- **Teams Association APIs**: Implemented comprehensive team-application association management:
+  - Enhanced `teams_tms_x_applications_app` join table utilization for team-application relationships
+  - Added application association endpoints for add/remove functionality in admin interface
+  - Improved team management with user and application association modals
+- **Environment Search Enhancement**: Added full-stack search functionality for environments:
+  - Enhanced EnvironmentsApi with search, pagination, and sorting parameters
+  - Fixed GString SQL type inference issues with proper parameterized query patterns
+  - Added EntityConfig support for environment search filtering
+- **User Status Management**: Enhanced user management with active status filtering:
+  - Migration 011: Added `usr_active` boolean field with NOT NULL constraint and TRUE default
+  - Migration 012: Added `created_at` and `updated_at` audit timestamp fields with automatic triggers
+  - Index created on `usr_active` for performance optimization
+  - Extended Users API with active parameter for filtering active/inactive users
+- **Modal Consistency**: Standardized modal UI patterns across Teams and Environments with consistent AUI styling
+- **State Management**: Fixed sort field persistence bugs and confirmation dialog regressions
+
 ### 2025-07-10: Hierarchical Filtering and Labels Implementation
 - **Fixed Type System Issues**: Resolved Groovy static type checking errors in StepRepository
 - **Corrected Field References**: Fixed master vs instance ID filtering patterns
@@ -631,6 +654,28 @@ try {
     stepLabels = stepRepository.findLabelsByStepId(stmId)
 } catch (Exception e) {
     stepLabels = [] // Continue with empty labels if fetching fails
+}
+```
+
+### 8.5. Active User Filtering Pattern
+Handle active status filtering with proper validation:
+
+```groovy
+// Active filter parameter validation
+Boolean activeFilter = null
+if (active) {
+    if (active.toString().toLowerCase() in ['true', 'false']) {
+        activeFilter = Boolean.parseBoolean(active as String)
+    } else {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid active parameter. Must be true or false"]).toString()).build()
+    }
+}
+
+// Apply active filter in WHERE clause
+if (activeFilter != null) {
+    whereConditions.add("u.usr_active = :activeFilter")
+    params.activeFilter = activeFilter
 }
 ```
 

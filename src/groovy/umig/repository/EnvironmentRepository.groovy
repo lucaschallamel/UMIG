@@ -315,4 +315,92 @@ class EnvironmentRepository {
             """)
         }
     }
+
+    /**
+     * Finds all environments with relationship counts, supporting pagination and search.
+     * @param page The page number (1-based)
+     * @param size The page size
+     * @param search Optional search term to filter environments
+     * @param sortField The field to sort by
+     * @param sortDirection The sort direction ('asc' or 'desc')
+     * @return A paginated result with environments and metadata
+     */
+    Map findAllEnvironmentsWithCounts(int page, int size, String search, String sortField, String sortDirection) {
+        DatabaseUtil.withSql { sql ->
+            // Build WHERE clause for search
+            String whereClause = ""
+            Map<String, Object> params = [:]
+            
+            if (search && search.trim().length() >= 2) {
+                whereClause = """
+                    WHERE (
+                        UPPER(e.env_code) LIKE UPPER(:search) OR
+                        UPPER(e.env_name) LIKE UPPER(:search) OR
+                        UPPER(e.env_description) LIKE UPPER(:search)
+                    )
+                """
+                params.search = "%" + search.trim() + "%"
+            }
+            
+            // Build ORDER BY clause - avoid GString interpolation for SQL injection safety
+            String orderClause = "ORDER BY e." + sortField + " " + sortDirection.toUpperCase()
+            
+            // Calculate offset
+            int offset = (page - 1) * size
+            
+            // Get total count
+            def countQuery = """
+                SELECT COUNT(*)
+                FROM environments_env e
+                ${whereClause}
+            """
+            
+            def totalCount = sql.firstRow(countQuery, params)[0] as Long
+            
+            // Get paginated data
+            def dataQuery = """
+                SELECT 
+                    e.env_id,
+                    e.env_code,
+                    e.env_name,
+                    e.env_description,
+                    COALESCE(app_counts.app_count, 0)::INTEGER AS application_count,
+                    COALESCE(ite_counts.iteration_count, 0)::INTEGER AS iteration_count
+                FROM environments_env e
+                LEFT JOIN (
+                    SELECT env_id, COUNT(*)::INTEGER AS app_count
+                    FROM environments_env_x_applications_app
+                    GROUP BY env_id
+                ) app_counts ON e.env_id = app_counts.env_id
+                LEFT JOIN (
+                    SELECT env_id, COUNT(*)::INTEGER AS iteration_count
+                    FROM environments_env_x_iterations_ite
+                    GROUP BY env_id
+                ) ite_counts ON e.env_id = ite_counts.env_id
+                ${whereClause}
+                ${orderClause}
+                LIMIT :size OFFSET :offset
+            """
+            
+            params.size = size
+            params.offset = offset
+            
+            def environments = sql.rows(dataQuery, params)
+            
+            // Calculate pagination metadata
+            def totalPages = (totalCount + size - 1) / size as Long
+            
+            return [
+                data: environments,
+                pagination: [
+                    currentPage: page,
+                    pageSize: size,
+                    totalItems: totalCount,
+                    totalPages: totalPages,
+                    hasNext: page < totalPages,
+                    hasPrevious: page > 1
+                ]
+            ]
+        }
+    }
 }

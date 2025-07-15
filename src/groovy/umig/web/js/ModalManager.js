@@ -63,6 +63,8 @@
             
             if (currentEntity === 'environments') {
                 this.showEnvironmentDetailsModal(id);
+            } else if (currentEntity === 'teams') {
+                this.showTeamViewModal(id);
             } else {
                 this.showGenericViewModal(id, currentEntity);
             }
@@ -76,19 +78,25 @@
             const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
             const currentEntity = state.currentEntity || 'users';
             
-            if (id) {
-                this.loadEntityData(id, currentEntity)
-                    .then(data => {
-                        this.showEntityForm(data, currentEntity, false);
-                    })
-                    .catch(error => {
-                        console.error('Failed to load entity:', error);
-                        if (window.UiUtils) {
-                            window.UiUtils.showNotification('Failed to load entity data', 'error');
-                        }
-                    });
+            if (currentEntity === 'environments') {
+                this.showEnvironmentEditModal(id);
+            } else if (currentEntity === 'teams') {
+                this.showTeamEditModal(id);
             } else {
-                this.showEntityForm(null, currentEntity, true);
+                if (id) {
+                    this.loadEntityData(id, currentEntity)
+                        .then(data => {
+                            this.showEntityForm(data, currentEntity, false);
+                        })
+                        .catch(error => {
+                            console.error('Failed to load entity:', error);
+                            if (window.UiUtils) {
+                                window.UiUtils.showNotification('Failed to load entity data', 'error');
+                            }
+                        });
+                } else {
+                    this.showEntityForm(null, currentEntity, true);
+                }
             }
         },
 
@@ -142,6 +150,64 @@
          * @param {Object} environment - Environment data
          */
         renderEnvironmentDetailsModal: function(environment) {
+            // Build applications HTML
+            let applicationsHtml = '';
+            if (environment.applications && environment.applications.length > 0) {
+                applicationsHtml = `
+                    <div class="associations-list">
+                        ${environment.applications.map(app => `
+                            <div class="association-item">
+                                <strong>${app.app_code}</strong> - ${app.app_name}
+                                <div class="app-id">ID: ${app.app_id}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                applicationsHtml = '<p class="no-associations">No applications associated with this environment.</p>';
+            }
+
+            // Build iterations HTML - group by role
+            let iterationsHtml = '';
+            if (environment.iterations && environment.iterations.length > 0) {
+                // Group iterations by role
+                const iterationsByRole = {};
+                environment.iterations.forEach(iteration => {
+                    const roleName = iteration.role_name || 'Unknown Role';
+                    if (!iterationsByRole[roleName]) {
+                        iterationsByRole[roleName] = {
+                            role_description: iteration.role_description || '',
+                            iterations: []
+                        };
+                    }
+                    iterationsByRole[roleName].iterations.push(iteration);
+                });
+
+                iterationsHtml = `
+                    <div class="associations-list">
+                        ${Object.keys(iterationsByRole).map(roleName => `
+                            <div class="role-group">
+                                <h5 class="role-header">${roleName}</h5>
+                                ${iterationsByRole[roleName].role_description ? 
+                                    `<p class="role-description">${iterationsByRole[roleName].role_description}</p>` : 
+                                    ''
+                                }
+                                <div class="role-iterations">
+                                    ${iterationsByRole[roleName].iterations.map(iteration => `
+                                        <div class="association-item">
+                                            <strong>${iteration.ite_name}</strong>
+                                            <div class="iteration-id">ID: ${iteration.ite_id}</div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                iterationsHtml = '<p class="no-associations">No iterations associated with this environment.</p>';
+            }
+
             const modalHtml = `
                 <div class="modal-overlay" id="viewModal">
                     <div class="modal modal-large">
@@ -159,25 +225,18 @@
                                 </div>
                                 
                                 <div class="detail-section">
-                                    <h4>Associations</h4>
-                                    <div class="association-buttons">
-                                        <button class="btn-primary" onclick="adminGui.showAssociateApplicationModal(${environment.env_id})">
-                                            Associate Application
-                                        </button>
-                                        <button class="btn-primary" onclick="adminGui.showAssociateIterationModal(${environment.env_id})">
-                                            Associate Iteration
-                                        </button>
-                                    </div>
+                                    <h4>Associated Applications</h4>
+                                    ${applicationsHtml}
                                 </div>
                                 
                                 <div class="detail-section">
-                                    <h4>Statistics</h4>
-                                    <p><strong>Applications:</strong> ${environment.application_count || 0}</p>
-                                    <p><strong>Iterations:</strong> ${environment.iteration_count || 0}</p>
+                                    <h4>Associated Iterations</h4>
+                                    ${iterationsHtml}
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
+                            <button class="btn-primary" onclick="ModalManager.showEnvironmentEditModal(${environment.env_id})">Edit Environment</button>
                             <button class="btn-secondary" onclick="ModalManager.closeModal()">Close</button>
                         </div>
                     </div>
@@ -185,6 +244,95 @@
             `;
             
             document.body.insertAdjacentHTML('beforeend', modalHtml);
+        },
+
+        /**
+         * Show environment edit modal
+         * @param {string} id - Environment ID (null for create)
+         */
+        showEnvironmentEditModal: function(id) {
+            if (!window.ApiClient) {
+                console.error('API client not available');
+                return;
+            }
+
+            const isCreate = !id;
+            
+            if (isCreate) {
+                this.renderEnvironmentEditModal(null, true);
+            } else {
+                // Load environment data with full associations
+                window.ApiClient.environments.getById(id)
+                    .then(environment => {
+                        this.renderEnvironmentEditModal(environment, false);
+                    })
+                    .catch(error => {
+                        console.error('Failed to load environment:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to load environment data', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Render environment edit modal
+         * @param {Object} environment - Environment data (null for create)
+         * @param {boolean} isCreate - Whether this is create mode
+         */
+        renderEnvironmentEditModal: function(environment, isCreate) {
+            const modalTitle = isCreate ? 'Add Environment' : 'Edit Environment';
+            
+            // Build basic form fields
+            const entityConfig = window.EntityConfig ? window.EntityConfig.getEntity('environments') : null;
+            let formFieldsHtml = '';
+            
+            if (entityConfig) {
+                formFieldsHtml = this.buildBasicEnvironmentForm(environment, entityConfig, isCreate);
+            }
+            
+            // Build associations section (only for edit mode)
+            let associationsHtml = '';
+            if (!isCreate && environment) {
+                associationsHtml = this.buildEnvironmentAssociationsSection(environment);
+            }
+
+            const modalHtml = `
+                <div class="modal-overlay" id="editModal">
+                    <div class="modal modal-large">
+                        <div class="modal-header">
+                            <h3 class="modal-title">${modalTitle}</h3>
+                            <button class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="environmentFormWrapper">
+                                <form id="environmentForm">
+                                    ${formFieldsHtml}
+                                </form>
+                                <div id="associationsWrapper">
+                                    ${associationsHtml}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" id="cancelBtn">Cancel</button>
+                            <button class="btn-primary" id="saveEntityBtn">
+                                ${isCreate ? 'Create' : 'Update'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Set up event handlers
+            this.setupEnvironmentFormHandlers(environment, isCreate);
+            
+            // Load dropdown data if editing
+            if (!isCreate) {
+                this.loadAssociationDropdowns();
+            }
         },
 
         /**
@@ -715,6 +863,12 @@
         closeModal: function() {
             const modals = document.querySelectorAll('.modal-overlay');
             modals.forEach(modal => modal.remove());
+            
+            // Clean up any document-level event listeners
+            if (this.handleRemoveButtonClick) {
+                document.removeEventListener('click', this.handleRemoveButtonClick);
+                this.handleRemoveButtonClick = null;
+            }
         },
 
         /**
@@ -897,6 +1051,1047 @@
         },
 
         /**
+         * Build basic environment form fields
+         * @param {Object} environment - Environment data
+         * @param {Object} entityConfig - Entity configuration
+         * @param {boolean} isCreate - Whether this is create mode
+         * @returns {string} Form fields HTML
+         */
+        buildBasicEnvironmentForm: function(environment, entityConfig, isCreate) {
+            let formHtml = '<div class="form-section"><h4>Environment Information</h4>';
+            
+            entityConfig.fields.forEach(field => {
+                if (!field.readonly && !field.computed) {
+                    const fieldHtml = this.buildFormField(field, environment);
+                    formHtml += fieldHtml;
+                }
+            });
+            
+            formHtml += '</div>';
+            return formHtml;
+        },
+
+        /**
+         * Build environment associations section
+         * @param {Object} environment - Environment data
+         * @returns {string} Associations HTML
+         */
+        buildEnvironmentAssociationsSection: function(environment) {
+            console.log('Building environment associations section for:', environment);
+            let associationsHtml = '<div class="form-section"><h4>Associations</h4>';
+            
+            // Current applications summary
+            associationsHtml += '<div class="associations-summary">';
+            associationsHtml += '<h5>Current Applications</h5>';
+            
+            if (environment.applications && environment.applications.length > 0) {
+                console.log('Found applications:', environment.applications);
+                associationsHtml += '<div class="current-associations">';
+                environment.applications.forEach(app => {
+                    console.log('Creating button for app:', app);
+                    associationsHtml += `
+                        <div class="association-summary-item">
+                            <span><strong>${app.app_code}</strong> - ${app.app_name}</span>
+                            <button type="button" class="btn-danger btn-small" onclick="console.log('Button clicked'); ModalManager.removeApp(${environment.env_id}, ${app.app_id}); return false;">Remove</button>
+                        </div>
+                    `;
+                });
+                associationsHtml += '</div>';
+            } else {
+                associationsHtml += '<p class="no-associations">No applications associated</p>';
+            }
+            
+            // Add new application
+            associationsHtml += `
+                <div class="add-association">
+                    <label>Add Application:</label>
+                    <div class="association-controls">
+                        <select id="applicationSelect" class="form-control">
+                            <option value="">Select Application...</option>
+                        </select>
+                        <button type="button" class="btn-primary" onclick="ModalManager.addApplicationAssociation(${environment.env_id})">Add</button>
+                    </div>
+                </div>
+            `;
+            
+            associationsHtml += '</div>'; // Close applications summary
+            
+            // Current iterations summary
+            associationsHtml += '<div class="associations-summary">';
+            associationsHtml += '<h5>Current Iterations</h5>';
+            
+            if (environment.iterations && environment.iterations.length > 0) {
+                // Group iterations by role
+                const iterationsByRole = {};
+                environment.iterations.forEach(iteration => {
+                    const roleName = iteration.role_name || 'Unknown Role';
+                    if (!iterationsByRole[roleName]) {
+                        iterationsByRole[roleName] = [];
+                    }
+                    iterationsByRole[roleName].push(iteration);
+                });
+                
+                associationsHtml += '<div class="current-associations">';
+                Object.keys(iterationsByRole).forEach(roleName => {
+                    associationsHtml += `<div class="role-group-summary">`;
+                    associationsHtml += `<h6>${roleName}</h6>`;
+                    iterationsByRole[roleName].forEach(iteration => {
+                        associationsHtml += `
+                            <div class="association-summary-item">
+                                <span><strong>${iteration.ite_name}</strong></span>
+                                <button type="button" class="btn-danger btn-small" onclick="ModalManager.removeIteration(${environment.env_id}, '${iteration.ite_id}'); return false;">Remove</button>
+                            </div>
+                        `;
+                    });
+                    associationsHtml += '</div>';
+                });
+                associationsHtml += '</div>';
+            } else {
+                associationsHtml += '<p class="no-associations">No iterations associated</p>';
+            }
+            
+            // Add new iteration
+            associationsHtml += `
+                <div class="add-association">
+                    <label>Add Iteration:</label>
+                    <div class="association-controls">
+                        <select id="iterationSelect" class="form-control">
+                            <option value="">Select Iteration...</option>
+                        </select>
+                        <select id="roleSelect" class="form-control">
+                            <option value="">Select Role...</option>
+                        </select>
+                        <button type="button" class="btn-primary" onclick="ModalManager.addIterationAssociation(${environment.env_id})">Add</button>
+                    </div>
+                </div>
+            `;
+            
+            associationsHtml += '</div>'; // Close iterations summary
+            associationsHtml += '</div>'; // Close form section
+            
+            return associationsHtml;
+        },
+
+        /**
+         * Setup environment form handlers
+         * @param {Object} environment - Environment data
+         * @param {boolean} isCreate - Whether this is create mode
+         */
+        setupEnvironmentFormHandlers: function(environment, isCreate) {
+            // Set form data if editing
+            if (environment && !isCreate) {
+                this.setFormData(environment);
+            }
+            
+            // Set up save button handler
+            document.getElementById('saveEntityBtn').onclick = () => {
+                this.saveEnvironment(environment, isCreate);
+            };
+            
+            // Set up cancel button handler
+            document.getElementById('cancelBtn').onclick = () => {
+                this.closeModal();
+            };
+            
+            // Set up close button handler
+            document.querySelector('.modal-close').onclick = () => {
+                this.closeModal();
+            };
+            
+            // Event delegation is now handled via inline onclick handlers
+        },
+
+        /**
+         * Load dropdown data for associations
+         */
+        loadAssociationDropdowns: function() {
+            if (!window.ApiClient) {
+                console.error('API client not available');
+                return;
+            }
+            
+            // Load applications
+            window.ApiClient.applications.getAll()
+                .then(applications => {
+                    const select = document.getElementById('applicationSelect');
+                    if (select) {
+                        select.innerHTML = this.createSelectOptions(applications, 'app_id', 'app_name');
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to load applications:', error);
+                });
+            
+            // Load iterations
+            window.ApiClient.iterations.getAll()
+                .then(iterations => {
+                    const select = document.getElementById('iterationSelect');
+                    if (select) {
+                        select.innerHTML = this.createSelectOptions(iterations, 'ite_id', 'ite_name');
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to load iterations:', error);
+                });
+            
+            // Load environment roles
+            window.ApiClient.environments.getRoles()
+                .then(roles => {
+                    const select = document.getElementById('roleSelect');
+                    if (select) {
+                        select.innerHTML = this.createSelectOptions(roles, 'enr_id', 'enr_name');
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to load environment roles:', error);
+                });
+        },
+
+        /**
+         * Add application association
+         * @param {number} envId - Environment ID
+         */
+        addApplicationAssociation: function(envId) {
+            const select = document.getElementById('applicationSelect');
+            const appId = select.value;
+            
+            if (!appId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select an application', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.environments.associateApplication(envId, appId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Application associated successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showEnvironmentEditModal(envId);
+                })
+                .catch(error => {
+                    console.error('Failed to associate application:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to associate application', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove application association
+         * @param {Event} event - Click event (can be null)
+         * @param {number} envId - Environment ID
+         * @param {number} appId - Application ID
+         */
+        removeApplicationAssociation: function(event, envId, appId) {
+            // Prevent form submission and event bubbling if event exists
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // Show custom confirmation dialog
+            this.showConfirmationDialog(
+                'Remove Application Association',
+                'Are you sure you want to remove this application association?',
+                () => {
+                    // Confirmed - proceed with removal
+                    window.ApiClient.environments.disassociateApplication(envId, appId)
+                        .then(() => {
+                            if (window.UiUtils) {
+                                window.UiUtils.showNotification('Application association removed successfully', 'success');
+                            }
+                            // Refresh the modal
+                            this.closeModal();
+                            this.showEnvironmentEditModal(envId);
+                        })
+                        .catch(error => {
+                            console.error('Failed to remove application association:', error);
+                            if (window.UiUtils) {
+                                window.UiUtils.showNotification('Failed to remove application association', 'error');
+                            }
+                        });
+                }
+            );
+        },
+
+        /**
+         * Add iteration association
+         * @param {number} envId - Environment ID
+         */
+        addIterationAssociation: function(envId) {
+            const iterationSelect = document.getElementById('iterationSelect');
+            const roleSelect = document.getElementById('roleSelect');
+            const iterationId = iterationSelect.value;
+            const roleId = roleSelect.value;
+            
+            if (!iterationId || !roleId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select both iteration and role', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.environments.associateIteration(envId, iterationId, roleId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Iteration associated successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showEnvironmentEditModal(envId);
+                })
+                .catch(error => {
+                    console.error('Failed to associate iteration:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to associate iteration', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove iteration association
+         * @param {Event} event - Click event (can be null)
+         * @param {number} envId - Environment ID
+         * @param {string} iterationId - Iteration ID
+         */
+        removeIterationAssociation: async function(event, envId, iterationId) {
+            // Prevent form submission and event bubbling if event exists
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // Show custom confirmation dialog
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this iteration association?');
+            
+            if (confirmed) {
+                window.ApiClient.environments.disassociateIteration(envId, iterationId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Iteration association removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showEnvironmentEditModal(envId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove iteration association:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove iteration association', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Show custom confirmation dialog
+         * @param {string} title - Dialog title
+         * @param {string} message - Dialog message
+         * @param {Function} onConfirm - Callback when confirmed
+         * @param {Function} onCancel - Optional callback when cancelled
+         */
+        showConfirmationDialog: function(title, message, onConfirm, onCancel) {
+            // Let's just use the native confirm for now to ensure it works
+            console.log('Showing confirmation dialog:', title, message);
+            
+            // Use setTimeout to delay the confirm dialog
+            setTimeout(() => {
+                const result = window.confirm(message);
+                console.log('Confirm result:', result);
+                
+                if (result && onConfirm) {
+                    onConfirm();
+                } else if (!result && onCancel) {
+                    onCancel();
+                }
+            }, 10);
+        },
+
+        /**
+         * Simple remove application function
+         * @param {number} envId - Environment ID
+         * @param {number} appId - Application ID
+         */
+        removeApp: async function(envId, appId) {
+            console.log('removeApp called with:', envId, appId);
+            
+            // Create a simple custom confirmation
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this application association?');
+            
+            if (confirmed) {
+                console.log('User confirmed, proceeding with removal');
+                window.ApiClient.environments.disassociateApplication(envId, appId)
+                    .then(() => {
+                        console.log('Application association removed successfully');
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Application association removed successfully', 'success');
+                        }
+                        this.closeModal();
+                        this.showEnvironmentEditModal(envId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove application association:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove application association', 'error');
+                        }
+                    });
+            } else {
+                console.log('User cancelled removal');
+            }
+        },
+
+        /**
+         * Show a simple confirmation dialog
+         * @param {string} message - Confirmation message
+         * @returns {boolean} Whether confirmed
+         */
+        showSimpleConfirm: function(message) {
+            // Create a blocking confirmation dialog
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: white;
+                padding: 20px;
+                border-radius: 5px;
+                max-width: 400px;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            `;
+            
+            const messageEl = document.createElement('p');
+            messageEl.textContent = message;
+            messageEl.style.cssText = 'margin: 0 0 20px 0; font-size: 14px;';
+            
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.style.cssText = 'padding: 8px 16px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px;';
+            
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = 'OK';
+            confirmBtn.style.cssText = 'padding: 8px 16px; border: none; background: #0052CC; color: white; cursor: pointer; border-radius: 3px;';
+            
+            let result = false;
+            
+            const cleanup = () => {
+                document.body.removeChild(overlay);
+            };
+            
+            cancelBtn.onclick = () => {
+                result = false;
+                cleanup();
+            };
+            
+            confirmBtn.onclick = () => {
+                result = true;
+                cleanup();
+            };
+            
+            buttonContainer.appendChild(cancelBtn);
+            buttonContainer.appendChild(confirmBtn);
+            dialog.appendChild(messageEl);
+            dialog.appendChild(buttonContainer);
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            // Focus the confirm button
+            confirmBtn.focus();
+            
+            // Wait for user interaction using a synchronous approach
+            return new Promise(resolve => {
+                const originalOnClick = confirmBtn.onclick;
+                const originalOnClickCancel = cancelBtn.onclick;
+                
+                confirmBtn.onclick = () => {
+                    cleanup();
+                    resolve(true);
+                };
+                
+                cancelBtn.onclick = () => {
+                    cleanup();
+                    resolve(false);
+                };
+            });
+        },
+
+        /**
+         * Simple remove iteration function
+         * @param {number} envId - Environment ID
+         * @param {string} iterationId - Iteration ID
+         */
+        removeIteration: async function(envId, iterationId) {
+            console.log('removeIteration called with:', envId, iterationId);
+            
+            // Use custom confirmation dialog
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this iteration association?');
+            
+            if (confirmed) {
+                console.log('User confirmed, proceeding with removal');
+                window.ApiClient.environments.disassociateIteration(envId, iterationId)
+                    .then(() => {
+                        console.log('Iteration association removed successfully');
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Iteration association removed successfully', 'success');
+                        }
+                        this.closeModal();
+                        this.showEnvironmentEditModal(envId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove iteration association:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove iteration association', 'error');
+                        }
+                    });
+            } else {
+                console.log('User cancelled removal');
+            }
+        },
+
+        /**
+         * Save environment
+         * @param {Object} environment - Current environment data
+         * @param {boolean} isCreate - Whether this is create mode
+         */
+        saveEnvironment: function(environment, isCreate) {
+            const form = document.getElementById('environmentForm');
+            const formData = this.getFormData(form);
+            
+            const promise = isCreate ? 
+                window.ApiClient.environments.create(formData) :
+                window.ApiClient.environments.update(environment.env_id, formData);
+            
+            promise
+                .then(response => {
+                    console.log('Environment saved successfully:', response);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(
+                            `Environment ${isCreate ? 'created' : 'updated'} successfully`,
+                            'success'
+                        );
+                    }
+                    
+                    this.closeModal();
+                    
+                    // Refresh the table
+                    if (window.AdminGuiController) {
+                        window.AdminGuiController.loadCurrentSection();
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to save environment:', error);
+                    
+                    let errorMessage = `Failed to ${isCreate ? 'create' : 'update'} environment`;
+                    if (error.message) {
+                        errorMessage += `: ${error.message}`;
+                    }
+                    
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(errorMessage, 'error');
+                    }
+                });
+        },
+
+        /**
+         * Show Team VIEW modal
+         * @param {number} teamId - Team ID
+         */
+        showTeamViewModal: function(teamId) {
+            console.log('showTeamViewModal called with teamId:', teamId);
+            
+            // Load team data
+            Promise.all([
+                window.ApiClient.teams.getById(teamId),
+                window.ApiClient.teams.getMembers(teamId),
+                window.ApiClient.teams.getApplications(teamId)
+            ]).then(([team, members, applications]) => {
+                console.log('Team data:', team);
+                console.log('Members:', members);
+                console.log('Applications:', applications);
+                
+                let modalHtml = `
+                    <div class="modal-overlay" id="viewModal">
+                        <div class="modal modal-large">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Team Details: ${team.tms_name}</h3>
+                                <button class="modal-close">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="env-details">
+                                    <div class="detail-section">
+                                        <h4>Team Information</h4>
+                                        <p><strong>Name:</strong> ${team.tms_name}</p>
+                                        <p><strong>Description:</strong> ${team.tms_description || 'No description'}</p>
+                                        <p><strong>Email:</strong> ${team.tms_email || 'No email'}</p>
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Team Members</h4>
+                                        ${this.renderTeamMembers(members)}
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Associated Applications</h4>
+                                        ${this.renderTeamApplications(applications)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn-primary" onclick="ModalManager.showTeamEditModal(${teamId})">Edit Team</button>
+                                <button class="btn-secondary" onclick="ModalManager.closeModal()">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }).catch(error => {
+                console.error('Failed to load team data:', error);
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Failed to load team data', 'error');
+                }
+            });
+        },
+
+        /**
+         * Show Team EDIT modal
+         * @param {number} teamId - Team ID (null for create)
+         */
+        showTeamEditModal: function(teamId) {
+            console.log('showTeamEditModal called with teamId:', teamId);
+            
+            const isCreate = !teamId;
+            
+            if (isCreate) {
+                // For create mode, only load available users and applications
+                Promise.all([
+                    window.ApiClient.users.getAll({ active: 'true' }),
+                    window.ApiClient.applications.getAll()
+                ]).then(([allUsersResponse, allApplications]) => {
+                    // Handle paginated response for users
+                    const allUsers = allUsersResponse && allUsersResponse.content ? allUsersResponse.content : (Array.isArray(allUsersResponse) ? allUsersResponse : []);
+                    console.log('All users for dropdown:', allUsers);
+                    
+                    // Create modal for new team
+                    this.renderTeamEditModal(null, [], [], allUsers, allApplications, true);
+                }).catch(error => {
+                    console.error('Failed to load data for team creation:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load team creation data', 'error');
+                    }
+                });
+            } else {
+                // For edit mode, load team data and available items
+                Promise.all([
+                    window.ApiClient.teams.getById(teamId),
+                    window.ApiClient.teams.getMembers(teamId),
+                    window.ApiClient.teams.getApplications(teamId),
+                    window.ApiClient.users.getAll({ active: 'true' }),
+                    window.ApiClient.applications.getAll()
+                ]).then(([team, members, applications, allUsersResponse, allApplications]) => {
+                    console.log('Team edit data:', team);
+                    
+                    // Handle paginated response for users
+                    const allUsers = allUsersResponse && allUsersResponse.content ? allUsersResponse.content : (Array.isArray(allUsersResponse) ? allUsersResponse : []);
+                    console.log('All users for dropdown:', allUsers);
+                    console.log('First user object:', allUsers[0]);
+                    
+                    // Create modal for editing existing team
+                    this.renderTeamEditModal(team, members, applications, allUsers, allApplications, false);
+                }).catch(error => {
+                    console.error('Failed to load team edit data:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load team data', 'error');
+                    }
+                });
+            }
+        },
+
+        /**
+         * Render Team EDIT modal
+         * @param {Object} team - Team data (null for create)
+         * @param {Array} members - Team members
+         * @param {Array} applications - Team applications
+         * @param {Array} allUsers - All available users
+         * @param {Array} allApplications - All available applications
+         * @param {boolean} isCreate - Whether this is create mode
+         */
+        renderTeamEditModal: function(team, members, applications, allUsers, allApplications, isCreate) {
+            const teamId = team ? team.tms_id : null;
+            const title = isCreate ? 'Create New Team' : `Edit Team: ${team.tms_name}`;
+            const buttonText = isCreate ? 'Create Team' : 'Save Changes';
+            
+            let modalHtml = `
+                <div class="modal-overlay" id="editModal">
+                    <div class="modal modal-large">
+                        <div class="modal-header">
+                            <h3 class="modal-title">${title}</h3>
+                            <button class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="teamFormWrapper">
+                                <form id="teamForm">
+                                    <div class="form-group">
+                                        <label for="tms_name">Team Name:</label>
+                                        <input type="text" id="tms_name" name="tms_name" value="${team ? team.tms_name : ''}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tms_description">Description:</label>
+                                        <textarea id="tms_description" name="tms_description">${team ? (team.tms_description || '') : ''}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tms_email">Email:</label>
+                                        <input type="email" id="tms_email" name="tms_email" value="${team ? (team.tms_email || '') : ''}">
+                                    </div>
+                                </form>
+                                <div id="associationsWrapper">`;
+            
+            // Only show associations for existing teams (not for create)
+            if (!isCreate) {
+                modalHtml += `
+                                    <div class="detail-section">
+                                        <h4>Team Members</h4>
+                                        ${this.renderTeamMembersEdit(members, allUsers, teamId)}
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Associated Applications</h4>
+                                        ${this.renderTeamApplicationsEdit(applications, allApplications, teamId)}
+                                    </div>`;
+            }
+            
+            modalHtml += `
+                                </div>
+                            </div>`;
+            
+            modalHtml += `
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-primary" onclick="ModalManager.saveTeam(${teamId})">${buttonText}</button>
+                            <button class="btn-secondary" onclick="ModalManager.closeModal()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        },
+
+        /**
+         * Render team members for VIEW mode
+         * @param {Array} members - Team members
+         * @returns {string} HTML string
+         */
+        renderTeamMembers: function(members) {
+            if (!members || members.length === 0) {
+                return '<p class="no-associations">No members assigned</p>';
+            }
+            
+            let html = '<div class="associations-list">';
+            members.forEach(member => {
+                html += `
+                    <div class="association-item">
+                        <span><strong>${member.usr_name}</strong> (${member.usr_code})</span>
+                        <span class="association-details">${member.usr_email}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        },
+
+        /**
+         * Render team applications for VIEW mode
+         * @param {Array} applications - Team applications
+         * @returns {string} HTML string
+         */
+        renderTeamApplications: function(applications) {
+            if (!applications || applications.length === 0) {
+                return '<p class="no-associations">No applications assigned</p>';
+            }
+            
+            let html = '<div class="associations-list">';
+            applications.forEach(app => {
+                html += `
+                    <div class="association-item">
+                        <span><strong>${app.app_name}</strong> (${app.app_code})</span>
+                        <span class="association-details">${app.app_description || 'No description'}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        },
+
+        /**
+         * Render team members for EDIT mode
+         * @param {Array} members - Current team members
+         * @param {Array} allUsers - All available users
+         * @param {number} teamId - Team ID
+         * @returns {string} HTML string
+         */
+        renderTeamMembersEdit: function(members, allUsers, teamId) {
+            let html = '<div class="associations-edit">';
+            
+            // Show current members
+            if (members && members.length > 0) {
+                html += '<div class="current-associations">';
+                members.forEach(member => {
+                    html += `
+                        <div class="association-item">
+                            <span><strong>${member.usr_name}</strong> (${member.usr_code})</span>
+                            <span class="association-details">${member.usr_email}</span>
+                            <button type="button" class="btn-danger btn-small" onclick="ModalManager.removeTeamMember(${teamId}, ${member.usr_id}); return false;">Remove</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="no-associations">No members assigned</p>';
+            }
+            
+            // Add new member section
+            html += `
+                <div class="add-association">
+                    <label>Add Member:</label>
+                    <div class="association-controls">
+                        <select id="userSelect" class="form-control">
+                            ${this.createUserSelectOptions(allUsers)}
+                        </select>
+                        <button type="button" class="btn-primary btn-small" onclick="ModalManager.addTeamMember(${teamId})">Add</button>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            return html;
+        },
+
+        /**
+         * Render team applications for EDIT mode
+         * @param {Array} applications - Current team applications
+         * @param {Array} allApplications - All available applications
+         * @param {number} teamId - Team ID
+         * @returns {string} HTML string
+         */
+        renderTeamApplicationsEdit: function(applications, allApplications, teamId) {
+            let html = '<div class="associations-edit">';
+            
+            // Show current applications
+            if (applications && applications.length > 0) {
+                html += '<div class="current-associations">';
+                applications.forEach(app => {
+                    html += `
+                        <div class="association-item">
+                            <span><strong>${app.app_name}</strong> (${app.app_code})</span>
+                            <span class="association-details">${app.app_description || 'No description'}</span>
+                            <button type="button" class="btn-danger btn-small" onclick="ModalManager.removeTeamApplication(${teamId}, ${app.app_id}); return false;">Remove</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="no-associations">No applications assigned</p>';
+            }
+            
+            // Add new application section
+            html += `
+                <div class="add-association">
+                    <label>Add Application:</label>
+                    <div class="association-controls">
+                        <select id="applicationSelect" class="form-control">
+                            ${this.createSelectOptions(allApplications, 'app_id', 'app_name')}
+                        </select>
+                        <button type="button" class="btn-primary btn-small" onclick="ModalManager.addTeamApplication(${teamId})">Add</button>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            return html;
+        },
+
+        /**
+         * Add team member
+         * @param {number} teamId - Team ID
+         */
+        addTeamMember: function(teamId) {
+            const userSelect = document.getElementById('userSelect');
+            const userId = userSelect.value;
+            
+            if (!userId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select a user', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.teams.addMember(teamId, userId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Member added successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showTeamEditModal(teamId);
+                })
+                .catch(error => {
+                    console.error('Failed to add team member:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to add team member', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove team member
+         * @param {number} teamId - Team ID
+         * @param {number} userId - User ID
+         */
+        removeTeamMember: async function(teamId, userId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this member from the team?');
+            
+            if (confirmed) {
+                window.ApiClient.teams.removeMember(teamId, userId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Member removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showTeamEditModal(teamId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove team member:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove team member', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Add team application
+         * @param {number} teamId - Team ID
+         */
+        addTeamApplication: function(teamId) {
+            const applicationSelect = document.getElementById('applicationSelect');
+            const applicationId = applicationSelect.value;
+            
+            if (!applicationId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select an application', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.teams.addApplication(teamId, applicationId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Application added successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showTeamEditModal(teamId);
+                })
+                .catch(error => {
+                    console.error('Failed to add team application:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to add team application', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove team application
+         * @param {number} teamId - Team ID
+         * @param {number} applicationId - Application ID
+         */
+        removeTeamApplication: async function(teamId, applicationId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this application from the team?');
+            
+            if (confirmed) {
+                window.ApiClient.teams.removeApplication(teamId, applicationId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Application removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showTeamEditModal(teamId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove team application:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove team application', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Save team changes
+         * @param {number} teamId - Team ID
+         */
+        saveTeam: function(teamId) {
+            const form = document.getElementById('teamForm');
+            const formData = this.getFormData(form);
+            const isCreate = !teamId;
+            
+            const apiCall = isCreate ? 
+                window.ApiClient.teams.create(formData) : 
+                window.ApiClient.teams.update(teamId, formData);
+            
+            const successMessage = isCreate ? 'Team created successfully' : 'Team updated successfully';
+            
+            apiCall
+                .then(response => {
+                    console.log('Team saved successfully:', response);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(successMessage, 'success');
+                    }
+                    
+                    this.closeModal();
+                    
+                    // Refresh the table
+                    if (window.AdminGuiController) {
+                        window.AdminGuiController.loadCurrentSection();
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to save team:', error);
+                    
+                    let errorMessage = 'Failed to save team changes';
+                    if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(errorMessage, 'error');
+                    }
+                });
+        },
+
+        /**
          * Create select options (fallback if UiUtils not available)
          * @param {Array} items - Items array
          * @param {string} valueField - Value field name
@@ -910,6 +2105,29 @@
                 items.forEach(item => {
                     const value = item[valueField] || '';
                     const text = item[textField] || '';
+                    options += `<option value="${value}">${text}</option>`;
+                });
+            }
+            
+            return options;
+        },
+
+        /**
+         * Create select options for users (handles name concatenation)
+         * @param {Array} users - Array of user objects
+         * @returns {string} HTML option elements
+         */
+        createUserSelectOptions: function(users) {
+            let options = '<option value="">Select...</option>';
+            
+            if (users && users.length > 0) {
+                users.forEach(user => {
+                    const value = user.usr_id || '';
+                    const firstName = user.usr_first_name || '';
+                    const lastName = user.usr_last_name || '';
+                    const displayName = `${firstName} ${lastName}`.trim();
+                    const userCode = user.usr_code ? ` (${user.usr_code})` : '';
+                    const text = displayName + userCode;
                     options += `<option value="${value}">${text}</option>`;
                 });
             }

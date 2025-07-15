@@ -79,7 +79,7 @@ return """
         <header class="admin-header">
             <div class="header-left">
                 <h1 class="app-title">UMIG Administration Console</h1>
-                <span class="app-version">v2.0</span>
+                <span class="app-version">v1.0</span>
             </div>
             <div class="header-right">
                 <div class="user-info">
@@ -240,8 +240,8 @@ return """
                                     <input type="text" 
                                            id="globalSearch" 
                                            class="search-input" 
-                                           placeholder="Search all fields...">
-                                    <button class="search-btn" id="searchBtn">🔍</button>
+                                           placeholder="Search all fields (3+ chars)...">
+                                    <button class="search-clear-btn" id="searchClearBtn" style="display: none;" title="Clear search">✕</button>
                                 </div>
                                 <div class="filter-controls">
                                     <button class="btn-filter" id="filterBtn">Filter</button>

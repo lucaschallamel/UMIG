@@ -548,6 +548,81 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /teams/{id}/applications:
+    get:
+      tags:
+        - Teams
+      summary: Get applications associated with a team
+      description: Retrieves a list of applications that are associated with the specified team.
+      operationId: getTeamApplications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of applications associated with the team
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /teams/{teamId}/applications/{applicationId}:
+    put:
+      tags:
+        - Teams
+      summary: Add an application to a team
+      description: Creates an association between a team and an application.
+      operationId: addApplicationToTeam
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Application added to team successfully.
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Application is already associated with this team.
+    delete:
+      tags:
+        - Teams
+      summary: Remove an application from a team
+      description: Removes the association between a team and an application.
+      operationId: removeApplicationFromTeam
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Application removed from team successfully.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /environments:
     get:
       tags:
@@ -1101,6 +1176,12 @@ paths:
           schema:
             type: string
           description: Find user by exact code match (for authentication)
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter users by active status (true for active, false for inactive)
       responses:
         '200':
           description: A paginated list of users.

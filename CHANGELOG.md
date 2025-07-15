@@ -1,5 +1,60 @@
 ### [Unreleased]
 
+#### 2025-07-15 (Teams Association Management and Modal Consistency)
+- **Feat(Teams):** Complete Teams association management in Admin GUI
+  - Implemented Teams VIEW modal with user and application associations display
+  - Added Teams EDIT modal with comprehensive association management capabilities
+  - Created add/remove functionality for Team-User associations with proper validation
+  - Implemented add/remove functionality for Team-Application associations
+  - Added `createUserSelectOptions` method for proper user name display in dropdowns
+  - Enhanced ApiClient with teams association methods (getMembers, addMember, removeMember, addApplication, removeApplication)
+- **Feat(API):** Extended TeamsApi with association endpoints
+  - Added GET /teams/{id}/applications endpoint for retrieving team applications
+  - Added PUT /teams/{teamId}/applications/{applicationId} for adding application associations
+  - Added DELETE /teams/{teamId}/applications/{applicationId} for removing application associations
+  - Enhanced TeamRepository with findTeamApplications, addApplicationToTeam, removeApplicationFromTeam methods
+  - Fixed SQL queries to avoid referencing non-existent audit fields in teams_tms_x_applications_app table
+- **Enhancement(Environment Search):** Implemented full-stack environment search functionality
+  - Added search, pagination, and sorting support to EnvironmentsApi with GString SQL fix
+  - Created findAllEnvironmentsWithCounts method in EnvironmentRepository with parameterized queries
+  - Fixed EntityConfig environments entity to include empty filters array for search enablement
+  - Resolved GString SQL type inference error by using string concatenation instead of interpolation
+- **Fix(State Management):** Resolved multiple state persistence and UI issues
+  - Fixed sort field persistence bug where sort parameters persisted across entity switches
+  - Updated AdminGuiState.setCurrentSection to reset sortField and sortDirection
+  - Fixed confirmation dialog regression by replacing native confirm() with custom showSimpleConfirm
+  - Updated removeIterationAssociation and removeIteration to use Promise-based confirmation
+- **Enhancement(Users API):** Added active user filtering support
+  - Extended Users API with active parameter for filtering active/inactive users
+  - Updated UserRepository.findAllUsers to support activeFilter parameter
+  - Added proper type validation for active parameter (true/false only)
+- **UI(Modal Consistency):** Standardized modal patterns across Teams and Environments
+  - Aligned Teams modal CSS styling with Environment modal structure using env-details classes
+  - Added "Edit Environment" button to Environment VIEW modal for consistency with Teams modal
+  - Fixed modal display method from showModal to document.body.insertAdjacentHTML
+  - Implemented consistent modal footer layout and button positioning
+- **Fix(Teams Modal):** Resolved Teams modal creation and display issues
+  - Fixed showTeamEditModal to handle both create and edit modes properly
+  - Added proper null handling for new team creation vs existing team editing
+  - Fixed saveTeam method to use create() for new teams and update() for existing teams
+  - Resolved modal not displaying by using correct DOM insertion method
+
+#### 2025-07-15 (Custom Confirmation Dialog Pattern for Environment Management)
+- **Fix(UI):** Resolved critical confirmation dialog flickering issue in environment association management
+  - Implemented custom Promise-based confirmation dialog system replacing native `confirm()` function
+  - Fixed issue where native confirm dialogs would flicker and disappear immediately in modal contexts
+  - Created DOM-based confirmation overlay with high z-index (9999) to ensure visibility above existing modals
+  - Added proper event handling with button click handlers that resolve/reject promises
+  - Implemented automatic DOM cleanup after user interaction to prevent memory leaks
+- **Enhancement(UX):** Improved user experience for destructive operations
+  - Users can now reliably confirm removal of environment-application and environment-iteration associations
+  - Consistent styling with application theme using inline CSS for maximum compatibility
+  - Blocking design prevents user interaction with underlying UI until confirmation is provided
+- **Pattern(Architecture):** Established reusable confirmation dialog pattern for complex modal workflows
+  - Added technical implementation details to solution architecture documentation
+  - Created template for handling browser dialog interference in SPA applications
+  - Documented benefits including elimination of UI flickering and reliable event handling
+
 #### 2025-01-15 (API Documentation and OpenAPI Updates)
 - **Docs(API):** Created comprehensive UsersAPI.md specification
   - Documented all 5 endpoints with detailed request/response schemas

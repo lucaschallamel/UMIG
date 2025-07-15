@@ -69,6 +69,7 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             def sort = queryParams.getFirst('sort')
             def direction = queryParams.getFirst('direction')
             def teamId = queryParams.getFirst('teamId')
+            def active = queryParams.getFirst('active')
             
             // Parse pagination parameters with defaults
             int pageNumber = 1
@@ -125,8 +126,18 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 }
             }
             
+            // Parse active filter
+            Boolean activeFilter = null
+            if (active) {
+                if (active.toString().toLowerCase() in ['true', 'false']) {
+                    activeFilter = Boolean.parseBoolean(active as String)
+                } else {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid active parameter. Must be true or false"]).toString()).build()
+                }
+            }
+            
             // Get paginated users
-            def result = userRepository.findAllUsers(pageNumber, pageSize, searchTerm, sortField, sortDirection, teamFilter)
+            def result = userRepository.findAllUsers(pageNumber, pageSize, searchTerm, sortField, sortDirection, teamFilter, activeFilter)
             return Response.ok(new JsonBuilder(result).toString()).build()
         }
     } catch (SQLException e) {

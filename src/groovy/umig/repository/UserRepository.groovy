@@ -66,7 +66,7 @@ class UserRepository {
      * @param sortDirection Sort direction ('asc' or 'desc').
      * @return A map containing users list and pagination metadata.
      */
-    def findAllUsers(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc', Integer teamId = null) {
+    def findAllUsers(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc', Integer teamId = null, Boolean activeFilter = null) {
         DatabaseUtil.withSql { sql ->
             // Build WHERE clause for search and team filtering
             def whereConditions = []
@@ -81,6 +81,11 @@ class UserRepository {
             if (teamId != null) {
                 whereConditions.add("EXISTS (SELECT 1 FROM teams_tms_x_users_usr t WHERE t.usr_id = u.usr_id AND t.tms_id = :teamId)")
                 params.teamId = teamId
+            }
+            
+            if (activeFilter != null) {
+                whereConditions.add("u.usr_active = :activeFilter")
+                params.activeFilter = activeFilter
             }
             
             def whereClause = whereConditions.empty ? "" : "WHERE " + whereConditions.join(" AND ")

@@ -8,33 +8,3 @@ INSTRUCTIONS
 
 IDE EXTENSIONS APPLICABLE TO YOUR PROJECT
 
-shellcheck (BASH)
-  - atom:
-    - linter-shellcheck: https://github.com/AtomLinter/linter-shellcheck
-  - emacs:
-    - flycheck: https://github.com/flycheck/flycheck
-    - flymake-shellcheck: https://github.com/federicotdn/flymake-shellcheck
-  - sublime:
-    - SublimeLinter-shellcheck: https://github.com/SublimeLinter/SublimeLinter-shellcheck
-  - vim:
-    - ale: https://github.com/w0rp/ale
-    - neomake: https://github.com/neomake/neomake
-    - syntastic: https://github.com/scrooloose/syntastic
-  - vscode:
-    - vscode-shellcheck: https://marketplace.visualstudio.com/items?itemName=timonwong.shellcheck
-
-markdownlint (MARKDOWN)
-  - atom:
-    - linter-node-markdownlint: https://atom.io/packages/linter-node-markdownlint
-  - sublime:
-    - SublimeLinter-contrib-markdownlint: https://packagecontrol.io/packages/SublimeLinter-contrib-markdownlint
-  - vim:
-    - coc-markdownlint: https://github.com/fannheyward/coc-markdownlint
-  - vscode:
-    - vscode-markdownlint: https://marketplace.visualstudio.com/items/DavidAnson.vscode-markdownlint
-
-yamllint (YAML)
-  - emacs:
-    - flycheck: https://github.com/krzysztof-magosa/flycheck-yamllint
-  - vim:
-    - ale: https://github.com/w0rp/ale

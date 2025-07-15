@@ -418,6 +418,48 @@
             
             delete: function(id) {
                 return ApiClient.entities.delete('teams', id);
+            },
+
+            /**
+             * Get team members
+             */
+            getMembers: function(teamId) {
+                return ApiClient.request('GET', `/teams/${teamId}/members`);
+            },
+
+            /**
+             * Get team applications
+             */
+            getApplications: function(teamId) {
+                return ApiClient.request('GET', `/teams/${teamId}/applications`);
+            },
+
+            /**
+             * Add member to team
+             */
+            addMember: function(teamId, userId) {
+                return ApiClient.request('PUT', `/teams/${teamId}/users/${userId}`);
+            },
+
+            /**
+             * Remove member from team
+             */
+            removeMember: function(teamId, userId) {
+                return ApiClient.request('DELETE', `/teams/${teamId}/users/${userId}`);
+            },
+
+            /**
+             * Add application to team
+             */
+            addApplication: function(teamId, applicationId) {
+                return ApiClient.request('PUT', `/teams/${teamId}/applications/${applicationId}`);
+            },
+
+            /**
+             * Remove application from team
+             */
+            removeApplication: function(teamId, applicationId) {
+                return ApiClient.request('DELETE', `/teams/${teamId}/applications/${applicationId}`);
             }
         },
 
@@ -452,17 +494,48 @@
              * @returns {Promise} Request promise
              */
             associateApplication: function(envId, appId) {
-                return ApiClient.post(`/environments/${envId}/applications`, { appId: appId });
+                return ApiClient.post(`/environments/${envId}/applications/${appId}`);
             },
 
             /**
              * Associate environment with iteration
              * @param {string} envId - Environment ID
              * @param {string} iterationId - Iteration ID
+             * @param {string} roleId - Environment role ID
              * @returns {Promise} Request promise
              */
-            associateIteration: function(envId, iterationId) {
-                return ApiClient.post(`/environments/${envId}/iterations`, { iterationId: iterationId });
+            associateIteration: function(envId, iterationId, roleId) {
+                return ApiClient.post(`/environments/${envId}/iterations/${iterationId}`, { 
+                    enr_id: roleId 
+                });
+            },
+
+            /**
+             * Disassociate environment from application
+             * @param {string} envId - Environment ID
+             * @param {string} appId - Application ID
+             * @returns {Promise} Request promise
+             */
+            disassociateApplication: function(envId, appId) {
+                return ApiClient.delete(`/environments/${envId}/applications/${appId}`);
+            },
+
+            /**
+             * Disassociate environment from iteration
+             * @param {string} envId - Environment ID
+             * @param {string} iterationId - Iteration ID
+             * @returns {Promise} Request promise
+             */
+            disassociateIteration: function(envId, iterationId) {
+                return ApiClient.delete(`/environments/${envId}/iterations/${iterationId}`);
+            },
+
+            /**
+             * Get environment roles
+             * @returns {Promise} Request promise
+             */
+            getRoles: function() {
+                return ApiClient.get('/environments/roles');
             }
         },
 

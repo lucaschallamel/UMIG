@@ -1,8 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-07-03  
+**Version:** 2025-07-15  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 26 archived ADRs. For full historical context, see the original ADRs in `/docs/adr/archive/`.
+**Source ADRs:** This document consolidates 26 archived ADRs. For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** Teams association management, Environment search functionality, Modal consistency patterns, State management fixes
 
 ## Consolidated ADR Reference
 
@@ -197,8 +198,89 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 - **SPA Pattern Implementation:** Single JavaScript controller (`admin-gui.js`) managing all entities through dynamic routing and content loading
 - **Entity Configuration:** Centralized entity definitions with field specifications, validation rules, and UI behavior
 - **Association Management:** Modal-based interfaces for managing many-to-many relationships (e.g., environment-application, environment-iteration associations)
+- **Custom Confirmation Dialogs:** Promise-based confirmation system replacing native `confirm()` to prevent UI flickering issues during destructive operations
 - **Notification System:** User feedback through slide-in/slide-out notifications with automatic dismissal
 - **Role-Based Access Control:** Navigation sections dynamically shown based on user roles (SUPERADMIN, ADMIN, PILOT)
+
+### 5.4. Custom Confirmation Dialog Pattern
+The environment management system implements a custom confirmation dialog pattern to resolve UI flickering issues that occur with the native JavaScript `confirm()` function in complex modal contexts.
+
+#### Problem Context
+During environment association management, the native `confirm()` function would flicker and disappear immediately when used within modal dialogs containing real-time updates and notification systems. This made it impossible for users to confirm destructive operations like removing associations.
+
+#### Implementation Details
+- **Problem Solved:** Native `confirm()` function causes UI flickering and timing issues when used within modal dialogs containing real-time updates
+- **Solution:** Custom Promise-based confirmation dialog system that creates DOM elements dynamically
+- **DOM Structure:** Fixed-position overlay with centered dialog box containing message and action buttons
+- **Styling:** Inline CSS styles for maximum compatibility, avoiding external stylesheet dependencies
+- **Event Handling:** Button click handlers that resolve/reject promises for seamless async/await integration
+- **Cleanup:** Automatic DOM cleanup after user interaction to prevent memory leaks
+
+#### Technical Implementation
+The custom confirmation dialog is implemented as a method in the ModalManager that creates a blocking overlay:
+
+```javascript
+showSimpleConfirm: function(message) {
+    return new Promise((resolve) => {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        const dialog = document.createElement('div');
+        dialog.innerHTML = `
+            <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px; text-align: center;">
+                <p>${message}</p>
+                <div style="margin-top: 20px;">
+                    <button id="confirmOk" style="margin-right: 10px; padding: 8px 16px; background: #0052cc; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+                    <button id="confirmCancel" style="padding: 8px 16px; background: #f5f5f5; color: #333; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Cancel</button>
+                </div>
+            </div>
+        `;
+        
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        
+        // Handle button clicks
+        dialog.querySelector('#confirmOk').addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(true);
+        });
+        
+        dialog.querySelector('#confirmCancel').addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(false);
+        });
+    });
+}
+```
+
+#### Usage Pattern
+```javascript
+// Custom confirmation dialog usage
+const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this association?');
+if (confirmed) {
+    // Proceed with destructive operation
+    await ApiClient.environments.disassociateApplication(envId, appId);
+}
+```
+
+#### Benefits
+- **Eliminates UI Flickering:** Prevents visual interruptions during confirmation workflows
+- **Consistent Styling:** Maintains application UI consistency across all confirmation interactions
+- **Promise-Based:** Integrates seamlessly with modern async/await patterns
+- **Reliable Event Handling:** Avoids timing conflicts with notification systems and modal state management
+- **High Z-Index:** Ensures dialog appears above all other elements including existing modals
+- **Blocking Design:** Prevents user interaction with underlying UI until confirmation is provided
 
 ---
 
