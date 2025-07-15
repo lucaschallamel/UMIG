@@ -101,6 +101,30 @@
             },
             filters: [],
             permissions: ['superadmin']
+        },
+        
+        applications: {
+            name: 'Applications',
+            description: 'Manage applications and their associations with environments and teams',
+            fields: [
+                { key: 'app_id', label: 'ID', type: 'number', readonly: true },
+                { key: 'app_code', label: 'Application Code', type: 'text', required: true, maxLength: 50 },
+                { key: 'app_name', label: 'Application Name', type: 'text', required: true, maxLength: 64 },
+                { key: 'app_description', label: 'Description', type: 'textarea' },
+                { key: 'environment_count', label: 'Environments', type: 'number', readonly: true, computed: true },
+                { key: 'team_count', label: 'Teams', type: 'number', readonly: true, computed: true }
+            ],
+            tableColumns: ['app_id', 'app_code', 'app_name', 'app_description', 'environment_count', 'team_count'],
+            sortMapping: {
+                'app_id': 'app_id',
+                'app_code': 'app_code',
+                'app_name': 'app_name',
+                'app_description': 'app_description',
+                'environment_count': 'environment_count',
+                'team_count': 'team_count'
+            },
+            filters: [],
+            permissions: ['superadmin']
         }
     };
 
