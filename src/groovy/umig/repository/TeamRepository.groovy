@@ -64,20 +64,138 @@ class TeamRepository {
     def findAllTeams() {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT tms_id, tms_name, tms_description, tms_email
-                FROM teams_tms
-                ORDER BY tms_name
+                SELECT 
+                    t.tms_id, 
+                    t.tms_name, 
+                    t.tms_description, 
+                    t.tms_email,
+                    COALESCE(m.member_count, 0) as member_count,
+                    COALESCE(a.app_count, 0) as app_count
+                FROM teams_tms t
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
+                ORDER BY t.tms_name
             """)
             
-            // Transform to match frontend expectations
-            return results.collect { row ->
-                [
-                    id: row.tms_id,
-                    name: row.tms_name,
-                    description: row.tms_description,
-                    email: row.tms_email
-                ]
+            // Return database field names for admin GUI compatibility
+            return results
+        }
+    }
+
+    /**
+     * Retrieves teams with pagination, search, and sorting.
+     * @param pageNumber The page number (1-based).
+     * @param pageSize The number of teams per page.
+     * @param searchTerm Optional search term to filter teams.
+     * @param sortField Optional field to sort by.
+     * @param sortDirection Optional sort direction ('asc' or 'desc').
+     * @return A map containing paginated teams data and metadata.
+     */
+    def findAllTeams(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            // Build WHERE clause for search
+            def whereClause = ""
+            def params = [:]
+            
+            if (searchTerm && !searchTerm.trim().isEmpty()) {
+                def trimmedSearch = searchTerm.trim()
+                whereClause = "WHERE (t.tms_name ILIKE :searchTerm OR t.tms_description ILIKE :searchTerm OR t.tms_email ILIKE :searchTerm)"
+                params.searchTerm = "%${trimmedSearch}%".toString()
             }
+            
+            // Build ORDER BY clause with validation
+            def orderClause = "ORDER BY t.tms_name ASC" // Default sort
+            if (sortField) {
+                // Validate sort field to prevent SQL injection
+                def validSortFields = ['tms_id', 'tms_name', 'tms_description', 'tms_email', 'member_count', 'app_count']
+                if (validSortFields.contains(sortField)) {
+                    def direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+                    if (sortField == 'member_count') {
+                        orderClause = "ORDER BY COALESCE(m.member_count, 0) ${direction}"
+                    } else if (sortField == 'app_count') {
+                        orderClause = "ORDER BY COALESCE(a.app_count, 0) ${direction}"
+                    } else {
+                        orderClause = "ORDER BY t.${sortField} ${direction}"
+                    }
+                }
+            }
+            
+            // Build the main query
+            def baseQuery = """
+                SELECT 
+                    t.tms_id, 
+                    t.tms_name, 
+                    t.tms_description, 
+                    t.tms_email,
+                    COALESCE(m.member_count, 0) as member_count,
+                    COALESCE(a.app_count, 0) as app_count
+                FROM teams_tms t
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
+                ${whereClause}
+                ${orderClause}
+            """
+            
+            // Count total records
+            def countQuery = """
+                SELECT COUNT(DISTINCT t.tms_id) as total_count
+                FROM teams_tms t
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
+                ${whereClause}
+            """
+            
+            def totalCount = sql.firstRow(countQuery, params)?.total_count ?: 0
+            
+            // Calculate pagination
+            def offset = (pageNumber - 1) * pageSize
+            params.limit = pageSize
+            params.offset = offset
+            
+            // Execute paginated query
+            def paginatedQuery = "${baseQuery} LIMIT :limit OFFSET :offset"
+            def teams = sql.rows(paginatedQuery, params)
+            
+            // Calculate pagination metadata
+            def totalPages = Math.ceil(totalCount / pageSize) as int
+            def hasNext = pageNumber < totalPages
+            def hasPrevious = pageNumber > 1
+            
+            return [
+                content: teams,
+                totalElements: totalCount,
+                totalPages: totalPages,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                hasNext: hasNext,
+                hasPrevious: hasPrevious,
+                sortField: sortField,
+                sortDirection: sortDirection
+            ]
         }
     }
 
@@ -219,7 +337,13 @@ class TeamRepository {
     def findTeamsByMigrationId(UUID migrationId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                SELECT DISTINCT 
+                    t.tms_id, 
+                    t.tms_name, 
+                    t.tms_description, 
+                    t.tms_email,
+                    COALESCE(m.member_count, 0) as member_count,
+                    COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
                 JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
                 JOIN steps_master_stm s ON sti.stm_id = s.stm_id
@@ -227,19 +351,22 @@ class TeamRepository {
                 JOIN sequences_master_sqm sq ON p.sqm_id = sq.sqm_id
                 JOIN plans_master_plm pl ON sq.plm_id = pl.plm_id
                 JOIN iterations_ite i ON pl.plm_id = i.plm_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
                 WHERE i.mig_id = :migrationId
                 ORDER BY t.tms_name
             """, [migrationId: migrationId])
             
-            // Transform to match frontend expectations
-            return results.collect { row ->
-                [
-                    id: row.tms_id,
-                    name: row.tms_name,
-                    description: row.tms_description,
-                    email: row.tms_email
-                ]
-            }
+            // Return raw database field names
+            return results
         }
     }
 
@@ -251,7 +378,13 @@ class TeamRepository {
     def findTeamsByIterationId(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                SELECT DISTINCT 
+                    t.tms_id, 
+                    t.tms_name, 
+                    t.tms_description, 
+                    t.tms_email,
+                    COALESCE(m.member_count, 0) as member_count,
+                    COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
                 JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
                 JOIN steps_master_stm s ON sti.stm_id = s.stm_id
@@ -259,19 +392,22 @@ class TeamRepository {
                 JOIN sequences_master_sqm sq ON p.sqm_id = sq.sqm_id
                 JOIN plans_master_plm pl ON sq.plm_id = pl.plm_id
                 JOIN iterations_ite i ON pl.plm_id = i.plm_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
                 WHERE i.ite_id = :iterationId
                 ORDER BY t.tms_name
             """, [iterationId: iterationId])
             
-            // Transform to match frontend expectations
-            return results.collect { row ->
-                [
-                    id: row.tms_id,
-                    name: row.tms_name,
-                    description: row.tms_description,
-                    email: row.tms_email
-                ]
-            }
+            // Return raw database field names
+            return results
         }
     }
 
@@ -283,26 +419,35 @@ class TeamRepository {
     def findTeamsByPlanId(UUID planInstanceId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                SELECT DISTINCT 
+                    t.tms_id, 
+                    t.tms_name, 
+                    t.tms_description, 
+                    t.tms_email,
+                    COALESCE(m.member_count, 0) as member_count,
+                    COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
                 JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
                 JOIN steps_master_stm s ON sti.stm_id = s.stm_id
                 JOIN phases_master_phm p ON s.phm_id = p.phm_id
                 JOIN sequences_master_sqm sq ON p.sqm_id = sq.sqm_id
                 JOIN plans_instance_pli pli ON sq.plm_id = pli.plm_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
                 WHERE pli.pli_id = :planInstanceId
                 ORDER BY t.tms_name
             """, [planInstanceId: planInstanceId])
             
-            // Transform to match frontend expectations
-            return results.collect { row ->
-                [
-                    id: row.tms_id,
-                    name: row.tms_name,
-                    description: row.tms_description,
-                    email: row.tms_email
-                ]
-            }
+            // Return raw database field names
+            return results
         }
     }
 
@@ -314,25 +459,34 @@ class TeamRepository {
     def findTeamsBySequenceId(UUID sequenceInstanceId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                SELECT DISTINCT 
+                    t.tms_id, 
+                    t.tms_name, 
+                    t.tms_description, 
+                    t.tms_email,
+                    COALESCE(m.member_count, 0) as member_count,
+                    COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
                 JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
                 JOIN steps_master_stm s ON sti.stm_id = s.stm_id
                 JOIN phases_master_phm p ON s.phm_id = p.phm_id
                 JOIN sequences_instance_sqi sqi ON p.sqm_id = sqi.sqm_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
                 WHERE sqi.sqi_id = :sequenceInstanceId
                 ORDER BY t.tms_name
             """, [sequenceInstanceId: sequenceInstanceId])
             
-            // Transform to match frontend expectations
-            return results.collect { row ->
-                [
-                    id: row.tms_id,
-                    name: row.tms_name,
-                    description: row.tms_description,
-                    email: row.tms_email
-                ]
-            }
+            // Return raw database field names
+            return results
         }
     }
 
@@ -344,24 +498,33 @@ class TeamRepository {
     def findTeamsByPhaseId(UUID phaseInstanceId) {
         DatabaseUtil.withSql { sql ->
             def results = sql.rows("""
-                SELECT DISTINCT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                SELECT DISTINCT 
+                    t.tms_id, 
+                    t.tms_name, 
+                    t.tms_description, 
+                    t.tms_email,
+                    COALESCE(m.member_count, 0) as member_count,
+                    COALESCE(a.app_count, 0) as app_count
                 FROM teams_tms t
                 JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
                 JOIN steps_master_stm s ON sti.stm_id = s.stm_id
                 JOIN phases_instance_phi phi ON s.phm_id = phi.phm_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as member_count
+                    FROM teams_tms_x_users_usr
+                    GROUP BY tms_id
+                ) m ON t.tms_id = m.tms_id
+                LEFT JOIN (
+                    SELECT tms_id, COUNT(*) as app_count
+                    FROM teams_tms_x_applications_app
+                    GROUP BY tms_id
+                ) a ON t.tms_id = a.tms_id
                 WHERE phi.phi_id = :phaseInstanceId
                 ORDER BY t.tms_name
             """, [phaseInstanceId: phaseInstanceId])
             
-            // Transform to match frontend expectations
-            return results.collect { row ->
-                [
-                    id: row.tms_id,
-                    name: row.tms_name,
-                    description: row.tms_description,
-                    email: row.tms_email
-                ]
-            }
+            // Return raw database field names
+            return results
         }
     }
 }

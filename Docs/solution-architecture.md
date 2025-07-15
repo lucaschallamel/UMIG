@@ -192,6 +192,14 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 - **Real-time Updates ([ADR-005]):** The UI uses **AJAX polling** to periodically refresh data, providing a near-real-time user experience without the complexity of WebSockets.
 - **Admin Interface ([ADR-020]):** The administration and entity management sections are built as a **Single Page Application (SPA)** to provide a modern, responsive interface.
 
+### 5.3. Admin GUI Architecture (July 2025)
+- **Complete Administration System:** Comprehensive interface for managing Users, Teams, Environments, Applications, Labels, and all master/instance entities
+- **SPA Pattern Implementation:** Single JavaScript controller (`admin-gui.js`) managing all entities through dynamic routing and content loading
+- **Entity Configuration:** Centralized entity definitions with field specifications, validation rules, and UI behavior
+- **Association Management:** Modal-based interfaces for managing many-to-many relationships (e.g., environment-application, environment-iteration associations)
+- **Notification System:** User feedback through slide-in/slide-out notifications with automatic dismissal
+- **Role-Based Access Control:** Navigation sections dynamically shown based on user roles (SUPERADMIN, ADMIN, PILOT)
+
 ---
 
 ## 6. Database & Data Management

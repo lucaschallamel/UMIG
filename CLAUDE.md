@@ -39,6 +39,7 @@ UMIG/
 │           ├── api/                  # REST API endpoints
 │           │   ├── README.md         # API documentation
 │           │   └── v2/               # Version 2 APIs
+│           │       ├── EnvironmentsApi.groovy
 │           │       ├── LabelsApi.groovy
 │           │       ├── migrationApi.groovy
 │           │       ├── PlansApi.groovy
@@ -87,6 +88,15 @@ UMIG/
 │               │   ├── iteration-view.css
 │               │   └── umig-ip-macro.css
 │               └── js/               # JavaScript files
+│                   ├── admin-gui/           # Modular Admin GUI components
+│                   │   ├── AdminGuiController.js # Main orchestration and initialization
+│                   │   ├── ApiClient.js     # API communication and error handling
+│                   │   ├── AuthenticationManager.js # Login and session management
+│                   │   ├── EntityConfig.js  # Entity configurations and field definitions
+│                   │   ├── ModalManager.js  # Modal dialogs and form handling
+│                   │   ├── TableManager.js  # Table rendering and pagination
+│                   │   ├── UiUtils.js       # Utility functions and UI helpers
+│                   │   └── AdminGuiState.js # State management and data caching
 │                   ├── hello-world.js
 │                   ├── iteration-view.js
 │                   ├── step-view.js
@@ -299,7 +309,7 @@ DatabaseUtil.withSql { sql ->
 
 ### REST Endpoint Structure
 - Base URL: `/rest/scriptrunner/latest/custom/`
-- Endpoints: `/users`, `/teams`, `/steps`, `/labels`, `/migrations`, `/stepViewApi`
+- Endpoints: `/users`, `/teams`, `/environments`, `/steps`, `/labels`, `/migrations`, `/stepViewApi`
 - V2 API conventions (documented in `docs/api/openapi.yaml`)
 
 ### Hierarchical Filtering Pattern (ADR-030, ADR-031)
@@ -394,8 +404,9 @@ When development environment is running:
 ### Critical References
 - **API Spec**: `docs/api/openapi.yaml` - OpenAPI specification
 - **API Documentation**: `docs/api/` - Individual API documentation files
-  - `LabelsAPI.md` - Labels API with hierarchical filtering
+  - `UsersAPI.md` - Users API with CRUD operations and filtering
   - `TeamsAPI.md` - Teams API with hierarchical filtering
+  - `LabelsAPI.md` - Labels API with hierarchical filtering
   - `API_Updates_Summary.md` - Summary of recent API changes
 - **Data Model**: `docs/dataModel/README.md` - Database schema and ERD
 - **Current ADRs**: `docs/adr/` (skip `docs/adr/archive/` - consolidated in solution-architecture.md)
@@ -409,8 +420,9 @@ When development environment is running:
 
 ### ✅ Completed Features
 - **Local Development Environment**: Node.js orchestrated Podman containers
-- **Admin UI (SPA Pattern)**: Complete user/team management with robust error handling
+- **Admin UI (SPA Pattern)**: Complete user/team/environments management with robust error handling
 - **API Standards**: Comprehensive REST patterns (ADR-023) with specific error mappings
+- **API Documentation**: Complete OpenAPI specification with accurate schemas and generated Postman collections
 - **Data Generation**: Modular synthetic data generators with 3-digit prefixes and correct execution order
 - **Instance Data Generation**: Full canonical→instance replication with override field population
 - **Schema Corrections**: Fixed type mismatches in migration 010 for instruction instance fields
@@ -420,6 +432,8 @@ When development environment is running:
 - **Iteration View Complete**: Fully functional with hierarchical filtering, labels integration, and dynamic step management
 - **Labels API**: Complete with hierarchical filtering (ADR-030)
 - **Teams API**: Enhanced with hierarchical filtering capabilities
+- **Users API**: Complete CRUD operations with pagination and filtering
+- **Environments API**: Complete CRUD operations with application/iteration associations
 - **Steps API**: Complete with hierarchical filtering and labels integration
 - **Migration API**: Core functionality implemented
 - **Type Safety Patterns**: Established Groovy static type checking patterns (ADR-031)
@@ -492,6 +506,10 @@ When development environment is running:
 - **API Pattern Maturity**: Proven REST API patterns with StepsApi, TeamsApi, and LabelsApi serving as definitive templates
 - **Database Filtering Mastery**: Resolved master vs instance ID filtering patterns and complete field selection requirements
 - **Labels Integration**: Complete many-to-many relationship handling with colored tag display and graceful error handling
+- **API Documentation Complete**: Comprehensive OpenAPI specification with accurate schemas and generated Postman collections
+- **Schema Consistency**: Resolved mismatches between API documentation and actual implementation for Users and Teams APIs
+- **Admin GUI Refactoring**: Split 1,901-line monolithic admin-gui.js into 8 modular components for improved maintainability
+- **JavaScript Architecture**: Established modular patterns with EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, and AdminGuiController
 
 ## Workflows
 

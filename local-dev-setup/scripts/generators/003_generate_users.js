@@ -65,8 +65,8 @@ async function generateUsers(config, options = {}) {
       const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${faker.string.alphanumeric(4)}@${faker.internet.domainName()}`;
 
       const query = `
-        INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id, usr_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT (usr_email) DO NOTHING;
       `;
 
@@ -75,8 +75,10 @@ async function generateUsers(config, options = {}) {
       while (!inserted && attempts < 10) {
         // Generate a unique 3-character code, regenerating on conflict
         const userCode = (firstName.substring(0, 1) + lastName.substring(0, 1) + faker.string.alphanumeric(1)).toUpperCase();
+        // Set usr_active to TRUE for all generated users (default active status)
+        const isActive = true;
         try {
-            await client.query(query, [userCode, firstName, lastName, email, isAdmin, roleId]);
+            await client.query(query, [userCode, firstName, lastName, email, isAdmin, roleId, isActive]);
             inserted = true;
         } catch (e) {
             if (e.code === '23505' && e.constraint && e.constraint.includes('usr_code')) { // unique_violation on usr_code

@@ -37,7 +37,14 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     if (pathParts.empty) {
         def teams
         
-        // Check for hierarchical filtering query parameters
+        // Parse pagination and sorting parameters for the main teams list
+        def page = queryParams.getFirst('page')
+        def size = queryParams.getFirst('size')
+        def search = queryParams.getFirst('search')
+        def sort = queryParams.getFirst('sort')
+        def direction = queryParams.getFirst('direction')
+        
+        // Check for hierarchical filtering query parameters first
         if (queryParams.getFirst('migrationId')) {
             try {
                 def migrationId = UUID.fromString(queryParams.getFirst('migrationId'))
@@ -74,8 +81,63 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid phase ID format"]).toString()).build()
             }
         } else {
-            // Default: return all teams
-            teams = teamRepository.findAllTeams()
+            // Check if this is a request with pagination/sorting parameters (admin GUI)
+            if (page || size || search || sort || direction) {
+                // Return paginated teams with sorting and search for admin GUI
+                // Parse pagination parameters with defaults
+                int pageNumber = 1
+                int pageSize = 50
+                
+                if (page) {
+                    try {
+                        pageNumber = Integer.parseInt(page as String)
+                        if (pageNumber < 1) pageNumber = 1
+                    } catch (NumberFormatException e) {
+                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid page number format"]).toString()).build()
+                    }
+                }
+                
+                if (size) {
+                    try {
+                        pageSize = Integer.parseInt(size as String)
+                        if (pageSize < 1 || pageSize > 100) pageSize = 50
+                    } catch (NumberFormatException e) {
+                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid page size format"]).toString()).build()
+                    }
+                }
+                
+                // Parse sort parameters
+                String sortField = null
+                String sortDirection = 'asc'
+                
+                if (sort) {
+                    // Validate sort field against allowed columns
+                    def allowedSortFields = ['tms_id', 'tms_name', 'tms_description', 'tms_email', 'member_count', 'app_count']
+                    if (allowedSortFields.contains(sort as String)) {
+                        sortField = sort as String
+                    }
+                }
+                
+                if (direction && ['asc', 'desc'].contains((direction as String).toLowerCase())) {
+                    sortDirection = (direction as String).toLowerCase()
+                }
+                
+                // Validate search term
+                String searchTerm = null
+                if (search) {
+                    searchTerm = (search as String).trim()
+                    if (searchTerm.length() > 100) {
+                        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Search term too long (max 100 characters)"]).toString()).build()
+                    }
+                }
+                
+                // Get paginated teams
+                def result = teamRepository.findAllTeams(pageNumber, pageSize, searchTerm, sortField, sortDirection)
+                return Response.ok(new JsonBuilder(result).toString()).build()
+            } else {
+                // Default: return simple list for other consumers (like iteration view)
+                teams = teamRepository.findAllTeams()
+            }
         }
         
         return Response.ok(new JsonBuilder(teams).toString()).build()

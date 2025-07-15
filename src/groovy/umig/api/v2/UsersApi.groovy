@@ -50,12 +50,91 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             return Response.ok(new JsonBuilder(user).toString()).build()
         } else {
-            def users = userRepository.findAllUsers()
-            return Response.ok(new JsonBuilder(users).toString()).build()
+            // Check for userCode authentication parameter
+            def userCode = queryParams.getFirst('userCode')
+            if (userCode) {
+                // Find user by userCode for authentication
+                def user = userRepository.findUserByCode(userCode as String)
+                if (user) {
+                    return Response.ok(new JsonBuilder([user]).toString()).build()
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with code ${userCode} not found."]).toString()).build()
+                }
+            }
+            
+            // Extract pagination parameters
+            def page = queryParams.getFirst('page')
+            def size = queryParams.getFirst('size')
+            def search = queryParams.getFirst('search')
+            def sort = queryParams.getFirst('sort')
+            def direction = queryParams.getFirst('direction')
+            def teamId = queryParams.getFirst('teamId')
+            
+            // Parse pagination parameters with defaults
+            int pageNumber = 1
+            int pageSize = 50
+            
+            if (page) {
+                try {
+                    pageNumber = Integer.parseInt(page as String)
+                    if (pageNumber < 1) pageNumber = 1
+                } catch (NumberFormatException e) {
+                    pageNumber = 1
+                }
+            }
+            
+            if (size) {
+                try {
+                    pageSize = Integer.parseInt(size as String)
+                    if (pageSize < 1) pageSize = 50
+                    if (pageSize > 500) pageSize = 500 // Maximum limit
+                } catch (NumberFormatException e) {
+                    pageSize = 50
+                }
+            }
+            
+            // Parse sort parameters
+            String sortField = null
+            String sortDirection = 'asc'
+            
+            if (sort) {
+                // Validate sort field against allowed columns
+                def allowedSortFields = ['usr_id', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_code', 'usr_is_admin', 'usr_active', 'rls_id']
+                if (allowedSortFields.contains(sort as String)) {
+                    sortField = sort as String
+                }
+            }
+            
+            if (direction && ['asc', 'desc'].contains((direction as String).toLowerCase())) {
+                sortDirection = (direction as String).toLowerCase()
+            }
+            
+            // Validate search term
+            String searchTerm = search as String
+            if (searchTerm && searchTerm.trim().length() < 2) {
+                searchTerm = null  // Ignore very short search terms (less than 2 characters)
+            }
+            
+            // Parse team filter
+            Integer teamFilter = null
+            if (teamId) {
+                try {
+                    teamFilter = Integer.parseInt(teamId as String)
+                } catch (NumberFormatException e) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid team ID format"]).toString()).build()
+                }
+            }
+            
+            // Get paginated users
+            def result = userRepository.findAllUsers(pageNumber, pageSize, searchTerm, sortField, sortDirection, teamFilter)
+            return Response.ok(new JsonBuilder(result).toString()).build()
         }
+    } catch (SQLException e) {
+        log.error("Database error in GET /users", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
     } catch (Exception e) {
         log.error("Unexpected error in GET /users", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
     }
 }
 
@@ -79,11 +158,57 @@ users(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
         def newUser = userRepository.createUser(userData)
         return Response.status(Response.Status.CREATED).entity(new JsonBuilder(newUser).toString()).build()
     } catch (SQLException e) {
+        log.error("Database error in POST /users: ${e.message}", e)
+        
         if (e.getSQLState() == '23505') { // unique_violation
-            return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "A user with the provided details already exists."]).toString()).build()
+            String constraintName = e.getMessage()
+            String fieldName = "field"
+            
+            if (constraintName.contains('usr_email')) {
+                fieldName = "email address"
+            } else if (constraintName.contains('usr_code')) {
+                fieldName = "user code"
+            }
+            
+            return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([
+                error: "A user with this ${fieldName} already exists.",
+                details: "Duplicate value constraint violation",
+                sqlState: e.getSQLState()
+            ]).toString()).build()
+        } else if (e.getSQLState() == '23502') { // not_null_violation
+            String message = e.getMessage()
+            String fieldName = "field"
+            
+            if (message.contains('usr_code')) {
+                fieldName = "User Code (usr_code)"
+            } else if (message.contains('usr_first_name')) {
+                fieldName = "First Name (usr_first_name)"
+            } else if (message.contains('usr_last_name')) {
+                fieldName = "Last Name (usr_last_name)"
+            } else if (message.contains('usr_email')) {
+                fieldName = "Email (usr_email)"
+            } else if (message.contains('usr_is_admin')) {
+                fieldName = "Super Admin flag (usr_is_admin)"
+            }
+            
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([
+                error: "Missing required field: ${fieldName}",
+                details: "Database constraint violation - field cannot be null",
+                sqlState: e.getSQLState()
+            ]).toString()).build()
+        } else if (e.getSQLState() == '23503') { // foreign_key_violation
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([
+                error: "Invalid reference - the specified role or team does not exist.",
+                details: "Foreign key constraint violation",
+                sqlState: e.getSQLState()
+            ]).toString()).build()
         }
-        log.error("Database error in POST /users", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
+        
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([
+            error: "Database error occurred.",
+            details: e.getMessage(),
+            sqlState: e.getSQLState()
+        ]).toString()).build()
     } catch (Exception e) {
         log.error("Unexpected error in POST /users", e)
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
@@ -110,6 +235,39 @@ users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
 
         def updatedUser = userRepository.updateUser(userId, userData)
         return Response.ok(new JsonBuilder(updatedUser).toString()).build()
+    } catch (SQLException e) {
+        log.error("Database error in PUT /users/${userId}: ${e.message}", e)
+        
+        if (e.getSQLState() == '23505') { // unique_violation
+            String constraintName = e.getMessage()
+            String fieldName = "field"
+            
+            if (constraintName.contains('usr_email')) {
+                fieldName = "email address"
+            } else if (constraintName.contains('usr_code')) {
+                fieldName = "user code"
+            }
+            
+            return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([
+                error: "A user with this ${fieldName} already exists.",
+                details: "Duplicate value constraint violation",
+                sqlState: e.getSQLState()
+            ]).toString()).build()
+        } else if (e.getSQLState() == '23503') { // foreign_key_violation
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([
+                error: "Invalid reference - the specified role or team does not exist.",
+                details: "Foreign key constraint violation",
+                sqlState: e.getSQLState()
+            ]).toString()).build()
+        }
+        
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([
+            error: "Database error occurred during update.",
+            details: e.getMessage(),
+            sqlState: e.getSQLState(),
+            userData: userData,
+            stackTrace: e.getStackTrace().take(5).collect { it.toString() }
+        ]).toString()).build()
     } catch (Exception e) {
         log.error("Unexpected error in PUT /users/${userId}", e)
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()

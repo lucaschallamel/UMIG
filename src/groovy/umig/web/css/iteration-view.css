@@ -44,20 +44,19 @@
 }
 
 body {
-    overflow: hidden;
-    height: 100vh;
+    overflow: auto;
+    min-height: 100vh;
 }
 
 .iteration-view {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 140vh;
     max-width: 100%;
     background-color: var(--color-bg-secondary);
     color: var(--color-text-primary);
     font-family: var(--font-family);
     font-size: var(--font-size-base);
-    overflow: hidden;
 }
 
 .selector-bar {
@@ -147,7 +146,7 @@ body {
     width: 100%;
     padding: var(--spacing-md);
     flex: 1;
-    overflow: hidden;
+    min-height: 0;
 }
 
 .runsheet-panel {
@@ -159,8 +158,7 @@ body {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    overflow: hidden;
+    height: 80vh;
 }
 
 .panel-header {
@@ -184,6 +182,7 @@ body {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    max-height: calc(80vh - 120px);
 }
 
 .summary-stats {
@@ -466,7 +465,7 @@ body {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 80vh;
     overflow: hidden;
 }
 

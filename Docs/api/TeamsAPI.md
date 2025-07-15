@@ -28,9 +28,9 @@
 
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
-| id | UUID | Yes | Team identifier |
-| teamId | UUID | Yes | Team identifier for membership operations |
-| userId | UUID | Yes | User identifier for membership operations |
+| id | integer | Yes | Team identifier |
+| teamId | integer | Yes | Team identifier for membership operations |
+| userId | integer | Yes | User identifier for membership operations |
 
 ### 3.2. Query Parameters
 
@@ -47,17 +47,17 @@
 - **Schema:** (For POST/PUT operations)
 ```json
 {
-  "name": "string",
-  "description": "string",
-  "email": "string"
+  "tms_name": "string",
+  "tms_description": "string",
+  "tms_email": "string"
 }
 ```
 - **Example:**
 ```json
 {
-  "name": "DevOps Team",
-  "description": "Infrastructure and deployment team",
-  "email": "devops@company.com"
+  "tms_name": "DevOps Team",
+  "tms_description": "Infrastructure and deployment team",
+  "tms_email": "devops@company.com"
 }
 ```
 
@@ -68,26 +68,26 @@
 - **Schema:**
 ```json
 {
-  "id": "integer",
-  "name": "string",
-  "description": "string",
-  "email": "string"
+  "tms_id": "integer",
+  "tms_name": "string",
+  "tms_description": "string",
+  "tms_email": "string"
 }
 ```
 - **Example:**
 ```json
 [
   {
-    "id": 1,
-    "name": "IT_CUTOVER",
-    "description": "Team for IT Cutover activities",
-    "email": "it_cutover@umig.com"
+    "tms_id": 1,
+    "tms_name": "IT_CUTOVER",
+    "tms_description": "Team for IT Cutover activities",
+    "tms_email": "it_cutover@umig.com"
   },
   {
-    "id": 2,
-    "name": "DevOps Team",
-    "description": "Infrastructure and deployment team",
-    "email": "devops@company.com"
+    "tms_id": 2,
+    "tms_name": "DevOps Team",
+    "tms_description": "Infrastructure and deployment team",
+    "tms_email": "devops@company.com"
   }
 ]
 ```
@@ -147,6 +147,10 @@
 
 - **Date:** 2025-07-09
 - **Change:** Fixed field mapping issue (tms_id→id, tms_name→name) and corrected instance→master table relationships
+- **Author:** Claude AI Assistant
+
+- **Date:** 2025-01-15
+- **Change:** Updated specification to use correct database field names (tms_id, tms_name, tms_description, tms_email) and integer IDs instead of UUIDs
 - **Author:** Claude AI Assistant
 
 ---

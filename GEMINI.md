@@ -39,9 +39,11 @@ UMIG/
 │           ├── api/                  # REST API endpoints
 │           │   ├── README.md         # API documentation
 │           │   └── v2/               # Version 2 APIs
+│           │       ├── EnvironmentsApi.groovy
 │           │       ├── LabelsApi.groovy
 │           │       ├── migrationApi.groovy
 │           │       ├── PlansApi.groovy
+│           │       ├── StepsApi.groovy
 │           │       ├── TeamMembersApi.groovy
 │           │       ├── TeamsApi.groovy
 │           │       ├── UsersApi.groovy
@@ -86,6 +88,15 @@ UMIG/
 │               │   ├── iteration-view.css
 │               │   └── umig-ip-macro.css
 │               └── js/               # JavaScript files
+│                   ├── admin-gui/           # Modular Admin GUI components
+│                   │   ├── AdminGuiController.js # Main orchestration and initialization
+│                   │   ├── ApiClient.js     # API communication and error handling
+│                   │   ├── AuthenticationManager.js # Login and session management
+│                   │   ├── EntityConfig.js  # Entity configurations and field definitions
+│                   │   ├── ModalManager.js  # Modal dialogs and form handling
+│                   │   ├── TableManager.js  # Table rendering and pagination
+│                   │   ├── UiUtils.js       # Utility functions and UI helpers
+│                   │   └── AdminGuiState.js # State management and data caching
 │                   ├── hello-world.js
 │                   ├── iteration-view.js
 │                   ├── step-view.js
@@ -298,7 +309,7 @@ DatabaseUtil.withSql { sql ->
 
 ### REST Endpoint Structure
 - Base URL: `/rest/scriptrunner/latest/custom/`
-- Endpoints: `/users`, `/teams`, `/plans`, `/stepViewApi`, `/labels`, `/migrations`
+- Endpoints: `/users`, `/teams`, `/environments`, `/steps`, `/labels`, `/migrations`, `/stepViewApi`
 - V2 API conventions (documented in `docs/api/openapi.yaml`)
 
 ### Hierarchical Filtering Pattern (ADR-030)
@@ -372,18 +383,20 @@ When development environment is running:
 ## Key Documentation
 
 ### **PRIMARY REFERENCE (MANDATORY)**
-- **`docs/solution-architecture.md`**: Complete solution architecture consolidating all 26 ADRs - ALWAYS REVIEW FIRST
+- **`docs/solution-architecture.md`**: Complete solution architecture consolidating all 31 ADRs - ALWAYS REVIEW FIRST
 
 ### **Current Active ADRs**
 - **`docs/adr/ADR-027-n-tiers-model.md`**: N-tiers model architecture
 - **`docs/adr/ADR-028-data-import-strategy-for-confluence-json.md`**: Data import strategy
 - **`docs/adr/ADR-030-hierarchical-filtering-pattern.md`**: Hierarchical filtering pattern for API and UI
+- **`docs/adr/ADR-031-groovy-type-safety-and-filtering-patterns.md`**: Groovy type safety and filtering patterns
 
 ### Critical References
 - **API Spec**: `docs/api/openapi.yaml` - OpenAPI specification
 - **API Documentation**: `docs/api/` - Individual API documentation files
-  - `LabelsAPI.md` - Labels API with hierarchical filtering
+  - `UsersAPI.md` - Users API with CRUD operations and filtering
   - `TeamsAPI.md` - Teams API with hierarchical filtering
+  - `LabelsAPI.md` - Labels API with hierarchical filtering
   - `API_Updates_Summary.md` - Summary of recent API changes
 - **Data Model**: `docs/dataModel/README.md` - Database schema and ERD
 - **Current ADRs**: `docs/adr/` (skip `docs/adr/archive/` - consolidated in solution-architecture.md)
@@ -397,23 +410,27 @@ When development environment is running:
 
 ### ✅ Completed Features
 - **Local Development Environment**: Node.js orchestrated Podman containers
-- **Admin UI (SPA Pattern)**: Complete user/team management with robust error handling
+- **Admin UI (SPA Pattern)**: Complete user/team/environments management with robust error handling
 - **API Standards**: Comprehensive REST patterns (ADR-023) with specific error mappings
+- **API Documentation**: Complete OpenAPI specification with accurate schemas and generated Postman collections
 - **Data Generation**: Modular synthetic data generators with 3-digit prefixes and correct execution order
 - **Instance Data Generation**: Full canonical→instance replication with override field population
 - **Schema Corrections**: Fixed type mismatches in migration 010 for instruction instance fields
 - **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026) and updated test coverage
-- **Architecture Documentation**: All 26 ADRs consolidated into solution-architecture.md
+- **Architecture Documentation**: All 31 ADRs consolidated into solution-architecture.md
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
 - **Iteration View Mockup**: Complete HTML/CSS/JS mockup with zero dependencies (`mock/`)
 - **Labels API**: Complete with hierarchical filtering (ADR-030)
 - **Teams API**: Enhanced with hierarchical filtering capabilities
+- **Users API**: Complete CRUD operations with pagination and filtering
+- **Environments API**: Complete CRUD operations with application/iteration associations
+- **Steps API**: Complete with hierarchical filtering and labels integration
 - **Migration API**: Core functionality implemented
-- **Iteration View Frontend**: Dynamic filter implementation with cascading behavior
+- **Iteration View Complete**: Fully functional with hierarchical filtering, labels integration, and dynamic step management
+- **Type Safety Patterns**: Established Groovy static type checking patterns (ADR-031)
 
 ### 🚧 MVP Remaining Work
-- **Iteration View Implementation**: Complete ScriptRunner macro integration
-- **Core REST APIs**: Plans, Sequences, Phases, Steps, Instructions endpoints
+- **Core REST APIs**: Plans, Sequences, Phases, Instructions endpoints using established patterns
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
@@ -424,11 +441,13 @@ When development environment is running:
 - API: `src/groovy/umig/api/v2/stepViewApi.groovy`
 - Purpose: Display migration/release steps in Confluence
 
-### Iteration View System (In Development)
+### Iteration View System (✅ Completed)
 - Specification: `docs/ui-ux/iteration-view.md`
 - Mockup: `mock/iteration-view.html` (functional prototype)
-- Target Macro: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
-- Purpose: Primary runsheet interface for cutover events
+- Macro: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
+- Frontend: `src/groovy/umig/web/js/iteration-view.js` and `iteration-view.css`
+- API: `src/groovy/umig/api/v2/StepsApi.groovy`
+- Purpose: Primary runsheet interface for cutover events with complete hierarchical filtering and labels
 
 ## Development Workflow
 
@@ -463,17 +482,22 @@ When development environment is running:
 6. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
 
 ### Project Context (Current State)
-- **Maturity**: Proof-of-concept with solid architectural foundation and working mockup
+- **Maturity**: Functional stage with iteration view complete and proven patterns established
 - **Timeline**: 4-week MVP deadline - ruthless scope management required
-- **Current Focus**: Implement iteration view based on completed mockup in `mock/`
-- **Next Priority**: Convert mockup to ScriptRunner macro with backend API integration
-- **Pattern**: Reference existing user/team management as implementation template
+- **Current Focus**: Implement remaining REST APIs using established hierarchical filtering and type safety patterns
+- **Next Priority**: Plans, Sequences, Phases, Instructions APIs following the StepsApi.groovy pattern
+- **Pattern**: Reference StepsApi.groovy, TeamsApi.groovy, and LabelsApi.groovy as implementation templates
 
-### Recent Achievements (January 2025)
-- **Complete UI/UX Mockup**: Functional iteration view prototype with zero external dependencies
-- **Clean Architecture**: Reorganized `src/` structure following Java package conventions
-- **Validated Design**: Three-panel layout confirmed through interactive mockup
-- **Implementation Ready**: All frontend components proven functional in vanilla JavaScript
+### Recent Achievements (July 2025)
+- **Iteration View Complete**: Fully functional hierarchical filtering with labels integration and dynamic step management
+- **Type Safety Patterns**: Established robust Groovy static type checking patterns (ADR-031) preventing runtime errors
+- **API Pattern Maturity**: Proven REST API patterns with StepsApi, TeamsApi, and LabelsApi serving as definitive templates
+- **Database Filtering Mastery**: Resolved master vs instance ID filtering patterns and complete field selection requirements
+- **Labels Integration**: Complete many-to-many relationship handling with colored tag display and graceful error handling
+- **API Documentation Complete**: Comprehensive OpenAPI specification with accurate schemas and generated Postman collections
+- **Schema Consistency**: Resolved mismatches between API documentation and actual implementation for Users and Teams APIs
+- **Admin GUI Refactoring**: Split 1,901-line monolithic admin-gui.js into 8 modular components for improved maintainability
+- **JavaScript Architecture**: Established modular patterns with EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, and AdminGuiController
 
 ## Workflows
 
