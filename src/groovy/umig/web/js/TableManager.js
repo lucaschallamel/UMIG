@@ -176,8 +176,12 @@
                 const sortable = entity.sortMapping && entity.sortMapping[column];
                 
                 let sortIcon = '';
-                if (sortable && sortField === column) {
-                    sortIcon = sortDirection === 'asc' ? ' ▲' : ' ▼';
+                if (sortable) {
+                    // Check if this column is currently sorted by comparing the mapped field
+                    const mappedField = entity.sortMapping[column];
+                    if (sortField === mappedField) {
+                        sortIcon = sortDirection === 'asc' ? ' ▲' : ' ▼';
+                    }
                 }
                 
                 headerHtml += `<th ${sortable ? `data-field="${column}"` : ''}>${label}${sortIcon}</th>`;
@@ -526,13 +530,23 @@
             const currentSortField = state.sortField;
             const currentSortDirection = state.sortDirection;
             
+            // Get the entity configuration to use sortMapping
+            const entityType = state.currentEntity;
+            const entity = window.EntityConfig ? window.EntityConfig.getEntity(entityType) : null;
+            
+            // Map display column to actual database field using sortMapping
+            let actualSortField = field;
+            if (entity && entity.sortMapping && entity.sortMapping[field]) {
+                actualSortField = entity.sortMapping[field];
+            }
+            
             let newDirection = 'asc';
-            if (currentSortField === field && currentSortDirection === 'asc') {
+            if (currentSortField === actualSortField && currentSortDirection === 'asc') {
                 newDirection = 'desc';
             }
             
             if (window.AdminGuiState) {
-                window.AdminGuiState.search.setSort(field, newDirection);
+                window.AdminGuiState.search.setSort(actualSortField, newDirection);
             }
             
             // Reload data
