@@ -342,8 +342,16 @@ class EnvironmentRepository {
                 params.search = "%" + search.trim() + "%"
             }
             
-            // Build ORDER BY clause - avoid GString interpolation for SQL injection safety
-            String orderClause = "ORDER BY e." + sortField + " " + sortDirection.toUpperCase()
+            // Build ORDER BY clause - handle computed columns
+            String orderClause
+            if (sortField == 'application_count') {
+                orderClause = "ORDER BY COALESCE(app_counts.app_count, 0) " + sortDirection.toUpperCase()
+            } else if (sortField == 'iteration_count') {
+                orderClause = "ORDER BY COALESCE(ite_counts.iteration_count, 0) " + sortDirection.toUpperCase()
+            } else {
+                // Safe for basic table columns
+                orderClause = "ORDER BY e." + sortField + " " + sortDirection.toUpperCase()
+            }
             
             // Calculate offset
             int offset = (page - 1) * size
