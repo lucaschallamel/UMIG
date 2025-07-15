@@ -1,5 +1,24 @@
 ### [Unreleased]
 
+#### 2025-07-15 (Applications Label Management)
+- **Feat(Applications):** Complete Labels association management in Admin GUI
+  - Added label_count column to Applications listing showing association counts
+  - Implemented Labels display in VIEW modal with colored tag visualization
+  - Added Labels section to EDIT modal with full CRUD functionality
+  - Created add/remove functionality for Application-Label associations
+  - Enhanced ApiClient with labels methods (getLabels, associateLabel, disassociateLabel)
+  - Updated EntityConfig to include label_count in tableColumns and sortMapping
+- **Feat(API):** Extended ApplicationsApi with label association endpoints
+  - Added GET /applications/{id}/labels endpoint for retrieving application labels
+  - Added PUT /applications/{appId}/labels/{labelId} for creating label associations
+  - Added DELETE /applications/{appId}/labels/{labelId} for removing label associations
+  - Enhanced ApplicationRepository with findApplicationLabels, associateLabel, disassociateLabel methods
+  - Added label_count to findAllApplicationsWithCounts query with LEFT JOIN on labels_lbl_x_applications_app
+- **Fix(Frontend):** Resolved label dropdown population issue
+  - Fixed field name mismatch between Labels API (id, name) and application-specific endpoints (lbl_id, lbl_name)
+  - Updated createSelectOptions call in renderApplicationLabelsEdit to use correct field names
+  - Labels now properly display with their associated colors in both VIEW and EDIT modals
+
 #### 2025-07-15 (Teams Association Management and Modal Consistency)
 - **Feat(Teams):** Complete Teams association management in Admin GUI
   - Implemented Teams VIEW modal with user and application associations display

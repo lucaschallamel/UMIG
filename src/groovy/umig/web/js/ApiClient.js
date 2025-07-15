@@ -543,8 +543,102 @@
          * Applications API
          */
         applications: {
+            /**
+             * Get all applications
+             */
             getAll: function(params = {}) {
                 return ApiClient.entities.getAll('applications', params);
+            },
+
+            /**
+             * Get application by ID
+             */
+            getById: function(appId) {
+                return ApiClient.entities.getById('applications', appId);
+            },
+
+            /**
+             * Create application
+             */
+            create: function(data) {
+                return ApiClient.entities.create('applications', data);
+            },
+
+            /**
+             * Update application
+             */
+            update: function(appId, data) {
+                return ApiClient.entities.update('applications', appId, data);
+            },
+
+            /**
+             * Delete application
+             */
+            delete: function(appId) {
+                return ApiClient.entities.delete('applications', appId);
+            },
+
+            /**
+             * Get application environments
+             */
+            getEnvironments: function(appId) {
+                return ApiClient.request('GET', `/applications/${appId}/environments`);
+            },
+
+            /**
+             * Get application teams
+             */
+            getTeams: function(appId) {
+                return ApiClient.request('GET', `/applications/${appId}/teams`);
+            },
+
+            /**
+             * Associate environment with application
+             */
+            associateEnvironment: function(appId, envId) {
+                return ApiClient.request('PUT', `/applications/${appId}/environments/${envId}`);
+            },
+
+            /**
+             * Disassociate environment from application
+             */
+            disassociateEnvironment: function(appId, envId) {
+                return ApiClient.request('DELETE', `/applications/${appId}/environments/${envId}`);
+            },
+
+            /**
+             * Associate team with application
+             */
+            associateTeam: function(appId, teamId) {
+                return ApiClient.request('PUT', `/applications/${appId}/teams/${teamId}`);
+            },
+
+            /**
+             * Disassociate team from application
+             */
+            disassociateTeam: function(appId, teamId) {
+                return ApiClient.request('DELETE', `/applications/${appId}/teams/${teamId}`);
+            },
+
+            /**
+             * Get application labels
+             */
+            getLabels: function(appId) {
+                return ApiClient.request('GET', `/applications/${appId}/labels`);
+            },
+
+            /**
+             * Associate label with application
+             */
+            associateLabel: function(appId, labelId) {
+                return ApiClient.request('PUT', `/applications/${appId}/labels/${labelId}`);
+            },
+
+            /**
+             * Disassociate label from application
+             */
+            disassociateLabel: function(appId, labelId) {
+                return ApiClient.request('DELETE', `/applications/${appId}/labels/${labelId}`);
             }
         },
 

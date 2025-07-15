@@ -11,7 +11,7 @@ class ApplicationRepository {
 
     /**
      * Finds all applications with relationship counts.
-     * @return A list of applications with environment and team counts.
+     * @return A list of applications with environment, team, and label counts.
      */
     List findAllApplicationsWithCounts() {
         DatabaseUtil.withSql { sql ->
@@ -22,7 +22,8 @@ class ApplicationRepository {
                     a.app_name,
                     a.app_description,
                     COALESCE(env_counts.env_count, 0)::INTEGER AS environment_count,
-                    COALESCE(team_counts.team_count, 0)::INTEGER AS team_count
+                    COALESCE(team_counts.team_count, 0)::INTEGER AS team_count,
+                    COALESCE(label_counts.label_count, 0)::INTEGER AS label_count
                 FROM applications_app a
                 LEFT JOIN (
                     SELECT app_id, COUNT(*)::INTEGER AS env_count
@@ -34,6 +35,11 @@ class ApplicationRepository {
                     FROM teams_tms_x_applications_app
                     GROUP BY app_id
                 ) team_counts ON a.app_id = team_counts.app_id
+                LEFT JOIN (
+                    SELECT app_id, COUNT(*)::INTEGER AS label_count
+                    FROM labels_lbl_x_applications_app
+                    GROUP BY app_id
+                ) label_counts ON a.app_id = label_counts.app_id
                 ORDER BY a.app_code
             """)
         }
@@ -59,7 +65,7 @@ class ApplicationRepository {
             if (application) {
                 // Get related environments
                 application.environments = sql.rows("""
-                    SELECT e.env_id, e.env_code, e.env_name
+                    SELECT e.env_id, e.env_code, e.env_name, e.env_description
                     FROM environments_env e
                     JOIN environments_env_x_applications_app exa ON e.env_id = exa.env_id
                     WHERE exa.app_id = :appId
@@ -73,6 +79,15 @@ class ApplicationRepository {
                     JOIN teams_tms_x_applications_app txa ON t.tms_id = txa.tms_id
                     WHERE txa.app_id = :appId
                     ORDER BY t.tms_name
+                """, [appId: appId])
+
+                // Get related labels
+                application.labels = sql.rows("""
+                    SELECT l.lbl_id, l.lbl_name, l.lbl_color
+                    FROM labels_lbl l
+                    JOIN labels_lbl_x_applications_app lxa ON l.lbl_id = lxa.lbl_id
+                    WHERE lxa.app_id = :appId
+                    ORDER BY l.lbl_name
                 """, [appId: appId])
             }
 
@@ -161,7 +176,7 @@ class ApplicationRepository {
 
             // Labels
             def labels = sql.rows("""
-                SELECT l.lbl_id, l.lbl_name, l.lbl_description
+                SELECT l.lbl_id, l.lbl_name, l.lbl_color
                 FROM labels_lbl l
                 JOIN labels_lbl_x_applications_app lxa ON l.lbl_id = lxa.lbl_id
                 WHERE lxa.app_id = :appId
@@ -286,9 +301,14 @@ class ApplicationRepository {
                 orderClause = "ORDER BY COALESCE(env_counts.env_count, 0) " + sortDirection.toUpperCase()
             } else if (sortField == 'team_count') {
                 orderClause = "ORDER BY COALESCE(team_counts.team_count, 0) " + sortDirection.toUpperCase()
-            } else {
-                // Safe for basic table columns
+            } else if (sortField == 'label_count') {
+                orderClause = "ORDER BY COALESCE(label_counts.label_count, 0) " + sortDirection.toUpperCase()
+            } else if (sortField) {
+                // Safe for basic table columns - only if sortField is provided
                 orderClause = "ORDER BY a." + sortField + " " + sortDirection.toUpperCase()
+            } else {
+                // Default sort by app_code if no sort field provided
+                orderClause = "ORDER BY a.app_code " + sortDirection.toUpperCase()
             }
             
             // Calculate offset
@@ -311,7 +331,8 @@ class ApplicationRepository {
                     a.app_name,
                     a.app_description,
                     COALESCE(env_counts.env_count, 0)::INTEGER AS environment_count,
-                    COALESCE(team_counts.team_count, 0)::INTEGER AS team_count
+                    COALESCE(team_counts.team_count, 0)::INTEGER AS team_count,
+                    COALESCE(label_counts.label_count, 0)::INTEGER AS label_count
                 FROM applications_app a
                 LEFT JOIN (
                     SELECT app_id, COUNT(*)::INTEGER AS env_count
@@ -323,6 +344,11 @@ class ApplicationRepository {
                     FROM teams_tms_x_applications_app
                     GROUP BY app_id
                 ) team_counts ON a.app_id = team_counts.app_id
+                LEFT JOIN (
+                    SELECT app_id, COUNT(*)::INTEGER AS label_count
+                    FROM labels_lbl_x_applications_app
+                    GROUP BY app_id
+                ) label_counts ON a.app_id = label_counts.app_id
                 ${whereClause}
                 ${orderClause}
                 LIMIT :size OFFSET :offset
@@ -347,6 +373,64 @@ class ApplicationRepository {
                     hasPrevious: page > 1
                 ]
             ]
+        }
+    }
+
+    /**
+     * Get all labels associated with an application.
+     * @param appId The ID of the application.
+     * @return List of labels associated with the application.
+     */
+    List findApplicationLabels(int appId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT l.lbl_id, l.lbl_name, l.lbl_color
+                FROM labels_lbl l
+                JOIN labels_lbl_x_applications_app lxa ON l.lbl_id = lxa.lbl_id
+                WHERE lxa.app_id = :appId
+                ORDER BY l.lbl_name
+            """, [appId: appId])
+        }
+    }
+
+    /**
+     * Associates a label with an application.
+     * @param appId The application ID.
+     * @param labelId The label ID.
+     * @return true if association created successfully, false if already exists.
+     */
+    boolean associateLabel(int appId, int labelId) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                sql.executeInsert("""
+                    INSERT INTO labels_lbl_x_applications_app (lbl_id, app_id)
+                    VALUES (:labelId, :appId)
+                """, [labelId: labelId, appId: appId])
+                return true
+            } catch (Exception e) {
+                // Handle duplicate key error gracefully
+                if (e.message.contains("duplicate key") || e.message.contains("unique constraint")) {
+                    return false
+                }
+                throw e
+            }
+        }
+    }
+
+    /**
+     * Removes a label association from an application.
+     * @param appId The application ID.
+     * @param labelId The label ID.
+     * @return true if removed successfully, false otherwise.
+     */
+    boolean disassociateLabel(int appId, int labelId) {
+        DatabaseUtil.withSql { sql ->
+            def rowsAffected = sql.executeUpdate("""
+                DELETE FROM labels_lbl_x_applications_app
+                WHERE lbl_id = :labelId AND app_id = :appId
+            """, [labelId: labelId, appId: appId])
+            
+            return rowsAffected > 0
         }
     }
 }

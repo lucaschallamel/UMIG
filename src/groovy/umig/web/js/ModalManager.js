@@ -65,6 +65,8 @@
                 this.showEnvironmentDetailsModal(id);
             } else if (currentEntity === 'teams') {
                 this.showTeamViewModal(id);
+            } else if (currentEntity === 'applications') {
+                this.showApplicationViewModal(id);
             } else {
                 this.showGenericViewModal(id, currentEntity);
             }
@@ -82,6 +84,8 @@
                 this.showEnvironmentEditModal(id);
             } else if (currentEntity === 'teams') {
                 this.showTeamEditModal(id);
+            } else if (currentEntity === 'applications') {
+                this.showApplicationEditModal(id);
             } else {
                 if (id) {
                     this.loadEntityData(id, currentEntity)
@@ -2133,6 +2137,633 @@
             }
             
             return options;
+        },
+
+        /**
+         * Show Application VIEW modal
+         * @param {number} appId - Application ID
+         */
+        showApplicationViewModal: function(appId) {
+            console.log('showApplicationViewModal called with appId:', appId);
+            
+            // Load application data
+            Promise.all([
+                window.ApiClient.applications.getById(appId),
+                window.ApiClient.applications.getEnvironments(appId),
+                window.ApiClient.applications.getTeams(appId),
+                window.ApiClient.applications.getLabels(appId)
+            ]).then(([application, environments, teams, labels]) => {
+                console.log('Application data:', application);
+                console.log('Environments:', environments);
+                console.log('Teams:', teams);
+                console.log('Labels:', labels);
+                
+                let modalHtml = `
+                    <div class="modal-overlay" id="viewModal">
+                        <div class="modal modal-large">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Application Details: ${application.app_name || application.app_code}</h3>
+                                <button class="modal-close">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="env-details">
+                                    <div class="detail-section">
+                                        <h4>Application Information</h4>
+                                        <p><strong>Code:</strong> ${application.app_code}</p>
+                                        <p><strong>Name:</strong> ${application.app_name || 'No name'}</p>
+                                        <p><strong>Description:</strong> ${application.app_description || 'No description'}</p>
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Associated Labels</h4>
+                                        ${this.renderApplicationLabels(labels)}
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Associated Environments</h4>
+                                        ${this.renderApplicationEnvironments(environments)}
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Associated Teams</h4>
+                                        ${this.renderApplicationTeams(teams)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn-primary" onclick="ModalManager.showApplicationEditModal(${appId})">Edit Application</button>
+                                <button class="btn-secondary" onclick="ModalManager.closeModal()">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+            }).catch(error => {
+                console.error('Failed to load application data:', error);
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Failed to load application data', 'error');
+                }
+            });
+        },
+
+        /**
+         * Show Application EDIT modal
+         * @param {number} appId - Application ID (null for create)
+         */
+        showApplicationEditModal: function(appId) {
+            console.log('showApplicationEditModal called with appId:', appId);
+            
+            const isCreate = !appId;
+            
+            if (isCreate) {
+                // For create mode, only load available environments, teams, and labels
+                Promise.all([
+                    window.ApiClient.environments.getAll(),
+                    window.ApiClient.teams.getAll(),
+                    window.ApiClient.labels.getAll()
+                ]).then(([environmentsResponse, teamsResponse, labelsResponse]) => {
+                    // Handle paginated responses
+                    const allEnvironments = environmentsResponse.data || environmentsResponse;
+                    const allTeams = teamsResponse.data || teamsResponse;
+                    const allLabels = labelsResponse.data || labelsResponse;
+                    
+                    // Create modal for new application
+                    this.renderApplicationEditModal(null, [], [], [], allEnvironments, allTeams, allLabels, true);
+                }).catch(error => {
+                    console.error('Failed to load data for application creation:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load application creation data', 'error');
+                    }
+                });
+            } else {
+                // For edit mode, load application data and available items
+                Promise.all([
+                    window.ApiClient.applications.getById(appId),
+                    window.ApiClient.applications.getEnvironments(appId),
+                    window.ApiClient.applications.getTeams(appId),
+                    window.ApiClient.applications.getLabels(appId),
+                    window.ApiClient.environments.getAll(),
+                    window.ApiClient.teams.getAll(),
+                    window.ApiClient.labels.getAll()
+                ]).then(([application, environments, teams, labels, environmentsResponse, teamsResponse, labelsResponse]) => {
+                    console.log('Application edit data:', application);
+                    
+                    // Handle paginated responses
+                    const allEnvironments = environmentsResponse.data || environmentsResponse;
+                    const allTeams = teamsResponse.data || teamsResponse;
+                    const allLabels = labelsResponse.data || labelsResponse;
+                    
+                    // Create modal for editing existing application
+                    this.renderApplicationEditModal(application, environments, teams, labels, allEnvironments, allTeams, allLabels, false);
+                }).catch(error => {
+                    console.error('Failed to load application edit data:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load application data', 'error');
+                    }
+                });
+            }
+        },
+
+        /**
+         * Render Application EDIT modal
+         * @param {Object} application - Application data (null for create)
+         * @param {Array} environments - Application environments
+         * @param {Array} teams - Application teams
+         * @param {Array} labels - Application labels
+         * @param {Array} allEnvironments - All available environments
+         * @param {Array} allTeams - All available teams
+         * @param {Array} allLabels - All available labels
+         * @param {boolean} isCreate - Whether this is create mode
+         */
+        renderApplicationEditModal: function(application, environments, teams, labels, allEnvironments, allTeams, allLabels, isCreate) {
+            const appId = application ? application.app_id : null;
+            const title = isCreate ? 'Create New Application' : `Edit Application: ${application.app_name || application.app_code}`;
+            const buttonText = isCreate ? 'Create Application' : 'Save Changes';
+            
+            let modalHtml = `
+                <div class="modal-overlay" id="editModal">
+                    <div class="modal modal-large">
+                        <div class="modal-header">
+                            <h3 class="modal-title">${title}</h3>
+                            <button class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="applicationFormWrapper">
+                                <form id="applicationForm">
+                                    <div class="form-group">
+                                        <label for="app_code">Application Code:</label>
+                                        <input type="text" id="app_code" name="app_code" value="${application ? application.app_code : ''}" required maxlength="50">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="app_name">Application Name:</label>
+                                        <input type="text" id="app_name" name="app_name" value="${application ? (application.app_name || '') : ''}" maxlength="64">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="app_description">Description:</label>
+                                        <textarea id="app_description" name="app_description">${application ? (application.app_description || '') : ''}</textarea>
+                                    </div>
+                                </form>
+                                <div id="associationsWrapper">`;
+            
+            // Only show associations for existing applications (not for create)
+            if (!isCreate) {
+                modalHtml += `
+                                    <div class="detail-section">
+                                        <h4>Associated Labels</h4>
+                                        ${this.renderApplicationLabelsEdit(labels, allLabels, appId)}
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Associated Environments</h4>
+                                        ${this.renderApplicationEnvironmentsEdit(environments, allEnvironments, appId)}
+                                    </div>
+                                    
+                                    <div class="detail-section">
+                                        <h4>Associated Teams</h4>
+                                        ${this.renderApplicationTeamsEdit(teams, allTeams, appId)}
+                                    </div>`;
+            }
+            
+            modalHtml += `
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-primary" onclick="ModalManager.saveApplication(${appId})">${buttonText}</button>
+                            <button class="btn-secondary" onclick="ModalManager.closeModal()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        },
+
+        /**
+         * Render application environments for VIEW mode
+         * @param {Array} environments - Application environments
+         * @returns {string} HTML string
+         */
+        renderApplicationEnvironments: function(environments) {
+            if (!environments || environments.length === 0) {
+                return '<p class="no-associations">No environments associated</p>';
+            }
+            
+            let html = '<div class="associations-list">';
+            environments.forEach(env => {
+                html += `
+                    <div class="association-item">
+                        <span><strong>${env.env_name}</strong> (${env.env_code})</span>
+                        <span class="association-details">${env.env_description || 'No description'}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        },
+
+        /**
+         * Render application labels for VIEW mode
+         * @param {Array} labels - Application labels
+         * @returns {string} HTML string
+         */
+        renderApplicationLabels: function(labels) {
+            if (!labels || labels.length === 0) {
+                return '<p class="no-associations">No labels associated</p>';
+            }
+            
+            let html = '<div class="associations-list">';
+            labels.forEach(label => {
+                html += `
+                    <div class="association-item">
+                        <span class="label-tag" style="background-color: ${label.lbl_color || '#ccc'}; color: white; padding: 2px 8px; border-radius: 4px;">
+                            ${label.lbl_name}
+                        </span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        },
+
+        /**
+         * Render application teams for VIEW mode
+         * @param {Array} teams - Application teams
+         * @returns {string} HTML string
+         */
+        renderApplicationTeams: function(teams) {
+            if (!teams || teams.length === 0) {
+                return '<p class="no-associations">No teams associated</p>';
+            }
+            
+            let html = '<div class="associations-list">';
+            teams.forEach(team => {
+                html += `
+                    <div class="association-item">
+                        <span><strong>${team.tms_name}</strong></span>
+                        <span class="association-details">${team.tms_description || 'No description'}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        },
+
+        /**
+         * Render application labels for EDIT mode
+         * @param {Array} labels - Current application labels
+         * @param {Array} allLabels - All available labels
+         * @param {number} appId - Application ID
+         * @returns {string} HTML string
+         */
+        renderApplicationLabelsEdit: function(labels, allLabels, appId) {
+            let html = '<div class="associations-edit">';
+            
+            // Show current labels
+            if (labels && labels.length > 0) {
+                html += '<div class="current-associations">';
+                labels.forEach(label => {
+                    html += `
+                        <div class="association-item">
+                            <span class="label-tag" style="background-color: ${label.lbl_color || '#ccc'}; color: white; padding: 2px 8px; border-radius: 4px;">
+                                ${label.lbl_name}
+                            </span>
+                            <button type="button" class="btn-danger btn-small" onclick="ModalManager.removeApplicationLabel(${appId}, ${label.lbl_id}); return false;">Remove</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="no-associations">No labels associated</p>';
+            }
+            
+            // Add new label section
+            html += `
+                <div class="add-association">
+                    <label>Add Label:</label>
+                    <div class="association-controls">
+                        <select id="labelSelect" class="form-control">
+                            ${this.createSelectOptions(allLabels, 'id', 'name')}
+                        </select>
+                        <button type="button" class="btn-primary btn-small" onclick="ModalManager.addApplicationLabel(${appId})">Add</button>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            return html;
+        },
+
+        /**
+         * Render application environments for EDIT mode
+         * @param {Array} environments - Current application environments
+         * @param {Array} allEnvironments - All available environments
+         * @param {number} appId - Application ID
+         * @returns {string} HTML string
+         */
+        renderApplicationEnvironmentsEdit: function(environments, allEnvironments, appId) {
+            let html = '<div class="associations-edit">';
+            
+            // Show current environments
+            if (environments && environments.length > 0) {
+                html += '<div class="current-associations">';
+                environments.forEach(env => {
+                    html += `
+                        <div class="association-item">
+                            <span><strong>${env.env_name}</strong> (${env.env_code})</span>
+                            <span class="association-details">${env.env_description || 'No description'}</span>
+                            <button type="button" class="btn-danger btn-small" onclick="ModalManager.removeApplicationEnvironment(${appId}, ${env.env_id}); return false;">Remove</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="no-associations">No environments associated</p>';
+            }
+            
+            // Add new environment section
+            html += `
+                <div class="add-association">
+                    <label>Add Environment:</label>
+                    <div class="association-controls">
+                        <select id="environmentSelect" class="form-control">
+                            ${this.createSelectOptions(allEnvironments, 'env_id', 'env_name')}
+                        </select>
+                        <button type="button" class="btn-primary btn-small" onclick="ModalManager.addApplicationEnvironment(${appId})">Add</button>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            return html;
+        },
+
+        /**
+         * Render application teams for EDIT mode
+         * @param {Array} teams - Current application teams
+         * @param {Array} allTeams - All available teams
+         * @param {number} appId - Application ID
+         * @returns {string} HTML string
+         */
+        renderApplicationTeamsEdit: function(teams, allTeams, appId) {
+            let html = '<div class="associations-edit">';
+            
+            // Show current teams
+            if (teams && teams.length > 0) {
+                html += '<div class="current-associations">';
+                teams.forEach(team => {
+                    html += `
+                        <div class="association-item">
+                            <span><strong>${team.tms_name}</strong></span>
+                            <span class="association-details">${team.tms_description || 'No description'}</span>
+                            <button type="button" class="btn-danger btn-small" onclick="ModalManager.removeApplicationTeam(${appId}, ${team.tms_id}); return false;">Remove</button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            } else {
+                html += '<p class="no-associations">No teams associated</p>';
+            }
+            
+            // Add new team section
+            html += `
+                <div class="add-association">
+                    <label>Add Team:</label>
+                    <div class="association-controls">
+                        <select id="teamSelect" class="form-control">
+                            ${this.createSelectOptions(allTeams, 'tms_id', 'tms_name')}
+                        </select>
+                        <button type="button" class="btn-primary btn-small" onclick="ModalManager.addApplicationTeam(${appId})">Add</button>
+                    </div>
+                </div>
+            `;
+            
+            html += '</div>';
+            return html;
+        },
+
+        /**
+         * Add application environment
+         * @param {number} appId - Application ID
+         */
+        addApplicationEnvironment: function(appId) {
+            const environmentSelect = document.getElementById('environmentSelect');
+            const environmentId = environmentSelect.value;
+            
+            if (!environmentId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select an environment', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.applications.associateEnvironment(appId, environmentId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Environment added successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showApplicationEditModal(appId);
+                })
+                .catch(error => {
+                    console.error('Failed to add environment:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to add environment', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove application environment
+         * @param {number} appId - Application ID
+         * @param {number} environmentId - Environment ID
+         */
+        removeApplicationEnvironment: async function(appId, environmentId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this environment from the application?');
+            
+            if (confirmed) {
+                window.ApiClient.applications.disassociateEnvironment(appId, environmentId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Environment removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showApplicationEditModal(appId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove environment:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove environment', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Add application team
+         * @param {number} appId - Application ID
+         */
+        addApplicationTeam: function(appId) {
+            const teamSelect = document.getElementById('teamSelect');
+            const teamId = teamSelect.value;
+            
+            if (!teamId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select a team', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.applications.associateTeam(appId, teamId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Team added successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showApplicationEditModal(appId);
+                })
+                .catch(error => {
+                    console.error('Failed to add team:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to add team', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove application team
+         * @param {number} appId - Application ID
+         * @param {number} teamId - Team ID
+         */
+        removeApplicationTeam: async function(appId, teamId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this team from the application?');
+            
+            if (confirmed) {
+                window.ApiClient.applications.disassociateTeam(appId, teamId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Team removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showApplicationEditModal(appId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove team:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove team', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Add application label
+         * @param {number} appId - Application ID
+         */
+        addApplicationLabel: function(appId) {
+            const labelSelect = document.getElementById('labelSelect');
+            const labelId = labelSelect.value;
+            
+            if (!labelId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select a label', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.applications.associateLabel(appId, labelId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Label added successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showApplicationEditModal(appId);
+                })
+                .catch(error => {
+                    console.error('Failed to add label:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to add label', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove application label
+         * @param {number} appId - Application ID
+         * @param {number} labelId - Label ID
+         */
+        removeApplicationLabel: async function(appId, labelId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this label from the application?');
+            
+            if (confirmed) {
+                window.ApiClient.applications.disassociateLabel(appId, labelId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Label removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showApplicationEditModal(appId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove label:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove label', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Save application changes
+         * @param {number} appId - Application ID
+         */
+        saveApplication: function(appId) {
+            const form = document.getElementById('applicationForm');
+            const formData = this.getFormData(form);
+            const isCreate = !appId;
+            
+            const apiCall = isCreate ? 
+                window.ApiClient.applications.create(formData) : 
+                window.ApiClient.applications.update(appId, formData);
+            
+            const successMessage = isCreate ? 'Application created successfully' : 'Application updated successfully';
+            
+            apiCall
+                .then(response => {
+                    console.log('Application saved successfully:', response);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(successMessage, 'success');
+                    }
+                    
+                    this.closeModal();
+                    
+                    // Refresh the table
+                    if (window.AdminGuiController) {
+                        window.AdminGuiController.loadCurrentSection();
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to save application:', error);
+                    
+                    let errorMessage = 'Failed to save application';
+                    if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(errorMessage, 'error');
+                    }
+                });
         }
     };
 

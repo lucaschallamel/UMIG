@@ -1,5 +1,12 @@
 # API Coding Patterns (UMIG)
 
+## Applications API Pattern (2025-07-15)
+- Extended Applications API with label association management endpoints
+- Implemented GET /applications/{id}/labels, PUT /applications/{appId}/labels/{labelId}, DELETE /applications/{appId}/labels/{labelId}
+- Added label_count to listing responses via LEFT JOIN on labels_lbl_x_applications_app table
+- **IMPORTANT**: Be aware of field name transformations between different endpoints (e.g., Labels API returns `id/name` while application-specific endpoints return `lbl_id/lbl_name`)
+- Handle duplicate key errors gracefully for association endpoints with proper 409 Conflict responses
+
 ## Environments API Pattern (2025-07-15)
 - Complete REST API implementation for environments with full CRUD operations
 - Association management endpoints for applications and iterations with role-based relationships

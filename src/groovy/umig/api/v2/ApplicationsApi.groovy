@@ -33,7 +33,7 @@ private Integer getApplicationIdFromPath(HttpServletRequest request) {
     return null
 }
 
-// GET /applications, /applications/{id}, /applications/{id}/environments, /applications/{id}/teams
+// GET /applications, /applications/{id}, /applications/{id}/environments, /applications/{id}/teams, /applications/{id}/labels
 applications(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
@@ -84,6 +84,31 @@ applications(httpMethod: "GET", groups: ["confluence-users", "confluence-adminis
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
         } catch (Exception e) {
             log.error("Unexpected error in GET /applications/{id}/teams", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{id}/labels
+    if (pathParts.size() == 2 && pathParts[1] == 'labels') {
+        Integer appId = getApplicationIdFromPath(request)
+        
+        if (appId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
+        }
+        
+        try {
+            def application = applicationRepository.findApplicationById(appId)
+            if (!application) {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${appId} not found."]).toString()).build()
+            }
+            
+            return Response.ok(new JsonBuilder(application.labels).toString()).build()
+            
+        } catch (SQLException e) {
+            log.error("Database error in GET /applications/{id}/labels", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in GET /applications/{id}/labels", e)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
         }
     }
@@ -213,7 +238,7 @@ applications(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
     }
 }
 
-// PUT /applications/{id}, /applications/{appId}/environments/{envId}, /applications/{appId}/teams/{teamId}
+// PUT /applications/{id}, /applications/{appId}/environments/{envId}, /applications/{appId}/teams/{teamId}, /applications/{appId}/labels/{labelId}
 applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
@@ -278,6 +303,38 @@ applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
         } catch (Exception e) {
             log.error("Unexpected error in PUT /applications/{appId}/teams/{teamId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{appId}/labels/{labelId}
+    if (pathParts.size() == 3 && pathParts[1] == 'labels') {
+        Integer appId = null
+        Integer labelId = null
+        
+        try {
+            appId = pathParts[0].toInteger()
+            labelId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
+        }
+        
+        try {
+            def success = applicationRepository.associateLabel(appId, labelId)
+            if (success) {
+                return Response.ok(new JsonBuilder([message: "Label associated successfully"]).toString()).build()
+            } else {
+                return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Association already exists"]).toString()).build()
+            }
+            
+        } catch (SQLException e) {
+            log.error("Database error in PUT /applications/{appId}/labels/{labelId}", e)
+            if (e.sqlState == "23503") { // Foreign key constraint violation
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Label not found"]).toString()).build()
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in PUT /applications/{appId}/labels/{labelId}", e)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
         }
     }
@@ -389,6 +446,35 @@ applications(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
         } catch (Exception e) {
             log.error("Unexpected error in DELETE /applications/{appId}/teams/{teamId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{appId}/labels/{labelId}
+    if (pathParts.size() == 3 && pathParts[1] == 'labels') {
+        Integer appId = null
+        Integer labelId = null
+        
+        try {
+            appId = pathParts[0].toInteger()
+            labelId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
+        }
+        
+        try {
+            def success = applicationRepository.disassociateLabel(appId, labelId)
+            if (success) {
+                return Response.ok(new JsonBuilder([message: "Label disassociated successfully"]).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Association not found"]).toString()).build()
+            }
+            
+        } catch (SQLException e) {
+            log.error("Database error in DELETE /applications/{appId}/labels/{labelId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in DELETE /applications/{appId}/labels/{labelId}", e)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
         }
     }

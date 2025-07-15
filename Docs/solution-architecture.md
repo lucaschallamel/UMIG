@@ -3,7 +3,7 @@
 **Version:** 2025-07-15  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 26 archived ADRs. For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Teams association management, Environment search functionality, Modal consistency patterns, State management fixes
+**Latest Updates:** Applications label management, Teams association management, Environment search functionality, Modal consistency patterns, State management fixes
 
 ## Consolidated ADR Reference
 
@@ -197,7 +197,7 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 - **Complete Administration System:** Comprehensive interface for managing Users, Teams, Environments, Applications, Labels, and all master/instance entities
 - **SPA Pattern Implementation:** Single JavaScript controller (`admin-gui.js`) managing all entities through dynamic routing and content loading
 - **Entity Configuration:** Centralized entity definitions with field specifications, validation rules, and UI behavior
-- **Association Management:** Modal-based interfaces for managing many-to-many relationships (e.g., environment-application, environment-iteration associations)
+- **Association Management:** Modal-based interfaces for managing many-to-many relationships (e.g., environment-application, environment-iteration, application-label associations)
 - **Custom Confirmation Dialogs:** Promise-based confirmation system replacing native `confirm()` to prevent UI flickering issues during destructive operations
 - **Notification System:** User feedback through slide-in/slide-out notifications with automatic dismissal
 - **Role-Based Access Control:** Navigation sections dynamically shown based on user roles (SUPERADMIN, ADMIN, PILOT)
@@ -281,6 +281,33 @@ if (confirmed) {
 - **Reliable Event Handling:** Avoids timing conflicts with notification systems and modal state management
 - **High Z-Index:** Ensures dialog appears above all other elements including existing modals
 - **Blocking Design:** Prevents user interaction with underlying UI until confirmation is provided
+
+#### Field Name Transformation Pattern (July 2025)
+
+Different API endpoints may return different field naming conventions for the same entity type. This is particularly evident in the Labels API:
+
+##### Issue
+- The generic `/labels` endpoint returns transformed field names: `{ id, name, description, color }`
+- Entity-specific endpoints like `/applications/{id}/labels` return database column names: `{ lbl_id, lbl_name, lbl_color }`
+
+##### Solution
+Frontend code must handle both naming conventions when consuming API responses:
+
+```javascript
+// When populating dropdowns with all labels
+this.createSelectOptions(allLabels, 'id', 'name')  // Uses transformed names
+
+// When displaying application-specific labels
+labels.forEach(label => {
+    // Uses database column names
+    html += `<span style="background-color: ${label.lbl_color}">${label.lbl_name}</span>`;
+});
+```
+
+##### Best Practice
+- Always check the actual API response format before accessing fields
+- Consider standardizing API responses across all endpoints in future iterations
+- Document field name transformations in API documentation
 
 ---
 
