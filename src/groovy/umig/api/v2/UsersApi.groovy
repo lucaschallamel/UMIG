@@ -50,6 +50,18 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             return Response.ok(new JsonBuilder(user).toString()).build()
         } else {
+            // Check for userCode authentication parameter
+            def userCode = queryParams.getFirst('userCode')
+            if (userCode) {
+                // Find user by userCode for authentication
+                def user = userRepository.findUserByCode(userCode as String)
+                if (user) {
+                    return Response.ok(new JsonBuilder([user]).toString()).build()
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with code ${userCode} not found."]).toString()).build()
+                }
+            }
+            
             // Extract pagination parameters
             def page = queryParams.getFirst('page')
             def size = queryParams.getFirst('size')
@@ -252,7 +264,9 @@ users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([
             error: "Database error occurred during update.",
             details: e.getMessage(),
-            sqlState: e.getSQLState()
+            sqlState: e.getSQLState(),
+            userData: userData,
+            stackTrace: e.getStackTrace().take(5).collect { it.toString() }
         ]).toString()).build()
     } catch (Exception e) {
         log.error("Unexpected error in PUT /users/${userId}", e)

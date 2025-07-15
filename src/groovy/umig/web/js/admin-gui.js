@@ -49,6 +49,7 @@
                 teams: '/teams',
                 environments: '/environments',
                 applications: '/applications',
+                iterations: '/iterations',
                 labels: '/labels',
                 migrations: '/migrations',
                 stepView: '/stepViewApi'
@@ -125,6 +126,29 @@
                     'app_count': 'app_count'
                 },
                 permissions: ['superadmin']
+            },
+            environments: {
+                name: 'Environments',
+                description: 'Manage environments and their associations with applications and iterations',
+                fields: [
+                    { key: 'env_id', label: 'ID', type: 'number', readonly: true },
+                    { key: 'env_code', label: 'Environment Code', type: 'text', required: true, maxLength: 10 },
+                    { key: 'env_name', label: 'Environment Name', type: 'text', required: true, maxLength: 64 },
+                    { key: 'env_description', label: 'Description', type: 'textarea' },
+                    { key: 'application_count', label: 'Applications', type: 'number', readonly: true, computed: true },
+                    { key: 'iteration_count', label: 'Iterations', type: 'number', readonly: true, computed: true }
+                ],
+                tableColumns: ['env_id', 'env_code', 'env_name', 'env_description', 'application_count', 'iteration_count'],
+                // Map display column names to database column names for sorting
+                sortMapping: {
+                    'env_id': 'env_id',
+                    'env_code': 'env_code',
+                    'env_name': 'env_name',
+                    'env_description': 'env_description',
+                    'application_count': 'application_count',
+                    'iteration_count': 'iteration_count'
+                },
+                permissions: ['superadmin']
             }
             // Other entities will be added as needed
         },
@@ -134,6 +158,34 @@
             console.log('UMIG Admin GUI initializing...');
             this.bindEvents();
             this.initializeLogin();
+        },
+
+        // Show notification message
+        showNotification: function(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#00875A' : type === 'error' ? '#DE350B' : '#0052CC'};
+                color: white;
+                border-radius: 4px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         },
 
         // Bind all event listeners
@@ -593,10 +645,21 @@
                 // Actions column
                 const actionsTd = document.createElement('td');
                 actionsTd.className = 'action-buttons';
-                actionsTd.innerHTML = `
+                
+                // Add view details button for environments
+                let actionsHtml = '';
+                if (this.state.currentEntity === 'environments') {
+                    actionsHtml = `
+                        <button class="btn-table-action btn-view" data-action="view" data-id="${record[entity.fields[0].key]}" title="View Details">👁️</button>
+                    `;
+                }
+                
+                actionsHtml += `
                     <button class="btn-table-action btn-edit" data-action="edit" data-id="${record[entity.fields[0].key]}" title="Edit">✏️</button>
                     <button class="btn-table-action btn-delete" data-action="delete" data-id="${record[entity.fields[0].key]}" title="Delete">🗑️</button>
                 `;
+                
+                actionsTd.innerHTML = actionsHtml;
                 tr.appendChild(actionsTd);
 
                 tbody.appendChild(tr);
@@ -840,6 +903,11 @@
         bindTableEvents: function() {
             // Table action buttons
             document.addEventListener('click', (e) => {
+                if (e.target.matches('[data-action="view"]')) {
+                    const id = e.target.getAttribute('data-id');
+                    this.showEnvironmentDetails(id);
+                }
+                
                 if (e.target.matches('[data-action="edit"]')) {
                     const id = e.target.getAttribute('data-id');
                     this.showEditModal(id);
@@ -921,6 +989,25 @@
             const record = id ? data.find(r => r[entity.fields[0].key] == id) : {};
             
             formFields.innerHTML = '';
+            
+            // Add association management for environments (only when editing)
+            if (this.state.currentEntity === 'environments' && id) {
+                const associationDiv = document.createElement('div');
+                associationDiv.className = 'form-group association-management';
+                associationDiv.innerHTML = `
+                    <label>Manage Associations</label>
+                    <div class="association-buttons">
+                        <button type="button" class="btn-primary" onclick="adminGui.showAssociateApplicationModal(${id})">Associate Application</button>
+                        <button type="button" class="btn-primary" onclick="adminGui.showAssociateIterationModal(${id})">Associate Iteration</button>
+                    </div>
+                `;
+                formFields.appendChild(associationDiv);
+                
+                // Add separator
+                const separator = document.createElement('hr');
+                separator.style.margin = '20px 0';
+                formFields.appendChild(separator);
+            }
             
             entity.fields.forEach(field => {
                 if (field.readonly && !id) return; // Skip readonly fields for new records
@@ -1237,6 +1324,369 @@
         hideConfirmModal: function() {
             const modal = document.getElementById('confirmModal');
             modal.style.display = 'none';
+        },
+
+        // Show environment details modal
+        showEnvironmentDetails: function(envId) {
+            const modal = document.getElementById('envDetailsModal');
+            const title = document.getElementById('envDetailsTitle');
+            const content = document.getElementById('envDetailsContent');
+            
+            // Show loading state
+            content.innerHTML = '<p>Loading environment details...</p>';
+            modal.style.display = 'flex';
+            
+            // Fetch environment details
+            const url = `${this.api.baseUrl}${this.api.endpoints.environments}/${envId}`;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(environment => {
+                title.textContent = `Environment: ${environment.env_name} (${environment.env_code})`;
+                
+                // Build details HTML
+                let html = '<div class="env-details">';
+                
+                // Basic info
+                html += '<div class="detail-section">';
+                html += '<h4>Basic Information</h4>';
+                html += `<p><strong>Code:</strong> ${environment.env_code}</p>`;
+                html += `<p><strong>Name:</strong> ${environment.env_name}</p>`;
+                html += `<p><strong>Description:</strong> ${environment.env_description || 'N/A'}</p>`;
+                html += '</div>';
+                
+                // Applications
+                html += '<div class="detail-section">';
+                html += '<h4>Associated Applications</h4>';
+                if (environment.applications && environment.applications.length > 0) {
+                    html += '<ul>';
+                    environment.applications.forEach(app => {
+                        html += `<li>${app.app_name} (${app.app_code})</li>`;
+                    });
+                    html += '</ul>';
+                } else {
+                    html += '<p>No applications associated</p>';
+                }
+                html += '</div>';
+                
+                // Fetch iterations grouped by role
+                return fetch(`${this.api.baseUrl}${this.api.endpoints.environments}/${envId}/iterations`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Atlassian-Token': 'no-check'
+                    },
+                    credentials: 'same-origin'
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.text().then(text => {
+                                throw new Error(`HTTP ${response.status}: ${text}`);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(iterationsByRole => {
+                        // Iterations by role
+                        html += '<div class="detail-section">';
+                        html += '<h4>Iterations by Role</h4>';
+                        
+                        if (Object.keys(iterationsByRole).length > 0) {
+                            Object.keys(iterationsByRole).forEach(roleName => {
+                                const roleData = iterationsByRole[roleName];
+                                html += `<div class="role-group">`;
+                                html += `<h5>${roleName} - ${roleData.role_description}</h5>`;
+                                html += '<ul>';
+                                roleData.iterations.forEach(iteration => {
+                                    const statusClass = iteration.ite_status ? iteration.ite_status.toLowerCase() : '';
+                                    html += `<li>${iteration.ite_name} (${iteration.ite_type}) <span class="status-badge status-${statusClass}">${iteration.ite_status || 'N/A'}</span></li>`;
+                                });
+                                html += '</ul>';
+                                html += '</div>';
+                            });
+                        } else {
+                            html += '<p>No iterations associated</p>';
+                        }
+                        html += '</div>';
+                        
+                        // Add association buttons
+                        html += '<div class="detail-section">';
+                        html += '<h4>Manage Associations</h4>';
+                        html += '<div class="association-buttons">';
+                        html += `<button class="btn-primary" onclick="adminGui.showAssociateApplicationModal(${envId})">Associate Application</button>`;
+                        html += `<button class="btn-primary" onclick="adminGui.showAssociateIterationModal(${envId})">Associate Iteration</button>`;
+                        html += '</div>';
+                        html += '</div>';
+                        
+                        html += '</div>';
+                        content.innerHTML = html;
+                    });
+            })
+            .catch(error => {
+                console.error('Error loading environment details:', error);
+                content.innerHTML = `<p class="error">Failed to load environment details: ${error.message}</p>`;
+            });
+            
+            // Store environment ID for later use
+            this.currentEnvironmentId = envId;
+            
+            // Close button event
+            const closeBtn = document.getElementById('closeEnvDetailsBtn');
+            const closeX = document.getElementById('closeEnvDetails');
+            
+            const closeHandler = () => {
+                modal.style.display = 'none';
+            };
+            
+            closeBtn.onclick = closeHandler;
+            closeX.onclick = closeHandler;
+            
+            // Close on overlay click
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    closeHandler();
+                }
+            };
+        },
+
+        // Show modal to associate application with environment
+        showAssociateApplicationModal: function(envId) {
+            // Create a simple modal for application association
+            const modalHtml = `
+                <div id="associateAppModal" class="modal-overlay" style="display: flex;">
+                    <div class="modal modal-small">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Associate Application</h3>
+                            <button class="modal-close" onclick="document.getElementById('associateAppModal').remove()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="appSelect">Select Application</label>
+                                <select id="appSelect" class="form-control">
+                                    <option value="">Loading applications...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="document.getElementById('associateAppModal').remove()">Cancel</button>
+                            <button class="btn-primary" onclick="adminGui.associateApplication(${envId})">Associate</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Load applications
+            fetch(`${this.api.baseUrl}${this.api.endpoints.applications}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(applications => {
+                const select = document.getElementById('appSelect');
+                select.innerHTML = '<option value="">-- Select an application --</option>';
+                applications.forEach(app => {
+                    select.innerHTML += `<option value="${app.app_id}">${app.app_name} (${app.app_code})</option>`;
+                });
+            })
+            .catch(error => {
+                console.error('Error loading applications:', error);
+                document.getElementById('appSelect').innerHTML = '<option value="">Error loading applications</option>';
+            });
+        },
+
+        // Show modal to associate iteration with environment
+        showAssociateIterationModal: function(envId) {
+            // Create a modal for iteration association with role selection
+            const modalHtml = `
+                <div id="associateIterModal" class="modal-overlay" style="display: flex;">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Associate Iteration</h3>
+                            <button class="modal-close" onclick="document.getElementById('associateIterModal').remove()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="iterSelect">Select Iteration</label>
+                                <select id="iterSelect" class="form-control">
+                                    <option value="">Loading iterations...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="roleSelect">Select Environment Role</label>
+                                <select id="roleSelect" class="form-control">
+                                    <option value="">Loading roles...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="document.getElementById('associateIterModal').remove()">Cancel</button>
+                            <button class="btn-primary" onclick="adminGui.associateIteration(${envId})">Associate</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Load iterations
+            fetch(`${this.api.baseUrl}${this.api.endpoints.iterations}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(iterations => {
+                const select = document.getElementById('iterSelect');
+                select.innerHTML = '<option value="">-- Select an iteration --</option>';
+                iterations.forEach(iter => {
+                    select.innerHTML += `<option value="${iter.ite_id}">${iter.ite_name} (${iter.itt_code})</option>`;
+                });
+            })
+            .catch(error => {
+                console.error('Error loading iterations:', error);
+                document.getElementById('iterSelect').innerHTML = '<option value="">Error loading iterations</option>';
+            });
+            
+            // Load environment roles
+            fetch(`${this.api.baseUrl}${this.api.endpoints.environments}/roles`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(roles => {
+                const select = document.getElementById('roleSelect');
+                select.innerHTML = '<option value="">-- Select a role --</option>';
+                roles.forEach(role => {
+                    select.innerHTML += `<option value="${role.enr_id}">${role.enr_name} - ${role.enr_description}</option>`;
+                });
+            })
+            .catch(error => {
+                console.error('Error loading roles:', error);
+                document.getElementById('roleSelect').innerHTML = '<option value="">Error loading roles</option>';
+            });
+        },
+
+        // Associate application with environment
+        associateApplication: function(envId) {
+            const appId = document.getElementById('appSelect').value;
+            if (!appId) {
+                alert('Please select an application');
+                return;
+            }
+            
+            fetch(`${this.api.baseUrl}${this.api.endpoints.environments}/${envId}/applications/${appId}`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                // Remove modal
+                document.getElementById('associateAppModal').remove();
+                // Refresh environment details if visible
+                const envDetailsModal = document.getElementById('envDetailsModal');
+                if (envDetailsModal.style.display === 'flex') {
+                    this.showEnvironmentDetails(envId);
+                }
+                // Refresh edit form if visible
+                const editModal = document.getElementById('editModal');
+                if (editModal.style.display === 'flex') {
+                    this.renderEditForm(envId);
+                }
+                this.showNotification('Application associated successfully', 'success');
+            })
+            .catch(error => {
+                console.error('Error associating application:', error);
+                alert(`Failed to associate application: ${error.message}`);
+            });
+        },
+
+        // Associate iteration with environment
+        associateIteration: function(envId) {
+            const iterationId = document.getElementById('iterSelect').value;
+            const roleId = document.getElementById('roleSelect').value;
+            
+            if (!iterationId || !roleId) {
+                alert('Please select both an iteration and a role');
+                return;
+            }
+            
+            fetch(`${this.api.baseUrl}${this.api.endpoints.environments}/${envId}/iterations/${iterationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ enr_id: parseInt(roleId) })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(result => {
+                // Remove modal
+                document.getElementById('associateIterModal').remove();
+                // Refresh environment details if visible
+                const envDetailsModal = document.getElementById('envDetailsModal');
+                if (envDetailsModal.style.display === 'flex') {
+                    this.showEnvironmentDetails(envId);
+                }
+                // Refresh edit form if visible
+                const editModal = document.getElementById('editModal');
+                if (editModal.style.display === 'flex') {
+                    this.renderEditForm(envId);
+                }
+                this.showNotification('Iteration associated successfully', 'success');
+            })
+            .catch(error => {
+                console.error('Error associating iteration:', error);
+                alert(`Failed to associate iteration: ${error.message}`);
+            });
         },
 
         // Handle delete button in edit modal

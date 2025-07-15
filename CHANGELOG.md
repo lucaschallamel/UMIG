@@ -1,5 +1,95 @@
 ### [Unreleased]
 
+#### 2025-01-15 (API Documentation and OpenAPI Updates)
+- **Docs(API):** Created comprehensive UsersAPI.md specification
+  - Documented all 5 endpoints with detailed request/response schemas
+  - Added query parameter documentation for pagination, filtering, and sorting
+  - Included error response details with SQL state codes and examples
+  - Added implementation notes on type safety, pagination, and search functionality
+- **Fix(OpenAPI):** Updated OpenAPI specification for accuracy
+  - Fixed User schema to use integer IDs and correct field names (usr_first_name, usr_last_name)
+  - Added missing UserInput schema for create/update operations
+  - Fixed Team schema to use correct database field names (tms_id, tms_name, tms_email)
+  - Updated all team-related endpoints to use integer IDs instead of UUIDs
+- **Docs(API):** Updated TeamsAPI.md for consistency
+  - Changed path parameter types from UUID to integer
+  - Updated request/response schemas to use database field names
+  - Fixed example responses to show correct field structure
+- **Feat(Testing):** Regenerated Postman collection
+  - Updated collection includes all Users API endpoints
+  - Team endpoints now use correct field names and ID types
+  - All request bodies match the actual database schema
+
+#### 2025-07-15 (Admin GUI Bug Fixes and UX Improvements)
+- **Fix(UI):** Resolved multiple critical issues in Admin GUI functionality
+  - Fixed View modal to display ALL user attributes instead of just ID/timestamps
+  - Corrected Edit modal error messages - now shows "Update" errors instead of "Create"
+  - Resolved 500 Internal Server Error on user updates by implementing proper type conversion
+  - Fixed missing primary key field (usr_id) in edit forms causing update failures
+- **Fix(Styling):** Restored colored role and status badges
+  - Recreated missing CSS styles for role badges (Super Admin, Admin, User, Pilot, No Role)
+  - Added status badges (Active/Inactive) with proper color coding
+  - Implemented rounded corners and consistent styling across all badges
+- **Fix(Pagination):** Fixed missing pagination controls and page size selector
+  - Resolved DOM structure issues where pagination was being overwritten
+  - Fixed page size dropdown (25/50/100) to properly communicate with API
+  - Corrected API parameter naming (pageSize → size) to match backend expectations
+  - Preserved pagination HTML structure during table updates
+- **Fix(Authentication):** Resolved login flow errors
+  - Fixed "Cannot read properties of undefined (reading 'baseUrl')" error
+  - Added proper context binding for ApiClient methods
+  - Implemented initialization delay to ensure modules are ready
+- **Fix(Error Handling):** Enhanced error messaging throughout the system
+  - Delete operations now show specific API error messages instead of generic text
+  - Example: "Cannot delete user with ID 56 as they are still referenced by other resources"
+  - Fixed JSON parsing errors on successful DELETE operations (204 No Content)
+  - Added proper handling for empty response bodies
+- **Refactor(JavaScript):** Major refactoring of admin-gui.js into modular components
+  - Split 1,901-line file into 8 focused modules:
+    - EntityConfig.js: Entity configurations and field definitions
+    - UiUtils.js: Utility functions and UI helpers
+    - AdminGuiState.js: State management and data caching
+    - ApiClient.js: API communication and error handling
+    - AuthenticationManager.js: Login and session management
+    - TableManager.js: Table rendering and pagination
+    - ModalManager.js: Modal dialogs and form handling
+    - AdminGuiController.js: Main orchestration and initialization
+  - Improved maintainability and code organization
+  - Enhanced error handling and type safety throughout
+
+#### 2025-07-15 (Environments Management for Admin GUI - Enhanced)
+- **Feat(Repository):** Created comprehensive EnvironmentRepository for environment data management
+  - Implemented full CRUD operations for environments with proper error handling
+  - Added methods to retrieve application and iteration counts with SQL aggregation
+  - Created association/disassociation methods for managing environment relationships
+  - Implemented `getIterationsByEnvironmentGroupedByRole()` for role-based iteration grouping
+  - Added blocking relationship checks for safe deletion with detailed reporting
+  - Fixed SQL query to use correct `itt_code` column for iteration types
+- **Feat(API):** Created EnvironmentsApi REST endpoint following v2 API patterns
+  - GET /environments - List all environments with application/iteration counts and pagination support
+  - GET /environments/{id} - Retrieve single environment with full relationship details
+  - GET /environments/{id}/iterations - Get iterations grouped by environment role
+  - GET /environments/roles - List all available environment roles
+  - POST/PUT/DELETE operations with proper constraint violation handling
+  - Association endpoints for managing application and iteration relationships
+  - Fixed static type checking issues by removing @Field annotations and logging
+  - Added ApplicationsApi for listing applications in association dialogs
+- **Feat(UI):** Enhanced Admin GUI with complete environments management
+  - Added environments entity configuration with proper field definitions and sorting mappings
+  - Implemented view details modal showing applications and iterations grouped by role
+  - Added association management features with modal dialogs:
+    - Associate Application button with dropdown selection
+    - Associate Iteration button with role selection
+  - Created notification system with slide-in/slide-out animations
+  - Enhanced CSS with better selected menu state visibility (white text)
+  - Added comprehensive error handling and user feedback
+  - Integrated with existing SPA navigation and dynamic content loading patterns
+- **Feat(Admin):** Completed third major entity management screen
+  - Environments join Users and Teams as fully implemented admin entities
+  - Consistent UI/UX patterns across all management screens
+  - Feature parity with CRUD operations, pagination, search, sorting, and associations
+  - Added support for many-to-many relationship management through intuitive UI
+
 #### 2025-07-14 (Admin GUI System and Enhanced Error Handling)
 - **Feat(UI):** Complete Admin GUI system implementation with SPA pattern
   - Created comprehensive administration interface for managing users, teams, applications, environments

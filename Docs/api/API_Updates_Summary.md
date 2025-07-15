@@ -1,111 +1,103 @@
-# API Documentation Updates Summary
+# API Updates Summary
 
-## Overview
-Updated UMIG API documentation to reflect the new hierarchical filtering capabilities for Teams and Labels APIs.
+This document provides a concise overview of recent API updates and changes to the UMIG API v2.
 
-## Changes Made
+## Recent Updates
 
-### 1. OpenAPI Specification (`openapi.yaml`)
+### 2025-07-15: Environments API
+- **New API**: Complete environments management system
+- **Endpoints Added**:
+  - `GET /environments` - List all environments with counts (supports pagination, search, sort)
+  - `GET /environments/roles` - Get all environment roles
+  - `GET /environments/{id}` - Get environment details
+  - `POST /environments` - Create new environment
+  - `PUT /environments/{id}` - Update environment
+  - `DELETE /environments/{id}` - Delete environment (with blocking relationship checks)
+  - `GET /environments/{id}/iterations` - Get iterations grouped by role
+  - `POST /environments/{id}/applications/{appId}` - Associate application
+  - `DELETE /environments/{id}/applications/{appId}` - Remove application association
+  - `POST /environments/{id}/iterations/{iteId}` - Associate iteration with role
+  - `DELETE /environments/{id}/iterations/{iteId}` - Remove iteration association
+- **Features**:
+  - Complete CRUD operations for environments
+  - Many-to-many relationship management with applications and iterations
+  - Environment role support for iterations
+  - Comprehensive error handling with blocking relationship detection
+  - Admin GUI integration with counts display
+- **Implementation**: See `EnvironmentsApi.groovy` and `EnvironmentRepository.groovy`
 
-#### Teams API Updates
-- **Enhanced `/teams` endpoint** with hierarchical filtering query parameters:
-  - `migrationId` - Filter teams by migration ID
-  - `iterationId` - Filter teams by iteration ID  
-  - `planId` - Filter teams by plan instance ID
-  - `sequenceId` - Filter teams by sequence instance ID
-  - `phaseId` - Filter teams by phase instance ID
-- **Updated description** to reflect hierarchical filtering capability
-- **Added 400 Bad Request** response for invalid UUID formats
+### 2025-07-10: Teams API Hierarchical Filtering
+- **Endpoint**: `GET /teams`
+- **New Feature**: Added hierarchical filtering support
+- **Query Parameters Added**:
+  - `?migrationId={uuid}` - Filter teams by migration
+  - `?iterationId={uuid}` - Filter teams by iteration
+  - `?planId={uuid}` - Filter teams by plan instance
+  - `?sequenceId={uuid}` - Filter teams by sequence instance
+  - `?phaseId={uuid}` - Filter teams by phase instance
+- **Implementation**: See `TeamsApi.groovy` for reference implementation
+- **Pattern**: Following ADR-030 hierarchical filtering pattern
 
-#### Labels API Addition
-- **Added new `/labels` endpoint** with full hierarchical filtering support
-- **Created Label schema** with properties: id, name, description, color
-- **Added Labels tag** to API categorization
-- **Same query parameters** as Teams API for consistency
+### 2025-07-10: Labels API Hierarchical Filtering
+- **Endpoint**: `GET /labels`
+- **New Feature**: Added hierarchical filtering support
+- **Query Parameters Added**:
+  - `?migrationId={uuid}` - Filter labels by migration
+  - `?iterationId={uuid}` - Filter labels by iteration
+  - `?planId={uuid}` - Filter labels by plan instance
+  - `?sequenceId={uuid}` - Filter labels by sequence instance
+  - `?phaseId={uuid}` - Filter labels by phase instance
+- **Implementation**: See `LabelsApi.groovy` for reference implementation
+- **Pattern**: Following ADR-030 hierarchical filtering pattern
 
-### 2. Individual API Specifications
+## Technical Standards
 
-#### Teams API (`TeamsAPI.md`)
-- **Comprehensive specification** following the project template
-- **Detailed query parameters** documentation
-- **Request/response examples** with actual data
-- **Error handling** documentation with specific error codes
-- **Database relationships** explanation
-- **Business logic** documentation including progressive filtering
-
-#### Labels API (`LabelsAPI.md`)
-- **Complete specification** for new Labels API
-- **Detailed explanation** of STI→STM→Labels relationship path
-- **Progressive filtering** documentation
-- **Authentication and security** requirements
-- **Database dependencies** comprehensive list
-
-### 3. Documentation Index (`README.md`)
-- **Added API Specifications section** with links to individual docs
-- **Hierarchical Filtering explanation** with level-by-level breakdown
-- **Progressive filtering** concept documentation
-- **Cross-references** to related APIs
-
-## Key Features Documented
-
-### Hierarchical Filtering
-- **Migration Level**: Shows teams/labels involved in entire migration
-- **Iteration Level**: Shows teams/labels involved in specific iteration
-- **Plan Level**: Shows teams/labels involved in specific plan instance
-- **Sequence Level**: Shows teams/labels involved in specific sequence instance
-- **Phase Level**: Shows teams/labels involved in specific phase instance
-
-### Progressive Filtering Results
-- **Teams**: 18 → 18 → 18 → 12 → 5 (migration to phase level)
-- **Labels**: 24 → 19 → 19 → 19 → 4 → 2 (total to phase level)
-
-### Database Relationships
-- **Teams**: Uses `steps_master_stm_x_teams_tms_impacted` for team-step relationships
-- **Labels**: Uses `labels_lbl_x_steps_master_stm` for label-step relationships
-- **Instance Handling**: Properly documented instance→master table relationships
-
-## Technical Details
-
-### Field Mapping
-- **Teams**: `tms_id` → `id`, `tms_name` → `name`
-- **Labels**: `lbl_id` → `id`, `lbl_name` → `name`
+### Type Safety (ADR-031)
+- **Mandatory**: Explicit casting for all query parameters
+- **UUID Parameters**: `UUID.fromString(param as String)`
+- **Integer Parameters**: `Integer.parseInt(param as String)`
+- **Null Handling**: Check for null before casting
 
 ### Error Handling
-- **400 Bad Request**: Invalid UUID format
-- **404 Not Found**: Entity not found
-- **409 Conflict**: Resource conflict (teams only)
+- **400 Bad Request**: Invalid parameters, type errors, missing required fields
+- **404 Not Found**: Resource not found
+- **409 Conflict**: Duplicate entries, deletion blocked by relationships
 - **500 Internal Server Error**: Database errors
 
-### Security
-- **Authentication**: Confluence Basic Authentication
-- **Authorization**: confluence-users, confluence-administrators
-- **Input Validation**: UUID format validation
-- **SQL Injection Prevention**: Parameterized queries
+### Database Access
+- **Pattern**: Repository pattern with `DatabaseUtil.withSql`
+- **Instance IDs**: Use instance IDs (pli_id, sqi_id, phi_id) for filtering
+- **Field Selection**: Include ALL fields referenced in result mapping
 
 ## Files Created/Updated
 
-### Created
-- `/docs/api/TeamsAPI.md` - Teams API specification
-- `/docs/api/LabelsAPI.md` - Labels API specification
-- `/docs/api/API_Updates_Summary.md` - This summary
+### 2025-07-15 Updates
+- **Created**: `/docs/api/EnvironmentsAPI.md` - Environments API specification
+- **Created**: `/src/groovy/umig/api/v2/EnvironmentsApi.groovy` - API implementation
+- **Created**: `/src/groovy/umig/repository/EnvironmentRepository.groovy` - Data access layer
+- **Updated**: `/docs/api/openapi.yaml` - Added Environments endpoints and schemas
+- **Updated**: `/docs/api/postman/UMIG_API_V2_Collection.postman_collection.json` - Regenerated
 
-### Updated
-- `/docs/api/openapi.yaml` - OpenAPI specification
-- `/docs/api/README.md` - API documentation index
+### 2025-07-10 Updates
+- **Created**: `/docs/api/TeamsAPI.md` - Teams API specification
+- **Created**: `/docs/api/LabelsAPI.md` - Labels API specification
+- **Updated**: `/docs/api/openapi.yaml` - OpenAPI specification
+- **Updated**: `/docs/api/README.md` - API documentation index
 
-## Validation
+## Validation Checklist
 - ✅ **OpenAPI YAML syntax** validated successfully
 - ✅ **Schema consistency** verified
-- ✅ **Cross-references** validated
+- ✅ **Postman collection** regenerated from OpenAPI spec
 - ✅ **Documentation completeness** confirmed
+- ✅ **Type safety patterns** followed (ADR-031)
 
 ## Next Steps
-- Consider documenting remaining APIs (Migrations, Users, StepView)
-- Update Postman collection to reflect new query parameters
-- Add integration tests for hierarchical filtering
-- Consider API versioning strategy for future changes
+- Consider documenting remaining APIs (Plans, Sequences, Phases, Instructions)
+- Add integration tests for new Environments API
+- Update developer journal with implementation details
+- Review and test all environment management features in admin GUI
 
 ---
 
-**Last Updated:** 2025-07-09  
+**Last Updated:** 2025-07-15  
 **Author:** Claude AI Assistant

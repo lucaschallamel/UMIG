@@ -334,6 +334,7 @@ UMIG employs a **Canonical vs Instance** pattern:
 
 - `/users` - User management
 - `/teams` - Team management
+- `/environments` - Environment management
 - `/migrations` - Migration selector data
 - `/stepViewApi` - Step view macro data
 - `/plans` - Implementation plan management
@@ -375,6 +376,11 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (July 2025)
+- **Environments Management**: Complete admin GUI entity with CRUD operations and association management
+  - Full repository pattern implementation with relationship counts
+  - REST API endpoints with hierarchical data access
+  - Enhanced UI with view details modal and association features
+  - Integration with applications and iterations through role-based associations
 
 #### Admin GUI System (July 14, 2025)
 - **Complete Admin Interface**: Full SPA-based administration system for managing users, teams, applications, environments

@@ -31,8 +31,9 @@ Individual API specifications are available for detailed documentation:
 ### Core APIs
 - **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
 - **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
+- **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships
+- **[Environments API](EnvironmentsAPI.md)** - Environment management with application and iteration associations
 - **[Migrations API](MigrationsAPI.md)** - Migration and iteration management *(to be documented)*
-- **[Users API](UsersAPI.md)** - User management *(to be documented)*
 
 ### Hierarchical Filtering
 The Teams and Labels APIs support hierarchical filtering based on the migration execution hierarchy:
@@ -46,6 +47,8 @@ This provides progressive filtering where options become more contextually relev
 
 ## API Testing with Postman
 
-A Postman collection is available for testing the API endpoints. This will be updated to reflect the V2 API.
-- Collection: [`postman/UMIG_API_Collection.postman_collection.json`](postman/UMIG_API_Collection.postman_collection.json)
+A Postman collection is available for testing the API endpoints.
+- Collection: [`postman/UMIG_API_V2_Collection.postman_collection.json`](postman/UMIG_API_V2_Collection.postman_collection.json)
 - Usage Instructions: [`postman/README.md`](postman/README.md)
+
+The collection is automatically generated from the OpenAPI specification and includes all V2 API endpoints.

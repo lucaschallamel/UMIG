@@ -1,5 +1,12 @@
 # API Coding Patterns (UMIG)
 
+## Environments API Pattern (2025-07-15)
+- Complete REST API implementation for environments with full CRUD operations
+- Association management endpoints for applications and iterations with role-based relationships
+- **IMPORTANT**: Remove @Field annotations and avoid Logger imports in ScriptRunner REST endpoints
+- Implement proper authentication headers: `X-Atlassian-Token: no-check` and `credentials: same-origin`
+- Handle many-to-many associations with proper POST/DELETE endpoints
+
 ## Hierarchical Filtering and Type Safety (2025-07-10)
 - All hierarchical filtering endpoints support query parameters: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`
 - **MANDATORY**: Use explicit type casting for all parameter conversions: `UUID.fromString(id as String)`, `Integer.parseInt(id as String)`

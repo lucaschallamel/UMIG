@@ -73,7 +73,7 @@ return """
     </div>
 
     <!-- Main Admin Dashboard -->
-    <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+    <div id="dashboardPage" class="admin-dashboard" style="display: none;">
         
         <!-- Header Section -->
         <header class="admin-header">
@@ -84,8 +84,8 @@ return """
             <div class="header-right">
                 <div class="user-info">
                     <div class="user-details">
-                        <span class="user-name" id="currentUserName">Welcome</span>
-                        <span class="user-role" id="currentUserRole"></span>
+                        <span class="user-name" id="userName">Welcome</span>
+                        <span class="user-role" id="userRole"></span>
                     </div>
                     <div class="user-actions">
                         <button id="userProfileBtn" class="btn-icon" title="User Profile">
@@ -202,7 +202,7 @@ return """
                             <span class="btn-icon">🔄</span> Refresh
                         </button>
                         <button class="btn-primary" id="addNewBtn">
-                            <span class="btn-icon">➕</span> Add New User
+                            <span class="btn-icon">➕</span> <span id="addNewBtnText">Add New User</span>
                         </button>
                     </div>
                 </div>
@@ -264,7 +264,7 @@ return """
                         </div>
 
                         <!-- Table Footer with Pagination -->
-                        <div class="table-footer">
+                        <div class="table-footer" id="paginationContainer">
                             <div class="pagination-info">
                                 <span id="paginationInfo">Loading...</span>
                             </div>
@@ -332,6 +332,24 @@ return """
         </div>
     </div>
 
+    <!-- Environment Details Modal -->
+    <div id="envDetailsModal" class="modal-overlay" style="display: none;">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title" id="envDetailsTitle">Environment Details</h3>
+                <button class="modal-close" id="closeEnvDetails" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="envDetailsContent">
+                    <!-- Dynamic content populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="closeEnvDetailsBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Confluence User Context for JavaScript -->
@@ -356,5 +374,29 @@ return """
 
 <!-- Load CSS and JavaScript -->
 <link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css">
-<script src="${webResourcesPath}/js/admin-gui.js"></script>
+
+<!-- Load JavaScript modules in dependency order -->
+<script src="${webResourcesPath}/js/EntityConfig.js"></script>
+<script src="${webResourcesPath}/js/UiUtils.js"></script>
+<script src="${webResourcesPath}/js/AdminGuiState.js"></script>
+<script src="${webResourcesPath}/js/ApiClient.js"></script>
+<script src="${webResourcesPath}/js/AuthenticationManager.js"></script>
+<script src="${webResourcesPath}/js/TableManager.js"></script>
+<script src="${webResourcesPath}/js/ModalManager.js"></script>
+<script src="${webResourcesPath}/js/AdminGuiController.js"></script>
+
+<!-- Debug script to help troubleshoot -->
+<script>
+console.log('UMIG Admin GUI Debug Info:');
+console.log('- EntityConfig loaded:', !!window.EntityConfig);
+console.log('- UiUtils loaded:', !!window.UiUtils);
+console.log('- AdminGuiState loaded:', !!window.AdminGuiState);
+console.log('- ApiClient loaded:', !!window.ApiClient);
+console.log('- AuthenticationManager loaded:', !!window.AuthenticationManager);
+console.log('- TableManager loaded:', !!window.TableManager);
+console.log('- ModalManager loaded:', !!window.ModalManager);
+console.log('- AdminGuiController loaded:', !!window.AdminGuiController);
+console.log('- adminGui global object:', !!window.adminGui);
+console.log('- UMIG_CONFIG:', window.UMIG_CONFIG);
+</script>
 """
