@@ -33,23 +33,78 @@ private Integer getApplicationIdFromPath(HttpServletRequest request) {
     return null
 }
 
-// GET /applications and /applications/{id}
+// GET /applications, /applications/{id}, /applications/{id}/environments, /applications/{id}/teams
 applications(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
+    
+    // Handle /applications/{id}/environments
+    if (pathParts.size() == 2 && pathParts[1] == 'environments') {
+        Integer appId = getApplicationIdFromPath(request)
+        
+        if (appId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
+        }
+        
+        try {
+            def application = applicationRepository.findApplicationById(appId)
+            if (!application) {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${appId} not found."]).toString()).build()
+            }
+            
+            return Response.ok(new JsonBuilder(application.environments).toString()).build()
+            
+        } catch (SQLException e) {
+            log.error("Database error in GET /applications/{id}/environments", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in GET /applications/{id}/environments", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{id}/teams
+    if (pathParts.size() == 2 && pathParts[1] == 'teams') {
+        Integer appId = getApplicationIdFromPath(request)
+        
+        if (appId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
+        }
+        
+        try {
+            def application = applicationRepository.findApplicationById(appId)
+            if (!application) {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${appId} not found."]).toString()).build()
+            }
+            
+            return Response.ok(new JsonBuilder(application.teams).toString()).build()
+            
+        } catch (SQLException e) {
+            log.error("Database error in GET /applications/{id}/teams", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in GET /applications/{id}/teams", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{id}
     Integer appId = getApplicationIdFromPath(request)
 
     // Handle case where path is /applications/{invalid_id}
-    if (getAdditionalPath(request) && appId == null) {
+    if (getAdditionalPath(request) && appId == null && pathParts.size() == 1) {
         return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
     }
 
     try {
-        if (appId != null) {
+        if (appId != null && pathParts.size() == 1) {
             def application = applicationRepository.findApplicationById(appId)
             if (!application) {
                 return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${appId} not found."]).toString()).build()
             }
             return Response.ok(new JsonBuilder(application).toString()).build()
-        } else {
+        } else if (!extraPath || pathParts.size() == 0) {
+            // Handle /applications (list all)
             // Extract pagination parameters
             def page = queryParams.getFirst('page')
             def size = queryParams.getFirst('size')
@@ -105,6 +160,9 @@ applications(httpMethod: "GET", groups: ["confluence-users", "confluence-adminis
             // Get paginated applications
             def result = applicationRepository.findAllApplicationsWithCounts(pageNumber, pageSize, searchTerm, sortField, sortDirection)
             return Response.ok(new JsonBuilder(result).toString()).build()
+        } else {
+            // Unknown path
+            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
         }
     } catch (SQLException e) {
         log.error("Database error in GET /applications", e)
@@ -155,11 +213,79 @@ applications(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
     }
 }
 
-// PUT /applications/{id}
+// PUT /applications/{id}, /applications/{appId}/environments/{envId}, /applications/{appId}/teams/{teamId}
 applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
+    
+    // Handle /applications/{appId}/environments/{envId}
+    if (pathParts.size() == 3 && pathParts[1] == 'environments') {
+        Integer appId = null
+        Integer envId = null
+        
+        try {
+            appId = pathParts[0].toInteger()
+            envId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
+        }
+        
+        try {
+            def success = applicationRepository.associateEnvironment(appId, envId)
+            if (success) {
+                return Response.ok(new JsonBuilder([message: "Environment associated successfully"]).toString()).build()
+            } else {
+                return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Association already exists"]).toString()).build()
+            }
+            
+        } catch (SQLException e) {
+            log.error("Database error in PUT /applications/{appId}/environments/{envId}", e)
+            if (e.sqlState == "23503") { // Foreign key constraint violation
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Environment not found"]).toString()).build()
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in PUT /applications/{appId}/environments/{envId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{appId}/teams/{teamId}
+    if (pathParts.size() == 3 && pathParts[1] == 'teams') {
+        Integer appId = null
+        Integer teamId = null
+        
+        try {
+            appId = pathParts[0].toInteger()
+            teamId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
+        }
+        
+        try {
+            def success = applicationRepository.associateTeam(appId, teamId)
+            if (success) {
+                return Response.ok(new JsonBuilder([message: "Team associated successfully"]).toString()).build()
+            } else {
+                return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Association already exists"]).toString()).build()
+            }
+            
+        } catch (SQLException e) {
+            log.error("Database error in PUT /applications/{appId}/teams/{teamId}", e)
+            if (e.sqlState == "23503") { // Foreign key constraint violation
+                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Team not found"]).toString()).build()
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in PUT /applications/{appId}/teams/{teamId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{id}
     Integer appId = getApplicationIdFromPath(request)
 
-    if (appId == null) {
+    if (appId == null || pathParts.size() != 1) {
         return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
     }
 
@@ -204,11 +330,73 @@ applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
     }
 }
 
-// DELETE /applications/{id}
+// DELETE /applications/{id}, /applications/{appId}/environments/{envId}, /applications/{appId}/teams/{teamId}
 applications(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
+    
+    // Handle /applications/{appId}/environments/{envId}
+    if (pathParts.size() == 3 && pathParts[1] == 'environments') {
+        Integer appId = null
+        Integer envId = null
+        
+        try {
+            appId = pathParts[0].toInteger()
+            envId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
+        }
+        
+        try {
+            def success = applicationRepository.disassociateEnvironment(appId, envId)
+            if (success) {
+                return Response.ok(new JsonBuilder([message: "Environment disassociated successfully"]).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Association not found"]).toString()).build()
+            }
+            
+        } catch (SQLException e) {
+            log.error("Database error in DELETE /applications/{appId}/environments/{envId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in DELETE /applications/{appId}/environments/{envId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{appId}/teams/{teamId}
+    if (pathParts.size() == 3 && pathParts[1] == 'teams') {
+        Integer appId = null
+        Integer teamId = null
+        
+        try {
+            appId = pathParts[0].toInteger()
+            teamId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
+        }
+        
+        try {
+            def success = applicationRepository.disassociateTeam(appId, teamId)
+            if (success) {
+                return Response.ok(new JsonBuilder([message: "Team disassociated successfully"]).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Association not found"]).toString()).build()
+            }
+            
+        } catch (SQLException e) {
+            log.error("Database error in DELETE /applications/{appId}/teams/{teamId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error in DELETE /applications/{appId}/teams/{teamId}", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
+        }
+    }
+    
+    // Handle /applications/{id}
     Integer appId = getApplicationIdFromPath(request)
 
-    if (appId == null) {
+    if (appId == null || pathParts.size() != 1) {
         return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
     }
 
@@ -246,226 +434,6 @@ applications(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
         log.error("Unexpected error in DELETE /applications/{id}", e)
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
     }
-}
-
-// GET /applications/{id}/environments
-applications(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
-    
-    if (pathParts.size() == 2 && pathParts[1] == 'environments') {
-        Integer appId = getApplicationIdFromPath(request)
-        
-        if (appId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
-        }
-        
-        try {
-            def application = applicationRepository.findApplicationById(appId)
-            if (!application) {
-                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${appId} not found."]).toString()).build()
-            }
-            
-            return Response.ok(new JsonBuilder(application.environments).toString()).build()
-            
-        } catch (SQLException e) {
-            log.error("Database error in GET /applications/{id}/environments", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
-        } catch (Exception e) {
-            log.error("Unexpected error in GET /applications/{id}/environments", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
-        }
-    }
-    
-    // If path doesn't match, return 404
-    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
-}
-
-// PUT /applications/{appId}/environments/{envId}
-applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
-    
-    if (pathParts.size() == 3 && pathParts[1] == 'environments') {
-        Integer appId = null
-        Integer envId = null
-        
-        try {
-            appId = pathParts[0].toInteger()
-            envId = pathParts[2].toInteger()
-        } catch (NumberFormatException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
-        }
-        
-        try {
-            def success = applicationRepository.associateEnvironment(appId, envId)
-            if (success) {
-                return Response.ok(new JsonBuilder([message: "Environment associated successfully"]).toString()).build()
-            } else {
-                return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Association already exists"]).toString()).build()
-            }
-            
-        } catch (SQLException e) {
-            log.error("Database error in PUT /applications/{appId}/environments/{envId}", e)
-            if (e.sqlState == "23503") { // Foreign key constraint violation
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Environment not found"]).toString()).build()
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
-        } catch (Exception e) {
-            log.error("Unexpected error in PUT /applications/{appId}/environments/{envId}", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
-        }
-    }
-    
-    // If path doesn't match, return 404
-    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
-}
-
-// DELETE /applications/{appId}/environments/{envId}
-applications(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
-    
-    if (pathParts.size() == 3 && pathParts[1] == 'environments') {
-        Integer appId = null
-        Integer envId = null
-        
-        try {
-            appId = pathParts[0].toInteger()
-            envId = pathParts[2].toInteger()
-        } catch (NumberFormatException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
-        }
-        
-        try {
-            def success = applicationRepository.disassociateEnvironment(appId, envId)
-            if (success) {
-                return Response.ok(new JsonBuilder([message: "Environment disassociated successfully"]).toString()).build()
-            } else {
-                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Association not found"]).toString()).build()
-            }
-            
-        } catch (SQLException e) {
-            log.error("Database error in DELETE /applications/{appId}/environments/{envId}", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
-        } catch (Exception e) {
-            log.error("Unexpected error in DELETE /applications/{appId}/environments/{envId}", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
-        }
-    }
-    
-    // If path doesn't match, return 404
-    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
-}
-
-// GET /applications/{id}/teams
-applications(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
-    
-    if (pathParts.size() == 2 && pathParts[1] == 'teams') {
-        Integer appId = getApplicationIdFromPath(request)
-        
-        if (appId == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Application ID format."]).toString()).build()
-        }
-        
-        try {
-            def application = applicationRepository.findApplicationById(appId)
-            if (!application) {
-                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${appId} not found."]).toString()).build()
-            }
-            
-            return Response.ok(new JsonBuilder(application.teams).toString()).build()
-            
-        } catch (SQLException e) {
-            log.error("Database error in GET /applications/{id}/teams", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
-        } catch (Exception e) {
-            log.error("Unexpected error in GET /applications/{id}/teams", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
-        }
-    }
-    
-    // If path doesn't match, return 404
-    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
-}
-
-// PUT /applications/{appId}/teams/{teamId}
-applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
-    
-    if (pathParts.size() == 3 && pathParts[1] == 'teams') {
-        Integer appId = null
-        Integer teamId = null
-        
-        try {
-            appId = pathParts[0].toInteger()
-            teamId = pathParts[2].toInteger()
-        } catch (NumberFormatException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
-        }
-        
-        try {
-            def success = applicationRepository.associateTeam(appId, teamId)
-            if (success) {
-                return Response.ok(new JsonBuilder([message: "Team associated successfully"]).toString()).build()
-            } else {
-                return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Association already exists"]).toString()).build()
-            }
-            
-        } catch (SQLException e) {
-            log.error("Database error in PUT /applications/{appId}/teams/{teamId}", e)
-            if (e.sqlState == "23503") { // Foreign key constraint violation
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Team not found"]).toString()).build()
-            }
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
-        } catch (Exception e) {
-            log.error("Unexpected error in PUT /applications/{appId}/teams/{teamId}", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
-        }
-    }
-    
-    // If path doesn't match, return 404
-    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
-}
-
-// DELETE /applications/{appId}/teams/{teamId}
-applications(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
-    
-    if (pathParts.size() == 3 && pathParts[1] == 'teams') {
-        Integer appId = null
-        Integer teamId = null
-        
-        try {
-            appId = pathParts[0].toInteger()
-            teamId = pathParts[2].toInteger()
-        } catch (NumberFormatException e) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid ID format."]).toString()).build()
-        }
-        
-        try {
-            def success = applicationRepository.disassociateTeam(appId, teamId)
-            if (success) {
-                return Response.ok(new JsonBuilder([message: "Team disassociated successfully"]).toString()).build()
-            } else {
-                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Association not found"]).toString()).build()
-            }
-            
-        } catch (SQLException e) {
-            log.error("Database error in DELETE /applications/{appId}/teams/{teamId}", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
-        } catch (Exception e) {
-            log.error("Unexpected error in DELETE /applications/{appId}/teams/{teamId}", e)
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred: ${e.message}"]).toString()).build()
-        }
-    }
-    
-    // If path doesn't match, return 404
-    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Endpoint not found"]).toString()).build()
 }
 
 /**
