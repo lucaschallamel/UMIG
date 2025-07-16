@@ -52,7 +52,7 @@ Email templates support Groovy template syntax for dynamic content substitution:
 
 The email service integrates with:
 - **Confluence Mail Server**: For production email sending
-- **MailHog**: For local development testing at http://localhost:8025
+- **MailHog**: For local development testing at <http://localhost:8025>
 
 ## Integration Points
 
