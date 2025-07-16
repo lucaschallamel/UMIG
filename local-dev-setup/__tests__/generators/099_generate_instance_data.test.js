@@ -52,6 +52,13 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
   describe('generateInstanceData', () => {
     const mockUsers = { rows: [{ usr_id: 'user-1' }] };
     const mockIterations = { rows: [{ ite_id: 'ite-1', plm_id: 'plm-1' }] };
+    const mockStatuses = {
+      plan: { rows: [{ sts_name: 'NOT_STARTED' }, { sts_name: 'IN_PROGRESS' }] },
+      sequence: { rows: [{ sts_name: 'PENDING' }, { sts_name: 'ACTIVE' }] },
+      phase: { rows: [{ sts_name: 'DRAFT' }, { sts_name: 'READY' }] },
+      step: { rows: [{ sts_name: 'WAITING' }, { sts_name: 'RUNNING' }] },
+      control: { rows: [{ sts_name: 'PENDING' }, { sts_name: 'PASSED' }] }
+    };
 
     it('should call eraseInstanceDataTables when erase option is true', async () => {
       // Mock the erase function queries first (to_regclass checks and truncates)
@@ -67,6 +74,21 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
         }
         if (sql.includes('FROM users_usr')) {
           return Promise.resolve(mockUsers);
+        }
+        if (sql.includes('FROM status_sts WHERE sts_type = $1') && sql.includes('Plan')) {
+          return Promise.resolve(mockStatuses.plan);
+        }
+        if (sql.includes('FROM status_sts WHERE sts_type = $1') && sql.includes('Sequence')) {
+          return Promise.resolve(mockStatuses.sequence);
+        }
+        if (sql.includes('FROM status_sts WHERE sts_type = $1') && sql.includes('Phase')) {
+          return Promise.resolve(mockStatuses.phase);
+        }
+        if (sql.includes('FROM status_sts WHERE sts_type = $1') && sql.includes('Step')) {
+          return Promise.resolve(mockStatuses.step);
+        }
+        if (sql.includes('FROM status_sts WHERE sts_type = $1') && sql.includes('Control')) {
+          return Promise.resolve(mockStatuses.control);
         }
         if (sql.includes('INSERT INTO plans_instance_pli')) {
           return Promise.resolve({ rows: [{ pli_id: 'test-pli-id' }] });
@@ -97,7 +119,7 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
       const mockData = {
         sequences: { rows: [{ sqm_id: 'sqm-1', sqm_name: 'Original Name', sqm_description: 'Original Description', sqm_order: 1, predecessor_sqm_id: null }] },
         phases: { rows: [{ phm_id: 'phm-1', phm_name: 'Original Phase', phm_description: 'Original Phase Description', phm_order: 1, predecessor_phm_id: null }] },
-        steps: { rows: [{ stm_id: 'stm-1', stm_name: 'Original Step', stm_description: 'Original Step Description', stm_duration_minutes: 30, stm_id_predecessor: null, enr_id_target: null }] },
+        steps: { rows: [{ stm_id: 'stm-1', stm_name: 'Original Step', stm_description: 'Original Step Description', stm_duration_minutes: 30, stm_id_predecessor: null, enr_id: null }] },
         instructions: { rows: [{ inm_id: 'inm-1', inm_order: 1, inm_body: 'Original Body', inm_duration_minutes: 15, tms_id: 'tms-1', ctm_id: null }] },
         controls: { rows: [{ ctm_id: 'ctm-1', ctm_order: 1, ctm_name: 'Original Control', ctm_description: 'Original Control Description', ctm_type: 'CHECK', ctm_is_critical: false, ctm_code: 'CTRL001' }] },
       };
@@ -109,6 +131,11 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
       client.query
         .mockResolvedValueOnce(mockIterations)
         .mockResolvedValueOnce(mockUsers)
+        .mockResolvedValueOnce(mockStatuses.plan)
+        .mockResolvedValueOnce(mockStatuses.sequence)
+        .mockResolvedValueOnce(mockStatuses.phase)
+        .mockResolvedValueOnce(mockStatuses.step)
+        .mockResolvedValueOnce(mockStatuses.control)
         .mockResolvedValueOnce({ rows: [{ pli_id: mockGeneratedIds.pli }] })
         .mockResolvedValueOnce(mockData.sequences)
         .mockResolvedValueOnce({ rows: [{ sqi_id: mockGeneratedIds.sqi }] })
@@ -143,7 +170,7 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
       expect(stepInsert).toContain('sti_description');
       expect(stepInsert).toContain('sti_duration_minutes');
       expect(stepInsert).toContain('sti_id_predecessor');
-      expect(stepInsert).toContain('enr_id_target');
+      expect(stepInsert).toContain('enr_id');
 
       const instructionInsert = sqlQueries.find(sql => sql.includes('INSERT INTO instructions_instance_ini'));
       expect(instructionInsert).toContain('ini_order');

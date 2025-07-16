@@ -387,14 +387,14 @@ The data model follows a hierarchical structure with canonical vs instance patte
 - `plans_master_plm`: Reusable implementation playbooks
 - `sequences_master_sqm`: Logical groupings within plans
 - `phases_master_phm`: Major execution phases with quality gates
-- `steps_master_stm`: Granular executable tasks
+- `steps_master_stm`: Granular executable tasks with environment role associations (`enr_id`)
 - `instructions_master_inm`: Detailed step procedures
 
 **Instance Layer (Execution):**
 - `plans_instance_pli`: Live plan executions
 - `sequences_instance_sqi`: Active sequence tracking
 - `phases_instance_phi`: Phase execution with control validation
-- `steps_instance_sti`: Individual step execution records
+- `steps_instance_sti`: Individual step execution records with inherited environment role (`enr_id`)
 - `instructions_instance_ini`: Instruction execution details
 
 **Supporting Entities:**
@@ -403,6 +403,9 @@ The data model follows a hierarchical structure with canonical vs instance patte
 - `app_user_teams`: Many-to-many user-team relationships
 - `step_master_comments`: Comments on template steps
 - `step_instance_comments`: Comments on execution steps
+- `environment_roles_enr`: Environment types (DEV, TEST, PROD) for step association
+- `environments_env`: Physical environments linked to roles and iterations
+- `status_sts`: Centralized status management with color coding
 
 #### Validation Rules
 - **No Reserved Words:** Avoid SQL reserved words as table/column names
@@ -424,7 +427,28 @@ The system includes comprehensive commenting capabilities to support collaborati
   - Collaborative problem-solving during cutover events
   - Historical context preservation for post-event analysis
 
-### 6.6. Database Connection Management ([ADR-009], [ADR-010])
+### 6.6. Status Management System
+
+The system implements a centralized status management approach to ensure consistency across all entities:
+
+**Status Table (`status_sts`):**
+- **Purpose:** Centralizes all possible status values with associated colors for UI consistency
+- **Structure:**
+  - `sts_id`: Primary key (SERIAL)
+  - `sts_name`: Status name (e.g., 'PENDING', 'IN_PROGRESS', 'COMPLETED')
+  - `sts_color`: Hex color code for UI display (e.g., '#00AA00' for green)
+  - `sts_type`: Entity type the status applies to (Migration, Iteration, Plan, Sequence, Phase, Step, Control)
+- **Pre-populated Values:** 31 statuses covering all entity types:
+  - **Migration/Iteration/Plan/Sequence/Phase:** PLANNING, IN_PROGRESS, COMPLETED, CANCELLED
+  - **Step:** PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
+  - **Control:** TODO, PASSED, FAILED, CANCELLED
+- **Benefits:**
+  - Ensures consistent status values across all data
+  - Enables dynamic UI color coding
+  - Simplifies status validation
+  - Facilitates future status additions without code changes
+
+### 6.7. Database Connection Management ([ADR-009], [ADR-010])
 
 Database connectivity has evolved through several iterations to achieve optimal reliability:
 

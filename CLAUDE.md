@@ -262,13 +262,15 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 5. **Collaboration**: Comments at both master and instance levels
 
 ### Key Tables (Updated July 2025)
-- `migrations_mig`: Strategic initiatives
+- `migrations_mig`: Strategic initiatives with status tracking
 - `iterations_itr`: Links migrations to plans for iterative delivery  
 - `plans_master_plm`: Master playbooks
-- `steps_master_stm`: Granular executable tasks
+- `steps_master_stm`: Granular executable tasks with environment role associations (enr_id)
 - `instructions_master_inm`: Detailed procedures
 - `step_master_comments`, `step_instance_comments`: Collaboration features
-- `*_instance_*`: Live execution tracking with override capabilities
+- `status_sts`: Centralized status management with color coding for all entities
+- `environment_roles_enr`: Environment type definitions (DEV, TEST, PROD)
+- `*_instance_*`: Live execution tracking with override capabilities and inherited environment roles
 
 ### Current Data Scale (Post-Generation)
 - **5 migrations** with realistic statuses and dates
