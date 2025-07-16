@@ -42,3 +42,6 @@
 *   **Modular JavaScript:** 8-module architecture (EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, AdminGuiController).
 *   **Error Handling:** SQL state mapping with detailed error messages (23503→400, 23505→409).
 *   **Documentation:** Comprehensive API specifications with OpenAPI 3.0 and generated Postman collections.
+*   **Association Management:** Dedicated API endpoints for managing many-to-many relationships with UI integration.
+*   **Dynamic UI Updates:** Event-driven updates with onchange handlers for cascading selections.
+*   **Accessibility:** Color picker implementations with contrast calculation for readability.

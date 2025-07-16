@@ -46,6 +46,54 @@ class StepRepository {
     }
 
     /**
+     * Fetches all master steps with basic information for dropdowns
+     * @return List of master steps with id, code, number, name, and type
+     */
+    def findAllMasterSteps() {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows('''
+                SELECT 
+                    stm.stm_id,
+                    stm.stt_code,
+                    stm.stm_number,
+                    stm.stm_name,
+                    stm.stm_description,
+                    stt.stt_name
+                FROM steps_master_stm stm
+                JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
+                ORDER BY stm.stt_code, stm.stm_number
+            ''')
+        }
+    }
+
+    /**
+     * Fetches master steps filtered by migration ID
+     * @param migrationId The UUID of the migration to filter by
+     * @return List of master steps that belong to the specified migration
+     */
+    def findMasterStepsByMigrationId(UUID migrationId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows('''
+                SELECT DISTINCT
+                    stm.stm_id,
+                    stm.stt_code,
+                    stm.stm_number,
+                    stm.stm_name,
+                    stm.stm_description,
+                    stt.stt_name
+                FROM steps_master_stm stm
+                JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
+                JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON plm.plm_id = ite.plm_id
+                WHERE ite.mig_id = :migrationId
+                ORDER BY stm.stt_code, stm.stm_number
+            ''', [migrationId: migrationId])
+        }
+    }
+
+    /**
      * Fetches the first step instance for a given master step, for the first plan instance of the first iteration/migration (per current MVP logic).
      */
     def findFirstStepInstance(String sttCode, Integer stmNumber) {

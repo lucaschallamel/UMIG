@@ -1,5 +1,38 @@
 ### [Unreleased]
 
+#### 2025-07-16 (Labels Admin GUI Implementation)
+- **Feat(Labels):** Complete Labels admin interface with full CRUD functionality
+  - Added Labels to admin navigation with proper data source configuration
+  - Implemented comprehensive LabelRepository with CRUD operations and dynamic update support
+  - Created Labels VIEW modal with Edit button and association displays
+  - Developed Labels EDIT modal with association management for applications and steps
+  - Added color picker support with accessibility features (contrast color calculation)
+  - Implemented migration-based filtering for steps dropdown in Labels EDIT modal
+  - Added help text and dynamic loading indicators for better UX
+- **Feat(API):** Extended LabelsApi with complete CRUD and association endpoints
+  - Added POST /labels endpoint for creating new labels
+  - Added PUT /labels/{id} endpoint for updating labels including migration changes
+  - Added DELETE /labels/{id} endpoint for deleting labels
+  - Added GET /labels/{id}/steps endpoint for retrieving label-associated steps
+  - Added POST /labels/{labelId}/applications/{applicationId} for adding application associations
+  - Added DELETE /labels/{labelId}/applications/{applicationId} for removing application associations
+  - Added POST /labels/{labelId}/steps/{stepId} for adding step associations
+  - Added DELETE /labels/{labelId}/steps/{stepId} for removing step associations
+- **Enhancement(Steps API):** Added migration-based filtering support
+  - Extended GET /steps/master endpoint to accept migrationId query parameter
+  - Added findMasterStepsByMigrationId method to StepRepository
+  - Ensures steps dropdown only shows steps belonging to selected migration
+- **Fix(Type Safety):** Resolved multiple Groovy static type checking issues
+  - Fixed explicit type casting for List operations in LabelsApi
+  - Corrected Math.ceil() usage with BigDecimal to Double conversion
+  - Ensured proper parameter type handling throughout the codebase
+- **Enhancement(Frontend):** Improved Labels management user experience
+  - Added ApiClient methods for all label operations and associations
+  - Implemented dynamic step filtering based on selected migration
+  - Added onMigrationChange handler for real-time dropdown updates
+  - Enhanced error handling with specific error messages
+  - Added loading states and disabled states for better feedback
+
 #### 2025-07-15 (Applications Label Management)
 - **Feat(Applications):** Complete Labels association management in Admin GUI
   - Added label_count column to Applications listing showing association counts

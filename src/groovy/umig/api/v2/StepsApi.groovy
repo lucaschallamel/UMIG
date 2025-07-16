@@ -17,6 +17,7 @@ final StepRepository stepRepository = new StepRepository()
 /**
  * Handles GET requests for Steps with hierarchical filtering for the runsheet.
  * - GET /steps -> returns all steps (not recommended for production)
+ * - GET /steps/master -> returns all master steps for dropdowns
  * - GET /steps?migrationId={uuid} -> returns steps in a migration
  * - GET /steps?iterationId={uuid} -> returns steps in an iteration
  * - GET /steps?planId={uuid} -> returns steps in a plan
@@ -31,6 +32,49 @@ final StepRepository stepRepository = new StepRepository()
 steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // GET /steps/master - return all master steps for dropdowns
+    if (pathParts.size() == 1 && pathParts[0] == 'master') {
+        try {
+            def masterSteps
+            
+            // Check if migrationId is provided as query parameter
+            def migrationId = queryParams.getFirst("migrationId")
+            if (migrationId) {
+                try {
+                    def migUuid = UUID.fromString(migrationId)
+                    masterSteps = stepRepository.findMasterStepsByMigrationId(migUuid)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid migration ID format"]).toString())
+                        .build()
+                }
+            } else {
+                masterSteps = stepRepository.findAllMasterSteps()
+            }
+            
+            // Transform to dropdown-friendly format
+            def result = masterSteps.collect { step ->
+                [
+                    stm_id: step.stm_id,
+                    stt_code: step.stt_code,
+                    stm_step_number: step.stm_number,
+                    stm_title: step.stm_name,
+                    stm_description: step.stm_description,
+                    stt_name: step.stt_name,
+                    // Add composed display fields
+                    step_code: "${step.stt_code}-${String.format('%03d', step.stm_number)}",
+                    display_name: "${step.stt_code}-${String.format('%03d', step.stm_number)}: ${step.stm_name}"
+                ]
+            }
+            
+            return Response.ok(new JsonBuilder(result).toString()).build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to fetch master steps: ${e.message}"]).toString())
+                .build()
+        }
+    }
     
     // GET /steps with query parameters for hierarchical filtering
     if (pathParts.empty) {
