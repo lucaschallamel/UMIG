@@ -52,12 +52,10 @@ UMIG/
 │           │           └── WebApi.groovy
 │           ├── macros/               # ScriptRunner macros for UI
 │           │   ├── README.md         # Macro documentation
-│           │   ├── stepViewMacro.groovy
-│           │   ├── userDetailMacro.groovy
-│           │   ├── userListMacro.groovy
-│           │   ├── userViewMacro.groovy
+│           │   ├── stepViewMacro.groovy  # Step view functionality
 │           │   └── v1/               # Version 1 macros
-│           │       └── iterationViewMacro.groovy
+│           │       ├── adminGuiMacro.groovy      # Unified Admin GUI
+│           │       └── iterationViewMacro.groovy  # Iteration view for cutover management
 │           ├── repository/           # Data access layer
 │           │   ├── README.md         # Repository documentation
 │           │   ├── ImplementationPlanRepository.groovy
@@ -100,10 +98,7 @@ UMIG/
 │                   ├── hello-world.js
 │                   ├── iteration-view.js
 │                   ├── step-view.js
-│                   ├── umig-ip-macro.js
-│                   ├── user-detail.js
-│                   ├── user-list.js
-│                   └── user-view.js
+│                   └── umig-ip-macro.js
 ├── mock/                             # UI/UX mockups and prototypes
 │   ├── iteration-view.html           # Iteration view HTML mockup
 │   ├── styles.css                    # Mockup CSS (100% vanilla)
@@ -111,9 +106,7 @@ UMIG/
 │   └── README.md                     # Mockup documentation
 ├── docs/                             # Comprehensive documentation
 │   ├── adr/                          # Architecture Decision Records
-│   │   ├── ADR-027-n-tiers-model.md # N-tiers model architecture
-│   │   ├── ADR-028-data-import-strategy-for-confluence-json.md # Data import strategy
-│   │   ├── archive/                  # Archived ADRs (consolidated)
+│   │   ├── archive/                  # All 33 ADRs archived here
 │   │   └── template.md               # ADR template
 │   ├── api/                          # API documentation & OpenAPI spec
 │   │   ├── README.md                 # API documentation
@@ -262,13 +255,15 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 5. **Collaboration**: Comments at both master and instance levels
 
 ### Key Tables (Updated July 2025)
-- `migrations_mig`: Strategic initiatives
+- `migrations_mig`: Strategic initiatives with status tracking
 - `iterations_itr`: Links migrations to plans for iterative delivery  
 - `plans_master_plm`: Master playbooks
-- `steps_master_stm`: Granular executable tasks
+- `steps_master_stm`: Granular executable tasks with environment role associations (enr_id)
 - `instructions_master_inm`: Detailed procedures
 - `step_master_comments`, `step_instance_comments`: Collaboration features
-- `*_instance_*`: Live execution tracking with override capabilities
+- `status_sts`: Centralized status management with color coding for all entities
+- `environment_roles_enr`: Environment type definitions (DEV, TEST, PROD)
+- `*_instance_*`: Live execution tracking with override capabilities and inherited environment roles
 
 ### Current Data Scale (Post-Generation)
 - **5 migrations** with realistic statuses and dates
@@ -393,13 +388,10 @@ When development environment is running:
 ## Key Documentation
 
 ### **PRIMARY REFERENCE (MANDATORY)**
-- **`docs/solution-architecture.md`**: Complete solution architecture consolidating all 26 ADRs - ALWAYS REVIEW FIRST
+- **`docs/solution-architecture.md`**: Complete solution architecture consolidating all 33 ADRs - ALWAYS REVIEW FIRST
 
-### **Current Active ADRs**
-- **`docs/adr/ADR-027-n-tiers-model.md`**: N-tiers model architecture
-- **`docs/adr/ADR-028-data-import-strategy-for-confluence-json.md`**: Data import strategy
-- **`docs/adr/ADR-030-hierarchical-filtering-pattern.md`**: Hierarchical filtering pattern for API and UI
-- **`docs/adr/ADR-031-groovy-type-safety-and-filtering-patterns.md`**: Groovy type safety and filtering patterns
+### **All ADRs Archived**
+All 33 Architecture Decision Records have been consolidated into `solution-architecture.md`. Individual ADRs are now archived in `docs/adr/archive/` for historical reference only.
 
 ### Critical References
 - **API Spec**: `docs/api/openapi.yaml` - OpenAPI specification
@@ -427,7 +419,7 @@ When development environment is running:
 - **Instance Data Generation**: Full canonical→instance replication with override field population
 - **Schema Corrections**: Fixed type mismatches in migration 010 for instruction instance fields
 - **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026) and updated test coverage
-- **Architecture Documentation**: All 31 ADRs consolidated into solution-architecture.md
+- **Architecture Documentation**: All 33 ADRs consolidated into solution-architecture.md
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
 - **Iteration View Complete**: Fully functional with hierarchical filtering, labels integration, and dynamic step management
 - **Labels Admin GUI**: Complete CRUD interface with color picker, association management, and migration-based filtering
@@ -481,8 +473,8 @@ When development environment is running:
 
 ### **CRITICAL: Always Start Here**
 1. **MANDATORY FIRST STEP**: Review `/docs/solution-architecture.md` for complete architectural context
-2. **Current ADRs**: Review ADR-027 (N-tiers model) and ADR-028 (data import strategy) for latest decisions
-3. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
+2. **Architecture Complete**: All 33 ADRs now consolidated - solution-architecture.md contains everything
+3. **Archive Only**: All ADRs in `/docs/adr/archive/` are for historical reference only
 
 ### Development Standards (Non-Negotiable)
 1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/StepsApi.groovy`, `TeamsApi.groovy`, and `LabelsApi.groovy`
@@ -503,7 +495,13 @@ When development environment is running:
 - **Pattern**: Reference StepsApi.groovy, TeamsApi.groovy, and LabelsApi.groovy as implementation templates
 
 ### Recent Achievements (July 2025)
-- **Iteration View Complete**: Fully functional hierarchical filtering with labels integration and dynamic step management
+- **Role-Based Access Control System**: Comprehensive user permission management with NORMAL/PILOT/ADMIN roles, Confluence integration, and dynamic UI controls
+- **Enhanced Iteration View Interface**: Major UI/UX overhaul with interactive status dropdowns, instruction completion tracking, real-time commenting, and operational controls
+- **StatusRepository & API Extensions**: Centralized status management infrastructure with type-safe database access and comprehensive comment operations
+- **User Context Integration**: Confluence authentication integration with automatic role detection and permission-based UI rendering
+- **Dynamic Status Management**: Database-driven status dropdowns with color coding, supporting 31 statuses across 7 entity types
+- **Interactive Step Management**: Real-time instruction completion, step status updates, and comprehensive step instance detail views
+- **Comment System**: Full CRUD operations for step instance comments with role-based access control and real-time updates
 - **Type Safety Patterns**: Established robust Groovy static type checking patterns (ADR-031) preventing runtime errors
 - **API Pattern Maturity**: Proven REST API patterns with StepsApi, TeamsApi, and LabelsApi serving as definitive templates
 - **Database Filtering Mastery**: Resolved master vs instance ID filtering patterns and complete field selection requirements
@@ -513,13 +511,9 @@ When development environment is running:
 - **Schema Consistency**: Resolved mismatches between API documentation and actual implementation for Users and Teams APIs
 - **Admin GUI Refactoring**: Split 1,901-line monolithic admin-gui.js into 8 modular components for improved maintainability
 - **JavaScript Architecture**: Established modular patterns with EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, and AdminGuiController
-- **Environment Search Enhancement**: Implemented full-stack search functionality for environments with pagination, sorting, and filtering, fixing GString SQL type inference issues
-- **Teams Association Management**: Complete VIEW and EDIT modals for Teams with user and application association management, including add/remove functionality
-- **Applications Label Management**: Complete Labels association management in Admin GUI with add/remove functionality
-- **Modal Consistency**: Standardized modal UI patterns across Teams and Environments with consistent AUI styling and Edit button functionality
-- **State Management Fixes**: Resolved sort field persistence bug and confirmation dialog regressions in admin interface using custom Promise-based dialogs
-- **Active User Filtering**: Added active parameter support to Users API for populating dropdown selections with active users only
 - **Migration-Based Filtering**: Implemented dynamic step filtering based on selected migration in Labels edit modal
+- **Architecture Consolidation Complete**: Major milestone consolidating all 33 ADRs into solution-architecture.md as single source of truth
+- **Code Cleanup**: Removed obsolete user management macros and JavaScript files, streamlining codebase for MVP delivery
 
 ## Workflows
 

@@ -92,6 +92,22 @@ async function generateInstanceData(config, options = {}) {
     throw new Error('Cannot generate instance data: Missing master data (iterations or users).');
   }
 
+  // Fetch available statuses from status_sts table for each entity type
+  const planStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Plan']);
+  const planStatuses = planStatusesResult.rows.map(row => row.sts_name);
+  
+  const sequenceStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Sequence']);
+  const sequenceStatuses = sequenceStatusesResult.rows.map(row => row.sts_name);
+  
+  const phaseStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Phase']);
+  const phaseStatuses = phaseStatusesResult.rows.map(row => row.sts_name);
+  
+  const stepStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Step']);
+  const stepStatuses = stepStatusesResult.rows.map(row => row.sts_name);
+  
+  const controlStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Control']);
+  const controlStatuses = controlStatusesResult.rows.map(row => row.sts_name);
+
   // For each iteration, create an instance of the specific master plan it is linked to.
   for (const iteration of iterations.rows) {
     const masterPlanId = iteration.plm_id;
@@ -115,7 +131,7 @@ async function generateInstanceData(config, options = {}) {
         iteration.ite_id,
         `Instance of Plan ${masterPlanId.toString().substring(0, 8)} for Iteration ${iteration.ite_id.toString().substring(0, 8)}`,
         faker.lorem.sentence(),
-        'NOT_STARTED',
+        faker.helpers.arrayElement(planStatuses),
         ownerId,
         'data_generator',
         'data_generator'
@@ -147,7 +163,7 @@ async function generateInstanceData(config, options = {}) {
         [
           planInstanceId, 
           masterSequence.sqm_id, 
-          'NOT_STARTED',
+          faker.helpers.arrayElement(sequenceStatuses),
           sqi_name,
           sqi_description,
           sqi_order,
@@ -180,7 +196,7 @@ async function generateInstanceData(config, options = {}) {
           [
             sequenceInstanceId, 
             masterPhase.phm_id, 
-            'NOT_STARTED',
+            faker.helpers.arrayElement(phaseStatuses),
             phi_name,
             phi_description,
             phi_order,
@@ -191,7 +207,7 @@ async function generateInstanceData(config, options = {}) {
 
         // Get all steps for this phase
         const masterSteps = await client.query(
-          'SELECT stm_id, stm_name, stm_description, stm_duration_minutes, stm_id_predecessor, enr_id_target FROM steps_master_stm WHERE phm_id = $1 ORDER BY stm_number', 
+          'SELECT stm_id, stm_name, stm_description, stm_duration_minutes, stm_id_predecessor, enr_id FROM steps_master_stm WHERE phm_id = $1 ORDER BY stm_number', 
           [masterPhase.phm_id]
         );
         console.log(`          Found ${masterSteps.rows.length} master steps for phase ${masterPhase.phm_id}`);
@@ -206,29 +222,25 @@ async function generateInstanceData(config, options = {}) {
           const sti_duration_minutes = shouldOverrideAttribute() ? generateOverrideValue('duration') : masterStep.stm_duration_minutes;
           const sti_id_predecessor = masterStep.stm_id_predecessor; // Keep original predecessor reference
           
-          // Handle enr_id_target type mismatch: master has INTEGER, instance expects UUID
-          // The schema has a mismatch - master.enr_id_target is INTEGER but instance.enr_id_target is UUID
-          // Since these reference different things, set to null and let application use master value
-          const enr_id_target = null;
+          // Copy enr_id from master step (both INTEGER)
+          const enr_id = masterStep.enr_id;
 
           const stiRes = await client.query(
             `INSERT INTO steps_instance_sti (
               phi_id, stm_id, sti_status, 
               sti_name, sti_description, sti_duration_minutes, 
-              sti_id_predecessor, enr_id_target, usr_id_owner, usr_id_assignee
+              sti_id_predecessor, enr_id
             )
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING sti_id`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING sti_id`,
             [
               phaseInstanceId, 
               masterStep.stm_id, 
-              'NOT_STARTED',
+              faker.helpers.arrayElement(stepStatuses),
               sti_name,
               sti_description,
               sti_duration_minutes,
               sti_id_predecessor,
-              enr_id_target,
-              ownerId, // usr_id_owner
-              ownerId  // usr_id_assignee (same as owner for now)
+              enr_id
             ]
           );
           const stepInstanceId = stiRes.rows[0].sti_id;
@@ -306,7 +318,7 @@ async function generateInstanceData(config, options = {}) {
               [
                 stepInstanceId, 
                 masterControl.ctm_id, 
-                'PENDING',
+                faker.helpers.arrayElement(controlStatuses),
                 cti_order,
                 cti_name,
                 cti_description,

@@ -18,6 +18,7 @@ UMIG addresses the critical need for structured, auditable, and collaborative ma
 - **Hierarchical Implementation Plans**: Structured organization of migrations → iterations → plans → sequences → phases → steps → instructions
 - **Real-time Collaboration**: Multi-user environment with role-based access and team management
 - **Status Tracking**: Complete audit trail of execution progress with commenting system
+- **Email Notifications**: Automated notifications for step status changes with template management
 - **Interactive Runsheets**: Dynamic, filterable views for live cutover event management
 - **Responsive Design**: Mobile-friendly interface for field operations
 - **Pure ScriptRunner Integration**: Native Confluence plugin architecture
@@ -62,12 +63,10 @@ UMIG/
 │           │           └── WebApi.groovy
 │           ├── macros/               # ScriptRunner macros for UI
 │           │   ├── README.md         # Macro documentation
-│           │   ├── stepViewMacro.groovy
-│           │   ├── userDetailMacro.groovy
-│           │   ├── userListMacro.groovy
-│           │   ├── userViewMacro.groovy
 │           │   └── v1/               # Version 1 macros
-│           │       └── iterationViewMacro.groovy
+│           │       ├── adminGuiMacro.groovy      # Unified Admin GUI
+│           │       ├── iterationViewMacro.groovy  # Iteration view for cutover management
+│           │       └── stepViewMacro.groovy       # Step view functionality
 │           ├── repository/           # Data access layer
 │           │   ├── README.md         # Repository documentation
 │           │   ├── ImplementationPlanRepository.groovy
@@ -97,19 +96,23 @@ UMIG/
 │               │   ├── iteration-view.css
 │               │   └── umig-ip-macro.css
 │               └── js/               # JavaScript files
+│                   ├── admin-gui/           # Modular Admin GUI components
+│                   │   ├── AdminGuiController.js # Main orchestration and initialization
+│                   │   ├── ApiClient.js     # API communication and error handling
+│                   │   ├── AuthenticationManager.js # Login and session management
+│                   │   ├── EntityConfig.js  # Entity configurations and field definitions
+│                   │   ├── ModalManager.js  # Modal dialogs and form handling
+│                   │   ├── TableManager.js  # Table rendering and pagination
+│                   │   ├── UiUtils.js       # Utility functions and UI helpers
+│                   │   └── AdminGuiState.js # State management and data caching
+│                   ├── admin-gui.js
 │                   ├── hello-world.js
 │                   ├── iteration-view.js
 │                   ├── step-view.js
-│                   ├── umig-ip-macro.js
-│                   ├── user-detail.js
-│                   ├── user-list.js
-│                   └── user-view.js
+│                   └── umig-ip-macro.js
 ├── docs/                             # Comprehensive documentation
 │   ├── adr/                          # Architecture Decision Records
-│   │   ├── ADR-027-n-tiers-model.md # N-tiers model architecture
-│   │   ├── ADR-028-data-import-strategy-for-confluence-json.md
-│   │   ├── ADR029-full-attribute-instantiation-instance-tables.md
-│   │   ├── archive/                  # Archived ADRs (consolidated)
+│   │   ├── archive/                  # All ADRs now consolidated in solution-architecture.md
 │   │   └── template.md               # ADR template
 │   ├── api/                          # API documentation & OpenAPI spec
 │   │   ├── README.md                 # API documentation
@@ -233,10 +236,11 @@ When the development environment is running:
 - **PostgreSQL**: localhost:5432
 - **MailHog (Email Testing)**: [http://localhost:8025](http://localhost:8025)
 
-### Database Configuration
+### Initial Configuration
 
-After starting Confluence for the first time, configure the ScriptRunner database connection:
+After starting Confluence for the first time:
 
+#### 1. Database Connection (ScriptRunner)
 1. Navigate to **Confluence Administration** → **ScriptRunner** → **Resources**
 2. Add a new **Database Connection Pool**:
    - **Pool Name**: `umig_db_pool`
@@ -244,6 +248,15 @@ After starting Confluence for the first time, configure the ScriptRunner databas
    - **JDBC URL**: `jdbc:postgresql://umig_postgres:5432/umig_app_db`
    - **User**: `umig_app_user`
    - **Password**: `123456`
+
+#### 2. Mail Server (Email Notifications)
+1. Navigate to **⚙️ Settings** → **General Configuration** → **Mail Servers**
+2. Add SMTP Mail Server:
+   - **Name**: `MailHog Local Development`
+   - **Hostname**: `umig_mailhog` (container name, not localhost)
+   - **Port**: `1025`
+   - **From Address**: `umig-system@localhost`
+3. Send a test email and verify in MailHog at [http://localhost:8025](http://localhost:8025)
 
 ## Development Commands
 
@@ -376,6 +389,42 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (July 2025)
+- **Role-Based Access Control System**: Comprehensive user permission management (July 16, 2025)
+  - Implemented NORMAL (read-only), PILOT (operational), and ADMIN (full access) user roles
+  - Confluence user context integration with automatic role detection
+  - CSS-based UI element visibility control with pilot-only and admin-only classes
+  - Dynamic role-based controls applied after user authentication
+  - Read-only mode indicators and graceful permission degradation
+- **Enhanced Iteration View Interface**: Major UI/UX overhaul with operational capabilities (July 16, 2025)
+  - Dynamic status dropdown with database-driven color coding
+  - Interactive instruction completion tracking with real-time checkbox controls
+  - Comprehensive comment system with add, edit, delete operations
+  - Step instance detail views with metadata, teams, and impact analysis
+  - Enhanced step action buttons (Mark All Complete, Update Status)
+  - Improved error handling and user feedback notifications
+- **StatusRepository & API Extensions**: Centralized status management infrastructure (July 16, 2025)
+  - Created StatusRepository for type-safe access to status_sts table
+  - Extended StepsApi with step instance management, comments, and user context endpoints
+  - Added UserRepository username-based lookup for Confluence integration
+  - Comprehensive error handling with proper HTTP status codes
+- **Centralized Status Management System**: Unified status values with color coding across all entities (July 16, 2025)
+  - Created status_sts table with 31 pre-populated statuses across 7 entity types
+  - Each status includes hex color code for consistent UI presentation
+  - Updated all data generators to use centralized statuses instead of hard-coded values
+  - Fixed iteration view status counters to accurately reflect new status system
+  - Ensured data consistency across migrations, iterations, plans, sequences, phases, steps, and controls
+- **Environment Role Association**: Steps can now be associated with specific environment types (July 16, 2025)
+  - Added enr_id column to both steps_master_stm and steps_instance_sti tables
+  - Database migration with foreign key constraints and performance indexes
+  - Updated data generation scripts to randomly assign environment roles to steps
+  - Enhanced step-view specification with environment role context and filtering
+- **Email Notification System**: Production-ready automated notifications with template management (July 16, 2025)
+  - Complete integration with Confluence native mail API and MailHog for local testing
+  - Multi-team notification logic (owner + impacted teams + cutover teams)
+  - Template management with HTML/text content and GString variable processing
+  - Comprehensive audit logging for all email events in JSONB format
+  - Automatic notifications for step opened, instruction completed, and status changes
+  - Working end-to-end testing with ScriptRunner Console integration
 - **Environments Management**: Complete admin GUI entity with CRUD operations and association management
   - Full repository pattern implementation with relationship counts
   - REST API endpoints with hierarchical data access

@@ -2,6 +2,15 @@
 // Renders the complete iteration view interface with runsheet table and step details.
 // This version is a direct, static port of the canonical mock (iteration-view.html) with 100% structure and class fidelity.
 
+import com.atlassian.confluence.user.AuthenticatedUserThreadLocal
+import com.atlassian.user.User
+
+// Get the current Confluence user context
+User currentUser = AuthenticatedUserThreadLocal.get()
+String confluenceUsername = currentUser?.getName() ?: ""
+String confluenceFullName = currentUser?.getFullName() ?: ""
+String confluenceEmail = currentUser?.getEmail() ?: ""
+
 def webRoot = System.getenv('UMIG_WEB_ROOT') ?: '/rest/scriptrunner/latest/custom/web'
 
 return """
@@ -76,13 +85,13 @@ return """
                 <h2>RUNSHEET</h2>
                 <div class=\"summary-stats\">
                     <span class=\"stat\">Total Steps: <span id=\"total-steps\">0</span></span>
-                    <span class=\"stat stat-pending\">Pending: <span id=\"pending-steps\">0</span></span>
-                    <span class=\"stat stat-todo\">Todo: <span id=\"todo-steps\">0</span></span>
-                    <span class=\"stat stat-progress\">In Progress: <span id=\"progress-steps\">0</span></span>
-                    <span class=\"stat stat-completed\">Completed: <span id=\"completed-steps\">0</span></span>
-                    <span class=\"stat stat-failed\">Failed: <span id=\"failed-steps\">0</span></span>
-                    <span class=\"stat stat-blocked\">Blocked: <span id=\"blocked-steps\">0</span></span>
-                    <span class=\"stat stat-cancelled\">Cancelled: <span id=\"cancelled-steps\">0</span></span>
+                    <span class=\"stat stat-pending\">PENDING: <span id=\"pending-steps\">0</span></span>
+                    <span class=\"stat stat-todo\">TODO: <span id=\"todo-steps\">0</span></span>
+                    <span class=\"stat stat-progress\">IN PROGRESS: <span id=\"progress-steps\">0</span></span>
+                    <span class=\"stat stat-completed\">COMPLETED: <span id=\"completed-steps\">0</span></span>
+                    <span class=\"stat stat-failed\">FAILED: <span id=\"failed-steps\">0</span></span>
+                    <span class=\"stat stat-blocked\">BLOCKED: <span id=\"blocked-steps\">0</span></span>
+                    <span class=\"stat stat-cancelled\">CANCELLED: <span id=\"cancelled-steps\">0</span></span>
                 </div>
             </div>
             <div class=\"runsheet-spacer\"></div>
@@ -104,4 +113,21 @@ return """
         </aside>
     </main>
 </div>
+
+<!-- Confluence User Context for JavaScript -->
+<script type="text/javascript">
+    window.UMIG_ITERATION_CONFIG = {
+        confluence: {
+            username: "${confluenceUsername}",
+            fullName: "${confluenceFullName}",
+            email: "${confluenceEmail}"
+        },
+        api: {
+            baseUrl: "/rest/scriptrunner/latest/custom"
+        },
+        ui: {
+            roleBasedControls: true
+        }
+    };
+</script>
 """

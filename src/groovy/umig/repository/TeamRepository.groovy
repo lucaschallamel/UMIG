@@ -365,8 +365,17 @@ class TeamRepository {
                 ORDER BY t.tms_name
             """, [migrationId: migrationId])
             
-            // Return raw database field names
-            return results
+            // Transform to normalized field names for iteration view consumer
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email,
+                    member_count: row.member_count,
+                    app_count: row.app_count
+                ]
+            }
         }
     }
 
@@ -406,8 +415,17 @@ class TeamRepository {
                 ORDER BY t.tms_name
             """, [iterationId: iterationId])
             
-            // Return raw database field names
-            return results
+            // Transform to normalized field names for iteration view consumer
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email,
+                    member_count: row.member_count,
+                    app_count: row.app_count
+                ]
+            }
         }
     }
 
@@ -446,8 +464,17 @@ class TeamRepository {
                 ORDER BY t.tms_name
             """, [planInstanceId: planInstanceId])
             
-            // Return raw database field names
-            return results
+            // Transform to normalized field names for iteration view consumer
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email,
+                    member_count: row.member_count,
+                    app_count: row.app_count
+                ]
+            }
         }
     }
 
@@ -485,8 +512,17 @@ class TeamRepository {
                 ORDER BY t.tms_name
             """, [sequenceInstanceId: sequenceInstanceId])
             
-            // Return raw database field names
-            return results
+            // Transform to normalized field names for iteration view consumer
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email,
+                    member_count: row.member_count,
+                    app_count: row.app_count
+                ]
+            }
         }
     }
 
@@ -523,8 +559,17 @@ class TeamRepository {
                 ORDER BY t.tms_name
             """, [phaseInstanceId: phaseInstanceId])
             
-            // Return raw database field names
-            return results
+            // Transform to normalized field names for iteration view consumer
+            return results.collect { row ->
+                [
+                    id: row.tms_id,
+                    name: row.tms_name,
+                    description: row.tms_description,
+                    email: row.tms_email,
+                    member_count: row.member_count,
+                    app_count: row.app_count
+                ]
+            }
         }
     }
 

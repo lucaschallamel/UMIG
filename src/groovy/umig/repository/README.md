@@ -24,6 +24,20 @@ class UserRepository {
 }
 ```
 
+## Current Repositories
+
+- **ImplementationPlanRepository.groovy** - Implementation plan management
+- **InstructionRepository.groovy** - Instruction template and instance operations
+- **LabelRepository.groovy** - Label management with application and step associations
+- **LookupRepository.groovy** - General lookup table operations
+- **MigrationRepository.groovy** - Migration and iteration management
+- **StatusRepository.groovy** - Centralized status management with color coding
+- **StepRepository.groovy** - Step master and instance operations with comments
+- **StepTypeRepository.groovy** - Step type lookup operations
+- **TeamMembersRepository.groovy** - Team membership operations
+- **TeamRepository.groovy** - Team management with hierarchical filtering
+- **UserRepository.groovy** - User management with role and team associations
+
 ## References
 - See project rules for repository pattern and DB access standards.
 - See ADR-010 (DB connection pooling), ADR-011 (endpoint config), ADR-012 (DB management).
