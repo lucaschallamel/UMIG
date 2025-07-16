@@ -376,14 +376,14 @@ return """
 <link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css">
 
 <!-- Load JavaScript modules in dependency order -->
-<script src="${webResourcesPath}/js/EntityConfig.js"></script>
-<script src="${webResourcesPath}/js/UiUtils.js"></script>
-<script src="${webResourcesPath}/js/AdminGuiState.js"></script>
-<script src="${webResourcesPath}/js/ApiClient.js"></script>
-<script src="${webResourcesPath}/js/AuthenticationManager.js"></script>
-<script src="${webResourcesPath}/js/TableManager.js"></script>
-<script src="${webResourcesPath}/js/ModalManager.js"></script>
-<script src="${webResourcesPath}/js/AdminGuiController.js"></script>
+<script src="${webResourcesPath}/js/EntityConfig.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/UiUtils.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/AdminGuiState.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/ApiClient.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/AuthenticationManager.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/TableManager.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/ModalManager.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/AdminGuiController.js?v=${System.currentTimeMillis()}"></script>
 
 <!-- Debug script to help troubleshoot -->
 <script>

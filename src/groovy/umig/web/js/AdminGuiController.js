@@ -449,6 +449,11 @@
             let data;
             let pagination = null;
             
+            // Debug logging
+            console.log('Response type:', typeof response);
+            console.log('Has items?', response && response.items);
+            console.log('Items is array?', response && Array.isArray(response.items));
+            
             if (Array.isArray(response)) {
                 data = response;
             } else if (response.content && Array.isArray(response.content)) {
@@ -466,6 +471,15 @@
             } else if (response.results && Array.isArray(response.results)) {
                 data = response.results;
                 pagination = response.pagination || null;
+            } else if (response.items && Array.isArray(response.items)) {
+                // Handle response format from Labels API
+                data = response.items;
+                pagination = {
+                    currentPage: response.page || 1,
+                    pageSize: response.size || 50,
+                    totalItems: response.total || 0,
+                    totalPages: response.totalPages || 1
+                };
             } else if (typeof response === 'object' && response !== null) {
                 // If it's an object but not an array, wrap it in an array
                 data = [response];

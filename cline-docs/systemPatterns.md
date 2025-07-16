@@ -30,6 +30,8 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 *   **Dev Environment Orchestration:** Node.js-based orchestration (ADR-025) replaces shell scripts for the local development environment.
 *   **Modular Frontend Architecture:** JavaScript applications are built with modular architecture (8-module pattern) replacing monolithic approaches.
 *   **Documentation Standards:** Comprehensive API documentation with OpenAPI specifications and generated Postman collections ensure consistency.
+*   **Association Management Pattern:** Many-to-many relationships are managed through dedicated API endpoints with add/remove functionality and proper UI integration.
+*   **Dynamic Filtering Pattern:** Hierarchical dropdowns dynamically filter based on parent selections (e.g., steps filtered by selected migration).
 
 ## 3. Component Relationships
 

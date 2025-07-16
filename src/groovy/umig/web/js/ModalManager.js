@@ -67,6 +67,8 @@
                 this.showTeamViewModal(id);
             } else if (currentEntity === 'applications') {
                 this.showApplicationViewModal(id);
+            } else if (currentEntity === 'labels') {
+                this.showLabelViewModal(id);
             } else {
                 this.showGenericViewModal(id, currentEntity);
             }
@@ -86,6 +88,8 @@
                 this.showTeamEditModal(id);
             } else if (currentEntity === 'applications') {
                 this.showApplicationEditModal(id);
+            } else if (currentEntity === 'labels') {
+                this.showLabelEditModal(id);
             } else {
                 if (id) {
                     this.loadEntityData(id, currentEntity)
@@ -365,6 +369,7 @@
                         </div>
                         <div class="modal-footer">
                             <button class="btn-secondary" onclick="ModalManager.closeModal()">Close</button>
+                            <button class="btn-primary" onclick="ModalManager.closeModal(); ModalManager.showEditModal('${entity[entityConfig.fields[0].key]}')">Edit</button>
                         </div>
                     </div>
                 </div>
@@ -441,6 +446,9 @@
             if (data && !isCreate) {
                 this.setFormData(data, entityConfig);
             }
+            
+            // Populate entity-type selects
+            this.populateEntityTypeSelects(entityConfig, data);
         },
 
         /**
@@ -528,12 +536,28 @@
                             const optionValue = option.value === null ? '' : option.value;
                             fieldHtml += `<option value="${optionValue}" ${selected}>${option.label}</option>`;
                         });
+                    } else if (field.entityType) {
+                        // Entity-type select - will be populated dynamically
+                        fieldHtml += `<option value="">Loading...</option>`;
                     }
                     fieldHtml += `</select>`;
+                    
+                    // Add data attributes for entity-type selects
+                    if (field.entityType) {
+                        // Replace the select opening tag to add data attributes
+                        fieldHtml = fieldHtml.replace(
+                            `<select id="${field.key}"`,
+                            `<select id="${field.key}" data-entity-type="${field.entityType}" data-display-field="${field.displayField}" data-value-field="${field.valueField}"`
+                        );
+                    }
                     break;
                     
                 case 'number':
                     fieldHtml += `<input type="number" id="${field.key}" name="${field.key}" value="${value}" ${required}>`;
+                    break;
+                    
+                case 'color':
+                    fieldHtml += `<input type="color" id="${field.key}" name="${field.key}" value="${value || '#000000'}" ${required}>`;
                     break;
                     
                 default:
@@ -564,6 +588,61 @@
                         input.checked = data[field.key];
                     } else {
                         input.value = data[field.key] || '';
+                    }
+                }
+            });
+        },
+
+        /**
+         * Populate entity-type selects with data from API
+         * @param {Object} entityConfig - Entity configuration
+         * @param {Object} data - Current entity data (for pre-selection)
+         */
+        populateEntityTypeSelects: function(entityConfig, data) {
+            if (!entityConfig || !entityConfig.fields) return;
+            
+            entityConfig.fields.forEach(field => {
+                if (field.type === 'select' && field.entityType) {
+                    const select = document.getElementById(field.key);
+                    if (!select) return;
+                    
+                    // Load data from API
+                    if (window.ApiClient && window.ApiClient.entities) {
+                        window.ApiClient.entities.getAll(field.entityType)
+                            .then(response => {
+                                // Handle different response formats
+                                let items = [];
+                                if (Array.isArray(response)) {
+                                    items = response;
+                                } else if (response.content) {
+                                    items = response.content;
+                                } else if (response.items) {
+                                    items = response.items;
+                                }
+                                
+                                // Clear existing options
+                                select.innerHTML = '<option value="">Select...</option>';
+                                
+                                // Add options
+                                items.forEach(item => {
+                                    const value = item[field.valueField];
+                                    const display = item[field.displayField];
+                                    const option = document.createElement('option');
+                                    option.value = value;
+                                    option.textContent = display;
+                                    
+                                    // Pre-select if editing
+                                    if (data && data[field.key] === value) {
+                                        option.selected = true;
+                                    }
+                                    
+                                    select.appendChild(option);
+                                });
+                            })
+                            .catch(error => {
+                                console.error(`Failed to load ${field.entityType}:`, error);
+                                select.innerHTML = '<option value="">Failed to load options</option>';
+                            });
                     }
                 }
             });
@@ -856,6 +935,13 @@
                     return window.UiUtils ? window.UiUtils.formatDate(value) : value;
                 case 'date':
                     return window.UiUtils ? window.UiUtils.formatDate(value, false) : value;
+                case 'color':
+                    // Use custom renderer if available, otherwise display color with swatch
+                    const entityConfig = window.EntityConfig ? window.EntityConfig.getEntity(window.AdminGuiState?.getState()?.currentEntity) : null;
+                    if (entityConfig?.customRenderers?.[field.key]) {
+                        return entityConfig.customRenderers[field.key](value);
+                    }
+                    return `<span class="aui-label" style="background-color: ${value}; color: ${window.UiUtils?.getContrastColor(value) || '#000000'};">${value}</span>`;
                 default:
                     return value.toString();
             }
@@ -2762,6 +2848,600 @@
                     
                     if (window.UiUtils) {
                         window.UiUtils.showNotification(errorMessage, 'error');
+                    }
+                });
+        },
+
+        /**
+         * Show Label VIEW modal
+         * @param {number} labelId - Label ID
+         */
+        showLabelViewModal: function(labelId) {
+            console.log('showLabelViewModal called with labelId:', labelId);
+            
+            if (!window.ApiClient) {
+                console.error('API client not available');
+                return;
+            }
+            
+            // Load label data with full details
+            window.ApiClient.labels.getById(labelId)
+                .then(label => {
+                    console.log('Label data:', label);
+                    
+                    // Also load steps for this label
+                    return window.ApiClient.labels.getSteps(labelId)
+                        .then(steps => {
+                            label.steps = steps;
+                            return label;
+                        })
+                        .catch(() => {
+                            // If steps endpoint doesn't exist, continue without steps
+                            label.steps = [];
+                            return label;
+                        });
+                })
+                .then(label => {
+                    this.renderLabelViewModal(label);
+                })
+                .catch(error => {
+                    console.error('Failed to load label data:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load label data', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Render Label VIEW modal
+         * @param {Object} label - Label data
+         */
+        renderLabelViewModal: function(label) {
+            let modalHtml = `
+                <div class="modal-overlay" id="viewModal">
+                    <div class="modal modal-large">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Label Details: ${label.lbl_name}</h3>
+                            <button class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="env-details">
+                                <div class="detail-section">
+                                    <h4>Label Information</h4>
+                                    <p><strong>Name:</strong> ${label.lbl_name}</p>
+                                    <p><strong>Description:</strong> ${label.lbl_description || 'No description'}</p>
+                                    <p><strong>Color:</strong> <span class="aui-label" style="background-color: ${label.lbl_color}; color: ${window.UiUtils ? window.UiUtils.getContrastColor(label.lbl_color) : '#000000'};">${label.lbl_color}</span></p>
+                                    <p><strong>Migration:</strong> ${label.mig_name || 'Unknown'}</p>
+                                    <p><strong>Created By:</strong> ${label.created_by_name || 'Unknown'}</p>
+                                    <p><strong>Created At:</strong> ${window.UiUtils ? window.UiUtils.formatDate(label.created_at) : label.created_at}</p>
+                                </div>
+                                
+                                <div class="detail-section">
+                                    <h4>Associated Applications (${label.applications ? label.applications.length : 0})</h4>
+                                    ${this.renderLabelApplications(label.applications)}
+                                </div>
+                                
+                                <div class="detail-section">
+                                    <h4>Associated Steps (${label.step_count || 0})</h4>
+                                    ${this.renderLabelSteps(label.steps)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="ModalManager.closeModal()">Close</button>
+                            <button class="btn-primary" onclick="ModalManager.closeModal(); ModalManager.showEditModal(${label.lbl_id})">Edit</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        },
+
+        /**
+         * Render label applications for VIEW mode
+         * @param {Array} applications - Label applications
+         * @returns {string} HTML string
+         */
+        renderLabelApplications: function(applications) {
+            if (!applications || applications.length === 0) {
+                return '<p class="no-associations">No applications associated</p>';
+            }
+            
+            let html = '<div class="associations-list">';
+            applications.forEach(app => {
+                html += `
+                    <div class="association-item">
+                        <span><strong>${app.app_code}</strong> - ${app.app_name}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        },
+
+        /**
+         * Render label steps for VIEW mode
+         * @param {Array} steps - Label steps
+         * @returns {string} HTML string
+         */
+        renderLabelSteps: function(steps) {
+            if (!steps || steps.length === 0) {
+                return '<p class="no-associations">No steps associated</p>';
+            }
+            
+            let html = '<div class="associations-list">';
+            steps.forEach(step => {
+                // Format step code: type - number
+                const stepCode = `${step.step_type || step.stt_code || ''} - ${step.step_number || step.stm_step_number || ''}`;
+                html += `
+                    <div class="association-item">
+                        <span><strong>${stepCode}</strong> - ${step.step_title || step.stm_title || 'No title'}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            return html;
+        },
+
+        /**
+         * Show Label EDIT modal
+         * @param {number} labelId - Label ID (null for create)
+         */
+        showLabelEditModal: function(labelId) {
+            console.log('showLabelEditModal called with labelId:', labelId);
+            
+            const isCreate = !labelId;
+            
+            if (isCreate) {
+                // For create mode, load available data
+                Promise.all([
+                    window.ApiClient.migrations.getAll(),
+                    window.ApiClient.applications.getAll()
+                ]).then(([migrations, allApplications]) => {
+                    // For create mode, we don't have a migration selected yet, so pass empty steps
+                    this.renderLabelEditModal(null, [], [], migrations, allApplications, [], true);
+                }).catch(error => {
+                    console.error('Failed to load data for label creation:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load label creation data', 'error');
+                    }
+                });
+            } else {
+                // For edit mode, load label data and available items
+                Promise.all([
+                    window.ApiClient.labels.getById(labelId),
+                    window.ApiClient.labels.getSteps(labelId),
+                    window.ApiClient.migrations.getAll(),
+                    window.ApiClient.applications.getAll()
+                ]).then(([label, steps, migrations, allApplications]) => {
+                    // Fetch steps filtered by the label's migration
+                    const migrationId = label.mig_id;
+                    return window.ApiClient.steps.getMasterSteps({ migrationId: migrationId })
+                        .then(allSteps => {
+                            // Create modal for editing existing label
+                            this.renderLabelEditModal(label, label.applications || [], steps || [], migrations, allApplications, allSteps, false);
+                        });
+                }).catch(error => {
+                    console.error('Failed to load label edit data:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load label data', 'error');
+                    }
+                });
+            }
+        },
+
+        /**
+         * Render Label EDIT modal
+         * @param {Object} label - Label data (null for create)
+         * @param {Array} applications - Associated applications
+         * @param {Array} steps - Associated steps
+         * @param {Array} migrations - Available migrations
+         * @param {Array} allApplications - All available applications
+         * @param {Array} allSteps - All available steps
+         * @param {boolean} isCreate - Whether this is create mode
+         */
+        renderLabelEditModal: function(label, applications, steps, migrations, allApplications, allSteps, isCreate) {
+            const modalTitle = isCreate ? 'Create New Label' : `Edit Label: ${label.lbl_name}`;
+            
+            let modalHtml = `
+                <div class="modal-overlay" id="editModal">
+                    <div class="modal modal-large">
+                        <div class="modal-header">
+                            <h3 class="modal-title">${modalTitle}</h3>
+                            <button class="modal-close">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="labelForm" class="entity-form">
+                                <div class="form-section">
+                                    <h4>Label Information</h4>
+                                    <div class="form-field">
+                                        <label for="lbl_name">Name *</label>
+                                        <input type="text" id="lbl_name" name="lbl_name" value="${label ? label.lbl_name : ''}" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="lbl_description">Description</label>
+                                        <textarea id="lbl_description" name="lbl_description" rows="3">${label ? label.lbl_description || '' : ''}</textarea>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="lbl_color">Color *</label>
+                                        <input type="color" id="lbl_color" name="lbl_color" value="${label ? label.lbl_color : '#000000'}" required>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="mig_id">Migration *</label>
+                                        <select id="mig_id" name="mig_id" required onchange="ModalManager.onMigrationChange(this.value)">
+                                            <option value="">Select Migration</option>
+                                            ${(() => {
+                                                // Handle paginated or array response
+                                                const migList = migrations && migrations.data ? migrations.data : 
+                                                               migrations && migrations.content ? migrations.content : 
+                                                               (Array.isArray(migrations) ? migrations : []);
+                                                return migList.map(mig => {
+                                                    // The API returns 'id' and 'name' fields, not 'mig_id' and 'mig_name'
+                                                    return `
+                                                        <option value="${mig.id || mig.mig_id || ''}" ${label && label.mig_id === (mig.id || mig.mig_id) ? 'selected' : ''}>
+                                                            ${mig.name || mig.mig_name || 'Unnamed Migration'}
+                                                        </option>
+                                                    `;
+                                                }).join('');
+                                            })()}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                ${!isCreate ? `
+                                <div class="form-section">
+                                    <h4>Associated Applications</h4>
+                                    <div class="associations-section">
+                                        <div class="association-add">
+                                            <select id="applicationSelect">
+                                                <option value="">Select Application to Add</option>
+                                                ${(() => {
+                                                    // Handle paginated or non-paginated response
+                                                    const appList = allApplications && allApplications.data ? allApplications.data : 
+                                                                   allApplications && allApplications.content ? allApplications.content : 
+                                                                   (Array.isArray(allApplications) ? allApplications : []);
+                                                    return appList
+                                                        .filter(app => !applications.some(a => a.app_id === app.app_id))
+                                                        .map(app => `<option value="${app.app_id}">${app.app_code} - ${app.app_name}</option>`)
+                                                        .join('');
+                                                })()}
+                                            </select>
+                                            <button type="button" class="btn-secondary" onclick="ModalManager.addLabelApplication(${label.lbl_id})">Add Application</button>
+                                        </div>
+                                        <div class="current-associations">
+                                            ${applications.length > 0 ? applications.map(app => `
+                                                <div class="association-item">
+                                                    <span>${app.app_code} - ${app.app_name}</span>
+                                                    <button type="button" class="btn-remove" onclick="ModalManager.removeLabelApplication(${label.lbl_id}, ${app.app_id})">Remove</button>
+                                                </div>
+                                            `).join('') : '<p>No applications associated</p>'}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h4>Associated Steps</h4>
+                                    ${isCreate ? '<p class="form-help">Steps will be available after selecting a migration</p>' : ''}
+                                    <div class="associations-section">
+                                        <div class="association-add">
+                                            <select id="stepSelect" ${isCreate ? 'disabled' : ''}>
+                                                <option value="">${isCreate ? 'Select a migration first' : 'Select Step to Add'}</option>
+                                                ${(() => {
+                                                    // Handle paginated or non-paginated response
+                                                    const stepList = allSteps && allSteps.content ? allSteps.content : 
+                                                                    (Array.isArray(allSteps) ? allSteps : []);
+                                                    return stepList
+                                                        .filter(step => !steps.some(s => s.stm_id === step.stm_id))
+                                                        .map(step => `<option value="${step.stm_id}">${step.display_name || step.step_code + ': ' + step.stm_title}</option>`)
+                                                        .join('');
+                                                })()}
+                                            </select>
+                                            <button type="button" class="btn-secondary" onclick="ModalManager.addLabelStep(${label.lbl_id})">Add Step</button>
+                                        </div>
+                                        <div class="current-associations">
+                                            ${steps.length > 0 ? steps.map(step => `
+                                                <div class="association-item">
+                                                    <span>${step.step_type || step.stt_code} - ${step.step_number || step.stm_step_number}: ${step.step_title || step.stm_title}</span>
+                                                    <button type="button" class="btn-remove" onclick="ModalManager.removeLabelStep(${label.lbl_id}, '${step.stm_id}')">Remove</button>
+                                                </div>
+                                            `).join('') : '<p>No steps associated</p>'}
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="ModalManager.closeModal()">Cancel</button>
+                            ${!isCreate ? `<button class="btn-danger" onclick="ModalManager.deleteLabel(${label.lbl_id})">Delete</button>` : ''}
+                            <button class="btn-primary" onclick="ModalManager.saveLabel(${label ? label.lbl_id : 'null'})">
+                                ${isCreate ? 'Create Label' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        },
+
+        /**
+         * Add label application association
+         * @param {number} labelId - Label ID
+         */
+        addLabelApplication: function(labelId) {
+            const applicationSelect = document.getElementById('applicationSelect');
+            const applicationId = applicationSelect.value;
+            
+            if (!applicationId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select an application', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.labels.addApplication(labelId, applicationId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Application added successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showLabelEditModal(labelId);
+                })
+                .catch(error => {
+                    console.error('Failed to add application to label:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to add application', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove label application association
+         * @param {number} labelId - Label ID
+         * @param {number} applicationId - Application ID
+         */
+        removeLabelApplication: async function(labelId, applicationId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this application from the label?');
+            
+            if (confirmed) {
+                window.ApiClient.labels.removeApplication(labelId, applicationId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Application removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showLabelEditModal(labelId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove application from label:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove application', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Add label step association
+         * @param {number} labelId - Label ID
+         */
+        addLabelStep: function(labelId) {
+            const stepSelect = document.getElementById('stepSelect');
+            const stepId = stepSelect.value;
+            
+            if (!stepId) {
+                if (window.UiUtils) {
+                    window.UiUtils.showNotification('Please select a step', 'error');
+                }
+                return;
+            }
+            
+            window.ApiClient.labels.addStep(labelId, stepId)
+                .then(() => {
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Step added successfully', 'success');
+                    }
+                    // Refresh the modal
+                    this.closeModal();
+                    this.showLabelEditModal(labelId);
+                })
+                .catch(error => {
+                    console.error('Failed to add step to label:', error);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to add step', 'error');
+                    }
+                });
+        },
+
+        /**
+         * Remove label step association
+         * @param {number} labelId - Label ID
+         * @param {string} stepId - Step ID (UUID)
+         */
+        removeLabelStep: async function(labelId, stepId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this step from the label?');
+            
+            if (confirmed) {
+                window.ApiClient.labels.removeStep(labelId, stepId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Step removed successfully', 'success');
+                        }
+                        // Refresh the modal
+                        this.closeModal();
+                        this.showLabelEditModal(labelId);
+                    })
+                    .catch(error => {
+                        console.error('Failed to remove step from label:', error);
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Failed to remove step', 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Save label changes
+         * @param {number} labelId - Label ID
+         */
+        saveLabel: function(labelId) {
+            const form = document.getElementById('labelForm');
+            const formData = this.getFormData(form);
+            const isCreate = !labelId;
+            
+            const apiCall = isCreate ? 
+                window.ApiClient.labels.create(formData) : 
+                window.ApiClient.labels.update(labelId, formData);
+            
+            const successMessage = isCreate ? 'Label created successfully' : 'Label updated successfully';
+            
+            apiCall
+                .then(response => {
+                    console.log('Label saved successfully:', response);
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(successMessage, 'success');
+                    }
+                    
+                    this.closeModal();
+                    
+                    // Refresh the table
+                    if (window.AdminGuiController) {
+                        window.AdminGuiController.loadCurrentSection();
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to save label:', error);
+                    
+                    let errorMessage = 'Failed to save label';
+                    if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification(errorMessage, 'error');
+                    }
+                });
+        },
+
+        /**
+         * Delete label
+         * @param {number} labelId - Label ID
+         */
+        deleteLabel: async function(labelId) {
+            const confirmed = await this.showSimpleConfirm('Are you sure you want to delete this label? This action cannot be undone.');
+            
+            if (confirmed) {
+                window.ApiClient.labels.delete(labelId)
+                    .then(() => {
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification('Label deleted successfully', 'success');
+                        }
+                        
+                        this.closeModal();
+                        
+                        // Refresh the table
+                        if (window.AdminGuiController) {
+                            window.AdminGuiController.loadCurrentSection();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to delete label:', error);
+                        
+                        let errorMessage = 'Failed to delete label';
+                        if (error.message) {
+                            errorMessage = error.message;
+                        }
+                        
+                        if (window.UiUtils) {
+                            window.UiUtils.showNotification(errorMessage, 'error');
+                        }
+                    });
+            }
+        },
+
+        /**
+         * Handle migration change in label edit modal
+         * @param {string} migrationId - Selected migration ID
+         */
+        onMigrationChange: function(migrationId) {
+            console.log('Migration changed to:', migrationId);
+            
+            const stepSelect = document.getElementById('stepSelect');
+            if (!stepSelect) {
+                console.warn('Step select element not found');
+                return;
+            }
+            
+            // Clear current options
+            stepSelect.innerHTML = '<option value="">Select Step to Add</option>';
+            
+            if (!migrationId) {
+                console.log('No migration selected, clearing steps');
+                stepSelect.disabled = true;
+                stepSelect.innerHTML = '<option value="">Select a migration first</option>';
+                return;
+            }
+            
+            // Show loading indicator
+            stepSelect.disabled = true;
+            stepSelect.innerHTML = '<option value="">Loading steps...</option>';
+            
+            // Fetch steps for the selected migration
+            window.ApiClient.steps.getMasterSteps({ migrationId: migrationId })
+                .then(response => {
+                    console.log('Steps loaded for migration:', response);
+                    
+                    // Handle paginated or non-paginated response
+                    const stepList = response && response.content ? response.content : 
+                                   (Array.isArray(response) ? response : []);
+                    
+                    // Get currently associated steps
+                    const currentSteps = [];
+                    const associatedStepElements = document.querySelectorAll('.current-associations .association-item');
+                    associatedStepElements.forEach(elem => {
+                        const button = elem.querySelector('button[onclick*="removeLabelStep"]');
+                        if (button) {
+                            const onclick = button.getAttribute('onclick');
+                            const match = onclick.match(/removeLabelStep\(\d+,\s*'([^']+)'\)/);
+                            if (match) {
+                                currentSteps.push(match[1]);
+                            }
+                        }
+                    });
+                    
+                    // Rebuild options, excluding already associated steps
+                    stepSelect.innerHTML = '<option value="">Select Step to Add</option>';
+                    
+                    const filteredSteps = stepList.filter(step => !currentSteps.includes(step.stm_id));
+                    
+                    if (filteredSteps.length === 0) {
+                        stepSelect.innerHTML = '<option value="">No steps available for this migration</option>';
+                    } else {
+                        filteredSteps.forEach(step => {
+                            const option = document.createElement('option');
+                            option.value = step.stm_id;
+                            const stepCode = `${step.stt_code}-${step.stm_number}`;
+                            const stepName = step.stm_name || 'Unnamed Step';
+                            option.textContent = `${stepCode}: ${stepName}`;
+                            stepSelect.appendChild(option);
+                        });
+                    }
+                    
+                    stepSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Failed to load steps for migration:', error);
+                    stepSelect.innerHTML = '<option value="">Failed to load steps</option>';
+                    stepSelect.disabled = false;
+                    
+                    if (window.UiUtils) {
+                        window.UiUtils.showNotification('Failed to load steps for selected migration', 'error');
                     }
                 });
         }

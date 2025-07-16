@@ -104,6 +104,9 @@
             const entity = window.EntityConfig ? window.EntityConfig.getEntity(entityType) : null;
             if (!entity) {
                 console.error('Entity configuration not found:', entityType);
+                console.error('Available entities:', window.EntityConfig ? Object.keys(window.EntityConfig.getAllEntities()) : 'EntityConfig not loaded');
+                console.error('Looking for entityType:', entityType);
+                console.error('EntityConfig loaded?', !!window.EntityConfig);
                 return;
             }
 
@@ -269,7 +272,13 @@
                     const isActive = row.usr_active;
                     formattedValue = this.formatStatusDisplay(isActive);
                 } else {
-                    formattedValue = this.formatCellValue(value, column, entity);
+                    // Check for custom renderers
+                    const entityConfig = window.EntityConfig ? window.EntityConfig.getEntity(entity.name.toLowerCase()) : null;
+                    if (entityConfig?.customRenderers?.[column]) {
+                        formattedValue = entityConfig.customRenderers[column](value);
+                    } else {
+                        formattedValue = this.formatCellValue(value, column, entity);
+                    }
                 }
                 
                 rowHtml += `<td>${formattedValue}</td>`;

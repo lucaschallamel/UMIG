@@ -312,25 +312,33 @@ DatabaseUtil.withSql { sql ->
 - Endpoints: `/users`, `/teams`, `/environments`, `/steps`, `/labels`, `/migrations`, `/stepViewApi`
 - V2 API conventions (documented in `docs/api/openapi.yaml`)
 
-### Hierarchical Filtering Pattern (ADR-030)
-**Consistent query parameter filtering across all resources:**
+### Hierarchical Filtering Pattern (ADR-030, ADR-031)
+**Consistent query parameter filtering across all resources with type safety:**
 
 **Backend Implementation**:
 ```groovy
-// Example: Teams filtered by migration
-def findTeamsByMigrationId(UUID migrationId) {
-    // SQL with hierarchical joins to find relevant teams
+// Type-safe parameter handling with explicit casting
+if (filters.migrationId) {
+    query += ' AND mig.mig_id = :migrationId'
+    params.migrationId = UUID.fromString(filters.migrationId as String)
+}
+
+if (filters.teamId) {
+    query += ' AND stm.tms_id_owner = :teamId'  
+    params.teamId = Integer.parseInt(filters.teamId as String)
 }
 ```
 
 **API Usage**:
 - `/teams?migrationId={uuid}` - Teams in a migration
 - `/labels?iterationId={uuid}` - Labels in an iteration
+- `/steps?planId={uuid}&teamId={int}` - Steps in a plan by team
 - `/teams?phaseId={uuid}` - Teams assigned to a phase
 
 **Frontend Integration**:
+- Complete parent-child cascade logic (Migration → Iteration → Plan → Sequence → Phase → Teams + Labels)
 - Dynamic filter updates based on parent selections
-- Cascading filter behavior for progressive refinement
+- Progressive refinement with automatic reset of child filters
 
 ## Key Development Guidelines
 
@@ -338,8 +346,10 @@ def findTeamsByMigrationId(UUID migrationId) {
 1. **REST Endpoints**: Must use `CustomEndpointDelegate` pattern
 2. **Database Access**: Must use `DatabaseUtil.withSql` pattern  
 3. **Security**: Include `groups: ["confluence-users"]` by default
-4. **Type Safety**: Use explicit casting when IDE reports errors but runtime type is certain
-5. **Path Parameters**: Use `getAdditionalPath(request)` for URL segments
+4. **Type Safety**: MANDATORY explicit casting (`as String`) for all query parameters passed to UUID.fromString() or Integer.parseInt()
+5. **Field Selection**: Include ALL fields referenced in result mapping in SQL SELECT clauses
+6. **Master vs Instance**: Use instance IDs (pli_id, sqi_id, phi_id) for hierarchical filtering, not master IDs
+7. **Path Parameters**: Use `getAdditionalPath(request)` for URL segments
 
 ### Frontend Requirements
 1. **No Frameworks**: Use vanilla JavaScript only
@@ -410,7 +420,7 @@ When development environment is running:
 
 ### ✅ Completed Features
 - **Local Development Environment**: Node.js orchestrated Podman containers
-- **Admin UI (SPA Pattern)**: Complete user/team/environments management with robust error handling
+- **Admin UI (SPA Pattern)**: Complete user/team/environments/applications/labels management with robust error handling
 - **API Standards**: Comprehensive REST patterns (ADR-023) with specific error mappings
 - **API Documentation**: Complete OpenAPI specification with accurate schemas and generated Postman collections
 - **Data Generation**: Modular synthetic data generators with 3-digit prefixes and correct execution order
@@ -419,14 +429,15 @@ When development environment is running:
 - **Testing Framework**: Stabilized with specific SQL query mocks (ADR-026) and updated test coverage
 - **Architecture Documentation**: All 31 ADRs consolidated into solution-architecture.md
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
-- **Iteration View Mockup**: Complete HTML/CSS/JS mockup with zero dependencies (`mock/`)
-- **Labels API**: Complete with hierarchical filtering (ADR-030)
-- **Teams API**: Enhanced with hierarchical filtering capabilities
+- **Iteration View Complete**: Fully functional with hierarchical filtering, labels integration, and dynamic step management
+- **Labels Admin GUI**: Complete CRUD interface with color picker, association management, and migration-based filtering
+- **Labels API**: Complete with hierarchical filtering (ADR-030) and full CRUD operations
+- **Teams API**: Enhanced with hierarchical filtering capabilities and association management
 - **Users API**: Complete CRUD operations with pagination and filtering
 - **Environments API**: Complete CRUD operations with application/iteration associations
-- **Steps API**: Complete with hierarchical filtering and labels integration
+- **Applications API**: Complete CRUD operations with label association management
+- **Steps API**: Complete with hierarchical filtering, labels integration, and migration-based filtering
 - **Migration API**: Core functionality implemented
-- **Iteration View Complete**: Fully functional with hierarchical filtering, labels integration, and dynamic step management
 - **Type Safety Patterns**: Established Groovy static type checking patterns (ADR-031)
 
 ### 🚧 MVP Remaining Work
@@ -474,12 +485,15 @@ When development environment is running:
 3. **Skip Archive**: Ignore `/docs/adr/archive/` - all content consolidated in solution-architecture.md
 
 ### Development Standards (Non-Negotiable)
-1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/TeamsApi.groovy` and `UsersApi.groovy`
+1. **API Pattern**: Use established SPA+REST pattern - reference `src/groovy/umig/api/v2/StepsApi.groovy`, `TeamsApi.groovy`, and `LabelsApi.groovy`
 2. **Database Access**: MANDATORY `DatabaseUtil.withSql` pattern - no exceptions
-3. **Testing**: Specific SQL query mocks required (ADR-026) - prevent regressions
-4. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
-5. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
-6. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
+3. **Type Safety**: MANDATORY explicit casting (`as String`) for all query parameters - see ADR-031
+4. **Filtering Logic**: Use instance IDs (pli_id, sqi_id, phi_id) for hierarchical filtering, not master IDs
+5. **Field Selection**: Include ALL fields referenced in result mapping in SQL SELECT clauses
+6. **Testing**: Specific SQL query mocks required (ADR-026) - prevent regressions
+7. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
+8. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
+9. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
 
 ### Project Context (Current State)
 - **Maturity**: Functional stage with iteration view complete and proven patterns established
@@ -493,11 +507,19 @@ When development environment is running:
 - **Type Safety Patterns**: Established robust Groovy static type checking patterns (ADR-031) preventing runtime errors
 - **API Pattern Maturity**: Proven REST API patterns with StepsApi, TeamsApi, and LabelsApi serving as definitive templates
 - **Database Filtering Mastery**: Resolved master vs instance ID filtering patterns and complete field selection requirements
+- **Labels Admin GUI Complete**: Full CRUD interface with color picker, association management, and migration-based filtering
 - **Labels Integration**: Complete many-to-many relationship handling with colored tag display and graceful error handling
 - **API Documentation Complete**: Comprehensive OpenAPI specification with accurate schemas and generated Postman collections
 - **Schema Consistency**: Resolved mismatches between API documentation and actual implementation for Users and Teams APIs
 - **Admin GUI Refactoring**: Split 1,901-line monolithic admin-gui.js into 8 modular components for improved maintainability
 - **JavaScript Architecture**: Established modular patterns with EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, and AdminGuiController
+- **Environment Search Enhancement**: Implemented full-stack search functionality for environments with pagination, sorting, and filtering, fixing GString SQL type inference issues
+- **Teams Association Management**: Complete VIEW and EDIT modals for Teams with user and application association management, including add/remove functionality
+- **Applications Label Management**: Complete Labels association management in Admin GUI with add/remove functionality
+- **Modal Consistency**: Standardized modal UI patterns across Teams and Environments with consistent AUI styling and Edit button functionality
+- **State Management Fixes**: Resolved sort field persistence bug and confirmation dialog regressions in admin interface using custom Promise-based dialogs
+- **Active User Filtering**: Added active parameter support to Users API for populating dropdown selections with active users only
+- **Migration-Based Filtering**: Implemented dynamic step filtering based on selected migration in Labels edit modal
 
 ## Workflows
 

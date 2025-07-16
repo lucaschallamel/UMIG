@@ -657,6 +657,93 @@
         labels: {
             getAll: function(params = {}) {
                 return ApiClient.entities.getAll('labels', params);
+            },
+            getById: function(id) {
+                return ApiClient.entities.getById('labels', id);
+            },
+            create: function(data) {
+                return ApiClient.entities.create('labels', data);
+            },
+            update: function(id, data) {
+                return ApiClient.entities.update('labels', id, data);
+            },
+            delete: function(id) {
+                return ApiClient.entities.delete('labels', id);
+            },
+            getSteps: function(labelId) {
+                console.log('Getting steps for label:', labelId);
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/steps`;
+                
+                return fetch(url, {
+                    method: 'GET',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    console.log('Get label steps response:', response);
+                    
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            let error;
+                            try {
+                                error = JSON.parse(text);
+                            } catch (e) {
+                                error = { error: text || response.statusText };
+                            }
+                            throw new Error(error.error || `HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    
+                    return response.json();
+                })
+                .catch(error => {
+                    console.error('Failed to get label steps:', error);
+                    throw error;
+                });
+            },
+            addApplication: function(labelId, applicationId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/applications/${applicationId}`;
+                
+                return fetch(url, {
+                    method: 'POST',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
+            },
+            removeApplication: function(labelId, applicationId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/applications/${applicationId}`;
+                
+                return fetch(url, {
+                    method: 'DELETE',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
+            },
+            addStep: function(labelId, stepId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/steps/${stepId}`;
+                
+                return fetch(url, {
+                    method: 'POST',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
+            },
+            removeStep: function(labelId, stepId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/steps/${stepId}`;
+                
+                return fetch(url, {
+                    method: 'DELETE',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
             }
         },
 
@@ -666,6 +753,35 @@
         migrations: {
             getAll: function(params = {}) {
                 return ApiClient.entities.getAll('migrations', params);
+            }
+        },
+
+        /**
+         * Steps API
+         */
+        steps: {
+            getAll: function(params = {}) {
+                return ApiClient.entities.getAll('steps', params);
+            },
+            /**
+             * Get all master steps for dropdowns
+             * @param {Object} params - Query parameters (e.g., migrationId)
+             * @returns {Promise} Request promise
+             */
+            getMasterSteps: function(params = {}) {
+                return ApiClient.get('/steps/master', params);
+            },
+            getById: function(id) {
+                return ApiClient.entities.getById('steps', id);
+            },
+            create: function(data) {
+                return ApiClient.entities.create('steps', data);
+            },
+            update: function(id, data) {
+                return ApiClient.entities.update('steps', id, data);
+            },
+            delete: function(id) {
+                return ApiClient.entities.delete('steps', id);
             }
         },
 
