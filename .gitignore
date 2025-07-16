@@ -140,3 +140,4 @@ tmp/lint/
 
 #Claude
 .claude/
+.screenshots/

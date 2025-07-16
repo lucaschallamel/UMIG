@@ -39,6 +39,7 @@
 | direction | string | No | Sort direction (asc, desc, default: asc) |
 | teamId | integer | No | Filter users by team membership |
 | userCode | string | No | Find user by exact code match (for authentication) |
+| active | boolean | No | Filter users by active status (true for active, false for inactive) |
 
 ### 3.3. Request Body
 

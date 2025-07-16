@@ -1,5 +1,112 @@
 ### [Unreleased]
 
+#### 2025-07-16 (Labels Admin GUI Implementation)
+- **Feat(Labels):** Complete Labels admin interface with full CRUD functionality
+  - Added Labels to admin navigation with proper data source configuration
+  - Implemented comprehensive LabelRepository with CRUD operations and dynamic update support
+  - Created Labels VIEW modal with Edit button and association displays
+  - Developed Labels EDIT modal with association management for applications and steps
+  - Added color picker support with accessibility features (contrast color calculation)
+  - Implemented migration-based filtering for steps dropdown in Labels EDIT modal
+  - Added help text and dynamic loading indicators for better UX
+- **Feat(API):** Extended LabelsApi with complete CRUD and association endpoints
+  - Added POST /labels endpoint for creating new labels
+  - Added PUT /labels/{id} endpoint for updating labels including migration changes
+  - Added DELETE /labels/{id} endpoint for deleting labels
+  - Added GET /labels/{id}/steps endpoint for retrieving label-associated steps
+  - Added POST /labels/{labelId}/applications/{applicationId} for adding application associations
+  - Added DELETE /labels/{labelId}/applications/{applicationId} for removing application associations
+  - Added POST /labels/{labelId}/steps/{stepId} for adding step associations
+  - Added DELETE /labels/{labelId}/steps/{stepId} for removing step associations
+- **Enhancement(Steps API):** Added migration-based filtering support
+  - Extended GET /steps/master endpoint to accept migrationId query parameter
+  - Added findMasterStepsByMigrationId method to StepRepository
+  - Ensures steps dropdown only shows steps belonging to selected migration
+- **Fix(Type Safety):** Resolved multiple Groovy static type checking issues
+  - Fixed explicit type casting for List operations in LabelsApi
+  - Corrected Math.ceil() usage with BigDecimal to Double conversion
+  - Ensured proper parameter type handling throughout the codebase
+- **Enhancement(Frontend):** Improved Labels management user experience
+  - Added ApiClient methods for all label operations and associations
+  - Implemented dynamic step filtering based on selected migration
+  - Added onMigrationChange handler for real-time dropdown updates
+  - Enhanced error handling with specific error messages
+  - Added loading states and disabled states for better feedback
+
+#### 2025-07-15 (Applications Label Management)
+- **Feat(Applications):** Complete Labels association management in Admin GUI
+  - Added label_count column to Applications listing showing association counts
+  - Implemented Labels display in VIEW modal with colored tag visualization
+  - Added Labels section to EDIT modal with full CRUD functionality
+  - Created add/remove functionality for Application-Label associations
+  - Enhanced ApiClient with labels methods (getLabels, associateLabel, disassociateLabel)
+  - Updated EntityConfig to include label_count in tableColumns and sortMapping
+- **Feat(API):** Extended ApplicationsApi with label association endpoints
+  - Added GET /applications/{id}/labels endpoint for retrieving application labels
+  - Added PUT /applications/{appId}/labels/{labelId} for creating label associations
+  - Added DELETE /applications/{appId}/labels/{labelId} for removing label associations
+  - Enhanced ApplicationRepository with findApplicationLabels, associateLabel, disassociateLabel methods
+  - Added label_count to findAllApplicationsWithCounts query with LEFT JOIN on labels_lbl_x_applications_app
+- **Fix(Frontend):** Resolved label dropdown population issue
+  - Fixed field name mismatch between Labels API (id, name) and application-specific endpoints (lbl_id, lbl_name)
+  - Updated createSelectOptions call in renderApplicationLabelsEdit to use correct field names
+  - Labels now properly display with their associated colors in both VIEW and EDIT modals
+
+#### 2025-07-15 (Teams Association Management and Modal Consistency)
+- **Feat(Teams):** Complete Teams association management in Admin GUI
+  - Implemented Teams VIEW modal with user and application associations display
+  - Added Teams EDIT modal with comprehensive association management capabilities
+  - Created add/remove functionality for Team-User associations with proper validation
+  - Implemented add/remove functionality for Team-Application associations
+  - Added `createUserSelectOptions` method for proper user name display in dropdowns
+  - Enhanced ApiClient with teams association methods (getMembers, addMember, removeMember, addApplication, removeApplication)
+- **Feat(API):** Extended TeamsApi with association endpoints
+  - Added GET /teams/{id}/applications endpoint for retrieving team applications
+  - Added PUT /teams/{teamId}/applications/{applicationId} for adding application associations
+  - Added DELETE /teams/{teamId}/applications/{applicationId} for removing application associations
+  - Enhanced TeamRepository with findTeamApplications, addApplicationToTeam, removeApplicationFromTeam methods
+  - Fixed SQL queries to avoid referencing non-existent audit fields in teams_tms_x_applications_app table
+- **Enhancement(Environment Search):** Implemented full-stack environment search functionality
+  - Added search, pagination, and sorting support to EnvironmentsApi with GString SQL fix
+  - Created findAllEnvironmentsWithCounts method in EnvironmentRepository with parameterized queries
+  - Fixed EntityConfig environments entity to include empty filters array for search enablement
+  - Resolved GString SQL type inference error by using string concatenation instead of interpolation
+- **Fix(State Management):** Resolved multiple state persistence and UI issues
+  - Fixed sort field persistence bug where sort parameters persisted across entity switches
+  - Updated AdminGuiState.setCurrentSection to reset sortField and sortDirection
+  - Fixed confirmation dialog regression by replacing native confirm() with custom showSimpleConfirm
+  - Updated removeIterationAssociation and removeIteration to use Promise-based confirmation
+- **Enhancement(Users API):** Added active user filtering support
+  - Extended Users API with active parameter for filtering active/inactive users
+  - Updated UserRepository.findAllUsers to support activeFilter parameter
+  - Added proper type validation for active parameter (true/false only)
+- **UI(Modal Consistency):** Standardized modal patterns across Teams and Environments
+  - Aligned Teams modal CSS styling with Environment modal structure using env-details classes
+  - Added "Edit Environment" button to Environment VIEW modal for consistency with Teams modal
+  - Fixed modal display method from showModal to document.body.insertAdjacentHTML
+  - Implemented consistent modal footer layout and button positioning
+- **Fix(Teams Modal):** Resolved Teams modal creation and display issues
+  - Fixed showTeamEditModal to handle both create and edit modes properly
+  - Added proper null handling for new team creation vs existing team editing
+  - Fixed saveTeam method to use create() for new teams and update() for existing teams
+  - Resolved modal not displaying by using correct DOM insertion method
+
+#### 2025-07-15 (Custom Confirmation Dialog Pattern for Environment Management)
+- **Fix(UI):** Resolved critical confirmation dialog flickering issue in environment association management
+  - Implemented custom Promise-based confirmation dialog system replacing native `confirm()` function
+  - Fixed issue where native confirm dialogs would flicker and disappear immediately in modal contexts
+  - Created DOM-based confirmation overlay with high z-index (9999) to ensure visibility above existing modals
+  - Added proper event handling with button click handlers that resolve/reject promises
+  - Implemented automatic DOM cleanup after user interaction to prevent memory leaks
+- **Enhancement(UX):** Improved user experience for destructive operations
+  - Users can now reliably confirm removal of environment-application and environment-iteration associations
+  - Consistent styling with application theme using inline CSS for maximum compatibility
+  - Blocking design prevents user interaction with underlying UI until confirmation is provided
+- **Pattern(Architecture):** Established reusable confirmation dialog pattern for complex modal workflows
+  - Added technical implementation details to solution architecture documentation
+  - Created template for handling browser dialog interference in SPA applications
+  - Documented benefits including elimination of UI flickering and reliable event handling
+
 #### 2025-01-15 (API Documentation and OpenAPI Updates)
 - **Docs(API):** Created comprehensive UsersAPI.md specification
   - Documented all 5 endpoints with detailed request/response schemas

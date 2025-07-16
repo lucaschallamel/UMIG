@@ -104,6 +104,9 @@
             const entity = window.EntityConfig ? window.EntityConfig.getEntity(entityType) : null;
             if (!entity) {
                 console.error('Entity configuration not found:', entityType);
+                console.error('Available entities:', window.EntityConfig ? Object.keys(window.EntityConfig.getAllEntities()) : 'EntityConfig not loaded');
+                console.error('Looking for entityType:', entityType);
+                console.error('EntityConfig loaded?', !!window.EntityConfig);
                 return;
             }
 
@@ -176,8 +179,12 @@
                 const sortable = entity.sortMapping && entity.sortMapping[column];
                 
                 let sortIcon = '';
-                if (sortable && sortField === column) {
-                    sortIcon = sortDirection === 'asc' ? ' ▲' : ' ▼';
+                if (sortable) {
+                    // Check if this column is currently sorted by comparing the mapped field
+                    const mappedField = entity.sortMapping[column];
+                    if (sortField === mappedField) {
+                        sortIcon = sortDirection === 'asc' ? ' ▲' : ' ▼';
+                    }
                 }
                 
                 headerHtml += `<th ${sortable ? `data-field="${column}"` : ''}>${label}${sortIcon}</th>`;
@@ -265,7 +272,13 @@
                     const isActive = row.usr_active;
                     formattedValue = this.formatStatusDisplay(isActive);
                 } else {
-                    formattedValue = this.formatCellValue(value, column, entity);
+                    // Check for custom renderers
+                    const entityConfig = window.EntityConfig ? window.EntityConfig.getEntity(entity.name.toLowerCase()) : null;
+                    if (entityConfig?.customRenderers?.[column]) {
+                        formattedValue = entityConfig.customRenderers[column](value);
+                    } else {
+                        formattedValue = this.formatCellValue(value, column, entity);
+                    }
                 }
                 
                 rowHtml += `<td>${formattedValue}</td>`;
@@ -526,13 +539,23 @@
             const currentSortField = state.sortField;
             const currentSortDirection = state.sortDirection;
             
+            // Get the entity configuration to use sortMapping
+            const entityType = state.currentEntity;
+            const entity = window.EntityConfig ? window.EntityConfig.getEntity(entityType) : null;
+            
+            // Map display column to actual database field using sortMapping
+            let actualSortField = field;
+            if (entity && entity.sortMapping && entity.sortMapping[field]) {
+                actualSortField = entity.sortMapping[field];
+            }
+            
             let newDirection = 'asc';
-            if (currentSortField === field && currentSortDirection === 'asc') {
+            if (currentSortField === actualSortField && currentSortDirection === 'asc') {
                 newDirection = 'desc';
             }
             
             if (window.AdminGuiState) {
-                window.AdminGuiState.search.setSort(field, newDirection);
+                window.AdminGuiState.search.setSort(actualSortField, newDirection);
             }
             
             // Reload data

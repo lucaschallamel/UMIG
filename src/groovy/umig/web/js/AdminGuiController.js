@@ -122,11 +122,48 @@
             const searchInput = document.getElementById('globalSearch');
             if (searchInput) {
                 let searchTimeout;
+                
+                // Input event handler with minimum character threshold
                 searchInput.addEventListener('input', (e) => {
                     clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        this.handleSearch(e.target.value);
-                    }, 300);
+                    const searchTerm = e.target.value;
+                    
+                    // Update clear button visibility immediately
+                    this.updateSearchClearButton();
+                    
+                    // Only search if 3 or more characters, or if clearing the search
+                    if (searchTerm.length >= 3 || searchTerm.length === 0) {
+                        searchTimeout = setTimeout(() => {
+                            this.handleSearch(searchTerm);
+                        }, 300);
+                    }
+                });
+                
+                // Enter key handler for immediate search
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const searchTerm = e.target.value;
+                        
+                        // Only search if 3 or more characters, or if clearing the search
+                        if (searchTerm.length >= 3 || searchTerm.length === 0) {
+                            clearTimeout(searchTimeout);
+                            this.handleSearch(searchTerm);
+                        }
+                    }
+                });
+            }
+            
+            // Search clear button functionality
+            const searchClearBtn = document.getElementById('searchClearBtn');
+            if (searchClearBtn) {
+                searchClearBtn.addEventListener('click', () => {
+                    const searchInput = document.getElementById('globalSearch');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        this.handleSearch('');
+                        this.updateSearchClearButton();
+                    }
                 });
             }
 
@@ -150,6 +187,9 @@
 
             // Filter controls
             this.bindFilterEvents();
+            
+            // Initialize search clear button visibility
+            this.updateSearchClearButton();
         },
 
         /**
@@ -234,6 +274,22 @@
             }
             
             this.loadCurrentSection();
+        },
+        
+        /**
+         * Update search clear button visibility
+         */
+        updateSearchClearButton: function() {
+            const searchInput = document.getElementById('globalSearch');
+            const searchClearBtn = document.getElementById('searchClearBtn');
+            
+            if (searchInput && searchClearBtn) {
+                if (searchInput.value.length > 0) {
+                    searchClearBtn.style.display = 'block';
+                } else {
+                    searchClearBtn.style.display = 'none';
+                }
+            }
         },
 
         /**
@@ -393,6 +449,11 @@
             let data;
             let pagination = null;
             
+            // Debug logging
+            console.log('Response type:', typeof response);
+            console.log('Has items?', response && response.items);
+            console.log('Items is array?', response && Array.isArray(response.items));
+            
             if (Array.isArray(response)) {
                 data = response;
             } else if (response.content && Array.isArray(response.content)) {
@@ -410,6 +471,15 @@
             } else if (response.results && Array.isArray(response.results)) {
                 data = response.results;
                 pagination = response.pagination || null;
+            } else if (response.items && Array.isArray(response.items)) {
+                // Handle response format from Labels API
+                data = response.items;
+                pagination = {
+                    currentPage: response.page || 1,
+                    pageSize: response.size || 50,
+                    totalItems: response.total || 0,
+                    totalPages: response.totalPages || 1
+                };
             } else if (typeof response === 'object' && response !== null) {
                 // If it's an object but not an array, wrap it in an array
                 data = [response];

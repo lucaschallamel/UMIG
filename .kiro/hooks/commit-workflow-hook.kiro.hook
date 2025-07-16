@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Comprehensive Commit Workflow",
+  "description": "Executes the complete commit workflow including evidence gathering, multi-context analysis, and conventional commit message generation when staged changes are detected",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      ".git/index"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Execute the comprehensive commit workflow as described in the commit.md workflow. This includes:\n\n1. **Comprehensive Evidence Gathering**: \n   - Run `git diff --staged --stat` and `git diff --staged --name-status` to analyze all staged changes\n   - Classify files by functional area (API, UI, Documentation, Tests, Configuration, Database)\n   - Determine change types (new functionality, modifications, bug fixes, refactoring, documentation, tests)\n   - Check for unstaged/untracked related files with `git status --porcelain`\n\n2. **Multi-Context Rationale Analysis**:\n   - Review the entire session conversation to understand work evolution\n   - Check for development journal entries created during the sssion\n   - Understand business and technical context for all changes\n   - Map problems to solutions for each work stream\n\n3. **Multi-Stream Commit Message Synthesis**:\n   - Select appropriate conventional commit type (feat, fix, docs, style, refactor, perf, test, chore)\n   - Create comprehensive subject line under 50 characters in imperative mood\n   - Structure body to explain all work streams with what/why/how/impact for each\n   - Include cross-stream integration details and technical decisions\n   - Add appropriate footers for breaking changes or issue references\n\n4. **Anti-Tunnel Vision Verification**:\n   - Verify all staged files are explained in the commit message\n   - Ensure all functional areas and work streams are documented\n   - Confirm technical completeness and context rationale\n   - Validate message quality and conventional commits format\n\n5. **Present and Execute**:\n   - Present the generated commit message for user review\n   - After confirmation, execute `git commit` with the approved message\n\nFocus on creating a single coherent narrative that captures all changes while adhering strictly to Conventional Commits 1.0 standard."
+  }
+}

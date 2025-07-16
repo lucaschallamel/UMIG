@@ -99,6 +99,69 @@
                 'application_count': 'application_count',
                 'iteration_count': 'iteration_count'
             },
+            filters: [],
+            permissions: ['superadmin']
+        },
+        
+        labels: {
+            name: 'Labels',
+            description: 'Manage labels for categorizing and tagging steps and applications',
+            fields: [
+                { key: 'lbl_id', label: 'ID', type: 'number', readonly: true },
+                { key: 'lbl_name', label: 'Label Name', type: 'text', required: true, maxLength: 100 },
+                { key: 'lbl_description', label: 'Description', type: 'textarea' },
+                { key: 'lbl_color', label: 'Color', type: 'color', required: true },
+                { key: 'mig_id', label: 'Migration ID', type: 'select', required: true, 
+                  entityType: 'migrations', displayField: 'mig_name', valueField: 'mig_id' },
+                { key: 'mig_name', label: 'Migration', type: 'text', readonly: true, computed: true },
+                { key: 'created_at', label: 'Created At', type: 'datetime', readonly: true },
+                { key: 'created_by', label: 'Created By', type: 'number', readonly: true },
+                { key: 'created_by_name', label: 'Created By', type: 'text', readonly: true, computed: true },
+                { key: 'application_count', label: 'Applications', type: 'number', readonly: true, computed: true },
+                { key: 'step_count', label: 'Steps', type: 'number', readonly: true, computed: true }
+            ],
+            tableColumns: ['lbl_id', 'lbl_name', 'lbl_description', 'lbl_color', 'mig_name', 'application_count', 'step_count'],
+            sortMapping: {
+                'lbl_id': 'lbl_id',
+                'lbl_name': 'lbl_name',
+                'lbl_description': 'lbl_description',
+                'lbl_color': 'lbl_color',
+                'mig_name': 'mig_name',
+                'application_count': 'application_count',
+                'step_count': 'step_count'
+            },
+            customRenderers: {
+                lbl_color: function(value) {
+                    if (!value) return '';
+                    return `<span class="aui-label" style="background-color: ${value}; color: ${window.UiUtils ? window.UiUtils.getContrastColor(value) : '#000000'};">${value}</span>`;
+                }
+            },
+            permissions: ['superadmin']
+        },
+        
+        applications: {
+            name: 'Applications',
+            description: 'Manage applications and their associations with environments and teams',
+            fields: [
+                { key: 'app_id', label: 'ID', type: 'number', readonly: true },
+                { key: 'app_code', label: 'Application Code', type: 'text', required: true, maxLength: 50 },
+                { key: 'app_name', label: 'Application Name', type: 'text', required: true, maxLength: 64 },
+                { key: 'app_description', label: 'Description', type: 'textarea' },
+                { key: 'environment_count', label: 'Environments', type: 'number', readonly: true, computed: true },
+                { key: 'team_count', label: 'Teams', type: 'number', readonly: true, computed: true },
+                { key: 'label_count', label: 'Labels', type: 'number', readonly: true, computed: true }
+            ],
+            tableColumns: ['app_id', 'app_code', 'app_name', 'app_description', 'environment_count', 'team_count', 'label_count'],
+            sortMapping: {
+                'app_id': 'app_id',
+                'app_code': 'app_code',
+                'app_name': 'app_name',
+                'app_description': 'app_description',
+                'environment_count': 'environment_count',
+                'team_count': 'team_count',
+                'label_count': 'label_count'
+            },
+            filters: [],
             permissions: ['superadmin']
         }
     };

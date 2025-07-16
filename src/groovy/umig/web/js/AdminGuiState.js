@@ -180,6 +180,8 @@
                     currentEntity: section,
                     currentPage: 1,
                     searchTerm: '',
+                    sortField: null,
+                    sortDirection: 'asc',
                     selectedRows: new Set(),
                     filters: {}
                 });

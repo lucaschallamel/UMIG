@@ -17,11 +17,14 @@
 | GET | `/teams` | Get all teams with optional hierarchical filtering |
 | GET | `/teams/{id}` | Get a specific team by ID |
 | GET | `/teams/{id}/members` | Get all members of a team |
+| GET | `/teams/{id}/applications` | Get all applications associated with a team |
 | POST | `/teams` | Create a new team |
 | PUT | `/teams/{id}` | Update an existing team |
 | DELETE | `/teams/{id}` | Delete a team |
 | PUT | `/teams/{teamId}/users/{userId}` | Add user to team |
 | DELETE | `/teams/{teamId}/users/{userId}` | Remove user from team |
+| PUT | `/teams/{teamId}/applications/{applicationId}` | Add application to team |
+| DELETE | `/teams/{teamId}/applications/{applicationId}` | Remove application from team |
 
 ## 3. Request Details
 ### 3.1. Path Parameters
@@ -31,6 +34,7 @@
 | id | integer | Yes | Team identifier |
 | teamId | integer | Yes | Team identifier for membership operations |
 | userId | integer | Yes | User identifier for membership operations |
+| applicationId | integer | Yes | Application identifier for association operations |
 
 ### 3.2. Query Parameters
 
