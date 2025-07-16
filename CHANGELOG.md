@@ -1,5 +1,59 @@
 ### [Unreleased]
 
+#### 2025-07-16 (Status Management System & UI Fixes)
+- **Feat(Database):** Implemented centralized status management system
+  - Created status_sts table with sts_id, sts_name, sts_color, and sts_type columns
+  - Pre-populated 31 status values across 7 entity types (Migration, Iteration, Plan, Sequence, Phase, Step, Control)
+  - Added color-coding support with hex color values for each status
+  - Migration 015_remove_fields_from_steps_instance_and_add_status_table.sql with proper rollback support
+- **Refactor(Steps Instance):** Cleaned up redundant fields from steps_instance_sti
+  - Removed usr_id_owner field (owner is at master level only)
+  - Removed usr_id_assignee field (assignee is at master level only)  
+  - Removed enr_id_target field (replaced with proper enr_id field)
+- **Enhancement(Data Generation):** Updated all data generators to use status_sts table
+  - Modified 001_generate_core_metadata.js to populate status_sts table on initialization
+  - Updated 005_generate_migrations.js to use dynamic status selection for migrations and iterations
+  - Refactored 099_generate_instance_data.js to select statuses from status_sts for all instance entities
+  - Ensured consistent status values across entire generated dataset
+- **Fix(Iteration View):** Fixed status counter consistency with new status system
+  - Updated getStatusClass() function to handle exact status matches from status_sts table
+  - Modified calculateAndUpdateStepCounts() to use direct status matching instead of CSS class inference
+  - Enhanced getStatusDisplay() for step details panel to use centralized statuses
+  - Status counters now accurately reflect: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
+- **Fix(Iteration View):** Resolved Teams dropdown regression showing "UNNAMED" values
+  - Updated TeamRepository hierarchical filtering methods to return normalized field names
+  - Changed all findTeamsBy* methods to transform database fields (tms_id→id, tms_name→name)
+  - Fixed JavaScript populateFilter function compatibility with expected field names
+  - Resolved teamId=undefined errors in API calls
+- **Enhancement(Testing):** Updated test suite for new status management
+  - Modified 001_generate_core_metadata.test.js to expect 43 queries (including status inserts)
+  - Updated 099_generate_instance_data.test.js to mock status_sts queries
+  - Fixed field references from enr_id_target to enr_id in test expectations
+  - All 70 tests passing with new schema changes
+- **Enhancement(UI/UX):** Updated step-view.md specification for STEPS subview within iteration view
+  - Refactored documentation from standalone STEP View to STEPS Subview context
+  - Added detailed interactive elements mapping based on Draw.io mockup analysis
+  - Documented dynamic color-coded status dropdown implementation pattern
+  - Enhanced with environment role context and filtering capabilities
+  - Added role-based access control definitions (NORMAL, PILOT, ADMIN)
+  - Documented email notification integration triggers for status changes
+
+#### 2025-07-16 (Environment Role Association for Steps)
+- **Feat(Database):** Added environment role association to steps tables
+  - Added enr_id column to steps_master_stm table with foreign key to environment_roles_enr
+  - Added enr_id column to steps_instance_sti table with foreign key to environment_roles_enr
+  - Added indexes for performance on enr_id lookups in both tables
+  - Migration 014_add_environment_role_to_steps.sql created with proper rollback support
+- **Enhancement(Data Generation):** Updated synthetic data generators for environment role associations
+  - Modified 004_generate_canonical_plans.js to randomly assign enr_id to steps_master_stm records
+  - Updated 099_generate_instance_data.js to replicate enr_id from master to instance steps
+  - Ensured proper data inheritance pattern for environment role associations
+- **Enhancement(UI/UX):** Updated step-view.md specification with environment role context
+  - Added environment roles and environment scope to data requirements section
+  - Updated hierarchical positioning documentation to include environment relationships
+  - Enhanced user role definitions (NORMAL → PILOT → ADMIN progression)
+  - Added comprehensive implementation status tracking and next steps
+
 #### 2025-07-16 (Email Notification System Implementation - Complete)
 - **Feat(Email Notifications):** Production-ready email notification system with full template management and integration
   - Successfully implemented complete email notification workflow with Confluence native mail API

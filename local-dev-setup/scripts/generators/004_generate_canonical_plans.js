@@ -72,13 +72,14 @@ async function generateCanonicalPlans(config, options = {}) {
           const ownerTeamId = faker.helpers.arrayElement(teams.rows).tms_id;
           const targetEnvRoleId = faker.helpers.arrayElement(envRoles.rows).enr_id;
           const stepRes = await dbClient.query(
-            'INSERT INTO steps_master_stm (phm_id, tms_id_owner, stt_code, stm_number, enr_id_target, stm_name, stm_description, stm_duration_minutes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING stm_id',
+            'INSERT INTO steps_master_stm (phm_id, tms_id_owner, stt_code, stm_number, enr_id_target, enr_id, stm_name, stm_description, stm_duration_minutes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING stm_id',
             [
               phmId,
               ownerTeamId,
               faker.helpers.arrayElement(stepTypes.rows).stt_code,
               l + 1,
               targetEnvRoleId,
+              faker.helpers.arrayElement(envRoles.rows).enr_id, // Add enr_id column
               `Step ${l + 1}: ${faker.lorem.words(5)}`,
               faker.lorem.paragraph(),
               faker.number.int({ min: 5, max: 120 }),

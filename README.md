@@ -387,6 +387,17 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (July 2025)
+- **Centralized Status Management System**: Unified status values with color coding across all entities (July 16, 2025)
+  - Created status_sts table with 31 pre-populated statuses across 7 entity types
+  - Each status includes hex color code for consistent UI presentation
+  - Updated all data generators to use centralized statuses instead of hard-coded values
+  - Fixed iteration view status counters to accurately reflect new status system
+  - Ensured data consistency across migrations, iterations, plans, sequences, phases, steps, and controls
+- **Environment Role Association**: Steps can now be associated with specific environment types (July 16, 2025)
+  - Added enr_id column to both steps_master_stm and steps_instance_sti tables
+  - Database migration with foreign key constraints and performance indexes
+  - Updated data generation scripts to randomly assign environment roles to steps
+  - Enhanced step-view specification with environment role context and filtering
 - **Email Notification System**: Production-ready automated notifications with template management (July 16, 2025)
   - Complete integration with Confluence native mail API and MailHog for local testing
   - Multi-team notification logic (owner + impacted teams + cutover teams)

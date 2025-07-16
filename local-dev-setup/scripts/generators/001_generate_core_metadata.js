@@ -55,6 +55,69 @@ async function generateStepTypes(client) {
 }
 
 /**
+ * Pre-populates the status_sts table with default statuses for all entity types.
+ * @param {object} client - The PostgreSQL client.
+ */
+async function generateStatuses(client) {
+  console.log('Prepopulating status_sts...');
+  
+  const statuses = [
+    // Migration statuses
+    ['PLANNING', '#FFA500', 'Migration'],     // Orange
+    ['IN_PROGRESS', '#0066CC', 'Migration'],  // Blue
+    ['COMPLETED', '#00AA00', 'Migration'],    // Green
+    ['CANCELLED', '#CC0000', 'Migration'],    // Red
+
+    // Plan statuses
+    ['PLANNING', '#FFA500', 'Plan'],          // Orange
+    ['IN_PROGRESS', '#0066CC', 'Plan'],       // Blue
+    ['COMPLETED', '#00AA00', 'Plan'],         // Green
+    ['CANCELLED', '#CC0000', 'Plan'],         // Red
+
+    // Iteration statuses
+    ['PLANNING', '#FFA500', 'Iteration'],     // Orange
+    ['IN_PROGRESS', '#0066CC', 'Iteration'],  // Blue
+    ['COMPLETED', '#00AA00', 'Iteration'],    // Green
+    ['CANCELLED', '#CC0000', 'Iteration'],    // Red
+
+    // Sequence statuses
+    ['PLANNING', '#FFA500', 'Sequence'],      // Orange
+    ['IN_PROGRESS', '#0066CC', 'Sequence'],   // Blue
+    ['COMPLETED', '#00AA00', 'Sequence'],     // Green
+    ['CANCELLED', '#CC0000', 'Sequence'],     // Red
+
+    // Phase statuses
+    ['PLANNING', '#FFA500', 'Phase'],         // Orange
+    ['IN_PROGRESS', '#0066CC', 'Phase'],      // Blue
+    ['COMPLETED', '#00AA00', 'Phase'],        // Green
+    ['CANCELLED', '#CC0000', 'Phase'],        // Red
+
+    // Step statuses (more granular)
+    ['PENDING', '#DDDDDD', 'Step'],           // Light Grey
+    ['TODO', '#FFFF00', 'Step'],              // Yellow
+    ['IN_PROGRESS', '#0066CC', 'Step'],       // Blue
+    ['COMPLETED', '#00AA00', 'Step'],         // Green
+    ['FAILED', '#FF0000', 'Step'],            // Red
+    ['BLOCKED', '#FF6600', 'Step'],           // Orange
+    ['CANCELLED', '#CC0000', 'Step'],         // Dark Red
+
+    // Control statuses
+    ['TODO', '#FFFF00', 'Control'],           // Yellow
+    ['PASSED', '#00AA00', 'Control'],         // Green
+    ['FAILED', '#FF0000', 'Control'],         // Red
+    ['CANCELLED', '#CC0000', 'Control']       // Dark Red
+  ];
+
+  for (const [sts_name, sts_color, sts_type] of statuses) {
+    await client.query(
+      'INSERT INTO status_sts (sts_name, sts_color, sts_type) VALUES ($1, $2, $3) ON CONFLICT (sts_name, sts_type) DO NOTHING',
+      [sts_name, sts_color, sts_type]
+    );
+  }
+  console.log('Finished prepopulating status_sts.');
+}
+
+/**
  * Main function to generate all core metadata.
  */
 async function generateCoreMetadata(options = {}) {
@@ -62,6 +125,7 @@ async function generateCoreMetadata(options = {}) {
   try {
         await generateRoles(dbClient);
         await generateStepTypes(dbClient);
+        await generateStatuses(dbClient);
   } catch (error) {
     console.error('Error generating core metadata:', error);
     throw error;

@@ -265,9 +265,12 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 - `migrations_mig`: Strategic initiatives
 - `iterations_itr`: Links migrations to plans for iterative delivery  
 - `plans_master_plm`: Master playbooks
-- `steps_master_stm`: Granular executable tasks
+- `steps_master_stm`: Granular executable tasks with environment role associations (`enr_id`)
+- `steps_instance_sti`: Step execution records with inherited environment role (`enr_id`)
 - `instructions_master_inm`: Detailed procedures
 - `step_master_comments`, `step_instance_comments`: Collaboration features
+- `status_sts`: Centralized status management with color coding (31 pre-populated statuses)
+- `environment_roles_enr`: Environment types (DEV, TEST, PROD) for step association
 - `*_instance_*`: Live execution tracking with override capabilities
 
 ### Current Data Scale (Post-Generation)
@@ -520,6 +523,9 @@ When development environment is running:
 - **State Management Fixes**: Resolved sort field persistence bug and confirmation dialog regressions in admin interface using custom Promise-based dialogs
 - **Active User Filtering**: Added active parameter support to Users API for populating dropdown selections with active users only
 - **Migration-Based Filtering**: Implemented dynamic step filtering based on selected migration in Labels edit modal
+- **Centralized Status Management**: Unified status values with color coding across all entities (status_sts table)
+- **Environment Role Association**: Steps can now be associated with specific environment types (enr_id in both master and instance tables)
+- **Email Notification System**: Complete automated notifications with template management and audit logging
 
 ## Workflows
 

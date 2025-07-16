@@ -481,15 +481,35 @@ class IterationView {
         // Helper function to get status display
         const getStatusDisplay = (status) => {
             if (!status) return '<span class="status-pending">Pending</span>';
-            const statusLower = status.toLowerCase();
-            if (statusLower.includes('pending')) return '<span class="status-pending">Pending</span>';
-            if (statusLower.includes('progress')) return '<span class="status-progress">In Progress</span>';
-            if (statusLower.includes('completed')) return '<span class="status-completed">Completed</span>';
-            if (statusLower.includes('failed')) return '<span class="status-failed">Failed</span>';
-            if (statusLower.includes('blocked')) return '<span class="status-blocked">Blocked</span>';
-            if (statusLower.includes('cancelled')) return '<span class="status-cancelled">Cancelled</span>';
-            if (statusLower.includes('todo') || statusLower.includes('not_started')) return '<span class="status-todo">Todo</span>';
-            return `<span class="status-pending">${status}</span>`;
+            
+            // Handle exact status matches from status_sts table
+            switch (status.toUpperCase()) {
+                case 'COMPLETED':
+                    return '<span class="status-completed">Completed</span>';
+                case 'IN_PROGRESS':
+                    return '<span class="status-progress">In Progress</span>';
+                case 'FAILED':
+                    return '<span class="status-failed">Failed</span>';
+                case 'BLOCKED':
+                    return '<span class="status-blocked">Blocked</span>';
+                case 'CANCELLED':
+                    return '<span class="status-cancelled">Cancelled</span>';
+                case 'TODO':
+                    return '<span class="status-todo">Todo</span>';
+                case 'PENDING':
+                    return '<span class="status-pending">Pending</span>';
+                default:
+                    // Fallback to old logic for backward compatibility
+                    const statusLower = status.toLowerCase();
+                    if (statusLower.includes('pending')) return '<span class="status-pending">Pending</span>';
+                    if (statusLower.includes('progress')) return '<span class="status-progress">In Progress</span>';
+                    if (statusLower.includes('completed')) return '<span class="status-completed">Completed</span>';
+                    if (statusLower.includes('failed')) return '<span class="status-failed">Failed</span>';
+                    if (statusLower.includes('blocked')) return '<span class="status-blocked">Blocked</span>';
+                    if (statusLower.includes('cancelled')) return '<span class="status-cancelled">Cancelled</span>';
+                    if (statusLower.includes('todo') || statusLower.includes('not_started')) return '<span class="status-todo">Todo</span>';
+                    return `<span class="status-pending">${status}</span>`;
+            }
         };
         
         let html = `
@@ -846,14 +866,33 @@ class IterationView {
     getStatusClass(status) {
         if (!status) return 'status-pending';
         
-        const statusLower = status.toLowerCase();
-        if (statusLower.includes('completed')) return 'status-completed';
-        if (statusLower.includes('progress')) return 'status-progress';
-        if (statusLower.includes('failed') || statusLower.includes('error')) return 'status-failed';
-        if (statusLower.includes('blocked')) return 'status-blocked';
-        if (statusLower.includes('cancelled')) return 'status-cancelled';
-        if (statusLower.includes('todo') || statusLower.includes('not_started')) return 'status-todo';
-        return 'status-pending';
+        // Handle exact status matches from status_sts table
+        switch (status.toUpperCase()) {
+            case 'COMPLETED':
+                return 'status-completed';
+            case 'IN_PROGRESS':
+                return 'status-progress';
+            case 'FAILED':
+                return 'status-failed';
+            case 'BLOCKED':
+                return 'status-blocked';
+            case 'CANCELLED':
+                return 'status-cancelled';
+            case 'TODO':
+                return 'status-todo';
+            case 'PENDING':
+                return 'status-pending';
+            default:
+                // Fallback to old logic for backward compatibility
+                const statusLower = status.toLowerCase();
+                if (statusLower.includes('completed')) return 'status-completed';
+                if (statusLower.includes('progress')) return 'status-progress';
+                if (statusLower.includes('failed') || statusLower.includes('error')) return 'status-failed';
+                if (statusLower.includes('blocked')) return 'status-blocked';
+                if (statusLower.includes('cancelled')) return 'status-cancelled';
+                if (statusLower.includes('todo') || statusLower.includes('not_started')) return 'status-todo';
+                return 'status-pending';
+        }
     }
 
     /**
@@ -887,29 +926,60 @@ class IterationView {
             sequence.phases.forEach(phase => {
                 phase.steps.forEach(step => {
                     total++;
-                    const statusClass = this.getStatusClass(step.status);
                     
-                    switch (statusClass) {
-                        case 'status-completed':
+                    // Use exact status matching from status_sts table
+                    if (!step.status) {
+                        pending++;
+                        return;
+                    }
+                    
+                    switch (step.status.toUpperCase()) {
+                        case 'COMPLETED':
                             completed++;
                             break;
-                        case 'status-progress':
+                        case 'IN_PROGRESS':
                             progress++;
                             break;
-                        case 'status-failed':
+                        case 'FAILED':
                             failed++;
                             break;
-                        case 'status-blocked':
+                        case 'BLOCKED':
                             blocked++;
                             break;
-                        case 'status-cancelled':
+                        case 'CANCELLED':
                             cancelled++;
                             break;
-                        case 'status-todo':
+                        case 'TODO':
                             todo++;
                             break;
-                        default:
+                        case 'PENDING':
                             pending++;
+                            break;
+                        default:
+                            // Fallback to old logic for backward compatibility
+                            const statusClass = this.getStatusClass(step.status);
+                            switch (statusClass) {
+                                case 'status-completed':
+                                    completed++;
+                                    break;
+                                case 'status-progress':
+                                    progress++;
+                                    break;
+                                case 'status-failed':
+                                    failed++;
+                                    break;
+                                case 'status-blocked':
+                                    blocked++;
+                                    break;
+                                case 'status-cancelled':
+                                    cancelled++;
+                                    break;
+                                case 'status-todo':
+                                    todo++;
+                                    break;
+                                default:
+                                    pending++;
+                            }
                     }
                 });
             });

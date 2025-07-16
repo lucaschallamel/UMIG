@@ -28,9 +28,9 @@ describe('Core Metadata Generator (01_generate_core_metadata.js)', () => {
     // Act: Run the metadata generator
     await generateCoreMetadata();
 
-    // Assert: Check that all roles and step types were inserted
-    // There are 3 roles and 9 step types
-    const expectedTotalQueries = 3 + 9;
+    // Assert: Check that all roles, step types, and statuses were inserted
+    // There are 3 roles, 9 step types, and 31 statuses
+    const expectedTotalQueries = 3 + 9 + 31;
     expect(client.query).toHaveBeenCalledTimes(expectedTotalQueries);
 
     // Check a sample role query to ensure correctness
@@ -43,6 +43,18 @@ describe('Core Metadata Generator (01_generate_core_metadata.js)', () => {
     expect(client.query).toHaveBeenCalledWith(
       'INSERT INTO step_types_stt (stt_code, stt_name, stt_color) VALUES ($1, $2, $3) ON CONFLICT (stt_code) DO NOTHING',
       ['TRT', 'TREATMENTS', '#1ba1e2']
+    );
+
+    // Check a sample status query to ensure correctness
+    expect(client.query).toHaveBeenCalledWith(
+      'INSERT INTO status_sts (sts_name, sts_color, sts_type) VALUES ($1, $2, $3) ON CONFLICT (sts_name, sts_type) DO NOTHING',
+      ['PLANNING', '#FFA500', 'Migration']
+    );
+
+    // Check another sample status query for Steps
+    expect(client.query).toHaveBeenCalledWith(
+      'INSERT INTO status_sts (sts_name, sts_color, sts_type) VALUES ($1, $2, $3) ON CONFLICT (sts_name, sts_type) DO NOTHING',
+      ['PENDING', '#DDDDDD', 'Step']
     );
   });
 
