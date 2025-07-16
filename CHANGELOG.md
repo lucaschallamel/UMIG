@@ -1,5 +1,58 @@
 ### [Unreleased]
 
+#### 2025-07-16 (Enhanced Iteration View with Role-Based Access Control)
+- **Feat(Role-Based Access Control):** Implemented comprehensive user permission system
+  - Added NORMAL (read-only), PILOT (operational), and ADMIN (full access) role definitions
+  - Confluence user context integration with automatic role detection
+  - CSS-based UI element visibility control (pilot-only, admin-only classes)
+  - Dynamic role-based controls applied after user authentication
+  - Read-only mode indicators for users without operational permissions
+- **Enhancement(StepsApi):** Major expansion with comprehensive step instance management
+  - Added GET /steps/instance/{stepInstanceId} endpoint for detailed step data
+  - Added GET /statuses/{type} endpoints for dynamic status management
+  - Added complete comment CRUD operations (GET, POST, PUT, DELETE /comments)
+  - Added GET /user/context endpoint for role and permission validation
+  - Comprehensive error handling with proper HTTP status codes
+  - Support for both UUID and step code lookups for backward compatibility
+- **Feat(StatusRepository):** New centralized status management repository
+  - Provides type-safe access to status_sts table with entity type filtering
+  - Ordered status queries for consistent UI display
+  - Color-coded status support for dynamic UI styling
+  - Status lookup by name and type for validation
+- **Enhancement(Iteration View UI):** Comprehensive interface overhaul
+  - Dynamic status dropdown with database-driven color coding
+  - Interactive instruction completion tracking with checkbox controls
+  - Real-time comment system with add, edit, delete operations
+  - Step instance detail views with comprehensive metadata display
+  - Role-based control application with visual feedback
+  - Enhanced step action buttons (Mark All Complete, Update Status)
+  - Improved error handling and user feedback notifications
+- **Enhancement(StepRepository):** Extended with instance and comment management
+- **Enhancement(API Documentation):** Updated OpenAPI specification and regenerated Postman collection
+  - Added 13 new endpoint definitions covering step instances, status management, comments, and user context
+  - Created comprehensive schemas for StepInstanceDetails, Status, Comment, and UserContext objects
+  - Added new tags for Comments and Statuses to improve API organization
+  - Generated fresh Postman collection with all new endpoints for testing and integration
+  - Validated OpenAPI specification syntax and completeness
+  - Added findStepInstanceDetailsById for comprehensive step data retrieval
+  - Added findStepInstanceDetailsByCode for backward compatibility
+  - Added comment CRUD operations (find, create, update, delete)
+  - Enhanced team lookup with improved query performance
+- **Enhancement(UserRepository):** Added username-based user lookup
+  - Added findUserByUsername method for Confluence integration
+  - Enhanced with role information and team associations
+  - Support for authentication context validation
+- **Enhancement(Iteration View Macro):** Confluence user context injection
+  - Added automatic user context extraction from Confluence authentication
+  - JavaScript configuration object with user credentials and permissions
+  - Role-based control enablement through window.UMIG_ITERATION_CONFIG
+- **Enhancement(CSS):** Comprehensive styling updates for new features
+  - Role-based control styling (role-disabled, pilot-only, admin-only)
+  - Dynamic status dropdown with color-coded backgrounds
+  - Comment system styling with action buttons and edit modes
+  - Read-only mode banners and visual indicators
+  - Enhanced instruction row styling for completion states
+
 #### 2025-07-16 (Status Management System & UI Fixes)
 - **Feat(Database):** Implemented centralized status management system
   - Created status_sts table with sts_id, sts_name, sts_color, and sts_type columns

@@ -505,7 +505,13 @@ When development environment is running:
 - **Pattern**: Reference StepsApi.groovy, TeamsApi.groovy, and LabelsApi.groovy as implementation templates
 
 ### Recent Achievements (July 2025)
-- **Iteration View Complete**: Fully functional hierarchical filtering with labels integration and dynamic step management
+- **Role-Based Access Control System**: Comprehensive user permission management with NORMAL/PILOT/ADMIN roles, Confluence integration, and dynamic UI controls
+- **Enhanced Iteration View Interface**: Major UI/UX overhaul with interactive status dropdowns, instruction completion tracking, real-time commenting, and operational controls
+- **StatusRepository & API Extensions**: Centralized status management infrastructure with type-safe database access and comprehensive comment operations
+- **User Context Integration**: Confluence authentication integration with automatic role detection and permission-based UI rendering
+- **Dynamic Status Management**: Database-driven status dropdowns with color coding, supporting 31 statuses across 7 entity types
+- **Interactive Step Management**: Real-time instruction completion, step status updates, and comprehensive step instance detail views
+- **Comment System**: Full CRUD operations for step instance comments with role-based access control and real-time updates
 - **Type Safety Patterns**: Established robust Groovy static type checking patterns (ADR-031) preventing runtime errors
 - **API Pattern Maturity**: Proven REST API patterns with StepsApi, TeamsApi, and LabelsApi serving as definitive templates
 - **Database Filtering Mastery**: Resolved master vs instance ID filtering patterns and complete field selection requirements
@@ -515,12 +521,6 @@ When development environment is running:
 - **Schema Consistency**: Resolved mismatches between API documentation and actual implementation for Users and Teams APIs
 - **Admin GUI Refactoring**: Split 1,901-line monolithic admin-gui.js into 8 modular components for improved maintainability
 - **JavaScript Architecture**: Established modular patterns with EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, and AdminGuiController
-- **Environment Search Enhancement**: Implemented full-stack search functionality for environments with pagination, sorting, and filtering, fixing GString SQL type inference issues
-- **Teams Association Management**: Complete VIEW and EDIT modals for Teams with user and application association management, including add/remove functionality
-- **Applications Label Management**: Complete Labels association management in Admin GUI with add/remove functionality
-- **Modal Consistency**: Standardized modal UI patterns across Teams and Environments with consistent AUI styling and Edit button functionality
-- **State Management Fixes**: Resolved sort field persistence bug and confirmation dialog regressions in admin interface using custom Promise-based dialogs
-- **Active User Filtering**: Added active parameter support to Users API for populating dropdown selections with active users only
 - **Migration-Based Filtering**: Implemented dynamic step filtering based on selected migration in Labels edit modal
 
 ## Workflows

@@ -34,6 +34,36 @@ class UserRepository {
     }
 
     /**
+     * Finds a user by their username (usr_code) with role information.
+     * @param username The username (usr_code) to search for.
+     * @return User object with role information or null if not found.
+     */
+    def findUserByUsername(String username) {
+        DatabaseUtil.withSql { sql ->
+            def user = sql.firstRow("""
+                SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, 
+                       u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at,
+                       r.rls_code as role_code, r.rls_description as role_description
+                FROM users_usr u
+                LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
+                WHERE u.usr_code = :username
+            """, [username: username])
+            
+            if (!user) return null
+            
+            // Always attach teams array
+            user.teams = sql.rows("""
+                SELECT t.tms_id, t.tms_name, t.tms_description, t.tms_email
+                FROM teams_tms_x_users_usr j
+                JOIN teams_tms t ON t.tms_id = j.tms_id
+                WHERE j.usr_id = :userId
+            """, [userId: user.usr_id])
+            
+            return user
+        }
+    }
+
+    /**
      * Retrieves all users from the database (legacy method for backward compatibility).
      * @return A list of maps, where each map is a user.
      */
