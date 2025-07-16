@@ -296,6 +296,46 @@ After completing the initial Confluence setup, you must configure a database con
     * **Validation Query:** `SELECT 1`
 6. Click **Add**.
 
+### Mail Server Configuration for Email Notifications
+
+After completing the initial Confluence setup, you must configure the mail server to enable email notifications from UMIG. This is required for the EmailService to send notifications for step status changes, instruction completions, and other workflow events.
+
+1. **Access Mail Server Settings**:
+   * Log into Confluence as an administrator
+   * Go to **⚙️ Settings** (gear icon) → **General Configuration**
+   * In the left sidebar, find **Mail** → **Mail Servers**
+
+2. **Configure SMTP Server for Local Development**:
+   * Click **Add SMTP Mail Server**
+   * Fill out the form with the following details:
+     * **Name:** `MailHog Local Development`
+     * **From Address:** `umig-system@localhost`
+     * **Subject Prefix:** `[UMIG-Dev]` (optional, helps identify development emails)
+     * **Hostname:** `umig_mailhog` (**Important**: Use the container name, not `localhost`)
+     * **Port:** `1025`
+     * **Username:** (leave blank)
+     * **Password:** (leave blank)
+     * **Use TLS:** No
+     * **Protocol:** SMTP
+
+3. **Test the Configuration**:
+   * After saving, click **Send Test Email**
+   * Enter your email address
+   * Check MailHog at [http://localhost:8025](http://localhost:8025) to see if the test email arrived
+
+4. **Environment Variable for Development Mode** (Optional):
+   * To enable development-specific email handling in the EmailService, you can add the following to the `CATALINA_OPTS` in the `podman-compose.yml` file:
+   ```yaml
+   - CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluence/scripts -Dplugin.rest.scripts.package=umig.api.v2,umig.api.v2.web -Dumig.environment=development
+   ```
+   * This tells the EmailService to use development-specific logging and fallback behavior
+
+**Important Notes**:
+- The mail server configuration is persisted in the `confluence_data` volume, so this is a one-time setup
+- All emails sent in the local development environment will be captured by MailHog and viewable at [http://localhost:8025](http://localhost:8025)
+- No actual emails will be sent to real email addresses in this configuration
+- The EmailService will automatically use this configured mail server for all notifications
+
 ## Services
 
 * **Confluence:** [http://localhost:8090](http://localhost:8090)

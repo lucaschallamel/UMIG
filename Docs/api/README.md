@@ -33,6 +33,8 @@ Individual API specifications are available for detailed documentation:
 - **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
 - **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships
 - **[Environments API](EnvironmentsAPI.md)** - Environment management with application and iteration associations
+- **[Email Templates API](EmailTemplatesAPI.md)** - Email template management for automated notifications
+- **[Steps API](StepsAPI.md)** - Step management with email notification integration *(to be documented)*
 - **[Migrations API](MigrationsAPI.md)** - Migration and iteration management *(to be documented)*
 
 ### Hierarchical Filtering

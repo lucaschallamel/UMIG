@@ -37,7 +37,9 @@
       "disabled": false,
       "autoApprove": [
         "git_status",
-        "git_diff_staged"
+        "git_diff_staged",
+        "git_create_branch",
+        "git_checkout"
       ]
     },
     "sequential-thinking": {

@@ -19,7 +19,12 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
     *   **Iteration-Centric:** The data model is iteration-centric (ADR-024), decoupling migrations from plans and linking iterations to plans.
 *   **State Management with Payload:** The status of entities is tracked per-iteration using join tables that contain status information as payload, preventing data ambiguity between runs.
 *   **Auditing Pattern:** An immutable `event_log` table captures every critical action (status change, email sent, user comment) with precise timestamps, event types, relational links, and flexible JSONB fields for contextual details.
-*   **Decoupled Communications:** Email sending is handled by a dedicated service module that integrates with the enterprise Exchange Server via ScriptRunner's built-in mail functions.
+*   **Email Notification System:** Production-ready automated notifications with template management (ADR-032)
+    *   Confluence native mail API integration with MailHog for local testing
+    *   Multi-team notification logic (owner + impacted teams + cutover teams)
+    *   Template management with HTML/text content and GString variable processing
+    *   Comprehensive JSONB audit logging for all email events
+    *   Automatic notifications for step opened, instruction completed, and status changes
 *   **Planning Feature Pattern:** Dedicated schedule tables store planned start/end times per iteration. ScriptRunner endpoints generate clean, portable HTML artifacts as shareable macro-plans.
 *   **API Standardisation:** Standardised REST API patterns (ADR-023) are enforced, including detailed error handling, consistent responses, and hierarchical filtering (ADR-030).
 *   **Type Safety:** Robust Groovy type safety and filtering patterns (ADR-031) are applied, preventing runtime errors through explicit casting.
@@ -38,4 +43,6 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 *   `Confluence Page` -> hosts -> `Custom Macro (HTML/JS/CSS)`
 *   `Custom Macro` -> makes AJAX calls to -> `ScriptRunner REST Endpoints`
 *   `ScriptRunner REST Endpoints` -> execute logic and query -> `PostgreSQL Database`
-*   `ScriptRunner` -> sends email via -> `Enterprise Exchange Server`
+*   `ScriptRunner` -> sends email via -> `Confluence Mail API / MailHog (local testing)`
+*   `EmailService` -> processes templates with -> `SimpleTemplateEngine`
+*   `Email System` -> logs all events to -> `audit_log_aud` table with JSONB details

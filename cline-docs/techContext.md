@@ -12,7 +12,7 @@
     *   **Scripting:** Node.js for environment setup and configuration management (replacing Ansible).
 *   **Enterprise Integrations:**
     *   **Authentication:** Enterprise Active Directory (via Confluence's native integration).
-    *   **Email:** Enterprise Exchange Server (via ScriptRunner's built-in mail functions).
+    *   **Email:** Confluence native mail API with MailHog for local testing (ADR-032).
 *   **Data Utilities:** Node.js for comprehensive data generation, import scripts, and synthetic data creation.
 *   **API Documentation:** OpenAPI 3.0 specifications with generated Postman collections.
 *   **Testing:** Jest for Node.js utilities, Groovy for integration tests.
@@ -45,3 +45,6 @@
 *   **Association Management:** Dedicated API endpoints for managing many-to-many relationships with UI integration.
 *   **Dynamic UI Updates:** Event-driven updates with onchange handlers for cascading selections.
 *   **Accessibility:** Color picker implementations with contrast calculation for readability.
+*   **Email Notification System:** Template-based notifications with GString processing, multi-team routing, and JSONB audit logging.
+*   **Template Management:** Database-stored email templates with HTML/text content and variable substitution.
+*   **Testing Framework:** ScriptRunner Console integration for end-to-end email notification testing.

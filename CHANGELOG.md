@@ -1,5 +1,74 @@
 ### [Unreleased]
 
+#### 2025-07-16 (Email Notification System Implementation - Complete)
+- **Feat(Email Notifications):** Production-ready email notification system with full template management and integration
+  - Successfully implemented complete email notification workflow with Confluence native mail API
+  - Added comprehensive error handling for template processing and email delivery
+  - Integrated with StepRepository for automatic notifications on step opened, instruction completed, and status changes
+  - Implemented multi-team notification logic (owner + impacted teams + cutover teams)
+  - Added proper audit logging for all email events (EMAIL_SENT, EMAIL_FAILED, STATUS_CHANGED)
+  - Fixed column name mismatches in audit_log_aud table (usr_id vs aud_user_id)
+  - Fixed email template table name consistency (email_templates_emt)
+  - Resolved static type checking issues by removing @CompileStatic annotations
+  - Successfully tested end-to-end email delivery with MailHog integration
+- **Fix(Email Service):** Resolved critical email delivery issues
+  - Fixed EmailService.sendEmailViaMailHog() to actually send emails instead of just logging
+  - Implemented proper SMTP connection with javax.mail for local development
+  - Added graceful fallback when MailHog is not available
+  - Fixed template variable processing with SimpleTemplateEngine
+  - Corrected recipient email extraction from team objects
+- **Enhancement(Testing):** Comprehensive email notification testing framework
+  - Created emailNotificationTest.groovy for ScriptRunner Console testing
+  - Added proper database connection using ScriptRunner's umig_db_pool
+  - Implemented test scenarios for step opening, status updates, and instruction completion
+  - Successfully validated email delivery with HTML content and proper styling
+  - Added debugging output for template verification and step selection
+- **Documentation(Architecture):** Updated solution architecture with email notification system
+  - Added Section 10 documenting complete email notification architecture
+  - Documented template management patterns and JSONB audit logging
+  - Included notification triggers and multi-team recipient logic
+  - Added development testing patterns and MailHog integration guide
+  - Updated ADR reference list to include ADR-032 for email notification architecture
+
+#### 2025-07-16 (Email Notification System Implementation)
+- **Feat(Email Notifications):** Complete email notification system with template management
+  - Added EmailService class with support for step opened, instruction completed, and status change notifications
+  - Implemented EmailTemplateRepository for CRUD operations on email templates
+  - Added AuditLogRepository for logging all email notifications and system events
+  - Created EmailTemplatesApi REST endpoints for template management
+  - Added email_templates_emt table with Liquibase migration for storing templates
+  - Integrated email notifications into StepRepository for automatic sending
+  - Added MailHog support for local development email testing
+  - Implemented template processing with Groovy SimpleTemplateEngine for dynamic content
+- **Feat(API):** New Email Templates API endpoints
+  - Added GET /emailTemplates endpoint for listing templates with optional activeOnly filter
+  - Added POST /emailTemplates endpoint for creating new templates
+  - Added GET /emailTemplates/{id} endpoint for retrieving specific templates
+  - Added PUT /emailTemplates/{id} endpoint for updating templates with partial update support
+  - Added DELETE /emailTemplates/{id} endpoint for deleting templates
+  - Added template type validation for STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM
+- **Enhancement(Integration):** Email notification integration with workflow
+  - Added email sending to StepRepository.updateStepStatus() for status change notifications
+  - Added email sending to StepRepository.openStep() for step opening notifications
+  - Added email sending to StepRepository.completeInstruction() for instruction completion notifications
+  - All email notifications include proper recipient selection (assigned team + impacted teams)
+  - Integrated with Confluence's native mail API for production use
+- **Feat(Testing):** Comprehensive email notification testing
+  - Added EmailServiceTest.groovy for unit testing email functionality
+  - Added emailNotificationTest.groovy for integration testing
+  - Added test-email-notifications.sh script for automated testing workflow
+  - Added comprehensive test coverage for all email notification scenarios
+- **Documentation:** Complete API documentation for email notifications
+  - Updated OpenAPI specification with Email Templates endpoints and schemas
+  - Generated updated Postman collection with all email template operations
+  - Added EmailTemplatesAPI.md with detailed usage examples and integration guide
+  - Updated API README.md to include email templates documentation
+- **Infrastructure:** Email notification architecture (ADR-032)
+  - Documented email notification system architecture and design decisions
+  - Established patterns for template management and notification delivery
+  - Defined audit logging requirements for compliance and monitoring
+  - Implemented error handling and fallback mechanisms for email delivery
+
 #### 2025-07-16 (Labels Admin GUI Implementation)
 - **Feat(Labels):** Complete Labels admin interface with full CRUD functionality
   - Added Labels to admin navigation with proper data source configuration

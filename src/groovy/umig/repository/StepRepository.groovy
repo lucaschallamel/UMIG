@@ -1,6 +1,9 @@
 package umig.repository
 
 import umig.utils.DatabaseUtil
+import umig.utils.EmailService
+import java.util.UUID
+import groovy.sql.Sql
 
 /**
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.
@@ -257,5 +260,264 @@ class StepRepository {
                 ]
             }
         }
+    }
+
+    /**
+     * Updates step instance status and sends notification emails.
+     * @param stepInstanceId The UUID of the step instance
+     * @param newStatus The new status value
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and email send results
+     */
+    Map updateStepInstanceStatusWithNotification(UUID stepInstanceId, String newStatus, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get current step instance data
+                def stepInstance = sql.firstRow('''
+                    SELECT 
+                        sti.sti_id, sti.sti_name, sti.sti_status, sti.stm_id,
+                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        mig.mig_name as migration_name,
+                        ite.ite_name as iteration_name,
+                        plm.plm_name as plan_name
+                    FROM steps_instance_sti sti
+                    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                    JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                    JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                    JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                    JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                    JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    WHERE sti.sti_id = :stepInstanceId
+                ''', [stepInstanceId: stepInstanceId])
+                
+                if (!stepInstance) {
+                    return [success: false, error: "Step instance not found"]
+                }
+                
+                def oldStatus = stepInstance.sti_status
+                
+                // Update the status
+                def updateCount = sql.executeUpdate('''
+                    UPDATE steps_instance_sti 
+                    SET sti_status = :newStatus,
+                        sti_end_time = CASE WHEN :newStatus = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END
+                    WHERE sti_id = :stepInstanceId
+                ''', [newStatus: newStatus, stepInstanceId: stepInstanceId])
+                
+                if (updateCount != 1) {
+                    return [success: false, error: "Failed to update step status"]
+                }
+                
+                // Get teams for notification (owner team + impacted teams)
+                def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
+                
+                // Get IT cutover team (for now, we'll skip this since we don't have role field)
+                def cutoverTeam = null
+                
+                // Send notification
+                EmailService.sendStepStatusChangedNotification(
+                    stepInstance as Map, 
+                    teams, 
+                    cutoverTeam as Map,
+                    oldStatus as String, 
+                    newStatus,
+                    userId
+                )
+                
+                return [success: true, emailsSent: teams.size() + (cutoverTeam ? 1 : 0)]
+                
+            } catch (Exception e) {
+                return [success: false, error: e.message]
+            }
+        }
+    }
+
+    /**
+     * Marks a step instance as opened by a PILOT and sends notifications.
+     * @param stepInstanceId The UUID of the step instance
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and email send results
+     */
+    Map openStepInstanceWithNotification(UUID stepInstanceId, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get step instance data
+                def stepInstance = sql.firstRow('''
+                    SELECT 
+                        sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_status,
+                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        mig.mig_name as migration_name,
+                        ite.ite_name as iteration_name,
+                        plm.plm_name as plan_name
+                    FROM steps_instance_sti sti
+                    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                    JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                    JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                    JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                    JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                    JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    WHERE sti.sti_id = :stepInstanceId
+                ''', [stepInstanceId: stepInstanceId])
+                
+                if (!stepInstance) {
+                    return [success: false, error: "Step instance not found"]
+                }
+                
+                // Check if already opened
+                if (stepInstance.sti_status == 'OPEN' || stepInstance.sti_status == 'IN_PROGRESS' || stepInstance.sti_status == 'COMPLETED') {
+                    return [success: false, error: "Step has already been opened (status: ${stepInstance.sti_status})"]
+                }
+                
+                // Mark as opened by updating status to OPEN
+                def updateCount = sql.executeUpdate('''
+                    UPDATE steps_instance_sti 
+                    SET sti_status = 'OPEN',
+                        sti_start_time = CURRENT_TIMESTAMP,
+                        usr_id_owner = :userId
+                    WHERE sti_id = :stepInstanceId
+                ''', [userId: userId, stepInstanceId: stepInstanceId])
+                
+                if (updateCount != 1) {
+                    return [success: false, error: "Failed to open step"]
+                }
+                
+                // Get teams for notification
+                def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
+                
+                // Send notification
+                EmailService.sendStepOpenedNotification(
+                    stepInstance as Map,
+                    teams,
+                    userId
+                )
+                
+                return [success: true, emailsSent: teams.size()]
+                
+            } catch (Exception e) {
+                return [success: false, error: e.message]
+            }
+        }
+    }
+
+    /**
+     * Marks an instruction as completed and sends notifications.
+     * @param instructionId The UUID of the instruction instance
+     * @param stepInstanceId The UUID of the step instance
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and email send results
+     */
+    Map completeInstructionWithNotification(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get instruction data
+                def instruction = sql.firstRow('''
+                    SELECT 
+                        ini.ini_id, ini.ini_is_completed,
+                        inm.inm_order, inm.inm_body as ini_name
+                    FROM instructions_instance_ini ini
+                    JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                    WHERE ini.ini_id = :instructionId
+                ''', [instructionId: instructionId])
+                
+                if (!instruction) {
+                    return [success: false, error: "Instruction not found"]
+                }
+                
+                // Check if already completed
+                if (instruction.ini_is_completed) {
+                    return [success: false, error: "Instruction already completed"]
+                }
+                
+                // Get step instance data
+                def stepInstance = sql.firstRow('''
+                    SELECT 
+                        sti.sti_id, sti.sti_name, sti.stm_id,
+                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        mig.mig_name as migration_name,
+                        ite.ite_name as iteration_name,
+                        plm.plm_name as plan_name
+                    FROM steps_instance_sti sti
+                    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                    JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                    JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                    JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                    JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                    JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    WHERE sti.sti_id = :stepInstanceId
+                ''', [stepInstanceId: stepInstanceId])
+                
+                if (!stepInstance) {
+                    return [success: false, error: "Step instance not found"]
+                }
+                
+                // Mark instruction as completed
+                def updateCount = sql.executeUpdate('''
+                    UPDATE instructions_instance_ini 
+                    SET ini_is_completed = true,
+                        ini_completed_at = CURRENT_TIMESTAMP,
+                        usr_id_completed_by = :userId
+                    WHERE ini_id = :instructionId
+                ''', [userId: userId, instructionId: instructionId])
+                
+                if (updateCount != 1) {
+                    return [success: false, error: "Failed to complete instruction"]
+                }
+                
+                // Get teams for notification
+                def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
+                
+                // Send notification
+                EmailService.sendInstructionCompletedNotification(
+                    instruction as Map,
+                    stepInstance as Map,
+                    teams,
+                    userId
+                )
+                
+                return [success: true, emailsSent: teams.size()]
+                
+            } catch (Exception e) {
+                return [success: false, error: e.message]
+            }
+        }
+    }
+
+    /**
+     * Helper method to get all teams that should receive notifications for a step.
+     * Includes owner team and impacted teams.
+     */
+    private List<Map> getTeamsForNotification(Sql sql, UUID stmId, Integer ownerTeamId) {
+        def teams = []
+        
+        // Add owner team
+        if (ownerTeamId) {
+            def ownerTeam = sql.firstRow('''
+                SELECT tms_id, tms_name, tms_email
+                FROM teams_tms
+                WHERE tms_id = :teamId
+            ''', [teamId: ownerTeamId])
+            
+            if (ownerTeam) {
+                teams.add(ownerTeam as Map)
+            }
+        }
+        
+        // Add impacted teams
+        def impactedTeams = sql.rows('''
+            SELECT DISTINCT t.tms_id, t.tms_name, t.tms_email
+            FROM teams_tms t
+            JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+            WHERE sti.stm_id = :stmId
+        ''', [stmId: stmId])
+        
+        teams.addAll(impactedTeams as List<Map>)
+        
+        // Remove duplicates by team ID
+        def uniqueTeams = teams.unique { it.tms_id }
+        
+        return uniqueTeams
     }
 }

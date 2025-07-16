@@ -17,6 +17,7 @@
     <include file="010_replicate_seq_master_fields_in_instance.sql" relativeToChangelogFile="true"/>
     <include file="011_add_usr_active_field.sql" relativeToChangelogFile="true"/>
     <include file="012_add_user_timestamps.sql" relativeToChangelogFile="true"/>
+    <include file="013_create_email_templates_table.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

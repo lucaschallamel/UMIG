@@ -23,6 +23,11 @@
     *   **Data Model:** Full implementation of canonical vs instance pattern with attribute instantiation (ADR-029)
     *   **Iteration View API:** Complete implementation with labels integration and step management
     *   **Labels API:** Full CRUD operations with association management and migration-based filtering
+    *   **Email Notification System:** Production-ready automated notifications with template management
+        *   Complete integration with Confluence native mail API (ADR-032)
+        *   Multi-team notification logic with comprehensive audit logging
+        *   Template management with HTML/text content and GString variable processing
+        *   Working end-to-end testing with MailHog integration
 *   **Phase 3: Frontend Development (Confluence Macro)**
     *   **Iteration View:** Complete implementation with hierarchical filtering, labels display, and dynamic updates
     *   **Admin GUI:** Comprehensive SPA for managing users, teams, environments, applications, and labels
@@ -38,7 +43,7 @@
     *   **API Completion:** Implement remaining REST APIs (Plans, Sequences, Phases, Instructions endpoints)
     *   **Event Logging:** Implement backend logic for the `event_log` system
     *   **Planning Feature:** Implement HTML export endpoint for shareable macro-plans
-    *   **Email Integration:** Connect to Exchange server for email notifications
+    *   **Email Templates Admin GUI:** Complete admin interface for template management (low priority)
 *   **Phase 3: Frontend Development (Confluence Macro)**
     *   **Main Dashboard:** Build HTML structure and CSS for the central dashboard
     *   **Real-time Updates:** Implement JavaScript for fetching and rendering runbook state via AJAX polling
