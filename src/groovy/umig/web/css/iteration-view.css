@@ -632,6 +632,26 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: var(--spacing-xs);
+    position: relative;
+}
+
+.comment-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.comment-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: var(--font-size-sm);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.comment-actions button:hover {
+    opacity: 1;
 }
 
 .comment-author {
@@ -650,6 +670,24 @@ body {
     color: var(--color-text-primary);
     line-height: 1.5;
 }
+
+.no-comments {
+    text-align: center;
+    color: var(--color-text-tertiary);
+    font-style: italic;
+    padding: var(--spacing-lg) 0;
+}
+
+.btn-edit-comment,
+.btn-delete-comment {
+    opacity: 0.6;
+}
+
+.comment:hover .btn-edit-comment,
+.comment:hover .btn-delete-comment {
+    opacity: 1;
+}
+
 
 .comment-form textarea {
     width: 100%;
@@ -757,4 +795,97 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
     background: var(--color-text-tertiary);
+}
+
+/* Status dropdown styling */
+.status-dropdown {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.status-dropdown:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.status-dropdown:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+.status-dropdown option {
+    background-color: white;
+    color: var(--color-text-primary);
+    padding: 4px 8px;
+}
+
+/* Instruction checkbox styling */
+.instruction-checkbox {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    transition: all 0.2s ease;
+}
+
+.instruction-checkbox:hover:not(:disabled) {
+    transform: scale(1.1);
+}
+
+.instruction-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.instruction-checkbox:checked {
+    accent-color: var(--color-success);
+}
+
+/* Completed instruction row styling */
+.instruction-row.completed {
+    opacity: 0.7;
+}
+
+.instruction-row.completed .col-instruction {
+    text-decoration: line-through;
+    color: var(--color-text-tertiary);
+}
+
+/* Role-based UI controls */
+.role-disabled {
+    opacity: 0.6;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.role-disabled:hover {
+    opacity: 0.6;
+}
+
+.read-only-banner {
+    background: linear-gradient(135deg, #fef3c7 0%, #f9fafb 100%);
+    border: 1px solid #f59e0b;
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm);
+}
+
+.banner-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    color: #92400e;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.banner-icon {
+    font-size: 16px;
+}
+
+.banner-text {
+    flex: 1;
 }

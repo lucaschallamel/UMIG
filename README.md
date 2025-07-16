@@ -387,6 +387,24 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (July 2025)
+- **Role-Based Access Control System**: Comprehensive user permission management (July 16, 2025)
+  - Implemented NORMAL (read-only), PILOT (operational), and ADMIN (full access) user roles
+  - Confluence user context integration with automatic role detection
+  - CSS-based UI element visibility control with pilot-only and admin-only classes
+  - Dynamic role-based controls applied after user authentication
+  - Read-only mode indicators and graceful permission degradation
+- **Enhanced Iteration View Interface**: Major UI/UX overhaul with operational capabilities (July 16, 2025)
+  - Dynamic status dropdown with database-driven color coding
+  - Interactive instruction completion tracking with real-time checkbox controls
+  - Comprehensive comment system with add, edit, delete operations
+  - Step instance detail views with metadata, teams, and impact analysis
+  - Enhanced step action buttons (Mark All Complete, Update Status)
+  - Improved error handling and user feedback notifications
+- **StatusRepository & API Extensions**: Centralized status management infrastructure (July 16, 2025)
+  - Created StatusRepository for type-safe access to status_sts table
+  - Extended StepsApi with step instance management, comments, and user context endpoints
+  - Added UserRepository username-based lookup for Confluence integration
+  - Comprehensive error handling with proper HTTP status codes
 - **Centralized Status Management System**: Unified status values with color coding across all entities (July 16, 2025)
   - Created status_sts table with 31 pre-populated statuses across 7 entity types
   - Each status includes hex color code for consistent UI presentation

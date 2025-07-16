@@ -26,7 +26,9 @@
       ],
       "env": {},
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "read_graph"
+      ]
     },
     "git": {
       "command": "uvx",

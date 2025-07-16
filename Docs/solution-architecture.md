@@ -2,8 +2,8 @@
 
 **Version:** 2025-07-16  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 26 archived ADRs + ADR-032. For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Email notification system implementation, Confluence native mail API integration, template management, audit logging
+**Source ADRs:** This document consolidates 26 archived ADRs + ADR-032 + ADR-033. For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** Role-based access control implementation, enhanced iteration view with operational controls, status management system, email notification architecture
 
 ## Consolidated ADR Reference
 
@@ -52,12 +52,17 @@ This document consolidates the following architectural decisions:
 ### Communication & Notifications
 - [ADR-032](../adr/ADR-032-email-notification-architecture.md) - Email Notification Architecture
 
+### Security & Access Control
+- [ADR-033](../adr/ADR-033-role-based-access-control-implementation.md) - Role-Based Access Control Implementation
+
 ### Current Active ADRs
 - [ADR-027](ADR-027-n-tiers-model.md) - N-tiers Model Architecture
 - [ADR-028](ADR-028-data-import-strategy-for-confluence-json.md) - Data Import Strategy for Confluence JSON
 - [ADR-029](ADR-029-full-attribute-instantiation-instance-tables.md) - Full Attribute Instantiation Instance Tables
 - [ADR-030](ADR-030-hierarchical-filtering-pattern.md) - Hierarchical Filtering Pattern
 - [ADR-031](ADR-031-groovy-type-safety-and-filtering-patterns.md) - Groovy Type Safety and Filtering Patterns
+- [ADR-032](ADR-032-email-notification-architecture.md) - Email Notification Architecture
+- [ADR-033](ADR-033-role-based-access-control-implementation.md) - Role-Based Access Control Implementation
 
 ---
 
@@ -448,7 +453,28 @@ The system implements a centralized status management approach to ensure consist
   - Simplifies status validation
   - Facilitates future status additions without code changes
 
-### 6.7. Database Connection Management ([ADR-009], [ADR-010])
+### 6.7. Role-Based Access Control System ([ADR-033])
+
+The system implements comprehensive role-based access control to manage user permissions across different operational contexts:
+
+**User Roles:**
+- **NORMAL:** Read-only access to iteration views and step details
+- **PILOT:** Operational access including step execution, instruction completion, status updates, and commenting
+- **ADMIN:** Full system access including administrative functions and user management
+
+**Implementation Patterns:**
+- **Frontend Control:** CSS classes (`pilot-only`, `admin-only`) control UI element visibility
+- **Backend Validation:** API endpoints validate user permissions before processing requests
+- **Confluence Integration:** User context is injected from Confluence authentication
+- **Dynamic UI:** Role-based controls are applied dynamically after user context is established
+
+**Access Control Features:**
+- **Read-Only Mode:** Visual indicators and disabled controls for NORMAL users
+- **Progressive Enhancement:** UI elements are shown/hidden based on user capabilities
+- **Permission Messaging:** Clear feedback when users attempt unauthorized actions
+- **Graceful Degradation:** System remains functional with limited permissions
+
+### 6.8. Database Connection Management ([ADR-009], [ADR-010])
 
 Database connectivity has evolved through several iterations to achieve optimal reliability:
 

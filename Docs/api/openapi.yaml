@@ -27,6 +27,12 @@ tags:
     description: Operations about users.
   - name: EmailTemplates
     description: Operations about email templates for notifications.
+  - name: Steps
+    description: Operations about steps, step instances, and status management.
+  - name: Comments
+    description: Operations about step comments and collaboration.
+  - name: Statuses
+    description: Operations about status management for different entity types.
   - name: WebApp
     description: Serves static web assets.
 
@@ -1075,6 +1081,353 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /steps/instance/{stepInstanceId}:
+    get:
+      tags:
+        - Steps
+      summary: Get step instance details with instructions
+      description: |
+        Retrieves detailed information about a specific step instance including all associated instructions.
+        Supports both UUID and step code lookup for backward compatibility.
+      operationId: getStepInstanceDetails
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Step instance ID (UUID) or step code for backward compatibility
+      responses:
+        '200':
+          description: Step instance details with instructions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepInstanceDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /steps/{stepInstanceId}/status:
+    put:
+      tags:
+        - Steps
+      summary: Update step instance status
+      description: |
+        Updates the status of a step instance and sends email notifications to relevant users.
+        Valid statuses are: OPEN, IN_PROGRESS, COMPLETED, BLOCKED, ON_HOLD.
+      operationId: updateStepInstanceStatus
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StepStatusUpdate'
+      responses:
+        '200':
+          description: Step status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepStatusUpdateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /steps/{stepInstanceId}/open:
+    post:
+      tags:
+        - Steps
+      summary: Mark step as opened by PILOT
+      description: |
+        Marks a step instance as opened by the PILOT and sends email notifications to the owning team.
+      operationId: openStepInstance
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  description: User ID for audit logging
+      responses:
+        '200':
+          description: Step opened successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /steps/{stepInstanceId}/instructions/{instructionId}/complete:
+    post:
+      tags:
+        - Steps
+      summary: Mark instruction as completed
+      description: |
+        Marks a specific instruction within a step instance as completed and sends email notifications.
+      operationId: completeInstruction
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+        - name: instructionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Instruction ID
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  description: User ID for audit logging
+      responses:
+        '200':
+          description: Instruction completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructionCompleteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /steps/{stepInstanceId}/comments:
+    get:
+      tags:
+        - Comments
+      summary: Get comments for a step instance
+      description: Retrieves all comments associated with a specific step instance.
+      operationId: getStepInstanceComments
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+      responses:
+        '200':
+          description: List of comments for the step instance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Comments
+      summary: Create a new comment for a step instance
+      description: Creates a new comment for the specified step instance.
+      operationId: createStepInstanceComment
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '200':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /comments/{commentId}:
+    put:
+      tags:
+        - Comments
+      summary: Update a comment
+      description: Updates the body of an existing comment.
+      operationId: updateComment
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Comment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentUpdate'
+      responses:
+        '200':
+          description: Comment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentUpdateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Comments
+      summary: Delete a comment
+      description: Deletes an existing comment.
+      operationId: deleteComment
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Comment ID
+      responses:
+        '200':
+          description: Comment deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentDeleteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /statuses:
+    get:
+      tags:
+        - Statuses
+      summary: Get all statuses
+      description: Retrieves all available statuses across all entity types.
+      operationId: getAllStatuses
+      responses:
+        '200':
+          description: List of all statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /statuses/{type}:
+    get:
+      tags:
+        - Statuses
+      summary: Get statuses by entity type
+      description: |
+        Retrieves all statuses for a specific entity type.
+        Common types include: Step, Migration, Iteration, Plan, Sequence, Phase.
+      operationId: getStatusesByType
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Entity type (capitalized, e.g., "Step", "Migration")
+      responses:
+        '200':
+          description: List of statuses for the specified type
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /user/context:
+    get:
+      tags:
+        - Users
+      summary: Get user context information
+      description: |
+        Retrieves context information for a user including role and permissions.
+        Used for authentication and authorization purposes.
+      operationId: getUserContext
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Username to get context for
+      responses:
+        '200':
+          description: User context information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserContext'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /labels:
     get:
       tags:
@@ -2068,6 +2421,298 @@ components:
         display_name:
           type: string
           description: Display name for dropdowns
+
+    StepInstanceDetails:
+      type: object
+      properties:
+        stepInstanceId:
+          type: string
+          format: uuid
+          description: Step instance ID
+        stepCode:
+          type: string
+          description: Formatted step code (e.g., "BGO-001")
+        stepName:
+          type: string
+          description: Step name/title
+        stepDescription:
+          type: string
+          description: Step description
+        status:
+          type: string
+          description: Current step status
+        durationMinutes:
+          type: integer
+          description: Expected duration in minutes
+        ownerTeamId:
+          type: integer
+          description: ID of the owning team
+        ownerTeamName:
+          type: string
+          description: Name of the owning team
+        phaseId:
+          type: string
+          format: uuid
+          description: Phase instance ID
+        phaseName:
+          type: string
+          description: Phase name
+        sequenceId:
+          type: string
+          format: uuid
+          description: Sequence instance ID
+        sequenceName:
+          type: string
+          description: Sequence name
+        instructions:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstructionInstance'
+          description: List of instruction instances for this step
+
+    InstructionInstance:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Instruction instance ID
+        name:
+          type: string
+          description: Instruction name
+        description:
+          type: string
+          description: Instruction description
+        content:
+          type: string
+          description: Instruction content/details
+        status:
+          type: string
+          description: Instruction status
+        number:
+          type: integer
+          description: Instruction number within the step
+        isCompleted:
+          type: boolean
+          description: Whether the instruction is completed
+
+    StepStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [OPEN, IN_PROGRESS, COMPLETED, BLOCKED, ON_HOLD]
+          description: New status for the step
+        userId:
+          type: integer
+          description: User ID for audit logging
+
+    StepStatusUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the update was successful
+        message:
+          type: string
+          description: Success message
+        stepInstanceId:
+          type: string
+          format: uuid
+          description: Step instance ID
+        newStatus:
+          type: string
+          description: The new status that was set
+        emailsSent:
+          type: integer
+          description: Number of notification emails sent
+
+    StepActionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the action was successful
+        message:
+          type: string
+          description: Success message
+        stepInstanceId:
+          type: string
+          format: uuid
+          description: Step instance ID
+        emailsSent:
+          type: integer
+          description: Number of notification emails sent
+
+    InstructionCompleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the completion was successful
+        message:
+          type: string
+          description: Success message
+        instructionId:
+          type: string
+          format: uuid
+          description: Instruction ID
+        stepInstanceId:
+          type: string
+          format: uuid
+          description: Step instance ID
+        emailsSent:
+          type: integer
+          description: Number of notification emails sent
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Comment ID
+        body:
+          type: string
+          description: Comment text content
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        createdBy:
+          type: integer
+          description: User ID who created the comment
+        createdByName:
+          type: string
+          description: Name of the user who created the comment
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        updatedBy:
+          type: integer
+          description: User ID who last updated the comment
+        stepInstanceId:
+          type: string
+          format: uuid
+          description: Step instance this comment belongs to
+
+    CommentCreate:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          type: string
+          description: Comment text content
+        userId:
+          type: integer
+          description: User ID for audit logging (optional)
+
+    CommentUpdate:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          type: string
+          description: Updated comment text content
+        userId:
+          type: integer
+          description: User ID for audit logging (optional)
+
+    CommentCreateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the creation was successful
+        commentId:
+          type: integer
+          description: ID of the created comment
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+
+    CommentUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the update was successful
+        message:
+          type: string
+          description: Success message
+
+    CommentDeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the deletion was successful
+        message:
+          type: string
+          description: Success message
+
+    Status:
+      type: object
+      properties:
+        sts_id:
+          type: integer
+          description: Status ID
+        sts_code:
+          type: string
+          description: Status code
+        sts_name:
+          type: string
+          description: Status name
+        sts_description:
+          type: string
+          description: Status description
+        sts_type:
+          type: string
+          description: Entity type this status applies to
+        sts_color:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Hex color code for the status
+        sts_sort_order:
+          type: integer
+          description: Sort order for display
+
+    UserContext:
+      type: object
+      properties:
+        userId:
+          type: integer
+          description: User ID
+        username:
+          type: string
+          description: Username/code
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          format: email
+          description: User's email address
+        isAdmin:
+          type: boolean
+          description: Whether the user has admin privileges
+        roleId:
+          type: integer
+          description: Role ID
+        role:
+          type: string
+          description: Role code (e.g., NORMAL, PILOT)
+        isActive:
+          type: boolean
+          description: Whether the user account is active
 
     TeamCreateRequest:
       type: object
