@@ -63,12 +63,10 @@ UMIG/
 │           │           └── WebApi.groovy
 │           ├── macros/               # ScriptRunner macros for UI
 │           │   ├── README.md         # Macro documentation
-│           │   ├── stepViewMacro.groovy
-│           │   ├── userDetailMacro.groovy
-│           │   ├── userListMacro.groovy
-│           │   ├── userViewMacro.groovy
 │           │   └── v1/               # Version 1 macros
-│           │       └── iterationViewMacro.groovy
+│           │       ├── adminGuiMacro.groovy      # Unified Admin GUI
+│           │       ├── iterationViewMacro.groovy  # Iteration view for cutover management
+│           │       └── stepViewMacro.groovy       # Step view functionality
 │           ├── repository/           # Data access layer
 │           │   ├── README.md         # Repository documentation
 │           │   ├── ImplementationPlanRepository.groovy
@@ -98,19 +96,23 @@ UMIG/
 │               │   ├── iteration-view.css
 │               │   └── umig-ip-macro.css
 │               └── js/               # JavaScript files
+│                   ├── admin-gui/           # Modular Admin GUI components
+│                   │   ├── AdminGuiController.js # Main orchestration and initialization
+│                   │   ├── ApiClient.js     # API communication and error handling
+│                   │   ├── AuthenticationManager.js # Login and session management
+│                   │   ├── EntityConfig.js  # Entity configurations and field definitions
+│                   │   ├── ModalManager.js  # Modal dialogs and form handling
+│                   │   ├── TableManager.js  # Table rendering and pagination
+│                   │   ├── UiUtils.js       # Utility functions and UI helpers
+│                   │   └── AdminGuiState.js # State management and data caching
+│                   ├── admin-gui.js
 │                   ├── hello-world.js
 │                   ├── iteration-view.js
 │                   ├── step-view.js
-│                   ├── umig-ip-macro.js
-│                   ├── user-detail.js
-│                   ├── user-list.js
-│                   └── user-view.js
+│                   └── umig-ip-macro.js
 ├── docs/                             # Comprehensive documentation
 │   ├── adr/                          # Architecture Decision Records
-│   │   ├── ADR-027-n-tiers-model.md # N-tiers model architecture
-│   │   ├── ADR-028-data-import-strategy-for-confluence-json.md
-│   │   ├── ADR029-full-attribute-instantiation-instance-tables.md
-│   │   ├── archive/                  # Archived ADRs (consolidated)
+│   │   ├── archive/                  # All ADRs now consolidated in solution-architecture.md
 │   │   └── template.md               # ADR template
 │   ├── api/                          # API documentation & OpenAPI spec
 │   │   ├── README.md                 # API documentation

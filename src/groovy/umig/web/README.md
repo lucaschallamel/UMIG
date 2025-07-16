@@ -14,10 +14,11 @@ This folder contains all JavaScript and CSS assets used by UMIG macros.
     - `ModalManager.js`: Modal dialogs for view/edit/create operations with entity-specific handlers
     - `UiUtils.js`: Shared utility functions and UI helpers (includes color contrast calculation)
   - **Macro-specific files**:
+    - `admin-gui.js`: Main admin GUI entry point
     - `iteration-view.js`: Iteration view functionality
     - `step-view.js`: Step view functionality
-    - `user-view.js`, `user-list.js`, `user-detail.js`: User management views
     - `hello-world.js`: Example/test script
+    - `umig-ip-macro.js`: Implementation plan functionality
 - `css/`: All macro frontend CSS files
   - `admin-gui.css`: Comprehensive styles for admin interface
   - `iteration-view.css`: Iteration view styles

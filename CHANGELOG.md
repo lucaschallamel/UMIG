@@ -1,5 +1,27 @@
 ### [Unreleased]
 
+#### 2025-07-16 (Architecture Documentation Consolidation & Code Cleanup)
+- **Documentation(Solution Architecture):** Major consolidation of architectural decisions
+  - Consolidated 7 new ADRs (027-033) into the main solution-architecture.md document
+  - Updated document to reflect all 33 architectural decisions (26 previously archived + 7 newly consolidated)
+  - Added comprehensive sections for N-tier architecture, data import strategy, full attribute instantiation
+  - Enhanced sections on hierarchical filtering, Groovy type safety, email notifications, and role-based access control
+  - Moved all processed ADRs to archive folder for historical reference
+  - Solution-architecture.md now serves as the single source of truth for all architectural decisions
+- **Refactor(Code Cleanup):** Removed obsolete user management components
+  - Deleted userDetailMacro.groovy, userListMacro.groovy, userViewMacro.groovy from macros/v1
+  - Deleted user-detail.js, user-list.js, user-view.js from web/js
+  - These legacy components were replaced by the unified Admin GUI implementation
+  - Removed unnecessary .gitkeep files and local configuration files
+- **Documentation(ADR Management):** Archived all active ADRs after consolidation
+  - ADR-027 (N-tiers Model Architecture)
+  - ADR-028 (Data Import Strategy for Confluence JSON)
+  - ADR-029 (Full Attribute Instantiation Instance Tables)
+  - ADR-030 (Hierarchical Filtering Pattern)
+  - ADR-031 (Groovy Type Safety and Filtering Patterns)
+  - ADR-032 (Email Notification Architecture)
+  - ADR-033 (Role-Based Access Control Implementation)
+
 #### 2025-07-16 (Enhanced Iteration View with Role-Based Access Control)
 - **Feat(Role-Based Access Control):** Implemented comprehensive user permission system
   - Added NORMAL (read-only), PILOT (operational), and ADMIN (full access) role definitions

@@ -67,7 +67,7 @@
 Based on the comprehensive Draw.io mock analysis, the following elements are interactive:
 
 #### Status Management
-- **Status Dropdown (STI_STATUS):** 
+- **Status Dropdown (STI_STATUS):**
   - **Functionality:** Color-coded dropdown that changes background color dynamically to reflect the current status
   - **Implementation:** Status options fetched from status_sts table where sts_type='Step'
     - PENDING (#808080) - Gray
@@ -110,9 +110,9 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 - **Update Status (PILOT+):** Dynamic color dropdown to change step status → triggers email notifications and event logging
   - Status values fetched from status_sts table filtered by sts_type='Step'
   - Dropdown background color dynamically changes based on sts_color value
-  - Available statuses: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED 
+  - Available statuses: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
 - **Mark Instructions Complete (ALL):** Individual checkboxes per instruction → triggers email notifications + event logging
-- **Comment Operations (ALL):** 
+- **Comment Operations (ALL):**
   - **CREATE:** "NEW COMMENT" button → opens creation modal
   - **EDIT:** "EDIT" button → opens editing modal (author/ADMIN only)
   - **DELETE:** "DELETE" button → confirmation dialog + removal (author/ADMIN only)
@@ -138,7 +138,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 
 ## 6. Notifications & Side Effects
 - **Email Notification Triggers:**  
-  - **Step Opened (PILOT action):** 
+  - **Step Opened (PILOT action):**
     - Template: STEP_OPENED
     - Recipients: Owner team + Impacted teams
     - Audit: EMAIL_SENT/EMAIL_FAILED + STEP_OPENED actions
@@ -215,7 +215,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 ### 🛠️ Technical Considerations
 
 #### Dynamic Color Status Dropdown Implementation
-- **Color Management:** 
+- **Color Management:**
   - Backend API provides status options with associated color codes
   - JavaScript dynamically updates dropdown background color on selection change
   - Color inheritance for both dropdown background and option styling

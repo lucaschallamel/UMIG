@@ -187,13 +187,10 @@ UMIG follows a canonical-instance pattern for data:
   ```bash
   # From the project root directory (not local-dev-setup)
   cd ..
-  podman run --rm \
-    -v $(pwd):/src:rw,Z \
-    semgrep/semgrep:latest \
-    --config=auto \
-    --output=/src/semgrep-results.json \
-    --json \
-    /src
+podman run --rm \
+  -v $(pwd):/src:rw,Z \
+  semgrep/semgrep:latest \
+  semgrep --config=auto --output=/src/semgrep-results.json --json /src
   ```
 
   **Semgrep** performs static analysis security scanning to identify potential security vulnerabilities, bugs, and anti-patterns in the codebase. The scan results will be saved to `semgrep-results.json` in the project root.
