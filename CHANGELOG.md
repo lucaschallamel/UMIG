@@ -1,5 +1,203 @@
 ### [Unreleased]
 
+#### 2025-07-16 (Architecture Documentation Consolidation & Code Cleanup)
+- **Documentation(Solution Architecture):** Major consolidation of architectural decisions
+  - Consolidated 7 new ADRs (027-033) into the main solution-architecture.md document
+  - Updated document to reflect all 33 architectural decisions (26 previously archived + 7 newly consolidated)
+  - Added comprehensive sections for N-tier architecture, data import strategy, full attribute instantiation
+  - Enhanced sections on hierarchical filtering, Groovy type safety, email notifications, and role-based access control
+  - Moved all processed ADRs to archive folder for historical reference
+  - Solution-architecture.md now serves as the single source of truth for all architectural decisions
+- **Refactor(Code Cleanup):** Removed obsolete user management components
+  - Deleted userDetailMacro.groovy, userListMacro.groovy, userViewMacro.groovy from macros/v1
+  - Deleted user-detail.js, user-list.js, user-view.js from web/js
+  - These legacy components were replaced by the unified Admin GUI implementation
+  - Removed unnecessary .gitkeep files and local configuration files
+- **Documentation(ADR Management):** Archived all active ADRs after consolidation
+  - ADR-027 (N-tiers Model Architecture)
+  - ADR-028 (Data Import Strategy for Confluence JSON)
+  - ADR-029 (Full Attribute Instantiation Instance Tables)
+  - ADR-030 (Hierarchical Filtering Pattern)
+  - ADR-031 (Groovy Type Safety and Filtering Patterns)
+  - ADR-032 (Email Notification Architecture)
+  - ADR-033 (Role-Based Access Control Implementation)
+
+#### 2025-07-16 (Enhanced Iteration View with Role-Based Access Control)
+- **Feat(Role-Based Access Control):** Implemented comprehensive user permission system
+  - Added NORMAL (read-only), PILOT (operational), and ADMIN (full access) role definitions
+  - Confluence user context integration with automatic role detection
+  - CSS-based UI element visibility control (pilot-only, admin-only classes)
+  - Dynamic role-based controls applied after user authentication
+  - Read-only mode indicators for users without operational permissions
+- **Enhancement(StepsApi):** Major expansion with comprehensive step instance management
+  - Added GET /steps/instance/{stepInstanceId} endpoint for detailed step data
+  - Added GET /statuses/{type} endpoints for dynamic status management
+  - Added complete comment CRUD operations (GET, POST, PUT, DELETE /comments)
+  - Added GET /user/context endpoint for role and permission validation
+  - Comprehensive error handling with proper HTTP status codes
+  - Support for both UUID and step code lookups for backward compatibility
+- **Feat(StatusRepository):** New centralized status management repository
+  - Provides type-safe access to status_sts table with entity type filtering
+  - Ordered status queries for consistent UI display
+  - Color-coded status support for dynamic UI styling
+  - Status lookup by name and type for validation
+- **Enhancement(Iteration View UI):** Comprehensive interface overhaul
+  - Dynamic status dropdown with database-driven color coding
+  - Interactive instruction completion tracking with checkbox controls
+  - Real-time comment system with add, edit, delete operations
+  - Step instance detail views with comprehensive metadata display
+  - Role-based control application with visual feedback
+  - Enhanced step action buttons (Mark All Complete, Update Status)
+  - Improved error handling and user feedback notifications
+- **Enhancement(StepRepository):** Extended with instance and comment management
+- **Enhancement(API Documentation):** Updated OpenAPI specification and regenerated Postman collection
+  - Added 13 new endpoint definitions covering step instances, status management, comments, and user context
+  - Created comprehensive schemas for StepInstanceDetails, Status, Comment, and UserContext objects
+  - Added new tags for Comments and Statuses to improve API organization
+  - Generated fresh Postman collection with all new endpoints for testing and integration
+  - Validated OpenAPI specification syntax and completeness
+  - Added findStepInstanceDetailsById for comprehensive step data retrieval
+  - Added findStepInstanceDetailsByCode for backward compatibility
+  - Added comment CRUD operations (find, create, update, delete)
+  - Enhanced team lookup with improved query performance
+- **Enhancement(UserRepository):** Added username-based user lookup
+  - Added findUserByUsername method for Confluence integration
+  - Enhanced with role information and team associations
+  - Support for authentication context validation
+- **Enhancement(Iteration View Macro):** Confluence user context injection
+  - Added automatic user context extraction from Confluence authentication
+  - JavaScript configuration object with user credentials and permissions
+  - Role-based control enablement through window.UMIG_ITERATION_CONFIG
+- **Enhancement(CSS):** Comprehensive styling updates for new features
+  - Role-based control styling (role-disabled, pilot-only, admin-only)
+  - Dynamic status dropdown with color-coded backgrounds
+  - Comment system styling with action buttons and edit modes
+  - Read-only mode banners and visual indicators
+  - Enhanced instruction row styling for completion states
+
+#### 2025-07-16 (Status Management System & UI Fixes)
+- **Feat(Database):** Implemented centralized status management system
+  - Created status_sts table with sts_id, sts_name, sts_color, and sts_type columns
+  - Pre-populated 31 status values across 7 entity types (Migration, Iteration, Plan, Sequence, Phase, Step, Control)
+  - Added color-coding support with hex color values for each status
+  - Migration 015_remove_fields_from_steps_instance_and_add_status_table.sql with proper rollback support
+- **Refactor(Steps Instance):** Cleaned up redundant fields from steps_instance_sti
+  - Removed usr_id_owner field (owner is at master level only)
+  - Removed usr_id_assignee field (assignee is at master level only)  
+  - Removed enr_id_target field (replaced with proper enr_id field)
+- **Enhancement(Data Generation):** Updated all data generators to use status_sts table
+  - Modified 001_generate_core_metadata.js to populate status_sts table on initialization
+  - Updated 005_generate_migrations.js to use dynamic status selection for migrations and iterations
+  - Refactored 099_generate_instance_data.js to select statuses from status_sts for all instance entities
+  - Ensured consistent status values across entire generated dataset
+- **Fix(Iteration View):** Fixed status counter consistency with new status system
+  - Updated getStatusClass() function to handle exact status matches from status_sts table
+  - Modified calculateAndUpdateStepCounts() to use direct status matching instead of CSS class inference
+  - Enhanced getStatusDisplay() for step details panel to use centralized statuses
+  - Status counters now accurately reflect: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
+- **Fix(Iteration View):** Resolved Teams dropdown regression showing "UNNAMED" values
+  - Updated TeamRepository hierarchical filtering methods to return normalized field names
+  - Changed all findTeamsBy* methods to transform database fields (tms_id→id, tms_name→name)
+  - Fixed JavaScript populateFilter function compatibility with expected field names
+  - Resolved teamId=undefined errors in API calls
+- **Enhancement(Testing):** Updated test suite for new status management
+  - Modified 001_generate_core_metadata.test.js to expect 43 queries (including status inserts)
+  - Updated 099_generate_instance_data.test.js to mock status_sts queries
+  - Fixed field references from enr_id_target to enr_id in test expectations
+  - All 70 tests passing with new schema changes
+- **Enhancement(UI/UX):** Updated step-view.md specification for STEPS subview within iteration view
+  - Refactored documentation from standalone STEP View to STEPS Subview context
+  - Added detailed interactive elements mapping based on Draw.io mockup analysis
+  - Documented dynamic color-coded status dropdown implementation pattern
+  - Enhanced with environment role context and filtering capabilities
+  - Added role-based access control definitions (NORMAL, PILOT, ADMIN)
+  - Documented email notification integration triggers for status changes
+
+#### 2025-07-16 (Environment Role Association for Steps)
+- **Feat(Database):** Added environment role association to steps tables
+  - Added enr_id column to steps_master_stm table with foreign key to environment_roles_enr
+  - Added enr_id column to steps_instance_sti table with foreign key to environment_roles_enr
+  - Added indexes for performance on enr_id lookups in both tables
+  - Migration 014_add_environment_role_to_steps.sql created with proper rollback support
+- **Enhancement(Data Generation):** Updated synthetic data generators for environment role associations
+  - Modified 004_generate_canonical_plans.js to randomly assign enr_id to steps_master_stm records
+  - Updated 099_generate_instance_data.js to replicate enr_id from master to instance steps
+  - Ensured proper data inheritance pattern for environment role associations
+- **Enhancement(UI/UX):** Updated step-view.md specification with environment role context
+  - Added environment roles and environment scope to data requirements section
+  - Updated hierarchical positioning documentation to include environment relationships
+  - Enhanced user role definitions (NORMAL → PILOT → ADMIN progression)
+  - Added comprehensive implementation status tracking and next steps
+
+#### 2025-07-16 (Email Notification System Implementation - Complete)
+- **Feat(Email Notifications):** Production-ready email notification system with full template management and integration
+  - Successfully implemented complete email notification workflow with Confluence native mail API
+  - Added comprehensive error handling for template processing and email delivery
+  - Integrated with StepRepository for automatic notifications on step opened, instruction completed, and status changes
+  - Implemented multi-team notification logic (owner + impacted teams + cutover teams)
+  - Added proper audit logging for all email events (EMAIL_SENT, EMAIL_FAILED, STATUS_CHANGED)
+  - Fixed column name mismatches in audit_log_aud table (usr_id vs aud_user_id)
+  - Fixed email template table name consistency (email_templates_emt)
+  - Resolved static type checking issues by removing @CompileStatic annotations
+  - Successfully tested end-to-end email delivery with MailHog integration
+- **Fix(Email Service):** Resolved critical email delivery issues
+  - Fixed EmailService.sendEmailViaMailHog() to actually send emails instead of just logging
+  - Implemented proper SMTP connection with javax.mail for local development
+  - Added graceful fallback when MailHog is not available
+  - Fixed template variable processing with SimpleTemplateEngine
+  - Corrected recipient email extraction from team objects
+- **Enhancement(Testing):** Comprehensive email notification testing framework
+  - Created emailNotificationTest.groovy for ScriptRunner Console testing
+  - Added proper database connection using ScriptRunner's umig_db_pool
+  - Implemented test scenarios for step opening, status updates, and instruction completion
+  - Successfully validated email delivery with HTML content and proper styling
+  - Added debugging output for template verification and step selection
+- **Documentation(Architecture):** Updated solution architecture with email notification system
+  - Added Section 10 documenting complete email notification architecture
+  - Documented template management patterns and JSONB audit logging
+  - Included notification triggers and multi-team recipient logic
+  - Added development testing patterns and MailHog integration guide
+  - Updated ADR reference list to include ADR-032 for email notification architecture
+
+#### 2025-07-16 (Email Notification System Implementation)
+- **Feat(Email Notifications):** Complete email notification system with template management
+  - Added EmailService class with support for step opened, instruction completed, and status change notifications
+  - Implemented EmailTemplateRepository for CRUD operations on email templates
+  - Added AuditLogRepository for logging all email notifications and system events
+  - Created EmailTemplatesApi REST endpoints for template management
+  - Added email_templates_emt table with Liquibase migration for storing templates
+  - Integrated email notifications into StepRepository for automatic sending
+  - Added MailHog support for local development email testing
+  - Implemented template processing with Groovy SimpleTemplateEngine for dynamic content
+- **Feat(API):** New Email Templates API endpoints
+  - Added GET /emailTemplates endpoint for listing templates with optional activeOnly filter
+  - Added POST /emailTemplates endpoint for creating new templates
+  - Added GET /emailTemplates/{id} endpoint for retrieving specific templates
+  - Added PUT /emailTemplates/{id} endpoint for updating templates with partial update support
+  - Added DELETE /emailTemplates/{id} endpoint for deleting templates
+  - Added template type validation for STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM
+- **Enhancement(Integration):** Email notification integration with workflow
+  - Added email sending to StepRepository.updateStepStatus() for status change notifications
+  - Added email sending to StepRepository.openStep() for step opening notifications
+  - Added email sending to StepRepository.completeInstruction() for instruction completion notifications
+  - All email notifications include proper recipient selection (assigned team + impacted teams)
+  - Integrated with Confluence's native mail API for production use
+- **Feat(Testing):** Comprehensive email notification testing
+  - Added EmailServiceTest.groovy for unit testing email functionality
+  - Added emailNotificationTest.groovy for integration testing
+  - Added test-email-notifications.sh script for automated testing workflow
+  - Added comprehensive test coverage for all email notification scenarios
+- **Documentation:** Complete API documentation for email notifications
+  - Updated OpenAPI specification with Email Templates endpoints and schemas
+  - Generated updated Postman collection with all email template operations
+  - Added EmailTemplatesAPI.md with detailed usage examples and integration guide
+  - Updated API README.md to include email templates documentation
+- **Infrastructure:** Email notification architecture (ADR-032)
+  - Documented email notification system architecture and design decisions
+  - Established patterns for template management and notification delivery
+  - Defined audit logging requirements for compliance and monitoring
+  - Implemented error handling and fallback mechanisms for email delivery
+
 #### 2025-07-16 (Labels Admin GUI Implementation)
 - **Feat(Labels):** Complete Labels admin interface with full CRUD functionality
   - Added Labels to admin navigation with proper data source configuration

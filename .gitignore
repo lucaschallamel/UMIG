@@ -130,6 +130,7 @@ semgrep-results.json
 
 # MegaLinter reports and temp files
 megalinter-reports/
+megalinter-reports/IDE-config.txt
 megalinter-reports/*
 mega-linter-reports/
 mega-linter.log
@@ -141,3 +142,5 @@ tmp/lint/
 #Claude
 .claude/
 .screenshots/
+*.bkp
+*.dtmp

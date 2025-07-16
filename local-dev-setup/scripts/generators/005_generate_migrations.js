@@ -55,6 +55,13 @@ async function generateMigrations(config, options = {}) {
   }
   const plans = [...plansResult.rows]; // Create a mutable copy
 
+  // Fetch available statuses from status_sts table
+  const migrationStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Migration']);
+  const migrationStatuses = migrationStatusesResult.rows.map(row => row.sts_name);
+  
+  const iterationStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Iteration']);
+  const iterationStatuses = iterationStatusesResult.rows.map(row => row.sts_name);
+
   for (let i = 0; i < COUNT; i++) {
     const ownerId = faker.helpers.arrayElement(users).usr_id;
     const startDate = randomDateInRange(START_DATE_RANGE[0], START_DATE_RANGE[1]);
@@ -70,7 +77,7 @@ async function generateMigrations(config, options = {}) {
       ownerId,
       `Migration ${i + 1}: ${faker.company.catchPhrase()}`,
       faker.lorem.sentence(),
-      faker.helpers.arrayElement(['PLANNING', 'IN_PROGRESS', 'COMPLETED']),
+      faker.helpers.arrayElement(migrationStatuses),
       TYPE,
       startDate,
       endDate,
@@ -80,14 +87,14 @@ async function generateMigrations(config, options = {}) {
     // Assign plans to this migration and generate iterations for each plan
     const assignedPlans = plans.splice(0, PER_MIGRATION);
     for (const plan of assignedPlans) {
-      await generateIterationsForPlan(migId, plan.plm_id, ITERATIONS, startDate);
+      await generateIterationsForPlan(migId, plan.plm_id, ITERATIONS, startDate, iterationStatuses);
     }
   }
 
   console.log('Finished generating migrations.');
 }
 
-async function generateIterationsForPlan(migId, planId, iterationConfig, migStartDate) {
+async function generateIterationsForPlan(migId, planId, iterationConfig, migStartDate, iterationStatuses) {
   console.log(`  - Generating iterations for plan ${planId} in migration ${migId}`);
   for (const type in iterationConfig) {
     const config = iterationConfig[type];
@@ -108,7 +115,7 @@ async function generateIterationsForPlan(migId, planId, iterationConfig, migStar
         type.toUpperCase(),
         `${type.toUpperCase()} Iteration ${i + 1} for Plan ${planId}`,
         `This is the ${i + 1} iteration of type ${type.toUpperCase()} for migration ${migId} under plan ${planId}`,
-        faker.helpers.arrayElement(['PENDING', 'IN_PROGRESS', 'COMPLETED']),
+        faker.helpers.arrayElement(iterationStatuses),
       ]);
     }
   }

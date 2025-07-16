@@ -22,6 +22,7 @@ UMIG is built on:
 - **usr_id_owner** (INT, FK → users_usr): Owner
 - **mig_name** (VARCHAR): Migration name
 - **mig_description** (TEXT): Description
+- **mig_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Migration'
 - **mig_start_date**, **mig_end_date**, **mig_business_cutover_date** (DATE): Key dates
 
 ### 2.2. Iterations (`iterations_ite`)
@@ -30,6 +31,7 @@ UMIG is built on:
 - **plm_id** (UUID, FK → plans_master_plm): The master plan for this iteration
 - **itt_code** (VARCHAR, FK → iteration_types_itt): Iteration type
 - **ite_name**, **ite_description** (VARCHAR, TEXT)
+- **ite_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Iteration'
 - **ite_static_cutover_date**, **ite_dynamic_cutover_date** (TIMESTAMPTZ): Cutover dates
 
 ### 2.3. Teams (`teams_tms`)
@@ -101,7 +103,10 @@ UMIG is built on:
 - **stt_code** (VARCHAR, FK → step_types_stt): Step type
 - **stm_number** (INT)
 - **stm_name** (VARCHAR)
+- **stm_description** (TEXT): Step description
+- **stm_duration_minutes** (INTEGER): Expected duration
 - **stm_id_predecessor** (UUID, FK → steps_master_stm, nullable)
+- **enr_id** (INT, FK → environment_roles_enr, nullable): Environment role association - Added in migration 014 (replaced enr_id_target)
 
 ### 3.5. Controls (`controls_master_ctm`)
 - **ctm_id** (UUID, PK)
@@ -141,12 +146,14 @@ UMIG is built on:
 - **plm_id** (UUID, FK → plans_master_plm)
 - **ite_id** (UUID, FK → iterations_ite)
 - **pli_name** (VARCHAR)
+- **pli_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Plan'
+- **usr_id_owner** (INT, FK → users_usr): Plan instance owner
 
 ### 4.2. Sequence Instance (`sequences_instance_sqi`)
 - **sqi_id** (UUID, PK)
 - **pli_id** (UUID, FK → plans_instance_pli)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
-- **sqi_status** (VARCHAR): Status of this sequence instance
+- **sqi_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Sequence'
 - **sqi_name** (VARCHAR): Override name for the sequence instance - Added in migration 010
 - **sqi_description** (TEXT): Override description for the sequence instance - Added in migration 010
 - **sqi_order** (INTEGER): Override order for the sequence instance - Added in migration 010
@@ -156,6 +163,7 @@ UMIG is built on:
 - **phi_id** (UUID, PK)
 - **sqi_id** (UUID, FK → sequences_instance_sqi)
 - **phm_id** (UUID, FK → phases_master_phm)
+- **phi_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Phase'
 - **phi_order** (INTEGER): Override order for the phase instance - Added in migration 010
 - **phi_name** (VARCHAR): Override name for the phase instance - Added in migration 010
 - **phi_description** (TEXT): Override description for the phase instance - Added in migration 010
@@ -165,12 +173,16 @@ UMIG is built on:
 - **sti_id** (UUID, PK)
 - **phi_id** (UUID, FK → phases_instance_phi)
 - **stm_id** (UUID, FK → steps_master_stm)
-- **sti_status** (VARCHAR): Execution status (e.g., NOT_STARTED, IN_PROGRESS, COMPLETED, FAILED)
+- **sti_status** (VARCHAR, FK → status_sts.sts_name): Execution status from status_sts where sts_type='Step' - Refactored in migration 015
 - **sti_name** (VARCHAR): Override name for the step instance - Added in migration 010
 - **sti_description** (TEXT): Override description for the step instance - Added in migration 010
 - **sti_duration_minutes** (INTEGER): Override duration for the step instance - Added in migration 010
 - **sti_id_predecessor** (UUID): Override predecessor step master ID - Added in migration 010
-- **enr_id_target** (UUID): Override target entity reference - Added in migration 010
+- **enr_id** (INT, FK → environment_roles_enr, nullable): Inherited environment role from master - Added in migration 014
+- **Removed fields in migration 015:**
+  - ~~usr_id_owner~~ (Owner is at master level only)
+  - ~~usr_id_assignee~~ (Assignee is at master level only)
+  - ~~enr_id_target~~ (Replaced with proper enr_id field)
 
 ### 4.5. Instruction Instance (`instructions_instance_ini`)
 - **ini_id** (UUID, PK)
@@ -186,6 +198,7 @@ UMIG is built on:
 - **cti_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
 - **ctm_id** (UUID, FK → controls_master_ctm)
+- **cti_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Control'
 - **cti_order** (INTEGER): Override order for the control instance
 - **cti_name** (VARCHAR): Override name for the control instance
 - **cti_description** (TEXT): Override description for the control instance
@@ -265,10 +278,90 @@ UMIG is built on:
 
 ---
 
-## 6. Entity Relationship Diagram (ERD)
+## 6. Lookup/Reference Tables
+
+**Purpose:** Provides controlled values and reference data for system-wide consistency.
+
+### 6.1. Status Management (`status_sts`)
+- **sts_id** (SERIAL, PK)
+- **sts_name** (VARCHAR(50), NOT NULL): Status name (e.g., PENDING, IN_PROGRESS, COMPLETED)
+- **sts_color** (VARCHAR(7), NOT NULL): Hex color code format (#RRGGBB)
+- **sts_type** (VARCHAR(20), NOT NULL): Entity type (Migration, Iteration, Plan, Sequence, Phase, Step, Control)
+- **created_at** (TIMESTAMPTZ, DEFAULT CURRENT_TIMESTAMP)
+- **created_by** (VARCHAR(255))
+- **Unique:** (sts_name, sts_type)
+- **Purpose:** Centralizes all status values with color coding for UI consistency - Added in migration 015
+- **Pre-populated values:** 31 statuses across 7 entity types
+
+### 6.2. Environment Roles (`environment_roles_enr`)
+- **enr_id** (INT, PK)
+- **enr_code** (VARCHAR, unique): Role code (e.g., DEV, TEST, PROD)
+- **enr_name** (VARCHAR): Display name
+- **enr_description** (TEXT): Description
+
+### 6.3. Step Types (`step_types_stt`)
+- **stt_code** (VARCHAR(10), PK): Type code
+- **stt_name** (VARCHAR): Display name
+- **stt_description** (TEXT): Description
+
+### 6.4. Iteration Types (`iteration_types_itt`)
+- **itt_code** (VARCHAR(10), PK): Type code (e.g., RUN, DR, CUTOVER)
+- **itt_name** (VARCHAR): Display name
+- **itt_description** (TEXT): Description
+
+### 6.5. Email Templates (`email_templates_emt`)
+- **emt_id** (UUID, PK)
+- **emt_type** (VARCHAR(50)): Template type (STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM)
+- **emt_name** (VARCHAR(255)): Template name
+- **emt_subject** (TEXT): Email subject template
+- **emt_body_html** (TEXT): HTML body template
+- **emt_body_text** (TEXT, nullable): Plain text body template
+- **emt_active** (BOOLEAN, DEFAULT true): Active status
+- **created_at**, **updated_at** (TIMESTAMPTZ): Audit timestamps
+- **created_by**, **updated_by** (VARCHAR(255)): Audit users
+
+### 6.6. Audit Log (`audit_log_aud`)
+- **aud_id** (UUID, PK)
+- **aud_user_id** (INT, FK → users_usr): User performing the action
+- **aud_action** (VARCHAR(100)): Action type (EMAIL_SENT, EMAIL_FAILED, STATUS_CHANGED, etc.)
+- **aud_entity_type** (VARCHAR(100)): Entity type affected
+- **aud_entity_id** (VARCHAR(255)): Entity ID affected
+- **aud_details** (JSONB): Detailed action information
+- **aud_timestamp** (TIMESTAMPTZ, DEFAULT CURRENT_TIMESTAMP): When action occurred
+- **aud_ip_address** (VARCHAR(45), nullable): User's IP address
+- **aud_user_agent** (TEXT, nullable): User's browser/client info
+
+---
+
+## 7. Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
+    %% Lookup/Reference Tables
+    status_sts {
+        SERIAL sts_id PK
+        VARCHAR sts_name
+        VARCHAR sts_color
+        VARCHAR sts_type
+        TIMESTAMPTZ created_at
+        VARCHAR created_by
+    }
+    environment_roles_enr {
+        INT enr_id PK
+        VARCHAR enr_code
+        VARCHAR enr_name
+        TEXT enr_description
+    }
+    step_types_stt {
+        VARCHAR stt_code PK
+        VARCHAR stt_name
+        TEXT stt_description
+    }
+    iteration_types_itt {
+        VARCHAR itt_code PK
+        VARCHAR itt_name
+        TEXT itt_description
+    }
     %% Strategic Layer
     migrations_mig {
         UUID mig_id PK
@@ -355,7 +448,10 @@ erDiagram
         VARCHAR stt_code FK
         INT stm_number
         VARCHAR stm_name
+        TEXT stm_description
+        INTEGER stm_duration_minutes
         UUID stm_id_predecessor FK
+        INT enr_id FK
     }
     controls_master_ctm {
         UUID ctm_id PK
@@ -414,11 +510,12 @@ erDiagram
         UUID sti_id PK
         UUID phi_id FK
         UUID stm_id FK
+        VARCHAR sti_status FK
         VARCHAR sti_name
         TEXT sti_description
         INTEGER sti_duration_minutes
         UUID sti_id_predecessor
-        UUID enr_id_target
+        INT enr_id FK
     }
     instructions_instance_ini {
         UUID ini_id PK
@@ -510,6 +607,7 @@ erDiagram
     steps_master_stm }o--|| phases_master_phm : "belongs to"
     steps_master_stm }o--|| teams_tms : "owned by"
     steps_master_stm }o--|| step_types_stt : "is of type"
+    steps_master_stm }o--|| environment_roles_enr : "targets environment"
     controls_master_ctm }o--|| phases_master_phm : "validates"
     instructions_master_inm }o--|| steps_master_stm : "details"
     instructions_master_inm }o--|| teams_tms : "owned by"
@@ -522,6 +620,7 @@ erDiagram
     phases_instance_phi }o--|| phases_master_phm : "instantiates"
     steps_instance_sti }o--|| phases_instance_phi : "part of"
     steps_instance_sti }o--|| steps_master_stm : "instantiates"
+    steps_instance_sti }o--|| environment_roles_enr : "targets environment"
     instructions_instance_ini }o--|| steps_instance_sti : "part of"
     instructions_instance_ini }o--|| instructions_master_inm : "instantiates"
     controls_instance_cti }o--|| steps_instance_sti : "validates"

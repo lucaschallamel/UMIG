@@ -56,13 +56,138 @@ class IterationView {
             myTeamsOnly: false
         };
         
+        this.userRole = null;
+        this.isAdmin = false;
+        this.userContext = null;
         
+        this.initUserContext();
         this.init();
+    }
+
+    async initUserContext() {
+        try {
+            // Get user context from configuration
+            const config = window.UMIG_ITERATION_CONFIG;
+            if (!config || !config.confluence || !config.confluence.username) {
+                console.warn('No user context available');
+                return;
+            }
+
+            // Fetch user role information from backend
+            const response = await fetch(`${config.api.baseUrl}/user/context?username=${encodeURIComponent(config.confluence.username)}`);
+            if (response.ok) {
+                this.userContext = await response.json();
+                this.userRole = this.userContext.role || 'NORMAL';
+                this.isAdmin = this.userContext.isAdmin || false;
+                console.log('User context loaded:', this.userContext);
+                
+                // Apply role-based UI controls once DOM is ready
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => this.applyRoleBasedControls());
+                } else {
+                    this.applyRoleBasedControls();
+                }
+            } else {
+                console.warn('Failed to load user context:', response.status);
+                // Default to NORMAL role
+                this.userRole = 'NORMAL';
+                this.isAdmin = false;
+            }
+        } catch (error) {
+            console.error('Error loading user context:', error);
+            // Default to NORMAL role
+            this.userRole = 'NORMAL';
+            this.isAdmin = false;
+        }
+    }
+
+    applyRoleBasedControls() {
+        // Role-based UI control logic
+        const role = this.userRole;
+        const isAdmin = this.isAdmin;
+        
+        console.log(`Applying role-based controls for role: ${role}, isAdmin: ${isAdmin}`);
+        
+        // Control visibility and interaction based on role
+        if (role === 'NORMAL') {
+            // NORMAL users have read-only access
+            this.hideElementsWithClass('admin-only');
+            this.disableElementsWithClass('pilot-only');
+            
+            // Add read-only indicators
+            this.addReadOnlyIndicators();
+        } else if (role === 'PILOT') {
+            // PILOT users have operational access
+            this.hideElementsWithClass('admin-only');
+            this.showAndEnableElementsWithClass('pilot-only');
+        } else if (role === 'ADMIN' || isAdmin) {
+            // ADMIN users have full access
+            this.showAndEnableElementsWithClass('admin-only');
+            this.showAndEnableElementsWithClass('pilot-only');
+        }
+    }
+
+    hideElementsWithClass(className) {
+        const elements = document.querySelectorAll(`.${className}`);
+        elements.forEach(element => {
+            element.style.display = 'none';
+        });
+    }
+
+    showElementsWithClass(className) {
+        const elements = document.querySelectorAll(`.${className}`);
+        elements.forEach(element => {
+            element.style.display = '';
+        });
+    }
+
+    disableElementsWithClass(className) {
+        const elements = document.querySelectorAll(`.${className}`);
+        elements.forEach(element => {
+            // Disable input elements
+            if (element.tagName === 'INPUT' || element.tagName === 'BUTTON' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA') {
+                element.disabled = true;
+                element.title = 'This action requires PILOT or ADMIN role';
+            }
+            // Add visual indicator for disabled state
+            element.classList.add('role-disabled');
+        });
+    }
+
+    showAndEnableElementsWithClass(className) {
+        const elements = document.querySelectorAll(`.${className}`);
+        elements.forEach(element => {
+            element.style.display = '';
+            // Enable input elements
+            if (element.tagName === 'INPUT' || element.tagName === 'BUTTON' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA') {
+                element.disabled = false;
+                element.title = '';
+            }
+            // Remove disabled indicator
+            element.classList.remove('role-disabled');
+        });
+    }
+
+    addReadOnlyIndicators() {
+        // Add a read-only banner for NORMAL users
+        const stepDetailsPanel = document.querySelector('.step-details-panel');
+        if (stepDetailsPanel && !stepDetailsPanel.querySelector('.read-only-banner')) {
+            const banner = document.createElement('div');
+            banner.className = 'read-only-banner';
+            banner.innerHTML = `
+                <div class="banner-content">
+                    <span class="banner-icon">👁️</span>
+                    <span class="banner-text">Read-Only Mode - Contact admin for edit access</span>
+                </div>
+            `;
+            stepDetailsPanel.insertBefore(banner, stepDetailsPanel.firstChild);
+        }
     }
 
     init() {
         this.initializeSelectors();
         this.bindEvents();
+        this.loadStatusColors();
         this.loadSteps();
         this.updateFilters();
     }
@@ -433,7 +558,8 @@ class IterationView {
         
         this.selectedStep = stepId;
         this.selectedStepCode = stepCode;
-        this.loadStepDetails(stepCode || stepId);
+        // Pass the step instance UUID (stepId) to the API, not the step code
+        this.loadStepDetails(stepId);
     }
 
     async loadStepDetails(stepCode) {
@@ -446,7 +572,8 @@ class IterationView {
         stepDetailsContent.innerHTML = '<div class="loading-message"><p>🔄 Loading step details...</p></div>';
 
         try {
-            const response = await fetch(`/rest/scriptrunner/latest/custom/stepViewApi?stepid=${encodeURIComponent(stepCode)}`);
+            // Use the new instance endpoint instead of the master data endpoint
+            const response = await fetch(`/rest/scriptrunner/latest/custom/steps/instance/${encodeURIComponent(stepCode)}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
@@ -461,35 +588,351 @@ class IterationView {
             this.renderStepDetails(stepData);
             
         } catch (error) {
-            stepDetailsContent.innerHTML = `
-                <div class="error-message">
-                    <p>❌ Error loading step details: ${error.message}</p>
-                    <p>Please try again or contact support.</p>
-                </div>
-            `;
+            // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+            setTimeout(() => {
+                try {
+                    stepDetailsContent.innerHTML = `
+                        <div class="error-message">
+                            <p>❌ Error loading step details: ${error.message}</p>
+                            <p>Please try again or contact support.</p>
+                        </div>
+                    `;
+                } catch (domError) {
+                    console.warn('Failed to render step details error:', domError);
+                }
+            }, 10);
         }
     }
     
+    /**
+     * Fetch status options from the API
+     */
+    async fetchStepStatuses() {
+        try {
+            const response = await fetch('/rest/scriptrunner/latest/custom/statuses/step');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch statuses: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching step statuses:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Load status colors from the API and store them for dynamic styling
+     */
+    async loadStatusColors() {
+        try {
+            this.statusColors = new Map();
+            const statuses = await this.fetchStepStatuses();
+            
+            statuses.forEach(status => {
+                this.statusColors.set(status.name.toUpperCase(), status.color);
+            });
+            
+            console.log('loadStatusColors: Loaded', this.statusColors.size, 'status colors');
+            
+            // Apply the colors to CSS custom properties
+            this.applyStatusColors();
+            
+            // Apply the colors to step count badges
+            this.applyCounterColors();
+            
+        } catch (error) {
+            console.error('Error loading status colors:', error);
+            // Initialize with empty map so other methods don't fail
+            this.statusColors = new Map();
+        }
+    }
+
+    /**
+     * Apply status colors to CSS custom properties
+     */
+    applyStatusColors() {
+        if (!this.statusColors) return;
+        
+        const root = document.documentElement;
+        
+        // Apply colors to CSS custom properties
+        this.statusColors.forEach((color, status) => {
+            const cssVar = `--status-${status.toLowerCase().replace('_', '-')}-color`;
+            root.style.setProperty(cssVar, color);
+        });
+    }
+
+    /**
+     * Populate status dropdown with options and set current status
+     */
+    async populateStatusDropdown(currentStatus) {
+        const dropdown = document.getElementById('step-status-dropdown');
+        if (!dropdown) return;
+
+        // Fetch available statuses
+        const statuses = await this.fetchStepStatuses();
+        
+        // Clear existing options
+        dropdown.innerHTML = '';
+        
+        // Add status options
+        statuses.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status.name;
+            option.textContent = status.name.replace(/_/g, ' ');
+            option.setAttribute('data-color', status.color);
+            
+            if (status.name === currentStatus) {
+                option.selected = true;
+            }
+            
+            dropdown.appendChild(option);
+        });
+        
+        // Set dropdown background color based on selected status
+        this.updateDropdownColor(dropdown);
+        
+        // Add change event listener
+        dropdown.addEventListener('change', (e) => this.handleStatusChange(e));
+    }
+
+    /**
+     * Update dropdown background color based on selected option
+     */
+    updateDropdownColor(dropdown) {
+        const selectedOption = dropdown.options[dropdown.selectedIndex];
+        if (selectedOption) {
+            const color = selectedOption.getAttribute('data-color');
+            if (color) {
+                dropdown.style.backgroundColor = color;
+                // Set text color based on background brightness
+                const rgb = this.hexToRgb(color);
+                const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+                dropdown.style.color = brightness > 128 ? '#000' : '#fff';
+            }
+        }
+    }
+
+    /**
+     * Convert hex color to RGB
+     */
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    }
+
+    /**
+     * Handle status change event
+     */
+    async handleStatusChange(event) {
+        const dropdown = event.target;
+        const newStatus = dropdown.value;
+        const stepId = dropdown.getAttribute('data-step-id');
+        
+        // Update dropdown color immediately
+        this.updateDropdownColor(dropdown);
+        
+        // TODO: Implement role check
+        // For now, we'll assume the user has permission
+        
+        // TODO: Call API to update status
+        console.log(`Status change requested: ${stepId} -> ${newStatus}`);
+        this.showNotification(`Status updated to ${newStatus}`, 'success');
+        
+        // In the future, this will call:
+        // await this.updateStepStatus(stepId, newStatus);
+    }
+
+    /**
+     * Attach event listeners to instruction checkboxes
+     */
+    attachInstructionListeners() {
+        const checkboxes = document.querySelectorAll('.instruction-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => this.handleInstructionToggle(e));
+        });
+    }
+
+    /**
+     * Attach event listeners to action buttons
+     */
+    attachActionButtonListeners() {
+        const markAllBtn = document.getElementById('mark-all-complete');
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', () => this.markAllInstructionsComplete());
+        }
+        
+        const updateStatusBtn = document.getElementById('update-status-btn');
+        if (updateStatusBtn) {
+            updateStatusBtn.addEventListener('click', () => this.handleUpdateStatusClick());
+        }
+    }
+
+    /**
+     * Mark all uncompleted instructions as complete
+     */
+    async markAllInstructionsComplete() {
+        const uncheckedBoxes = document.querySelectorAll('.instruction-checkbox:not(:checked)');
+        
+        if (uncheckedBoxes.length === 0) {
+            this.showNotification('All instructions are already complete', 'info');
+            return;
+        }
+        
+        const confirmMessage = `Mark ${uncheckedBoxes.length} instruction${uncheckedBoxes.length > 1 ? 's' : ''} as complete?`;
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        let completedCount = 0;
+        let failedCount = 0;
+        
+        // Disable the button during processing
+        const markAllBtn = document.getElementById('mark-all-complete');
+        if (markAllBtn) {
+            markAllBtn.disabled = true;
+            markAllBtn.textContent = 'Marking Complete...';
+        }
+        
+        // Process each unchecked checkbox
+        for (const checkbox of uncheckedBoxes) {
+            try {
+                // Simulate clicking the checkbox
+                checkbox.checked = true;
+                await this.handleInstructionToggle({ target: checkbox });
+                completedCount++;
+            } catch (error) {
+                failedCount++;
+                console.error('Failed to complete instruction:', error);
+            }
+        }
+        
+        // Re-enable button
+        if (markAllBtn) {
+            markAllBtn.disabled = false;
+            markAllBtn.textContent = 'Mark All Instructions Complete';
+        }
+        
+        // Show summary notification
+        if (failedCount === 0) {
+            this.showNotification(`Successfully marked ${completedCount} instructions as complete`, 'success');
+        } else {
+            this.showNotification(`Marked ${completedCount} complete, ${failedCount} failed`, 'warning');
+        }
+    }
+
+    /**
+     * Handle update status button click
+     */
+    handleUpdateStatusClick() {
+        const dropdown = document.getElementById('step-status-dropdown');
+        if (dropdown) {
+            // Trigger the change event on the dropdown
+            dropdown.dispatchEvent(new Event('change'));
+        }
+    }
+
+    /**
+     * Handle instruction checkbox toggle
+     */
+    async handleInstructionToggle(event) {
+        const checkbox = event.target;
+        const instructionId = checkbox.getAttribute('data-instruction-id');
+        const stepId = checkbox.getAttribute('data-step-id');
+        const isChecked = checkbox.checked;
+        
+        if (!instructionId) {
+            console.error('No instruction ID found for checkbox');
+            return;
+        }
+        
+        // Disable checkbox during update
+        checkbox.disabled = true;
+        
+        try {
+            if (isChecked) {
+                // Call API to mark instruction as complete
+                await this.completeInstruction(stepId, instructionId);
+                
+                // Add completed styling to the row
+                const row = checkbox.closest('.instruction-row');
+                if (row) {
+                    row.classList.add('completed');
+                }
+                
+                this.showNotification('Instruction marked as complete', 'success');
+            } else {
+                // For now, we don't allow unchecking completed instructions
+                checkbox.checked = true;
+                this.showNotification('Completed instructions cannot be undone', 'warning');
+            }
+        } catch (error) {
+            // Revert checkbox state on error
+            checkbox.checked = !isChecked;
+            this.showNotification('Failed to update instruction status', 'error');
+            console.error('Error updating instruction:', error);
+        } finally {
+            // Re-enable checkbox
+            checkbox.disabled = false;
+        }
+    }
+
+    /**
+     * Complete an instruction via API
+     */
+    async completeInstruction(stepId, instructionId) {
+        const response = await fetch(`/rest/scriptrunner/latest/custom/steps/${stepId}/instructions/${instructionId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: 1 // TODO: Get actual user ID from session/context
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to complete instruction');
+        }
+        
+        const result = await response.json();
+        
+        // Log email notification info
+        if (result.emailsSent) {
+            console.log(`Email notifications sent: ${result.emailsSent}`);
+        }
+        
+        return result;
+    }
+
     renderStepDetails(stepData) {
         const stepDetailsContent = document.querySelector('.step-details-content');
         if (!stepDetailsContent) return;
+        
+        // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+        setTimeout(() => {
+            try {
+                this.doRenderStepDetails(stepData, stepDetailsContent);
+            } catch (error) {
+                console.warn('Failed to render step details:', error);
+            }
+        }, 10);
+    }
+    
+    doRenderStepDetails(stepData, stepDetailsContent) {
         
         const summary = stepData.stepSummary || {};
         const instructions = stepData.instructions || [];
         const impactedTeams = stepData.impactedTeams || [];
         
-        // Helper function to get status display
+        // Helper function to get status display - use the main getStatusDisplay method
         const getStatusDisplay = (status) => {
-            if (!status) return '<span class="status-pending">Pending</span>';
-            const statusLower = status.toLowerCase();
-            if (statusLower.includes('pending')) return '<span class="status-pending">Pending</span>';
-            if (statusLower.includes('progress')) return '<span class="status-progress">In Progress</span>';
-            if (statusLower.includes('completed')) return '<span class="status-completed">Completed</span>';
-            if (statusLower.includes('failed')) return '<span class="status-failed">Failed</span>';
-            if (statusLower.includes('blocked')) return '<span class="status-blocked">Blocked</span>';
-            if (statusLower.includes('cancelled')) return '<span class="status-cancelled">Cancelled</span>';
-            if (statusLower.includes('todo') || statusLower.includes('not_started')) return '<span class="status-todo">Todo</span>';
-            return `<span class="status-pending">${status}</span>`;
+            return this.getStatusDisplay(status);
         };
         
         let html = `
@@ -525,7 +968,11 @@ class IterationView {
                     </div>
                     <div class="metadata-item">
                         <span class="label">📊 Status:</span>
-                        <span class="value">${getStatusDisplay(summary.Status)}</span>
+                        <span class="value">
+                            <select id="step-status-dropdown" class="status-dropdown pilot-only" data-step-id="${summary.ID || stepData.stepCode}" style="padding: 2px 8px; border-radius: 3px;">
+                                <option value="">Loading...</option>
+                            </select>
+                        </span>
                     </div>
                 </div>
                 
@@ -553,13 +1000,20 @@ class IterationView {
             
             instructions.forEach((instruction, index) => {
                 html += `
-                    <div class="instruction-row">
+                    <div class="instruction-row ${instruction.IsCompleted ? 'completed' : ''}">
                         <div class="col-num">${instruction.Order || (index + 1)}</div>
                         <div class="col-instruction">${instruction.Description || instruction.Instruction || 'No description'}</div>
                         <div class="col-team">${instruction.Team || summary.AssignedTeam || 'TBD'}</div>
                         <div class="col-control">${instruction.Control || instruction.ControlCode || `CTRL-${String(index + 1).padStart(2, '0')}`}</div>
                         <div class="col-duration">${instruction.Duration || instruction.EstimatedDuration || '5 min'}</div>
-                        <div class="col-complete"><input type="checkbox" ${instruction.IsCompleted ? 'checked' : ''}></div>
+                        <div class="col-complete">
+                            <input type="checkbox" 
+                                class="instruction-checkbox pilot-only" 
+                                data-instruction-id="${instruction.ID || instruction.ini_id || instruction.Order || index + 1}"
+                                data-step-id="${summary.ID || stepData.stepCode || ''}"
+                                data-instruction-index="${index}"
+                                ${instruction.IsCompleted ? 'checked' : ''}>
+                        </div>
                     </div>
                 `;
             });
@@ -570,55 +1024,72 @@ class IterationView {
             `;
         }
         
-        // Add comment section with mock data
+        // Store the step instance ID for comment operations
+        if (summary.sti_id) {
+            this.currentStepInstanceId = summary.sti_id;
+        }
+        
+        // Add comment section with real data
+        const comments = stepData.comments || [];
         html += `
             <div class="comments-section">
-                <h4>💬 COMMENTS (3)</h4>
-                <div class="comments-list">
-                    <div class="comment">
+                <h4>💬 COMMENTS (${comments.length})</h4>
+                <div class="comments-list" id="comments-list">
+        `;
+        
+        if (comments.length === 0) {
+            html += '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+        } else {
+            comments.forEach(comment => {
+                const timeAgo = this.formatTimeAgo(comment.createdAt);
+                const teamName = comment.author.team ? ` (${comment.author.team})` : '';
+                html += `
+                    <div class="comment" data-comment-id="${comment.id}">
                         <div class="comment-header">
-                            <span class="comment-author">John Smith (DB-Team)</span>
-                            <span class="comment-time">2 hours ago</span>
+                            <span class="comment-author">${comment.author.name}${teamName}</span>
+                            <span class="comment-time">${timeAgo}</span>
+                            <div class="comment-actions">
+                                <button class="btn-edit-comment pilot-only" data-comment-id="${comment.id}" title="Edit">✏️</button>
+                                <button class="btn-delete-comment admin-only" data-comment-id="${comment.id}" title="Delete">🗑️</button>
+                            </div>
                         </div>
-                        <div class="comment-body">
-                            "Backup server space verified - 2TB available"
-                        </div>
+                        <div class="comment-body" id="comment-body-${comment.id}">${this.escapeHtml(comment.body)}</div>
                     </div>
-                    
-                    <div class="comment">
-                        <div class="comment-header">
-                            <span class="comment-author">Sarah Johnson (NET-Team)</span>
-                            <span class="comment-time">1 hour ago</span>
-                        </div>
-                        <div class="comment-body">
-                            "Network connectivity to backup server confirmed"
-                        </div>
-                    </div>
-                    
-                    <div class="comment">
-                        <div class="comment-header">
-                            <span class="comment-author">Mike Chen (DB-Team)</span>
-                            <span class="comment-time">30 minutes ago</span>
-                        </div>
-                        <div class="comment-body">
-                            "Ready to begin backup process"
-                        </div>
-                    </div>
+                `;
+            });
+        }
+        
+        html += `
                 </div>
                 
-                <div class="comment-form">
-                    <textarea placeholder="Add a comment..." rows="3"></textarea>
-                    <button type="button" class="btn btn-primary">Add Comment</button>
+                <div class="comment-form pilot-only">
+                    <textarea id="new-comment-text" placeholder="Add a comment..." rows="3"></textarea>
+                    <button type="button" class="btn btn-primary" id="add-comment-btn">Add Comment</button>
                 </div>
             </div>
             
-            <div class="step-actions">
-                <button type="button" class="btn btn-secondary">Mark Instructions Complete</button>
-                <button type="button" class="btn btn-primary">Update Status</button>
+            <div class="step-actions pilot-only">
+                <button type="button" class="btn btn-secondary" id="mark-all-complete">Mark All Instructions Complete</button>
+                <button type="button" class="btn btn-primary" id="update-status-btn">Update Status</button>
             </div>
         `;
         
         stepDetailsContent.innerHTML = html;
+        
+        // Apply role-based controls to the newly rendered content
+        this.applyRoleBasedControls();
+        
+        // Populate the status dropdown with available options
+        this.populateStatusDropdown(summary.Status);
+        
+        // Add event listeners for instruction checkboxes
+        this.attachInstructionListeners();
+        
+        // Add event listeners for action buttons
+        this.attachActionButtonListeners();
+        
+        // Add event listeners for comment functionality
+        this.attachCommentListeners();
     }
 
     applyFilters() {
@@ -677,6 +1148,9 @@ class IterationView {
                 return;
             }
 
+            // Update team filter based on actual steps data
+            this.updateTeamFilterFromSteps(sequences);
+            
             this.renderRunsheet(sequences);
             this.calculateAndUpdateStepCounts(sequences);
             
@@ -742,7 +1216,7 @@ class IterationView {
                             <td class="col-title">${step.name}</td>
                             <td class="col-team">${step.ownerTeamName}</td>
                             <td class="col-labels">${labelsHtml}</td>
-                            <td class="col-status ${statusClass}">${step.status}</td>
+                            <td class="col-status">${this.getStatusDisplay(step.status)}</td>
                             <td class="col-duration">${step.durationMinutes ? step.durationMinutes + ' min' : '-'}</td>
                         </tr>
                     `;
@@ -758,13 +1232,20 @@ class IterationView {
             html += `</div>`;
         });
         
-        runsheetContent.innerHTML = html;
-        
-        // Bind click events to step rows
-        this.bindStepRowEvents();
-        
-        // Bind fold/unfold events to sequence and phase headers
-        this.bindFoldingEvents();
+        // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+        setTimeout(() => {
+            try {
+                runsheetContent.innerHTML = html;
+                
+                // Bind click events to step rows
+                this.bindStepRowEvents();
+                
+                // Bind fold/unfold events to sequence and phase headers
+                this.bindFoldingEvents();
+            } catch (error) {
+                console.warn('Failed to render runsheet:', error);
+            }
+        }, 10);
     }
 
     /**
@@ -846,14 +1327,72 @@ class IterationView {
     getStatusClass(status) {
         if (!status) return 'status-pending';
         
-        const statusLower = status.toLowerCase();
-        if (statusLower.includes('completed')) return 'status-completed';
-        if (statusLower.includes('progress')) return 'status-progress';
-        if (statusLower.includes('failed') || statusLower.includes('error')) return 'status-failed';
-        if (statusLower.includes('blocked')) return 'status-blocked';
-        if (statusLower.includes('cancelled')) return 'status-cancelled';
-        if (statusLower.includes('todo') || statusLower.includes('not_started')) return 'status-todo';
-        return 'status-pending';
+        // Handle exact status matches from status_sts table
+        switch (status.toUpperCase()) {
+            case 'COMPLETED':
+                return 'status-completed';
+            case 'IN_PROGRESS':
+                return 'status-progress';
+            case 'FAILED':
+                return 'status-failed';
+            case 'BLOCKED':
+                return 'status-blocked';
+            case 'CANCELLED':
+                return 'status-cancelled';
+            case 'TODO':
+                return 'status-todo';
+            case 'PENDING':
+                return 'status-pending';
+            default:
+                // Fallback to old logic for backward compatibility
+                const statusLower = status.toLowerCase();
+                if (statusLower.includes('completed')) return 'status-completed';
+                if (statusLower.includes('progress')) return 'status-progress';
+                if (statusLower.includes('failed') || statusLower.includes('error')) return 'status-failed';
+                if (statusLower.includes('blocked')) return 'status-blocked';
+                if (statusLower.includes('cancelled')) return 'status-cancelled';
+                if (statusLower.includes('todo') || statusLower.includes('not_started')) return 'status-todo';
+                return 'status-pending';
+        }
+    }
+
+    /**
+     * Get status display with dynamic color from database
+     */
+    getStatusDisplay(status) {
+        if (!status) return this.createStatusSpan('PENDING', 'PENDING');
+        
+        const statusUpper = status.toUpperCase();
+        const displayText = statusUpper.replace(/_/g, ' ');
+        
+        return this.createStatusSpan(statusUpper, displayText);
+    }
+
+    /**
+     * Create a status span with dynamic color
+     */
+    createStatusSpan(statusKey, displayText) {
+        const color = this.statusColors?.get(statusKey) || '#DDDDDD';
+        const textColor = this.getTextColorForBackground(color);
+        
+        return `<span class="status-display" style="background-color: ${color}; color: ${textColor}; padding: 2px 6px; border-radius: 3px; font-weight: 600; font-size: 10px; letter-spacing: 0.5px;">${displayText}</span>`;
+    }
+
+    /**
+     * Get appropriate text color (black or white) based on background color
+     */
+    getTextColorForBackground(bgColor) {
+        // Convert hex to RGB
+        const hex = bgColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calculate luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Return black for light backgrounds, white for dark backgrounds
+        return luminance > 0.5 ? '#000000' : '#FFFFFF';
     }
 
     /**
@@ -887,29 +1426,60 @@ class IterationView {
             sequence.phases.forEach(phase => {
                 phase.steps.forEach(step => {
                     total++;
-                    const statusClass = this.getStatusClass(step.status);
                     
-                    switch (statusClass) {
-                        case 'status-completed':
+                    // Use exact status matching from status_sts table
+                    if (!step.status) {
+                        pending++;
+                        return;
+                    }
+                    
+                    switch (step.status.toUpperCase()) {
+                        case 'COMPLETED':
                             completed++;
                             break;
-                        case 'status-progress':
+                        case 'IN_PROGRESS':
                             progress++;
                             break;
-                        case 'status-failed':
+                        case 'FAILED':
                             failed++;
                             break;
-                        case 'status-blocked':
+                        case 'BLOCKED':
                             blocked++;
                             break;
-                        case 'status-cancelled':
+                        case 'CANCELLED':
                             cancelled++;
                             break;
-                        case 'status-todo':
+                        case 'TODO':
                             todo++;
                             break;
-                        default:
+                        case 'PENDING':
                             pending++;
+                            break;
+                        default:
+                            // Fallback to old logic for backward compatibility
+                            const statusClass = this.getStatusClass(step.status);
+                            switch (statusClass) {
+                                case 'status-completed':
+                                    completed++;
+                                    break;
+                                case 'status-progress':
+                                    progress++;
+                                    break;
+                                case 'status-failed':
+                                    failed++;
+                                    break;
+                                case 'status-blocked':
+                                    blocked++;
+                                    break;
+                                case 'status-cancelled':
+                                    cancelled++;
+                                    break;
+                                case 'status-todo':
+                                    todo++;
+                                    break;
+                                default:
+                                    pending++;
+                            }
                     }
                 });
             });
@@ -933,10 +1503,97 @@ class IterationView {
             'cancelled-steps': cancelled
         };
         
-        Object.entries(elements).forEach(([id, count]) => {
-            const element = document.getElementById(id);
+        // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+        setTimeout(() => {
+            Object.entries(elements).forEach(([id, count]) => {
+                try {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = count;
+                    }
+                } catch (error) {
+                    console.warn(`Failed to update step count for ${id}:`, error);
+                }
+            });
+        }, 10);
+    }
+
+    /**
+     * Update team filter dropdown based on actual teams that own steps
+     * @param {Array} sequences - Array of sequences with phases and steps
+     */
+    updateTeamFilterFromSteps(sequences) {
+        const teamFilter = document.getElementById('team-filter');
+        if (!teamFilter) return;
+
+        // Extract unique teams from steps
+        const teamsMap = new Map();
+        
+        sequences.forEach(sequence => {
+            sequence.phases.forEach(phase => {
+                phase.steps.forEach(step => {
+                    if (step.ownerTeamId && step.ownerTeamName) {
+                        teamsMap.set(step.ownerTeamId, step.ownerTeamName);
+                    }
+                });
+            });
+        });
+
+        // Convert to array and sort
+        const teams = Array.from(teamsMap.entries())
+            .map(([id, name]) => ({ id, name }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        // Store current selection
+        const currentSelection = teamFilter.value;
+
+        // Clear and populate dropdown
+        teamFilter.innerHTML = '<option value="">All Teams</option>';
+        
+        teams.forEach(team => {
+            const option = document.createElement('option');
+            option.value = team.id;
+            option.textContent = team.name;
+            teamFilter.appendChild(option);
+        });
+
+        // Restore selection if it still exists
+        if (currentSelection && teams.find(t => t.id == currentSelection)) {
+            teamFilter.value = currentSelection;
+        } else if (currentSelection) {
+            // If the previously selected team is no longer available, reset the filter
+            teamFilter.value = '';
+            this.filters.team = '';
+        }
+
+        console.log(`updateTeamFilterFromSteps: Updated team filter with ${teams.length} teams`);
+    }
+
+    /**
+     * Apply dynamic colors to step count elements
+     */
+    applyCounterColors() {
+        if (!this.statusColors) return;
+        
+        const counterMappings = [
+            { elementId: 'pending-steps', statusKey: 'PENDING' },
+            { elementId: 'todo-steps', statusKey: 'TODO' },
+            { elementId: 'progress-steps', statusKey: 'IN_PROGRESS' },
+            { elementId: 'completed-steps', statusKey: 'COMPLETED' },
+            { elementId: 'failed-steps', statusKey: 'FAILED' },
+            { elementId: 'blocked-steps', statusKey: 'BLOCKED' },
+            { elementId: 'cancelled-steps', statusKey: 'CANCELLED' }
+        ];
+        
+        counterMappings.forEach(({ elementId, statusKey }) => {
+            const element = document.getElementById(elementId);
             if (element) {
-                element.textContent = count;
+                const color = this.statusColors.get(statusKey) || '#DDDDDD';
+                const textColor = this.getTextColorForBackground(color);
+                
+                element.style.backgroundColor = color;
+                element.style.color = textColor;
+                element.style.border = `1px solid ${color}`;
             }
         });
     }
@@ -986,6 +1643,255 @@ class IterationView {
         this.loadSteps();
     }
 
+    /**
+     * Format time ago from timestamp
+     */
+    formatTimeAgo(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const seconds = Math.floor((now - date) / 1000);
+        
+        const intervals = {
+            year: 31536000,
+            month: 2592000,
+            week: 604800,
+            day: 86400,
+            hour: 3600,
+            minute: 60
+        };
+        
+        for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+            const interval = Math.floor(seconds / secondsInUnit);
+            if (interval >= 1) {
+                return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
+            }
+        }
+        
+        return 'just now';
+    }
+    
+    /**
+     * Escape HTML to prevent XSS
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    /**
+     * Attach event listeners for comment functionality
+     */
+    attachCommentListeners() {
+        // Add comment button
+        const addCommentBtn = document.getElementById('add-comment-btn');
+        if (addCommentBtn) {
+            addCommentBtn.addEventListener('click', () => this.handleAddComment());
+        }
+        
+        // Edit comment buttons
+        const editButtons = document.querySelectorAll('.btn-edit-comment');
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleEditComment(e));
+        });
+        
+        // Delete comment buttons
+        const deleteButtons = document.querySelectorAll('.btn-delete-comment');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleDeleteComment(e));
+        });
+    }
+    
+    /**
+     * Handle adding a new comment
+     */
+    async handleAddComment() {
+        const textarea = document.getElementById('new-comment-text');
+        const addBtn = document.getElementById('add-comment-btn');
+        
+        if (!textarea || !addBtn) return;
+        
+        const commentText = textarea.value.trim();
+        if (!commentText) {
+            this.showNotification('Please enter a comment', 'warning');
+            return;
+        }
+        
+        // Get the current step instance ID
+        const stepSummary = document.querySelector('.step-info');
+        const stiId = stepSummary?.dataset?.stiId || this.currentStepInstanceId;
+        
+        if (!stiId) {
+            this.showNotification('Unable to determine step instance', 'error');
+            return;
+        }
+        
+        try {
+            // Disable the button during submission
+            addBtn.disabled = true;
+            textarea.disabled = true;
+            
+            const response = await fetch(`/rest/scriptrunner/latest/custom/steps/${stiId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    body: commentText,
+                    userId: 1 // TODO: Get actual user ID
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to add comment: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            // Clear the textarea
+            textarea.value = '';
+            
+            // Refresh the step details to show the new comment
+            if (this.selectedStep) {
+                this.loadStepDetails(this.selectedStep);
+            }
+            
+            this.showNotification('Comment added successfully', 'success');
+            
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            this.showNotification('Failed to add comment', 'error');
+        } finally {
+            // Re-enable controls
+            addBtn.disabled = false;
+            textarea.disabled = false;
+        }
+    }
+    
+    /**
+     * Handle editing a comment
+     */
+    async handleEditComment(event) {
+        const commentId = event.target.dataset.commentId;
+        const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
+        const bodyDiv = document.getElementById(`comment-body-${commentId}`);
+        
+        if (!bodyDiv) return;
+        
+        const currentText = bodyDiv.textContent;
+        
+        // Replace body with textarea
+        bodyDiv.innerHTML = `
+            <textarea id="edit-comment-${commentId}" rows="3" style="width: 100%;">${currentText}</textarea>
+            <div style="margin-top: 8px;">
+                <button class="btn btn-primary btn-sm" onclick="iterationView.saveCommentEdit('${commentId}')">Save</button>
+                <button class="btn btn-secondary btn-sm" onclick="iterationView.cancelCommentEdit('${commentId}', '${this.escapeHtml(currentText)}')">Cancel</button>
+            </div>
+        `;
+        
+        // Focus the textarea
+        const textarea = document.getElementById(`edit-comment-${commentId}`);
+        if (textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }
+    }
+    
+    /**
+     * Save comment edit
+     */
+    async saveCommentEdit(commentId) {
+        const textarea = document.getElementById(`edit-comment-${commentId}`);
+        if (!textarea) return;
+        
+        const newText = textarea.value.trim();
+        if (!newText) {
+            this.showNotification('Comment cannot be empty', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/rest/scriptrunner/latest/custom/comments/${commentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    body: newText,
+                    userId: 1 // TODO: Get actual user ID
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to update comment: ${response.status}`);
+            }
+            
+            // Refresh the step details
+            if (this.selectedStep) {
+                this.loadStepDetails(this.selectedStep);
+            }
+            
+            this.showNotification('Comment updated successfully', 'success');
+            
+        } catch (error) {
+            console.error('Error updating comment:', error);
+            this.showNotification('Failed to update comment', 'error');
+        }
+    }
+    
+    /**
+     * Cancel comment edit
+     */
+    cancelCommentEdit(commentId, originalText) {
+        const bodyDiv = document.getElementById(`comment-body-${commentId}`);
+        if (bodyDiv) {
+            bodyDiv.innerHTML = originalText;
+        }
+    }
+    
+    /**
+     * Handle deleting a comment
+     */
+    async handleDeleteComment(event) {
+        const commentId = event.target.dataset.commentId;
+        
+        if (!confirm('Are you sure you want to delete this comment?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/rest/scriptrunner/latest/custom/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to delete comment: ${response.status}`);
+            }
+            
+            // Remove the comment from DOM
+            const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
+            if (commentDiv) {
+                commentDiv.remove();
+            }
+            
+            // Update the comment count
+            const commentsHeader = document.querySelector('.comments-section h4');
+            if (commentsHeader) {
+                const currentCount = parseInt(commentsHeader.textContent.match(/\d+/)[0]) || 0;
+                commentsHeader.textContent = `💬 COMMENTS (${Math.max(0, currentCount - 1)})`;
+            }
+            
+            this.showNotification('Comment deleted successfully', 'success');
+            
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            this.showNotification('Failed to delete comment', 'error');
+        }
+    }
+    
     showNotification(message, type = 'info') {
         // Create notification element
         const notification = document.createElement('div');
