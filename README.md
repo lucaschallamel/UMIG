@@ -18,6 +18,7 @@ UMIG addresses the critical need for structured, auditable, and collaborative ma
 - **Hierarchical Implementation Plans**: Structured organization of migrations → iterations → plans → sequences → phases → steps → instructions
 - **Real-time Collaboration**: Multi-user environment with role-based access and team management
 - **Status Tracking**: Complete audit trail of execution progress with commenting system
+- **Email Notifications**: Automated notifications for step status changes with template management
 - **Interactive Runsheets**: Dynamic, filterable views for live cutover event management
 - **Responsive Design**: Mobile-friendly interface for field operations
 - **Pure ScriptRunner Integration**: Native Confluence plugin architecture
@@ -233,10 +234,11 @@ When the development environment is running:
 - **PostgreSQL**: localhost:5432
 - **MailHog (Email Testing)**: [http://localhost:8025](http://localhost:8025)
 
-### Database Configuration
+### Initial Configuration
 
-After starting Confluence for the first time, configure the ScriptRunner database connection:
+After starting Confluence for the first time:
 
+#### 1. Database Connection (ScriptRunner)
 1. Navigate to **Confluence Administration** → **ScriptRunner** → **Resources**
 2. Add a new **Database Connection Pool**:
    - **Pool Name**: `umig_db_pool`
@@ -244,6 +246,15 @@ After starting Confluence for the first time, configure the ScriptRunner databas
    - **JDBC URL**: `jdbc:postgresql://umig_postgres:5432/umig_app_db`
    - **User**: `umig_app_user`
    - **Password**: `123456`
+
+#### 2. Mail Server (Email Notifications)
+1. Navigate to **⚙️ Settings** → **General Configuration** → **Mail Servers**
+2. Add SMTP Mail Server:
+   - **Name**: `MailHog Local Development`
+   - **Hostname**: `umig_mailhog` (container name, not localhost)
+   - **Port**: `1025`
+   - **From Address**: `umig-system@localhost`
+3. Send a test email and verify in MailHog at [http://localhost:8025](http://localhost:8025)
 
 ## Development Commands
 
@@ -376,6 +387,13 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (July 2025)
+- **Email Notification System**: Production-ready automated notifications with template management (July 16, 2025)
+  - Complete integration with Confluence native mail API and MailHog for local testing
+  - Multi-team notification logic (owner + impacted teams + cutover teams)
+  - Template management with HTML/text content and GString variable processing
+  - Comprehensive audit logging for all email events in JSONB format
+  - Automatic notifications for step opened, instruction completed, and status changes
+  - Working end-to-end testing with ScriptRunner Console integration
 - **Environments Management**: Complete admin GUI entity with CRUD operations and association management
   - Full repository pattern implementation with relationship counts
   - REST API endpoints with hierarchical data access

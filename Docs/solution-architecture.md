@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-07-15  
+**Version:** 2025-07-16  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 26 archived ADRs. For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Applications label management, Teams association management, Environment search functionality, Modal consistency patterns, State management fixes
+**Source ADRs:** This document consolidates 26 archived ADRs + ADR-032. For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** Email notification system implementation, Confluence native mail API integration, template management, audit logging
 
 ## Consolidated ADR Reference
 
@@ -48,6 +48,9 @@ This document consolidates the following architectural decisions:
 ### Testing & Quality Assurance
 - [ADR-019](../adr/archive/ADR-019-Integration-Testing-Framework.md) - Integration Testing Framework
 - [ADR-026](../adr/archive/ADR-026-Specific-Mocks-In-Tests.md) - Specific Mocks in Tests
+
+### Communication & Notifications
+- [ADR-032](../adr/ADR-032-email-notification-architecture.md) - Email Notification Architecture
 
 ### Current Active ADRs
 - [ADR-027](ADR-027-n-tiers-model.md) - N-tiers Model Architecture
@@ -623,6 +626,100 @@ try {
         .entity(new JsonBuilder([error: "Internal server error: ${e.message}"]).toString())
         .build()
 }
+```
+
+## 10. Email Notification System ([ADR-032])
+
+### 10.1. Architecture Overview
+
+The email notification system provides automated notifications for step status changes during migration events using Confluence's native mail API.
+
+#### System Components
+- **EmailService**: Core notification service with template processing
+- **EmailTemplateRepository**: Template management with CRUD operations  
+- **AuditLogRepository**: Comprehensive audit logging for all email events
+- **EmailTemplatesApi**: REST API for template management
+
+#### Integration Points
+- StepRepository methods trigger email notifications for status changes
+- Multi-team notification (owner + impacted teams)
+- MailHog integration for local development testing
+
+### 10.2. Email Templates
+
+#### Template Storage
+Email templates are stored in `email_templates_emt` table with:
+- HTML content with GString variable substitution
+- Active/inactive status management
+- Template types: STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED
+
+#### Template Processing Pattern
+```groovy
+// Template variable preparation
+def variables = [
+    stepInstance: stepInstance,
+    stepUrl: "${baseUrl}/display/SPACE/IterationView?stepId=${stepInstance.sti_id}",
+    changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+    changedBy: getUsernameById(sql, userId)
+]
+
+// Process template with SimpleTemplateEngine
+def processedSubject = processTemplate(template.emt_subject, variables)
+def processedBody = processTemplate(template.emt_body_html, variables)
+```
+
+### 10.3. Notification Triggers
+
+#### Step Status Changes
+- **STEP_OPENED**: Notifies owner + impacted teams when PILOT opens a step
+- **STEP_STATUS_CHANGED**: Notifies owner + impacted teams + cutover team for status updates
+- **INSTRUCTION_COMPLETED**: Notifies owner + impacted teams when instruction is completed
+
+#### Recipient Logic
+```groovy
+// Multi-team notification pattern
+def allTeams = new ArrayList(teams)
+if (cutoverTeam) {
+    allTeams.add(cutoverTeam)
+}
+def recipients = extractTeamEmails(allTeams)
+```
+
+### 10.4. Audit Logging
+
+#### Comprehensive Email Audit Trail
+All email events are logged to `audit_log_aud` table:
+- **EMAIL_SENT**: Successful email delivery with full details
+- **EMAIL_FAILED**: Failed email attempts with error messages
+- **STATUS_CHANGED**: Business event logging separate from email notifications
+
+#### JSONB Audit Details
+```groovy
+def details = [
+    recipients: recipients,
+    subject: subject,
+    template_id: templateId?.toString(),
+    status: 'SENT',
+    notification_type: 'STEP_STATUS_CHANGED',
+    step_name: stepInstance.sti_name,
+    old_status: oldStatus,
+    new_status: newStatus
+]
+```
+
+### 10.5. Development Testing
+
+#### MailHog Integration
+- Local SMTP server (localhost:1025) for email testing
+- Web interface (localhost:8025) for email verification
+- Graceful fallback when MailHog is not available
+
+#### Testing Pattern
+```groovy
+// ScriptRunner Console testing
+def stepRepo = new StepRepository()
+def result = stepRepo.openStepInstanceWithNotification(stepId, userId)
+// Check result.success and result.emailsSent
 ```
 
 ---

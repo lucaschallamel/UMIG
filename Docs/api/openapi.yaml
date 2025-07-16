@@ -25,6 +25,8 @@ tags:
     description: Operations about labels and hierarchical filtering.
   - name: Users
     description: Operations about users.
+  - name: EmailTemplates
+    description: Operations about email templates for notifications.
   - name: WebApp
     description: Serves static web assets.
 
@@ -1649,6 +1651,153 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /emailTemplates:
+    get:
+      tags:
+        - EmailTemplates
+      summary: Get all email templates
+      description: |
+        Retrieves a list of all email templates used for notifications.
+        Can be filtered to show only active templates.
+      operationId: getAllEmailTemplates
+      parameters:
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Filter to show only active templates
+      responses:
+        '200':
+          description: List of email templates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmailTemplate'
+                  total:
+                    type: integer
+                    description: Total number of templates
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - EmailTemplates
+      summary: Create a new email template
+      description: Creates a new email template for notifications.
+      operationId: createEmailTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailTemplateCreate'
+      responses:
+        '201':
+          description: Email template created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /emailTemplates/{id}:
+    get:
+      tags:
+        - EmailTemplates
+      summary: Get an email template by ID
+      description: Retrieves a specific email template by its unique ID.
+      operationId: getEmailTemplateById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Email template ID
+      responses:
+        '200':
+          description: Email template details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - EmailTemplates
+      summary: Update an email template
+      description: Updates an existing email template. Supports partial updates.
+      operationId: updateEmailTemplate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Email template ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailTemplateUpdate'
+      responses:
+        '200':
+          description: Email template updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailTemplate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - EmailTemplates
+      summary: Delete an email template
+      description: Deletes an email template by its unique ID.
+      operationId: deleteEmailTemplate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Email template ID
+      responses:
+        '204':
+          description: Email template deleted successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /webapp/{path+}:
     get:
       tags:
@@ -2252,6 +2401,100 @@ components:
         message:
           type: string
           description: Success message
+
+    # --- Email Template Schemas ---
+    EmailTemplate:
+      type: object
+      properties:
+        emt_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the email template
+        emt_type:
+          type: string
+          enum: [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
+          description: Type of email template
+        emt_name:
+          type: string
+          description: Name of the email template
+        emt_subject:
+          type: string
+          description: Email subject line template
+        emt_body_html:
+          type: string
+          description: HTML email body template
+        emt_body_text:
+          type: string
+          description: Plain text email body template
+        emt_is_active:
+          type: boolean
+          description: Whether the template is active
+        emt_created_date:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        emt_updated_date:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        emt_created_by:
+          type: string
+          description: Username who created the template
+        emt_updated_by:
+          type: string
+          description: Username who last updated the template
+
+    EmailTemplateCreate:
+      type: object
+      required:
+        - emt_type
+        - emt_name
+        - emt_subject
+        - emt_body_html
+      properties:
+        emt_type:
+          type: string
+          enum: [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
+          description: Type of email template
+        emt_name:
+          type: string
+          description: Name of the email template
+        emt_subject:
+          type: string
+          description: Email subject line template
+        emt_body_html:
+          type: string
+          description: HTML email body template
+        emt_body_text:
+          type: string
+          description: Plain text email body template
+        emt_is_active:
+          type: boolean
+          default: true
+          description: Whether the template is active
+
+    EmailTemplateUpdate:
+      type: object
+      properties:
+        emt_type:
+          type: string
+          enum: [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
+          description: Type of email template
+        emt_name:
+          type: string
+          description: Name of the email template
+        emt_subject:
+          type: string
+          description: Email subject line template
+        emt_body_html:
+          type: string
+          description: HTML email body template
+        emt_body_text:
+          type: string
+          description: Plain text email body template
+        emt_is_active:
+          type: boolean
+          description: Whether the template is active
 
     # --- Generic Schemas ---
     Error:

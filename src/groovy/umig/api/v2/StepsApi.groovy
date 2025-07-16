@@ -214,3 +214,185 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
         .build()
 }
+
+/**
+ * Handles PUT requests for updating step instance status.
+ * - PUT /steps/{stepInstanceId}/status -> updates step status and sends notifications
+ * 
+ * Request body should contain:
+ * {
+ *   "status": "OPEN|IN_PROGRESS|COMPLETED|BLOCKED|ON_HOLD",
+ *   "userId": 123 (optional, for audit logging)
+ * }
+ */
+steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // PUT /steps/{stepInstanceId}/status
+    if (pathParts.size() == 2 && pathParts[1] == 'status') {
+        try {
+            def stepInstanceId = pathParts[0]
+            def stepInstanceUuid = UUID.fromString(stepInstanceId)
+            
+            // Parse request body
+            def requestData = new JsonBuilder()
+            if (body) {
+                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            }
+            
+            def newStatus = requestData.status as String
+            def userId = requestData.userId as Integer
+            
+            if (!newStatus) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Missing required field: status"]).toString())
+                    .build()
+            }
+            
+            // Validate status value
+            def validStatuses = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'ON_HOLD']
+            if (!validStatuses.contains(newStatus.toUpperCase())) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid status. Must be one of: ${validStatuses.join(', ')}"]).toString())
+                    .build()
+            }
+            
+            // Update step status and send notifications
+            def result = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, newStatus, userId)
+            
+            if (result.success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Step status updated successfully",
+                    stepInstanceId: stepInstanceId,
+                    newStatus: newStatus,
+                    emailsSent: result.emailsSent
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: result.error ?: "Failed to update step status"]).toString())
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to update step status: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
+    // Invalid path
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+/**
+ * Handles POST requests for step-related actions.
+ * - POST /steps/{stepInstanceId}/open -> marks step as opened by PILOT and sends notifications
+ * - POST /steps/{stepInstanceId}/instructions/{instructionId}/complete -> marks instruction as completed
+ * 
+ * Request body should contain:
+ * {
+ *   "userId": 123 (optional, for audit logging)
+ * }
+ */
+steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // POST /steps/{stepInstanceId}/open
+    if (pathParts.size() == 2 && pathParts[1] == 'open') {
+        try {
+            def stepInstanceId = pathParts[0]
+            def stepInstanceUuid = UUID.fromString(stepInstanceId)
+            
+            // Parse request body
+            def requestData = [:]
+            if (body) {
+                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            }
+            
+            def userId = requestData.userId as Integer
+            
+            // Mark step as opened and send notifications
+            def result = stepRepository.openStepInstanceWithNotification(stepInstanceUuid, userId)
+            
+            if (result.success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Step opened successfully",
+                    stepInstanceId: stepInstanceId,
+                    emailsSent: result.emailsSent
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: result.error ?: "Failed to open step"]).toString())
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to open step: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
+    // POST /steps/{stepInstanceId}/instructions/{instructionId}/complete
+    if (pathParts.size() == 4 && pathParts[1] == 'instructions' && pathParts[3] == 'complete') {
+        try {
+            def stepInstanceId = pathParts[0]
+            def instructionId = pathParts[2]
+            def stepInstanceUuid = UUID.fromString(stepInstanceId)
+            def instructionUuid = UUID.fromString(instructionId)
+            
+            // Parse request body
+            def requestData = [:]
+            if (body) {
+                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            }
+            
+            def userId = requestData.userId as Integer
+            
+            // Complete instruction and send notifications
+            def result = stepRepository.completeInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
+            
+            if (result.success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Instruction completed successfully",
+                    instructionId: instructionId,
+                    stepInstanceId: stepInstanceId,
+                    emailsSent: result.emailsSent
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: result.error ?: "Failed to complete instruction"]).toString())
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to complete instruction: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
+    // Invalid path
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
