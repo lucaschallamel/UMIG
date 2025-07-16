@@ -15,20 +15,22 @@
     *   Standardised database naming conventions (ADR-014) have been implemented.
     *   Comprehensive synthetic data generation with 3-digit prefixed generators (001-101) covering all entities.
 *   **Phase 2: Backend Development (ScriptRunner)**
-    *   **Complete API Implementation:** Core REST endpoints for user, team, environment, and label management
+    *   **Complete API Implementation:** Core REST endpoints for user, team, environment, application, and label management
     *   **Hierarchical Filtering:** Full implementation of hierarchical filtering (ADR-030) across all APIs
     *   **Type Safety:** Robust Groovy type safety and filtering patterns (ADR-031) preventing runtime errors
     *   **Error Handling:** Comprehensive error handling with SQL state mapping and detailed error messages
     *   **Testing Framework:** Formal integration testing framework (ADR-019) with specific test mocks (ADR-026)
     *   **Data Model:** Full implementation of canonical vs instance pattern with attribute instantiation (ADR-029)
     *   **Iteration View API:** Complete implementation with labels integration and step management
+    *   **Labels API:** Full CRUD operations with association management and migration-based filtering
 *   **Phase 3: Frontend Development (Confluence Macro)**
     *   **Iteration View:** Complete implementation with hierarchical filtering, labels display, and dynamic updates
-    *   **Admin GUI:** Comprehensive SPA for managing users, teams, environments, and applications
+    *   **Admin GUI:** Comprehensive SPA for managing users, teams, environments, applications, and labels
     *   **Modular Architecture:** 8-module JavaScript architecture replacing monolithic approach
     *   **Error Handling:** Enhanced error messages and proper API response handling
     *   **Authentication:** Robust login flow with proper session management
     *   **Pagination:** Complete pagination implementation with page size controls
+    *   **Labels Management:** Full CRUD interface with color picker, association management, and migration-based filtering
 
 ## 2. What's Left to Build (MVP Scope)
 

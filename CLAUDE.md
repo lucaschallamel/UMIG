@@ -420,7 +420,7 @@ When development environment is running:
 
 ### ✅ Completed Features
 - **Local Development Environment**: Node.js orchestrated Podman containers
-- **Admin UI (SPA Pattern)**: Complete user/team/environments management with robust error handling
+- **Admin UI (SPA Pattern)**: Complete user/team/environments/applications/labels management with robust error handling
 - **API Standards**: Comprehensive REST patterns (ADR-023) with specific error mappings
 - **API Documentation**: Complete OpenAPI specification with accurate schemas and generated Postman collections
 - **Data Generation**: Modular synthetic data generators with 3-digit prefixes and correct execution order
@@ -430,11 +430,13 @@ When development environment is running:
 - **Architecture Documentation**: All 31 ADRs consolidated into solution-architecture.md
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
 - **Iteration View Complete**: Fully functional with hierarchical filtering, labels integration, and dynamic step management
-- **Labels API**: Complete with hierarchical filtering (ADR-030)
-- **Teams API**: Enhanced with hierarchical filtering capabilities
+- **Labels Admin GUI**: Complete CRUD interface with color picker, association management, and migration-based filtering
+- **Labels API**: Complete with hierarchical filtering (ADR-030) and full CRUD operations
+- **Teams API**: Enhanced with hierarchical filtering capabilities and association management
 - **Users API**: Complete CRUD operations with pagination and filtering
 - **Environments API**: Complete CRUD operations with application/iteration associations
-- **Steps API**: Complete with hierarchical filtering and labels integration
+- **Applications API**: Complete CRUD operations with label association management
+- **Steps API**: Complete with hierarchical filtering, labels integration, and migration-based filtering
 - **Migration API**: Core functionality implemented
 - **Type Safety Patterns**: Established Groovy static type checking patterns (ADR-031)
 
@@ -505,11 +507,19 @@ When development environment is running:
 - **Type Safety Patterns**: Established robust Groovy static type checking patterns (ADR-031) preventing runtime errors
 - **API Pattern Maturity**: Proven REST API patterns with StepsApi, TeamsApi, and LabelsApi serving as definitive templates
 - **Database Filtering Mastery**: Resolved master vs instance ID filtering patterns and complete field selection requirements
+- **Labels Admin GUI Complete**: Full CRUD interface with color picker, association management, and migration-based filtering
 - **Labels Integration**: Complete many-to-many relationship handling with colored tag display and graceful error handling
 - **API Documentation Complete**: Comprehensive OpenAPI specification with accurate schemas and generated Postman collections
 - **Schema Consistency**: Resolved mismatches between API documentation and actual implementation for Users and Teams APIs
 - **Admin GUI Refactoring**: Split 1,901-line monolithic admin-gui.js into 8 modular components for improved maintainability
 - **JavaScript Architecture**: Established modular patterns with EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, and AdminGuiController
+- **Environment Search Enhancement**: Implemented full-stack search functionality for environments with pagination, sorting, and filtering, fixing GString SQL type inference issues
+- **Teams Association Management**: Complete VIEW and EDIT modals for Teams with user and application association management, including add/remove functionality
+- **Applications Label Management**: Complete Labels association management in Admin GUI with add/remove functionality
+- **Modal Consistency**: Standardized modal UI patterns across Teams and Environments with consistent AUI styling and Edit button functionality
+- **State Management Fixes**: Resolved sort field persistence bug and confirmation dialog regressions in admin interface using custom Promise-based dialogs
+- **Active User Filtering**: Added active parameter support to Users API for populating dropdown selections with active users only
+- **Migration-Based Filtering**: Implemented dynamic step filtering based on selected migration in Labels edit modal
 
 ## Workflows
 

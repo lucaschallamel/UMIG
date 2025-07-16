@@ -548,6 +548,81 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /teams/{id}/applications:
+    get:
+      tags:
+        - Teams
+      summary: Get applications associated with a team
+      description: Retrieves a list of applications that are associated with the specified team.
+      operationId: getTeamApplications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of applications associated with the team
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /teams/{teamId}/applications/{applicationId}:
+    put:
+      tags:
+        - Teams
+      summary: Add an application to a team
+      description: Creates an association between a team and an application.
+      operationId: addApplicationToTeam
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Application added to team successfully.
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Application is already associated with this team.
+    delete:
+      tags:
+        - Teams
+      summary: Remove an application from a team
+      description: Removes the association between a team and an application.
+      operationId: removeApplicationFromTeam
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Application removed from team successfully.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /environments:
     get:
       tags:
@@ -967,6 +1042,37 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /steps/master:
+    get:
+      tags:
+        - Steps
+      summary: Get master steps for dropdowns
+      description: |
+        Retrieves all master steps in a format suitable for dropdown menus.
+        Can be filtered by migration ID to show only steps belonging to a specific migration.
+      operationId: getMasterSteps
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter steps by migration ID
+      responses:
+        '200':
+          description: List of master steps
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterStep'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /labels:
     get:
       tags:
@@ -1023,6 +1129,285 @@ paths:
                   $ref: '#/components/schemas/Label'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Labels
+      summary: Create a new label
+      description: Creates a new label within a migration scope.
+      operationId: createLabel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabelCreate'
+      responses:
+        '201':
+          description: Label created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LabelDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Conflict - Label name already exists in migration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /labels/{id}:
+    get:
+      tags:
+        - Labels
+      summary: Get a specific label by ID
+      description: Retrieves detailed information about a specific label including associated applications and step count.
+      operationId: getLabelById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+      responses:
+        '200':
+          description: Label details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LabelDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Labels
+      summary: Update an existing label
+      description: Updates label properties including migration assignment.
+      operationId: updateLabel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LabelUpdate'
+      responses:
+        '200':
+          description: Label updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LabelDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - Label name already exists in migration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Labels
+      summary: Delete a label
+      description: Deletes a label and all its associations.
+      operationId: deleteLabel
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+      responses:
+        '204':
+          description: Label deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /labels/{id}/steps:
+    get:
+      tags:
+        - Labels
+      summary: Get steps associated with a label
+      description: Retrieves all master steps that are associated with the specified label.
+      operationId: getLabelSteps
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+      responses:
+        '200':
+          description: List of associated steps
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  steps:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LabelStep'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /labels/{labelId}/applications/{applicationId}:
+    post:
+      tags:
+        - Labels
+      summary: Add application association to label
+      description: Associates an application with a label.
+      operationId: addLabelApplication
+      parameters:
+        - name: labelId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Application ID
+      responses:
+        '200':
+          description: Application associated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Labels
+      summary: Remove application association from label
+      description: Removes the association between an application and a label.
+      operationId: removeLabelApplication
+      parameters:
+        - name: labelId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Application ID
+      responses:
+        '200':
+          description: Application association removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /labels/{labelId}/steps/{stepId}:
+    post:
+      tags:
+        - Labels
+      summary: Add step association to label
+      description: Associates a master step with a label.
+      operationId: addLabelStep
+      parameters:
+        - name: labelId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step Master ID
+      responses:
+        '200':
+          description: Step associated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Labels
+      summary: Remove step association from label
+      description: Removes the association between a master step and a label.
+      operationId: removeLabelStep
+      parameters:
+        - name: labelId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Label ID
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step Master ID
+      responses:
+        '200':
+          description: Step association removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -1101,6 +1486,12 @@ paths:
           schema:
             type: string
           description: Find user by exact code match (for authentication)
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter users by active status (true for active, false for inactive)
       responses:
         '200':
           description: A paginated list of users.
@@ -1400,6 +1791,134 @@ components:
           type: string
           pattern: '^#[0-9a-fA-F]{6}$'
           description: Hex color code for the label
+    
+    LabelDetail:
+      type: object
+      properties:
+        lbl_id:
+          type: integer
+          description: Unique identifier for the label
+        mig_id:
+          type: string
+          format: uuid
+          description: Migration ID this label belongs to
+        lbl_name:
+          type: string
+          description: Name of the label
+        lbl_description:
+          type: string
+          description: Description of the label
+        lbl_color:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Hex color code for the label
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        created_by:
+          type: integer
+          description: User ID who created the label
+        applications:
+          type: array
+          items:
+            type: object
+            properties:
+              app_id:
+                type: integer
+              app_code:
+                type: string
+              app_name:
+                type: string
+        step_count:
+          type: integer
+          description: Number of associated steps
+    
+    LabelCreate:
+      type: object
+      required:
+        - lbl_name
+        - lbl_color
+        - mig_id
+      properties:
+        lbl_name:
+          type: string
+          description: Name of the label
+        lbl_description:
+          type: string
+          description: Description of the label
+        lbl_color:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Hex color code for the label
+        mig_id:
+          type: string
+          format: uuid
+          description: Migration ID this label belongs to
+    
+    LabelUpdate:
+      type: object
+      properties:
+        lbl_name:
+          type: string
+          description: Name of the label
+        lbl_description:
+          type: string
+          description: Description of the label
+        lbl_color:
+          type: string
+          pattern: '^#[0-9a-fA-F]{6}$'
+          description: Hex color code for the label
+        mig_id:
+          type: string
+          format: uuid
+          description: Migration ID this label belongs to
+    
+    LabelStep:
+      type: object
+      properties:
+        stm_id:
+          type: string
+          format: uuid
+          description: Step master ID
+        step_type:
+          type: string
+          description: Step type code
+        step_number:
+          type: integer
+          description: Step number
+        step_title:
+          type: string
+          description: Step title/name
+    
+    MasterStep:
+      type: object
+      properties:
+        stm_id:
+          type: string
+          format: uuid
+          description: Step master ID
+        stt_code:
+          type: string
+          description: Step type code
+        stm_step_number:
+          type: integer
+          description: Step number
+        stm_title:
+          type: string
+          description: Step title/name
+        stm_description:
+          type: string
+          description: Step description
+        stt_name:
+          type: string
+          description: Step type name
+        step_code:
+          type: string
+          description: Composed step code (type-number)
+        display_name:
+          type: string
+          description: Display name for dropdowns
 
     TeamCreateRequest:
       type: object

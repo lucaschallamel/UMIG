@@ -527,4 +527,59 @@ class TeamRepository {
             return results
         }
     }
+
+    /**
+     * Finds applications associated with a team.
+     * @param teamId The ID of the team.
+     * @return A list of applications associated with the team.
+     */
+    def findTeamApplications(int teamId) {
+        DatabaseUtil.withSql { sql ->
+            return sql.rows("""
+                SELECT
+                    a.app_id,
+                    a.app_name,
+                    a.app_code,
+                    a.app_description
+                FROM applications_app a
+                JOIN teams_tms_x_applications_app j ON a.app_id = j.app_id
+                WHERE j.tms_id = :teamId
+                ORDER BY a.app_name
+            """, [teamId: teamId])
+        }
+    }
+
+    /**
+     * Adds an application to a team.
+     * @param teamId The ID of the team.
+     * @param applicationId The ID of the application to add.
+     * @return A map with status information.
+     */
+    def addApplicationToTeam(int teamId, int applicationId) {
+        DatabaseUtil.withSql { sql ->
+            def existing = sql.firstRow("""SELECT 1 FROM teams_tms_x_applications_app WHERE tms_id = :teamId AND app_id = :applicationId""", [teamId: teamId, applicationId: applicationId])
+            if (existing) {
+                return [status: 'exists']
+            }
+            def insertQuery = """
+                INSERT INTO teams_tms_x_applications_app (tms_id, app_id)
+                VALUES (:teamId, :applicationId)
+            """
+            sql.executeUpdate(insertQuery, [teamId: teamId, applicationId: applicationId])
+            return [status: 'created']
+        }
+    }
+
+    /**
+     * Removes an application from a team.
+     * @param teamId The ID of the team.
+     * @param applicationId The ID of the application to remove.
+     * @return The number of rows affected.
+     */
+    def removeApplicationFromTeam(int teamId, int applicationId) {
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM teams_tms_x_applications_app WHERE tms_id = :teamId AND app_id = :applicationId"
+            return sql.executeUpdate(deleteQuery, [teamId: teamId, applicationId: applicationId])
+        }
+    }
 }

@@ -418,6 +418,48 @@
             
             delete: function(id) {
                 return ApiClient.entities.delete('teams', id);
+            },
+
+            /**
+             * Get team members
+             */
+            getMembers: function(teamId) {
+                return ApiClient.request('GET', `/teams/${teamId}/members`);
+            },
+
+            /**
+             * Get team applications
+             */
+            getApplications: function(teamId) {
+                return ApiClient.request('GET', `/teams/${teamId}/applications`);
+            },
+
+            /**
+             * Add member to team
+             */
+            addMember: function(teamId, userId) {
+                return ApiClient.request('PUT', `/teams/${teamId}/users/${userId}`);
+            },
+
+            /**
+             * Remove member from team
+             */
+            removeMember: function(teamId, userId) {
+                return ApiClient.request('DELETE', `/teams/${teamId}/users/${userId}`);
+            },
+
+            /**
+             * Add application to team
+             */
+            addApplication: function(teamId, applicationId) {
+                return ApiClient.request('PUT', `/teams/${teamId}/applications/${applicationId}`);
+            },
+
+            /**
+             * Remove application from team
+             */
+            removeApplication: function(teamId, applicationId) {
+                return ApiClient.request('DELETE', `/teams/${teamId}/applications/${applicationId}`);
             }
         },
 
@@ -452,17 +494,48 @@
              * @returns {Promise} Request promise
              */
             associateApplication: function(envId, appId) {
-                return ApiClient.post(`/environments/${envId}/applications`, { appId: appId });
+                return ApiClient.post(`/environments/${envId}/applications/${appId}`);
             },
 
             /**
              * Associate environment with iteration
              * @param {string} envId - Environment ID
              * @param {string} iterationId - Iteration ID
+             * @param {string} roleId - Environment role ID
              * @returns {Promise} Request promise
              */
-            associateIteration: function(envId, iterationId) {
-                return ApiClient.post(`/environments/${envId}/iterations`, { iterationId: iterationId });
+            associateIteration: function(envId, iterationId, roleId) {
+                return ApiClient.post(`/environments/${envId}/iterations/${iterationId}`, { 
+                    enr_id: roleId 
+                });
+            },
+
+            /**
+             * Disassociate environment from application
+             * @param {string} envId - Environment ID
+             * @param {string} appId - Application ID
+             * @returns {Promise} Request promise
+             */
+            disassociateApplication: function(envId, appId) {
+                return ApiClient.delete(`/environments/${envId}/applications/${appId}`);
+            },
+
+            /**
+             * Disassociate environment from iteration
+             * @param {string} envId - Environment ID
+             * @param {string} iterationId - Iteration ID
+             * @returns {Promise} Request promise
+             */
+            disassociateIteration: function(envId, iterationId) {
+                return ApiClient.delete(`/environments/${envId}/iterations/${iterationId}`);
+            },
+
+            /**
+             * Get environment roles
+             * @returns {Promise} Request promise
+             */
+            getRoles: function() {
+                return ApiClient.get('/environments/roles');
             }
         },
 
@@ -470,8 +543,102 @@
          * Applications API
          */
         applications: {
+            /**
+             * Get all applications
+             */
             getAll: function(params = {}) {
                 return ApiClient.entities.getAll('applications', params);
+            },
+
+            /**
+             * Get application by ID
+             */
+            getById: function(appId) {
+                return ApiClient.entities.getById('applications', appId);
+            },
+
+            /**
+             * Create application
+             */
+            create: function(data) {
+                return ApiClient.entities.create('applications', data);
+            },
+
+            /**
+             * Update application
+             */
+            update: function(appId, data) {
+                return ApiClient.entities.update('applications', appId, data);
+            },
+
+            /**
+             * Delete application
+             */
+            delete: function(appId) {
+                return ApiClient.entities.delete('applications', appId);
+            },
+
+            /**
+             * Get application environments
+             */
+            getEnvironments: function(appId) {
+                return ApiClient.request('GET', `/applications/${appId}/environments`);
+            },
+
+            /**
+             * Get application teams
+             */
+            getTeams: function(appId) {
+                return ApiClient.request('GET', `/applications/${appId}/teams`);
+            },
+
+            /**
+             * Associate environment with application
+             */
+            associateEnvironment: function(appId, envId) {
+                return ApiClient.request('PUT', `/applications/${appId}/environments/${envId}`);
+            },
+
+            /**
+             * Disassociate environment from application
+             */
+            disassociateEnvironment: function(appId, envId) {
+                return ApiClient.request('DELETE', `/applications/${appId}/environments/${envId}`);
+            },
+
+            /**
+             * Associate team with application
+             */
+            associateTeam: function(appId, teamId) {
+                return ApiClient.request('PUT', `/applications/${appId}/teams/${teamId}`);
+            },
+
+            /**
+             * Disassociate team from application
+             */
+            disassociateTeam: function(appId, teamId) {
+                return ApiClient.request('DELETE', `/applications/${appId}/teams/${teamId}`);
+            },
+
+            /**
+             * Get application labels
+             */
+            getLabels: function(appId) {
+                return ApiClient.request('GET', `/applications/${appId}/labels`);
+            },
+
+            /**
+             * Associate label with application
+             */
+            associateLabel: function(appId, labelId) {
+                return ApiClient.request('PUT', `/applications/${appId}/labels/${labelId}`);
+            },
+
+            /**
+             * Disassociate label from application
+             */
+            disassociateLabel: function(appId, labelId) {
+                return ApiClient.request('DELETE', `/applications/${appId}/labels/${labelId}`);
             }
         },
 
@@ -490,6 +657,93 @@
         labels: {
             getAll: function(params = {}) {
                 return ApiClient.entities.getAll('labels', params);
+            },
+            getById: function(id) {
+                return ApiClient.entities.getById('labels', id);
+            },
+            create: function(data) {
+                return ApiClient.entities.create('labels', data);
+            },
+            update: function(id, data) {
+                return ApiClient.entities.update('labels', id, data);
+            },
+            delete: function(id) {
+                return ApiClient.entities.delete('labels', id);
+            },
+            getSteps: function(labelId) {
+                console.log('Getting steps for label:', labelId);
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/steps`;
+                
+                return fetch(url, {
+                    method: 'GET',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    console.log('Get label steps response:', response);
+                    
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            let error;
+                            try {
+                                error = JSON.parse(text);
+                            } catch (e) {
+                                error = { error: text || response.statusText };
+                            }
+                            throw new Error(error.error || `HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    
+                    return response.json();
+                })
+                .catch(error => {
+                    console.error('Failed to get label steps:', error);
+                    throw error;
+                });
+            },
+            addApplication: function(labelId, applicationId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/applications/${applicationId}`;
+                
+                return fetch(url, {
+                    method: 'POST',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
+            },
+            removeApplication: function(labelId, applicationId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/applications/${applicationId}`;
+                
+                return fetch(url, {
+                    method: 'DELETE',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
+            },
+            addStep: function(labelId, stepId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/steps/${stepId}`;
+                
+                return fetch(url, {
+                    method: 'POST',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
+            },
+            removeStep: function(labelId, stepId) {
+                const url = `${ApiClient.baseUrl}/labels/${labelId}/steps/${stepId}`;
+                
+                return fetch(url, {
+                    method: 'DELETE',
+                    headers: ApiClient.defaultHeaders,
+                    credentials: 'same-origin'
+                })
+                .then(response => ApiClient.handleResponse(response))
+                .catch(error => ApiClient.handleError(error));
             }
         },
 
@@ -499,6 +753,35 @@
         migrations: {
             getAll: function(params = {}) {
                 return ApiClient.entities.getAll('migrations', params);
+            }
+        },
+
+        /**
+         * Steps API
+         */
+        steps: {
+            getAll: function(params = {}) {
+                return ApiClient.entities.getAll('steps', params);
+            },
+            /**
+             * Get all master steps for dropdowns
+             * @param {Object} params - Query parameters (e.g., migrationId)
+             * @returns {Promise} Request promise
+             */
+            getMasterSteps: function(params = {}) {
+                return ApiClient.get('/steps/master', params);
+            },
+            getById: function(id) {
+                return ApiClient.entities.getById('steps', id);
+            },
+            create: function(data) {
+                return ApiClient.entities.create('steps', data);
+            },
+            update: function(id, data) {
+                return ApiClient.entities.update('steps', id, data);
+            },
+            delete: function(id) {
+                return ApiClient.entities.delete('steps', id);
             }
         },
 

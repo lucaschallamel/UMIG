@@ -358,6 +358,29 @@
                     field.value = '';
                 }
             });
+        },
+
+        /**
+         * Get contrast color (black or white) based on background color
+         * @param {string} hexColor - Hex color code
+         * @returns {string} '#000000' for dark text or '#FFFFFF' for light text
+         */
+        getContrastColor: function(hexColor) {
+            if (!hexColor) return '#000000';
+            
+            // Remove # if present
+            const hex = hexColor.replace('#', '');
+            
+            // Convert to RGB
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            
+            // Calculate luminance using W3C formula
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            
+            // Return black for light colors, white for dark colors
+            return luminance > 0.5 ? '#000000' : '#FFFFFF';
         }
     };
 

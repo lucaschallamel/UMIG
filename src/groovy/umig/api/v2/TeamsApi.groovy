@@ -160,6 +160,11 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         def members = teamRepository.findTeamMembers(teamId)
         return Response.ok(new JsonBuilder(members).toString()).build()
     }
+    // GET /teams/{id}/applications
+    if (pathParts.size() > 1 && pathParts[1] == "applications") {
+        def applications = teamRepository.findTeamApplications(teamId)
+        return Response.ok(new JsonBuilder(applications).toString()).build()
+    }
 
     // GET /teams/{id}
     if (pathParts.size() == 1) {
@@ -247,6 +252,42 @@ teams(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
         }
     }
 
+    // Route: PUT /teams/{teamId}/applications/{applicationId} -> Add application to team
+    if (pathParts.size() == 3 && pathParts[1] == 'applications') {
+        def teamId
+        def applicationId
+        try {
+            teamId = pathParts[0].toInteger()
+            applicationId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team or Application ID format."]).toString()).build()
+        }
+
+        // Check both team and application existence before adding
+        def team = teamRepository.findTeamById(teamId)
+        if (!team) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([error: "Team with ID ${teamId} not found."]).toString()).build()
+        }
+        // Note: We'd need to check application existence too, but for now let's proceed
+        try {
+            def result = teamRepository.addApplicationToTeam(teamId, applicationId)
+            if (result instanceof Map && result['status'] == 'created') {
+                return Response.status(Response.Status.CREATED).entity(new JsonBuilder([message: "Application ${applicationId} added to team ${teamId}."]).toString()).build()
+            }
+            if (result instanceof Map && result['status'] == 'exists') {
+                return Response.status(Response.Status.OK).entity(new JsonBuilder([message: "Application ${applicationId} is already associated with team ${teamId}."]).toString()).build()
+            }
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Failed to add application to team."]).toString()).build()
+        } catch (SQLException e) {
+            log.warn("Database error adding application ${applicationId} to team ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
+        } catch (Exception e) {
+            log.error("Unexpected error adding application ${applicationId} to team ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
+        }
+    }
+
     // Route: PUT /teams/{teamId} -> Update team details
     if (pathParts.size() == 1) {
         def teamId
@@ -322,6 +363,37 @@ teams(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
             }
         } catch (Exception e) {
             log.error("Unexpected error removing user ${userId} from team ${teamId}.", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
+        }
+    }
+
+    // Route: DELETE /teams/{teamId}/applications/{applicationId} -> Remove application from team
+    if (pathParts.size() == 3 && pathParts[1] == 'applications') {
+        def teamId
+        def applicationId
+        try {
+            teamId = pathParts[0].toInteger()
+            applicationId = pathParts[2].toInteger()
+        } catch (NumberFormatException e) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid Team or Application ID format."]).toString()).build()
+        }
+
+        // Check both team and application existence before removing
+        def team = teamRepository.findTeamById(teamId)
+        if (!team) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([error: "Team with ID ${teamId} not found."]).toString()).build()
+        }
+        // Note: We'd need to check application existence too, but for now let's proceed
+        try {
+            def rowsAffected = teamRepository.removeApplicationFromTeam(teamId, applicationId)
+            if ((rowsAffected instanceof Number ? rowsAffected.intValue() : 0) > 0) {
+                return Response.noContent().build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${applicationId} was not associated with team ${teamId}."]).toString()).build()
+            }
+        } catch (Exception e) {
+            log.error("Unexpected error removing application ${applicationId} from team ${teamId}.", e)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
         }
     }

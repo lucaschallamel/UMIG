@@ -66,7 +66,7 @@ class UserRepository {
      * @param sortDirection Sort direction ('asc' or 'desc').
      * @return A map containing users list and pagination metadata.
      */
-    def findAllUsers(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc', Integer teamId = null) {
+    def findAllUsers(int pageNumber, int pageSize, String searchTerm = null, String sortField = null, String sortDirection = 'asc', Integer teamId = null, Boolean activeFilter = null) {
         DatabaseUtil.withSql { sql ->
             // Build WHERE clause for search and team filtering
             def whereConditions = []
@@ -83,31 +83,43 @@ class UserRepository {
                 params.teamId = teamId
             }
             
+            if (activeFilter != null) {
+                whereConditions.add("u.usr_active = :activeFilter")
+                params.activeFilter = activeFilter
+            }
+            
             def whereClause = whereConditions.empty ? "" : "WHERE " + whereConditions.join(" AND ")
             
             // Build ORDER BY clause with validation
             def orderClause = "ORDER BY u.usr_id ASC" // Default sort
             if (sortField) {
-                // Validate sort field to prevent SQL injection
-                def validSortFields = ['usr_id', 'usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'usr_active', 'rls_id']
-                if (validSortFields.contains(sortField)) {
-                    def direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
-                    orderClause = "ORDER BY u.${sortField} ${direction}"
+                def direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+                // Handle special sorting cases
+                if (sortField == 'rls_id') {
+                    // Sort by role name, with NULL values last
+                    orderClause = "ORDER BY r.rls_code ${direction} NULLS LAST"
+                } else {
+                    // Validate sort field to prevent SQL injection
+                    def validSortFields = ['usr_id', 'usr_code', 'usr_first_name', 'usr_last_name', 'usr_email', 'usr_is_admin', 'usr_active']
+                    if (validSortFields.contains(sortField)) {
+                        orderClause = "ORDER BY u.${sortField} ${direction}"
+                    }
                 }
             }
             
             // Get total count
-            def countQuery = "SELECT COUNT(*) as total FROM users_usr u ${whereClause}"
+            def countQuery = "SELECT COUNT(*) as total FROM users_usr u LEFT JOIN roles_rls r ON u.rls_id = r.rls_id ${whereClause}"
             def totalCount = sql.firstRow(countQuery, params).total as long
             
             // Calculate pagination
             def offset = (pageNumber - 1) * pageSize
             def totalPages = (totalCount + pageSize - 1) / pageSize as int
             
-            // Get paginated users
+            // Get paginated users with role information for sorting
             def usersQuery = """
                 SELECT u.usr_id, u.usr_code, u.usr_first_name, u.usr_last_name, u.usr_email, u.usr_is_admin, u.usr_active, u.rls_id, u.created_at, u.updated_at
                 FROM users_usr u
+                LEFT JOIN roles_rls r ON u.rls_id = r.rls_id
                 ${whereClause}
                 ${orderClause}
                 LIMIT :pageSize OFFSET :offset

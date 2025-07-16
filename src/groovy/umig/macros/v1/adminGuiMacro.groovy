@@ -79,7 +79,7 @@ return """
         <header class="admin-header">
             <div class="header-left">
                 <h1 class="app-title">UMIG Administration Console</h1>
-                <span class="app-version">v2.0</span>
+                <span class="app-version">v1.0</span>
             </div>
             <div class="header-right">
                 <div class="user-info">
@@ -240,8 +240,8 @@ return """
                                     <input type="text" 
                                            id="globalSearch" 
                                            class="search-input" 
-                                           placeholder="Search all fields...">
-                                    <button class="search-btn" id="searchBtn">🔍</button>
+                                           placeholder="Search all fields (3+ chars)...">
+                                    <button class="search-clear-btn" id="searchClearBtn" style="display: none;" title="Clear search">✕</button>
                                 </div>
                                 <div class="filter-controls">
                                     <button class="btn-filter" id="filterBtn">Filter</button>
@@ -376,14 +376,14 @@ return """
 <link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css">
 
 <!-- Load JavaScript modules in dependency order -->
-<script src="${webResourcesPath}/js/EntityConfig.js"></script>
-<script src="${webResourcesPath}/js/UiUtils.js"></script>
-<script src="${webResourcesPath}/js/AdminGuiState.js"></script>
-<script src="${webResourcesPath}/js/ApiClient.js"></script>
-<script src="${webResourcesPath}/js/AuthenticationManager.js"></script>
-<script src="${webResourcesPath}/js/TableManager.js"></script>
-<script src="${webResourcesPath}/js/ModalManager.js"></script>
-<script src="${webResourcesPath}/js/AdminGuiController.js"></script>
+<script src="${webResourcesPath}/js/EntityConfig.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/UiUtils.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/AdminGuiState.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/ApiClient.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/AuthenticationManager.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/TableManager.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/ModalManager.js?v=${System.currentTimeMillis()}"></script>
+<script src="${webResourcesPath}/js/AdminGuiController.js?v=${System.currentTimeMillis()}"></script>
 
 <!-- Debug script to help troubleshoot -->
 <script>

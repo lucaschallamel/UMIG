@@ -66,12 +66,61 @@ environments(httpMethod: "GET", groups: ["confluence-users", "confluence-adminis
         }
 
         // GET /environments - list all
-        // Note: Pagination not implemented in repository yet, returning all results
-        def environments = environmentRepository.findAllEnvironmentsWithCounts()
+        // Extract pagination and search parameters
+        def page = queryParams.getFirst('page')
+        def size = queryParams.getFirst('size')
+        def search = queryParams.getFirst('search')
+        def sort = queryParams.getFirst('sort')
+        def direction = queryParams.getFirst('direction')
         
-        // For now, return unpaginated array
-        // TODO: Implement pagination in repository
-        return Response.ok(new JsonBuilder(environments).toString()).build()
+        // Parse pagination parameters with defaults
+        int pageNumber = 1
+        int pageSize = 50
+        
+        if (page) {
+            try {
+                pageNumber = Integer.parseInt(page as String)
+                if (pageNumber < 1) pageNumber = 1
+            } catch (NumberFormatException e) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid page number format"]).toString())
+                    .build()
+            }
+        }
+        
+        if (size) {
+            try {
+                pageSize = Integer.parseInt(size as String)
+                if (pageSize < 1) pageSize = 50
+                if (pageSize > 200) pageSize = 200  // Maximum page size
+            } catch (NumberFormatException e) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid page size format"]).toString())
+                    .build()
+            }
+        }
+        
+        // Parse sort parameters
+        String sortField = 'env_id'  // Default sort field
+        String sortDirection = 'asc'
+        
+        if (sort && ['env_id', 'env_code', 'env_name', 'env_description', 'application_count', 'iteration_count'].contains(sort as String)) {
+            sortField = sort as String
+        }
+        
+        if (direction && ['asc', 'desc'].contains((direction as String).toLowerCase())) {
+            sortDirection = (direction as String).toLowerCase()
+        }
+        
+        // Validate search term
+        String searchTerm = search as String
+        if (searchTerm && searchTerm.trim().length() < 2) {
+            searchTerm = null  // Ignore very short search terms (less than 2 characters)
+        }
+        
+        // Get paginated environments
+        def result = environmentRepository.findAllEnvironmentsWithCounts(pageNumber, pageSize, searchTerm, sortField, sortDirection)
+        return Response.ok(new JsonBuilder(result).toString()).build()
 
     } catch (SQLException e) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
