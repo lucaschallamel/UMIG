@@ -1807,7 +1807,7 @@ class IterationView {
             addBtn.disabled = true;
             textarea.disabled = true;
             
-            const response = await fetch(`/rest/scriptrunner/latest/custom/steps/${stiId}/comments`, {
+            const response = await fetch(`/rest/scriptrunner/latest/custom/comments/${stiId}/comments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
