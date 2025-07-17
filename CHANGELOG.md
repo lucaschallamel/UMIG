@@ -1,5 +1,29 @@
 ### [Unreleased]
 
+#### 2025-07-17 (Environment Generation Rules & Data Quality Improvements)
+- **Fix(Environment Generator):** Implemented strict iteration type rules for environment assignments
+  - Ensures every iteration has all 3 roles (PROD, TEST, BACKUP) assigned
+  - RUN and DR iterations never use PROD environment, only EV1-EV5
+  - CUTOVER iterations always have PROD environment assigned to PROD role
+  - Updated tests to validate these business rules
+  - Fixes issue where CUTOVER iterations showed "(!No Environment Assigned Yet!)"
+- **Fix(Label Generator):** Resolved duplicate key violations in label generation
+  - Added uniqueness tracking per migration to prevent duplicate label names
+  - Implements retry logic with automatic suffix generation for guaranteed uniqueness
+  - Prevents "duplicate key value violates unique constraint" errors during data generation
+- **Enhancement(Iteration View):** Completed dynamic environment display implementation
+  - Shows actual environment names alongside roles (e.g., "PROD (PROD)" for production)
+  - Displays "(!No Environment Assigned Yet!)" when environment not assigned
+  - Added predecessor step information to step details
+  - Moved STATUS and PREDECESSOR fields below breadcrumb for better visibility
+  - Made SCOPE dynamic from steps_master_stm_x_iteration_types_itt table
+  - Added Expand All/Collapse All buttons to runsheet panel
+- **Tooling(Diagnostics):** Added environment association diagnostic scripts
+  - checkEnvironmentAssociations.groovy - General environment association checks
+  - checkCutoverProdEnvironments.groovy - CUTOVER-specific environment validation
+  - compareEnvironmentAssignments.groovy - Rule compliance verification
+  - checkEnvironmentAssociations.sql - Manual SQL queries for troubleshooting
+
 #### 2025-07-16 (Architecture Documentation Consolidation & Code Cleanup)
 - **Documentation(Solution Architecture):** Major consolidation of architectural decisions
   - Consolidated 7 new ADRs (027-033) into the main solution-architecture.md document

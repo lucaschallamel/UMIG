@@ -58,14 +58,33 @@ async function generateLabels(config, options = {}) {
   for (const { mig_id } of migrations.rows) {
     const numLabels = faker.number.int({ min: config.LABELS.PER_MIGRATION.MIN, max: config.LABELS.PER_MIGRATION.MAX });
     const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
+    
+    // Track used label names per migration to ensure uniqueness
+    const usedLabelNames = new Set();
 
     for (let i = 0; i < numLabels; i++) {
+      let labelName;
+      let attempts = 0;
+      
+      // Generate unique label name for this migration
+      do {
+        labelName = faker.lorem.words({ min: 1, max: 3 });
+        attempts++;
+        // Add a number suffix if we've tried too many times
+        if (attempts > 10) {
+          labelName = `${labelName}_${i + 1}`;
+          break;
+        }
+      } while (usedLabelNames.has(labelName));
+      
+      usedLabelNames.add(labelName);
+      
       const res = await dbClient.query(
         `INSERT INTO labels_lbl (mig_id, lbl_name, lbl_description, lbl_color, created_by)
          VALUES ($1, $2, $3, $4, $5) RETURNING lbl_id`,
         [
           mig_id,
-          faker.lorem.words({ min: 1, max: 3 }),
+          labelName,
           faker.lorem.sentence(),
           faker.internet.color(),
           creatorId,

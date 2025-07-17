@@ -930,6 +930,7 @@ class IterationView {
         const instructions = stepData.instructions || [];
         const impactedTeams = stepData.impactedTeams || [];
         
+        
         // Helper function to get status display - use the main getStatusDisplay method
         const getStatusDisplay = (status) => {
             return this.getStatusDisplay(status);
@@ -938,34 +939,22 @@ class IterationView {
         let html = `
             <div class="step-info">
                 <div class="step-title">
-                    <h3>📋 ${summary.ID || 'Unknown'}: ${summary.Name || 'Unknown Step'}</h3>
+                    <h3>📋 ${summary.StepCode || 'Unknown'} - ${summary.Name || 'Unknown Step'}</h3>
                 </div>
                 
-                <div class="step-metadata">
-                    <div class="metadata-item">
-                        <span class="label">🎯 Target Environment:</span>
-                        <span class="value">${summary.TargetEnvironment || 'Production'}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">🔄 Scope:</span>
-                        <span class="value">
-                            <span class="scope-tag">RUN</span>
-                            <span class="scope-tag">DR</span>
-                            <span class="scope-tag">CUTOVER</span>
-                        </span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">👥 Teams:</span>
-                        <span class="value">${summary.AssignedTeam ? `Assigned: ${summary.AssignedTeam}` : 'Not assigned'}${impactedTeams.length > 0 ? ` | Impacted: ${impactedTeams.join(', ')}` : ''}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">📂 Location:</span>
-                        <span class="value">${summary.SequenceName ? `Sequence: ${summary.SequenceName}` : 'Unknown sequence'}${summary.PhaseName ? ` | Phase: ${summary.PhaseName}` : ''}</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="label">⏱️ Duration:</span>
-                        <span class="value">${summary.Duration || summary.EstimatedDuration || '45 minutes'}</span>
-                    </div>
+                <div class="step-breadcrumb">
+                    <span class="breadcrumb-item">${summary.MigrationName || 'Migration'}</span>
+                    <span class="breadcrumb-separator">›</span>
+                    <span class="breadcrumb-item">${summary.PlanName || 'Plan'}</span>
+                    <span class="breadcrumb-separator">›</span>
+                    <span class="breadcrumb-item">${summary.IterationName || 'Iteration'}</span>
+                    <span class="breadcrumb-separator">›</span>
+                    <span class="breadcrumb-item">${summary.SequenceName || 'Sequence'}</span>
+                    <span class="breadcrumb-separator">›</span>
+                    <span class="breadcrumb-item">${summary.PhaseName || 'Phase'}</span>
+                </div>
+                
+                <div class="step-key-info">
                     <div class="metadata-item">
                         <span class="label">📊 Status:</span>
                         <span class="value">
@@ -973,6 +962,44 @@ class IterationView {
                                 <option value="">Loading...</option>
                             </select>
                         </span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">⬅️ Predecessor:</span>
+                        <span class="value">${summary.PredecessorCode ? `${summary.PredecessorCode}${summary.PredecessorName ? ` - ${summary.PredecessorName}` : ''}` : '-'}</span>
+                    </div>
+                </div>
+                
+                <div class="step-metadata">
+                    <div class="metadata-item">
+                        <span class="label">🎯 Target Environment:</span>
+                        <span class="value">${summary.TargetEnvironment || 'Not specified'}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">🔄 Scope:</span>
+                        <span class="value">
+                            ${summary.IterationTypes && summary.IterationTypes.length > 0 
+                                ? summary.IterationTypes.map(type => `<span class="scope-tag">${type}</span>`).join(' ')
+                                : '<span style="color: var(--color-text-tertiary); font-style: italic;">None specified</span>'
+                            }
+                        </span>
+                    </div>
+                    <div class="metadata-item teams-container">
+                        <div class="team-section">
+                            <span class="label">👤 Primary Team:</span>
+                            <span class="value">${summary.AssignedTeam || 'Not assigned'}</span>
+                        </div>
+                        <div class="team-section">
+                            <span class="label">👥 Impacted Teams:</span>
+                            <span class="value">${impactedTeams.length > 0 ? impactedTeams.join(', ') : 'None'}</span>
+                        </div>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">📂 Location:</span>
+                        <span class="value">${summary.SequenceName ? `Sequence: ${summary.SequenceName}` : 'Unknown sequence'}${summary.PhaseName ? ` | Phase: ${summary.PhaseName}` : ''}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="label">⏱️ Duration:</span>
+                        <span class="value">${summary.Duration ? `${summary.Duration} min.` : summary.EstimatedDuration ? `${summary.EstimatedDuration} min.` : '45 min.'}</span>
                     </div>
                 </div>
                 
@@ -1005,7 +1032,7 @@ class IterationView {
                         <div class="col-instruction">${instruction.Description || instruction.Instruction || 'No description'}</div>
                         <div class="col-team">${instruction.Team || summary.AssignedTeam || 'TBD'}</div>
                         <div class="col-control">${instruction.Control || instruction.ControlCode || `CTRL-${String(index + 1).padStart(2, '0')}`}</div>
-                        <div class="col-duration">${instruction.Duration || instruction.EstimatedDuration || '5 min'}</div>
+                        <div class="col-duration">${instruction.Duration ? `${instruction.Duration} min.` : instruction.EstimatedDuration ? `${instruction.EstimatedDuration} min.` : '5 min.'}</div>
                         <div class="col-complete">
                             <input type="checkbox" 
                                 class="instruction-checkbox pilot-only" 
@@ -1998,7 +2025,47 @@ class IterationView {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new IterationView();
+    const iterationView = new IterationView();
+    
+    // Add expand/collapse all functionality
+    const expandAllBtn = document.getElementById('expand-all-btn');
+    const collapseAllBtn = document.getElementById('collapse-all-btn');
+    
+    if (expandAllBtn) {
+        expandAllBtn.addEventListener('click', () => {
+            // Expand all sequences and phases
+            document.querySelectorAll('.sequence-header .expand-icon').forEach(icon => {
+                icon.classList.remove('collapsed');
+            });
+            document.querySelectorAll('.phase-header .expand-icon').forEach(icon => {
+                icon.classList.remove('collapsed');
+            });
+            document.querySelectorAll('.phase-section').forEach(phase => {
+                phase.style.display = 'block';
+            });
+            document.querySelectorAll('.runsheet-table').forEach(table => {
+                table.style.display = 'table';
+            });
+        });
+    }
+    
+    if (collapseAllBtn) {
+        collapseAllBtn.addEventListener('click', () => {
+            // Collapse all sequences and phases
+            document.querySelectorAll('.sequence-header .expand-icon').forEach(icon => {
+                icon.classList.add('collapsed');
+            });
+            document.querySelectorAll('.phase-header .expand-icon').forEach(icon => {
+                icon.classList.add('collapsed');
+            });
+            document.querySelectorAll('.phase-section').forEach(phase => {
+                phase.style.display = 'none';
+            });
+            document.querySelectorAll('.runsheet-table').forEach(table => {
+                table.style.display = 'none';
+            });
+        });
+    }
 });
 
 IterationView.prototype.populateMigrationSelector = function() {

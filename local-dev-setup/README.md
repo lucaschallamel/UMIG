@@ -121,9 +121,12 @@ Generators execute in numerical order, respecting dependencies:
 3. `003_generate_users.js` - Users and team assignments
 4. `004_generate_canonical_plans.js` - Master plan hierarchy (plans, sequences, phases, steps)
 5. `005_generate_migrations.js` - Migrations and iterations
-6. `006_generate_environments.js` - Environments for applications
+6. `006_generate_environments.js` - Environments with iteration type rules:
+   - Every iteration gets all 3 roles (PROD, TEST, BACKUP)
+   - RUN/DR iterations: Never use PROD environment, only EV1-EV5
+   - CUTOVER iterations: Always assign PROD environment to PROD role
 7. `007_generate_controls.js` - Master controls
-8. `008_generate_labels.js` - Labels for various entities
+8. `008_generate_labels.js` - Labels with uniqueness per migration
 9. `009_generate_step_pilot_comments.js` - Pilot comments for steps
 10. `098_generate_instructions.js` - Master instructions for steps
 11. `099_generate_instance_data.js` - All instance records (plans, sequences, phases, steps, instructions, controls)

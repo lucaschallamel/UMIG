@@ -34,7 +34,14 @@
     * Dynamic UI controls based on user roles
     * Backend validation and frontend enforcement
 * **Phase 3: Frontend Development (Confluence Macro)**
-  * **Iteration View:** Complete implementation with hierarchical filtering, labels display, and dynamic updates
+  * **Iteration View:** Complete implementation with all operational features
+    * Hierarchical filtering with cascade logic across all levels
+    * Dynamic environment display with actual names and roles
+    * Predecessor step information display
+    * STATUS and PREDECESSOR fields with improved visibility
+    * Dynamic SCOPE from iteration types table
+    * Expand All/Collapse All runsheet controls
+    * Labels display with colored tags
   * **Admin GUI:** Comprehensive SPA for managing users, teams, environments, applications, and labels
   * **Modular Architecture:** 8-module JavaScript architecture replacing monolithic approach
   * **Error Handling:** Enhanced error messages and proper API response handling

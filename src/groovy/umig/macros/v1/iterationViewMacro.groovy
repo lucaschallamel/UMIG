@@ -93,8 +93,11 @@ return """
                     <span class=\"stat stat-blocked\">BLOCKED: <span id=\"blocked-steps\">0</span></span>
                     <span class=\"stat stat-cancelled\">CANCELLED: <span id=\"cancelled-steps\">0</span></span>
                 </div>
+                <div class=\"runsheet-controls\">
+                    <button class=\"btn btn-sm btn-secondary\" id=\"expand-all-btn\">➕ Expand All</button>
+                    <button class=\"btn btn-sm btn-secondary\" id=\"collapse-all-btn\">➖ Collapse All</button>
+                </div>
             </div>
-            <div class=\"runsheet-spacer\"></div>
             <div class=\"runsheet-content\" id=\"runsheet-content\">
                 <div class=\"placeholder-message\">
                     <p>📋 Select a migration and iteration to view steps</p>
