@@ -1950,41 +1950,111 @@ class IterationView {
     async handleDeleteComment(event) {
         const commentId = event.target.dataset.commentId;
         
-        if (!confirm('Are you sure you want to delete this comment?')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch(`/rest/scriptrunner/latest/custom/comments/${commentId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
+        // Use custom confirm dialog to avoid flickering issue
+        this.showDeleteConfirmDialog(
+            'Delete Comment',
+            'Are you sure you want to delete this comment?',
+            async () => {
+                try {
+                    const response = await fetch(`/rest/scriptrunner/latest/custom/comments/${commentId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Failed to delete comment: ${response.status}`);
+                    }
+                    
+                    // Remove the comment from DOM
+                    const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
+                    if (commentDiv) {
+                        commentDiv.remove();
+                    }
+                    
+                    // Update the comment count
+                    const commentsHeader = document.querySelector('.comments-section h4');
+                    if (commentsHeader) {
+                        const currentCount = parseInt(commentsHeader.textContent.match(/\d+/)[0]) || 0;
+                        commentsHeader.textContent = `💬 COMMENTS (${Math.max(0, currentCount - 1)})`;
+                    }
+                    
+                    this.showNotification('Comment deleted successfully', 'success');
+                    
+                } catch (error) {
+                    console.error('Error deleting comment:', error);
+                    this.showNotification('Failed to delete comment', 'error');
                 }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Failed to delete comment: ${response.status}`);
             }
-            
-            // Remove the comment from DOM
-            const commentDiv = document.querySelector(`[data-comment-id="${commentId}"]`);
-            if (commentDiv) {
-                commentDiv.remove();
+        );
+    }
+    
+    /**
+     * Show custom confirmation dialog to avoid Confluence modal flickering
+     */
+    showDeleteConfirmDialog(title, message, onConfirm) {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        `;
+        
+        // Create dialog
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 3px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.16);
+            padding: 20px;
+            width: 400px;
+            max-width: 90%;
+        `;
+        
+        dialog.innerHTML = `
+            <h3 style="margin: 0 0 10px 0; color: #172B4D;">${this.escapeHtml(title)}</h3>
+            <p style="margin: 0 0 20px 0; color: #5E6C84;">${this.escapeHtml(message)}</p>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="aui-button" id="cancel-delete-btn">Cancel</button>
+                <button class="aui-button aui-button-primary" id="confirm-delete-btn">Delete</button>
+            </div>
+        `;
+        
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        
+        // Handle button clicks
+        const cancelBtn = dialog.querySelector('#cancel-delete-btn');
+        const confirmBtn = dialog.querySelector('#confirm-delete-btn');
+        
+        const cleanup = () => {
+            overlay.remove();
+        };
+        
+        cancelBtn.addEventListener('click', cleanup);
+        confirmBtn.addEventListener('click', () => {
+            cleanup();
+            onConfirm();
+        });
+        
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                cleanup();
             }
-            
-            // Update the comment count
-            const commentsHeader = document.querySelector('.comments-section h4');
-            if (commentsHeader) {
-                const currentCount = parseInt(commentsHeader.textContent.match(/\d+/)[0]) || 0;
-                commentsHeader.textContent = `💬 COMMENTS (${Math.max(0, currentCount - 1)})`;
-            }
-            
-            this.showNotification('Comment deleted successfully', 'success');
-            
-        } catch (error) {
-            console.error('Error deleting comment:', error);
-            this.showNotification('Failed to delete comment', 'error');
-        }
+        });
+        
+        // Focus confirm button
+        confirmBtn.focus();
     }
     
     showNotification(message, type = 'info') {
