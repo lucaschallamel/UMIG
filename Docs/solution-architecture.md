@@ -288,12 +288,30 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 - **Complete Administration System:** Comprehensive interface for managing Users, Teams, Environments, Applications, Labels, and all master/instance entities
 - **SPA Pattern Implementation:** Single JavaScript controller (`admin-gui.js`) managing all entities through dynamic routing and content loading
 - **Entity Configuration:** Centralized entity definitions with field specifications, validation rules, and UI behavior
+
+### 5.4. Standalone Step View Pattern (July 2025)
+- **Purpose:** Provides focused, embeddable view for individual step execution outside the main iteration runsheet
+- **Architecture:** URL parameter-driven macro accepting migration name, iteration name, and step code for unique identification
+- **Implementation Pattern:**
+  - ScriptRunner macro (`stepViewMacro.groovy`) accepts three parameters: `?mig=xxx&ite=xxx&stepid=XXX-nnn`
+  - Dedicated API endpoint (`/stepViewApi/instance`) filters by migration and iteration names plus step code
+  - Comprehensive JavaScript controller (`step-view.js`) replicating all iteration view step functionality
+- **Features:** Role-based controls, instruction tracking, comment management, status updates, email notifications
+- **Use Cases:** Confluence page embedding, direct step linking, focused task execution
+
+#### Implementation Details
+- **Unique Identification:** Three-parameter approach (`migrationName`, `iterationName`, `stepCode`) ensures step uniqueness across multiple migrations and iterations
+- **API Integration:** Custom endpoint validates parameters and queries step instances using hierarchical filtering
+- **UI Consistency:** Reuses all iteration view components and styling for consistent user experience
+- **Role-Based Security:** Inherits same access control patterns as main iteration interface
+
+### 5.5. Admin GUI Extended Features
 - **Association Management:** Modal-based interfaces for managing many-to-many relationships (e.g., environment-application, environment-iteration, application-label associations)
 - **Custom Confirmation Dialogs:** Promise-based confirmation system replacing native `confirm()` to prevent UI flickering issues during destructive operations
 - **Notification System:** User feedback through slide-in/slide-out notifications with automatic dismissal
 - **Role-Based Access Control:** Navigation sections dynamically shown based on user roles (SUPERADMIN, ADMIN, PILOT)
 
-### 5.4. Custom Confirmation Dialog Pattern
+### 5.6. Custom Confirmation Dialog Pattern
 The environment management system implements a custom confirmation dialog pattern to resolve UI flickering issues that occur with the native JavaScript `confirm()` function in complex modal contexts.
 
 #### Problem Context

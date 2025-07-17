@@ -42,6 +42,13 @@
     * Dynamic SCOPE from iteration types table
     * Expand All/Collapse All runsheet controls
     * Labels display with colored tags
+    * Comment system with full CRUD operations
+    * Custom confirmation dialogs preventing UI flickering
+  * **Step View:** Standalone focused task execution interface
+    * URL parameter-driven macro for embedding in Confluence pages
+    * Complete feature parity with iteration view functionality
+    * Role-based access control integration
+    * Real-time instruction tracking and status updates
   * **Admin GUI:** Comprehensive SPA for managing users, teams, environments, applications, and labels
   * **Modular Architecture:** 8-module JavaScript architecture replacing monolithic approach
   * **Error Handling:** Enhanced error messages and proper API response handling
@@ -53,6 +60,11 @@
   * **Code Cleanup:** Removed all obsolete user management components
   * **Documentation Consistency:** README files and CHANGELOG updated to reflect current state
   * **Architecture Patterns:** N-tier model, hierarchical filtering, and type safety fully documented
+* **Phase 5: Data Quality & Operational Tools**
+  * **Environment Generation:** Fixed critical data quality issues with strict iteration type rules
+  * **Label Generation:** Resolved duplicate key violations with retry logic
+  * **Diagnostic Scripts:** Created comprehensive troubleshooting tools for environment associations
+  * **Unit Tests:** Added validation for business rules in data generation
 
 ## 2. What's Left to Build (MVP Scope)
 
@@ -66,7 +78,6 @@
   * **Real-time Updates:** Implement JavaScript for fetching and rendering runbook state via AJAX polling
   * **Status Management:** Develop UI components for changing status, adding comments, and interacting with controls
   * **Planner View:** Build the "Planner" view UI for schedule management
-  * **Step Management:** Complete remaining Iteration View features (status updates, real-time refresh)
 * **Phase 4: Deployment & Testing**
   * **Staging Deployment:** Deploy the macro and scripts to a staging Confluence instance
   * **Data Import:** Define and execute data import strategy for existing Confluence/Excel sources
