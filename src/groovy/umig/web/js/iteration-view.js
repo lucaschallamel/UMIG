@@ -1854,16 +1854,34 @@ class IterationView {
         
         if (!bodyDiv) return;
         
+        // Check if already in edit mode
+        if (bodyDiv.querySelector('textarea')) {
+            return;
+        }
+        
+        // Store the original text
         const currentText = bodyDiv.textContent;
+        bodyDiv.dataset.originalText = currentText;
         
         // Replace body with textarea
-        bodyDiv.innerHTML = `
-            <textarea id="edit-comment-${commentId}" rows="3" style="width: 100%;">${currentText}</textarea>
+        const editContainer = document.createElement('div');
+        editContainer.innerHTML = `
+            <textarea id="edit-comment-${commentId}" rows="3" style="width: 100%;">${this.escapeHtml(currentText)}</textarea>
             <div style="margin-top: 8px;">
-                <button class="btn btn-primary btn-sm" onclick="iterationView.saveCommentEdit('${commentId}')">Save</button>
-                <button class="btn btn-secondary btn-sm" onclick="iterationView.cancelCommentEdit('${commentId}', '${this.escapeHtml(currentText)}')">Cancel</button>
+                <button class="btn btn-primary btn-sm save-comment-btn" data-comment-id="${commentId}">Save</button>
+                <button class="btn btn-secondary btn-sm cancel-comment-btn" data-comment-id="${commentId}">Cancel</button>
             </div>
         `;
+        
+        bodyDiv.innerHTML = '';
+        bodyDiv.appendChild(editContainer);
+        
+        // Attach event listeners to the new buttons
+        const saveBtn = bodyDiv.querySelector('.save-comment-btn');
+        const cancelBtn = bodyDiv.querySelector('.cancel-comment-btn');
+        
+        saveBtn.addEventListener('click', () => this.saveCommentEdit(commentId));
+        cancelBtn.addEventListener('click', () => this.cancelCommentEdit(commentId));
         
         // Focus the textarea
         const textarea = document.getElementById(`edit-comment-${commentId}`);
@@ -1918,10 +1936,11 @@ class IterationView {
     /**
      * Cancel comment edit
      */
-    cancelCommentEdit(commentId, originalText) {
+    cancelCommentEdit(commentId) {
         const bodyDiv = document.getElementById(`comment-body-${commentId}`);
         if (bodyDiv) {
-            bodyDiv.innerHTML = originalText;
+            const originalText = bodyDiv.dataset.originalText || '';
+            bodyDiv.innerHTML = this.escapeHtml(originalText);
         }
     }
     
@@ -2075,6 +2094,9 @@ class IterationView {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     const iterationView = new IterationView();
+    
+    // Make iterationView globally accessible for inline event handlers
+    window.iterationView = iterationView;
     
     // Add expand/collapse all functionality
     const expandAllBtn = document.getElementById('expand-all-btn');
