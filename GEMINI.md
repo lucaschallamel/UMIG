@@ -39,6 +39,8 @@ UMIG/
 │           ├── api/                  # REST API endpoints
 │           │   ├── README.md         # API documentation
 │           │   └── v2/               # Version 2 APIs
+│           │       ├── ApplicationsApi.groovy
+│           │       ├── EmailTemplatesApi.groovy
 │           │       ├── EnvironmentsApi.groovy
 │           │       ├── LabelsApi.groovy
 │           │       ├── migrationApi.groovy
@@ -58,11 +60,16 @@ UMIG/
 │           │       └── iterationViewMacro.groovy  # Iteration view for cutover management
 │           ├── repository/           # Data access layer
 │           │   ├── README.md         # Repository documentation
+│           │   ├── ApplicationRepository.groovy
+│           │   ├── AuditLogRepository.groovy
+│           │   ├── EmailTemplateRepository.groovy
+│           │   ├── EnvironmentRepository.groovy
 │           │   ├── ImplementationPlanRepository.groovy
 │           │   ├── InstructionRepository.groovy
 │           │   ├── LabelRepository.groovy
 │           │   ├── LookupRepository.groovy
 │           │   ├── MigrationRepository.groovy
+│           │   ├── StatusRepository.groovy
 │           │   ├── StepRepository.groovy
 │           │   ├── StepTypeRepository.groovy
 │           │   ├── TeamMembersRepository.groovy
@@ -74,11 +81,14 @@ UMIG/
 │           │   │   ├── README.md     # API test documentation
 │           │   │   └── stepViewApiUnitTest.groovy
 │           │   ├── integration/      # Integration tests
+│           │   │   ├── emailNotificationTest.groovy
 │           │   │   └── stepViewApiIntegrationTest.groovy
+│           │   ├── EmailServiceTest.groovy
 │           │   ├── grab-postgres-jdbc.groovy
 │           │   └── run-integration-tests.sh
 │           ├── utils/                # Utility classes
-│           │   └── DatabaseUtil.groovy
+│           │   ├── DatabaseUtil.groovy
+│           │   └── EmailService.groovy
 │           └── web/                  # Frontend assets
 │               ├── README.md         # Web assets documentation
 │               ├── css/              # Stylesheets
@@ -223,7 +233,10 @@ npm test
 
 # Run Groovy integration tests (from project root)
 cd ..
-./tests/run-integration-tests.sh
+./src/groovy/umig/tests/run-integration-tests.sh
+
+# Test email notifications (ScriptRunner Console)
+# Execute EmailServiceTest.groovy or emailNotificationTest.groovy in ScriptRunner Console
 ```
 
 ### Generator Execution Order (Critical)
@@ -305,7 +318,7 @@ DatabaseUtil.withSql { sql ->
 
 ### REST Endpoint Structure
 - Base URL: `/rest/scriptrunner/latest/custom/`
-- Endpoints: `/users`, `/teams`, `/environments`, `/steps`, `/labels`, `/migrations`, `/stepViewApi`
+- Endpoints: `/users`, `/teams`, `/environments`, `/applications`, `/steps`, `/labels`, `/migrations`, `/stepViewApi`, `/emailTemplates`
 - V2 API conventions (documented in `docs/api/openapi.yaml`)
 
 ### Hierarchical Filtering Pattern (ADR-030, ADR-031)
@@ -487,6 +500,8 @@ All 33 Architecture Decision Records have been consolidated into `solution-archi
 7. **Naming**: Strict `snake_case` database conventions with `_master_`/`_instance_` suffixes
 8. **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
 9. **Zero Dependencies**: All frontend code must be pure vanilla JavaScript (reference `mock/` implementation)
+10. **Email Notifications**: Use EmailService.groovy for all email operations - reference `src/groovy/umig/utils/EmailService.groovy`
+11. **Repository Pattern**: All data access must use repository classes with proper error handling
 
 ### Project Context (Current State)
 - **Maturity**: Functional stage with iteration view complete and proven patterns established
