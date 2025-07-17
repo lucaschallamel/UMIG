@@ -1,5 +1,13 @@
 # API Coding Patterns (UMIG)
 
+## Step View API Pattern (2025-07-17)
+- Standalone step view API for retrieving individual step instance data
+- Implements three-parameter lookup: `?migrationName=xxx&iterationName=xxx&stepCode=XXX-nnn`
+- **UNIQUE PATTERN**: Uses migration/iteration names + step code for unique identification across all migrations
+- Comprehensive response includes step details, instructions, teams, labels, comments, and status history
+- **CRITICAL**: Joins through environment associations for proper environment role display
+- Supports both master step data and instance execution tracking
+
 ## Applications API Pattern (2025-07-15)
 - Extended Applications API with label association management endpoints
 - Implemented GET /applications/{id}/labels, PUT /applications/{appId}/labels/{labelId}, DELETE /applications/{appId}/labels/{labelId}

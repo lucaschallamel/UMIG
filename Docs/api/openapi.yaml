@@ -364,6 +364,65 @@ paths:
                   $ref: '#/components/schemas/StepView'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  
+  /stepViewApi/instance:
+    get:
+      tags:
+        - StepView
+      summary: Get step instance details by migration, iteration, and step code
+      description: |
+        Retrieves detailed information about a specific step instance in a given migration and iteration,
+        including instructions, comments, labels, and impacted teams. This endpoint is used
+        by the standalone step view macro to display a single step's details.
+      operationId: getStepInstanceByCode
+      parameters:
+        - name: migrationName
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Migration name
+          example: migrationa
+        - name: iterationName
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Iteration name
+          example: run1
+        - name: stepCode
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Z]{3}-\d{3}$'
+          description: Step code in format XXX-nnn (e.g., APP-001, DBM-042)
+          example: APP-001
+      responses:
+        '200':
+          description: Step instance details including instructions and metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StepInstanceDetails'
+        '400':
+          description: Bad request - invalid step code format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Missing required parameters. Expected: migrationName, iterationName, stepCode"
+        '404':
+          description: No step instance found for the given parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "No step instance found for step code: APP-001 in migration: migrationa, iteration: run1"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /teams:
     get:
@@ -2424,51 +2483,133 @@ components:
 
     StepInstanceDetails:
       type: object
+      description: Complete details for a step instance, including instructions, comments, and metadata
       properties:
-        stepInstanceId:
-          type: string
-          format: uuid
-          description: Step instance ID
-        stepCode:
-          type: string
-          description: Formatted step code (e.g., "BGO-001")
-        stepName:
-          type: string
-          description: Step name/title
-        stepDescription:
-          type: string
-          description: Step description
-        status:
-          type: string
-          description: Current step status
-        durationMinutes:
-          type: integer
-          description: Expected duration in minutes
-        ownerTeamId:
-          type: integer
-          description: ID of the owning team
-        ownerTeamName:
-          type: string
-          description: Name of the owning team
-        phaseId:
-          type: string
-          format: uuid
-          description: Phase instance ID
-        phaseName:
-          type: string
-          description: Phase name
-        sequenceId:
-          type: string
-          format: uuid
-          description: Sequence instance ID
-        sequenceName:
-          type: string
-          description: Sequence name
+        stepSummary:
+          type: object
+          description: Summary information about the step
+          properties:
+            ID:
+              type: string
+              format: uuid
+              description: Step instance ID
+            StepCode:
+              type: string
+              pattern: '^[A-Z]{3}-\d{3}$'
+              description: Step code (e.g., APP-001)
+            Name:
+              type: string
+              description: Step name
+            Status:
+              type: string
+              description: Current status of the step
+            Duration:
+              type: integer
+              nullable: true
+              description: Duration in minutes
+            AssignedTeam:
+              type: string
+              description: Name of the team assigned to this step
+            PredecessorCode:
+              type: string
+              nullable: true
+              description: Code of the predecessor step if any
+            PredecessorName:
+              type: string
+              nullable: true
+              description: Name of the predecessor step if any
+            TargetEnvironment:
+              type: string
+              nullable: true
+              description: Target environment for this step
+            Description:
+              type: string
+              nullable: true
+              description: Step description
+            MigrationName:
+              type: string
+              description: Name of the migration
+            IterationName:
+              type: string
+              description: Name of the iteration
+            PlanName:
+              type: string
+              description: Name of the plan
+            SequenceName:
+              type: string
+              description: Name of the sequence
+            PhaseName:
+              type: string
+              description: Name of the phase
+            Labels:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Label name
+                  color:
+                    type: string
+                    description: Label color in hex format
         instructions:
           type: array
+          description: List of instructions for this step
           items:
-            $ref: '#/components/schemas/InstructionInstance'
-          description: List of instruction instances for this step
+            type: object
+            properties:
+              Id:
+                type: string
+                format: uuid
+                description: Instruction instance ID
+              Order:
+                type: integer
+                description: Display order of the instruction
+              Description:
+                type: string
+                description: Instruction text
+              Duration:
+                type: integer
+                nullable: true
+                description: Duration in minutes
+              IsCompleted:
+                type: boolean
+                description: Whether the instruction is completed
+        impactedTeams:
+          type: array
+          description: Teams impacted by this step
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Team name
+        comments:
+          type: array
+          description: Comments on this step instance
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: Comment ID
+              body:
+                type: string
+                description: Comment text
+              createdAt:
+                type: string
+                format: date-time
+                description: When the comment was created
+              author:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Author's display name
+                  team:
+                    type: string
+                    nullable: true
+                    description: Author's team name
 
     InstructionInstance:
       type: object

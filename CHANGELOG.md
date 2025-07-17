@@ -1,5 +1,33 @@
 ### [Unreleased]
 
+#### 2025-07-17 (Standalone Step View Implementation & Iteration View Enhancements)
+- **Feature(Step View):** Implemented standalone step view macro for displaying individual steps
+  - Created new stepViewMacro.groovy that accepts URL parameters: ?mig=xxx&ite=xxx&stepid=XXX-nnn
+  - Modified stepViewApi.groovy to accept migration name, iteration name, and step code for unique identification
+  - Updated SQL query to filter by migration and iteration names instead of just active status
+  - Created comprehensive step-view.js (890 lines) with all iteration view features:
+    - Role-based controls (NORMAL, PILOT, ADMIN)
+    - Instruction completion tracking with real-time updates
+    - Comment management with add/edit/delete functionality
+    - Status updates with dynamic dropdown
+    - Email notifications on status changes
+    - Label display with colors
+    - Impacted teams listing
+  - Added user context and Confluence authentication integration
+  - Supports embedding in any Confluence page for focused step execution
+  - Example URL: http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001
+- **Enhancement(Iteration View):** Fixed comment functionality bugs
+  - Fixed multiple clicks on edit button inserting spaces/tabs
+  - Fixed cancel button not restoring original text
+  - Fixed save button ReferenceError by making iterationView globally accessible
+  - Replaced native confirm() with custom modal to prevent flickering
+  - Fixed 404 error on comment POST by correcting endpoint URL
+  - Removed "Mark all instructions as complete" and "Update status" buttons per user request
+- **API(Documentation):** Updated OpenAPI specification and Postman collection
+  - Added /stepViewApi/instance endpoint documentation
+  - Created StepInstanceDetails schema with complete response structure
+  - Regenerated Postman collection with new endpoint
+
 #### 2025-07-17 (Environment Generation Rules & Data Quality Improvements)
 - **Fix(Environment Generator):** Implemented strict iteration type rules for environment assignments
   - Ensures every iteration has all 3 roles (PROD, TEST, BACKUP) assigned
@@ -25,6 +53,18 @@
   - checkCutoverProdEnvironments.groovy - CUTOVER-specific environment validation
   - compareEnvironmentAssignments.groovy - Rule compliance verification
   - checkEnvironmentAssociations.sql - Manual SQL queries for troubleshooting
+
+#### 2025-07-17 (Workflow-Driven Development & Documentation)
+- **Workflow(Development):** Executed systematic development workflows
+  - Kick-off workflow: Reviewed project state and identified next priorities
+  - Memory bank update: Synchronised context files with latest achievements
+  - Developer journal: Created comprehensive session narrative
+  - Documentation update: Ensured all documentation reflects current state
+- **Documentation(Memory Bank):** Updated AI assistant context files
+  - activeContext.md: Updated focus to feature completion and operational tooling
+  - progress.md: Added Phase 5 for data quality improvements
+  - systemPatterns.md: Added new patterns for standalone views and custom UI
+  - techContext.md: Enhanced proven patterns section
 
 #### 2025-07-16 (Architecture Documentation Consolidation & Code Cleanup)
 - **Documentation(Solution Architecture):** Major consolidation of architectural decisions
