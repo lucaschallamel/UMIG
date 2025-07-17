@@ -967,7 +967,7 @@ class IterationView {
         };
         
         let html = `
-            <div class="step-info">
+            <div class="step-info" data-sti-id="${summary.ID || ''}">
                 <div class="step-title">
                     <h3>📋 ${summary.StepCode || 'Unknown'} - ${summary.Name || 'Unknown Step'}</h3>
                 </div>
@@ -1090,8 +1090,8 @@ class IterationView {
         }
         
         // Store the step instance ID for comment operations
-        if (summary.sti_id) {
-            this.currentStepInstanceId = summary.sti_id;
+        if (summary.ID) {
+            this.currentStepInstanceId = summary.ID;
         }
         
         // Add comment section with real data
