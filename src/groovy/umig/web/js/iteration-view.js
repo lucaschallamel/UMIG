@@ -59,6 +59,7 @@ class IterationView {
         this.userRole = null;
         this.isAdmin = false;
         this.userContext = null;
+        this.config = window.UMIG_ITERATION_CONFIG || { api: { baseUrl: '/rest/scriptrunner/latest/custom' } };
         
         this.initUserContext();
         this.init();
@@ -67,14 +68,13 @@ class IterationView {
     async initUserContext() {
         try {
             // Get user context from configuration
-            const config = window.UMIG_ITERATION_CONFIG;
-            if (!config || !config.confluence || !config.confluence.username) {
+            if (!this.config || !this.config.confluence || !this.config.confluence.username) {
                 console.warn('No user context available');
                 return;
             }
 
             // Fetch user role information from backend
-            const response = await fetch(`${config.api.baseUrl}/user/context?username=${encodeURIComponent(config.confluence.username)}`);
+            const response = await fetch(`${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(this.config.confluence.username)}`);
             if (response.ok) {
                 this.userContext = await response.json();
                 this.userRole = this.userContext.role || 'NORMAL';
@@ -90,7 +90,7 @@ class IterationView {
             } else {
                 console.warn('Failed to load user context:', response.status);
                 // TEMPORARY WORKAROUND: Check username for admin detection
-                const username = config.confluence.username;
+                const username = this.config.confluence.username;
                 if (username === 'admin' || username === 'guq') {
                     console.log('Admin user detected via workaround (404 response)');
                     this.userRole = 'ADMIN';
@@ -104,7 +104,7 @@ class IterationView {
         } catch (error) {
             console.error('Error loading user context:', error);
             // TEMPORARY WORKAROUND: Check username for admin detection
-            const username = config.confluence.username;
+            const username = this.config.confluence.username;
             if (username === 'admin' || username === 'guq') {
                 console.log('Admin user detected via workaround');
                 this.userRole = 'ADMIN';
@@ -771,7 +771,7 @@ class IterationView {
         
         try {
             // Call API to update status
-            const response = await fetch(`${this.config.api.baseUrl}/steps/instance/${stepId}/status`, {
+            const response = await fetch(`${this.config.api.baseUrl}/steps/${stepId}/status`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -926,9 +926,16 @@ class IterationView {
                 
                 this.showNotification('Instruction marked as complete', 'success');
             } else {
-                // For now, we don't allow unchecking completed instructions
-                checkbox.checked = true;
-                this.showNotification('Completed instructions cannot be undone', 'warning');
+                // Call API to mark instruction as incomplete
+                await this.uncompleteInstruction(stepId, instructionId);
+                
+                // Remove completed styling from the row
+                const row = checkbox.closest('.instruction-row');
+                if (row) {
+                    row.classList.remove('completed');
+                }
+                
+                this.showNotification('Instruction marked as incomplete', 'success');
             }
         } catch (error) {
             // Revert checkbox state on error
@@ -945,19 +952,48 @@ class IterationView {
      * Complete an instruction via API
      */
     async completeInstruction(stepId, instructionId) {
-        const response = await fetch(`/rest/scriptrunner/latest/custom/steps/${stepId}/instructions/${instructionId}/complete`, {
+        const response = await fetch(`${this.config.api.baseUrl}/steps/${stepId}/instructions/${instructionId}/complete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                userId: 1 // TODO: Get actual user ID from session/context
+                userId: this.userContext?.userId || null
             })
         });
         
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to complete instruction');
+        }
+        
+        const result = await response.json();
+        
+        // Log email notification info
+        if (result.emailsSent) {
+            console.log(`Email notifications sent: ${result.emailsSent}`);
+        }
+        
+        return result;
+    }
+
+    /**
+     * Mark an instruction as incomplete via API
+     */
+    async uncompleteInstruction(stepId, instructionId) {
+        const response = await fetch(`${this.config.api.baseUrl}/steps/${stepId}/instructions/${instructionId}/incomplete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: this.userContext?.userId || null
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to mark instruction as incomplete');
         }
         
         const result = await response.json();
