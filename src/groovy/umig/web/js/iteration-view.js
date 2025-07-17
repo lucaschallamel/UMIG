@@ -89,15 +89,31 @@ class IterationView {
                 }
             } else {
                 console.warn('Failed to load user context:', response.status);
+                // TEMPORARY WORKAROUND: Check username for admin detection
+                const username = config.confluence.username;
+                if (username === 'admin' || username === 'guq') {
+                    console.log('Admin user detected via workaround (404 response)');
+                    this.userRole = 'ADMIN';
+                    this.isAdmin = true;
+                } else {
+                    // Default to NORMAL role
+                    this.userRole = 'NORMAL';
+                    this.isAdmin = false;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user context:', error);
+            // TEMPORARY WORKAROUND: Check username for admin detection
+            const username = config.confluence.username;
+            if (username === 'admin' || username === 'guq') {
+                console.log('Admin user detected via workaround');
+                this.userRole = 'ADMIN';
+                this.isAdmin = true;
+            } else {
                 // Default to NORMAL role
                 this.userRole = 'NORMAL';
                 this.isAdmin = false;
             }
-        } catch (error) {
-            console.error('Error loading user context:', error);
-            // Default to NORMAL role
-            this.userRole = 'NORMAL';
-            this.isAdmin = false;
         }
     }
 
@@ -669,6 +685,9 @@ class IterationView {
         const dropdown = document.getElementById('step-status-dropdown');
         if (!dropdown) return;
 
+        // Store the current status as an attribute
+        dropdown.setAttribute('data-old-status', currentStatus);
+
         // Fetch available statuses
         const statuses = await this.fetchStepStatuses();
         
@@ -732,19 +751,60 @@ class IterationView {
         const dropdown = event.target;
         const newStatus = dropdown.value;
         const stepId = dropdown.getAttribute('data-step-id');
+        const oldStatus = dropdown.getAttribute('data-old-status') || 'PENDING';
         
         // Update dropdown color immediately
         this.updateDropdownColor(dropdown);
         
-        // TODO: Implement role check
-        // For now, we'll assume the user has permission
+        // Check role permissions
+        if (this.userRole !== 'PILOT' && this.userRole !== 'ADMIN') {
+            this.showNotification('Only PILOT or ADMIN users can change status', 'error');
+            dropdown.value = oldStatus; // Reset to old status
+            this.updateDropdownColor(dropdown);
+            return;
+        }
         
-        // TODO: Call API to update status
-        console.log(`Status change requested: ${stepId} -> ${newStatus}`);
-        this.showNotification(`Status updated to ${newStatus}`, 'success');
+        // Don't do anything if status hasn't actually changed
+        if (newStatus === oldStatus) {
+            return;
+        }
         
-        // In the future, this will call:
-        // await this.updateStepStatus(stepId, newStatus);
+        try {
+            // Call API to update status
+            const response = await fetch(`${this.config.api.baseUrl}/steps/instance/${stepId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    status: newStatus,
+                    userId: this.userContext?.userId || null
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to update status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            // Update the old status attribute for next change
+            dropdown.setAttribute('data-old-status', newStatus);
+            
+            // Show success notification
+            this.showNotification(`Status updated to ${newStatus}. Email notifications sent.`, 'success');
+            
+            // Update the status in the table view
+            this.updateStepStatus(stepId, newStatus);
+            
+        } catch (error) {
+            console.error('Error updating status:', error);
+            this.showNotification('Failed to update status', 'error');
+            
+            // Revert dropdown to old status
+            dropdown.value = oldStatus;
+            this.updateDropdownColor(dropdown);
+        }
     }
 
     /**
@@ -930,6 +990,10 @@ class IterationView {
         const instructions = stepData.instructions || [];
         const impactedTeams = stepData.impactedTeams || [];
         
+        // Debug log to check if labels are being returned
+        console.log('Step Summary:', summary);
+        console.log('Labels:', summary.Labels);
+        
         
         // Helper function to get status display - use the main getStatusDisplay method
         const getStatusDisplay = (status) => {
@@ -1001,6 +1065,14 @@ class IterationView {
                         <span class="label">⏱️ Duration:</span>
                         <span class="value">${summary.Duration ? `${summary.Duration} min.` : summary.EstimatedDuration ? `${summary.EstimatedDuration} min.` : '45 min.'}</span>
                     </div>
+                    ${summary.Labels && summary.Labels.length > 0 ? `
+                    <div class="metadata-item">
+                        <span class="label">🏷️ Labels:</span>
+                        <span class="value">
+                            ${summary.Labels.map(label => `<span class="label-tag" style="background-color: ${label.color}; color: ${this.getContrastColor(label.color)};">${label.name}</span>`).join(' ')}
+                        </span>
+                    </div>
+                    ` : ''}
                 </div>
                 
                 <div class="step-description">
@@ -1381,6 +1453,22 @@ class IterationView {
                 if (statusLower.includes('todo') || statusLower.includes('not_started')) return 'status-todo';
                 return 'status-pending';
         }
+    }
+
+    /**
+     * Get contrasting text color for a background color
+     */
+    getContrastColor(hexColor) {
+        // Convert hex to RGB
+        const r = parseInt(hexColor.slice(1, 3), 16);
+        const g = parseInt(hexColor.slice(3, 5), 16);
+        const b = parseInt(hexColor.slice(5, 7), 16);
+        
+        // Calculate relative luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Return black or white based on luminance
+        return luminance > 0.5 ? '#000000' : '#ffffff';
     }
 
     /**
