@@ -528,7 +528,7 @@ class StepRepository {
      */
     def findStepInstanceDetailsById(UUID stepInstanceId) {
         DatabaseUtil.withSql { Sql sql ->
-            // Get the step instance with master data
+            // Get the step instance with master data and hierarchy
             def stepInstance = sql.firstRow('''
                 SELECT 
                     sti.sti_id,
@@ -537,6 +537,8 @@ class StepRepository {
                     sti.sti_duration_minutes,
                     sti.phi_id,
                     sti.enr_id,
+                    enr.enr_name as environment_role_name,
+                    env.env_name as environment_name,
                     stm.stm_id,
                     stm.stt_code,
                     stm.stm_number,
@@ -544,10 +546,35 @@ class StepRepository {
                     stm.stm_description,
                     stm.stm_duration_minutes as master_duration,
                     stm.tms_id_owner,
-                    owner_team.tms_name as owner_team_name
+                    owner_team.tms_name as owner_team_name,
+                    stm.stm_id_predecessor,
+                    -- Predecessor step info
+                    pred_stm.stt_code as predecessor_stt_code,
+                    pred_stm.stm_number as predecessor_stm_number,
+                    pred_stm.stm_name as predecessor_name,
+                    -- Hierarchy data
+                    mig.mig_name as migration_name,
+                    ite.ite_name as iteration_name,
+                    plm.plm_name as plan_name,
+                    sqm.sqm_name as sequence_name,
+                    phm.phm_name as phase_name
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                LEFT JOIN steps_master_stm pred_stm ON stm.stm_id_predecessor = pred_stm.stm_id
+                LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
+                -- Join to get hierarchy
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                -- Join to get actual environment name for this iteration and role
+                LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                LEFT JOIN environments_env env ON eei.env_id = env.env_id
                 WHERE sti.sti_id = :stepInstanceId
             ''', [stepInstanceId: stepInstanceId])
             
@@ -571,6 +598,15 @@ class StepRepository {
                 WHERE ini.sti_id = :stepInstanceId
                 ORDER BY inm.inm_order
             ''', [stepInstanceId: stepInstanceId])
+            
+            // Get iteration types (scope) for this step
+            def iterationTypes = sql.rows('''
+                SELECT itt.itt_code, itt.itt_name
+                FROM steps_master_stm_x_iteration_types_itt smit
+                JOIN iteration_types_itt itt ON smit.itt_code = itt.itt_code
+                WHERE smit.stm_id = :stmId
+                ORDER BY itt.itt_code
+            ''', [stmId: stepInstance.stm_id])
             
             // Get impacted teams using the master step ID
             def impactedTeamIds = sql.rows('''
@@ -598,7 +634,25 @@ class StepRepository {
                     Status: stepInstance.sti_status,
                     Duration: stepInstance.sti_duration_minutes ?: stepInstance.master_duration,
                     AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
-                    StepCode: "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}"
+                    StepCode: "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}",
+                    // Hierarchy information
+                    MigrationName: stepInstance.migration_name,
+                    IterationName: stepInstance.iteration_name,
+                    PlanName: stepInstance.plan_name,
+                    SequenceName: stepInstance.sequence_name,
+                    PhaseName: stepInstance.phase_name,
+                    // Predecessor information
+                    PredecessorCode: stepInstance.predecessor_stt_code && stepInstance.predecessor_stm_number ? 
+                        "${stepInstance.predecessor_stt_code}-${String.format('%03d', stepInstance.predecessor_stm_number)}" : null,
+                    PredecessorName: stepInstance.predecessor_name,
+                    // Environment role
+                    TargetEnvironment: stepInstance.environment_role_name ? 
+                        (stepInstance.environment_name ? 
+                            "${stepInstance.environment_role_name} (${stepInstance.environment_name})" : 
+                            "${stepInstance.environment_role_name} (!No Environment Assigned Yet!)") : 
+                        'Not specified',
+                    // Iteration types (scope)
+                    IterationTypes: iterationTypes.collect { it.itt_code }
                 ],
                 instructions: instructions.collect { instruction ->
                     [

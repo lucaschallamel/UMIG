@@ -2,9 +2,32 @@
 
 ## 1. Current Work Focus
 
-The project is in the **production readiness phase** with a strong focus on **documentation consolidation and code optimisation**. Recent work has centred on consolidating all architectural decisions into a single source of truth and removing obsolete code components to streamline the codebase for MVP delivery.
+The project is in the **production readiness phase** with a strong focus on **data quality improvements and UI enhancements**. Recent work has centred on fixing critical data generation issues and completing the iteration view interface for operational use.
 
 ## 2. Recent Changes & Decisions
+
+### Major Achievements (17 July 2025)
+* **Environment Generation Rules:** Fixed critical data quality issues
+  * **Strict Iteration Type Rules:** Every iteration now has all 3 roles (PROD, TEST, BACKUP)
+  * **RUN/DR Safety:** These iterations never use PROD environment, only EV1-EV5
+  * **CUTOVER Compliance:** Always assigns PROD environment to PROD role
+  * **Test Coverage:** Comprehensive unit tests validate business rules
+  * **User Impact:** Fixes "(!No Environment Assigned Yet!)" display issues
+* **Label Generator Fix:** Resolved duplicate key violations
+  * **Uniqueness Tracking:** Per-migration tracking prevents duplicate names
+  * **Retry Logic:** Automatic suffix generation guarantees uniqueness
+  * **Error Prevention:** Eliminates constraint violation errors during generation
+* **Iteration View Completion:** Dynamic environment display fully operational
+  * **Environment Names:** Shows actual names alongside roles (e.g., "PROD (PROD)")
+  * **Predecessor Display:** Added step predecessor information
+  * **UI Improvements:** STATUS and PREDECESSOR fields repositioned for visibility
+  * **Dynamic SCOPE:** Pulls from steps_master_stm_x_iteration_types_itt table
+  * **Expand/Collapse:** Added runsheet panel controls for better navigation
+* **Diagnostic Tooling:** New scripts for troubleshooting
+  * checkEnvironmentAssociations.groovy - General environment checks
+  * checkCutoverProdEnvironments.groovy - CUTOVER-specific validation
+  * compareEnvironmentAssignments.groovy - Rule compliance verification
+  * checkEnvironmentAssociations.sql - Manual SQL queries
 
 ### Major Achievements (16 July 2025)
 * **Architecture Documentation Consolidation:** Major milestone in project documentation
