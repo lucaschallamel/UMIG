@@ -185,6 +185,90 @@ class EmailService {
     }
     
     /**
+     * Send notification when a USER uncompletes an instruction
+     * Recipients: Assigned TEAM + IMPACTED TEAMS + INSTRUCTION TEAM (if different)
+     */
+    static void sendInstructionUncompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                def recipients = extractTeamEmails(teams)
+                
+                if (!recipients) {
+                    println "EmailService: No recipients found for instruction ${instruction.ini_name}"
+                    return
+                }
+                
+                // Get email template
+                def template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_UNCOMPLETED')
+                if (!template) {
+                    // Fallback to INSTRUCTION_COMPLETED template if UNCOMPLETED doesn't exist
+                    template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
+                    if (!template) {
+                        println "EmailService: No active template found for INSTRUCTION_UNCOMPLETED or INSTRUCTION_COMPLETED"
+                        return
+                    }
+                }
+                
+                // Prepare template variables
+                def variables = [
+                    instruction: instruction,
+                    stepInstance: stepInstance,
+                    uncompletedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    uncompletedBy: getUsernameById(sql, userId),
+                    actionType: 'uncompleted' // To differentiate in template
+                ]
+                
+                // Process template
+                def processedSubject = processTemplate(template.emt_subject as String, variables)
+                def processedBody = processTemplate(template.emt_body_html as String, variables)
+                
+                // Modify subject if using the completed template as fallback
+                if (template.emt_type == 'INSTRUCTION_COMPLETED') {
+                    processedSubject = processedSubject.replace('Completed', 'Uncompleted')
+                }
+                
+                // Send email
+                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                
+                // Log the notification
+                if (emailSent) {
+                    AuditLogRepository.logEmailSent(
+                        sql,
+                        userId,
+                        UUID.fromString(instruction.ini_id as String),
+                        recipients,
+                        processedSubject,
+                        template.emt_id as UUID,
+                        [
+                            notification_type: 'INSTRUCTION_UNCOMPLETED',
+                            instruction_name: instruction.ini_name,
+                            step_name: stepInstance.sti_name
+                        ]
+                    )
+                }
+                
+            } catch (Exception e) {
+                logError('sendInstructionUncompletedNotification', e, [
+                    instructionId: instruction.ini_id,
+                    stepId: stepInstance.sti_id
+                ])
+                
+                // Log the failure
+                DatabaseUtil.withSql { errorSql ->
+                    AuditLogRepository.logEmailFailed(
+                        errorSql,
+                        userId,
+                        UUID.fromString(instruction.ini_id as String),
+                        extractTeamEmails(teams),
+                        "[UMIG] Instruction Uncompleted: ${instruction.ini_name}",
+                        e.message
+                    )
+                }
+            }
+        }
+    }
+    
+    /**
      * Send notification when a USER changes step-level status
      * Recipients: Assigned TEAM + IMPACTED TEAMS + IT CUTOVER TEAM
      */

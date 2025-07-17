@@ -46,6 +46,10 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 * **Association Management Pattern:** Many-to-many relationships are managed through dedicated API endpoints with add/remove functionality and proper UI integration.
 * **Dynamic Filtering Pattern:** Hierarchical dropdowns dynamically filter based on parent selections (e.g., steps filtered by selected migration).
 * **Data Import Strategy:** Efficient bulk loading using PostgreSQL `\copy` command (ADR-028) for importing Confluence JSON exports.
+* **Standalone Step View Pattern:** URL parameter-driven macros for focused task execution with complete feature parity to main interfaces.
+* **Custom Confirmation Dialog Pattern:** Promise-based confirmation system replacing native dialogs to prevent UI flickering in complex modal contexts.
+* **Environment Assignment Rules:** Strict business rules ensuring RUN/DR iterations avoid PROD environment whilst CUTOVER iterations always have PROD assigned.
+* **Data Generation Patterns:** Uniqueness tracking and retry logic with automatic suffix generation for preventing constraint violations.
 
 ## 3. Component Relationships
 

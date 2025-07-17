@@ -15,8 +15,8 @@ This folder contains all JavaScript and CSS assets used by UMIG macros.
     - `UiUtils.js`: Shared utility functions and UI helpers (includes color contrast calculation)
   - **Macro-specific files**:
     - `admin-gui.js`: Main admin GUI entry point
-    - `iteration-view.js`: Iteration view functionality
-    - `step-view.js`: Step view functionality
+    - `iteration-view.js`: Iteration view functionality for cutover management
+    - `step-view.js`: Standalone step view functionality (890 lines) ✅ New (July 2025)
     - `hello-world.js`: Example/test script
     - `umig-ip-macro.js`: Implementation plan functionality
 - `css/`: All macro frontend CSS files

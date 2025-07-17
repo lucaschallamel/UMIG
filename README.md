@@ -461,6 +461,28 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
 
+### Step View System (✅ Completed - July 2025)
+
+The **Step View** is a standalone macro for embedding individual step interfaces in Confluence pages:
+
+- **Specification**: `docs/ui-ux/step-view.md`
+- **Macro Implementation**: `src/groovy/umig/macros/v1/stepViewMacro.groovy`
+- **Frontend Implementation**: `src/groovy/umig/web/js/step-view.js` (890 lines)
+- **API Backend**: `src/groovy/umig/api/v2/stepViewApi.groovy`
+
+**Key Features (2025-07-17)**:
+- **Three-Parameter URL Support**: `?mig=migrationName&ite=iterationName&stepid=XXX-nnn`
+- **Feature Parity**: All iteration view step panel capabilities
+- **Role-Based Controls**: NORMAL (read-only), PILOT (operational), ADMIN (full access)
+- **Embeddable Design**: Can be inserted into any Confluence page for focused step execution
+- **Real-time Updates**: Instruction completion, status changes, comment management
+- **Email Notifications**: Automatic notifications on status changes
+
+**Example Usage**:
+```
+http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001
+```
+
 ### Current Focus: Iteration View System
 
 The **Iteration View** is the primary runsheet interface for cutover events:
