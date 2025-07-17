@@ -2,9 +2,43 @@
 
 ## 1. Current Work Focus
 
-The project is in the **production readiness phase** with a strong focus on **documentation consolidation and code optimisation**. Recent work has centred on consolidating all architectural decisions into a single source of truth and removing obsolete code components to streamline the codebase for MVP delivery.
+The project is in the **production readiness phase** with a strong focus on **feature completion and operational tooling**. Recent work has delivered standalone step view functionality, critical data quality fixes, and comprehensive UI enhancements, positioning the project for final MVP delivery.
 
 ## 2. Recent Changes & Decisions
+
+### Major Achievements (17 July 2025)
+* **Standalone Step View Implementation:** New focused task execution interface
+  * **URL Parameter-Driven:** Macro accepts migration, iteration, and step code for unique identification
+  * **Comprehensive Features:** All iteration view capabilities in standalone format
+  * **Role-Based Controls:** NORMAL, PILOT, ADMIN permissions with Confluence integration
+  * **Real-Time Updates:** Instruction tracking, comments, status changes with email notifications
+  * **Embeddable Design:** Can be embedded in any Confluence page for focused execution
+  * **Example Usage:** `?mig=migrationa&ite=run1&stepid=DEC-001`
+* **Environment Generation Rules:** Fixed critical data quality issues
+  * **Strict Iteration Type Rules:** Every iteration now has all 3 roles (PROD, TEST, BACKUP)
+  * **RUN/DR Safety:** These iterations never use PROD environment, only EV1-EV5
+  * **CUTOVER Compliance:** Always assigns PROD environment to PROD role
+  * **Test Coverage:** Comprehensive unit tests validate business rules
+  * **User Impact:** Fixes "(!No Environment Assigned Yet!)" display issues
+* **Label Generator Fix:** Resolved duplicate key violations
+  * **Uniqueness Tracking:** Per-migration tracking prevents duplicate names
+  * **Retry Logic:** Automatic suffix generation guarantees uniqueness
+  * **Error Prevention:** Eliminates constraint violation errors during generation
+* **Iteration View Enhancements:** Multiple bug fixes and UI improvements
+  * **Comment System Fixed:** Resolved edit/cancel/save issues and POST endpoint URL
+  * **Custom Confirmation Dialog:** Replaced native confirm() to prevent UI flickering
+  * **Environment Display:** Shows actual names with roles (e.g., "PROD (PROD)")
+  * **Predecessor Information:** Added step predecessor details
+  * **UI Reorganisation:** STATUS and PREDECESSOR fields repositioned for visibility
+  * **Dynamic SCOPE:** Pulls from steps_master_stm_x_iteration_types_itt table
+  * **Runsheet Controls:** Added Expand All/Collapse All functionality
+  * **Button Removal:** Removed "Mark all complete" and "Update status" per user request
+* **API Documentation:** Updated OpenAPI specification with step view endpoint
+* **Diagnostic Tooling:** New scripts for troubleshooting
+  * checkEnvironmentAssociations.groovy - General environment checks
+  * checkCutoverProdEnvironments.groovy - CUTOVER-specific validation
+  * compareEnvironmentAssignments.groovy - Rule compliance verification
+  * checkEnvironmentAssociations.sql - Manual SQL queries
 
 ### Major Achievements (16 July 2025)
 * **Architecture Documentation Consolidation:** Major milestone in project documentation

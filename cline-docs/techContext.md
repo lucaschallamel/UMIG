@@ -52,3 +52,7 @@
 * **Testing Framework:** ScriptRunner Console integration for end-to-end email notification testing.
 * **Role-Based Access Control:** Three-tier permission system with Confluence integration (ADR-033).
 * **Data Import:** Efficient bulk loading using PostgreSQL `\copy` command for JSON imports (ADR-028).
+* **Standalone Macros:** URL parameter-driven macros for focused execution with migration/iteration/step identification.
+* **Custom UI Components:** Promise-based confirmation dialogs preventing native dialog flickering issues.
+* **Business Rule Enforcement:** Environment assignment rules with comprehensive unit test validation.
+* **Data Quality Assurance:** Uniqueness tracking and automatic retry logic in data generators.

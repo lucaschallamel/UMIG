@@ -5,7 +5,7 @@
             "description": "Operations related to the STEP View component.",
             "item": [
                 {
-                    "id": "3f3d4105-162c-4d87-8773-f1bb7ebf5b40",
+                    "id": "ac43092a-3500-449c-a383-e953a57c8a7d",
                     "name": "Get all step view data",
                     "request": {
                         "name": "Get all step view data",
@@ -35,7 +35,7 @@
                     },
                     "response": [
                         {
-                            "id": "d0ab2d48-22e4-411c-8ef3-a79da021cab5",
+                            "id": "85b06612-f941-4e5f-908b-c2567a6461f4",
                             "name": "Successful operation",
                             "originalRequest": {
                                 "url": {
@@ -70,7 +70,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7a611e7d-2c4b-4eb9-8d7f-929419ae6e63",
+                            "id": "af5cf388-4c31-4401-8d2c-b95d76c98ac7",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -109,6 +109,327 @@
                     "protocolProfileBehavior": {
                         "disableBodyPruning": true
                     }
+                },
+                {
+                    "id": "73be689d-8ef3-41ee-9381-02d9dfc33875",
+                    "name": "Get step instance details by migration, iteration, and step code",
+                    "request": {
+                        "name": "Get step instance details by migration, iteration, and step code",
+                        "description": {
+                            "content": "Retrieves detailed information about a specific step instance in a given migration and iteration,\nincluding instructions, comments, labels, and impacted teams. This endpoint is used\nby the standalone step view macro to display a single step's details.\n",
+                            "type": "text/plain"
+                        },
+                        "url": {
+                            "path": [
+                                "stepViewApi",
+                                "instance"
+                            ],
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "query": [
+                                {
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) Migration name",
+                                        "type": "text/plain"
+                                    },
+                                    "key": "migrationName",
+                                    "value": "<string>"
+                                },
+                                {
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) Iteration name",
+                                        "type": "text/plain"
+                                    },
+                                    "key": "iterationName",
+                                    "value": "<string>"
+                                },
+                                {
+                                    "disabled": false,
+                                    "description": {
+                                        "content": "(Required) Step code in format XXX-nnn (e.g., APP-001, DBM-042)",
+                                        "type": "text/plain"
+                                    },
+                                    "key": "stepCode",
+                                    "value": "MMB-395"
+                                }
+                            ],
+                            "variable": []
+                        },
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "method": "GET",
+                        "body": {},
+                        "auth": null
+                    },
+                    "response": [
+                        {
+                            "id": "2ee80e03-68d2-44fc-ad5f-7b7b60518465",
+                            "name": "Step instance details including instructions and metadata",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "stepViewApi",
+                                        "instance"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Migration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "migrationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Iteration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "iterationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Step code in format XXX-nnn (e.g., APP-001, DBM-042)",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "stepCode",
+                                            "value": "MMB-395"
+                                        }
+                                    ],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "GET",
+                                "body": {}
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"stepSummary\": {\n    \"ID\": \"<uuid>\",\n    \"StepCode\": \"LND-873\",\n    \"Name\": \"<string>\",\n    \"Status\": \"<string>\",\n    \"Duration\": \"<integer>\",\n    \"AssignedTeam\": \"<string>\",\n    \"PredecessorCode\": \"<string>\",\n    \"PredecessorName\": \"<string>\",\n    \"TargetEnvironment\": \"<string>\",\n    \"Description\": \"<string>\",\n    \"MigrationName\": \"<string>\",\n    \"IterationName\": \"<string>\",\n    \"PlanName\": \"<string>\",\n    \"SequenceName\": \"<string>\",\n    \"PhaseName\": \"<string>\",\n    \"Labels\": [\n      {\n        \"name\": \"<string>\",\n        \"color\": \"<string>\"\n      },\n      {\n        \"name\": \"<string>\",\n        \"color\": \"<string>\"\n      }\n    ]\n  },\n  \"instructions\": [\n    {\n      \"Id\": \"<uuid>\",\n      \"Order\": \"<integer>\",\n      \"Description\": \"<string>\",\n      \"Duration\": \"<integer>\",\n      \"IsCompleted\": \"<boolean>\"\n    },\n    {\n      \"Id\": \"<uuid>\",\n      \"Order\": \"<integer>\",\n      \"Description\": \"<string>\",\n      \"Duration\": \"<integer>\",\n      \"IsCompleted\": \"<boolean>\"\n    }\n  ],\n  \"impactedTeams\": [\n    {\n      \"name\": \"<string>\"\n    },\n    {\n      \"name\": \"<string>\"\n    }\n  ],\n  \"comments\": [\n    {\n      \"id\": \"<integer>\",\n      \"body\": \"<string>\",\n      \"createdAt\": \"<dateTime>\",\n      \"author\": {\n        \"name\": \"<string>\",\n        \"team\": \"<string>\"\n      }\n    },\n    {\n      \"id\": \"<integer>\",\n      \"body\": \"<string>\",\n      \"createdAt\": \"<dateTime>\",\n      \"author\": {\n        \"name\": \"<string>\",\n        \"team\": \"<string>\"\n      }\n    }\n  ]\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        },
+                        {
+                            "id": "de69b872-5c10-414c-9533-53b9dfc10143",
+                            "name": "Bad request - invalid step code format",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "stepViewApi",
+                                        "instance"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Migration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "migrationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Iteration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "iterationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Step code in format XXX-nnn (e.g., APP-001, DBM-042)",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "stepCode",
+                                            "value": "MMB-395"
+                                        }
+                                    ],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "GET",
+                                "body": {}
+                            },
+                            "status": "Bad Request",
+                            "code": 400,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"code\": \"<string>\",\n  \"message\": \"<string>\"\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        },
+                        {
+                            "id": "e6524085-339a-4503-91d9-216a65f8fdaa",
+                            "name": "No step instance found for the given parameters",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "stepViewApi",
+                                        "instance"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Migration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "migrationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Iteration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "iterationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Step code in format XXX-nnn (e.g., APP-001, DBM-042)",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "stepCode",
+                                            "value": "MMB-395"
+                                        }
+                                    ],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "GET",
+                                "body": {}
+                            },
+                            "status": "Not Found",
+                            "code": 404,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"code\": \"<string>\",\n  \"message\": \"<string>\"\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        },
+                        {
+                            "id": "8189e3c2-8528-4677-b21d-3c63b682881f",
+                            "name": "An unexpected internal server error occurred.",
+                            "originalRequest": {
+                                "url": {
+                                    "path": [
+                                        "stepViewApi",
+                                        "instance"
+                                    ],
+                                    "host": [
+                                        "{{baseUrl}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Migration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "migrationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Iteration name",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "iterationName",
+                                            "value": "<string>"
+                                        },
+                                        {
+                                            "disabled": false,
+                                            "description": {
+                                                "content": "(Required) Step code in format XXX-nnn (e.g., APP-001, DBM-042)",
+                                                "type": "text/plain"
+                                            },
+                                            "key": "stepCode",
+                                            "value": "MMB-395"
+                                        }
+                                    ],
+                                    "variable": []
+                                },
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "method": "GET",
+                                "body": {}
+                            },
+                            "status": "Internal Server Error",
+                            "code": 500,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"code\": \"<string>\",\n  \"message\": \"<string>\"\n}",
+                            "cookie": [],
+                            "_postman_previewlanguage": "json"
+                        }
+                    ],
+                    "event": [],
+                    "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                    }
                 }
             ]
         },
@@ -117,7 +438,7 @@
             "description": "Operations about migrations, iterations, sequences and phases.",
             "item": [
                 {
-                    "id": "97d6d6e2-e276-4c3a-9da5-204d4f590daf",
+                    "id": "78ed29a7-caca-4da1-89fd-c75eeb1f2860",
                     "name": "Get a specific iteration",
                     "request": {
                         "name": "Get a specific iteration",
@@ -168,7 +489,7 @@
                     },
                     "response": [
                         {
-                            "id": "816a4753-3aa9-4440-9d41-a9196202e8b8",
+                            "id": "eaf76740-a8a4-48b4-b87b-a1c263ac18d6",
                             "name": "A single iteration",
                             "originalRequest": {
                                 "url": {
@@ -206,7 +527,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "83c25b27-94cd-4d5c-acc3-ea9b7cd2d0c2",
+                            "id": "05147d20-a584-484e-9ecc-c72169e61c09",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -244,7 +565,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ead75fc6-cbf1-4942-98e6-fd2d28b2b49a",
+                            "id": "9deb17d1-619f-457e-8216-d8b13559cdd8",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -282,7 +603,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "40ef23b1-f4d2-4f2b-beb2-22f5036c6c4d",
+                            "id": "c20f509a-97ab-455e-9f1a-47437022113c",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -326,7 +647,7 @@
                     }
                 },
                 {
-                    "id": "dbc0ea29-a5a7-4329-a973-f5b3191e5111",
+                    "id": "2196e781-227d-4c88-8816-5e273e2e21a7",
                     "name": "List all plan instances for an iteration",
                     "request": {
                         "name": "List all plan instances for an iteration",
@@ -378,7 +699,7 @@
                     },
                     "response": [
                         {
-                            "id": "33d7779f-00b5-40a8-9986-c32139a47d19",
+                            "id": "bc48987a-1861-4744-9503-78c964fea4ad",
                             "name": "All plan instances for the given iteration",
                             "originalRequest": {
                                 "url": {
@@ -417,7 +738,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c046f44d-b241-4999-b50a-4461d4d1bca6",
+                            "id": "05b0c360-f612-4b58-b80d-bb496f80cb30",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -456,7 +777,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "10921c37-6c51-4d9d-9509-4a2d9219a121",
+                            "id": "e8a11688-33be-4ea0-b48b-2ea4a7be0a98",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -495,7 +816,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "647c9cb4-db79-4f3b-8f2a-27e09b1d9c19",
+                            "id": "53126bc4-a02b-46db-9362-1d910a3ec5e2",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -540,7 +861,7 @@
                     }
                 },
                 {
-                    "id": "ebe72b09-f590-47b1-8302-daf6818753bd",
+                    "id": "3eed5a4d-9b6f-4b37-9434-557b7dbaa9dd",
                     "name": "List all sequences for an iteration",
                     "request": {
                         "name": "List all sequences for an iteration",
@@ -592,7 +913,7 @@
                     },
                     "response": [
                         {
-                            "id": "2c15ee04-f259-4d17-aa50-3e5dea52e777",
+                            "id": "4466c420-0edd-462d-a558-61812ff7998f",
                             "name": "All sequences for the given iteration",
                             "originalRequest": {
                                 "url": {
@@ -631,7 +952,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "6d5f3324-f6a1-40dd-afab-c99168ee9346",
+                            "id": "ad8829fa-df6c-482b-b447-9529fa6cc074",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -670,7 +991,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "3773c908-5317-48ca-aca4-affd7247f5f0",
+                            "id": "0643ad23-75f4-45e0-8e0a-5876a6a81d8e",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -709,7 +1030,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "960983b3-f4ff-4e88-be6c-b387706b1d7e",
+                            "id": "30672a92-67e7-476f-b6bd-7a74fee2f455",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -754,7 +1075,7 @@
                     }
                 },
                 {
-                    "id": "02c406a9-7fdc-4a44-81d8-bbc12298b6c2",
+                    "id": "876017c3-2b4f-4974-9542-3e3642aa85ef",
                     "name": "List all phases for an iteration",
                     "request": {
                         "name": "List all phases for an iteration",
@@ -806,7 +1127,7 @@
                     },
                     "response": [
                         {
-                            "id": "6b38c3aa-2035-429b-99dc-0414a8c6e7cd",
+                            "id": "bd7813d8-35d8-40eb-aa93-11846adc2097",
                             "name": "All phases for the given iteration",
                             "originalRequest": {
                                 "url": {
@@ -845,7 +1166,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1c121c45-0b7b-4d89-ae36-665eab6100e2",
+                            "id": "7f4c3471-f31b-4ae0-9a0c-3427d40fdde9",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -884,7 +1205,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "bc71579d-b906-498d-b6ae-dbf19225096e",
+                            "id": "1a9fed3f-16a1-4c7b-b9b5-5aad4c4e85b4",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -923,7 +1244,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7e7af44f-1e4e-4e3c-a3e1-79d4ba2273c2",
+                            "id": "0219cd42-ea39-48b9-9c76-3617eb62c293",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -968,7 +1289,7 @@
                     }
                 },
                 {
-                    "id": "150c58dc-7441-413d-a628-152abe2ac0b6",
+                    "id": "5af0c5b0-2170-421a-aa9c-1549dbfc2484",
                     "name": "List all sequences for a plan instance",
                     "request": {
                         "name": "List all sequences for a plan instance",
@@ -1032,7 +1353,7 @@
                     },
                     "response": [
                         {
-                            "id": "7c89f500-1e25-426a-91c0-c50312212f1f",
+                            "id": "9cc5e191-16da-44aa-a88a-f9acd3c2ab12",
                             "name": "All sequences for the given plan instance",
                             "originalRequest": {
                                 "url": {
@@ -1079,7 +1400,7 @@
                     }
                 },
                 {
-                    "id": "81bd0012-cec0-4f86-b4de-732dcec0851c",
+                    "id": "7526c16b-9f97-4e5a-b790-851be5a8ff98",
                     "name": "List all phases for a plan instance",
                     "request": {
                         "name": "List all phases for a plan instance",
@@ -1143,7 +1464,7 @@
                     },
                     "response": [
                         {
-                            "id": "e81d8c71-d9bd-42de-b035-cbf00fda4c30",
+                            "id": "46465f0d-a061-4036-be7f-3e7777654a68",
                             "name": "All phases for the given plan instance",
                             "originalRequest": {
                                 "url": {
@@ -1190,7 +1511,7 @@
                     }
                 },
                 {
-                    "id": "89177c79-5931-4c19-8ab1-102b1dc82479",
+                    "id": "16816c60-163d-4374-86fd-575a498cefc7",
                     "name": "List all phases for a sequence",
                     "request": {
                         "name": "List all phases for a sequence",
@@ -1266,7 +1587,7 @@
                     },
                     "response": [
                         {
-                            "id": "9cfcbdb3-1937-4fa9-9ed2-e7d548ce0ce1",
+                            "id": "d0e3c299-6da0-4670-bd03-bbf712e3f1ad",
                             "name": "All phases for the given sequence",
                             "originalRequest": {
                                 "url": {
@@ -1315,7 +1636,7 @@
                     }
                 },
                 {
-                    "id": "34f020ce-e4d7-4c9f-affc-1657b04dd80e",
+                    "id": "01ef808e-6918-4802-bd1d-a31df924d813",
                     "name": "List all migrations",
                     "request": {
                         "name": "List all migrations",
@@ -1342,7 +1663,7 @@
                     },
                     "response": [
                         {
-                            "id": "42caea9e-cf2e-4f99-9933-99163eea938e",
+                            "id": "a9a681b2-f33b-4da0-893a-3fac9411e626",
                             "name": "A list of migrations",
                             "originalRequest": {
                                 "url": {
@@ -1377,7 +1698,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "9ee2e7eb-225e-42a0-8483-d3432cab8f68",
+                            "id": "c283fcba-f639-4837-b4ed-4dad15da6c8e",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -1418,7 +1739,7 @@
                     }
                 },
                 {
-                    "id": "223cecb0-b5ac-4783-8588-0f1e10596e37",
+                    "id": "580cec20-681b-4546-b613-64977d10cb4b",
                     "name": "Get a single migration by ID",
                     "request": {
                         "name": "Get a single migration by ID",
@@ -1457,7 +1778,7 @@
                     },
                     "response": [
                         {
-                            "id": "f1a9f145-4740-4e94-a2e6-f617f7818ece",
+                            "id": "4113c9d4-2f7c-4124-a45c-666dcbd8408e",
                             "name": "The migration object",
                             "originalRequest": {
                                 "url": {
@@ -1493,7 +1814,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e956c2f1-48d1-49e3-aabd-83bd835ee77b",
+                            "id": "837b31b8-ab8e-409b-be28-90bd64525780",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -1535,7 +1856,7 @@
                     }
                 },
                 {
-                    "id": "720eaa65-5b5f-43df-83f3-f9847930b65c",
+                    "id": "f2ef5b9e-92b2-4404-8411-580906d5f1bd",
                     "name": "List all iterations for a migration",
                     "request": {
                         "name": "List all iterations for a migration",
@@ -1575,7 +1896,7 @@
                     },
                     "response": [
                         {
-                            "id": "9c39ff76-1a4d-4c20-aec9-247b2f81b567",
+                            "id": "fc69d4aa-894d-4f40-8ad0-511d6c0378e6",
                             "name": "All iterations for the given migration",
                             "originalRequest": {
                                 "url": {
@@ -1612,7 +1933,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "3cad3407-ba53-47e8-99ed-d737b50100b7",
+                            "id": "5fa8de29-44de-4f84-97a2-c585e7d1ce08",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -1649,7 +1970,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "379ca816-2116-4154-aaf0-dd48600e9feb",
+                            "id": "afdd27ab-0953-4214-9e3c-8a0bcd7e7ac3",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -1686,7 +2007,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "83ea217e-7ff7-4ae8-b4f7-8199f5258b60",
+                            "id": "a79ec07a-03b7-44de-b5f4-66700d07cef8",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -1735,7 +2056,7 @@
             "description": "Operations about teams.",
             "item": [
                 {
-                    "id": "fa225e61-fb99-48f4-92bd-df286b68a00e",
+                    "id": "500e58c9-bf86-4746-8af2-75324f8f1d38",
                     "name": "Get teams with optional hierarchical filtering",
                     "request": {
                         "name": "Get teams with optional hierarchical filtering",
@@ -1811,7 +2132,7 @@
                     },
                     "response": [
                         {
-                            "id": "bb3eef23-e698-4aad-bfc9-bc1c07414588",
+                            "id": "3689c171-c32e-4de9-9388-4b8bef134598",
                             "name": "A list of teams.",
                             "originalRequest": {
                                 "url": {
@@ -1892,7 +2213,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e04cebb5-2bf7-4bb1-8f99-f224e9983e03",
+                            "id": "4bbc460f-cf45-4552-ac59-46c04c7256c5",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -1973,7 +2294,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "49809acc-3e69-42ca-b3c2-f620ea04803a",
+                            "id": "4c909445-5550-4429-a746-3019dd551b00",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -2060,7 +2381,7 @@
                     }
                 },
                 {
-                    "id": "3ec43442-0f46-4dc3-b131-36a63a3d09c7",
+                    "id": "cd50936b-4c0f-4e58-a42e-e8dd888212ed",
                     "name": "Create a new team",
                     "request": {
                         "name": "Create a new team",
@@ -2103,7 +2424,7 @@
                     },
                     "response": [
                         {
-                            "id": "adf2040c-58f7-436b-836f-e0feb08a9e92",
+                            "id": "ed913f8a-08b8-4754-bbb4-2708b0adbb24",
                             "name": "Team created successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2141,7 +2462,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "550fe6db-9294-423a-8966-e3fe2e62872c",
+                            "id": "fc1407eb-c6d1-40fb-b176-96023266ed24",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -2189,7 +2510,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "203bf4b4-f1d9-407c-abc6-e1f96f3240c5",
+                            "id": "0e42ecaf-4e32-4538-a54c-596ed04bec5a",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -2243,7 +2564,7 @@
                     }
                 },
                 {
-                    "id": "97e2b37f-c831-43b2-aec1-fad89535a273",
+                    "id": "f0b711ae-e75e-4fe4-9077-745dd0544f8c",
                     "name": "Get a team by ID",
                     "request": {
                         "name": "Get a team by ID",
@@ -2285,7 +2606,7 @@
                     },
                     "response": [
                         {
-                            "id": "751fa9e3-9a3e-48b8-b91d-d3a35f47398c",
+                            "id": "12720e71-b885-44de-8135-9375847f7f5e",
                             "name": "The requested team.",
                             "originalRequest": {
                                 "url": {
@@ -2321,7 +2642,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "b7d57977-ad3c-4b3f-85ad-e62ffe0726b3",
+                            "id": "1414c241-80e3-459b-af7b-09eeee3eb726",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2363,7 +2684,7 @@
                     }
                 },
                 {
-                    "id": "80597ca7-865d-4183-904b-74c21606eb15",
+                    "id": "4259945d-f36b-4ba2-831f-23fc62f1ca8e",
                     "name": "Update a team",
                     "request": {
                         "name": "Update a team",
@@ -2418,7 +2739,7 @@
                     },
                     "response": [
                         {
-                            "id": "5ff432bf-1122-4052-a6ef-8fc1c4db879d",
+                            "id": "3ba2cd14-ac11-482d-be34-d83b39201913",
                             "name": "Team updated successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2457,7 +2778,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "175fec6e-d895-4b1e-8583-f234302270b2",
+                            "id": "67070a1e-25a3-4007-a2ea-f0702aab3948",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -2506,7 +2827,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "666299e0-a51d-4aa0-a7c9-e9759872d73e",
+                            "id": "c530ddf5-e307-406f-bbc7-fe7bcde93869",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2561,7 +2882,7 @@
                     }
                 },
                 {
-                    "id": "5789479d-3274-4aa0-87c3-ef0ea2e5f90d",
+                    "id": "5901a525-9ebe-4f32-b24c-daf2350226bc",
                     "name": "Delete a team",
                     "request": {
                         "name": "Delete a team",
@@ -2603,7 +2924,7 @@
                     },
                     "response": [
                         {
-                            "id": "a5f40d91-b672-4cfb-aa1c-10d467fd5ec8",
+                            "id": "e492ce84-aae0-428b-bd6c-36946b8a1fe7",
                             "name": "Team deleted successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2627,7 +2948,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "4b289dab-4189-426f-a0dc-af4eee564375",
+                            "id": "0d75e3ea-0884-427d-a84f-5b1dce0f7913",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2663,7 +2984,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "cd9647f0-07d5-49ea-b8fc-585f21a4a360",
+                            "id": "1e9fb3d0-79a0-4ef8-86e5-3417f00ab227",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -2705,7 +3026,7 @@
                     }
                 },
                 {
-                    "id": "c4cfa30b-97dc-49b1-9bc6-e4281bfb86d3",
+                    "id": "3dcbe679-90f8-42a8-aff8-028d0f26dbec",
                     "name": "Add a user to a team",
                     "request": {
                         "name": "Add a user to a team",
@@ -2759,7 +3080,7 @@
                     },
                     "response": [
                         {
-                            "id": "bf5c41bf-2643-4d44-bf40-d8577eee8a9a",
+                            "id": "705c2f92-ca3f-42dd-92aa-afd4282c7304",
                             "name": "User added to team successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2785,7 +3106,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "1acaa905-88b1-414f-bcbe-95cb81dac988",
+                            "id": "e70e90c9-2729-4fb0-9237-14340d6d38e3",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2829,7 +3150,7 @@
                     }
                 },
                 {
-                    "id": "0cc98bc9-3ce4-4c36-936f-518df543d021",
+                    "id": "06ef0ea8-751f-4926-9929-d9c5a10c986e",
                     "name": "Remove a user from a team",
                     "request": {
                         "name": "Remove a user from a team",
@@ -2883,7 +3204,7 @@
                     },
                     "response": [
                         {
-                            "id": "8bb407f3-5258-4167-8dce-4044475c4560",
+                            "id": "6b9bac4c-fc49-4423-909b-64bda1610ace",
                             "name": "User removed from team successfully.",
                             "originalRequest": {
                                 "url": {
@@ -2909,7 +3230,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "f0011969-a9e6-4a13-b15a-adde33a808f6",
+                            "id": "df55efff-0b5d-42ea-a83c-1f86afefd8c9",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -2953,7 +3274,7 @@
                     }
                 },
                 {
-                    "id": "378685c5-fc9f-48bc-8ab8-d748793469b1",
+                    "id": "45839698-cba3-4e07-b814-64e4342cbe24",
                     "name": "Get applications associated with a team",
                     "request": {
                         "name": "Get applications associated with a team",
@@ -2996,7 +3317,7 @@
                     },
                     "response": [
                         {
-                            "id": "e8d484af-02c1-453d-9b31-25cb6a66ec4d",
+                            "id": "86ae97d0-dfc0-426a-979d-e325535d2a60",
                             "name": "A list of applications associated with the team",
                             "originalRequest": {
                                 "url": {
@@ -3033,7 +3354,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c1da2b0a-b829-4681-96ab-46bf61b25697",
+                            "id": "02ed7f9d-68e3-4518-9b12-2b0a893def3a",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -3070,7 +3391,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "72d71b70-3855-491c-880f-12f98c59cc15",
+                            "id": "f3d3c444-6853-4bb1-bacf-a8859acbc213",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3113,7 +3434,7 @@
                     }
                 },
                 {
-                    "id": "22652ff9-c376-48f4-ae73-e0d98e93d936",
+                    "id": "008e09d3-0d0c-4b26-bde2-2938213d3acb",
                     "name": "Add an application to a team",
                     "request": {
                         "name": "Add an application to a team",
@@ -3167,7 +3488,7 @@
                     },
                     "response": [
                         {
-                            "id": "be0a0490-902f-4ecf-b343-a3ff66f41984",
+                            "id": "843fcb18-5bda-45f3-b24e-b73b0108fc4d",
                             "name": "Application added to team successfully.",
                             "originalRequest": {
                                 "url": {
@@ -3193,7 +3514,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "4124ffc1-281b-4980-9a98-6e717e6564ac",
+                            "id": "be41d27f-056c-4e40-b601-e41552b5f6c6",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -3231,7 +3552,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "375566b5-5258-415d-8f3c-988b64466921",
+                            "id": "a674bb08-6895-40fe-8ec5-50796a16f6f2",
                             "name": "Application is already associated with this team.",
                             "originalRequest": {
                                 "url": {
@@ -3263,7 +3584,7 @@
                     }
                 },
                 {
-                    "id": "9602a4b9-e00b-4b03-b4b7-ca5be544b736",
+                    "id": "4cf9846f-b565-47e6-92fe-d56e39767d30",
                     "name": "Remove an application from a team",
                     "request": {
                         "name": "Remove an application from a team",
@@ -3317,7 +3638,7 @@
                     },
                     "response": [
                         {
-                            "id": "de27ea50-2a23-4020-8c7d-27913d58f34e",
+                            "id": "34626025-23be-40fe-8730-4769e78c9325",
                             "name": "Application removed from team successfully.",
                             "originalRequest": {
                                 "url": {
@@ -3343,7 +3664,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "d6c570d3-d0ba-407d-83c3-9cddf01a7349",
+                            "id": "c1243a2d-164b-4274-8418-2cdf32ffa680",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -3393,7 +3714,7 @@
             "description": "Operations about environments and their associations.",
             "item": [
                 {
-                    "id": "7c2bb9a6-8253-40f2-aa90-31db0b52a16d",
+                    "id": "63b6a361-c8ea-421d-a5f6-0c5b395197be",
                     "name": "Get all environments with counts",
                     "request": {
                         "name": "Get all environments with counts",
@@ -3452,7 +3773,7 @@
                                         "type": "text/plain"
                                     },
                                     "key": "direction",
-                                    "value": "desc"
+                                    "value": "asc"
                                 }
                             ],
                             "variable": []
@@ -3469,7 +3790,7 @@
                     },
                     "response": [
                         {
-                            "id": "81772d20-8318-4716-80e4-c2891d71c704",
+                            "id": "b2919506-5286-4daa-9d7e-c43c1a124cf2",
                             "name": "A list of environments with counts",
                             "originalRequest": {
                                 "url": {
@@ -3523,7 +3844,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "direction",
-                                            "value": "desc"
+                                            "value": "asc"
                                         }
                                     ],
                                     "variable": []
@@ -3550,7 +3871,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "01fbf7db-8b86-4f93-a834-3b747ca80524",
+                            "id": "8415038e-d44f-4bbc-9838-a635bcf3945d",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3604,7 +3925,7 @@
                                                 "type": "text/plain"
                                             },
                                             "key": "direction",
-                                            "value": "desc"
+                                            "value": "asc"
                                         }
                                     ],
                                     "variable": []
@@ -3637,7 +3958,7 @@
                     }
                 },
                 {
-                    "id": "d426df21-ec4a-4b99-8327-1cbd354135dc",
+                    "id": "ceee2ec1-cf91-4d4c-9276-0b3b011adf48",
                     "name": "Create a new environment",
                     "request": {
                         "name": "Create a new environment",
@@ -3680,7 +4001,7 @@
                     },
                     "response": [
                         {
-                            "id": "b31165e8-2549-468c-94f9-8d60449ba33b",
+                            "id": "2571236f-be35-47f5-8b7e-b08f11af35ab",
                             "name": "Environment created successfully",
                             "originalRequest": {
                                 "url": {
@@ -3728,7 +4049,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "8344e8e0-dd81-4d1e-b8d5-1a9ce00ddeda",
+                            "id": "c1d43879-57ed-4142-986c-d55e5bd2bba1",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -3776,7 +4097,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "fe71d7c4-9a1b-4e40-8a5b-2c86fb291010",
+                            "id": "a370575b-16cd-4795-a04a-b1ace3dd02b5",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -3824,7 +4145,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "8fc4dbbf-b411-4988-9bf9-3a8405174ec3",
+                            "id": "b08719ce-f294-4600-a97e-ea2852056a5d",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3878,7 +4199,7 @@
                     }
                 },
                 {
-                    "id": "8dd574c5-3562-478c-9ec4-5c833a547d53",
+                    "id": "b350d8a0-bf64-4bbd-a82b-b89c91fe3f98",
                     "name": "Get all environment roles",
                     "request": {
                         "name": "Get all environment roles",
@@ -3909,7 +4230,7 @@
                     },
                     "response": [
                         {
-                            "id": "9fd94e7f-be2d-45c9-8987-373f890af9d2",
+                            "id": "f6f6865f-f31b-4273-992b-3e39ca6c074a",
                             "name": "A list of environment roles",
                             "originalRequest": {
                                 "url": {
@@ -3945,7 +4266,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a376943e-24ff-46d5-8076-e6f699a1570e",
+                            "id": "217e032b-14f6-43f7-9c02-0e73e07b88f0",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -3987,7 +4308,7 @@
                     }
                 },
                 {
-                    "id": "5fecf702-0474-4f65-9dae-1722de5d3a2c",
+                    "id": "e9e3b38a-69c0-41ae-90d2-60aa43dbf032",
                     "name": "Get an environment by ID",
                     "request": {
                         "name": "Get an environment by ID",
@@ -4029,7 +4350,7 @@
                     },
                     "response": [
                         {
-                            "id": "4534479c-491c-465f-a825-593d01bf77bd",
+                            "id": "e6d5247c-6794-44e5-b089-9a9009dfada1",
                             "name": "Environment details",
                             "originalRequest": {
                                 "url": {
@@ -4065,7 +4386,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "85f11379-fcda-49f7-bea3-059095cd5713",
+                            "id": "8df5d4a3-dc4b-4319-8292-8a0344dd2aa9",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4101,7 +4422,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "2ee09956-8161-412d-9bb2-c540e810bc27",
+                            "id": "6893bad0-58bc-4b0a-8c0c-7839892c53a7",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -4137,7 +4458,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "82bb69e7-4387-48c4-acc0-6515719f161a",
+                            "id": "a3fde547-7560-40e9-ab59-d4bc740b8cd0",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4179,7 +4500,7 @@
                     }
                 },
                 {
-                    "id": "3add8a9c-7d59-4f96-889a-541cdfe1ef45",
+                    "id": "2b5cf570-2549-43f6-b160-c5cdde33adde",
                     "name": "Update an environment",
                     "request": {
                         "name": "Update an environment",
@@ -4234,7 +4555,7 @@
                     },
                     "response": [
                         {
-                            "id": "2512fff6-254a-4791-af2b-eb51beed56d4",
+                            "id": "3fee326c-5d0a-4967-a1bf-34f8c2f15ae5",
                             "name": "Environment updated successfully",
                             "originalRequest": {
                                 "url": {
@@ -4283,7 +4604,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e212b984-9059-4dd5-bfb4-ec90d9f4606a",
+                            "id": "7cf37e29-c98a-4456-9075-81b66b44f15f",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4332,7 +4653,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "104246ca-bb61-42d1-ba63-a529a276be78",
+                            "id": "7c2a4afe-d10e-4ac9-91a8-e7288094e609",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -4381,7 +4702,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c7475b3f-a73f-4b73-a962-bb4871408269",
+                            "id": "0118b374-04c3-476e-acc3-3e6cb26f7b53",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -4430,7 +4751,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "547bf560-c76a-45b2-ad0e-fd9edaa1ebad",
+                            "id": "5518d41e-37bc-4f04-853c-1f7c51cc8da5",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4485,7 +4806,7 @@
                     }
                 },
                 {
-                    "id": "f9433cf5-1772-43dc-8129-784608c27fbb",
+                    "id": "a0bd92c2-8be6-4721-9906-ee8f3d88ffc1",
                     "name": "Delete an environment",
                     "request": {
                         "name": "Delete an environment",
@@ -4527,7 +4848,7 @@
                     },
                     "response": [
                         {
-                            "id": "d77d6443-e6a3-4883-8460-f2c0cde10c8a",
+                            "id": "2e43e613-cb1b-4dfe-9bb5-0bf61ecf7c2c",
                             "name": "Environment deleted successfully",
                             "originalRequest": {
                                 "url": {
@@ -4551,7 +4872,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "79800ebc-449d-4f94-8776-747ac0b5ed4c",
+                            "id": "b3576ca6-776c-4338-a610-ccd19adb981a",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4587,7 +4908,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "fbe6674b-7cb4-4f17-b724-3afc95bf8a51",
+                            "id": "e0040fcb-ec36-4aa3-94da-68e5b638b0b9",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -4623,7 +4944,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ff21b7a0-2898-49ed-9f53-f87028de268d",
+                            "id": "6b44aad8-2d11-45b6-a245-75d173760656",
                             "name": "Cannot delete environment due to existing relationships",
                             "originalRequest": {
                                 "url": {
@@ -4659,7 +4980,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a7b8f640-b336-4822-8398-509439cb3495",
+                            "id": "606dd896-c038-497d-bc90-a1265ff3a5bc",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4701,7 +5022,7 @@
                     }
                 },
                 {
-                    "id": "82bcd06b-1108-4d37-a6ea-50c42243fdd5",
+                    "id": "88741f5b-fefc-45b3-83fc-3a23f184b5ff",
                     "name": "Get iterations grouped by role",
                     "request": {
                         "name": "Get iterations grouped by role",
@@ -4744,7 +5065,7 @@
                     },
                     "response": [
                         {
-                            "id": "f703d74e-46b1-4679-bba4-611ba409b3a9",
+                            "id": "b8ba6ba8-0e7b-4295-9938-16cf8227963a",
                             "name": "Iterations grouped by role",
                             "originalRequest": {
                                 "url": {
@@ -4776,12 +5097,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"animf5\": {\n    \"role\": {\n      \"enr_id\": \"<integer>\",\n      \"enr_code\": \"<string>\",\n      \"enr_name\": \"<string>\",\n      \"enr_description\": \"<string>\"\n    },\n    \"iterations\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      }\n    ]\n  },\n  \"non_fef\": {\n    \"role\": {\n      \"enr_id\": \"<integer>\",\n      \"enr_code\": \"<string>\",\n      \"enr_name\": \"<string>\",\n      \"enr_description\": \"<string>\"\n    },\n    \"iterations\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      }\n    ]\n  }\n}",
+                            "body": "{\n  \"ex80\": {\n    \"role\": {\n      \"enr_id\": \"<integer>\",\n      \"enr_code\": \"<string>\",\n      \"enr_name\": \"<string>\",\n      \"enr_description\": \"<string>\"\n    },\n    \"iterations\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      }\n    ]\n  },\n  \"sit_0\": {\n    \"role\": {\n      \"enr_id\": \"<integer>\",\n      \"enr_code\": \"<string>\",\n      \"enr_name\": \"<string>\",\n      \"enr_description\": \"<string>\"\n    },\n    \"iterations\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"status\": \"<string>\",\n        \"staticCutoverDate\": \"<date>\",\n        \"dynamicCutoverDate\": \"<date>\"\n      }\n    ]\n  }\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1c8fd427-7739-4154-8828-ccea8387dcf7",
+                            "id": "13e8a309-f138-4738-887d-7f38ecf4e446",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4818,7 +5139,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "20184e75-755c-4188-bee4-aa2f75d435a1",
+                            "id": "e1d903d5-d789-445a-8cfc-ccb929b0defd",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -4861,7 +5182,7 @@
                     }
                 },
                 {
-                    "id": "d8bf25b6-2df4-4fc4-ace4-577cfe281b51",
+                    "id": "978e0e54-cfb7-45e2-b662-bc522cca7dee",
                     "name": "Associate an application with an environment",
                     "request": {
                         "name": "Associate an application with an environment",
@@ -4915,7 +5236,7 @@
                     },
                     "response": [
                         {
-                            "id": "bf0cfdbc-90a8-401d-8494-3008ed220953",
+                            "id": "0dce28c7-7669-4230-a0b4-ba07740c9587",
                             "name": "Application associated successfully",
                             "originalRequest": {
                                 "url": {
@@ -4953,7 +5274,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a2abdd0d-376b-42c7-869f-a5ac600f087d",
+                            "id": "de714def-f67a-41d2-b92e-04b7c24156a4",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -4991,7 +5312,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "745a033c-dfb1-481c-8b1b-8f2c7c7a279b",
+                            "id": "8ebc22ee-e94e-4447-a13a-c3eb62e10d70",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -5029,7 +5350,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "fd24376e-1eb5-4728-8e96-3038eb1a7f01",
+                            "id": "3b4203c9-0771-47b9-a899-8be8b9bcc44d",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5073,7 +5394,7 @@
                     }
                 },
                 {
-                    "id": "f082cf3f-7c36-43a9-ac67-923cec5dc878",
+                    "id": "e34c9ab6-8276-4d39-9ef8-41f89e73946b",
                     "name": "Remove application association",
                     "request": {
                         "name": "Remove application association",
@@ -5127,7 +5448,7 @@
                     },
                     "response": [
                         {
-                            "id": "e78508ed-3c06-41c5-8c3f-455efff31fca",
+                            "id": "0218245a-d861-419c-9c83-cd873f42e72e",
                             "name": "Application disassociated successfully",
                             "originalRequest": {
                                 "url": {
@@ -5153,7 +5474,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "1259547b-c8be-4309-b65c-811086788828",
+                            "id": "d94e2b4a-fbc8-40ba-b0eb-6ea892fa553f",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -5191,7 +5512,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7043f5ae-1182-45cd-ad3b-f0a2fb0aff29",
+                            "id": "23b03097-d6d5-42c0-b421-9c4167cd7a22",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -5229,7 +5550,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "92b5ba76-76f4-4a07-94db-479cf45302cf",
+                            "id": "b8c30eaa-2c78-4139-bac2-6d24f0e7a51c",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5273,7 +5594,7 @@
                     }
                 },
                 {
-                    "id": "0826cf17-f2bf-447c-bcce-be48e2a3fa3a",
+                    "id": "2bf9175c-efc8-46d4-a23f-f973652b9f9f",
                     "name": "Associate an iteration with an environment",
                     "request": {
                         "name": "Associate an iteration with an environment",
@@ -5340,7 +5661,7 @@
                     },
                     "response": [
                         {
-                            "id": "4fb93a96-9a62-482b-a933-dd7cd5fe1d03",
+                            "id": "c319bd84-5895-425e-848b-cb7c7b313559",
                             "name": "Iteration associated successfully",
                             "originalRequest": {
                                 "url": {
@@ -5391,7 +5712,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "18df7c18-ed6d-4ad2-adce-d02d2e966721",
+                            "id": "633246bd-f3ee-479d-a351-72faa935b5ff",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -5442,7 +5763,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "db474a10-e472-4d57-bb68-eb04bda287d4",
+                            "id": "53693202-2c4c-441b-8a78-cec30a041c25",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -5493,7 +5814,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "63312af6-1d12-4ba2-af9b-9a68494cafb4",
+                            "id": "bed61dc9-568c-4ea7-bc45-02e7ed54ad4b",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5550,7 +5871,7 @@
                     }
                 },
                 {
-                    "id": "a27d99a7-6baf-42cf-92b3-a084dc5f2966",
+                    "id": "064a23c5-98f3-41f4-9c3a-d336c42803ab",
                     "name": "Remove iteration association",
                     "request": {
                         "name": "Remove iteration association",
@@ -5604,7 +5925,7 @@
                     },
                     "response": [
                         {
-                            "id": "6b546fb7-0b6b-4db7-b15c-36ae431830fa",
+                            "id": "6818d9fa-d84e-4d8e-832e-225da85e63ef",
                             "name": "Iteration disassociated successfully",
                             "originalRequest": {
                                 "url": {
@@ -5630,7 +5951,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "a7bf8035-8915-4b21-99e7-0ddcc55791a2",
+                            "id": "9c037bf5-6a17-449c-9756-c68f291560b8",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -5668,7 +5989,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "5bc44fad-2895-4c8b-a5f5-ee43ec9572c6",
+                            "id": "3e272061-03f2-439f-8682-5163c0ee29d8",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -5706,7 +6027,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "85f5f4ab-29ef-45ef-82df-83c786920b65",
+                            "id": "82072cff-c406-4568-9f2d-ea4721678d76",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5756,7 +6077,7 @@
             "description": "Operations about applications.",
             "item": [
                 {
-                    "id": "dcc8ffcb-1384-4c08-b540-29eeadbc074b",
+                    "id": "698236cd-df2a-4b28-a930-bf826f8148c5",
                     "name": "Get all applications",
                     "request": {
                         "name": "Get all applications",
@@ -5786,7 +6107,7 @@
                     },
                     "response": [
                         {
-                            "id": "de9d95a6-caba-4805-80e7-30c8d391d175",
+                            "id": "e7b8682a-e2e4-4ab5-901a-3b98d8ca31df",
                             "name": "A list of applications",
                             "originalRequest": {
                                 "url": {
@@ -5821,7 +6142,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "cef76f17-eed9-4f86-a427-cf1670fab417",
+                            "id": "2baed4c6-e6c1-4a61-8d43-e21ad98d0f06",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -5868,7 +6189,7 @@
             "description": "Operations about labels and hierarchical filtering.",
             "item": [
                 {
-                    "id": "e3269634-a1d7-4a0b-b513-e8776cbb6de5",
+                    "id": "b665d3b4-2b05-4f90-a16f-b95a2de935e3",
                     "name": "Get labels with optional hierarchical filtering",
                     "request": {
                         "name": "Get labels with optional hierarchical filtering",
@@ -5944,7 +6265,7 @@
                     },
                     "response": [
                         {
-                            "id": "94d9d9fb-1d1d-424f-b4f8-1f2ab1cd4ed0",
+                            "id": "8ca0e372-8fae-4ff3-9aed-d58dcb515ea0",
                             "name": "A list of labels.",
                             "originalRequest": {
                                 "url": {
@@ -6020,12 +6341,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "[\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#B5Cc3f\"\n  },\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#c3171F\"\n  }\n]",
+                            "body": "[\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#baB515\"\n  },\n  {\n    \"id\": \"<integer>\",\n    \"name\": \"<string>\",\n    \"description\": \"<string>\",\n    \"color\": \"#12C41C\"\n  }\n]",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "658c8d4b-122a-4517-9dbd-a7ab7be86064",
+                            "id": "e0d8a945-38ce-4da9-8dc5-76891d847c7e",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -6106,7 +6427,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "d20ee892-1980-414e-a7a5-0f17ab12f472",
+                            "id": "17eed4b6-1261-4089-9cc6-4c09c33571a7",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6193,7 +6514,7 @@
                     }
                 },
                 {
-                    "id": "9839e3b5-2ab7-4904-83ee-39685a81600d",
+                    "id": "b51deca7-7062-4ac3-a99c-f2c4962027a2",
                     "name": "Create a new label",
                     "request": {
                         "name": "Create a new label",
@@ -6224,7 +6545,7 @@
                         "method": "POST",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#65180d\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
+                            "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#Cbf6C4\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
                             "options": {
                                 "raw": {
                                     "headerFamily": "json",
@@ -6236,7 +6557,7 @@
                     },
                     "response": [
                         {
-                            "id": "5754b7aa-7ff0-4a1b-aaf7-2d1d2da7372b",
+                            "id": "692fdff6-9620-4c42-a043-d95563265405",
                             "name": "Label created successfully",
                             "originalRequest": {
                                 "url": {
@@ -6262,7 +6583,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#65180d\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#Cbf6C4\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6279,12 +6600,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"lbl_id\": \"<integer>\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#2A8Aa9\",\n  \"created_at\": \"<dateTime>\",\n  \"created_by\": \"<integer>\",\n  \"applications\": [\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    },\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    }\n  ],\n  \"step_count\": \"<integer>\"\n}",
+                            "body": "{\n  \"lbl_id\": \"<integer>\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#4ecFE6\",\n  \"created_at\": \"<dateTime>\",\n  \"created_by\": \"<integer>\",\n  \"applications\": [\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    },\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    }\n  ],\n  \"step_count\": \"<integer>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "3928d30f-4d68-44d5-8c38-f8213fa0766b",
+                            "id": "42305246-5c44-417e-9b44-c4d206c71df6",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -6310,7 +6631,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#65180d\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#Cbf6C4\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6332,7 +6653,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "992f58ae-e5c9-43fc-b26d-78634f22162d",
+                            "id": "47ca0e4f-3e4c-455f-b8ad-c0011fb5a5a3",
                             "name": "Conflict - Label name already exists in migration",
                             "originalRequest": {
                                 "url": {
@@ -6358,7 +6679,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#65180d\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#Cbf6C4\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6380,7 +6701,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a6cc9e53-d8fa-4741-a4c7-76d2c215fd2c",
+                            "id": "7f92adc8-15b6-4c0f-ae39-0f1ca3f311f1",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6406,7 +6727,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#65180d\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_color\": \"#Cbf6C4\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_description\": \"<string>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6434,7 +6755,7 @@
                     }
                 },
                 {
-                    "id": "65eae69b-ef48-47c0-972b-5d83faa2d120",
+                    "id": "4a170e18-d185-402f-8882-26136ccf1c38",
                     "name": "Get a specific label by ID",
                     "request": {
                         "name": "Get a specific label by ID",
@@ -6476,7 +6797,7 @@
                     },
                     "response": [
                         {
-                            "id": "c18adee2-4364-4089-b64f-63323be2a204",
+                            "id": "3fb8e9d8-03dd-4f58-a27a-bda10ad0967b",
                             "name": "Label details",
                             "originalRequest": {
                                 "url": {
@@ -6507,12 +6828,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"lbl_id\": \"<integer>\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#2A8Aa9\",\n  \"created_at\": \"<dateTime>\",\n  \"created_by\": \"<integer>\",\n  \"applications\": [\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    },\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    }\n  ],\n  \"step_count\": \"<integer>\"\n}",
+                            "body": "{\n  \"lbl_id\": \"<integer>\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#4ecFE6\",\n  \"created_at\": \"<dateTime>\",\n  \"created_by\": \"<integer>\",\n  \"applications\": [\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    },\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    }\n  ],\n  \"step_count\": \"<integer>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "da5ca70c-9599-4ae5-aaef-c36966b51bd4",
+                            "id": "a61d0b83-d862-4c96-846f-6ff1618b3aac",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -6548,7 +6869,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ade55248-9a10-4fc0-8a61-e7e6ef507089",
+                            "id": "5e01bb40-cc0d-42fb-a02f-4395cc47058a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6590,7 +6911,7 @@
                     }
                 },
                 {
-                    "id": "41d8d31e-2d9a-4822-9cc1-92b4f430bfc1",
+                    "id": "0d1e72a4-4eeb-4c2e-bb9a-05ca144ea8a2",
                     "name": "Update an existing label",
                     "request": {
                         "name": "Update an existing label",
@@ -6633,7 +6954,7 @@
                         "method": "PUT",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#722f08\",\n  \"mig_id\": \"<uuid>\"\n}",
+                            "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#8faB9B\",\n  \"mig_id\": \"<uuid>\"\n}",
                             "options": {
                                 "raw": {
                                     "headerFamily": "json",
@@ -6645,7 +6966,7 @@
                     },
                     "response": [
                         {
-                            "id": "7d22e092-42ef-4a2c-8c75-2f6af2db3712",
+                            "id": "e6b8ff86-69a4-41b9-929d-acd736aa32ad",
                             "name": "Label updated successfully",
                             "originalRequest": {
                                 "url": {
@@ -6672,7 +6993,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#722f08\",\n  \"mig_id\": \"<uuid>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#8faB9B\",\n  \"mig_id\": \"<uuid>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6689,12 +7010,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"lbl_id\": \"<integer>\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#2A8Aa9\",\n  \"created_at\": \"<dateTime>\",\n  \"created_by\": \"<integer>\",\n  \"applications\": [\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    },\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    }\n  ],\n  \"step_count\": \"<integer>\"\n}",
+                            "body": "{\n  \"lbl_id\": \"<integer>\",\n  \"mig_id\": \"<uuid>\",\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#4ecFE6\",\n  \"created_at\": \"<dateTime>\",\n  \"created_by\": \"<integer>\",\n  \"applications\": [\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    },\n    {\n      \"app_id\": \"<integer>\",\n      \"app_code\": \"<string>\",\n      \"app_name\": \"<string>\"\n    }\n  ],\n  \"step_count\": \"<integer>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "fe04bef2-7065-4421-8b8f-e08e2809170b",
+                            "id": "98143cd3-dc47-477e-ab51-19a0f8f85727",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -6721,7 +7042,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#722f08\",\n  \"mig_id\": \"<uuid>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#8faB9B\",\n  \"mig_id\": \"<uuid>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6743,7 +7064,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "086d12cb-4709-4dcd-b1b3-c3de63cf6c40",
+                            "id": "dc6a0d25-7f6d-4c3a-a13b-08dcf992289b",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -6770,7 +7091,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#722f08\",\n  \"mig_id\": \"<uuid>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#8faB9B\",\n  \"mig_id\": \"<uuid>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6792,7 +7113,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7510d16b-4bc4-4f42-aefb-1dc9f3765c76",
+                            "id": "fd8cd34b-dd99-4418-90cd-17451f178864",
                             "name": "Conflict - Label name already exists in migration",
                             "originalRequest": {
                                 "url": {
@@ -6819,7 +7140,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#722f08\",\n  \"mig_id\": \"<uuid>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#8faB9B\",\n  \"mig_id\": \"<uuid>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6841,7 +7162,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a7f19d31-6243-436d-b489-73d952cd34d3",
+                            "id": "f2ed2f4d-4d1b-4060-a7b9-014e74b0bf0a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -6868,7 +7189,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#722f08\",\n  \"mig_id\": \"<uuid>\"\n}",
+                                    "raw": "{\n  \"lbl_name\": \"<string>\",\n  \"lbl_description\": \"<string>\",\n  \"lbl_color\": \"#8faB9B\",\n  \"mig_id\": \"<uuid>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -6896,7 +7217,7 @@
                     }
                 },
                 {
-                    "id": "d88c6a1a-6e88-4e9a-8a34-6718696adafc",
+                    "id": "5693c2ed-6de4-4c00-9c86-9bc51afbef8e",
                     "name": "Delete a label",
                     "request": {
                         "name": "Delete a label",
@@ -6938,7 +7259,7 @@
                     },
                     "response": [
                         {
-                            "id": "2168ac1b-014b-459e-923d-fc5a756d119e",
+                            "id": "fce3fb6c-bd84-4e96-afc8-e705cb17651b",
                             "name": "Label deleted successfully",
                             "originalRequest": {
                                 "url": {
@@ -6962,7 +7283,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "8ae3a3d4-5952-404f-a731-dffa666bba0c",
+                            "id": "2403e56a-fed8-465f-a7ef-6dcd4f1e2a18",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -6998,7 +7319,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1079a7f3-a9b9-4603-940a-2a2e88abe563",
+                            "id": "85efdcc4-9ae8-4d5f-95cc-04b186513ebc",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -7040,7 +7361,7 @@
                     }
                 },
                 {
-                    "id": "24d9ab0b-4c50-40eb-b9d6-df7f9ea44d4b",
+                    "id": "55408598-e05a-4f2c-aedb-2c50e7a0f6c6",
                     "name": "Get steps associated with a label",
                     "request": {
                         "name": "Get steps associated with a label",
@@ -7083,7 +7404,7 @@
                     },
                     "response": [
                         {
-                            "id": "de394bb7-ee66-4369-9cc0-ae99d9749bbd",
+                            "id": "42f7757b-6bcb-4655-8f64-29b7b6440d10",
                             "name": "List of associated steps",
                             "originalRequest": {
                                 "url": {
@@ -7120,7 +7441,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "091ffcf4-dde3-40d0-99be-ec94c066949c",
+                            "id": "1e1c6ab6-42d6-4d33-b13b-714c28a1be04",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -7157,7 +7478,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "97f7a8d7-8121-4375-9c8b-f810d1db0629",
+                            "id": "8636a274-e87a-4ba6-9166-e83d5433f05a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -7200,7 +7521,7 @@
                     }
                 },
                 {
-                    "id": "8774fd56-febf-4893-8119-4cff99e5a9ed",
+                    "id": "f2229333-ba54-412e-a0e0-f30c0758849f",
                     "name": "Add application association to label",
                     "request": {
                         "name": "Add application association to label",
@@ -7254,7 +7575,7 @@
                     },
                     "response": [
                         {
-                            "id": "ff713946-fd5a-4b13-a926-b3da67195b60",
+                            "id": "3a4792e0-e9e5-4539-b9a4-9c83ac933d3b",
                             "name": "Application associated successfully",
                             "originalRequest": {
                                 "url": {
@@ -7292,7 +7613,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "25ea5516-ad83-454b-b092-caf1058c9f1e",
+                            "id": "ac5b3126-dee5-443e-bc4f-9d64e72120c4",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -7330,7 +7651,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "81fd7313-2eb7-413c-9171-96a9d21fd593",
+                            "id": "1135e02e-2391-4b53-a292-604156fe54b3",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -7368,7 +7689,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "52ebedd8-f149-4fc9-afb6-25cd3daddbd0",
+                            "id": "3db525c8-857e-4d3b-8709-944f222f3d9d",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -7412,7 +7733,7 @@
                     }
                 },
                 {
-                    "id": "21142018-395e-46d0-90b7-f5824198dd1a",
+                    "id": "fcca1803-fe6c-42f4-a096-0619d85b784a",
                     "name": "Remove application association from label",
                     "request": {
                         "name": "Remove application association from label",
@@ -7466,7 +7787,7 @@
                     },
                     "response": [
                         {
-                            "id": "d3ba24de-2e35-4718-90aa-b980d265c61c",
+                            "id": "6b83453e-38fd-480e-b0e4-68a7e5eb387c",
                             "name": "Application association removed successfully",
                             "originalRequest": {
                                 "url": {
@@ -7504,7 +7825,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a8aaa1f1-c900-4cab-949c-b80a92519576",
+                            "id": "99edd46b-038b-4405-a308-9caf464e38c2",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -7542,7 +7863,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "9a1cb0b8-188c-4843-a758-77617e8a8798",
+                            "id": "636b93f3-a827-42c9-b30b-2fee78839711",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -7586,7 +7907,7 @@
                     }
                 },
                 {
-                    "id": "3dd27c37-f101-4796-9f2d-347120979c87",
+                    "id": "8db90c7c-c50a-4211-ab10-ea5bb96bcb3b",
                     "name": "Add step association to label",
                     "request": {
                         "name": "Add step association to label",
@@ -7640,7 +7961,7 @@
                     },
                     "response": [
                         {
-                            "id": "127bc111-d48d-433d-8467-b1a41b26b75e",
+                            "id": "d025d612-fb71-42f6-84a1-904a27f33727",
                             "name": "Step associated successfully",
                             "originalRequest": {
                                 "url": {
@@ -7678,7 +7999,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "93f35eef-de27-4b9b-aa53-18d96cc839e3",
+                            "id": "3e55d661-629f-4e69-8981-93cdec8a4df9",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -7716,7 +8037,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f2fd251f-2a31-47b0-b3eb-80e27f015512",
+                            "id": "1292e538-8f14-4989-8a2b-7130d987459a",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -7754,7 +8075,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "df057a06-f2ec-46ba-8c04-9d94419a9ca1",
+                            "id": "d07de501-50d0-49de-ab14-1b58d8127598",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -7798,7 +8119,7 @@
                     }
                 },
                 {
-                    "id": "fbdfd27b-4b34-4818-93ff-9146f8180205",
+                    "id": "e778de48-5f00-4c1b-a1b3-9437bff1828d",
                     "name": "Remove step association from label",
                     "request": {
                         "name": "Remove step association from label",
@@ -7852,7 +8173,7 @@
                     },
                     "response": [
                         {
-                            "id": "f8dd8a2c-a3b3-418c-a42f-92cca1ca5296",
+                            "id": "4ff5f1da-2f1d-46cf-b09f-bc52057d9518",
                             "name": "Step association removed successfully",
                             "originalRequest": {
                                 "url": {
@@ -7890,7 +8211,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "20c69b3f-2665-4dec-aa35-de2d1fe7145f",
+                            "id": "195648cc-1a24-4d09-9a02-fc340df4affd",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -7928,7 +8249,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f0040ebe-380b-4e13-86b7-08a53ef4ab62",
+                            "id": "a9f5d0e6-5ca7-409d-a921-ee9ed6e0b8d9",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -7978,7 +8299,7 @@
             "description": "Operations about users.",
             "item": [
                 {
-                    "id": "47c51ca9-8d92-4018-85fc-bb32f123441f",
+                    "id": "4bd1d847-a8b5-4389-b48b-fc18ca2dd05d",
                     "name": "Get user context information",
                     "request": {
                         "name": "Get user context information",
@@ -8019,7 +8340,7 @@
                     },
                     "response": [
                         {
-                            "id": "48c26cf9-41a2-4aa4-a823-5c803853e1fc",
+                            "id": "a26d8c1b-c413-4b2f-96f6-bb576c5dc85e",
                             "name": "User context information",
                             "originalRequest": {
                                 "url": {
@@ -8065,7 +8386,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "933f4fd5-281d-42a7-9156-795b75ebd93a",
+                            "id": "59b782f1-f8a4-429e-881f-0fd115cd0a51",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -8111,7 +8432,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "8e9617be-601b-45e9-9434-0d163cfe8eb6",
+                            "id": "7fe9778b-d883-4873-b832-641b9c9e1d57",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -8157,7 +8478,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c94cf528-de56-472d-9d6c-10cfaf7020f4",
+                            "id": "c9907fdc-bf94-4d4f-b21b-999528530e90",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -8209,7 +8530,7 @@
                     }
                 },
                 {
-                    "id": "e5eeca53-4ff8-4d69-b32a-8019afead47e",
+                    "id": "301c29b7-9696-428e-bdc0-800f4358cf2e",
                     "name": "Get all users",
                     "request": {
                         "name": "Get all users",
@@ -8312,7 +8633,7 @@
                     },
                     "response": [
                         {
-                            "id": "312c9801-bce9-4aeb-8305-fb0161376f1c",
+                            "id": "2cf72ac7-8d02-431a-9471-712b71a0acea",
                             "name": "A paginated list of users.",
                             "originalRequest": {
                                 "url": {
@@ -8420,7 +8741,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "cf245564-b64b-4342-ba6e-da0bb2bd000b",
+                            "id": "5e66b3b5-c62b-488f-8e3a-16d02a0d8664",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -8534,7 +8855,7 @@
                     }
                 },
                 {
-                    "id": "11cd7d0c-91e6-488a-aae0-0f2a3a46be62",
+                    "id": "7bc1cbc0-cb8e-4191-a082-40aa3c14cdfa",
                     "name": "Create a new user",
                     "request": {
                         "name": "Create a new user",
@@ -8577,7 +8898,7 @@
                     },
                     "response": [
                         {
-                            "id": "2859b2b0-0392-4a1a-b302-45b3b9fc4044",
+                            "id": "f0d6290a-99c1-4617-b2dc-2f03c6813d28",
                             "name": "User created successfully.",
                             "originalRequest": {
                                 "url": {
@@ -8625,7 +8946,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "dc71a8f7-089a-41ae-9880-97091c0646c7",
+                            "id": "d331bec5-72dd-44de-b630-7f36eb573020",
                             "name": "Bad request - validation errors or missing required fields.",
                             "originalRequest": {
                                 "url": {
@@ -8673,7 +8994,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "7594f335-f44c-4edf-b502-3865eac31667",
+                            "id": "889456a0-b488-431e-85c2-3d35f489f477",
                             "name": "Conflict - user with same email or code already exists.",
                             "originalRequest": {
                                 "url": {
@@ -8721,7 +9042,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "cfd263f3-12f9-425e-bef6-664185646a59",
+                            "id": "98a2b71a-70cd-4005-a9b8-b668ef54a3e0",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -8775,7 +9096,7 @@
                     }
                 },
                 {
-                    "id": "a93794bf-8e64-4990-8a5b-fd1217aa16d6",
+                    "id": "cad9f820-0036-4db1-ae85-03412a345c95",
                     "name": "Get user by ID",
                     "request": {
                         "name": "Get user by ID",
@@ -8817,7 +9138,7 @@
                     },
                     "response": [
                         {
-                            "id": "e3b3979f-a8ce-4915-9f42-2069684ffa32",
+                            "id": "798ff265-d520-493f-b285-9a693f270b2b",
                             "name": "User details.",
                             "originalRequest": {
                                 "url": {
@@ -8853,7 +9174,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "bf307dbf-eb2e-4e4a-adc1-9cd1531f58f3",
+                            "id": "e94f5588-4186-4050-be3d-7b402b29b91a",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -8889,7 +9210,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "cfd7b59f-82cc-48b1-8d1a-ef07fcdcb78c",
+                            "id": "6bfc0a61-69c2-4626-835b-ba92c0b789a5",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -8931,7 +9252,7 @@
                     }
                 },
                 {
-                    "id": "fec5341e-a4f3-44d8-82df-b9ec3211ab8c",
+                    "id": "bbb0a003-cd0f-4c54-b4fa-8c1c373bcb16",
                     "name": "Update user",
                     "request": {
                         "name": "Update user",
@@ -8986,7 +9307,7 @@
                     },
                     "response": [
                         {
-                            "id": "fd72a8f7-635e-4716-bb85-b3dac681694c",
+                            "id": "e920a37c-e63f-4543-a3c7-cd63be1b2af9",
                             "name": "User updated successfully.",
                             "originalRequest": {
                                 "url": {
@@ -9035,7 +9356,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "fbb69cb1-abd6-4662-a0d9-af1dc02a8a2c",
+                            "id": "0b43daeb-12ef-47af-8d52-c6dfcb83c44d",
                             "name": "Bad request - validation errors or missing required fields.",
                             "originalRequest": {
                                 "url": {
@@ -9084,7 +9405,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f1e29064-b60a-42d5-8e11-4ed55ad0f0ce",
+                            "id": "d851c73e-d73e-4fe4-a68e-2a7a9385bdfa",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -9133,7 +9454,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e4bc29f3-abfd-4fa1-bfd4-09fd8c6baf43",
+                            "id": "339bf2da-bab6-444f-9f99-26e4562a1446",
                             "name": "Conflict - email or code already exists for another user.",
                             "originalRequest": {
                                 "url": {
@@ -9182,7 +9503,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "01b809e9-18e3-473d-990c-b70fd2952bec",
+                            "id": "137626e6-9449-4628-b014-2860876bac20",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -9237,7 +9558,7 @@
                     }
                 },
                 {
-                    "id": "1bd1e2af-1d25-401b-9758-9d821fa12555",
+                    "id": "b904988a-8f63-42c4-a2bd-3d96cda22ce4",
                     "name": "Delete user",
                     "request": {
                         "name": "Delete user",
@@ -9279,7 +9600,7 @@
                     },
                     "response": [
                         {
-                            "id": "f716d522-7f37-4d30-a3bb-3ddddac035e7",
+                            "id": "833a64c7-29ce-4f5a-ae58-df3f137c376e",
                             "name": "User deleted successfully.",
                             "originalRequest": {
                                 "url": {
@@ -9303,7 +9624,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "afdb6198-4d35-46dd-bc84-d8569d705981",
+                            "id": "518c4bf8-39f4-4ae0-9870-d4f753490731",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -9339,7 +9660,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1888e0f5-4906-4a1e-b047-48bdd7319ebd",
+                            "id": "a973b61d-df2d-4694-baf3-4b89db122881",
                             "name": "Cannot delete - user is referenced by other resources.",
                             "originalRequest": {
                                 "url": {
@@ -9375,7 +9696,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a8460343-9b1f-4ba5-9a16-a06bd6aaa626",
+                            "id": "f1aea436-e73c-4aed-a2f6-41c8f54b882a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -9423,7 +9744,7 @@
             "description": "Operations about email templates for notifications.",
             "item": [
                 {
-                    "id": "05e44ebb-1e5d-4542-9f43-95e4f79b411c",
+                    "id": "a945440b-8a67-497c-aa03-a50503d0ed8b",
                     "name": "Get all email templates",
                     "request": {
                         "name": "Get all email templates",
@@ -9463,7 +9784,7 @@
                     },
                     "response": [
                         {
-                            "id": "a6509c04-7c03-4880-bf90-a9380819874d",
+                            "id": "ecd290d0-73e7-4254-a9fb-bdcd4991eb3b",
                             "name": "List of email templates",
                             "originalRequest": {
                                 "url": {
@@ -9503,12 +9824,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"data\": [\n    {\n      \"emt_id\": \"<uuid>\",\n      \"emt_type\": \"STEP_OPENED\",\n      \"emt_name\": \"<string>\",\n      \"emt_subject\": \"<string>\",\n      \"emt_body_html\": \"<string>\",\n      \"emt_body_text\": \"<string>\",\n      \"emt_is_active\": \"<boolean>\",\n      \"emt_created_date\": \"<dateTime>\",\n      \"emt_updated_date\": \"<dateTime>\",\n      \"emt_created_by\": \"<string>\",\n      \"emt_updated_by\": \"<string>\"\n    },\n    {\n      \"emt_id\": \"<uuid>\",\n      \"emt_type\": \"CUSTOM\",\n      \"emt_name\": \"<string>\",\n      \"emt_subject\": \"<string>\",\n      \"emt_body_html\": \"<string>\",\n      \"emt_body_text\": \"<string>\",\n      \"emt_is_active\": \"<boolean>\",\n      \"emt_created_date\": \"<dateTime>\",\n      \"emt_updated_date\": \"<dateTime>\",\n      \"emt_created_by\": \"<string>\",\n      \"emt_updated_by\": \"<string>\"\n    }\n  ],\n  \"total\": \"<integer>\"\n}",
+                            "body": "{\n  \"data\": [\n    {\n      \"emt_id\": \"<uuid>\",\n      \"emt_type\": \"INSTRUCTION_COMPLETED\",\n      \"emt_name\": \"<string>\",\n      \"emt_subject\": \"<string>\",\n      \"emt_body_html\": \"<string>\",\n      \"emt_body_text\": \"<string>\",\n      \"emt_is_active\": \"<boolean>\",\n      \"emt_created_date\": \"<dateTime>\",\n      \"emt_updated_date\": \"<dateTime>\",\n      \"emt_created_by\": \"<string>\",\n      \"emt_updated_by\": \"<string>\"\n    },\n    {\n      \"emt_id\": \"<uuid>\",\n      \"emt_type\": \"STEP_STATUS_CHANGED\",\n      \"emt_name\": \"<string>\",\n      \"emt_subject\": \"<string>\",\n      \"emt_body_html\": \"<string>\",\n      \"emt_body_text\": \"<string>\",\n      \"emt_is_active\": \"<boolean>\",\n      \"emt_created_date\": \"<dateTime>\",\n      \"emt_updated_date\": \"<dateTime>\",\n      \"emt_created_by\": \"<string>\",\n      \"emt_updated_by\": \"<string>\"\n    }\n  ],\n  \"total\": \"<integer>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1b826c4a-7328-4262-88cb-671b9c2bf947",
+                            "id": "5852f342-1cd7-4339-80d8-684c84720b17",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -9559,7 +9880,7 @@
                     }
                 },
                 {
-                    "id": "c703e1eb-0d0b-479f-8abb-194cf3ecfef3",
+                    "id": "5bcb6a2c-e7a6-4d15-8d71-ded3093bbe18",
                     "name": "Create a new email template",
                     "request": {
                         "name": "Create a new email template",
@@ -9590,7 +9911,7 @@
                         "method": "POST",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
+                            "raw": "{\n  \"emt_type\": \"INSTRUCTION_COMPLETED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
                             "options": {
                                 "raw": {
                                     "headerFamily": "json",
@@ -9602,7 +9923,7 @@
                     },
                     "response": [
                         {
-                            "id": "4f1bc33a-5f34-49b6-b455-de89acb4f526",
+                            "id": "f0684474-87ec-4096-bea5-49df7ebdf57f",
                             "name": "Email template created successfully",
                             "originalRequest": {
                                 "url": {
@@ -9628,7 +9949,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
+                                    "raw": "{\n  \"emt_type\": \"INSTRUCTION_COMPLETED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -9645,12 +9966,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"emt_id\": \"<uuid>\",\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\",\n  \"emt_created_date\": \"<dateTime>\",\n  \"emt_updated_date\": \"<dateTime>\",\n  \"emt_created_by\": \"<string>\",\n  \"emt_updated_by\": \"<string>\"\n}",
+                            "body": "{\n  \"emt_id\": \"<uuid>\",\n  \"emt_type\": \"STEP_STATUS_CHANGED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\",\n  \"emt_created_date\": \"<dateTime>\",\n  \"emt_updated_date\": \"<dateTime>\",\n  \"emt_created_by\": \"<string>\",\n  \"emt_updated_by\": \"<string>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "2cde2db3-ca8e-40f0-8b56-0a512c0908c4",
+                            "id": "a49420c2-6a02-4e88-abac-f6f091e9c80d",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -9676,7 +9997,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
+                                    "raw": "{\n  \"emt_type\": \"INSTRUCTION_COMPLETED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -9698,7 +10019,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "afc69990-949f-43aa-871c-d4fcea366062",
+                            "id": "672cbc0a-ad77-43ab-a181-87b71dd0f192",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -9724,7 +10045,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
+                                    "raw": "{\n  \"emt_type\": \"INSTRUCTION_COMPLETED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -9746,7 +10067,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "98c56f29-e9d5-4085-a517-b98473134393",
+                            "id": "09fe4171-3d83-43ec-aac4-d7e428a41543",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -9772,7 +10093,7 @@
                                 "method": "POST",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
+                                    "raw": "{\n  \"emt_type\": \"INSTRUCTION_COMPLETED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": true\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -9800,7 +10121,7 @@
                     }
                 },
                 {
-                    "id": "8d787567-127a-47a5-9b64-7164394a58e4",
+                    "id": "befaa1e4-58c2-410c-8693-ca9f0d363115",
                     "name": "Get an email template by ID",
                     "request": {
                         "name": "Get an email template by ID",
@@ -9842,7 +10163,7 @@
                     },
                     "response": [
                         {
-                            "id": "4cb1ed2f-f227-478b-ad57-beaaccbbe5b6",
+                            "id": "fff4f741-3ff2-423d-a80c-5e4a98392cc9",
                             "name": "Email template details",
                             "originalRequest": {
                                 "url": {
@@ -9873,12 +10194,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"emt_id\": \"<uuid>\",\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\",\n  \"emt_created_date\": \"<dateTime>\",\n  \"emt_updated_date\": \"<dateTime>\",\n  \"emt_created_by\": \"<string>\",\n  \"emt_updated_by\": \"<string>\"\n}",
+                            "body": "{\n  \"emt_id\": \"<uuid>\",\n  \"emt_type\": \"STEP_STATUS_CHANGED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\",\n  \"emt_created_date\": \"<dateTime>\",\n  \"emt_updated_date\": \"<dateTime>\",\n  \"emt_created_by\": \"<string>\",\n  \"emt_updated_by\": \"<string>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a022dde0-eada-4597-8d58-dc9ffd6cbe85",
+                            "id": "b3385100-89b1-4fcb-b14a-cb53d1d880bf",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -9914,7 +10235,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f09c31b6-a37e-4e04-b389-f05664d2e63c",
+                            "id": "c0eb76a3-701d-49e8-93df-9511b15ca67b",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -9950,7 +10271,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "dd90ffc1-73aa-447f-9c67-b13b50c730af",
+                            "id": "37fddf68-66c8-4c10-80e0-120d590aa3eb",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -9992,7 +10313,7 @@
                     }
                 },
                 {
-                    "id": "b037f491-3b68-4c22-9597-56014b707e8b",
+                    "id": "71791d9f-2daf-4957-971d-bedd94e1963d",
                     "name": "Update an email template",
                     "request": {
                         "name": "Update an email template",
@@ -10035,7 +10356,7 @@
                         "method": "PUT",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
+                            "raw": "{\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
                             "options": {
                                 "raw": {
                                     "headerFamily": "json",
@@ -10047,7 +10368,7 @@
                     },
                     "response": [
                         {
-                            "id": "ac9e04a5-07d2-4631-a5e2-c82e55462837",
+                            "id": "b4623775-551a-4980-a2b8-166a5512ff68",
                             "name": "Email template updated successfully",
                             "originalRequest": {
                                 "url": {
@@ -10074,7 +10395,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
+                                    "raw": "{\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -10091,12 +10412,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"emt_id\": \"<uuid>\",\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\",\n  \"emt_created_date\": \"<dateTime>\",\n  \"emt_updated_date\": \"<dateTime>\",\n  \"emt_created_by\": \"<string>\",\n  \"emt_updated_by\": \"<string>\"\n}",
+                            "body": "{\n  \"emt_id\": \"<uuid>\",\n  \"emt_type\": \"STEP_STATUS_CHANGED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\",\n  \"emt_created_date\": \"<dateTime>\",\n  \"emt_updated_date\": \"<dateTime>\",\n  \"emt_created_by\": \"<string>\",\n  \"emt_updated_by\": \"<string>\"\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ef367cb7-a594-4609-adfc-a758ca8905f5",
+                            "id": "706f887d-6961-4f71-be27-0a64c7fc9315",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -10123,7 +10444,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
+                                    "raw": "{\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -10145,7 +10466,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "5740f83a-adf1-4f93-8928-02f0157110f3",
+                            "id": "56d2cacb-08f8-42fc-bfce-bfb374f0a913",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -10172,7 +10493,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
+                                    "raw": "{\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -10194,7 +10515,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "709bbf74-c57a-4f22-abe0-71aa5a4cdf95",
+                            "id": "ff81618a-cb7f-475f-a2ea-350ca28de674",
                             "name": "The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).",
                             "originalRequest": {
                                 "url": {
@@ -10221,7 +10542,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
+                                    "raw": "{\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -10243,7 +10564,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "287d6356-9cc9-4c42-b413-df53c58ccafc",
+                            "id": "e5e89e80-1aeb-48e3-ae59-7f45ba322503",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -10270,7 +10591,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"emt_type\": \"CUSTOM\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
+                                    "raw": "{\n  \"emt_type\": \"STEP_OPENED\",\n  \"emt_name\": \"<string>\",\n  \"emt_subject\": \"<string>\",\n  \"emt_body_html\": \"<string>\",\n  \"emt_body_text\": \"<string>\",\n  \"emt_is_active\": \"<boolean>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -10298,7 +10619,7 @@
                     }
                 },
                 {
-                    "id": "f376c8b2-4b84-4ad3-af9e-464c66d9d5ab",
+                    "id": "aeb552e8-1344-4240-95a0-94ca5c943116",
                     "name": "Delete an email template",
                     "request": {
                         "name": "Delete an email template",
@@ -10340,7 +10661,7 @@
                     },
                     "response": [
                         {
-                            "id": "db125bd9-2fa7-4a23-bc3f-175d62e12e25",
+                            "id": "f0d88bd1-4ff2-4d28-a6c9-ea7314e9f740",
                             "name": "Email template deleted successfully",
                             "originalRequest": {
                                 "url": {
@@ -10364,7 +10685,7 @@
                             "_postman_previewlanguage": "text"
                         },
                         {
-                            "id": "e08f2550-4513-4d14-b1fa-324e947247e7",
+                            "id": "473a800d-8ef4-412d-9b9b-dbced8c410e2",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -10400,7 +10721,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "fe354a0f-a58d-45ad-8138-c8ba09e6816d",
+                            "id": "49e7b443-2974-4be7-8f0b-23eba1e30ec6",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -10436,7 +10757,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "867ff454-3896-45c8-b527-c9dfb40fbbb7",
+                            "id": "d545cbf4-592f-47bb-9964-035de8b9ebcf",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -10484,7 +10805,7 @@
             "description": "Operations about steps, step instances, and status management.",
             "item": [
                 {
-                    "id": "f971f7d4-c536-410d-9e02-044794d23b9a",
+                    "id": "af30899a-0629-4043-80a8-069508ee4a1a",
                     "name": "Get steps with hierarchical filtering for runsheet",
                     "request": {
                         "name": "Get steps with hierarchical filtering for runsheet",
@@ -10578,7 +10899,7 @@
                     },
                     "response": [
                         {
-                            "id": "938c8a07-9265-4901-a866-2e006d833375",
+                            "id": "6deff2f8-8e0e-452b-8ba7-8a56b9e5e256",
                             "name": "Steps grouped by sequence and phase for runsheet display",
                             "originalRequest": {
                                 "url": {
@@ -10672,12 +10993,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "[\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#dB6B7e\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#7b05a4\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#e9d8Eb\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#Bb3e7E\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#8eD4d7\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#3cd735\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#b4dCEF\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#F3B8b4\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  },\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#6c58dA\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#CFE5AB\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"IN_PROGRESS\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#8b842F\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#52d15e\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#9c7FB0\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#f4a702\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#beA14B\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#5f8Dbf\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  }\n]",
+                            "body": "[\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#B7C64A\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#B6BB40\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"FAILED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#D9463F\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#Ea1eF5\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#E13a26\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#3fDbcd\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"IN_PROGRESS\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#9eefB1\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#9d6A08\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  },\n  {\n    \"id\": \"<uuid>\",\n    \"name\": \"<string>\",\n    \"number\": \"<integer>\",\n    \"phases\": [\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#2D892c\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#b1b5Db\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"COMPLETED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#50B2a4\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#89422e\"\n              }\n            ]\n          }\n        ]\n      },\n      {\n        \"id\": \"<uuid>\",\n        \"name\": \"<string>\",\n        \"number\": \"<integer>\",\n        \"steps\": [\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#1dc114\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#eB409a\"\n              }\n            ]\n          },\n          {\n            \"id\": \"<uuid>\",\n            \"code\": \"<string>\",\n            \"name\": \"<string>\",\n            \"status\": \"NOT_STARTED\",\n            \"durationMinutes\": \"<integer>\",\n            \"ownerTeamId\": \"<integer>\",\n            \"ownerTeamName\": \"<string>\",\n            \"labels\": [\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#c96253\"\n              },\n              {\n                \"id\": \"<integer>\",\n                \"name\": \"<string>\",\n                \"description\": \"<string>\",\n                \"color\": \"#6fB6B2\"\n              }\n            ]\n          }\n        ]\n      }\n    ]\n  }\n]",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "24f290de-9b10-480b-a8e9-40a0ef63f7f4",
+                            "id": "3da37f14-5598-4d8d-92d6-7533bdb877f4",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -10776,7 +11097,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c5adf4df-957c-49ad-bea7-5c14bd34959e",
+                            "id": "9b0afb2c-35af-44e6-99fa-e3c95bc8a9a7",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -10881,7 +11202,7 @@
                     }
                 },
                 {
-                    "id": "ec530fad-3aab-4ce7-9625-ac5352505dfe",
+                    "id": "486286fc-782e-47de-ac92-2ccbd787139f",
                     "name": "Get master steps for dropdowns",
                     "request": {
                         "name": "Get master steps for dropdowns",
@@ -10922,7 +11243,7 @@
                     },
                     "response": [
                         {
-                            "id": "e6919447-01a9-4a2c-88d3-11bfacf55bbf",
+                            "id": "e62f142e-be06-4ec1-9565-f28be3180402",
                             "name": "List of master steps",
                             "originalRequest": {
                                 "url": {
@@ -10968,7 +11289,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1b8ae1a7-2708-44d1-80b6-bab5d67f6885",
+                            "id": "67f33c49-bc53-46b3-b701-5f3fd3cede04",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -11014,7 +11335,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "fdd3eda1-edcb-48b2-aada-2216406d71d5",
+                            "id": "874460f6-2616-4a9f-8d6e-1d8e66c7ec0a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -11066,7 +11387,7 @@
                     }
                 },
                 {
-                    "id": "d8764a36-bf9a-4c86-9ac5-6899f3aa41bd",
+                    "id": "e3e30a1b-ef1d-4450-994f-1be3e53cf439",
                     "name": "Get step instance details with instructions",
                     "request": {
                         "name": "Get step instance details with instructions",
@@ -11109,7 +11430,7 @@
                     },
                     "response": [
                         {
-                            "id": "9aae738d-65f7-4b8e-adf0-2efa5ec6f8b5",
+                            "id": "49dd4756-13bc-4060-8a75-9a316262f4de",
                             "name": "Step instance details with instructions",
                             "originalRequest": {
                                 "url": {
@@ -11141,12 +11462,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "{\n  \"stepInstanceId\": \"<uuid>\",\n  \"stepCode\": \"<string>\",\n  \"stepName\": \"<string>\",\n  \"stepDescription\": \"<string>\",\n  \"status\": \"<string>\",\n  \"durationMinutes\": \"<integer>\",\n  \"ownerTeamId\": \"<integer>\",\n  \"ownerTeamName\": \"<string>\",\n  \"phaseId\": \"<uuid>\",\n  \"phaseName\": \"<string>\",\n  \"sequenceId\": \"<uuid>\",\n  \"sequenceName\": \"<string>\",\n  \"instructions\": [\n    {\n      \"id\": \"<uuid>\",\n      \"name\": \"<string>\",\n      \"description\": \"<string>\",\n      \"content\": \"<string>\",\n      \"status\": \"<string>\",\n      \"number\": \"<integer>\",\n      \"isCompleted\": \"<boolean>\"\n    },\n    {\n      \"id\": \"<uuid>\",\n      \"name\": \"<string>\",\n      \"description\": \"<string>\",\n      \"content\": \"<string>\",\n      \"status\": \"<string>\",\n      \"number\": \"<integer>\",\n      \"isCompleted\": \"<boolean>\"\n    }\n  ]\n}",
+                            "body": "{\n  \"stepSummary\": {\n    \"ID\": \"<uuid>\",\n    \"StepCode\": \"LND-873\",\n    \"Name\": \"<string>\",\n    \"Status\": \"<string>\",\n    \"Duration\": \"<integer>\",\n    \"AssignedTeam\": \"<string>\",\n    \"PredecessorCode\": \"<string>\",\n    \"PredecessorName\": \"<string>\",\n    \"TargetEnvironment\": \"<string>\",\n    \"Description\": \"<string>\",\n    \"MigrationName\": \"<string>\",\n    \"IterationName\": \"<string>\",\n    \"PlanName\": \"<string>\",\n    \"SequenceName\": \"<string>\",\n    \"PhaseName\": \"<string>\",\n    \"Labels\": [\n      {\n        \"name\": \"<string>\",\n        \"color\": \"<string>\"\n      },\n      {\n        \"name\": \"<string>\",\n        \"color\": \"<string>\"\n      }\n    ]\n  },\n  \"instructions\": [\n    {\n      \"Id\": \"<uuid>\",\n      \"Order\": \"<integer>\",\n      \"Description\": \"<string>\",\n      \"Duration\": \"<integer>\",\n      \"IsCompleted\": \"<boolean>\"\n    },\n    {\n      \"Id\": \"<uuid>\",\n      \"Order\": \"<integer>\",\n      \"Description\": \"<string>\",\n      \"Duration\": \"<integer>\",\n      \"IsCompleted\": \"<boolean>\"\n    }\n  ],\n  \"impactedTeams\": [\n    {\n      \"name\": \"<string>\"\n    },\n    {\n      \"name\": \"<string>\"\n    }\n  ],\n  \"comments\": [\n    {\n      \"id\": \"<integer>\",\n      \"body\": \"<string>\",\n      \"createdAt\": \"<dateTime>\",\n      \"author\": {\n        \"name\": \"<string>\",\n        \"team\": \"<string>\"\n      }\n    },\n    {\n      \"id\": \"<integer>\",\n      \"body\": \"<string>\",\n      \"createdAt\": \"<dateTime>\",\n      \"author\": {\n        \"name\": \"<string>\",\n        \"team\": \"<string>\"\n      }\n    }\n  ]\n}",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "4df33477-c1a4-49f9-a085-a29de8f6fc56",
+                            "id": "a217277a-b8ec-40dd-bcfd-cb1b3bb983fa",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -11183,7 +11504,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "df0d985c-b08e-45c5-825b-1247a5606c7a",
+                            "id": "b37be173-e618-4b9e-bd02-7320c5067e88",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -11220,7 +11541,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "174c1048-e42d-49e0-bc6f-ca9af5b55c3a",
+                            "id": "7b32d503-cd7a-4f90-9cd8-43a5c2d27ab5",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -11263,7 +11584,7 @@
                     }
                 },
                 {
-                    "id": "8374603f-6751-41f4-a47b-7133aa34bfc4",
+                    "id": "82d83e19-3773-4891-97ba-72e9b6add1b1",
                     "name": "Update step instance status",
                     "request": {
                         "name": "Update step instance status",
@@ -11307,7 +11628,7 @@
                         "method": "PUT",
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"status\": \"BLOCKED\",\n  \"userId\": \"<integer>\"\n}",
+                            "raw": "{\n  \"status\": \"OPEN\",\n  \"userId\": \"<integer>\"\n}",
                             "options": {
                                 "raw": {
                                     "headerFamily": "json",
@@ -11319,7 +11640,7 @@
                     },
                     "response": [
                         {
-                            "id": "8249613f-d967-4bb7-b26b-a4cff0ce65a7",
+                            "id": "69305b35-e246-42b7-acfa-60b3c42de9f3",
                             "name": "Step status updated successfully",
                             "originalRequest": {
                                 "url": {
@@ -11347,7 +11668,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"status\": \"BLOCKED\",\n  \"userId\": \"<integer>\"\n}",
+                                    "raw": "{\n  \"status\": \"OPEN\",\n  \"userId\": \"<integer>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -11369,7 +11690,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "a877bef8-5fbb-48ac-a50a-43afc7c4efbb",
+                            "id": "a7691d79-cea0-4e34-8e24-db95f58106f9",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -11397,7 +11718,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"status\": \"BLOCKED\",\n  \"userId\": \"<integer>\"\n}",
+                                    "raw": "{\n  \"status\": \"OPEN\",\n  \"userId\": \"<integer>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -11419,7 +11740,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "8c9ec4c4-8993-4762-a7db-a498114bb01a",
+                            "id": "6fd66db1-f322-406f-bfa9-9db8fa09feb6",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -11447,7 +11768,7 @@
                                 "method": "PUT",
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"status\": \"BLOCKED\",\n  \"userId\": \"<integer>\"\n}",
+                                    "raw": "{\n  \"status\": \"OPEN\",\n  \"userId\": \"<integer>\"\n}",
                                     "options": {
                                         "raw": {
                                             "headerFamily": "json",
@@ -11475,7 +11796,7 @@
                     }
                 },
                 {
-                    "id": "2e828b98-7c60-40cf-a564-261303b6e5d7",
+                    "id": "194e6b02-7b03-4d0a-9958-f6bb6b126bf0",
                     "name": "Mark step as opened by PILOT",
                     "request": {
                         "name": "Mark step as opened by PILOT",
@@ -11531,7 +11852,7 @@
                     },
                     "response": [
                         {
-                            "id": "e0090adf-26f0-4259-b9ab-1b2dfed95ea3",
+                            "id": "1484257e-4711-4987-98a0-e06a39ea82ae",
                             "name": "Step opened successfully",
                             "originalRequest": {
                                 "url": {
@@ -11581,7 +11902,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "53b2e492-47db-4512-ba12-70322c553eee",
+                            "id": "499c6fe7-fd03-4152-aa4d-f45712b06623",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -11631,7 +11952,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "cabd1464-f943-46a4-8a4b-a01251e7b928",
+                            "id": "7525adde-6c61-4199-b684-5cbd3d5520b0",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -11687,7 +12008,7 @@
                     }
                 },
                 {
-                    "id": "c1f3259e-9243-4366-bb8c-bc25bd0f3151",
+                    "id": "f00f134d-af66-4e0a-aa37-276c8cbe72ba",
                     "name": "Mark instruction as completed",
                     "request": {
                         "name": "Mark instruction as completed",
@@ -11755,7 +12076,7 @@
                     },
                     "response": [
                         {
-                            "id": "ce073af2-4546-40f6-ac56-cb0ab93181e8",
+                            "id": "72789696-b87d-4b3f-8963-5437deeaa8f1",
                             "name": "Instruction completed successfully",
                             "originalRequest": {
                                 "url": {
@@ -11807,7 +12128,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ad65b5f7-7868-4daa-933d-c5f9896c90a8",
+                            "id": "ed93fc03-babd-4df0-be32-72f68f03e9ce",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -11859,7 +12180,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "9bf576e9-2af8-4080-b9b6-d50aeea85d30",
+                            "id": "490b1e99-26b6-40ec-9d32-b5736baff611",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -11923,7 +12244,7 @@
             "description": "Operations about step comments and collaboration.",
             "item": [
                 {
-                    "id": "df7ae29c-307e-4223-b55e-234c787bb3ca",
+                    "id": "c588bed6-ada7-4e12-aaeb-7d627caa8256",
                     "name": "Get comments for a step instance",
                     "request": {
                         "name": "Get comments for a step instance",
@@ -11966,7 +12287,7 @@
                     },
                     "response": [
                         {
-                            "id": "b99d94b0-112d-4850-9634-8f459df1cad0",
+                            "id": "e015e809-c19a-4700-b6b5-4895a4e354c0",
                             "name": "List of comments for the step instance",
                             "originalRequest": {
                                 "url": {
@@ -12003,7 +12324,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "198ef315-fb05-4bf5-b221-77585b3c264c",
+                            "id": "7e00d516-e2cc-4399-be2c-3e37289c1267",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -12040,7 +12361,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "1fa7c7a0-a8a3-4ddd-a189-baa5370c050f",
+                            "id": "10588de9-2923-4996-b2f9-6a31a329ed9a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -12083,7 +12404,7 @@
                     }
                 },
                 {
-                    "id": "3219a4c7-aa7e-409f-b588-b5434723ac8d",
+                    "id": "6d1f1c4d-7442-48e3-bc1d-078604152a44",
                     "name": "Create a new comment for a step instance",
                     "request": {
                         "name": "Create a new comment for a step instance",
@@ -12139,7 +12460,7 @@
                     },
                     "response": [
                         {
-                            "id": "b68dbe70-f11a-4f65-acc7-c7c2db89ed36",
+                            "id": "1bafc4fe-4a78-4b83-b713-ff91ccbbdb63",
                             "name": "Comment created successfully",
                             "originalRequest": {
                                 "url": {
@@ -12189,7 +12510,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "c0cf8fe8-9fc3-4276-aec1-77ee185530a0",
+                            "id": "137c28ff-a314-46ad-a1da-0836821b23e4",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -12239,7 +12560,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "8840a64c-b908-464c-b1cc-3cde66566170",
+                            "id": "868bc34b-0c14-4c8a-abca-d6dc015a4c26",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -12295,7 +12616,7 @@
                     }
                 },
                 {
-                    "id": "e0eaa992-2920-45b0-9820-f9a4d5df19b0",
+                    "id": "25277fde-157c-41bf-85ef-c04e1fad17a3",
                     "name": "Update a comment",
                     "request": {
                         "name": "Update a comment",
@@ -12350,7 +12671,7 @@
                     },
                     "response": [
                         {
-                            "id": "ab6c6fcd-e950-4ad5-89fd-b2b32e2fba5b",
+                            "id": "426a241b-e9bf-41c5-80d5-370c63fb6d07",
                             "name": "Comment updated successfully",
                             "originalRequest": {
                                 "url": {
@@ -12399,7 +12720,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "d02bf01f-adce-460d-93cc-dafffbdaf0af",
+                            "id": "ca49176e-2c0a-4137-b000-31b0d0c010da",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -12448,7 +12769,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ccd29f49-3dc2-4ff8-b0b7-f350d0b56261",
+                            "id": "09a082d7-ed21-4b41-8156-f96f4bb6da40",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -12497,7 +12818,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "6415242a-d697-4b0a-81ba-e415fe5f39e1",
+                            "id": "73a50e72-b274-42fc-bbf1-aba71ff75b27",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -12552,7 +12873,7 @@
                     }
                 },
                 {
-                    "id": "d244bd51-5fe6-4556-b330-47a264610754",
+                    "id": "366c49eb-4493-4e20-971d-71abb4bea9b4",
                     "name": "Delete a comment",
                     "request": {
                         "name": "Delete a comment",
@@ -12594,7 +12915,7 @@
                     },
                     "response": [
                         {
-                            "id": "4def6f3e-2eb1-48f1-92fc-0eec9ccd3b9a",
+                            "id": "b22f981f-8980-4a56-b085-c0d62d6abe47",
                             "name": "Comment deleted successfully",
                             "originalRequest": {
                                 "url": {
@@ -12630,7 +12951,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "e8d1a241-c589-4170-a47a-2b2bc8996651",
+                            "id": "5ae4f268-b5f6-4664-b51c-e9d53f9f7ab0",
                             "name": "Invalid input, object invalid.",
                             "originalRequest": {
                                 "url": {
@@ -12666,7 +12987,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "11e2e7ae-56e3-4920-b738-53be324f6b09",
+                            "id": "6856a444-e3b5-4710-aadb-2f25a06656cf",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -12702,7 +13023,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "ec3614cb-abf1-47a7-ba6e-1894b18f3de0",
+                            "id": "77a886f8-fde2-4aa8-9099-9478ff353e0a",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -12750,7 +13071,7 @@
             "description": "Operations about status management for different entity types.",
             "item": [
                 {
-                    "id": "eaf50f84-4e8a-4d05-8b12-0634dc49da85",
+                    "id": "54f6281e-7273-4b26-b6e5-8b103a2736fd",
                     "name": "Get all statuses",
                     "request": {
                         "name": "Get all statuses",
@@ -12780,7 +13101,7 @@
                     },
                     "response": [
                         {
-                            "id": "10e966cd-6d7e-4b72-b28e-4e9914ce444f",
+                            "id": "c2cbc51a-3111-413a-a0cf-fd854d48b984",
                             "name": "List of all statuses",
                             "originalRequest": {
                                 "url": {
@@ -12810,12 +13131,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "[\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#0c80B9\",\n    \"sts_sort_order\": \"<integer>\"\n  },\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#dd05bc\",\n    \"sts_sort_order\": \"<integer>\"\n  }\n]",
+                            "body": "[\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#4BFad2\",\n    \"sts_sort_order\": \"<integer>\"\n  },\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#76Ba37\",\n    \"sts_sort_order\": \"<integer>\"\n  }\n]",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "63f3b882-8be1-4e96-9f4b-e3307988577c",
+                            "id": "c4ed4968-e271-4911-8b59-51ee6bdb5601",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -12856,7 +13177,7 @@
                     }
                 },
                 {
-                    "id": "20643a58-4c5b-49f1-9585-307eae7e8b2b",
+                    "id": "28bd11a6-a5d6-47b5-a174-3ad9a4a15fcd",
                     "name": "Get statuses by entity type",
                     "request": {
                         "name": "Get statuses by entity type",
@@ -12898,7 +13219,7 @@
                     },
                     "response": [
                         {
-                            "id": "759c2f3f-36b4-43a7-b7e9-3203cd085e62",
+                            "id": "80b9a6a8-27cf-44ca-959e-f343e30a0af5",
                             "name": "List of statuses for the specified type",
                             "originalRequest": {
                                 "url": {
@@ -12929,12 +13250,12 @@
                                     "value": "application/json"
                                 }
                             ],
-                            "body": "[\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#0c80B9\",\n    \"sts_sort_order\": \"<integer>\"\n  },\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#dd05bc\",\n    \"sts_sort_order\": \"<integer>\"\n  }\n]",
+                            "body": "[\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#4BFad2\",\n    \"sts_sort_order\": \"<integer>\"\n  },\n  {\n    \"sts_id\": \"<integer>\",\n    \"sts_code\": \"<string>\",\n    \"sts_name\": \"<string>\",\n    \"sts_description\": \"<string>\",\n    \"sts_type\": \"<string>\",\n    \"sts_color\": \"#76Ba37\",\n    \"sts_sort_order\": \"<integer>\"\n  }\n]",
                             "cookie": [],
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "82e71ab7-8dfd-4384-8fe8-7776f64dd514",
+                            "id": "0425ff56-ba1a-449a-b84e-ac8b7aa73390",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -12970,7 +13291,7 @@
                             "_postman_previewlanguage": "json"
                         },
                         {
-                            "id": "f11353bb-da2d-478e-8597-b2b231097830",
+                            "id": "6e390ff8-8d00-4ba7-a6ac-cec4f6e319cd",
                             "name": "An unexpected internal server error occurred.",
                             "originalRequest": {
                                 "url": {
@@ -13018,7 +13339,7 @@
             "description": "Serves static web assets.",
             "item": [
                 {
-                    "id": "70fa359d-3565-4278-82d7-cdb76031ec5d",
+                    "id": "c00ea6e2-3433-4fc1-8579-56a6d0f6ce6a",
                     "name": "Serve a static asset",
                     "request": {
                         "name": "Serve a static asset",
@@ -13064,7 +13385,7 @@
                     },
                     "response": [
                         {
-                            "id": "829d1d34-8c2e-4b29-96db-d749bb0e15f3",
+                            "id": "fadb67fa-1761-4277-b165-c74c4a024a86",
                             "name": "The specified resource was not found.",
                             "originalRequest": {
                                 "url": {
@@ -13116,7 +13437,7 @@
         }
     ],
     "info": {
-        "_postman_id": "4064792f-64fc-4ee6-a7bb-a4200bee5fad",
+        "_postman_id": "9690732d-4a67-48f8-88bc-c7ed93ff4a92",
         "name": "UMIG API V2",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "description": {

@@ -415,7 +415,8 @@ class StepRepository {
                 def instruction = sql.firstRow('''
                     SELECT 
                         ini.ini_id, ini.ini_is_completed,
-                        inm.inm_order, inm.inm_body as ini_name
+                        inm.inm_order, inm.inm_body as ini_name,
+                        inm.tms_id as instruction_team_id
                     FROM instructions_instance_ini ini
                     JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
                     WHERE ini.ini_id = :instructionId
@@ -466,11 +467,106 @@ class StepRepository {
                     return [success: false, error: "Failed to complete instruction"]
                 }
                 
-                // Get teams for notification
-                def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
+                // Get teams for notification - including instruction team
+                def teams = getTeamsForNotificationWithInstructionTeam(
+                    sql, 
+                    stepInstance.stm_id as UUID, 
+                    stepInstance.tms_id_owner as Integer,
+                    instruction.instruction_team_id as Integer
+                )
                 
                 // Send notification
                 EmailService.sendInstructionCompletedNotification(
+                    instruction as Map,
+                    stepInstance as Map,
+                    teams,
+                    userId
+                )
+                
+                return [success: true, emailsSent: teams.size()]
+                
+            } catch (Exception e) {
+                return [success: false, error: e.message]
+            }
+        }
+    }
+
+    /**
+     * Mark an instruction as incomplete and send notification to relevant teams.
+     * @param instructionId The UUID of the instruction instance
+     * @param stepInstanceId The UUID of the step instance
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and email send results
+     */
+    Map uncompleteInstructionWithNotification(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get instruction data
+                def instruction = sql.firstRow('''
+                    SELECT 
+                        ini.ini_id, ini.ini_is_completed,
+                        inm.inm_order, inm.inm_body as ini_name,
+                        inm.tms_id as instruction_team_id
+                    FROM instructions_instance_ini ini
+                    JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                    WHERE ini.ini_id = :instructionId
+                ''', [instructionId: instructionId])
+                
+                if (!instruction) {
+                    return [success: false, error: "Instruction not found"]
+                }
+                
+                // Check if already incomplete
+                if (!instruction.ini_is_completed) {
+                    return [success: false, error: "Instruction is already incomplete"]
+                }
+                
+                // Get step instance data
+                def stepInstance = sql.firstRow('''
+                    SELECT 
+                        sti.sti_id, sti.sti_name, sti.stm_id,
+                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        mig.mig_name as migration_name,
+                        ite.ite_name as iteration_name,
+                        plm.plm_name as plan_name
+                    FROM steps_instance_sti sti
+                    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                    JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                    JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                    JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                    JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                    JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    WHERE sti.sti_id = :stepInstanceId
+                ''', [stepInstanceId: stepInstanceId])
+                
+                if (!stepInstance) {
+                    return [success: false, error: "Step instance not found"]
+                }
+                
+                // Mark instruction as incomplete
+                def updateCount = sql.executeUpdate('''
+                    UPDATE instructions_instance_ini 
+                    SET ini_is_completed = false,
+                        ini_completed_at = NULL,
+                        usr_id_completed_by = NULL
+                    WHERE ini_id = :instructionId
+                ''', [instructionId: instructionId])
+                
+                if (updateCount != 1) {
+                    return [success: false, error: "Failed to mark instruction as incomplete"]
+                }
+                
+                // Get teams for notification - including instruction team
+                def teams = getTeamsForNotificationWithInstructionTeam(
+                    sql, 
+                    stepInstance.stm_id as UUID, 
+                    stepInstance.tms_id_owner as Integer,
+                    instruction.instruction_team_id as Integer
+                )
+                
+                // Send notification
+                EmailService.sendInstructionUncompletedNotification(
                     instruction as Map,
                     stepInstance as Map,
                     teams,
@@ -522,13 +618,63 @@ class StepRepository {
     }
     
     /**
+     * Helper method to get all teams that should receive notifications for a step,
+     * including the instruction-specific team.
+     * Includes owner team, impacted teams, and instruction team.
+     */
+    private List<Map> getTeamsForNotificationWithInstructionTeam(Sql sql, UUID stmId, Integer ownerTeamId, Integer instructionTeamId) {
+        def teams = []
+        
+        // Add owner team
+        if (ownerTeamId) {
+            def ownerTeam = sql.firstRow('''
+                SELECT tms_id, tms_name, tms_email
+                FROM teams_tms
+                WHERE tms_id = :teamId
+            ''', [teamId: ownerTeamId])
+            
+            if (ownerTeam) {
+                teams.add(ownerTeam as Map)
+            }
+        }
+        
+        // Add impacted teams
+        def impactedTeams = sql.rows('''
+            SELECT DISTINCT t.tms_id, t.tms_name, t.tms_email
+            FROM teams_tms t
+            JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+            WHERE sti.stm_id = :stmId
+        ''', [stmId: stmId])
+        
+        teams.addAll(impactedTeams as List<Map>)
+        
+        // Add instruction team if different from owner and impacted teams
+        if (instructionTeamId) {
+            def instructionTeam = sql.firstRow('''
+                SELECT tms_id, tms_name, tms_email
+                FROM teams_tms
+                WHERE tms_id = :teamId
+            ''', [teamId: instructionTeamId])
+            
+            if (instructionTeam) {
+                teams.add(instructionTeam as Map)
+            }
+        }
+        
+        // Remove duplicates by team ID
+        def uniqueTeams = teams.unique { team -> (team as Map).tms_id }
+        
+        return uniqueTeams as List<Map>
+    }
+    
+    /**
      * Find step instance details by step instance ID (UUID)
      * @param stepInstanceId Step instance UUID
      * @return Step instance details with instructions and comments
      */
     def findStepInstanceDetailsById(UUID stepInstanceId) {
         DatabaseUtil.withSql { Sql sql ->
-            // Get the step instance with master data
+            // Get the step instance with master data and hierarchy
             def stepInstance = sql.firstRow('''
                 SELECT 
                     sti.sti_id,
@@ -537,6 +683,8 @@ class StepRepository {
                     sti.sti_duration_minutes,
                     sti.phi_id,
                     sti.enr_id,
+                    enr.enr_name as environment_role_name,
+                    env.env_name as environment_name,
                     stm.stm_id,
                     stm.stt_code,
                     stm.stm_number,
@@ -544,10 +692,35 @@ class StepRepository {
                     stm.stm_description,
                     stm.stm_duration_minutes as master_duration,
                     stm.tms_id_owner,
-                    owner_team.tms_name as owner_team_name
+                    owner_team.tms_name as owner_team_name,
+                    stm.stm_id_predecessor,
+                    -- Predecessor step info
+                    pred_stm.stt_code as predecessor_stt_code,
+                    pred_stm.stm_number as predecessor_stm_number,
+                    pred_stm.stm_name as predecessor_name,
+                    -- Hierarchy data
+                    mig.mig_name as migration_name,
+                    ite.ite_name as iteration_name,
+                    plm.plm_name as plan_name,
+                    sqm.sqm_name as sequence_name,
+                    phm.phm_name as phase_name
                 FROM steps_instance_sti sti
                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
                 LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                LEFT JOIN steps_master_stm pred_stm ON stm.stm_id_predecessor = pred_stm.stm_id
+                LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
+                -- Join to get hierarchy
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                -- Join to get actual environment name for this iteration and role
+                LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                LEFT JOIN environments_env env ON eei.env_id = env.env_id
                 WHERE sti.sti_id = :stepInstanceId
             ''', [stepInstanceId: stepInstanceId])
             
@@ -572,6 +745,15 @@ class StepRepository {
                 ORDER BY inm.inm_order
             ''', [stepInstanceId: stepInstanceId])
             
+            // Get iteration types (scope) for this step
+            def iterationTypes = sql.rows('''
+                SELECT itt.itt_code, itt.itt_name
+                FROM steps_master_stm_x_iteration_types_itt smit
+                JOIN iteration_types_itt itt ON smit.itt_code = itt.itt_code
+                WHERE smit.stm_id = :stmId
+                ORDER BY itt.itt_code
+            ''', [stmId: stepInstance.stm_id])
+            
             // Get impacted teams using the master step ID
             def impactedTeamIds = sql.rows('''
                 SELECT tms_id
@@ -590,6 +772,17 @@ class StepRepository {
             // Get comments for this step instance
             def comments = findCommentsByStepInstanceId(stepInstanceId)
             
+            // Get labels for this step (using master step ID)
+            def labels = []
+            if (stepInstance.stm_id) {
+                try {
+                    labels = findLabelsByStepId(stepInstance.stm_id as UUID)
+                    println "DEBUG: Found ${labels.size()} labels for step ${stepInstance.stm_id}"
+                } catch (Exception e) {
+                    println "ERROR fetching labels: ${e.message}"
+                }
+            }
+            
             return [
                 stepSummary: [
                     ID: stepInstance.sti_id,
@@ -598,7 +791,27 @@ class StepRepository {
                     Status: stepInstance.sti_status,
                     Duration: stepInstance.sti_duration_minutes ?: stepInstance.master_duration,
                     AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
-                    StepCode: "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}"
+                    StepCode: "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}",
+                    // Hierarchy information
+                    MigrationName: stepInstance.migration_name,
+                    IterationName: stepInstance.iteration_name,
+                    PlanName: stepInstance.plan_name,
+                    SequenceName: stepInstance.sequence_name,
+                    PhaseName: stepInstance.phase_name,
+                    // Predecessor information
+                    PredecessorCode: stepInstance.predecessor_stt_code && stepInstance.predecessor_stm_number ? 
+                        "${stepInstance.predecessor_stt_code}-${String.format('%03d', stepInstance.predecessor_stm_number)}" : null,
+                    PredecessorName: stepInstance.predecessor_name,
+                    // Environment role
+                    TargetEnvironment: stepInstance.environment_role_name ? 
+                        (stepInstance.environment_name ? 
+                            "${stepInstance.environment_role_name} (${stepInstance.environment_name})" : 
+                            "${stepInstance.environment_role_name} (!No Environment Assigned Yet!)") : 
+                        'Not specified',
+                    // Iteration types (scope)
+                    IterationTypes: iterationTypes.collect { it.itt_code },
+                    // Labels
+                    Labels: labels
                 ],
                 instructions: instructions.collect { instruction ->
                     [
