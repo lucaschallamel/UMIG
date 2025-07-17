@@ -8,6 +8,12 @@ This folder contains all Groovy-based tests for the UMIG project.
 - `grab-postgres-jdbc.groovy`: JDBC driver dependency setup
 - `run-integration-tests.sh`: Test runner script
 
+### Diagnostic Tools
+- `checkEnvironmentAssociations.groovy`: General environment association validation
+- `checkCutoverProdEnvironments.groovy`: CUTOVER-specific environment checks
+- `compareEnvironmentAssignments.groovy`: Environment rule compliance verification
+- `checkEnvironmentAssociations.sql`: Manual SQL queries for troubleshooting
+
 ## Prerequisites
 
 Before running these tests, ensure you have the following installed and configured:

@@ -18,6 +18,8 @@
   - Moved STATUS and PREDECESSOR fields below breadcrumb for better visibility
   - Made SCOPE dynamic from steps_master_stm_x_iteration_types_itt table
   - Added Expand All/Collapse All buttons to runsheet panel
+  - Split teams display into Primary Team and Impacted Teams sections
+  - Added " min." suffix to all duration values for clarity
 - **Tooling(Diagnostics):** Added environment association diagnostic scripts
   - checkEnvironmentAssociations.groovy - General environment association checks
   - checkCutoverProdEnvironments.groovy - CUTOVER-specific environment validation

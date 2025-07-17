@@ -375,6 +375,13 @@ body {
     cursor: help;
 }
 
+/* Label tags in step details metadata */
+.step-metadata .metadata-item .label-tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    margin-right: 6px;
+}
+
 .no-labels {
     color: var(--color-text-tertiary);
     font-style: italic;

@@ -317,3 +317,71 @@ users(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrat
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An unexpected internal error occurred."]).toString()).build()
     }
 }
+
+/**
+ * User context endpoint
+ * GET /user/context?username=xxx - Get user context including role information
+ */
+user(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // GET /user/context
+    if (pathParts.size() == 1 && pathParts[0] == 'context') {
+        try {
+            // Get user by username from query params
+            def username = queryParams.getFirst('username')
+            if (!username) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Username is required"]).toString())
+                    .build()
+            }
+            
+            // Find user by username
+            def user = userRepository.findUserByUsername(username as String)
+            
+            if (!user) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "User not found"]).toString())
+                    .build()
+            }
+            
+            // Return user context with role information
+            def userMap = user as Map
+            
+            // Get the role code from the role ID
+            def roleCode = 'NORMAL' // Default
+            if (userMap.rls_id) {
+                // Need to add DatabaseUtil import and fetch role
+                // For now, let's map role IDs directly
+                switch(userMap.rls_id) {
+                    case 1: roleCode = 'ADMIN'; break
+                    case 2: roleCode = 'NORMAL'; break
+                    case 3: roleCode = 'PILOT'; break
+                    default: roleCode = 'NORMAL'
+                }
+            }
+            
+            return Response.ok(new JsonBuilder([
+                userId: userMap.usr_id,
+                username: userMap.usr_code,
+                firstName: userMap.usr_first_name,
+                lastName: userMap.usr_last_name,
+                email: userMap.usr_email,
+                isAdmin: userMap.usr_is_admin ?: false,
+                roleId: userMap.rls_id,
+                role: roleCode,
+                isActive: userMap.usr_active
+            ]).toString()).build()
+            
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to get user context: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Invalid user endpoint"]).toString())
+        .build()
+}

@@ -4,6 +4,7 @@ import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.StepRepository
 import umig.repository.StatusRepository
 import umig.repository.UserRepository
+import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
 
@@ -297,8 +298,8 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     .build()
             }
             
-            // Validate status value
-            def validStatuses = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'BLOCKED', 'ON_HOLD']
+            // Validate status value - these match the status_sts table
+            def validStatuses = ['PENDING', 'TODO', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED']
             if (!validStatuses.contains(newStatus.toUpperCase())) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Invalid status. Must be one of: ${validStatuses.join(', ')}"]).toString())
@@ -699,57 +700,3 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
         .build()
 }
 
-/**
- * Handles GET requests for user context information.
- * - GET /user/context -> returns current user's role information
- */
-user(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-    
-    // GET /user/context
-    if (pathParts.size() == 1 && pathParts[0] == 'context') {
-        try {
-            // Get user by username from query params
-            def username = queryParams.getFirst('username')
-            if (!username) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Username is required"]).toString())
-                    .build()
-            }
-            
-            // Find user by username (this would need a method in UserRepository)
-            // For now, let's use a simple approach
-            def user = userRepository.findUserByUsername(username as String)
-            
-            if (!user) {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "User not found"]).toString())
-                    .build()
-            }
-            
-            // Return user context with role information
-            def userMap = user as Map
-            return Response.ok(new JsonBuilder([
-                userId: userMap.usr_id,
-                username: userMap.usr_code,
-                firstName: userMap.usr_first_name,
-                lastName: userMap.usr_last_name,
-                email: userMap.usr_email,
-                isAdmin: userMap.usr_is_admin,
-                roleId: userMap.rls_id,
-                role: userMap.role_code ?: 'NORMAL', // Default to NORMAL if no role
-                isActive: userMap.usr_active
-            ]).toString()).build()
-            
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(new JsonBuilder([error: "Failed to get user context: ${e.message}"]).toString())
-                .build()
-        }
-    }
-    
-    return Response.status(Response.Status.NOT_FOUND)
-        .entity(new JsonBuilder([error: "Invalid user endpoint"]).toString())
-        .build()
-}
