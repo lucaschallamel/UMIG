@@ -821,80 +821,10 @@ class IterationView {
      * Attach event listeners to action buttons
      */
     attachActionButtonListeners() {
-        const markAllBtn = document.getElementById('mark-all-complete');
-        if (markAllBtn) {
-            markAllBtn.addEventListener('click', () => this.markAllInstructionsComplete());
-        }
-        
-        const updateStatusBtn = document.getElementById('update-status-btn');
-        if (updateStatusBtn) {
-            updateStatusBtn.addEventListener('click', () => this.handleUpdateStatusClick());
-        }
+        // Action buttons removed per user request
     }
 
-    /**
-     * Mark all uncompleted instructions as complete
-     */
-    async markAllInstructionsComplete() {
-        const uncheckedBoxes = document.querySelectorAll('.instruction-checkbox:not(:checked)');
-        
-        if (uncheckedBoxes.length === 0) {
-            this.showNotification('All instructions are already complete', 'info');
-            return;
-        }
-        
-        const confirmMessage = `Mark ${uncheckedBoxes.length} instruction${uncheckedBoxes.length > 1 ? 's' : ''} as complete?`;
-        if (!confirm(confirmMessage)) {
-            return;
-        }
-        
-        let completedCount = 0;
-        let failedCount = 0;
-        
-        // Disable the button during processing
-        const markAllBtn = document.getElementById('mark-all-complete');
-        if (markAllBtn) {
-            markAllBtn.disabled = true;
-            markAllBtn.textContent = 'Marking Complete...';
-        }
-        
-        // Process each unchecked checkbox
-        for (const checkbox of uncheckedBoxes) {
-            try {
-                // Simulate clicking the checkbox
-                checkbox.checked = true;
-                await this.handleInstructionToggle({ target: checkbox });
-                completedCount++;
-            } catch (error) {
-                failedCount++;
-                console.error('Failed to complete instruction:', error);
-            }
-        }
-        
-        // Re-enable button
-        if (markAllBtn) {
-            markAllBtn.disabled = false;
-            markAllBtn.textContent = 'Mark All Instructions Complete';
-        }
-        
-        // Show summary notification
-        if (failedCount === 0) {
-            this.showNotification(`Successfully marked ${completedCount} instructions as complete`, 'success');
-        } else {
-            this.showNotification(`Marked ${completedCount} complete, ${failedCount} failed`, 'warning');
-        }
-    }
 
-    /**
-     * Handle update status button click
-     */
-    handleUpdateStatusClick() {
-        const dropdown = document.getElementById('step-status-dropdown');
-        if (dropdown) {
-            // Trigger the change event on the dropdown
-            dropdown.dispatchEvent(new Event('change'));
-        }
-    }
 
     /**
      * Handle instruction checkbox toggle
@@ -1201,11 +1131,6 @@ class IterationView {
                     <textarea id="new-comment-text" placeholder="Add a comment..." rows="3"></textarea>
                     <button type="button" class="btn btn-primary" id="add-comment-btn">Add Comment</button>
                 </div>
-            </div>
-            
-            <div class="step-actions pilot-only">
-                <button type="button" class="btn btn-secondary" id="mark-all-complete">Mark All Instructions Complete</button>
-                <button type="button" class="btn btn-primary" id="update-status-btn">Update Status</button>
             </div>
         `;
         
