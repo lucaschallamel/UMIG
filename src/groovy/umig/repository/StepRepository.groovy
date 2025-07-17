@@ -415,7 +415,8 @@ class StepRepository {
                 def instruction = sql.firstRow('''
                     SELECT 
                         ini.ini_id, ini.ini_is_completed,
-                        inm.inm_order, inm.inm_body as ini_name
+                        inm.inm_order, inm.inm_body as ini_name,
+                        inm.tms_id as instruction_team_id
                     FROM instructions_instance_ini ini
                     JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
                     WHERE ini.ini_id = :instructionId
@@ -466,11 +467,106 @@ class StepRepository {
                     return [success: false, error: "Failed to complete instruction"]
                 }
                 
-                // Get teams for notification
-                def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
+                // Get teams for notification - including instruction team
+                def teams = getTeamsForNotificationWithInstructionTeam(
+                    sql, 
+                    stepInstance.stm_id as UUID, 
+                    stepInstance.tms_id_owner as Integer,
+                    instruction.instruction_team_id as Integer
+                )
                 
                 // Send notification
                 EmailService.sendInstructionCompletedNotification(
+                    instruction as Map,
+                    stepInstance as Map,
+                    teams,
+                    userId
+                )
+                
+                return [success: true, emailsSent: teams.size()]
+                
+            } catch (Exception e) {
+                return [success: false, error: e.message]
+            }
+        }
+    }
+
+    /**
+     * Mark an instruction as incomplete and send notification to relevant teams.
+     * @param instructionId The UUID of the instruction instance
+     * @param stepInstanceId The UUID of the step instance
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and email send results
+     */
+    Map uncompleteInstructionWithNotification(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get instruction data
+                def instruction = sql.firstRow('''
+                    SELECT 
+                        ini.ini_id, ini.ini_is_completed,
+                        inm.inm_order, inm.inm_body as ini_name,
+                        inm.tms_id as instruction_team_id
+                    FROM instructions_instance_ini ini
+                    JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                    WHERE ini.ini_id = :instructionId
+                ''', [instructionId: instructionId])
+                
+                if (!instruction) {
+                    return [success: false, error: "Instruction not found"]
+                }
+                
+                // Check if already incomplete
+                if (!instruction.ini_is_completed) {
+                    return [success: false, error: "Instruction is already incomplete"]
+                }
+                
+                // Get step instance data
+                def stepInstance = sql.firstRow('''
+                    SELECT 
+                        sti.sti_id, sti.sti_name, sti.stm_id,
+                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        mig.mig_name as migration_name,
+                        ite.ite_name as iteration_name,
+                        plm.plm_name as plan_name
+                    FROM steps_instance_sti sti
+                    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                    JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                    JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                    JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                    JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                    JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    WHERE sti.sti_id = :stepInstanceId
+                ''', [stepInstanceId: stepInstanceId])
+                
+                if (!stepInstance) {
+                    return [success: false, error: "Step instance not found"]
+                }
+                
+                // Mark instruction as incomplete
+                def updateCount = sql.executeUpdate('''
+                    UPDATE instructions_instance_ini 
+                    SET ini_is_completed = false,
+                        ini_completed_at = NULL,
+                        usr_id_completed_by = NULL
+                    WHERE ini_id = :instructionId
+                ''', [instructionId: instructionId])
+                
+                if (updateCount != 1) {
+                    return [success: false, error: "Failed to mark instruction as incomplete"]
+                }
+                
+                // Get teams for notification - including instruction team
+                def teams = getTeamsForNotificationWithInstructionTeam(
+                    sql, 
+                    stepInstance.stm_id as UUID, 
+                    stepInstance.tms_id_owner as Integer,
+                    instruction.instruction_team_id as Integer
+                )
+                
+                // Send notification
+                EmailService.sendInstructionUncompletedNotification(
                     instruction as Map,
                     stepInstance as Map,
                     teams,
@@ -514,6 +610,56 @@ class StepRepository {
         ''', [stmId: stmId])
         
         teams.addAll(impactedTeams as List<Map>)
+        
+        // Remove duplicates by team ID
+        def uniqueTeams = teams.unique { team -> (team as Map).tms_id }
+        
+        return uniqueTeams as List<Map>
+    }
+    
+    /**
+     * Helper method to get all teams that should receive notifications for a step,
+     * including the instruction-specific team.
+     * Includes owner team, impacted teams, and instruction team.
+     */
+    private List<Map> getTeamsForNotificationWithInstructionTeam(Sql sql, UUID stmId, Integer ownerTeamId, Integer instructionTeamId) {
+        def teams = []
+        
+        // Add owner team
+        if (ownerTeamId) {
+            def ownerTeam = sql.firstRow('''
+                SELECT tms_id, tms_name, tms_email
+                FROM teams_tms
+                WHERE tms_id = :teamId
+            ''', [teamId: ownerTeamId])
+            
+            if (ownerTeam) {
+                teams.add(ownerTeam as Map)
+            }
+        }
+        
+        // Add impacted teams
+        def impactedTeams = sql.rows('''
+            SELECT DISTINCT t.tms_id, t.tms_name, t.tms_email
+            FROM teams_tms t
+            JOIN steps_master_stm_x_teams_tms_impacted sti ON t.tms_id = sti.tms_id
+            WHERE sti.stm_id = :stmId
+        ''', [stmId: stmId])
+        
+        teams.addAll(impactedTeams as List<Map>)
+        
+        // Add instruction team if different from owner and impacted teams
+        if (instructionTeamId) {
+            def instructionTeam = sql.firstRow('''
+                SELECT tms_id, tms_name, tms_email
+                FROM teams_tms
+                WHERE tms_id = :teamId
+            ''', [teamId: instructionTeamId])
+            
+            if (instructionTeam) {
+                teams.add(instructionTeam as Map)
+            }
+        }
         
         // Remove duplicates by team ID
         def uniqueTeams = teams.unique { team -> (team as Map).tms_id }

@@ -439,6 +439,48 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
         }
     }
     
+    // POST /steps/{stepInstanceId}/instructions/{instructionId}/incomplete
+    if (pathParts.size() == 4 && pathParts[1] == 'instructions' && pathParts[3] == 'incomplete') {
+        try {
+            def stepInstanceId = pathParts[0]
+            def instructionId = pathParts[2]
+            def stepInstanceUuid = UUID.fromString(stepInstanceId)
+            def instructionUuid = UUID.fromString(instructionId)
+            
+            // Parse request body
+            def requestData = [:]
+            if (body) {
+                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            }
+            
+            def userId = requestData.userId as Integer
+            
+            // Mark instruction as incomplete and send notifications
+            def result = stepRepository.uncompleteInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
+            
+            if (result.success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Instruction marked as incomplete",
+                    emailsSent: result.emailsSent
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: result.error ?: "Failed to mark instruction as incomplete"]).toString())
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to mark instruction as incomplete: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
     // Invalid path
     return Response.status(Response.Status.NOT_FOUND)
         .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
