@@ -2,7 +2,7 @@
 
 ## Overview
 
-This folder contains a responsive HTML mockup of the UMIG Iteration View (Implementation Plan View), which serves as the primary runsheet interface for managing IT cutover and migration events. The mockup was developed based on the UI/UX specification documented in `docs/ui-ux/iteration-view.md`.
+This folder contains a responsive HTML mockup of the UMIG Iteration View (Implementation Plan View), which serves as the primary runsheet interface for managing IT cutover and migration events. The mockup was developed based on the UI/UX specification documented in `docs/roadmap/iteration-view.md`.
 
 ## Purpose
 
@@ -11,7 +11,7 @@ The Iteration View is designed to provide end users with a comprehensive, intera
 ## Development Process
 
 ### 1. Initial Specification Review
-- Started with the UI/UX specification in `docs/ui-ux/iteration-view.md`
+- Started with the UI/UX specification in `docs/roadmap/iteration-view.md`
 - Analyzed the requirements for a 3-area layout design:
   - Top selector bar (migration/iteration context)
   - Left runsheet panel (hierarchical step listing)
