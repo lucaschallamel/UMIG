@@ -129,8 +129,8 @@ UMIG/
 │   │   ├── sprintReviewTemplate.md
 │   │   └── [dated entries]           # Chronological development history
 │   ├── solution-architecture.md      # Complete solution architecture
-│   └── ui-ux/                        # UI/UX specifications
-│       ├── ROADMAP.md                # UI/UX roadmap
+│   └── roadmap/                      # Development roadmap and UI/UX specifications
+│       ├── unified-roadmap.md        # Unified development roadmap
 │       ├── iteration-view.md         # Iteration view specification
 │       ├── step-view.md              # Step view specification
 │       └── template.md               # UI/UX template
@@ -465,7 +465,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 The **Step View** is a standalone macro for embedding individual step interfaces in Confluence pages:
 
-- **Specification**: `docs/ui-ux/step-view.md`
+- **Specification**: `docs/roadmap/step-view.md`
 - **Macro Implementation**: `src/groovy/umig/macros/v1/stepViewMacro.groovy`
 - **Frontend Implementation**: `src/groovy/umig/web/js/step-view.js` (890 lines)
 - **API Backend**: `src/groovy/umig/api/v2/stepViewApi.groovy`
@@ -487,7 +487,7 @@ http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&step
 
 The **Iteration View** is the primary runsheet interface for cutover events:
 
-- **Specification**: `docs/ui-ux/iteration-view.md`
+- **Specification**: `docs/roadmap/iteration-view.md`
 - **Functional Mockup**: `mock/iteration-view.html`
 - **Target Implementation**: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
 - **Current Pattern**: Iteration View macro dynamically loads migration data from `/migrations` API
@@ -546,7 +546,7 @@ The **Iteration View** is the primary runsheet interface for cutover events:
 
 - **`docs/devJournal/`**: Sprint reviews and progress tracking
 - **`cline-docs/`**: AI assistant context and progress
-- **`docs/ui-ux/`**: Interface specifications and mockups
+- **`docs/roadmap/`**: Development roadmap and interface specifications
 
 ## API Testing
 

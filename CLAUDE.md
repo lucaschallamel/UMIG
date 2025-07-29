@@ -11,6 +11,103 @@ UMIG (Unified Migration Implementation Guide) is a bespoke, multi-user, real-tim
 - **Development Environment**: Podman-based containerization
 - **API**: RESTful endpoints following v2 conventions
 
+## Proactive Agent System Integration
+
+This project leverages two specialized agent families for enhanced development capabilities:
+
+### 🚀 GENDEV Development Agents (35 agents)
+**Automatically invoked for development workflows and technical implementation**
+
+**Development Workflow (4)**: MemoryManager, ProjectOrchestrator, SessionContinuityManager, WorkflowOptimizer
+**Code Quality (5)**: CodeRefactoringSpecialist, CodeReviewer, DesignReviewer, QaCoordinator, TestSuiteGenerator
+**Architecture & Design (6)**: ApiDesigner, DataArchitect, DatabaseSchemaDesigner, InterfaceDesigner, SecurityArchitect, SystemArchitect
+**Project Management (5)**: ProgressTracker, ProjectPlanner, ProjectTemplateManager, RiskManager, StakeholderCommunicator
+**DevOps & Deployment (3)**: CICDBuilder, DependencyManager, DeploymentOpsManager
+**Analysis & Planning (12)**: AgentCreator, BusinessProcessAnalyst, ContextManager, DocumentationGenerator, PerformanceOptimizer, RequirementsAnalyst, RequirementsValidator, ResourceMonitor, SecurityAnalyzer, TrainingChangeManager, UatCoordinator, UserStoryGenerator
+
+### 🎯 Quad Enhanced Personas (92 agents)
+**Automatically invoked for domain expertise and strategic guidance**
+
+**Quad Coaches (26)**: Academic, Agile, Business, Career, Change, Communications, Corporate, CTO, DigitalMarketing, Executive, Financial, Fitness, Innovation, Leadership, Life, Meditation, Mental, Naturopathy, Online_Counsellor, Performance, QualityAssurance, Sales, Spiritual, Team, Trading, Wellness
+
+**Quad Masters (18)**: Astrologer, Chess, Complexity, Daoist, Economist, IChing, Kabbalist, LogicianPhilosopher, Mathematician, Negotiator, Numerology, Philosophy, Physicist, ProcessOrchestrator, Rosicrucian, Strategist, SystemsThinking, Tarot
+
+**Quad SMEs (48)**: AIArchitect, AIExpert, AITradingAssistant, Analytics, Apple, BusinessIntelligence, CloudArchitect, ContentStrategy, CryptoTrading, CustomerSuccess, DataEngineer, DataGovernance, DataProtectionEngineer, DataScience, DatabaseAdmin, DayTrading, DesignThinking, DevOps, Documentation, Finance, FunctionalMedicine, HR, LegalTech, LongTermInvesting, MLEngineer, Marketing, NetworkAdmin, Neuroscience, Nutrition, OccupationWriter, OptionsTrading, PerformanceEngineer, ProductManager, ProjectManager, Psychiatry, Psychology, RequirementsAnalyst, RiskManagement, Robotics, SEO, SRE, Security, Sleep, SoftwareEngineer, SwingTrading, TechnicalWriter, UX, WordpressWebmaster
+
+### Agent Invocation Methods
+
+#### 1. Automatic Delegation (PRIMARY - PROACTIVE)
+Claude Code automatically delegates to appropriate agents based on task context. Both GENDEV and Quad agents MUST BE USED proactively when their expertise is relevant.
+
+#### 2. Direct Agent Invocation
+```bash
+# GENDEV agents
+Use the ENHANCED_GENDEV_SystemArchitect agent for system design
+Use the ENHANCED_GENDEV_CodeReviewer agent for code quality
+
+# Quad agents
+Use the Quad_SME_SoftwareEngineer agent for architecture decisions
+Use the Quad_Master_Strategist agent for strategic planning
+```
+
+#### 3. Slash Commands (Quick Access)
+```bash
+# GENDEV commands
+/gd:systemarchitect --architecture_style=microservices
+/gd:codereviewer --review_depth=comprehensive
+/gd:projectplanner --methodology=agile
+
+# Quad commands
+/qd:sme-softwareengineer architect --system-type=distributed
+/qd:coach-business strategy --focus=growth
+/qd:master-strategist analyze --scope=market-entry
+```
+
+## UMIG-Specific Agent Workflows
+
+### Groovy/ScriptRunner Development
+```bash
+# Architecture & Design
+Use ENHANCED_GENDEV_SystemArchitect for REST endpoint patterns
+Use ENHANCED_GENDEV_ApiDesigner for OpenAPI specification
+Use Quad_SME_SoftwareEngineer for Groovy best practices
+
+# Code Quality
+Use ENHANCED_GENDEV_CodeReviewer for Groovy code review
+Use ENHANCED_GENDEV_SecurityAnalyzer for authentication patterns
+Use Quad_SME_Security for security architecture
+```
+
+### Database & Migration Management
+```bash
+# Schema Design
+Use ENHANCED_GENDEV_DatabaseSchemaDesigner for PostgreSQL schema
+Use ENHANCED_GENDEV_DataArchitect for data model optimization
+Use Quad_SME_DatabaseAdmin for performance tuning
+
+# Liquibase Migrations
+/gd:databaseschemadesigner --database_type=postgresql --migration_tool=liquibase
+```
+
+### Frontend Development (Vanilla JS + AUI)
+```bash
+# UI Development
+Use ENHANCED_GENDEV_InterfaceDesigner for AUI component design
+Use Quad_SME_UX for user experience optimization
+/gd:interfacedesigner --framework=vanilla-js --ui_library=atlassian-aui
+```
+
+### Testing Strategy
+```bash
+# Test Suite Development
+Use ENHANCED_GENDEV_TestSuiteGenerator for Groovy tests
+Use ENHANCED_GENDEV_QaCoordinator for test strategy
+Use Quad_Coach_QualityAssurance for quality culture
+
+# Jest Testing
+/gd:testsuitegenerator --test_types=unit --framework_preference=jest
+```
+
 ## Tech Stack & Dependencies
 
 ### Primary Technologies
@@ -133,8 +230,8 @@ UMIG/
 │   │   ├── sprintReviewTemplate.md   # Sprint review template
 │   │   └── 20250616-00 - Initial brainstorm.md # (and other entries)
 │   ├── solution-architecture.md      # Complete solution architecture
-│   └── ui-ux/                        # UI/UX specifications
-│       ├── ROADMAP.md                # UI/UX roadmap
+│   └── roadmap/                      # Development roadmap and UI/UX specifications
+│       ├── unified-roadmap.md        # Unified development roadmap
 │       ├── iteration-view.md         # Iteration view specification
 │       ├── step-view.md              # Step view specification
 │       └── template.md               # UI/UX template
@@ -419,7 +516,7 @@ All 33 Architecture Decision Records have been consolidated into `solution-archi
 ### Development Context
 - **Dev Journal**: `docs/devJournal/` - Sprint reviews and progress tracking
 - **Project Context**: `cline-docs/` - AI assistant context and progress
-- **UI/UX Specs**: `docs/ui-ux/` - Interface specifications
+- **Roadmap & UI/UX Specs**: `docs/roadmap/` - Development roadmap and interface specifications
 
 ## Implementation Status (July 2025)
 
@@ -458,7 +555,7 @@ All 33 Architecture Decision Records have been consolidated into `solution-archi
 - Purpose: Display migration/release steps in Confluence
 
 ### Iteration View System (✅ Completed)
-- Specification: `docs/ui-ux/iteration-view.md`
+- Specification: `docs/roadmap/iteration-view.md`
 - Mockup: `mock/iteration-view.html` (functional prototype)
 - Macro: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
 - Frontend: `src/groovy/umig/web/js/iteration-view.js` and `iteration-view.css`
