@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "API Spec & Test Sync",
+  "description": "Monitors OpenAPI spec and Groovy API files to maintain consistency between specifications and generated Postman tests, following the definitive workflow for safe API updates",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "docs/api/openapi.yaml",
+      "src/groovy/umig/api/v2/*.groovy"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Follow the API Spec & Test Generation workflow from .clinerules/workflows/api-tests-specs-update.md. When openapi.yaml changes: 1) Validate the OpenAPI specification first, 2) Generate Postman collection using 'cd docs/api/postman && npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags', 3) Review changes with git diff, 4) Update changelog and dev journal. When Groovy API files change: 1) Check if openapi.yaml needs updates to reflect new/modified endpoints, 2) Validate API follows CustomEndpointDelegate pattern, 3) Ensure security groups are properly configured. Remember: OpenAPI is the ONLY source of truth - never edit Postman JSON directly."
+  }
+}
