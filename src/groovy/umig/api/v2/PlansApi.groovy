@@ -1,23 +1,20 @@
 package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
-import umig.repository.PlanRepository
-import umig.repository.StatusRepository
-import umig.repository.UserRepository
-import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
-
-import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.MultivaluedMap
+import javax.servlet.http.HttpServletRequest
 import java.util.UUID
 
+/**
+ * Plans API - repositories instantiated within methods to avoid class loading issues
+ */
 @BaseScript CustomEndpointDelegate delegate
 
-final PlanRepository planRepository = new PlanRepository()
-final StatusRepository statusRepository = new StatusRepository()
-final UserRepository userRepository = new UserRepository()
+// Import repository at compile time but instantiate lazily
+import umig.repository.PlanRepository
 
 /**
  * Handles GET requests for Plans with hierarchical filtering.
@@ -36,10 +33,16 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getPlanRepository = { ->
+        return new PlanRepository()
+    }
+    
     // GET /plans/master/{id} - return specific master plan
     if (pathParts.size() == 2 && pathParts[0] == 'master') {
         try {
             def planId = UUID.fromString(pathParts[1])
+            PlanRepository planRepository = getPlanRepository()
             def masterPlan = planRepository.findMasterPlanById(planId)
             
             if (!masterPlan) {
@@ -64,6 +67,7 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /plans/master - return all master plans
     if (pathParts.size() == 1 && pathParts[0] == 'master') {
         try {
+            PlanRepository planRepository = getPlanRepository()
             def masterPlans = planRepository.findAllMasterPlans()
             
             // Transform to consistent format
@@ -98,6 +102,7 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     if (pathParts.size() == 2 && pathParts[0] == 'instance') {
         try {
             def instanceId = UUID.fromString(pathParts[1])
+            PlanRepository planRepository = getPlanRepository()
             def planInstance = planRepository.findPlanInstanceById(instanceId)
             
             if (!planInstance) {
@@ -142,6 +147,7 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             
             // Fetch filtered plan instances
+            PlanRepository planRepository = getPlanRepository()
             def planInstances = planRepository.findPlanInstancesByFilters(filters)
             
             // Transform to consistent format
@@ -213,6 +219,10 @@ plans(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    def getPlanRepository = { ->
+        return new PlanRepository()
+    }
+    
     // POST /plans/master - create new master plan
     if (pathParts.size() == 1 && pathParts[0] == 'master') {
         try {
@@ -235,6 +245,7 @@ plans(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             }
             
             // Create master plan
+            PlanRepository planRepository = getPlanRepository()
             def result = planRepository.createMasterPlan(requestData)
             
             if (result) {
@@ -294,6 +305,7 @@ plans(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             }
             
             // Create plan instance
+            PlanRepository planRepository = getPlanRepository()
             def result = planRepository.createPlanInstance(masterPlanId, iterationId, requestData.usr_id_owner as Integer, overrides)
             
             if (result) {
@@ -335,6 +347,10 @@ plans(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    def getPlanRepository = { ->
+        return new PlanRepository()
+    }
+    
     // PUT /plans/master/{id} - update master plan
     if (pathParts.size() == 2 && pathParts[0] == 'master') {
         try {
@@ -347,6 +363,7 @@ plans(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            PlanRepository planRepository = getPlanRepository()
             def result = planRepository.updateMasterPlan(planId, requestData)
             
             if (result) {
@@ -380,6 +397,7 @@ plans(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            PlanRepository planRepository = getPlanRepository()
             def result = planRepository.updatePlanInstance(instanceId, requestData)
             
             if (result) {
@@ -421,6 +439,7 @@ plans(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     .build()
             }
             
+            PlanRepository planRepository = getPlanRepository()
             def result = planRepository.updatePlanInstanceStatus(instanceId, statusId)
             
             if (result) {
@@ -465,10 +484,16 @@ plans(httpMethod: "DELETE", groups: ["confluence-administrators"]) { Multivalued
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    def getPlanRepository = { ->
+        return new PlanRepository()
+    }
+    
     // DELETE /plans/master/{id} - soft delete master plan
     if (pathParts.size() == 2 && pathParts[0] == 'master') {
         try {
             def planId = UUID.fromString(pathParts[1])
+            
+            PlanRepository planRepository = getPlanRepository()
             
             // Check for active instances
             if (planRepository.hasPlanInstances(planId)) {
@@ -505,6 +530,7 @@ plans(httpMethod: "DELETE", groups: ["confluence-administrators"]) { Multivalued
     if (pathParts.size() == 2 && pathParts[0] == 'instance') {
         try {
             def instanceId = UUID.fromString(pathParts[1])
+            PlanRepository planRepository = getPlanRepository()
             def result = planRepository.deletePlanInstance(instanceId)
             
             if (result) {
