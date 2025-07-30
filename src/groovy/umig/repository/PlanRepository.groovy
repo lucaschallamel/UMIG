@@ -407,7 +407,7 @@ class PlanRepository {
                 WHERE plm_id = :masterPlanId
             """, [masterPlanId: masterPlanId])
             
-            return count?.instance_count > 0
+            return (count?.instance_count as Long ?: 0L) > 0
         }
     }
     
