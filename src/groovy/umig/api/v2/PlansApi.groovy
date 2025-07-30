@@ -283,7 +283,15 @@ plans(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             // Parse UUIDs with type safety
             def masterPlanId = UUID.fromString(requestData.plm_id as String)
             def iterationId = UUID.fromString(requestData.ite_id as String)
-            def overrides = requestData.overrides ?: [:] as Map
+            
+            // Build overrides Map from optional fields
+            Map<String, Object> overrides = [:]
+            if (requestData.pli_name) {
+                overrides.pli_name = requestData.pli_name
+            }
+            if (requestData.pli_description) {
+                overrides.pli_description = requestData.pli_description
+            }
             
             // Create plan instance
             def result = planRepository.createPlanInstance(masterPlanId, iterationId, requestData.usr_id_owner as Integer, overrides)
