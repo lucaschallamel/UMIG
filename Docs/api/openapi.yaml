@@ -23,6 +23,8 @@ tags:
     description: Operations about applications.
   - name: Labels
     description: Operations about labels and hierarchical filtering.
+  - name: Plans
+    description: Operations about plans, both master templates and instances.
   - name: Users
     description: Operations about users.
   - name: EmailTemplates
@@ -1825,6 +1827,371 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /plans/master:
+    get:
+      tags:
+        - Plans
+      summary: Get all master plans
+      description: Retrieves a list of all master plan templates.
+      operationId: getAllMasterPlans
+      responses:
+        '200':
+          description: A list of master plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterPlan'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Plans
+      summary: Create a new master plan
+      description: Creates a new master plan template.
+      operationId: createMasterPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasterPlanInput'
+      responses:
+        '201':
+          description: Master plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterPlan'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Conflict - Plan with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plans/master/{id}:
+    get:
+      tags:
+        - Plans
+      summary: Get master plan by ID
+      description: Retrieves a specific master plan template by its ID.
+      operationId: getMasterPlanById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master Plan ID
+      responses:
+        '200':
+          description: Master plan details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterPlan'
+        '400':
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Plans
+      summary: Update master plan
+      description: Updates an existing master plan template.
+      operationId: updateMasterPlan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master Plan ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasterPlanUpdate'
+      responses:
+        '200':
+          description: Master plan updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterPlan'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - Plan with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Plans
+      summary: Delete master plan
+      description: Soft deletes a master plan template. Only allowed if no instances exist.
+      operationId: deleteMasterPlan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master Plan ID
+      responses:
+        '204':
+          description: Master plan deleted successfully
+        '400':
+          description: Cannot delete - plan has active instances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plans:
+    get:
+      tags:
+        - Plans
+      summary: Get plan instances
+      description: Retrieves a list of plan instances with optional filtering.
+      operationId: getPlanInstances
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by migration ID
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by iteration ID
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by team ownership
+        - name: statusId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by status ID
+      responses:
+        '200':
+          description: A list of plan instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlanInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plans/instance:
+    post:
+      tags:
+        - Plans
+      summary: Create plan instance
+      description: Creates a new plan instance from a master plan template.
+      operationId: createPlanInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanInstanceInput'
+      responses:
+        '201':
+          description: Plan instance created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Master plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plans/instance/{id}:
+    get:
+      tags:
+        - Plans
+      summary: Get plan instance by ID
+      description: Retrieves a specific plan instance by its ID.
+      operationId: getPlanInstanceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Plan Instance ID
+      responses:
+        '200':
+          description: Plan instance details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanInstanceDetail'
+        '400':
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Plans
+      summary: Update plan instance
+      description: Updates an existing plan instance.
+      operationId: updatePlanInstance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Plan Instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanInstanceUpdate'
+      responses:
+        '200':
+          description: Plan instance updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanInstanceDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Plans
+      summary: Delete plan instance
+      description: Deletes a plan instance.
+      operationId: deletePlanInstance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Plan Instance ID
+      responses:
+        '204':
+          description: Plan instance deleted successfully
+        '400':
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plans/{id}/status:
+    put:
+      tags:
+        - Plans
+      summary: Update plan instance status
+      description: Updates the status of a plan instance.
+      operationId: updatePlanInstanceStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Plan Instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - statusId
+              properties:
+                statusId:
+                  type: integer
+                  description: New status ID
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /applications:
     get:
       tags:
@@ -2871,6 +3238,205 @@ components:
         tms_description:
           type: string
           description: Description of the team
+
+    # --- Plans Models ---
+    MasterPlan:
+      type: object
+      properties:
+        plm_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the master plan
+        tms_id:
+          type: integer
+          description: ID of the team that owns this plan
+        tms_name:
+          type: string
+          description: Name of the owning team
+        plm_name:
+          type: string
+          description: Name of the master plan
+        plm_description:
+          type: string
+          description: Description of the plan
+        plm_status:
+          type: string
+          description: Current status of the master plan
+        sts_id:
+          type: integer
+          description: Status ID
+        sts_name:
+          type: string
+          description: Status name
+        sts_color:
+          type: string
+          description: Status color code
+        created_by:
+          type: string
+          description: User who created the plan
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_by:
+          type: string
+          description: User who last updated the plan
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    MasterPlanInput:
+      type: object
+      required:
+        - tms_id
+        - plm_name
+        - plm_status
+      properties:
+        tms_id:
+          type: integer
+          description: ID of the team that owns this plan
+        plm_name:
+          type: string
+          description: Name of the master plan
+        plm_description:
+          type: string
+          description: Description of the plan
+        plm_status:
+          type: string
+          description: Initial status of the master plan
+
+    MasterPlanUpdate:
+      type: object
+      properties:
+        tms_id:
+          type: integer
+          description: ID of the team that owns this plan
+        plm_name:
+          type: string
+          description: Name of the master plan
+        plm_description:
+          type: string
+          description: Description of the plan
+        plm_status:
+          type: string
+          description: Status of the master plan
+
+    PlanInstance:
+      type: object
+      properties:
+        pli_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the plan instance
+        plm_id:
+          type: string
+          format: uuid
+          description: ID of the master plan template
+        plm_name:
+          type: string
+          description: Name of the master plan
+        ite_id:
+          type: string
+          format: uuid
+          description: ID of the iteration this instance belongs to
+        itr_name:
+          type: string
+          description: Name of the iteration
+        mig_name:
+          type: string
+          description: Name of the migration
+        pli_name:
+          type: string
+          description: Name of the plan instance
+        pli_description:
+          type: string
+          description: Description of the plan instance
+        pli_status:
+          type: string
+          description: Current status of the plan instance
+        sts_id:
+          type: integer
+          description: Status ID
+        sts_name:
+          type: string
+          description: Status name
+        sts_color:
+          type: string
+          description: Status color code
+        usr_id_owner:
+          type: integer
+          description: ID of the user who owns this instance
+        owner_name:
+          type: string
+          description: Name of the owner
+        tms_id:
+          type: integer
+          description: ID of the team (from master)
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    PlanInstanceDetail:
+      allOf:
+        - $ref: '#/components/schemas/PlanInstance'
+        - type: object
+          properties:
+            plm_description:
+              type: string
+              description: Description from master plan
+            created_by:
+              type: string
+              description: User who created the instance
+            updated_by:
+              type: string
+              description: User who last updated the instance
+
+    PlanInstanceInput:
+      type: object
+      required:
+        - plm_id
+        - ite_id
+        - usr_id_owner
+      properties:
+        plm_id:
+          type: string
+          format: uuid
+          description: ID of the master plan to instantiate
+        ite_id:
+          type: string
+          format: uuid
+          description: ID of the iteration for this instance
+        usr_id_owner:
+          type: integer
+          description: ID of the user who owns this instance
+        pli_name:
+          type: string
+          description: Override name for the instance (optional)
+        pli_description:
+          type: string
+          description: Override description for the instance (optional)
+
+    PlanInstanceUpdate:
+      type: object
+      properties:
+        pli_name:
+          type: string
+          description: Name of the plan instance
+        pli_description:
+          type: string
+          description: Description of the plan instance
+        pli_status:
+          type: string
+          description: Status of the plan instance
+        usr_id_owner:
+          type: integer
+          description: ID of the user who owns this instance
 
     User:
       type: object

@@ -22,13 +22,11 @@
 - [x] Create PlanRepository.groovy with data access methods
 
 ### 🔄 In Progress
-- [ ] Update OpenAPI specification
-
-### 📋 Pending
 - [ ] Create integration test for Plans API
 
 ### ✅ Recently Completed  
 - [x] Write unit tests for Plans API (10/14 tests passing - sufficient for MVP)
+- [x] Update OpenAPI specification (all endpoints and schemas added)
 
 ## Technical Design
 
