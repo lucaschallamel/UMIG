@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "Memory Bank Update",
+  "description": "Updates the memory bank of Cline in folder cline-docs based on Developer Journal entries, CHANGELOG.md, README.md files, and Architectural Decision Records. Ensures consistency within the existing memory bank using British English.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "docs/devJournal/*.md",
+      "CHANGELOG.md",
+      "README.md",
+      "docs/adr/*.md",
+      "docs/adr/archive/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the changed files and update the Cline memory bank in the cline-docs folder. Based on the Developer Journal entries, CHANGELOG.md file, various README.md files, and Architectural Decision Records, update the memory bank files to be concise but comprehensive and accurate. Ensure consistency within the existing memory bank and express yourself in British English. Focus on updating activeContext.md, progress.md, and other relevant memory bank files to reflect the latest project state and developments."
+  }
+}

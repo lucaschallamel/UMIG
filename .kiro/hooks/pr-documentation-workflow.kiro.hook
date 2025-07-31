@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Pull Request Documentation Workflow",
+  "description": "Automatically generates comprehensive Pull Request descriptions following the multi-stream analysis workflow. Analyzes git commits, file changes, work streams, and creates detailed PR documentation with testing instructions and review focus areas.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      ".clinerules/workflows/pull-request.md",
+      ".windsurf/workflows/pull-request.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Execute the Pull Request documentation workflow as specified in the pull-request.md workflow file. Follow the comprehensive 6-step process:\n\n1. **Comprehensive Scope Analysis**: Analyze branch/commits, file system impact, and identify all work streams\n2. **Multi-Stream Narrative Synthesis**: Create context and technical implementation analysis for each work stream\n3. **Comprehensive Review Instructions**: Provide testing instructions and review focus areas for all work streams\n4. **Enhanced PR Description Template**: Generate structured PR description using the multi-stream template\n5. **Anti-Tunnel Vision Verification**: Verify all commits, files, and functional areas are covered\n6. **Final Review**: Present the generated PR title and body for user approval\n\nEnsure the analysis covers ALL functional areas (API, UI, Database, Documentation, Configuration, Tests) and provides specific testing instructions for each work stream identified. Use the enhanced PR description template to create a comprehensive, review-ready pull request description."
+  }
+}

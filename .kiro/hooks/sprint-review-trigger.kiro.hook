@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Sprint Review & Retrospective",
+  "description": "Automatically triggers the UMIG sprint review and retrospective workflow when sprint review files are created or modified in the devJournal directory",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "docs/devJournal/*sprint-review.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A sprint review file has been created or modified. Please follow the Sprint Review & Retrospective workflow from .clinerules/workflows/sprint-review.md to:\n\n1. Gather sprint context including dates, participants, branches, and metrics\n2. Run the specified git commands to collect sprint statistics\n3. Generate or update the sprint review document with the proper structure\n4. Include all required sections: Sprint Overview, Achievements & Deliverables, Sprint Metrics, Review of Sprint Goals, Demo & Walkthrough, Retrospective, Action Items & Next Steps, and References\n5. Ensure the document follows the filename convention {yyyymmdd}-sprint-review.md and is placed in /docs/devJournal/\n6. Update relevant references to dev journal entries, ADRs, and documentation changes\n\nFollow the complete workflow as specified in the sprint-review.md workflow file to ensure comprehensive sprint documentation and retrospective analysis."
+  }
+}

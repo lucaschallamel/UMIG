@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Development Journal Generator",
+  "description": "At the end of each session, we look back at everything that was said and done, and we write down a Development Journal Entry",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      ".clinerules/workflows/dev-journal.md",
+      ".windsurf/workflows/dev-journal.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Execute the Development Journal workflow from .clinerules/workflows/dev-journal.md or .windsurf/workflows/dev-journal.md. Follow the comprehensive process to:\n\n1. Establish the 'Why' by checking the current git branch and reading the most recent journal entry\n2. Gather evidence from multiple sources including conversation chronology, git commits, staged changes, file system impact, and documentation trail\n3. Perform evidence cross-reference to prevent tunnel vision and ensure all work streams are captured\n4. Synthesise and write a detailed narrative using the template at docs/devJournal/devJournalEntryTemplate.md\n5. Apply the anti-tunnel vision checklist before finalizing\n6. Present the journal entry and await confirmation before any commits\n\nThe goal is to create a comprehensive story that captures the full journey of the session, not just the final code or most recent work."
+  }
+}

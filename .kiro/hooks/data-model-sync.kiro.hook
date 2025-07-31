@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Data Model Synchronization",
+  "description": "Triggers when data model files are modified to ensure proper workflow execution including schema updates, documentation sync, data generation alignment, and test updates",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "local-dev-setup/liquibase/changelogs/*.sql",
+      "docs/dataModel/README.md",
+      "docs/solution-architecture.md",
+      "local-dev-setup/scripts/generators/*.js",
+      "local-dev-setup/scripts/umig_generate_fake_data.js",
+      "local-dev-setup/__tests__/**/*.js"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A data model file has been modified. Please execute the Data Model Refinement & Synchronisation Workflow:\n\n1. **Reference Authoritative Sources**: Check `/docs/solution-architecture.md`, `/docs/dataModel/README.md`, `/local-dev-setup/liquibase/changelogs/001_unified_baseline.sql`, and current ADRs in `/docs/adr/`\n\n2. **Validate the Change**: Ensure the modification follows proper migration strategy, naming conventions, and is documented with clear comments\n\n3. **Update Documentation**: Reflect changes in `/docs/dataModel/README.md` (ERD, field lists, rationale) and consider updating relevant ADRs\n\n4. **Synchronise Data Generation**: Review and update `local-dev-setup/scripts/umig_generate_fake_data.js` and generators in `local-dev-setup/scripts/generators/` to match new/updated schema\n\n5. **Update Tests**: Update related tests in `local-dev-setup/__tests__/` to cover new/changed fields and relationships, add fixture data if needed\n\n6. **Validate**: Confirm migrations run cleanly, data generation works, and all tests pass without regressions\n\n7. **Document**: Update `CHANGELOG.md` and consider adding Developer Journal entry\n\nUse this workflow to maintain project discipline, testability, and documentation integrity for all data model changes."
+  }
+}
