@@ -23,6 +23,12 @@ fi
 printf "\n🧪 Running Step View API Integration Test...\n"
 groovy -cp "$JDBC_DRIVER_PATH" tests/integration/stepViewApiIntegrationTest.groovy
 
+printf "\n🧪 Running Plans API Integration Test...\n"
+groovy -cp "$JDBC_DRIVER_PATH" tests/integration/PlansApiIntegrationTest.groovy
+
+printf "\n🧪 Running Sequences API Integration Test...\n"
+groovy -cp "$JDBC_DRIVER_PATH" tests/integration/SequencesApiIntegrationTest.groovy
+
 # --- Add future integration tests here ---
 
 
