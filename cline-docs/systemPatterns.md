@@ -59,6 +59,11 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   * **Automated Postman Collection Generation:** 28,374-line collection with auto-auth and dynamic baseUrl configuration
   * **Environment-Driven Configuration:** .env and .env.example enhanced for Podman database environments
   * **Documentation Streamlining:** 72% reduction in CLAUDE.md complexity whilst improving clarity and usability
+* **Structured Documentation Organization:** Complete roadmap reorganization (31 July 2025)
+  * **Sprint-Based Organization:** `/docs/roadmap/sprint0/` subfolder with user stories, technical tasks, and progress tracking
+  * **UI/UX Centralization:** `/docs/roadmap/ux-ui/` subfolder with interface specifications, design assets, and templates
+  * **Clear Separation of Concerns:** Development (sprints) vs Design (ux-ui) with dedicated README files
+  * **Scalable Structure:** Ready for sprint1/, sprint2/, sprint3/ expansion and additional UI components
 
 ## 3. Component Relationships
 

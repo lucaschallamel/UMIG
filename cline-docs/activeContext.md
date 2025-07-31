@@ -117,3 +117,12 @@ The project is in the **Sprint 0 API completion phase** following the successful
 8. Conduct comprehensive testing and performance optimisation
 
 **Key Advantage:** ScriptRunner integration challenges resolved in US-001, enabling accelerated delivery of remaining APIs using established lazy-loading and type safety patterns.
+
+## 4. Documentation Organization
+
+**Complete Roadmap Restructure**: Implemented comprehensive subfolder organization for all roadmap documentation
+- **Sprint Organization**: `/docs/roadmap/sprint0/` contains all Sprint 0 user stories and planning documents (8 files)
+- **UI/UX Centralization**: `/docs/roadmap/ux-ui/` contains all interface specifications and design assets (7 files)
+- **Clear Separation**: Development planning (sprints) vs Design specifications (ux-ui) with dedicated README files
+- **Future Scalability**: Structure ready for sprint1/, sprint2/, sprint3/ folders and additional UI components
+- **Comprehensive Documentation**: Each subfolder has detailed README explaining organization and file purposes
