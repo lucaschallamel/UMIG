@@ -326,12 +326,14 @@ sequences(httpMethod: "POST", groups: ["confluence-users", "confluence-administr
             def result = sequenceRepository.createSequenceInstancesFromMaster(planInstanceId, userId)
             
             if (result) {
+                // Cast to List to ensure size() method is available
+                def resultList = result as List
                 return Response.status(Response.Status.CREATED)
                     .entity(new JsonBuilder([
                         success: true,
                         message: "Sequence instances created successfully",
-                        created_count: result.size(),
-                        instances: result
+                        created_count: resultList.size(),
+                        instances: resultList
                     ]).toString())
                     .build()
             } else {

@@ -127,7 +127,9 @@ class SequenceRepository {
             
             // Check for circular dependency if predecessor is specified
             if (sequenceData.predecessor_sqm_id) {
-                if (hasCircularDependency(sql, sequenceData.plm_id, sequenceData.predecessor_sqm_id, null)) {
+                UUID planId = sequenceData.plm_id as UUID
+                UUID predecessorId = sequenceData.predecessor_sqm_id as UUID
+                if (hasCircularDependency(sql, planId, predecessorId, null)) {
                     throw new IllegalArgumentException("Circular dependency detected")
                 }
             }
@@ -197,7 +199,9 @@ class SequenceRepository {
             // Check for circular dependency if predecessor is being updated
             if (sequenceData.predecessor_sqm_id && 
                 sequenceData.predecessor_sqm_id != currentSequence.predecessor_sqm_id) {
-                if (hasCircularDependency(sql, currentSequence.plm_id, sequenceData.predecessor_sqm_id, sequenceId)) {
+                UUID planId = currentSequence.plm_id as UUID
+                UUID predecessorId = sequenceData.predecessor_sqm_id as UUID
+                if (hasCircularDependency(sql, planId, predecessorId, sequenceId)) {
                     throw new IllegalArgumentException("Circular dependency detected")
                 }
             }
@@ -250,8 +254,8 @@ class SequenceRepository {
                     return false
                 }
                 
-                def planId = currentSequence.plm_id
-                def currentOrder = currentSequence.sqm_order
+                UUID planId = currentSequence.plm_id as UUID
+                Integer currentOrder = currentSequence.sqm_order as Integer
                 
                 // Check for circular dependency if predecessor is specified
                 if (predecessorId) {
@@ -264,7 +268,7 @@ class SequenceRepository {
                 normalizeSequenceOrdering(sql, planId)
                 
                 // Update sequence positions
-                if (newOrder > currentOrder) {
+                if (newOrder.compareTo(currentOrder) > 0) {
                     // Moving down - shift sequences up
                     sql.executeUpdate("""
                         UPDATE sequences_master_sqm 
@@ -548,7 +552,7 @@ class SequenceRepository {
                 
                 // Return created instances with full details
                 return createdInstances.collect { instanceId ->
-                    findSequenceInstanceById(instanceId)
+                    findSequenceInstanceById(instanceId as UUID)
                 }
             }
         }
@@ -671,7 +675,7 @@ class SequenceRepository {
             duplicateOrders.each { duplicate ->
                 issues.add([
                     type: 'DUPLICATE_ORDER',
-                    order: duplicate."${orderColumn}",
+                    order: duplicate[orderColumn],
                     count: duplicate.count_duplicates
                 ])
             }
@@ -686,15 +690,15 @@ class SequenceRepository {
             
             def expectedOrder = 1
             sequences.each { seq ->
-                if (seq."${orderColumn}" != expectedOrder) {
+                if (seq[orderColumn] != expectedOrder) {
                     issues.add([
                         type: 'ORDER_GAP',
                         expected: expectedOrder,
-                        actual: seq."${orderColumn}",
-                        sequence_name: seq."${nameColumn}"
+                        actual: seq[orderColumn],
+                        sequence_name: seq[nameColumn]
                     ])
                 }
-                expectedOrder = seq."${orderColumn}" + 1
+                expectedOrder = (seq[orderColumn] as Integer) + 1
             }
             
             // Check for circular dependencies
@@ -720,7 +724,7 @@ class SequenceRepository {
      * @param planId The UUID of the plan
      * @param isInstance Whether this is for instance sequences
      */
-    def normalizeSequenceOrdering(def sql, UUID planId, boolean isInstance = false) {
+    def normalizeSequenceOrdering(groovy.sql.Sql sql, UUID planId, boolean isInstance = false) {
         def tableName = isInstance ? 'sequences_instance_sqi' : 'sequences_master_sqm'
         def planColumn = isInstance ? 'pli_id' : 'plm_id'
         def orderColumn = isInstance ? 'sqi_order' : 'sqm_order'
@@ -736,13 +740,14 @@ class SequenceRepository {
         
         // Reassign consecutive order numbers
         sequences.eachWithIndex { seq, index ->
+            Integer newOrder = index + 1
             sql.executeUpdate("""
                 UPDATE ${tableName}
                 SET ${orderColumn} = :newOrder,
                     updated_by = 'system',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE ${idColumn} = :sequenceId
-            """, [newOrder: index + 1, sequenceId: seq."${idColumn}"])
+            """, [newOrder: newOrder, sequenceId: seq[idColumn]])
         }
     }
     
@@ -754,7 +759,7 @@ class SequenceRepository {
      * @param targetSequenceId The UUID of the sequence being updated (null for new sequences)
      * @return true if circular dependency would be created
      */
-    def hasCircularDependency(def sql, UUID planId, UUID candidatePredecessorId, UUID targetSequenceId = null) {
+    def hasCircularDependency(groovy.sql.Sql sql, UUID planId, UUID candidatePredecessorId, UUID targetSequenceId = null) {
         // Use recursive CTE to detect cycles
         def result = sql.firstRow("""
             WITH RECURSIVE dependency_chain AS (
@@ -781,7 +786,7 @@ class SequenceRepository {
             targetSequenceId: targetSequenceId
         ])
         
-        return result?.has_cycle ?: false
+        return result?.getAt('has_cycle') ?: false
     }
     
     /**
@@ -791,7 +796,7 @@ class SequenceRepository {
      * @param isInstance Whether this is for instance sequences
      * @return List of circular dependency chains
      */
-    def findCircularDependencies(def sql, UUID planId, boolean isInstance = false) {
+    def findCircularDependencies(groovy.sql.Sql sql, UUID planId, boolean isInstance = false) {
         def tableName = isInstance ? 'sequences_instance_sqi' : 'sequences_master_sqm'
         def planColumn = isInstance ? 'pli_id' : 'plm_id'
         def predecessorColumn = isInstance ? 'predecessor_sqi_id' : 'predecessor_sqm_id'
@@ -820,7 +825,7 @@ class SequenceRepository {
             WHERE ${idColumn} = ANY(path[1:array_length(path,1)-1])
         """, [planId: planId])
         
-        return cycles.collect { it.cycle }
+        return cycles.collect { it.getAt('cycle') }
     }
     
     // ==================== UTILITY OPERATIONS ====================
@@ -909,8 +914,8 @@ class SequenceRepository {
             """, [planId: planId])
             
             def completionRate = 0.0
-            if (stats.total_sequences > 0) {
-                completionRate = (stats.completed as Integer) / (stats.total_sequences as Integer) * 100
+            if ((stats.total_sequences as Integer) > 0) {
+                completionRate = ((stats.completed as Double) / (stats.total_sequences as Double)) * 100.0
             }
             
             return [
