@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-# This script is executed when the PostgreSQL container starts for the first time.
-# It creates a dedicated user and database for the UMIG application.
-# The schema itself is managed by Liquibase.
+# This script is executed when the PostgreSQL container starts.
+# It creates dedicated users and databases for UMIG and Confluence applications if they don't exist.
+# The UMIG schema itself is managed by Liquibase.
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     -- Create the application user if it doesn't exist.
