@@ -1,5 +1,15 @@
 # API Coding Patterns (UMIG)
 
+## Sequences API Pattern (2025-07-31)
+- Complete CRUD implementation with advanced ordering functionality following established patterns
+- Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?planId=` support
+- **ORDERING LOGIC**: Advanced sequence ordering with gap handling, resequencing, and circular dependency detection
+- **TYPE SAFETY**: Mandatory explicit casting patterns `UUID.fromString(filters.planId as String)`
+- Full repository pattern integration with SequenceRepository for comprehensive testability
+- **ADVANCED FEATURES**: Circular dependency detection using recursive CTEs, transaction management for order operations
+- Comprehensive integration testing with 20 test scenarios covering all CRUD and ordering edge cases
+- **CRITICAL**: Uses instance IDs (pli_id, sqi_id) for filtering, not master IDs (plm_id, sqm_id)
+
 ## Plans API Pattern (2025-07-31)
 - Complete CRUD implementation for Plans API following established patterns
 - Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?teamId=` support

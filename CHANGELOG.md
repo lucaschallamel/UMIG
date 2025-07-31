@@ -1,5 +1,22 @@
 ### [Unreleased]
 
+#### 2025-07-31 (US002: Sequences API with Ordering Complete)
+- **Feature(Sequences API):** Complete CRUD implementation with ordering functionality (US002)
+  - Implemented SequencesApi.groovy with 12 comprehensive REST endpoints
+  - Added SequenceRepository.groovy with 25 methods including full CRUD and ordering operations
+  - Implemented hierarchical filtering support with ADR-030 compliance (migrationId, iterationId, planId)
+  - Added advanced ordering functionality with gap handling and transaction management
+  - Implemented circular dependency detection using recursive Common Table Expressions (CTEs)
+  - Added full attribute instantiation following ADR-029 pattern
+  - Created comprehensive test suite: SequenceRepositoryTest.groovy (unit) and SequencesApiIntegrationTest.groovy (integration)
+  - Enhanced type safety compliance with explicit casting patterns (ADR-031)
+  - Updated OpenAPI specification with 12 new endpoints and 5 new schema definitions
+  - Regenerated Postman collection with enhanced automation (19,239 lines total)
+- **Testing:** Comprehensive test coverage for new Sequences functionality
+  - Added 20 test scenarios covering all CRUD operations and ordering edge cases
+  - Validated circular dependency detection and gap handling in sequence ordering
+  - Confirmed hierarchical filtering accuracy across all relationship levels
+
 #### 2025-07-31 (US001: Plans API Foundation Complete)
 - **Feature(Plans API):** Completed full CRUD implementation for Plans API (US001)
   - Implemented PlansApi.groovy with all standard endpoints (GET, POST, PUT, DELETE)
