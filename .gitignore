@@ -139,6 +139,9 @@ mega-linter.tmp/
 # Linting containers (if you ever output to a local dir)
 tmp/lint/
 
+# Kiro AI settings (user-specific)
+.kiro/settings/mcp.json
+
 #Claude
 .claude/
 .screenshots/
