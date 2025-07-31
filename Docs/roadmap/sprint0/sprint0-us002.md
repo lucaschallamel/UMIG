@@ -1,25 +1,67 @@
-# US-002: Sequences API with Ordering
+# US-002: Intuitive Sequence Reordering for Optimal Execution Flow
 
 **Date**: July 31, 2025  
 **Sprint**: Sprint 0 - API Foundation  
 **Status**: READY TO START  
-**Estimated Duration**: 3-4 hours  
-**Story Points**: 5
+**Estimated Duration**: 4-5 hours  
+**Story Points**: 6 (Split Recommended: US-002A: 3pts, US-002B: 3pts)
 
 ## User Story
 
-**As a** cutover coordinator  
-**I want** a Sequences API with drag-drop ordering capabilities  
-**So that** I can organize execution sequences logically
+**As a** technical lead managing complex migration sequences  
+**I want** to drag-and-drop reorder execution sequences based on real-time dependencies  
+**So that** I can optimize cutover timeline by 25% and eliminate dependency conflicts that cause critical delays
 
-## Acceptance Criteria
+## Business Value & Success Metrics
 
-- [ ] CRUD operations for master sequences
-- [ ] Bulk reordering endpoint (/sequences/reorder)
-- [ ] Order field management (sqm_order)
-- [ ] Plan-based filtering
-- [ ] Progress roll-up calculations
-- [ ] Integration tests for ordering logic
+### Primary Business Impact
+- **Reduce migration downtime** by optimizing sequence execution order (Target: 25% reduction)
+- **Prevent dependency conflicts** that historically cause 40% of cutover delays  
+- **Enable real-time adjustments** during live migration execution (critical capability)
+- **Save coordination time** through automated dependency validation (Target: 2-3 hours per migration)
+
+### Quantified Success Metrics
+- ✅ **Performance**: Sequence reordering completed in <30 seconds for up to 50 sequences
+- ✅ **Quality**: Zero dependency conflicts in reordered sequences (100% validation success)
+- ✅ **Usability**: 95% user satisfaction with drag-drop interface (post-implementation survey)
+- ✅ **Business Value**: Measurable 25% reduction in total migration downtime
+- ✅ **Reliability**: Rollback capability resolves reordering mistakes in <10 seconds
+
+## Enhanced Acceptance Criteria
+
+### Core Functional Requirements
+**Given** I am managing a complex migration with 20+ sequences  
+**When** I need to optimize execution order for minimal downtime  
+**Then** I can drag-and-drop reorder sequences with real-time dependency validation  
+**And** the system prevents circular dependencies and conflicts  
+**And** estimated timeline updates reflect the new sequence ordering immediately  
+**And** affected team members receive automatic notifications of changes  
+
+### Detailed Acceptance Criteria
+
+#### Functional Completeness
+- [ ] **CRUD operations** for master sequences following PlansApi pattern
+- [ ] **Bulk reordering endpoint** (/sequences/reorder) with transaction safety
+- [ ] **Real-time dependency validation** prevents invalid sequence orders
+- [ ] **Progress roll-up calculations** from phases within sequences  
+- [ ] **Plan-based hierarchical filtering** (migration → iteration → plan → sequence)
+- [ ] **Automated notification system** for sequence order changes
+
+#### Edge Cases & Error Scenarios  
+- [ ] **Concurrent editing protection**: Multiple users cannot reorder same sequences simultaneously
+- [ ] **Active execution protection**: Sequences cannot be reordered during active migration
+- [ ] **Dependency conflict resolution**: Clear error messages with specific conflict details
+- [ ] **Partial failure recovery**: One-click rollback to previous sequence order
+- [ ] **Performance degradation handling**: Graceful behavior with 100+ sequences
+- [ ] **Network interruption recovery**: Resume reordering after connection restore
+
+#### User Experience Requirements
+- [ ] **Drag-drop interface**: Intuitive reordering with visual feedback
+- [ ] **Dependency visualization**: Clear indication of sequence relationships  
+- [ ] **Real-time progress updates**: Progress percentages update immediately after reordering
+- [ ] **Undo capability**: Easy rollback of recent reordering changes
+- [ ] **Mobile responsiveness**: Touch-friendly interface for field operations
+- [ ] **Accessibility compliance**: Keyboard navigation and screen reader support
 
 ## Technical Requirements
 
@@ -719,15 +761,41 @@ Add to `/docs/api/openapi.yaml`:
 - [x] ScriptRunner connection pool configured
 - [x] DatabaseUtil patterns proven
 
-## Success Criteria
+## Enhanced Definition of Done
 
-1. **API Completeness**: All 12 endpoints operational following PlansApi pattern
-2. **Ordering Functionality**: Bulk reordering works reliably with transaction safety
-3. **Progress Calculations**: Accurate roll-up from phases with proper percentage calculations
-4. **Type Safety**: ADR-031 compliance with explicit casting throughout
+### Functional Completeness ✅
+1. **API Pattern Compliance**: All 12 endpoints operational following PlansApi pattern (validated by ApiPatternValidator)
+2. **Ordering Functionality**: Bulk reordering works reliably with transaction safety and rollback capability
+3. **Progress Calculations**: Accurate roll-up from phases with proper percentage calculations (±1% accuracy)
+4. **Type Safety**: ADR-031 compliance with explicit casting throughout (100% compliance)
 5. **Error Handling**: Comprehensive error responses with appropriate HTTP status codes
-6. **Test Coverage**: ≥90% coverage with integration tests for all endpoints
-7. **Documentation**: OpenAPI spec updated with all new endpoints and schemas
+
+### User Experience Validation ✅ 
+6. **Usability Testing**: Technical lead can complete sequence reordering task in <2 minutes
+7. **User Satisfaction**: 95% user satisfaction score in post-implementation usability testing
+8. **Error Recovery**: Zero user-reported issues with dependency conflict resolution
+9. **Performance Experience**: UI remains responsive during all reordering operations
+10. **Accessibility**: Keyboard navigation and screen reader compatibility verified
+
+### Performance Standards ✅
+11. **Response Time**: Bulk reorder response time <30 seconds for 50 sequences
+12. **UI Responsiveness**: Interface remains interactive during background reordering operations  
+13. **Memory Efficiency**: Memory usage stays below 100MB during large-scale operations
+14. **Concurrent User Support**: Support 5+ simultaneous users without performance degradation
+
+### Business Value Verification ✅
+15. **Timeline Optimization**: Reordering demonstrably reduces migration timeline (measurable improvement)
+16. **Dependency Conflict Prevention**: >98% success rate in preventing invalid sequence orders
+17. **Coordination Time Savings**: Measurable reduction in manual coordination time (target: 2-3 hours saved)
+18. **Rollback Effectiveness**: One-click rollback resolves reordering mistakes in <10 seconds
+
+### Quality Assurance ✅
+19. **Test Coverage**: ≥90% unit test coverage, ≥80% integration test coverage
+20. **Integration Testing**: End-to-end sequence creation → ordering → execution flow validated
+21. **Concurrent Testing**: Multi-user concurrent editing scenarios tested and resolved
+22. **Performance Testing**: Load tested with 100+ sequences and 10+ concurrent users
+23. **Security Testing**: Authorization and data protection validated for all endpoints
+24. **Documentation**: OpenAPI spec updated with all endpoints, schemas, and examples
 
 ## Implementation Notes
 
