@@ -1,5 +1,14 @@
 # API Coding Patterns (UMIG)
 
+## Plans API Pattern (2025-07-31)
+- Complete CRUD implementation for Plans API following established patterns
+- Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?teamId=` support
+- **TYPE SAFETY**: Mandatory explicit casting patterns `UUID.fromString(filters.migrationId as String)`
+- Full repository pattern integration with PlansRepository for testability
+- Comprehensive integration testing with SQL query mocks
+- Enhanced error handling for constraint violations and foreign key references
+- **CRITICAL**: Uses instance IDs (pli_id) for filtering, not master IDs (plm_id)
+
 ## Step View API Pattern (2025-07-17)
 - Standalone step view API for retrieving individual step instance data
 - Implements three-parameter lookup: `?migrationName=xxx&iterationName=xxx&stepCode=XXX-nnn`

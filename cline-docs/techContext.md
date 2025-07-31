@@ -56,3 +56,8 @@
 * **Custom UI Components:** Promise-based confirmation dialogs preventing native dialog flickering issues.
 * **Business Rule Enforcement:** Environment assignment rules with comprehensive unit test validation.
 * **Data Quality Assurance:** Uniqueness tracking and automatic retry logic in data generators.
+* **ScriptRunner Integration Patterns:** Critical deployment patterns established through US-001 completion (31 July 2025)
+  * **Lazy Repository Loading:** Class loading pattern preventing ScriptRunner conflicts
+  * **Connection Pool Configuration:** Dedicated 'umig_db_pool' setup with PostgreSQL JDBC  
+  * **Single File Per Endpoint:** Eliminates ScriptRunner endpoint confusion
+  * **Development Infrastructure:** Automated Postman collection generation with auto-auth and dynamic baseUrl

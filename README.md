@@ -389,6 +389,12 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (July 2025)
+- **Plans API Implementation**: Complete CRUD operations with hierarchical filtering (July 31, 2025)
+  - Full REST API endpoints for plans management
+  - Type-safe parameter handling with explicit casting (ADR-031)
+  - Comprehensive integration testing with ScriptRunner compatibility
+  - Repository pattern implementation with PlansRepository
+  - Enhanced Postman collection with authentication support
 - **Role-Based Access Control System**: Comprehensive user permission management (July 16, 2025)
   - Implemented NORMAL (read-only), PILOT (operational), and ADMIN (full access) user roles
   - Confluence user context integration with automatic role detection
@@ -456,7 +462,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ### 🚧 MVP Remaining Work
 
-- **Core REST APIs**: Plans, Sequences, Phases, Instructions endpoints
+- **Core REST APIs**: ✅ Plans (completed), Sequences, Phases, Instructions endpoints  
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources

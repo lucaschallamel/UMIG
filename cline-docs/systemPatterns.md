@@ -35,6 +35,11 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 * **Planning Feature Pattern:** Dedicated schedule tables store planned start/end times per iteration. ScriptRunner endpoints generate clean, portable HTML artifacts as shareable macro-plans.
 * **API Standardisation:** Standardised REST API patterns (ADR-023) are enforced, including detailed error handling, consistent responses, and hierarchical filtering (ADR-030).
 * **Type Safety:** Robust Groovy type safety and filtering patterns (ADR-031) are applied, preventing runtime errors through explicit casting.
+* **ScriptRunner Integration Patterns:** Critical deployment patterns established through US-001 completion (31 July 2025)
+  * **Lazy Repository Loading:** Prevents class loading conflicts in ScriptRunner environment
+  * **Connection Pool Configuration:** Dedicated 'umig_db_pool' setup with PostgreSQL JDBC
+  * **Single File Per Endpoint:** Eliminates ScriptRunner endpoint confusion
+  * **Type Safety Enforcement:** Explicit UUID.fromString() and Integer.parseInt() casting for all parameters
 * **Testing:** A formal integration testing framework (ADR-019) is established, and specificity in test mocks is enforced (ADR-026).
 * **Data Utilities:** Node.js is adopted for data utilities (ADR-013), with comprehensive synthetic data generation using 3-digit prefixed generators.
 * **Database Naming Conventions:** Standardised database naming conventions (ADR-014) are implemented across all entities.
@@ -50,6 +55,10 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 * **Custom Confirmation Dialog Pattern:** Promise-based confirmation system replacing native dialogs to prevent UI flickering in complex modal contexts.
 * **Environment Assignment Rules:** Strict business rules ensuring RUN/DR iterations avoid PROD environment whilst CUTOVER iterations always have PROD assigned.
 * **Data Generation Patterns:** Uniqueness tracking and retry logic with automatic suffix generation for preventing constraint violations.
+* **Development Infrastructure Patterns:** Enhanced tooling established through US-001 (31 July 2025)
+  * **Automated Postman Collection Generation:** 28,374-line collection with auto-auth and dynamic baseUrl configuration
+  * **Environment-Driven Configuration:** .env and .env.example enhanced for Podman database environments
+  * **Documentation Streamlining:** 72% reduction in CLAUDE.md complexity whilst improving clarity and usability
 
 ## 3. Component Relationships
 

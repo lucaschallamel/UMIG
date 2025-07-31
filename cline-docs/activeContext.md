@@ -2,9 +2,32 @@
 
 ## 1. Current Work Focus
 
-The project is in the **production readiness phase** with a strong focus on **feature completion and operational tooling**. Recent work has delivered standalone step view functionality, critical data quality fixes, and comprehensive UI enhancements, positioning the project for final MVP delivery.
+The project is in the **Sprint 0 API completion phase** following the successful completion of **US-001: Plans API Foundation**. The focus has shifted to systematic API delivery using proven patterns, with US-001 establishing critical ScriptRunner integration mastery and development infrastructure enhancements that will accelerate the remaining user stories.
 
 ## 2. Recent Changes & Decisions
+
+### Major Achievements (31 July 2025) - US-001 Plans API Foundation Completion
+* **US-001 Plans API Foundation:** Complete production-ready implementation
+  * **537-line PlansApi.groovy:** Full CRUD operations for master plans and plan instances
+  * **451-line PlanRepository:** 13 data access methods following established patterns
+  * **ScriptRunner Integration Mastery:** Resolved class loading, connection pool, and deployment challenges
+  * **Type Safety Compliance:** ADR-031 patterns with explicit casting for all query parameters
+  * **Hierarchical Filtering:** Migration, iteration, team, and status filtering
+  * **Comprehensive Testing:** 297-line integration test covering 13 scenarios
+  * **OpenAPI Specification:** Complete documentation with 11 endpoints and 8 schemas
+* **Development Infrastructure Enhancement:** Critical tooling improvements
+  * **Automated Postman Collection:** 28,374-line collection with auto-auth and dynamic baseUrl
+  * **Environment Configuration:** Enhanced .env setup for Podman database environments
+  * **ScriptRunner Documentation:** Comprehensive connection pool setup and troubleshooting guides
+* **Project Documentation Streamlining:** Major efficiency improvements
+  * **CLAUDE.md Optimisation:** 72% reduction (688→192 lines) whilst improving clarity
+  * **Enhanced Agent Integration:** Improved GENDEV (35 agents) and Quad (92 agents) documentation
+  * **Sprint 0 Roadmap:** Complete user story tracking and velocity measurement structure
+* **Quality Assurance:** Production deployment readiness
+  * **Lazy Repository Loading:** Prevents ScriptRunner class loading conflicts
+  * **Single File Per Endpoint:** Eliminates ScriptRunner endpoint confusion
+  * **Connection Pool Configuration:** Documented umig_db_pool setup requirements
+  * **Error Handling:** Comprehensive HTTP status mapping and error propagation
 
 ### Major Achievements (17 July 2025)
 * **Standalone Step View Implementation:** New focused task execution interface
@@ -81,8 +104,16 @@ The project is in the **production readiness phase** with a strong focus on **fe
 
 ## 3. Next Steps
 
-1. Complete remaining REST APIs (Plans, Sequences, Phases, Instructions endpoints)
-2. Implement main dashboard UI with real-time AJAX polling
-3. Develop planning feature with HTML macro-plan generation
-4. Execute data import strategy for existing Confluence/Excel sources
-5. Conduct comprehensive testing and performance optimisation
+**Sprint 0 Remaining APIs (3-4 days, following proven US-001 patterns):**
+1. **US-002: Sequences API with Ordering** - Immediate next priority, 3-4 hours estimated
+2. **US-003: Phases API with Controls** - Can be developed in parallel, 3-4 hours estimated  
+3. **US-004: Instructions API with Distribution** - Final API in sequence, 3-4 hours estimated
+4. **US-005: Database Migrations** - Once API designs complete, 2-3 hours estimated
+
+**Post-Sprint 0 Development:**
+5. Implement main dashboard UI with real-time AJAX polling
+6. Develop planning feature with HTML macro-plan generation
+7. Execute data import strategy for existing Confluence/Excel sources
+8. Conduct comprehensive testing and performance optimisation
+
+**Key Advantage:** ScriptRunner integration challenges resolved in US-001, enabling accelerated delivery of remaining APIs using established lazy-loading and type safety patterns.

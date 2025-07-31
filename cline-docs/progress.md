@@ -15,7 +15,15 @@
   * Standardised database naming conventions (ADR-014) have been implemented.
   * Comprehensive synthetic data generation with 3-digit prefixed generators (001-101) covering all entities.
 * **Phase 2: Backend Development (ScriptRunner)**
-  * **Complete API Implementation:** Core REST endpoints for user, team, environment, application, and label management
+  * **Complete API Implementation:** Core REST endpoints for user, team, environment, application, label, and **plans** management
+  * **Plans API (US-001):** Production-ready implementation completed 31 July 2025
+    * **537-line PlansApi.groovy** with full CRUD operations for master plans and plan instances
+    * **451-line PlanRepository** with 13 data access methods following established patterns
+    * **ScriptRunner Integration Mastery** with lazy-loading repositories and connection pool configuration  
+    * **Type Safety Compliance** with ADR-031 patterns and explicit casting for all parameters
+    * **Hierarchical Filtering** by migration, iteration, team, and status
+    * **297-line Integration Test** with comprehensive scenario coverage
+    * **OpenAPI Specification** with 11 endpoints and 8 schemas
   * **Hierarchical Filtering:** Full implementation of hierarchical filtering (ADR-030) across all APIs
   * **Type Safety:** Robust Groovy type safety and filtering patterns (ADR-031) preventing runtime errors
   * **Error Handling:** Comprehensive error handling with SQL state mapping and detailed error messages
@@ -68,8 +76,11 @@
 
 ## 2. What's Left to Build (MVP Scope)
 
-* **Phase 2: Backend Development (ScriptRunner)**
-  * **API Completion:** Implement remaining REST APIs (Plans, Sequences, Phases, Instructions endpoints)
+* **Phase 2: Backend Development (ScriptRunner)** - **Sprint 0 Remaining APIs**
+  * **US-002: Sequences API with Ordering** - Next priority, following proven US-001 patterns (3-4 hours)
+  * **US-003: Phases API with Controls** - Can be developed in parallel (3-4 hours)
+  * **US-004: Instructions API with Distribution** - Final API in sequence (3-4 hours)
+  * **US-005: Database Migrations** - Once API designs complete (2-3 hours)
   * **Event Logging:** Implement backend logic for the `event_log` system
   * **Planning Feature:** Implement HTML export endpoint for shareable macro-plans
   * **Email Templates Admin GUI:** Complete admin interface for template management (low priority)
@@ -86,8 +97,18 @@
 
 ## 3. Known Issues & Risks
 
-* **Risk Mitigation:** The four-week timeline challenge has been addressed through successful modular architecture and proven patterns
+* **Risk Mitigation:** The four-week timeline challenge has been significantly addressed through US-001 completion and proven patterns
+  * **ScriptRunner Integration Mastery:** All deployment challenges resolved with comprehensive documentation
+  * **Accelerated Development Path:** Remaining Sprint 0 APIs can follow established lazy-loading and type safety patterns
+  * **Infrastructure Enhancements:** Automated Postman collection generation and streamlined documentation
 * **Performance:** ScriptRunner performance under heavy load during cutover weekends requires testing and optimisation
 * **Data Import:** Data import strategy from existing Draw.io/Excel files requires implementation (ADR-028)
 * **Documentation:** All architectural decisions now consolidated in solution-architecture.md
 * **Code Quality:** Codebase streamlined with removal of obsolete components
+
+## 4. Current Sprint Status (Sprint 0 - API Foundation)
+
+* **Completed:** US-001 Plans API Foundation (✅ 31 July 2025)
+* **Remaining:** US-002 Sequences, US-003 Phases, US-004 Instructions, US-005 Migrations
+* **Timeline:** 3-4 days remaining with proven patterns and resolved technical challenges
+* **Confidence:** High - ScriptRunner integration barriers removed, development infrastructure enhanced
