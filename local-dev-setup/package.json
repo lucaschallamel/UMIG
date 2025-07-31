@@ -17,7 +17,8 @@
     "import-csv": "node scripts/umig_csv_importer.js",
     "generate-data:erase": "node scripts/umig_generate_fake_data.js --erase",
     "test": "jest --verbose --",
-    "generate:postman": "cd ../docs/api/postman && npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags"
+    "generate:postman": "cd ../docs/api/postman && npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags",
+    "generate:postman:enhanced": "node scripts/generate-postman-enhanced.js"
   },
   "author": "Lucas Challamel",
   "license": "ISC",
