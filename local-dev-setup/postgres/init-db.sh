@@ -27,3 +27,24 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -tc 
 
 # Grant privileges on the new database to the application user.
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "GRANT ALL PRIVILEGES ON DATABASE ${UMIG_DB_NAME} TO ${UMIG_DB_USER};"
+
+# Create Confluence database and user
+echo "Creating Confluence database and user..."
+
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    -- Create the confluence user if it doesn't exist.
+    DO
+    \$\$
+    BEGIN
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'confluence_user') THEN
+            CREATE USER confluence_user WITH PASSWORD '123456';
+        END IF;
+    END
+    \$\$;
+EOSQL
+
+# Check if confluence database exists and create it if not.
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -tc "SELECT 1 FROM pg_database WHERE datname = 'confluence_db'" | grep -q 1 || psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "CREATE DATABASE confluence_db"
+
+# Grant privileges on the confluence database to the confluence user.
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "GRANT ALL PRIVILEGES ON DATABASE confluence_db TO confluence_user;"

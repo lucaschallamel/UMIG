@@ -107,7 +107,7 @@ return Response.status(Response.Status.NOT_FOUND)
 
 1. **Configure ScriptRunner Connection Pool**:
    - Pool name: `umig_db_pool`
-   - JDBC URL: `jdbc:postgresql://localhost:5432/umig_app_db`
+   - JDBC URL: `jdbc:postgresql://postgres:5432/umig_app_db` (Note: Use 'postgres' hostname in Podman context)
    - Username: `umig_app_user`
    - Password: `123456`
 

@@ -14,7 +14,7 @@ Create a new connection pool with these settings:
 
 **Pool Configuration:**
 - **Pool Name**: `umig_db_pool` (MUST match exactly)
-- **JDBC URL**: `jdbc:postgresql://localhost:5432/umig_app_db`
+- **JDBC URL**: `jdbc:postgresql://postgres:5432/umig_app_db` (Note: Use 'postgres' hostname in Podman context, not 'localhost')
 - **Driver Class Name**: `org.postgresql.Driver`
 - **Username**: `umig_app_user`
 - **Password**: `123456`
