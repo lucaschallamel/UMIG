@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-07-31  
+**Version:** 2025-08-04  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 34 architectural decisions (26 archived + 8 newly consolidated: ADR-027 through ADR-034). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
+**Latest Updates:** Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
 
@@ -742,6 +742,12 @@ The data model has undergone several significant architectural changes:
 - **Evolution:** Decoupled migrations from plans to support iterative delivery approaches.
 - **Structure:** Migrations can now contain multiple iterations, each with their own timeline and scope.
 - **Benefits:** Better alignment with agile delivery methodologies and complex project phasing.
+
+#### Audit Fields Standardization (US-002b - August 2025)
+- **Challenge:** Inconsistent audit field implementation across 25+ tables.
+- **Solution:** Migration 016 standardized all tables with `created_by`, `created_at`, `updated_by`, `updated_at`.
+- **Special Cases:** Handled existing fields in `labels_lbl` (INTEGER created_by), `users_usr` (existing timestamps), and `email_templates_emt` (emt_* fields).
+- **Impact:** Consistent tracking of data changes, simplified API patterns, improved compliance and debugging capabilities.
 
 ---
 

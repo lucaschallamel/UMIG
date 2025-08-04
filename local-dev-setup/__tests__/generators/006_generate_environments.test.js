@@ -108,8 +108,13 @@ describe('Environments Generator (06_generate_environments.js)', () => {
         c[0] && c[0].includes('INSERT INTO environments_env') && c[0].includes('env_code')
       );
       expect(insertCalls.length).toBe(mockEnvironments.length);
-      expect(insertCalls[0][1]).toEqual(['PROD', 'PROD', 'Production environment']);
-      expect(insertCalls[1][1]).toEqual(['EV1', 'EV1', 'Environment 1']);
+      // Check first 3 parameters (env_code, env_name, env_description), audit fields are dynamic
+      expect(insertCalls[0][1].slice(0, 3)).toEqual(['PROD', 'PROD', 'Production environment']);
+      expect(insertCalls[1][1].slice(0, 3)).toEqual(['EV1', 'EV1', 'Environment 1']);
+      // Verify audit fields are present (created_by, created_at, updated_by, updated_at)
+      expect(insertCalls[0][1].length).toBe(7);
+      expect(insertCalls[0][1][3]).toBe('generator'); // created_by
+      expect(insertCalls[0][1][5]).toBe('generator'); // updated_by
     });
 
     it('should link environments to apps', async () => {

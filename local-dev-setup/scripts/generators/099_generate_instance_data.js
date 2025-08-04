@@ -123,9 +123,9 @@ async function generateInstanceData(config, options = {}) {
     const pliRes = await client.query(
       `INSERT INTO plans_instance_pli (
         plm_id, ite_id, pli_name, pli_description, pli_status, usr_id_owner,
-        created_by, updated_by
+        created_by, created_at, updated_by, updated_at
       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING pli_id`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING pli_id`,
       [
         masterPlanId,
         iteration.ite_id,
@@ -133,8 +133,10 @@ async function generateInstanceData(config, options = {}) {
         faker.lorem.sentence(),
         faker.helpers.arrayElement(planStatuses),
         ownerId,
-        'data_generator',
-        'data_generator'
+        'generator',
+        new Date(),
+        'generator',
+        new Date()
       ]
     );
     const planInstanceId = pliRes.rows[0].pli_id;
@@ -158,8 +160,8 @@ async function generateInstanceData(config, options = {}) {
 
       const sqiRes = await client.query(
         `INSERT INTO sequences_instance_sqi 
-          (pli_id, sqm_id, sqi_status, sqi_name, sqi_description, sqi_order, predecessor_sqi_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING sqi_id`,
+          (pli_id, sqm_id, sqi_status, sqi_name, sqi_description, sqi_order, predecessor_sqi_id, created_by, created_at, updated_by, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING sqi_id`,
         [
           planInstanceId, 
           masterSequence.sqm_id, 
@@ -167,7 +169,11 @@ async function generateInstanceData(config, options = {}) {
           sqi_name,
           sqi_description,
           sqi_order,
-          predecessor_sqi_id
+          predecessor_sqi_id,
+          'generator',
+          new Date(),
+          'generator',
+          new Date()
         ]
       );
       const sequenceInstanceId = sqiRes.rows[0].sqi_id;
@@ -191,8 +197,8 @@ async function generateInstanceData(config, options = {}) {
 
         const phiRes = await client.query(
           `INSERT INTO phases_instance_phi 
-            (sqi_id, phm_id, phi_status, phi_name, phi_description, phi_order, predecessor_phi_id)
-           VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING phi_id`,
+            (sqi_id, phm_id, phi_status, phi_name, phi_description, phi_order, predecessor_phi_id, created_by, created_at, updated_by, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING phi_id`,
           [
             sequenceInstanceId, 
             masterPhase.phm_id, 
@@ -200,7 +206,11 @@ async function generateInstanceData(config, options = {}) {
             phi_name,
             phi_description,
             phi_order,
-            predecessor_phi_id
+            predecessor_phi_id,
+            'generator',
+            new Date(),
+            'generator',
+            new Date()
           ]
         );
         const phaseInstanceId = phiRes.rows[0].phi_id;
@@ -229,9 +239,9 @@ async function generateInstanceData(config, options = {}) {
             `INSERT INTO steps_instance_sti (
               phi_id, stm_id, sti_status, 
               sti_name, sti_description, sti_duration_minutes, 
-              sti_id_predecessor, enr_id
+              sti_id_predecessor, enr_id, created_by, created_at, updated_by, updated_at
             )
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING sti_id`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING sti_id`,
             [
               phaseInstanceId, 
               masterStep.stm_id, 
@@ -240,7 +250,11 @@ async function generateInstanceData(config, options = {}) {
               sti_description,
               sti_duration_minutes,
               sti_id_predecessor,
-              enr_id
+              enr_id,
+              'generator',
+              new Date(),
+              'generator',
+              new Date()
             ]
           );
           const stepInstanceId = stiRes.rows[0].sti_id;
@@ -265,9 +279,10 @@ async function generateInstanceData(config, options = {}) {
               await client.query(
                 `INSERT INTO instructions_instance_ini (
                   sti_id, inm_id, ini_is_completed, 
-                  tms_id, cti_id, ini_order, ini_body, ini_duration_minutes
+                  tms_id, cti_id, ini_order, ini_body, ini_duration_minutes,
+                  created_by, created_at, updated_by, updated_at
                 )
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
                 [
                   stepInstanceId, 
                   masterInstruction.inm_id, 
@@ -276,7 +291,11 @@ async function generateInstanceData(config, options = {}) {
                   cti_id,
                   ini_order,
                   ini_body,
-                  ini_duration_minutes
+                  ini_duration_minutes,
+                  'generator',
+                  new Date(),
+                  'generator',
+                  new Date()
                 ]
               );
             } catch (error) {
@@ -312,9 +331,10 @@ async function generateInstanceData(config, options = {}) {
               `INSERT INTO controls_instance_cti (
                 sti_id, ctm_id, cti_status,
                 cti_order, cti_name, cti_description,
-                cti_type, cti_is_critical, cti_code
+                cti_type, cti_is_critical, cti_code,
+                created_by, created_at, updated_by, updated_at
               )
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
               [
                 stepInstanceId, 
                 masterControl.ctm_id, 
@@ -324,7 +344,11 @@ async function generateInstanceData(config, options = {}) {
                 cti_description,
                 cti_type,
                 cti_is_critical,
-                cti_code
+                cti_code,
+                'generator',
+                new Date(),
+                'generator',
+                new Date()
               ]
             );
           }

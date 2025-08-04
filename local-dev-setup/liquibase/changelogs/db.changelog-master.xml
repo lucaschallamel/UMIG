@@ -20,6 +20,7 @@
     <include file="013_create_email_templates_table.sql" relativeToChangelogFile="true"/>
     <include file="014_add_environment_role_to_steps.sql" relativeToChangelogFile="true"/>
     <include file="015_remove_fields_from_steps_instance_and_add_status_table.sql" relativeToChangelogFile="true"/>
+    <include file="016_standardize_audit_fields.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
