@@ -36,6 +36,7 @@ Individual API specifications are available for detailed documentation:
 - **[Email Templates API](EmailTemplatesAPI.md)** - Email template management for automated notifications
 - **[Plans API](PlansAPI.md)** - Plan management with master templates and instances
 - **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support
+- **[Phases API](PhasesAPI.md)** - Phase management with control point validation and progress tracking
 - **[Steps API](StepsAPI.md)** - Step management with email notification integration *(to be documented)*
 - **[Migrations API](MigrationsAPI.md)** - Migration and iteration management *(to be documented)*
 
@@ -94,6 +95,33 @@ The collection is automatically generated from the OpenAPI specification and inc
   - `PUT /sequences/instance/{id}` - Update sequence instance
   - `DELETE /sequences/instance/{id}` - Delete sequence instance
   - `PUT /sequences/instance/{id}/status` - Update instance status
+
+### Phases API (Completed)
+- **Full CRUD operations** for both master phase templates and phase instances
+- **Control point validation system** with emergency override capabilities
+- **Progress aggregation** combining step completion (70%) and control point status (30%)
+- **Hierarchical filtering** by migration, iteration, plan, sequence, team, and status
+- **Master phase endpoints**:
+  - `GET /phases/master` - List all master phases with audit fields
+  - `GET /phases/master/{id}` - Get specific master phase
+  - `POST /phases/master` - Create new master phase
+  - `PUT /phases/master/{id}` - Update master phase
+  - `DELETE /phases/master/{id}` - Soft delete master phase
+  - `PUT /phases/master/{id}/order` - Update phase order
+  - `PUT /phases/master/{id}/bulk-reorder` - Bulk reorder phases
+- **Phase instance endpoints**:
+  - `GET /phases` - List phase instances with filtering
+  - `GET /phases/instance/{id}` - Get specific phase instance
+  - `POST /phases/instance` - Create phase instance from master
+  - `PUT /phases/instance/{id}` - Update phase instance
+  - `DELETE /phases/instance/{id}` - Delete phase instance
+  - `PUT /phases/instance/{id}/status` - Update instance status
+  - `PUT /phases/instance/{id}/control-point` - Update control point status
+  - `PUT /phases/instance/{id}/emergency-override` - Emergency override with audit trail
+- **Utility endpoints**:
+  - `GET /phases/by-sequence/{sequenceId}` - Get phases by sequence instance
+  - `GET /phases/progress/{phaseId}` - Get phase progress aggregation
+  - `PUT /phases/validate-dependencies` - Validate phase dependencies
 
 ### Environments API (Completed)
 - **Complete environments management system** with application and iteration associations

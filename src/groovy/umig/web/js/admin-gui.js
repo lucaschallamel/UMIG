@@ -52,7 +52,13 @@
                 iterations: '/iterations',
                 labels: '/labels',
                 migrations: '/migrations',
-                stepView: '/stepViewApi'
+                stepView: '/stepViewApi',
+                plansmaster: '/plans/masters',
+                plansinstance: '/plans',
+                sequencesmaster: '/sequences/masters',
+                sequencesinstance: '/sequences',
+                phasesmaster: '/phasesmaster',
+                phasesinstance: '/phasesinstance'
             }
         },
 
@@ -149,6 +155,331 @@
                     'iteration_count': 'iteration_count'
                 },
                 permissions: ['superadmin']
+            },
+            plansmaster: {
+                name: 'Master Plans',
+                description: 'Manage master plan templates for migration execution',
+                fields: [
+                    { key: 'plm_id', label: 'ID', type: 'text', readonly: true },
+                    { key: 'plm_name', label: 'Plan Name', type: 'text', required: true, maxLength: 100 },
+                    { key: 'plm_description', label: 'Description', type: 'textarea' },
+                    { key: 'plm_version', label: 'Version', type: 'text', maxLength: 20 },
+                    { key: 'plm_status', label: 'Status', type: 'select', options: [
+                        { value: 'draft', label: 'Draft' },
+                        { value: 'active', label: 'Active' },
+                        { value: 'archived', label: 'Archived' }
+                    ]},
+                    { key: 'created_by', label: 'Created By', type: 'text', readonly: true },
+                    { key: 'created_at', label: 'Created', type: 'datetime', readonly: true },
+                    { key: 'updated_by', label: 'Updated By', type: 'text', readonly: true },
+                    { key: 'updated_at', label: 'Updated', type: 'datetime', readonly: true }
+                ],
+                tableColumns: ['plm_id', 'plm_name', 'plm_version', 'plm_status', 'sequence_count', 'created_at'],
+                sortMapping: {
+                    'plm_id': 'plm_id',
+                    'plm_name': 'plm_name',
+                    'plm_version': 'plm_version',
+                    'plm_status': 'plm_status',
+                    'sequence_count': 'sequence_count',
+                    'created_at': 'created_at'
+                },
+                permissions: ['superadmin', 'admin']
+            },
+            plansinstance: {
+                name: 'Plan Instances',
+                description: 'Manage plan execution instances for iterations',
+                fields: [
+                    { key: 'pli_id', label: 'ID', type: 'text', readonly: true },
+                    { key: 'plm_id', label: 'Master Plan', type: 'select', required: true, endpoint: '/plans/masters', valueField: 'plm_id', textField: 'plm_name' },
+                    { key: 'itr_id', label: 'Iteration', type: 'select', required: true, endpoint: '/iterations', valueField: 'itr_id', textField: 'itr_name' },
+                    { key: 'pli_name', label: 'Plan Name Override', type: 'text', maxLength: 100 },
+                    { key: 'pli_description', label: 'Description Override', type: 'textarea' },
+                    { key: 'pli_status', label: 'Status', type: 'select', options: [
+                        { value: 'planning', label: 'Planning' },
+                        { value: 'ready', label: 'Ready' },
+                        { value: 'in_progress', label: 'In Progress' },
+                        { value: 'completed', label: 'Completed' },
+                        { value: 'cancelled', label: 'Cancelled' }
+                    ]},
+                    { key: 'pli_start_time', label: 'Start Time', type: 'datetime' },
+                    { key: 'pli_end_time', label: 'End Time', type: 'datetime' },
+                    { key: 'created_by', label: 'Created By', type: 'text', readonly: true },
+                    { key: 'created_at', label: 'Created', type: 'datetime', readonly: true },
+                    { key: 'updated_by', label: 'Updated By', type: 'text', readonly: true },
+                    { key: 'updated_at', label: 'Updated', type: 'datetime', readonly: true }
+                ],
+                tableColumns: ['pli_id', 'pli_name', 'iteration_name', 'pli_status', 'sequence_count', 'pli_start_time'],
+                sortMapping: {
+                    'pli_id': 'pli_id',
+                    'pli_name': 'pli_name',
+                    'iteration_name': 'itr_name',
+                    'pli_status': 'pli_status',
+                    'sequence_count': 'sequence_count',
+                    'pli_start_time': 'pli_start_time'
+                },
+                filters: [
+                    {
+                        key: 'migrationId',
+                        label: 'Migration',
+                        type: 'select',
+                        endpoint: '/migrations',
+                        valueField: 'mig_id',
+                        textField: 'mig_name',
+                        placeholder: 'All Migrations'
+                    },
+                    {
+                        key: 'iterationId',
+                        label: 'Iteration',
+                        type: 'select',
+                        endpoint: '/iterations',
+                        valueField: 'itr_id',
+                        textField: 'itr_name',
+                        placeholder: 'All Iterations'
+                    },
+                    {
+                        key: 'status',
+                        label: 'Status',
+                        type: 'select',
+                        options: [
+                            { value: '', label: 'All Statuses' },
+                            { value: 'planning', label: 'Planning' },
+                            { value: 'ready', label: 'Ready' },
+                            { value: 'in_progress', label: 'In Progress' },
+                            { value: 'completed', label: 'Completed' },
+                            { value: 'cancelled', label: 'Cancelled' }
+                        ]
+                    }
+                ],
+                permissions: ['superadmin', 'admin', 'pilot']
+            },
+            sequencesmaster: {
+                name: 'Master Sequences',
+                description: 'Manage master sequence templates within plans',
+                fields: [
+                    { key: 'sqm_id', label: 'ID', type: 'text', readonly: true },
+                    { key: 'plm_id', label: 'Plan ID', type: 'select', required: true, endpoint: '/plans/masters', valueField: 'plm_id', textField: 'plm_name' },
+                    { key: 'sqm_name', label: 'Sequence Name', type: 'text', required: true, maxLength: 100 },
+                    { key: 'sqm_description', label: 'Description', type: 'textarea' },
+                    { key: 'sqm_order', label: 'Order', type: 'number', min: 1 },
+                    { key: 'predecessor_sqm_id', label: 'Predecessor Sequence', type: 'select', endpoint: '/sequences/masters', valueField: 'sqm_id', textField: 'sqm_name', placeholder: 'No Predecessor' },
+                    { key: 'created_by', label: 'Created By', type: 'text', readonly: true },
+                    { key: 'created_at', label: 'Created', type: 'datetime', readonly: true },
+                    { key: 'updated_by', label: 'Updated By', type: 'text', readonly: true },
+                    { key: 'updated_at', label: 'Updated', type: 'datetime', readonly: true }
+                ],
+                tableColumns: ['sqm_id', 'sqm_name', 'plan_name', 'sqm_order', 'predecessor_name', 'phase_count'],
+                sortMapping: {
+                    'sqm_id': 'sqm_id',
+                    'sqm_name': 'sqm_name',
+                    'plan_name': 'plm_name',
+                    'sqm_order': 'sqm_order',
+                    'predecessor_name': 'predecessor_sqm_name',
+                    'phase_count': 'phase_count'
+                },
+                filters: [
+                    {
+                        key: 'planId',
+                        label: 'Plan',
+                        type: 'select',
+                        endpoint: '/plans/masters',
+                        valueField: 'plm_id',
+                        textField: 'plm_name',
+                        placeholder: 'All Plans'
+                    }
+                ],
+                permissions: ['superadmin', 'admin']
+            },
+            sequencesinstance: {
+                name: 'Sequence Instances',
+                description: 'Manage sequence execution instances within plan instances',
+                fields: [
+                    { key: 'sqi_id', label: 'ID', type: 'text', readonly: true },
+                    { key: 'sqm_id', label: 'Master Sequence', type: 'select', required: true, endpoint: '/sequences/masters', valueField: 'sqm_id', textField: 'sqm_name' },
+                    { key: 'pli_id', label: 'Plan Instance', type: 'select', required: true, endpoint: '/plans', valueField: 'pli_id', textField: 'pli_name' },
+                    { key: 'sqi_name', label: 'Sequence Name Override', type: 'text', maxLength: 100 },
+                    { key: 'sqi_description', label: 'Description Override', type: 'textarea' },
+                    { key: 'sqi_status', label: 'Status', type: 'select', options: [
+                        { value: 'pending', label: 'Pending' },
+                        { value: 'in_progress', label: 'In Progress' },
+                        { value: 'completed', label: 'Completed' },
+                        { value: 'blocked', label: 'Blocked' },
+                        { value: 'failed', label: 'Failed' }
+                    ]},
+                    { key: 'sqi_order', label: 'Order Override', type: 'number', min: 1 },
+                    { key: 'predecessor_sqi_id', label: 'Predecessor Sequence Instance', type: 'select', endpoint: '/sequences', valueField: 'sqi_id', textField: 'sqi_name', placeholder: 'No Predecessor' },
+                    { key: 'sqi_start_time', label: 'Start Time', type: 'datetime' },
+                    { key: 'sqi_end_time', label: 'End Time', type: 'datetime' },
+                    { key: 'created_by', label: 'Created By', type: 'text', readonly: true },
+                    { key: 'created_at', label: 'Created', type: 'datetime', readonly: true },
+                    { key: 'updated_by', label: 'Updated By', type: 'text', readonly: true },
+                    { key: 'updated_at', label: 'Updated', type: 'datetime', readonly: true }
+                ],
+                tableColumns: ['sqi_id', 'sqi_name', 'plan_name', 'sqi_status', 'sqi_order', 'phase_count', 'sqi_start_time'],
+                sortMapping: {
+                    'sqi_id': 'sqi_id',
+                    'sqi_name': 'sqi_name',
+                    'plan_name': 'pli_name',
+                    'sqi_status': 'sqi_status',
+                    'sqi_order': 'sqi_order',
+                    'phase_count': 'phase_count',
+                    'sqi_start_time': 'sqi_start_time'
+                },
+                filters: [
+                    {
+                        key: 'migrationId',
+                        label: 'Migration',
+                        type: 'select',
+                        endpoint: '/migrations',
+                        valueField: 'mig_id',
+                        textField: 'mig_name',
+                        placeholder: 'All Migrations'
+                    },
+                    {
+                        key: 'iterationId',
+                        label: 'Iteration',
+                        type: 'select',
+                        endpoint: '/iterations',
+                        valueField: 'itr_id',
+                        textField: 'itr_name',
+                        placeholder: 'All Iterations'
+                    },
+                    {
+                        key: 'planId',
+                        label: 'Plan Instance',
+                        type: 'select',
+                        endpoint: '/plans',
+                        valueField: 'pli_id',
+                        textField: 'pli_name',
+                        placeholder: 'All Plans'
+                    },
+                    {
+                        key: 'status',
+                        label: 'Status',
+                        type: 'select',
+                        options: [
+                            { value: '', label: 'All Statuses' },
+                            { value: 'pending', label: 'Pending' },
+                            { value: 'in_progress', label: 'In Progress' },
+                            { value: 'completed', label: 'Completed' },
+                            { value: 'blocked', label: 'Blocked' },
+                            { value: 'failed', label: 'Failed' }
+                        ]
+                    }
+                ],
+                permissions: ['superadmin', 'admin', 'pilot']
+            },
+            phasesmaster: {
+                name: 'Master Phases',
+                description: 'Manage master phase templates and their hierarchical relationships',
+                fields: [
+                    { key: 'phm_id', label: 'ID', type: 'text', readonly: true },
+                    { key: 'sqm_id', label: 'Sequence ID', type: 'select', required: true, endpoint: '/sequences-master', valueField: 'sqm_id', textField: 'sqm_name' },
+                    { key: 'phm_name', label: 'Phase Name', type: 'text', required: true, maxLength: 100 },
+                    { key: 'phm_description', label: 'Description', type: 'textarea' },
+                    { key: 'phm_order', label: 'Order', type: 'number', min: 1 },
+                    { key: 'predecessor_phm_id', label: 'Predecessor Phase', type: 'select', endpoint: '/phasesmaster', valueField: 'phm_id', textField: 'phm_name', placeholder: 'No Predecessor' },
+                    { key: 'created_at', label: 'Created', type: 'datetime', readonly: true },
+                    { key: 'updated_at', label: 'Updated', type: 'datetime', readonly: true }
+                ],
+                tableColumns: ['phm_id', 'phm_name', 'sequence_name', 'phm_order', 'predecessor_name', 'status_display'],
+                sortMapping: {
+                    'phm_id': 'phm_id',
+                    'phm_name': 'phm_name',
+                    'sequence_name': 'sqm_name',
+                    'phm_order': 'phm_order',
+                    'predecessor_name': 'predecessor_phm_name',
+                    'status_display': 'status'
+                },
+                filters: [
+                    {
+                        key: 'sequenceId',
+                        label: 'Sequence',
+                        type: 'select',
+                        endpoint: '/sequences-master',
+                        valueField: 'sqm_id',
+                        textField: 'sqm_name',
+                        placeholder: 'All Sequences'
+                    }
+                ],
+                permissions: ['superadmin', 'admin']
+            },
+            phasesinstance: {
+                name: 'Phase Instances',
+                description: 'Manage phase execution instances with control points and progress tracking',
+                fields: [
+                    { key: 'phi_id', label: 'ID', type: 'text', readonly: true },
+                    { key: 'phm_id', label: 'Master Phase', type: 'select', required: true, endpoint: '/phasesmaster', valueField: 'phm_id', textField: 'phm_name' },
+                    { key: 'sqi_id', label: 'Sequence Instance', type: 'select', required: true, endpoint: '/sequences-instance', valueField: 'sqi_id', textField: 'sqi_name' },
+                    { key: 'phi_name', label: 'Phase Name Override', type: 'text', maxLength: 100 },
+                    { key: 'phi_description', label: 'Description Override', type: 'textarea' },
+                    { key: 'phi_status', label: 'Status', type: 'select', options: [
+                        { value: 'pending', label: 'Pending' },
+                        { value: 'in_progress', label: 'In Progress' },
+                        { value: 'completed', label: 'Completed' },
+                        { value: 'blocked', label: 'Blocked' },
+                        { value: 'failed', label: 'Failed' }
+                    ]},
+                    { key: 'phi_order', label: 'Order Override', type: 'number', min: 1 },
+                    { key: 'predecessor_phi_id', label: 'Predecessor Phase Instance', type: 'select', endpoint: '/phasesinstance', valueField: 'phi_id', textField: 'phi_name', placeholder: 'No Predecessor' },
+                    { key: 'phi_progress_percentage', label: 'Progress %', type: 'number', readonly: true, min: 0, max: 100 },
+                    { key: 'phi_start_time', label: 'Start Time', type: 'datetime' },
+                    { key: 'phi_end_time', label: 'End Time', type: 'datetime' },
+                    { key: 'created_at', label: 'Created', type: 'datetime', readonly: true },
+                    { key: 'updated_at', label: 'Updated', type: 'datetime', readonly: true }
+                ],
+                tableColumns: ['phi_id', 'phi_name', 'sequence_name', 'phi_status', 'phi_order', 'progress_display', 'phi_start_time'],
+                sortMapping: {
+                    'phi_id': 'phi_id',
+                    'phi_name': 'phi_name',
+                    'sequence_name': 'sqi_name',
+                    'phi_status': 'phi_status',
+                    'phi_order': 'phi_order',
+                    'progress_display': 'phi_progress_percentage',
+                    'phi_start_time': 'phi_start_time'
+                },
+                filters: [
+                    {
+                        key: 'migrationId',
+                        label: 'Migration',
+                        type: 'select',
+                        endpoint: '/migrations',
+                        valueField: 'mig_id',
+                        textField: 'mig_name',
+                        placeholder: 'All Migrations'
+                    },
+                    {
+                        key: 'iterationId',
+                        label: 'Iteration',
+                        type: 'select',
+                        endpoint: '/iterations',
+                        valueField: 'ite_id',
+                        textField: 'ite_name',
+                        placeholder: 'All Iterations'
+                    },
+                    {
+                        key: 'sequenceInstanceId',  
+                        label: 'Sequence Instance',
+                        type: 'select',
+                        endpoint: '/sequences-instance',
+                        valueField: 'sqi_id',
+                        textField: 'sqi_name',
+                        placeholder: 'All Sequences'
+                    },
+                    {
+                        key: 'statusId',
+                        label: 'Status',
+                        type: 'select',
+                        options: [
+                            { value: 'pending', label: 'Pending' },
+                            { value: 'in_progress', label: 'In Progress' },
+                            { value: 'completed', label: 'Completed' },
+                            { value: 'blocked', label: 'Blocked' },
+                            { value: 'failed', label: 'Failed' }
+                        ],
+                        placeholder: 'All Statuses'
+                    }
+                ],
+                permissions: ['superadmin', 'admin', 'pilot']
             }
             // Other entities will be added as needed
         },
@@ -646,11 +977,21 @@
                 const actionsTd = document.createElement('td');
                 actionsTd.className = 'action-buttons';
                 
-                // Add view details button for environments
+                // Add view details button for environments and phase instances
                 let actionsHtml = '';
                 if (this.state.currentEntity === 'environments') {
                     actionsHtml = `
                         <button class="btn-table-action btn-view" data-action="view" data-id="${record[entity.fields[0].key]}" title="View Details">👁️</button>
+                    `;
+                } else if (this.state.currentEntity === 'phasesinstance') {
+                    actionsHtml = `
+                        <button class="btn-table-action btn-view" data-action="view" data-id="${record[entity.fields[0].key]}" title="View Phase Details">👁️</button>
+                        <button class="btn-table-action btn-controls" data-action="controls" data-id="${record[entity.fields[0].key]}" title="Manage Control Points">🎛️</button>
+                        <button class="btn-table-action btn-progress" data-action="progress" data-id="${record[entity.fields[0].key]}" title="Update Progress">📊</button>
+                    `;
+                } else if (this.state.currentEntity === 'phasesmaster') {
+                    actionsHtml = `
+                        <button class="btn-table-action btn-move" data-action="move" data-id="${record[entity.fields[0].key]}" title="Reorder Phase">↕️</button>
                     `;
                 }
                 
@@ -707,6 +1048,49 @@
             }
             if (columnKey === 'app_count') {
                 return record.app_count || '0';
+            }
+
+            // Handle phases-specific display columns
+            if (columnKey === 'sequence_name') {
+                return record.sequence_name || record.sqm_name || record.sqi_name || '<span style="color: #a0aec0;">—</span>';
+            }
+
+            if (columnKey === 'predecessor_name') {
+                return record.predecessor_name || record.predecessor_phm_name || record.predecessor_phi_name || '<span style="color: #a0aec0;">None</span>';
+            }
+
+            if (columnKey === 'progress_display') {
+                const progress = record.phi_progress_percentage;
+                if (progress === null || progress === undefined) {
+                    return '<span style="color: #a0aec0;">—</span>';
+                }
+                const progressClass = progress >= 100 ? 'success' : progress >= 75 ? 'warning' : progress >= 50 ? 'info' : 'secondary';
+                return `<div class="progress-bar">
+                    <div class="progress-fill progress-${progressClass}" style="width: ${progress}%"></div>
+                    <span class="progress-text">${progress}%</span>
+                </div>`;
+            }
+
+            // Handle phase status display
+            if (columnKey === 'phi_status' || (columnKey === 'status_display' && (this.state.currentEntity === 'phasesmaster' || this.state.currentEntity === 'phasesinstance'))) {
+                const status = value || record.phi_status || 'pending';
+                const statusClasses = {
+                    'pending': 'status-pending',
+                    'in_progress': 'status-in-progress', 
+                    'completed': 'status-completed',
+                    'blocked': 'status-blocked',
+                    'failed': 'status-failed'
+                };
+                const statusLabels = {
+                    'pending': 'Pending',
+                    'in_progress': 'In Progress',
+                    'completed': 'Completed', 
+                    'blocked': 'Blocked',
+                    'failed': 'Failed'
+                };
+                const className = statusClasses[status] || 'status-unknown';
+                const label = statusLabels[status] || status;
+                return `<span class="status-badge ${className}">${label}</span>`;
             }
 
             // Handle null/undefined values
@@ -905,7 +1289,11 @@
             document.addEventListener('click', (e) => {
                 if (e.target.matches('[data-action="view"]')) {
                     const id = e.target.getAttribute('data-id');
-                    this.showEnvironmentDetails(id);
+                    if (this.state.currentEntity === 'environments') {
+                        this.showEnvironmentDetails(id);
+                    } else if (this.state.currentEntity === 'phasesinstance') {
+                        this.showPhaseInstanceDetails(id);
+                    }
                 }
                 
                 if (e.target.matches('[data-action="edit"]')) {
@@ -916,6 +1304,21 @@
                 if (e.target.matches('[data-action="delete"]')) {
                     const id = e.target.getAttribute('data-id');
                     this.confirmDelete(id);
+                }
+                
+                if (e.target.matches('[data-action="controls"]')) {
+                    const id = e.target.getAttribute('data-id');
+                    this.showControlPointsModal(id);
+                }
+                
+                if (e.target.matches('[data-action="progress"]')) {
+                    const id = e.target.getAttribute('data-id');
+                    this.showProgressModal(id);
+                }
+                
+                if (e.target.matches('[data-action="move"]')) {
+                    const id = e.target.getAttribute('data-id');
+                    this.showMovePhaseModal(id);
                 }
             });
 
@@ -1887,6 +2290,455 @@
                     this.loadCurrentSection();
                 });
             });
+        },
+
+        // ==================== PHASE-SPECIFIC METHODS ====================
+
+        // Show phase instance details modal
+        showPhaseInstanceDetails: function(phaseId) {
+            const modal = document.getElementById('phaseDetailsModal') || this.createPhaseDetailsModal();
+            const title = document.getElementById('phaseDetailsTitle');
+            const content = document.getElementById('phaseDetailsContent');
+            
+            // Show loading state
+            content.innerHTML = '<p>Loading phase instance details...</p>';
+            modal.style.display = 'flex';
+            
+            // Fetch phase instance details
+            const url = `${this.api.baseUrl}${this.api.endpoints.phasesinstance}/${phaseId}`;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(phase => {
+                title.textContent = `Phase Instance: ${phase.phi_name || phase.phm_name}`;
+                
+                // Build details HTML
+                let html = '<div class="phase-details">';
+                
+                // Basic info
+                html += '<div class="detail-section">';
+                html += '<h4>Basic Information</h4>';
+                html += `<p><strong>ID:</strong> ${phase.phi_id}</p>`;
+                html += `<p><strong>Name:</strong> ${phase.phi_name || phase.phm_name}</p>`;
+                html += `<p><strong>Description:</strong> ${phase.phi_description || phase.phm_description || 'N/A'}</p>`;
+                html += `<p><strong>Status:</strong> <span class="status-badge status-${(phase.phi_status || 'pending').toLowerCase()}">${phase.phi_status || 'Pending'}</span></p>`;
+                html += `<p><strong>Order:</strong> ${phase.phi_order || phase.phm_order || 'N/A'}</p>`;
+                html += `<p><strong>Progress:</strong> ${phase.phi_progress_percentage || 0}%</p>`;
+                html += '</div>';
+                
+                // Timing info
+                html += '<div class="detail-section">';
+                html += '<h4>Timing Information</h4>';
+                html += `<p><strong>Start Time:</strong> ${phase.phi_start_time || 'Not started'}</p>`;
+                html += `<p><strong>End Time:</strong> ${phase.phi_end_time || 'Not completed'}</p>`;
+                html += '</div>';
+                
+                // Control points management
+                html += '<div class="detail-section">';
+                html += '<h4>Control Points</h4>';
+                html += '<div class="control-buttons">';
+                html += `<button class="btn-primary" onclick="adminGui.showControlPointsModal('${phaseId}')">Manage Control Points</button>`;
+                html += `<button class="btn-secondary" onclick="adminGui.validateControlPoints('${phaseId}')">Validate All</button>`;
+                html += '</div>';
+                html += '</div>';
+                
+                html += '</div>';
+                content.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading phase instance details:', error);
+                content.innerHTML = `<p class="error">Failed to load phase instance details: ${error.message}</p>`;
+            });
+        },
+
+        // Show control points management modal
+        showControlPointsModal: function(phaseId) {
+            const modal = document.getElementById('controlPointsModal') || this.createControlPointsModal();
+            const title = document.getElementById('controlPointsTitle');
+            const content = document.getElementById('controlPointsContent');
+            
+            content.innerHTML = '<p>Loading control points...</p>';
+            modal.style.display = 'flex';
+            
+            // Fetch control points for the phase
+            const url = `${this.api.baseUrl}/phases/${phaseId}/controls`;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Atlassian-Token': 'no-check'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(controls => {
+                title.textContent = `Control Points Management`;
+                
+                let html = '<div class="control-points-list">';
+                
+                if (controls.length === 0) {
+                    html += '<p>No control points defined for this phase.</p>';
+                } else {
+                    html += '<table class="control-points-table">';
+                    html += '<thead><tr><th>Control Point</th><th>Status</th><th>Validators</th><th>Actions</th></tr></thead>';
+                    html += '<tbody>';
+                    
+                    controls.forEach(control => {
+                        const statusClass = control.cti_status ? control.cti_status.toLowerCase() : 'pending';
+                        html += '<tr>';
+                        html += `<td>${control.cti_name || control.ctm_name}</td>`;
+                        html += `<td><span class="status-badge status-${statusClass}">${control.cti_status || 'Pending'}</span></td>`;
+                        html += `<td>IT: ${control.it_validator || 'None'}<br>Biz: ${control.biz_validator || 'None'}</td>`;
+                        html += `<td>
+                            <button class="btn-small" onclick="adminGui.updateControlPoint('${control.cti_id}', 'passed')">Pass</button>
+                            <button class="btn-small btn-warning" onclick="adminGui.updateControlPoint('${control.cti_id}', 'failed')">Fail</button>
+                            <button class="btn-small btn-danger" onclick="adminGui.overrideControlPoint('${control.cti_id}')">Override</button>
+                        </td>`;
+                        html += '</tr>';
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+                
+                html += '</div>';
+                content.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading control points:', error);
+                content.innerHTML = `<p class="error">Failed to load control points: ${error.message}</p>`;
+            });
+        },
+
+        // Show progress update modal
+        showProgressModal: function(phaseId) {
+            const modal = document.getElementById('progressModal') || this.createProgressModal();
+            
+            // Pre-populate with current progress
+            const progressInput = document.getElementById('progressInput');
+            const saveBtn = document.getElementById('saveProgress');
+            
+            // Fetch current progress
+            fetch(`${this.api.baseUrl}/phases/${phaseId}/progress`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                progressInput.value = data.progress_percentage || 0;
+            })
+            .catch(error => {
+                console.error('Error loading current progress:', error);
+                progressInput.value = 0;
+            });
+            
+            // Remove existing event listeners
+            const newSaveBtn = saveBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+            
+            // Add new event listener
+            newSaveBtn.addEventListener('click', () => {
+                this.updatePhaseProgress(phaseId, progressInput.value);
+                modal.style.display = 'none';
+            });
+            
+            modal.style.display = 'flex';
+        },
+
+        // Show move/reorder phase modal
+        showMovePhaseModal: function(phaseId) {
+            const modal = document.getElementById('movePhaseModal') || this.createMovePhaseModal();
+            const orderInput = document.getElementById('newOrderInput');
+            const saveBtn = document.getElementById('saveMovePhase');
+            
+            // Remove existing event listeners
+            const newSaveBtn = saveBtn.cloneNode(true);
+            saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+            
+            // Add new event listener
+            newSaveBtn.addEventListener('click', () => {
+                this.movePhase(phaseId, parseInt(orderInput.value));
+                modal.style.display = 'none';
+            });
+            
+            modal.style.display = 'flex';
+        },
+
+        // Update control point status
+        updateControlPoint: function(controlId, status) {
+            const url = `${this.api.baseUrl}/phases/{phi_id}/controls/${controlId}`;
+            
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ cti_status: status })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                this.showNotification(`Control point ${status} successfully`, 'success');
+                // Refresh the control points modal if visible
+                const modal = document.getElementById('controlPointsModal');
+                if (modal && modal.style.display === 'flex') {
+                    // Get phase ID from current context and refresh
+                    this.refreshControlPoints();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating control point:', error);
+                this.showNotification(`Failed to update control point: ${error.message}`, 'error');
+            });
+        },
+
+        // Override control point with reason
+        overrideControlPoint: function(controlId) {
+            const reason = prompt('Please provide a reason for overriding this control point:');
+            if (!reason) return;
+            
+            const url = `${this.api.baseUrl}/phases/{phi_id}/controls/${controlId}/override`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                this.showNotification('Control point overridden successfully', 'success');
+                this.refreshControlPoints();
+            })
+            .catch(error => {
+                console.error('Error overriding control point:', error);
+                this.showNotification(`Failed to override control point: ${error.message}`, 'error');
+            });
+        },
+
+        // Update phase progress
+        updatePhaseProgress: function(phaseId, progress) {
+            const url = `${this.api.baseUrl}${this.api.endpoints.phasesinstance}/${phaseId}`;
+            
+            fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ phi_progress_percentage: parseInt(progress) })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                this.showNotification('Phase progress updated successfully', 'success');
+                this.refreshCurrentSection();
+            })
+            .catch(error => {
+                console.error('Error updating phase progress:', error);
+                this.showNotification(`Failed to update progress: ${error.message}`, 'error');
+            });
+        },
+
+        // Move phase to new order
+        movePhase: function(phaseId, newOrder) {
+            const endpoint = this.state.currentEntity === 'phasesmaster' ? 'phasesmastermove' : 'phasesinstancemove';
+            const url = `${this.api.baseUrl}/${endpoint}/${phaseId}`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ newOrder: newOrder })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                this.showNotification('Phase moved successfully', 'success');
+                this.refreshCurrentSection();
+            })
+            .catch(error => {
+                console.error('Error moving phase:', error);
+                this.showNotification(`Failed to move phase: ${error.message}`, 'error');
+            });
+        },
+
+        // Validate all control points for a phase
+        validateControlPoints: function(phaseId) {
+            const url = `${this.api.baseUrl}/phases/${phaseId}/controls/validate`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                const passed = result.passed || 0;
+                const failed = result.failed || 0;
+                const total = result.total || 0;
+                
+                this.showNotification(`Validation complete: ${passed} passed, ${failed} failed out of ${total} total`, 'info');
+                this.refreshControlPoints();
+            })
+            .catch(error => {
+                console.error('Error validating control points:', error);
+                this.showNotification(`Failed to validate: ${error.message}`, 'error');
+            });
+        },
+
+        // Refresh control points display
+        refreshControlPoints: function() {
+            // Implementation would refresh the currently visible control points modal
+            // This is a placeholder for the actual refresh logic
+        },
+
+        // ==================== MODAL CREATION HELPERS ====================
+
+        // Create phase details modal if it doesn't exist
+        createPhaseDetailsModal: function() {
+            const modalHtml = `
+                <div id="phaseDetailsModal" class="modal-overlay" style="display: none;">
+                    <div class="modal modal-large">
+                        <div class="modal-header">
+                            <h3 id="phaseDetailsTitle" class="modal-title">Phase Details</h3>
+                            <button class="modal-close" onclick="document.getElementById('phaseDetailsModal').style.display='none'">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="phaseDetailsContent"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="document.getElementById('phaseDetailsModal').style.display='none'">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            return document.getElementById('phaseDetailsModal');
+        },
+
+        // Create control points modal if it doesn't exist
+        createControlPointsModal: function() {
+            const modalHtml = `
+                <div id="controlPointsModal" class="modal-overlay" style="display: none;">
+                    <div class="modal modal-large">
+                        <div class="modal-header">
+                            <h3 id="controlPointsTitle" class="modal-title">Control Points</h3>
+                            <button class="modal-close" onclick="document.getElementById('controlPointsModal').style.display='none'">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="controlPointsContent"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="document.getElementById('controlPointsModal').style.display='none'">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            return document.getElementById('controlPointsModal');
+        },
+
+        // Create progress modal if it doesn't exist
+        createProgressModal: function() {
+            const modalHtml = `
+                <div id="progressModal" class="modal-overlay" style="display: none;">
+                    <div class="modal modal-small">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Update Progress</h3>
+                            <button class="modal-close" onclick="document.getElementById('progressModal').style.display='none'">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="progressInput">Progress Percentage</label>
+                                <input type="number" id="progressInput" class="form-control" min="0" max="100" step="1">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="document.getElementById('progressModal').style.display='none'">Cancel</button>
+                            <button id="saveProgress" class="btn-primary">Update Progress</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            return document.getElementById('progressModal');
+        },
+
+        // Create move phase modal if it doesn't exist
+        createMovePhaseModal: function() {
+            const modalHtml = `
+                <div id="movePhaseModal" class="modal-overlay" style="display: none;">
+                    <div class="modal modal-small">
+                        <div class="modal-header">
+                            <h3 class="modal-title">Move Phase</h3>
+                            <button class="modal-close" onclick="document.getElementById('movePhaseModal').style.display='none'">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label for="newOrderInput">New Order Position</label>
+                                <input type="number" id="newOrderInput" class="form-control" min="1" step="1">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="document.getElementById('movePhaseModal').style.display='none'">Cancel</button>
+                            <button id="saveMovePhase" class="btn-primary">Move Phase</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            return document.getElementById('movePhaseModal');
         }
     };
 
