@@ -1,7 +1,7 @@
 # Current Patterns - UMIG Project
 
 **Last Updated**: 4 August 2025  
-**Pattern Status**: Mature and proven across 3 major implementations + infrastructure patterns
+**Pattern Status**: Mature and proven across 4 major API implementations + control point system
 
 ## Core Development Patterns
 
@@ -240,6 +240,48 @@ catch (SQLException e) {
 - **400**: Bad request (validation errors, invalid references)
 - **409**: Conflict (unique constraint violations)
 - **500**: Server errors (unexpected database issues)
+
+## Control Point Validation Pattern (New - US-003)
+
+### Control Point Types
+- **MANDATORY**: Must be validated before phase completion
+- **OPTIONAL**: Can be skipped without impact
+- **CONDITIONAL**: Required based on runtime conditions
+
+### Validation States
+- **PENDING**: Awaiting validation
+- **VALIDATED**: Completed successfully
+- **FAILED**: Validation failed, requires attention
+- **OVERRIDDEN**: Manually overridden with justification
+
+### Emergency Override Pattern
+```groovy
+def overrideControlPoint(UUID controlId, String reason, String overrideBy) {
+    DatabaseUtil.withSql { sql ->
+        sql.withTransaction {
+            // Update control status with audit trail
+            sql.execute("""
+                UPDATE controls_instance_cti 
+                SET cti_status = 'OVERRIDDEN',
+                    cti_override_reason = :reason,
+                    cti_override_by = :overrideBy,
+                    cti_override_timestamp = NOW()
+                WHERE cti_id = :controlId
+            """, [controlId: controlId, reason: reason, overrideBy: overrideBy])
+        }
+    }
+}
+```
+
+### Progress Aggregation Pattern
+```groovy
+// Weighted calculation: 70% steps + 30% control points
+def calculatePhaseProgress(UUID phaseId) {
+    def stepProgress = getStepCompletionPercentage(phaseId)
+    def controlProgress = getControlPointStatusPercentage(phaseId)
+    return (stepProgress * 0.7) + (controlProgress * 0.3)
+}
+```
 
 ## Quality Assurance Patterns
 
