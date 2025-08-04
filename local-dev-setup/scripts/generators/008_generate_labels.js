@@ -45,10 +45,9 @@ async function generateLabels(config, options = {}) {
   const masterSteps = await dbClient.query('SELECT stm_id FROM steps_master_stm');
   const applications = await dbClient.query('SELECT app_id FROM applications_app');
   const controls = await dbClient.query('SELECT ctm_id FROM controls_master_ctm');
-  const users = await dbClient.query('SELECT usr_id FROM users_usr');
 
-  if (migrations.rows.length === 0 || users.rows.length === 0) {
-    console.error('Cannot generate labels without migrations and users. Please generate them first.');
+  if (migrations.rows.length === 0) {
+    console.error('Cannot generate labels without migrations. Please generate them first.');
     return;
   }
 
@@ -57,7 +56,6 @@ async function generateLabels(config, options = {}) {
   // 1. Create labels for each migration
   for (const { mig_id } of migrations.rows) {
     const numLabels = faker.number.int({ min: config.LABELS.PER_MIGRATION.MIN, max: config.LABELS.PER_MIGRATION.MAX });
-    const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
     
     // Track used label names per migration to ensure uniqueness
     const usedLabelNames = new Set();
@@ -87,7 +85,7 @@ async function generateLabels(config, options = {}) {
           labelName,
           faker.lorem.sentence(),
           faker.internet.color(),
-          creatorId,
+          'generator',  // Use 'generator' for data generation
         ]
       );
       allLabelIds.push(res.rows[0].lbl_id);
@@ -104,11 +102,10 @@ async function generateLabels(config, options = {}) {
     const stepsToLabel = faker.helpers.arrayElements(masterSteps.rows, Math.floor(masterSteps.rows.length / 2)); // Label half the steps
     for (const { stm_id } of stepsToLabel) {
       const labelId = faker.helpers.arrayElement(allLabelIds);
-      const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
       await dbClient.query(
-        `INSERT INTO labels_lbl_x_steps_master_stm (lbl_id, stm_id, created_by)
-         VALUES ($1, $2, $3) ON CONFLICT (lbl_id, stm_id) DO NOTHING`,
-        [labelId, stm_id, creatorId]
+        `INSERT INTO labels_lbl_x_steps_master_stm (lbl_id, stm_id, created_at, created_by)
+         VALUES ($1, $2, $3, $4) ON CONFLICT (lbl_id, stm_id) DO NOTHING`,
+        [labelId, stm_id, new Date(), 'generator']
       );
     }
   }
@@ -118,11 +115,10 @@ async function generateLabels(config, options = {}) {
     const appsToLabel = faker.helpers.arrayElements(applications.rows, Math.floor(applications.rows.length / 2)); // Label half the apps
     for (const { app_id } of appsToLabel) {
       const labelId = faker.helpers.arrayElement(allLabelIds);
-      const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
       await dbClient.query(
-        `INSERT INTO labels_lbl_x_applications_app (lbl_id, app_id, created_by)
-         VALUES ($1, $2, $3) ON CONFLICT (lbl_id, app_id) DO NOTHING`,
-        [labelId, app_id, creatorId.toString()] // created_by is VARCHAR in this table
+        `INSERT INTO labels_lbl_x_applications_app (lbl_id, app_id, created_at, created_by)
+         VALUES ($1, $2, $3, $4) ON CONFLICT (lbl_id, app_id) DO NOTHING`,
+        [labelId, app_id, new Date(), 'generator']
       );
     }
   }
@@ -132,11 +128,10 @@ async function generateLabels(config, options = {}) {
     const controlsToLabel = faker.helpers.arrayElements(controls.rows, Math.floor(controls.rows.length / 2)); // Label half the controls
     for (const { ctm_id } of controlsToLabel) {
       const labelId = faker.helpers.arrayElement(allLabelIds);
-      const creatorId = faker.helpers.arrayElement(users.rows).usr_id;
       await dbClient.query(
-        `INSERT INTO labels_lbl_x_controls_master_ctm (lbl_id, ctm_id, created_by)
-         VALUES ($1, $2, $3) ON CONFLICT (lbl_id, ctm_id) DO NOTHING`,
-        [labelId, ctm_id, creatorId]
+        `INSERT INTO labels_lbl_x_controls_master_ctm (lbl_id, ctm_id, created_at, created_by)
+         VALUES ($1, $2, $3, $4) ON CONFLICT (lbl_id, ctm_id) DO NOTHING`,
+        [labelId, ctm_id, new Date(), 'generator']
       );
     }
   }

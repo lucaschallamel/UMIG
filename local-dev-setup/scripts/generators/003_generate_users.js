@@ -65,8 +65,8 @@ async function generateUsers(config, options = {}) {
       const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${faker.string.alphanumeric(4)}@${faker.internet.domainName()}`;
 
       const query = `
-        INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id, usr_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, rls_id, usr_active, created_by, created_at, updated_by, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         ON CONFLICT (usr_email) DO NOTHING;
       `;
 
@@ -78,7 +78,7 @@ async function generateUsers(config, options = {}) {
         // Set usr_active to TRUE for all generated users (default active status)
         const isActive = true;
         try {
-            await client.query(query, [userCode, firstName, lastName, email, isAdmin, roleId, isActive]);
+            await client.query(query, [userCode, firstName, lastName, email, isAdmin, roleId, isActive, 'generator', new Date(), 'generator', new Date()]);
             inserted = true;
         } catch (e) {
             if (e.code === '23505' && e.constraint && e.constraint.includes('usr_code')) { // unique_violation on usr_code
@@ -141,9 +141,9 @@ async function linkUsersToTeams(client, config) {
   if (itCutoverTeam) {
     for (const user of adminPilotUsers) {
       await client.query(
-        `INSERT INTO teams_tms_x_users_usr (usr_id, tms_id, created_by)
-         VALUES ($1, $2, $3) ON CONFLICT (tms_id, usr_id) DO NOTHING`,
-        [user.usr_id, itCutoverTeam.tms_id, user.usr_id]
+        `INSERT INTO teams_tms_x_users_usr (usr_id, tms_id, created_at, created_by)
+         VALUES ($1, $2, $3, $4) ON CONFLICT (tms_id, usr_id) DO NOTHING`,
+        [user.usr_id, itCutoverTeam.tms_id, new Date(), 'generator']
       );
     }
   }
@@ -159,9 +159,9 @@ async function linkUsersToTeams(client, config) {
       const user = normalUsers[i];
       const team = normalTeams[i % normalTeams.length]; // Cycle through teams
       await client.query(
-        `INSERT INTO teams_tms_x_users_usr (usr_id, tms_id, created_by)
-         VALUES ($1, $2, $3) ON CONFLICT (tms_id, usr_id) DO NOTHING`,
-        [user.usr_id, team.tms_id, user.usr_id]
+        `INSERT INTO teams_tms_x_users_usr (usr_id, tms_id, created_at, created_by)
+         VALUES ($1, $2, $3, $4) ON CONFLICT (tms_id, usr_id) DO NOTHING`,
+        [user.usr_id, team.tms_id, new Date(), 'generator']
       );
     }
   }

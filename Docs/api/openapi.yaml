@@ -25,6 +25,8 @@ tags:
     description: Operations about labels and hierarchical filtering.
   - name: Plans
     description: Operations about plans, both master templates and instances.
+  - name: Sequences
+    description: Operations about sequences, both master templates and instances.
   - name: Users
     description: Operations about users.
   - name: EmailTemplates
@@ -2192,6 +2194,413 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sequences/master:
+    get:
+      tags:
+        - Sequences
+      summary: Get all master sequences
+      description: Retrieves a list of all master sequence templates.
+      operationId: getAllMasterSequences
+      responses:
+        '200':
+          description: A list of master sequences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterSequence'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Sequences
+      summary: Create a new master sequence
+      description: Creates a new master sequence template.
+      operationId: createMasterSequence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSequenceRequest'
+      responses:
+        '201':
+          description: Master sequence created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterSequence'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Conflict - Sequence with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sequences/master/{id}:
+    get:
+      tags:
+        - Sequences
+      summary: Get master sequence by ID
+      description: Retrieves a specific master sequence template by its ID.
+      operationId: getMasterSequenceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master Sequence ID
+      responses:
+        '200':
+          description: Master sequence details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterSequence'
+        '400':
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Sequences
+      summary: Update master sequence
+      description: Updates an existing master sequence template.
+      operationId: updateMasterSequence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master Sequence ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSequenceRequest'
+      responses:
+        '200':
+          description: Master sequence updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterSequence'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - Sequence with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Sequences
+      summary: Delete master sequence
+      description: Soft deletes a master sequence template. Only allowed if no instances exist.
+      operationId: deleteMasterSequence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master Sequence ID
+      responses:
+        '204':
+          description: Master sequence deleted successfully
+        '400':
+          description: Cannot delete - sequence has active instances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sequences/master/{id}/order:
+    put:
+      tags:
+        - Sequences
+      summary: Update master sequence order
+      description: Updates the display order of a master sequence template.
+      operationId: updateMasterSequenceOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master Sequence ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSequenceOrderRequest'
+      responses:
+        '200':
+          description: Master sequence order updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterSequence'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sequences:
+    get:
+      tags:
+        - Sequences
+      summary: Get sequence instances
+      description: Retrieves a list of sequence instances with optional filtering.
+      operationId: getSequenceInstances
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by migration ID
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by iteration ID
+        - name: planInstanceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by plan instance ID
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by team ownership
+        - name: statusId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by status ID
+      responses:
+        '200':
+          description: A list of sequence instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SequenceInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sequences/instance:
+    post:
+      tags:
+        - Sequences
+      summary: Create sequence instance
+      description: Creates a new sequence instance from a master sequence template.
+      operationId: createSequenceInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSequenceInstanceRequest'
+      responses:
+        '201':
+          description: Sequence instance created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SequenceInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: Master sequence not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sequences/instance/{id}:
+    get:
+      tags:
+        - Sequences
+      summary: Get sequence instance by ID
+      description: Retrieves a specific sequence instance by its ID.
+      operationId: getSequenceInstanceById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Sequence Instance ID
+      responses:
+        '200':
+          description: Sequence instance details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SequenceInstance'
+        '400':
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Sequences
+      summary: Update sequence instance
+      description: Updates an existing sequence instance.
+      operationId: updateSequenceInstance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Sequence Instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSequenceInstanceRequest'
+      responses:
+        '200':
+          description: Sequence instance updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SequenceInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Sequences
+      summary: Delete sequence instance
+      description: Deletes a sequence instance.
+      operationId: deleteSequenceInstance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Sequence Instance ID
+      responses:
+        '204':
+          description: Sequence instance deleted successfully
+        '400':
+          description: Invalid UUID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /sequences/instance/{id}/status:
+    put:
+      tags:
+        - Sequences
+      summary: Update sequence instance status
+      description: Updates the status of a sequence instance.
+      operationId: updateSequenceInstanceStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Sequence Instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - statusId
+              properties:
+                statusId:
+                  type: integer
+                  description: New status ID
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessMessage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /applications:
     get:
       tags:
@@ -3373,10 +3782,16 @@ components:
         tms_id:
           type: integer
           description: ID of the team (from master)
+        created_by:
+          type: string
+          description: User who created the plan instance
         created_at:
           type: string
           format: date-time
           description: Creation timestamp
+        updated_by:
+          type: string
+          description: User who last updated the plan instance
         updated_at:
           type: string
           format: date-time
@@ -3390,12 +3805,6 @@ components:
             plm_description:
               type: string
               description: Description from master plan
-            created_by:
-              type: string
-              description: User who created the instance
-            updated_by:
-              type: string
-              description: User who last updated the instance
 
     PlanInstanceInput:
       type: object
@@ -3437,6 +3846,208 @@ components:
         usr_id_owner:
           type: integer
           description: ID of the user who owns this instance
+
+    # --- Sequences Models ---
+    MasterSequence:
+      type: object
+      properties:
+        sqm_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the master sequence
+        plm_id:
+          type: string
+          format: uuid
+          description: ID of the master plan this sequence belongs to
+        plm_name:
+          type: string
+          description: Name of the master plan
+        tms_id:
+          type: integer
+          description: ID of the team that owns this sequence
+        tms_name:
+          type: string
+          description: Name of the owning team
+        sqm_name:
+          type: string
+          description: Name of the master sequence
+        sqm_description:
+          type: string
+          description: Description of the sequence
+        sqm_order:
+          type: integer
+          description: Display order within the plan
+        sqm_status:
+          type: string
+          description: Current status of the master sequence
+        sts_id:
+          type: integer
+          description: Status ID
+        sts_name:
+          type: string
+          description: Status name
+        sts_color:
+          type: string
+          description: Status color code
+        created_by:
+          type: string
+          description: User who created the sequence
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_by:
+          type: string
+          description: User who last updated the sequence
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    CreateSequenceRequest:
+      type: object
+      required:
+        - plm_id
+        - tms_id
+        - sqm_name
+        - sqm_status
+      properties:
+        plm_id:
+          type: string
+          format: uuid
+          description: ID of the master plan this sequence belongs to
+        tms_id:
+          type: integer
+          description: ID of the team that owns this sequence
+        sqm_name:
+          type: string
+          description: Name of the master sequence
+        sqm_description:
+          type: string
+          description: Description of the sequence
+        sqm_order:
+          type: integer
+          description: Display order within the plan
+        sqm_status:
+          type: string
+          description: Initial status of the master sequence
+
+    UpdateSequenceOrderRequest:
+      type: object
+      required:
+        - sqm_order
+      properties:
+        sqm_order:
+          type: integer
+          description: New display order for the sequence
+
+    SequenceInstance:
+      type: object
+      properties:
+        sqi_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the sequence instance
+        sqm_id:
+          type: string
+          format: uuid
+          description: ID of the master sequence template
+        sqm_name:
+          type: string
+          description: Name of the master sequence
+        pli_id:
+          type: string
+          format: uuid
+          description: ID of the plan instance this sequence belongs to
+        pli_name:
+          type: string
+          description: Name of the plan instance
+        ite_id:
+          type: string
+          format: uuid
+          description: ID of the iteration
+        itr_name:
+          type: string
+          description: Name of the iteration
+        mig_id:
+          type: string
+          format: uuid
+          description: ID of the migration
+        mig_name:
+          type: string
+          description: Name of the migration
+        sqi_name:
+          type: string
+          description: Name of the sequence instance
+        sqi_description:
+          type: string
+          description: Description of the sequence instance
+        sqi_order:
+          type: integer
+          description: Display order within the plan instance
+        sqi_status:
+          type: string
+          description: Current status of the sequence instance
+        sts_id:
+          type: integer
+          description: Status ID
+        sts_name:
+          type: string
+          description: Status name
+        sts_color:
+          type: string
+          description: Status color code
+        usr_id_owner:
+          type: integer
+          description: ID of the user who owns this instance
+        owner_name:
+          type: string
+          description: Name of the owner
+        tms_id:
+          type: integer
+          description: ID of the team (from master)
+        tms_name:
+          type: string
+          description: Name of the team
+        created_by:
+          type: string
+          description: User who created the sequence instance
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_by:
+          type: string
+          description: User who last updated the sequence instance
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    CreateSequenceInstanceRequest:
+      type: object
+      required:
+        - sqm_id
+        - pli_id
+        - usr_id_owner
+      properties:
+        sqm_id:
+          type: string
+          format: uuid
+          description: ID of the master sequence to instantiate
+        pli_id:
+          type: string
+          format: uuid
+          description: ID of the plan instance for this sequence
+        usr_id_owner:
+          type: integer
+          description: ID of the user who owns this instance
+        sqi_name:
+          type: string
+          description: Override name for the sequence instance (optional)
+        sqi_description:
+          type: string
+          description: Override description for the sequence instance (optional)
 
     User:
       type: object

@@ -46,24 +46,24 @@ async function generateCanonicalPlans(config, options = {}) {
     const teamId = faker.helpers.arrayElement(teams.rows).tms_id;
 
     const planRes = await dbClient.query(
-      'INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status) VALUES ($1, $2, $3, $4) RETURNING plm_id',
-      [teamId, `Canonical Plan ${i + 1}`, faker.lorem.sentence(), faker.helpers.arrayElement(['DRAFT', 'ACTIVE'])]
+      'INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, created_at, updated_by, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING plm_id',
+      [teamId, `Canonical Plan ${i + 1}`, faker.lorem.sentence(), faker.helpers.arrayElement(['DRAFT', 'ACTIVE']), 'generator', new Date(), 'generator', new Date()]
     );
     const plmId = planRes.rows[0].plm_id;
 
     const numSequences = faker.number.int({ min: 2, max: 4 });
     for (let j = 0; j < numSequences; j++) {
       const seqRes = await dbClient.query(
-        'INSERT INTO sequences_master_sqm (plm_id, sqm_order, sqm_name, sqm_description) VALUES ($1, $2, $3, $4) RETURNING sqm_id',
-        [plmId, j + 1, `Sequence ${j + 1}: ${faker.lorem.words(3)}`, faker.lorem.sentence()]
+        'INSERT INTO sequences_master_sqm (plm_id, sqm_order, sqm_name, sqm_description, created_by, created_at, updated_by, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING sqm_id',
+        [plmId, j + 1, `Sequence ${j + 1}: ${faker.lorem.words(3)}`, faker.lorem.sentence(), 'generator', new Date(), 'generator', new Date()]
       );
       const sqmId = seqRes.rows[0].sqm_id;
 
       const numPhases = faker.number.int({ min: 2, max: 5 });
       for (let k = 0; k < numPhases; k++) {
         const phaseRes = await dbClient.query(
-          'INSERT INTO phases_master_phm (sqm_id, phm_order, phm_name, phm_description) VALUES ($1, $2, $3, $4) RETURNING phm_id',
-          [sqmId, k + 1, `Phase ${k + 1}: ${faker.lorem.words(4)}`, faker.lorem.sentence()]
+          'INSERT INTO phases_master_phm (sqm_id, phm_order, phm_name, phm_description, created_by, created_at, updated_by, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING phm_id',
+          [sqmId, k + 1, `Phase ${k + 1}: ${faker.lorem.words(4)}`, faker.lorem.sentence(), 'generator', new Date(), 'generator', new Date()]
         );
         const phmId = phaseRes.rows[0].phm_id;
 
@@ -72,7 +72,7 @@ async function generateCanonicalPlans(config, options = {}) {
           const ownerTeamId = faker.helpers.arrayElement(teams.rows).tms_id;
           const targetEnvRoleId = faker.helpers.arrayElement(envRoles.rows).enr_id;
           const stepRes = await dbClient.query(
-            'INSERT INTO steps_master_stm (phm_id, tms_id_owner, stt_code, stm_number, enr_id_target, enr_id, stm_name, stm_description, stm_duration_minutes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING stm_id',
+            'INSERT INTO steps_master_stm (phm_id, tms_id_owner, stt_code, stm_number, enr_id_target, enr_id, stm_name, stm_description, stm_duration_minutes, created_by, created_at, updated_by, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING stm_id',
             [
               phmId,
               ownerTeamId,
@@ -83,6 +83,10 @@ async function generateCanonicalPlans(config, options = {}) {
               `Step ${l + 1}: ${faker.lorem.words(5)}`,
               faker.lorem.paragraph(),
               faker.number.int({ min: 5, max: 120 }),
+              'generator',
+              new Date(),
+              'generator',
+              new Date()
             ]
           );
           const stmId = stepRes.rows[0].stm_id;

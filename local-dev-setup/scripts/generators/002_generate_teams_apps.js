@@ -29,9 +29,10 @@ async function generateTeams(client, config) {
     }
 
     await client.query(
-      `INSERT INTO teams_tms (tms_name, tms_description, tms_email) VALUES ($1, $2, $3)
+      `INSERT INTO teams_tms (tms_name, tms_description, tms_email, created_by, created_at, updated_by, updated_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (tms_email) DO NOTHING`,
-      [name, description, email]
+      [name, description, email, 'generator', new Date(), 'generator', new Date()]
     );
   }
   console.log('Finished generating teams.');
@@ -49,9 +50,10 @@ async function generateApplications(client, config) {
     const app_name = faker.commerce.productName();
     const app_description = faker.lorem.sentence();
     await client.query(
-      `INSERT INTO applications_app (app_code, app_name, app_description) VALUES ($1, $2, $3)
+      `INSERT INTO applications_app (app_code, app_name, app_description, created_by, created_at, updated_by, updated_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (app_code) DO NOTHING`,
-      [app_code, app_name, app_description]
+      [app_code, app_name, app_description, 'generator', new Date(), 'generator', new Date()]
     );
   }
   console.log('Finished generating applications.');
@@ -80,8 +82,8 @@ async function generateTeamApplicationLinks(client) {
       const appsToLink = faker.helpers.arrayElements(apps, linksToCreate);
       for (const appToLink of appsToLink) {
         await client.query(
-          'INSERT INTO teams_tms_x_applications_app (tms_id, app_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-          [team.tms_id, appToLink.app_id]
+          'INSERT INTO teams_tms_x_applications_app (tms_id, app_id, created_at, created_by) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+          [team.tms_id, appToLink.app_id, new Date(), 'generator']
         );
       }
     }

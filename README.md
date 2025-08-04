@@ -54,6 +54,7 @@ UMIG/
 │           │   ├── README.md         # API documentation
 │           │   └── v2/               # Version 2 APIs
 │           │       ├── PlansApi.groovy
+│           │       ├── SequencesApi.groovy
 │           │       ├── TeamMembersApi.groovy
 │           │       ├── TeamsApi.groovy
 │           │       ├── UsersApi.groovy
@@ -73,6 +74,7 @@ UMIG/
 │           │   ├── InstructionRepository.groovy
 │           │   ├── LookupRepository.groovy
 │           │   ├── MigrationRepository.groovy
+│           │   ├── SequenceRepository.groovy
 │           │   ├── StepRepository.groovy
 │           │   ├── StepTypeRepository.groovy
 │           │   ├── TeamMembersRepository.groovy
@@ -84,6 +86,7 @@ UMIG/
 │           │   │   ├── README.md     # API test documentation
 │           │   │   └── stepViewApiUnitTest.groovy
 │           │   ├── integration/      # Integration tests
+│           │   │   ├── SequencesApiIntegrationTest.groovy
 │           │   │   └── stepViewApiIntegrationTest.groovy
 │           │   ├── grab-postgres-jdbc.groovy
 │           │   └── run-integration-tests.sh
@@ -388,6 +391,15 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Teams API**: Enhanced with hierarchical filtering across all levels
 - **Migration API**: Core functionality with proper error handling
 
+### ✅ Recently Completed (August 2025)
+- **Database Audit Fields Standardization**: Comprehensive audit trail implementation across entire system (August 4, 2025)
+  - Standardized audit fields (created_by, created_at, updated_by, updated_at) added to all 25+ database tables
+  - Implemented tiered association audit strategy based on business criticality
+  - Created AuditFieldsUtil.groovy infrastructure with comprehensive test coverage
+  - Updated all data generation scripts for audit compliance
+  - Added ADR-035 for Database Audit Fields Standardization
+  - Achieved 100% test coverage (74 tests passing) with full audit field compliance
+
 ### ✅ Recently Completed (July 2025)
 - **Plans API Implementation**: Complete CRUD operations with hierarchical filtering (July 31, 2025)
   - Full REST API endpoints for plans management
@@ -462,7 +474,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ### 🚧 MVP Remaining Work
 
-- **Core REST APIs**: ✅ Plans (completed), Sequences, Phases, Instructions endpoints  
+- **Core REST APIs**: ✅ Plans (completed), ✅ Sequences (completed), Phases, Instructions endpoints  
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources

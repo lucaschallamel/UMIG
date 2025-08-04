@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-07-16  
+**Version:** 2025-08-04  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 33 architectural decisions (26 archived + 7 newly consolidated: ADR-027 through ADR-033). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control
+**Source ADRs:** This document consolidates 35 architectural decisions (26 archived + 9 newly consolidated: ADR-027 through ADR-035). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
 
@@ -59,6 +59,10 @@ This document consolidates the following architectural decisions:
 
 ### Security & Access Control
 - [ADR-033](../adr/archive/ADR-033-role-based-access-control-implementation.md) - Role-Based Access Control Implementation
+
+### Development Standards & Code Quality
+- [ADR-034] - Static Type Checking Patterns for ScriptRunner (Consolidated in this document)
+- [ADR-035] - Database Audit Fields Standardization (Consolidated in this document)
 
 ---
 
@@ -740,6 +744,12 @@ The data model has undergone several significant architectural changes:
 - **Structure:** Migrations can now contain multiple iterations, each with their own timeline and scope.
 - **Benefits:** Better alignment with agile delivery methodologies and complex project phasing.
 
+#### Audit Fields Standardization (US-002b - August 2025)
+- **Challenge:** Inconsistent audit field implementation across 25+ tables.
+- **Solution:** Migration 016 standardized all tables with `created_by`, `created_at`, `updated_by`, `updated_at`.
+- **Special Cases:** Handled existing fields in `labels_lbl` (INTEGER created_by), `users_usr` (existing timestamps), and `email_templates_emt` (emt_* fields).
+- **Impact:** Consistent tracking of data changes, simplified API patterns, improved compliance and debugging capabilities.
+
 ---
 
 ## 7. Development & Operations (DevOps)
@@ -1124,6 +1134,418 @@ def stepRepo = new StepRepository()
 def result = stepRepo.openStepInstanceWithNotification(stepId, userId)
 // Check result.success and result.emailsSent
 ```
+
+---
+
+## 11. Static Type Checking Patterns ([ADR-034])
+
+### 11.1. Architecture Decision Record - ADR-034
+
+**Title:** Static Type Checking Patterns for ScriptRunner  
+**Status:** Accepted  
+**Date:** 2025-07-31  
+**Context:** US-002 implementation revealed critical type safety requirements in ScriptRunner environments  
+**Decision:** Mandatory explicit type casting patterns for all ScriptRunner operations  
+
+### 11.2. Problem Context
+
+During US-002 (Sequences API with Ordering) implementation, we encountered multiple `ClassCastException` errors when ScriptRunner's static type checking was enabled. These runtime errors were difficult to debug and occurred at critical points in API operations.
+
+**Root Cause:** ScriptRunner's static type checking requires explicit type casting for all parameter operations. The Groovy dynamic typing system conflicts with ScriptRunner's compile-time type inference, leading to runtime type conversion failures.
+
+### 11.3. Mandatory Type Casting Requirements
+
+#### 11.3.1. UUID Parameter Handling
+
+**CRITICAL REQUIREMENT:** All UUID parameters must use explicit String casting.
+
+```groovy
+// CORRECT - Mandatory pattern for ScriptRunner compatibility
+if (filters.migrationId) {
+    query += ' AND mig.mig_id = :migrationId'
+    params.migrationId = UUID.fromString(filters.migrationId as String)
+}
+
+// INCORRECT - Will cause ClassCastException in ScriptRunner
+params.migrationId = UUID.fromString(filters.migrationId)  // Missing 'as String'
+```
+
+#### 11.3.2. Integer Parameter Handling
+
+**REQUIREMENT:** All integer conversions must include explicit String casting with error handling.
+
+```groovy
+// CORRECT - Type-safe integer parameter handling
+if (filters.teamId) {
+    try {
+        params.teamId = Integer.parseInt(filters.teamId as String)
+        query += ' AND stm.tms_id_owner = :teamId'
+    } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid team ID format: ${filters.teamId}")
+    }
+}
+
+// INCORRECT - Type inference fails in ScriptRunner
+params.teamId = Integer.parseInt(filters.teamId)  // Missing 'as String'
+```
+
+#### 11.3.3. Path Parameter Extraction
+
+**REQUIREMENT:** Path parameter handling must include null protection and explicit casting.
+
+```groovy
+// CORRECT - Safe path parameter handling
+def pathParts = getAdditionalPath(request)?.split('/') ?: []
+if (pathParts.size() >= 1) {
+    try {
+        def id = Integer.parseInt(pathParts[0] as String)
+        // Process with id
+    } catch (NumberFormatException e) {
+        return Response.status(400)
+            .entity([error: "Invalid ID format in path"])
+            .build()
+    }
+}
+
+// INCORRECT - No null protection or type casting
+def pathParts = getAdditionalPath(request).split('/')
+def id = Integer.parseInt(pathParts[0])
+```
+
+### 11.4. Database Result Processing Patterns
+
+#### 11.4.1. Complete Field Selection Rule
+
+**MANDATORY:** All SQL queries must include ALL fields referenced in result processing.
+
+```groovy
+// CORRECT - Complete field selection
+def query = '''
+    SELECT sti.sti_id, sti.sti_name, sti.sti_status,
+           stm.stm_id, stm.stm_code, stm.stm_name,
+           stt.stt_id, stt.stt_name, stt.stt_code,
+           phi.phi_id, phi.phi_name
+    FROM steps_instance_sti sti
+    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+    JOIN step_types_stt stt ON stm.stt_id = stt.stt_id
+    JOIN phases_instance phi ON sti.phi_id = phi.phi_id
+'''
+
+// INCORRECT - Missing fields cause "No such property" errors
+def query = '''
+    SELECT sti.sti_id, sti.sti_name
+    FROM steps_instance_sti sti
+    JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+'''
+// Later reference to stm.stm_code will fail
+```
+
+#### 11.4.2. Map Notation with Explicit Casting
+
+**REQUIREMENT:** Use map notation with explicit type casting for all database result processing.
+
+```groovy
+// CORRECT - Map notation with explicit casting
+def result = sql.rows(query)
+result.each { row ->
+    def stepInstance = [
+        sti_id: row['sti_id'] as Integer,
+        sti_name: row['sti_name'] as String,
+        sti_status: row['sti_status'] as String,
+        stm_code: row['stm_code'] as String,
+        phi_name: row['phi_name'] as String
+    ]
+}
+
+// INCORRECT - Dynamic property access causes type issues
+result.each { row ->
+    def stepId = row.sti_id      // Type inference fails
+    def stepName = row.sti_name  // ClassCastException risk
+}
+```
+
+### 11.5. Instance vs Master ID Filtering
+
+**CRITICAL RULE:** Always use instance IDs for hierarchical filtering, never master IDs.
+
+```groovy
+// CORRECT - Instance ID filtering
+query += ' AND pli.pli_id = :planId'      // plan instance ID
+query += ' AND sqi.sqi_id = :sequenceId'  // sequence instance ID
+query += ' AND phi.phi_id = :phaseId'     // phase instance ID
+
+// INCORRECT - Master ID filtering misses data
+query += ' AND plm.plm_id = :planId'      // Wrong! Uses master ID
+```
+
+**Rationale:** Instance tables contain execution records tied to specific implementations. Master tables contain templates. Filtering by master IDs will miss instance-specific data and return incorrect results.
+
+### 11.6. Error Handling Patterns
+
+#### 11.6.1. Comprehensive Type Conversion Error Handling
+
+```groovy
+// Standard error handling pattern for type-safe operations
+try {
+    // Type-safe parameter conversion
+    def migrationId = filters.migrationId ? 
+        UUID.fromString(filters.migrationId as String) : null
+    def teamId = filters.teamId ? 
+        Integer.parseInt(filters.teamId as String) : null
+        
+    // Execute operation with validated parameters
+    def result = repository.performOperation(migrationId, teamId)
+    return Response.ok(result).build()
+    
+} catch (IllegalArgumentException e) {
+    return Response.status(400)
+        .entity([error: "Invalid parameter format: ${e.message}"])
+        .build()
+} catch (NumberFormatException e) {
+    return Response.status(400)
+        .entity([error: "Invalid numeric parameter: ${e.message}"])
+        .build()
+} catch (Exception e) {
+    return Response.status(500)
+        .entity([error: "Internal server error: ${e.message}"])
+        .build()
+}
+```
+
+### 11.7. Repository Pattern Implementation
+
+#### 11.7.1. Type-Safe Repository Methods
+
+```groovy
+class SequenceRepository {
+    
+    def findSequencesByIteration(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            def sequences = sql.rows('''
+                SELECT sqi.sqi_id, sqi.sqi_name, sqi.sqi_order,
+                       pli.pli_id, pli.pli_name
+                FROM sequences_instance_sqi sqi
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_itr itr ON pli.itr_id = itr.itr_id
+                WHERE itr.itr_id = :iterationId
+                ORDER BY sqi.sqi_order
+            ''', [iterationId: iterationId])
+            
+            return sequences.collect { row ->
+                [
+                    sqi_id: row['sqi_id'] as Integer,
+                    sqi_name: row['sqi_name'] as String,
+                    sqi_order: row['sqi_order'] as Integer,
+                    pli_id: row['pli_id'] as String,
+                    pli_name: row['pli_name'] as String
+                ]
+            }
+        }
+    }
+}
+```
+
+### 11.8. Implementation Standards
+
+#### 11.8.1. Mandatory Compliance Requirements
+
+1. **All UUID Parameters:** Must use `UUID.fromString(param as String)` pattern
+2. **All Integer Parameters:** Must use `Integer.parseInt(param as String)` with error handling
+3. **All Database Results:** Must use map notation with explicit casting: `row['field'] as Type`
+4. **All Path Parameters:** Must include null protection and type validation
+5. **All SQL Queries:** Must include ALL fields referenced in result processing
+6. **All Hierarchical Filtering:** Must use instance IDs, never master IDs
+
+#### 11.8.2. Code Review Standards
+
+**Required Checks:**
+- [ ] All parameter conversions use explicit casting
+- [ ] All database result access uses map notation with casting
+- [ ] All SQL queries include complete field selection
+- [ ] All error handling includes type conversion errors
+- [ ] All hierarchical filters use instance IDs
+
+#### 11.8.3. Testing Requirements
+
+**Unit Tests Must Validate:**
+- Type conversion error handling for all parameter types
+- Correct SQL query structure with complete field selection
+- Proper instance ID usage in filtering operations
+- Error response format for type validation failures
+
+### 11.9. Benefits and Trade-offs
+
+#### 11.9.1. Benefits
+
+- **Runtime Reliability:** Eliminates ClassCastException errors in production
+- **Early Error Detection:** Type conversion errors caught during parameter processing
+- **Consistent Patterns:** Standardized approach across all API implementations
+- **Debugging Clarity:** Clear error messages for type-related issues
+
+#### 11.9.2. Trade-offs
+
+- **Code Verbosity:** Explicit casting increases code length
+- **Development Overhead:** Additional error handling required for all conversions
+- **Maintenance Burden:** Must maintain type safety patterns across all implementations
+
+#### 11.9.3. Rationale
+
+The benefits of runtime reliability and consistent error handling outweigh the additional development overhead. The patterns prevent difficult-to-debug production errors and provide clear, actionable error messages for developers and users.
+
+### 11.10. Migration Strategy
+
+**Existing Code:** All existing API implementations must be updated to follow these patterns during the next maintenance cycle.
+
+**New Code:** All new API implementations must follow these patterns from initial development.
+
+**Testing:** Comprehensive testing must validate type safety patterns for all new and updated code.
+
+---
+
+## 12. Database Audit Fields Standardization ([ADR-035])
+
+### 12.1. Architecture Decision Record - ADR-035
+
+**Title:** Database Audit Fields Standardization  
+**Status:** Implemented (US-002b)  
+**Date:** August 2025  
+**Impact:** High - affects all database tables  
+
+### 12.2. Problem Context
+
+UMIG database tables had inconsistent audit field implementation across 25+ tables, creating challenges for:
+- User accountability and change tracking
+- Regulatory compliance and audit trails
+- System operation transparency
+- Data integrity monitoring
+
+### 12.3. Solution Architecture
+
+#### 12.3.1. Standardized Audit Fields
+
+**Required Fields for All Tables:**
+```sql
+created_by VARCHAR(255) NOT NULL,
+created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+updated_by VARCHAR(255) NOT NULL,
+updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+```
+
+**Field Specifications:**
+- `created_by/updated_by`: VARCHAR(255) supporting user trigrams (usr_code) and system identifiers
+- `created_at/updated_at`: Automatic timestamp management via PostgreSQL triggers
+- Composite indexes on audit fields for optimal query performance
+
+#### 12.3.2. Tiered Association Audit Strategy
+
+**Tier 1 (Critical):** Full audit fields for access control tracking
+- `teams_tms_x_users_usr` - user access tracking
+
+**Tier 2 (Standard):** Minimal audit for change tracking  
+- Label associations - `created_at`, `created_by` only
+
+**Tier 3 (Simple):** No audit overhead for pure many-to-many relationships
+- Environment associations
+
+### 12.4. Implementation Details
+
+#### 12.4.1. Database Migrations
+
+**Migration 016:** Core audit fields addition across 25+ tables
+- Standardized audit field implementation
+- `get_user_code()` helper function for trigram resolution
+- Composite indexes for performance optimization
+
+**Migration 017:** Association table audit strategy implementation
+- Tiered approach based on business criticality
+- Selective audit field application
+
+**Migration 018:** Existing field conversion
+- Converted INTEGER `created_by` fields to VARCHAR for consistency
+- Special handling for `labels_lbl` table
+
+#### 12.4.2. Supporting Infrastructure
+
+**AuditFieldsUtil.groovy:**
+- Standardized utility class for audit field handling
+- User trigram resolution and system identifier management
+- Comprehensive test coverage (AuditFieldsUtilTest.groovy)
+
+**Data Generation Updates:**
+- Updated 7 generator scripts (002, 003, 004, 005, 006, 008, 099)
+- Populate audit fields with 'generator' identifier
+- System identifier patterns for automated processes
+
+### 12.5. Value Conventions
+
+#### 12.5.1. User Identifiers
+- **Interactive Users:** User trigram codes (e.g., "jdo", "msl") from usr_code field
+- **System Operations:** Reserved identifiers:
+  - `'generator'` - Data generation scripts
+  - `'system'` - Automated system processes  
+  - `'migration'` - Database migration operations
+
+#### 12.5.2. Timestamp Management
+- `created_at`: Set once during record creation, never modified
+- `updated_at`: Automatically updated via PostgreSQL triggers on row modification
+- All timestamps use `TIMESTAMP WITH TIME ZONE` for global consistency
+
+### 12.6. Performance Considerations
+
+#### 12.6.1. Index Strategy
+```sql
+-- Composite indexes on audit fields for common query patterns
+CREATE INDEX idx_[table]_audit_created ON [table] (created_by, created_at);
+CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
+```
+
+#### 12.6.2. Query Optimization
+- Audit field queries leverage composite indexes
+- Selective indexing based on table criticality and query patterns
+- Performance monitoring for audit-enabled operations
+
+### 12.7. Benefits and Impact
+
+#### 12.7.1. Benefits
+- **Complete Audit Trail:** Every entity lifecycle event tracked (create, update, delete)
+- **User Accountability:** Trigram-based created_by/updated_by tracking
+- **System Transparency:** Standardized identifier conventions for automated operations
+- **Regulatory Compliance:** Comprehensive change tracking for audit requirements
+- **Operational Excellence:** Performance-optimized with automatic timestamp management
+
+#### 12.7.2. System Impact
+- **Development:** Consistent audit patterns across all API operations
+- **Testing:** 100% audit field compliance in test suite (74 tests passing)
+- **Data Generation:** Audit-compliant synthetic data for development/testing
+- **Migration:** Seamless implementation with rollback capability
+
+### 12.8. Implementation Standards
+
+#### 12.8.1. Mandatory Requirements
+- All new tables MUST include standardized audit fields
+- All data modification operations MUST populate audit fields
+- System operations MUST use appropriate identifier conventions
+- API operations MUST leverage AuditFieldsUtil for consistency
+
+#### 12.8.2. Testing Requirements
+- Unit tests MUST validate audit field population
+- Integration tests MUST verify audit field consistency
+- Migration tests MUST confirm audit field structure and data
+
+### 12.9. Migration and Compliance
+
+#### 12.9.1. Implementation Status
+✅ All 25+ database tables updated with standardized audit fields  
+✅ Tiered association audit strategy implemented  
+✅ Supporting infrastructure (utilities, tests) completed  
+✅ Data generation scripts updated for audit compliance  
+✅ Comprehensive test coverage ensuring audit field compliance  
+
+#### 12.9.2. Future Considerations
+- Monitor performance impact of audit field queries
+- Evaluate audit field requirements for new entity types
+- Consider audit log archiving strategy for long-term data retention
+- Assess advanced audit requirements (field-level change tracking)
 
 ---
 
