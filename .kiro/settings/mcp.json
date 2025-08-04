@@ -52,7 +52,9 @@
       ],
       "env": {},
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "sequentialthinking"
+      ]
     },
     "filesystem": {
       "command": "npx",

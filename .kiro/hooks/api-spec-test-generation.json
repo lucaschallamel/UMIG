@@ -1,0 +1,21 @@
+{
+  "name": "API Spec & Test Generation",
+  "description": "The definitive workflow for safely updating API specifications and generating Postman tests to ensure 100% consistency and prevent data loss.",
+  "trigger": {
+    "type": "file_save",
+    "patterns": ["docs/api/openapi.yaml"]
+  },
+  "enabled": true,
+  "actions": [
+    {
+      "type": "ai_request",
+      "request": "Execute the API Spec & Test Generation workflow:\n\n## Workflow: API Spec & Test Generation\nThis workflow establishes `openapi.yaml` as the single source of truth for all API development. The Postman collection is **always generated** from this file. **NEVER edit the Postman JSON file directly.** This prevents inconsistencies and the kind of file corruption we have experienced.\n\n## Guiding Principles\n- **OpenAPI is the ONLY Source of Truth:** All API changes begin and end with `docs/api/openapi.yaml`.\n- **Postman is a GENERATED ARTIFACT:** The collection file is treated as build output. It is never edited by hand.\n- **Validate Before Generating:** Always validate the OpenAPI spec *before* attempting to generate the Postman collection.\n\n## Steps to Execute\n\n### 1. Validate the OpenAPI Specification\n- **CRITICAL:** Before proceeding, validate the `docs/api/openapi.yaml` file.\n- Use appropriate validation tools to check for syntax errors, schema compliance, and structural issues.\n- **DO NOT proceed if the file has errors.** Fix them first. This is the most important step to prevent downstream issues.\n- Report any validation errors found and stop execution until they are resolved.\n\n### 2. Generate the Postman Collection\n- **Navigate to the correct directory** and run the generation command:\n```bash\ncd docs/api/postman\nnpx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags\n```\n- **Note:** The `npx` command runs the `openapi-to-postmanv2` package without requiring a global installation.\n- If the command fails, report the error and provide guidance on resolution.\n\n### 3. Verify the Changes\n- **Review the Diff:** Use `git diff` to review the changes to `UMIG_API_V2_Collection.postman_collection.json`.\n- Confirm that the changes align with the modifications made to the OpenAPI specification.\n- Report any unexpected changes or issues found.\n\n### 4. Document and Commit Preparation\n- **Prepare commit message:** Suggest an appropriate commit message that includes both the modified `openapi.yaml` and the generated `UMIG_API_V2_Collection.postman_collection.json`.\n- **Update suggestions:** Recommend updating `CHANGELOG.md` with details about the API changes.\n- **Dev Journal:** Suggest creating a developer journal entry summarizing the work done.\n\n## Key Principles to Enforce\n- Never erase or overwrite existing tests/specs unless required by an API change.\n- Every endpoint in the API must be present and tested in both Postman and OpenAPI.\n- Consistency, completeness, and traceability are paramount.\n- OpenAPI specification is the authoritative source - all other artifacts are generated from it.\n\n**Execute this workflow now for the recently modified openapi.yaml file.**"
+    }
+  ],
+  "metadata": {
+    "created": "2025-01-08",
+    "version": "1.0",
+    "category": "api-development",
+    "tags": ["openapi", "postman", "api-testing", "code-generation"]
+  }
+}
