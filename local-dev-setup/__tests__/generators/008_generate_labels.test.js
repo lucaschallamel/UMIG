@@ -75,19 +75,46 @@ describe('Labels Generator (08_generate_labels.js)', () => {
     it('should not generate labels if no migrations are found', async () => {
       client.query.mockResolvedValue({ rows: [] }); // No migrations
       await generateLabels(CONFIG, {});
-      expect(console.error).toHaveBeenCalledWith('Cannot generate labels without migrations and users. Please generate them first.');
+      expect(console.error).toHaveBeenCalledWith('Cannot generate labels without migrations. Please generate them first.');
       expect(client.query).not.toHaveBeenCalledWith(expect.stringContaining('INSERT INTO'));
     });
 
-    it('should not generate labels if no users are found', async () => {
+    it('should generate labels even if no users are found (users no longer required)', async () => {
+      // Setup faker mocks to return predictable values - handle the specific call pattern
+      faker.number.int.mockImplementation((options) => {
+        // The generator calls faker.number.int({ min: config.LABELS.PER_MIGRATION.MIN, max: config.LABELS.PER_MIGRATION.MAX })
+        if (options && typeof options === 'object' && options.min !== undefined) {
+          return 1; // Generate 1 label per migration
+        }
+        return 1; // Default fallback
+      });
+      faker.lorem.words.mockImplementation((options) => {
+        // The generator calls faker.lorem.words({ min: 1, max: 3 })
+        return 'Test Label';
+      });
+      faker.lorem.sentence.mockReturnValue('A test description.');
+      faker.internet.color.mockReturnValue('#123456');
+      
       client.query.mockImplementation((sql) => {
         if (sql.includes('migrations_mig')) return Promise.resolve({ rows: mockMigrations });
-        if (sql.includes('users_usr')) return Promise.resolve({ rows: [] }); // No users
+        if (sql.includes('steps_master_stm')) return Promise.resolve({ rows: mockSteps });
+        if (sql.includes('applications_app')) return Promise.resolve({ rows: mockApps });
+        if (sql.includes('controls_master_ctm')) return Promise.resolve({ rows: mockControls });
+        if (sql.includes('INSERT INTO labels_lbl')) return Promise.resolve({ rows: [{ lbl_id: mockLabelId }] });
         return Promise.resolve({ rows: [] });
       });
+      
       await generateLabels(CONFIG, {});
-      expect(console.error).toHaveBeenCalledWith('Cannot generate labels without migrations and users. Please generate them first.');
-      expect(client.query).not.toHaveBeenCalledWith(expect.stringContaining('INSERT INTO'));
+      
+      // Script no longer checks for users, only migrations, so it should generate labels
+      expect(console.error).not.toHaveBeenCalled();
+      
+      // Check that the INSERT query was actually called
+      const insertCalls = client.query.mock.calls.filter(call => 
+        call[0] && call[0].includes('INSERT INTO labels_lbl')
+      );
+      
+      expect(insertCalls.length).toBeGreaterThan(0);
     });
 
     it('should generate labels and associate them correctly', async () => {
@@ -103,28 +130,28 @@ describe('Labels Generator (08_generate_labels.js)', () => {
 
       await generateLabels(CONFIG, {});
 
-      // 1. Check label creation
+      // 1. Check label creation (now uses 'generator' instead of user ID)
       expect(client.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO labels_lbl'),
-        [mockMigrations[0].mig_id, 'Test Label', 'A test description.', '#123456', mockUsers[0].usr_id]
+        [mockMigrations[0].mig_id, 'Test Label', 'A test description.', '#123456', 'generator']
       );
 
-      // 2. Check step association
+      // 2. Check step association (now includes created_at and created_by audit fields)
       expect(client.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO labels_lbl_x_steps_master_stm'),
-        [mockLabelId, mockSteps[0].stm_id, mockUsers[0].usr_id]
+        expect.arrayContaining([mockLabelId, mockSteps[0].stm_id, expect.any(Date), 'generator'])
       );
 
-      // 3. Check application association
+      // 3. Check application association (now includes created_at and created_by audit fields)
       expect(client.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO labels_lbl_x_applications_app'),
-        [mockLabelId, mockApps[0].app_id, mockUsers[0].usr_id.toString()]
+        expect.arrayContaining([mockLabelId, mockApps[0].app_id, expect.any(Date), 'generator'])
       );
 
-      // 4. Check control association
+      // 4. Check control association (now includes created_at and created_by audit fields)  
       expect(client.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO labels_lbl_x_controls_master_ctm'),
-        [mockLabelId, mockControls[0].ctm_id, mockUsers[0].usr_id]
+        expect.arrayContaining([mockLabelId, mockControls[0].ctm_id, expect.any(Date), 'generator'])
       );
     });
 
