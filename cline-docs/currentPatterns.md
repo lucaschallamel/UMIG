@@ -1,7 +1,7 @@
 # Current Patterns - UMIG Project
 
-**Last Updated**: 31 July 2025  
-**Pattern Status**: Mature and proven across 2 major API implementations
+**Last Updated**: 4 August 2025  
+**Pattern Status**: Mature and proven across 3 major implementations + infrastructure patterns
 
 ## Core Development Patterns
 
@@ -256,6 +256,74 @@ catch (SQLException e) {
 9. **Performance**: API response times <200ms for typical queries
 10. **Code Quality**: Consistent formatting and clear documentation
 
+## Infrastructure Patterns (US-002b Implementation)
+
+### Audit Fields Standardization Pattern
+
+**Implementation**: Comprehensive audit fields across 25+ database tables  
+**Infrastructure**: AuditFieldsUtil.groovy utility class with standardised methods
+
+#### Standard Audit Fields Schema
+```sql
+-- Mandatory audit fields for all entities
+created_by VARCHAR(255) DEFAULT 'system',
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_by VARCHAR(255) DEFAULT 'system',
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+```
+
+#### AuditFieldsUtil Pattern
+```groovy
+class AuditFieldsUtil {
+    static Map<String, Object> getStandardAuditFields(String actor = 'system') {
+        return [
+            created_by: actor,
+            created_at: new Date(),
+            updated_by: actor,
+            updated_at: new Date()
+        ]
+    }
+    
+    static Map<String, Object> getUpdateAuditFields(String actor = 'system') {
+        return [
+            updated_by: actor,
+            updated_at: new Date()
+        ]
+    }
+}
+```
+
+#### Tiered Association Strategy
+**Tier 1 (Critical)**: Full audit for access control tracking (teams_tms_x_users_usr)  
+**Tier 2 (Standard)**: Minimal audit for change tracking (label associations)  
+**Tier 3 (Simple)**: No audit overhead for pure many-to-many relationships
+
+### Database Migration Pattern (Comprehensive)
+
+**Structure**: Sequential migrations with rollback capability  
+**Implementation**: 3-migration approach for complex changes
+
+```sql
+-- Migration 016: Core audit fields implementation
+-- Migration 017: Association table audit fields  
+-- Migration 018: Special case handling and fixes
+```
+
+### Documentation Automation Pattern
+
+**Workflow**: Documentation Generator agent with systematic updates  
+**Coverage**: API references, OpenAPI specification, Postman collection regeneration
+
+#### API Documentation Template Usage
+```markdown
+# Use apiSpecificationTemplate.md for consistent API documentation
+# Automatic generation of:
+# - Endpoint specifications with examples
+# - Request/response schemas  
+# - Error handling documentation
+# - Authentication and authorisation details
+```
+
 ---
 
-**Pattern Maturity**: These patterns have proven successful across 2 major API implementations with measurable velocity improvements. Ready for application to US-003 and US-004 with high confidence.
+**Pattern Maturity**: These patterns have proven successful across 3 major implementations (APIs + infrastructure) with measurable velocity improvements and comprehensive quality standards. Ready for application to US-003 and US-004 with very high confidence.

@@ -34,6 +34,8 @@ Individual API specifications are available for detailed documentation:
 - **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships
 - **[Environments API](EnvironmentsAPI.md)** - Environment management with application and iteration associations
 - **[Email Templates API](EmailTemplatesAPI.md)** - Email template management for automated notifications
+- **[Plans API](PlansAPI.md)** - Plan management with master templates and instances
+- **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support
 - **[Steps API](StepsAPI.md)** - Step management with email notification integration *(to be documented)*
 - **[Migrations API](MigrationsAPI.md)** - Migration and iteration management *(to be documented)*
 
@@ -54,3 +56,73 @@ A Postman collection is available for testing the API endpoints.
 - Usage Instructions: [`postman/README.md`](postman/README.md)
 
 The collection is automatically generated from the OpenAPI specification and includes all V2 API endpoints.
+
+## Recent API Updates
+
+### Plans API (Completed)
+- **Full CRUD operations** for both master plan templates and plan instances
+- **Hierarchical filtering** by migration, iteration, team, and status
+- **Master plan endpoints**:
+  - `GET /plans/master` - List all master plans with audit fields
+  - `GET /plans/master/{id}` - Get specific master plan
+  - `POST /plans/master` - Create new master plan
+  - `PUT /plans/master/{id}` - Update master plan  
+  - `DELETE /plans/master/{id}` - Soft delete master plan
+- **Plan instance endpoints**:
+  - `GET /plans` - List plan instances with filtering
+  - `GET /plans/instance/{id}` - Get specific plan instance
+  - `POST /plans/instance` - Create plan instance from master
+  - `PUT /plans/instance/{id}` - Update plan instance
+  - `DELETE /plans/instance/{id}` - Delete plan instance
+  - `PUT /plans/{id}/status` - Update instance status
+
+### Sequences API (Completed)
+- **Full CRUD operations** for both master sequence templates and sequence instances
+- **Hierarchical filtering** by migration, iteration, plan, team, and status
+- **Ordering support** with predecessor relationships and sequence ordering
+- **Master sequence endpoints**:
+  - `GET /sequences/master` - List all master sequences with audit fields
+  - `GET /sequences/master/{id}` - Get specific master sequence
+  - `POST /sequences/master` - Create new master sequence
+  - `PUT /sequences/master/{id}` - Update master sequence
+  - `DELETE /sequences/master/{id}` - Soft delete master sequence
+  - `PUT /sequences/master/{id}/order` - Update sequence order
+- **Sequence instance endpoints**:
+  - `GET /sequences` - List sequence instances with filtering
+  - `GET /sequences/instance/{id}` - Get specific sequence instance
+  - `POST /sequences/instance` - Create sequence instance from master
+  - `PUT /sequences/instance/{id}` - Update sequence instance
+  - `DELETE /sequences/instance/{id}` - Delete sequence instance
+  - `PUT /sequences/instance/{id}/status` - Update instance status
+
+### Environments API (Completed)
+- **Complete environments management system** with application and iteration associations
+- **CRUD operations** with counts display and relationship management
+- **Many-to-many relationships** with applications and iterations
+- **Environment role support** for iterations
+
+### Audit Fields Standardization (US-002b)
+All API entities now include standardized audit fields:
+- **`created_by`** - User who created the entity
+- **`created_at`** - Creation timestamp (ISO 8601)
+- **`updated_by`** - User who last updated the entity
+- **`updated_at`** - Last update timestamp (ISO 8601)
+
+### Technical Standards
+
+#### Type Safety (ADR-031)
+- **Mandatory explicit casting** for all query parameters
+- **UUID Parameters**: `UUID.fromString(param as String)`
+- **Integer Parameters**: `Integer.parseInt(param as String)`
+- **Null handling** checks required before casting
+
+#### Error Handling
+- **400 Bad Request**: Invalid parameters, type errors, missing required fields
+- **404 Not Found**: Resource not found
+- **409 Conflict**: Duplicate entries, deletion blocked by relationships
+- **500 Internal Server Error**: Database errors
+
+#### Database Access Pattern
+- **Repository pattern** with `DatabaseUtil.withSql`
+- **Instance IDs usage** for hierarchical filtering (pli_id, sqi_id, phi_id)
+- **Complete field selection** - include ALL fields referenced in result mapping

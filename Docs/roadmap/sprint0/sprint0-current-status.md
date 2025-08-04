@@ -40,6 +40,8 @@
   - Special cases handled (labels_lbl, users_usr, email_templates_emt)
   - Performance indexes added
   - Documentation updated in dataModel/README.md
+  - **US-002b-audit-fields-standardization.md** specification completed
+  - **US-002d-audit-fields-clarification.md** specification completed
 
 ## Ready for Implementation
 
