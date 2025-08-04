@@ -241,7 +241,7 @@ catch (SQLException e) {
 - **409**: Conflict (unique constraint violations)
 - **500**: Server errors (unexpected database issues)
 
-## Control Point Validation Pattern (New - US-003)
+## Control Point Validation Pattern (US-003 Implementation)
 
 ### Control Point Types
 - **MANDATORY**: Must be validated before phase completion
@@ -282,6 +282,51 @@ def calculatePhaseProgress(UUID phaseId) {
     return (stepProgress * 0.7) + (controlProgress * 0.3)
 }
 ```
+
+## Endpoint Consolidation Pattern (US-003b Implementation)
+
+### Consolidated Endpoint Structure
+**Pattern**: Single endpoint name with path-based routing vs multiple endpoint names
+
+```groovy
+// BEFORE: Multiple endpoint names (fragmented)
+phasesmaster(httpMethod: "GET", groups: ["confluence-users"]) { ... }
+phasesinstance(httpMethod: "GET", groups: ["confluence-users"]) { ... }
+phases(httpMethod: "POST", groups: ["confluence-users"]) { ... }
+
+// AFTER: Single endpoint with path routing (consolidated)
+phases(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
+    def additionalPath = getAdditionalPath(request)
+    switch(additionalPath) {
+        case "master":
+            return handleMasterOperation(request)
+        case "instance": 
+            return handleInstanceOperation(request)
+        default:
+            return handleDefaultOperation(request)
+    }
+}
+```
+
+### Path-Based Routing Implementation
+```groovy
+// Consistent routing pattern across all HTTP methods
+def getAdditionalPath(request) {
+    def pathInfo = request.pathInfo
+    def contextPath = request.contextPath
+    def servletPath = request.servletPath
+    
+    // Extract additional path after endpoint name
+    def additionalPath = pathInfo?.substring(servletPath.length() + 1)
+    return additionalPath?.split('/')[0] ?: ''
+}
+```
+
+### Benefits
+- **API Organization**: Consistent developer experience across Swagger/Postman
+- **Maintenance**: Single file per logical endpoint grouping
+- **Documentation**: Cleaner API specification with logical grouping
+- **Client Tools**: Proper folder organization in Postman collections
 
 ## Quality Assurance Patterns
 

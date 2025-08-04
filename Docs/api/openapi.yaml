@@ -2604,7 +2604,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   # === PHASES API ENDPOINTS ===
-  /phasesmaster:
+  /phases/master:
     get:
       tags:
         - Phases
@@ -2656,7 +2656,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /phasesmaster/{phm_id}:
+  /phases/master/{phm_id}:
     get:
       tags:
         - Phases
@@ -2741,7 +2741,50 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /phasesinstance:
+  /phases/master/{phm_id}/instantiate:
+    post:
+      tags:
+        - Phases
+      summary: Instantiate phases from master
+      description: Creates phase instances from a master phase template for a specific sequence instance.
+      parameters:
+        - name: phm_id
+          in: path
+          required: true
+          description: Master phase ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sqi_id
+              properties:
+                sqi_id:
+                  type: string
+                  format: uuid
+                  description: Sequence instance ID to create phases for
+      responses:
+        '201':
+          description: Phase instances created successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PhaseInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /phases/instance:
     get:
       tags:
         - Phases
@@ -2826,7 +2869,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /phasesinstance/{phi_id}:
+  /phases/instance/{phi_id}:
     get:
       tags:
         - Phases
@@ -2908,6 +2951,43 @@ paths:
                 $ref: '#/components/schemas/SuccessMessage'
         '409':
           $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /phases/instance/{phi_id}/status:
+    put:
+      tags:
+        - Phases
+      summary: Update phase instance status
+      description: Updates the status of a specific phase instance.
+      parameters:
+        - name: phi_id
+          in: path
+          required: true
+          description: Phase instance ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sts_id
+              properties:
+                sts_id:
+                  type: string
+                  format: uuid
+                  description: New status ID
+      responses:
+        '204':
+          description: Status updated successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -3078,7 +3158,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /phasesmasterreorder:
+  /phases/master/reorder:
     put:
       tags:
         - Phases
@@ -3103,7 +3183,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /phasesinstancereorder:
+  /phases/instance/reorder:
     put:
       tags:
         - Phases
@@ -3128,7 +3208,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /phasesmastermove/{phm_id}:
+  /phases/master/{phm_id}/move:
     post:
       tags:
         - Phases
@@ -3163,7 +3243,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /phasesinstancemove/{phi_id}:
+  /phases/instance/{phi_id}/move:
     post:
       tags:
         - Phases

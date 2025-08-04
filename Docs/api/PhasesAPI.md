@@ -25,27 +25,27 @@ The Phases API provides critical quality gate management for migration execution
 | Method | Path | Description |
 |--------|------|-------------|
 | **Master Phase Management** | | |
-| GET | `/phases-master` | Get all master phases with optional filtering |
-| GET | `/phases-master/{phm_id}` | Get a specific master phase by ID |
-| POST | `/phases-master` | Create a new master phase |
-| PUT | `/phases-master/{phm_id}` | Update an existing master phase |
-| DELETE | `/phases-master/{phm_id}` | Delete a master phase |
+| GET | `/phases/master` | Get all master phases with optional filtering |
+| GET | `/phases/master/{phm_id}` | Get a specific master phase by ID |
+| POST | `/phases/master` | Create a new master phase |
+| PUT | `/phases/master/{phm_id}` | Update an existing master phase |
+| DELETE | `/phases/master/{phm_id}` | Delete a master phase |
 | **Instance Phase Operations** | | |
-| GET | `/phases-instance` | Get all phase instances with hierarchical filtering |
-| GET | `/phases-instance/{phi_id}` | Get a specific phase instance by ID |
-| POST | `/phases-instance` | Create a phase instance from master phase |
-| PUT | `/phases-instance/{phi_id}` | Update an existing phase instance |
-| DELETE | `/phases-instance/{phi_id}` | Delete a phase instance |
+| GET | `/phases/instance` | Get all phase instances with hierarchical filtering |
+| GET | `/phases/instance/{phi_id}` | Get a specific phase instance by ID |
+| POST | `/phases/instance` | Create a phase instance from master phase |
+| PUT | `/phases/instance/{phi_id}` | Update an existing phase instance |
+| DELETE | `/phases/instance/{phi_id}` | Delete a phase instance |
 | **Control Points** | | |
 | GET | `/phases/{phi_id}/controls` | Get control points for a phase instance |
 | POST | `/phases/{phi_id}/controls/validate` | Validate all control points for a phase |
 | PUT | `/phases/{phi_id}/controls/{cti_id}` | Update control point status |
 | POST | `/phases/{phi_id}/controls/{cti_id}/override` | Override control point with reason |
 | **Ordering** | | |
-| PUT | `/phases-master/reorder` | Bulk reorder master phases within sequence |
-| PUT | `/phases-instance/reorder` | Bulk reorder phase instances within sequence |
-| POST | `/phases-master/{phm_id}/move` | Move master phase to new position |
-| POST | `/phases-instance/{phi_id}/move` | Move phase instance to new position |
+| PUT | `/phases/master/reorder` | Bulk reorder master phases within sequence |
+| PUT | `/phases/instance/reorder` | Bulk reorder phase instances within sequence |
+| POST | `/phases/master/{phm_id}/move` | Move master phase to new position |
+| POST | `/phases/instance/{phi_id}/move` | Move phase instance to new position |
 | **Progress** | | |
 | GET | `/phases/{phi_id}/progress` | Get progress percentage for phase instance |
 
@@ -61,12 +61,12 @@ The Phases API provides critical quality gate management for migration execution
 
 ### 3.2. Query Parameters
 
-#### GET /phases-master
+#### GET /phases/master
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | sequenceId | UUID | No | Filter master phases by sequence master ID |
 
-#### GET /phases-instance
+#### GET /phases/instance
 | Name | Type | Required | Description |
 |------|------|----------|-------------|
 | migrationId | UUID | No | Filter phase instances by migration ID |
@@ -78,7 +78,7 @@ The Phases API provides critical quality gate management for migration execution
 
 ### 3.3. Request Body Schemas
 
-#### POST /phases-master - Create Master Phase
+#### POST /phases/master - Create Master Phase
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -101,7 +101,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### PUT /phases-master/{phm_id} - Update Master Phase
+#### PUT /phases/master/{phm_id} - Update Master Phase
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -119,7 +119,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### POST /phases-instance - Create Phase Instance
+#### POST /phases/instance - Create Phase Instance
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -144,7 +144,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### PUT /phases-instance/{phi_id} - Update Phase Instance
+#### PUT /phases/instance/{phi_id} - Update Phase Instance
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -202,7 +202,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### PUT /phases-master/reorder - Bulk Reorder Master Phases
+#### PUT /phases/master/reorder - Bulk Reorder Master Phases
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -226,7 +226,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### PUT /phases-instance/reorder - Bulk Reorder Phase Instances
+#### PUT /phases/instance/reorder - Bulk Reorder Phase Instances
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -239,7 +239,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### POST /phases-master/{phm_id}/move - Move Master Phase
+#### POST /phases/master/{phm_id}/move - Move Master Phase
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -254,7 +254,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### POST /phases-instance/{phi_id}/move - Move Phase Instance
+#### POST /phases/instance/{phi_id}/move - Move Phase Instance
 - **Content-Type:** application/json
 - **Schema:**
 ```json
@@ -267,7 +267,7 @@ The Phases API provides critical quality gate management for migration execution
 
 ### 4.1. Success Responses
 
-#### GET /phases-master - List Master Phases
+#### GET /phases/master - List Master Phases
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
@@ -286,7 +286,7 @@ The Phases API provides critical quality gate management for migration execution
 ]
 ```
 
-#### GET /phases-master/{phm_id} - Get Master Phase Details
+#### GET /phases/master/{phm_id} - Get Master Phase Details
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
@@ -305,7 +305,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### GET /phases-instance - List Phase Instances
+#### GET /phases/instance - List Phase Instances
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
@@ -328,7 +328,7 @@ The Phases API provides critical quality gate management for migration execution
 ]
 ```
 
-#### GET /phases-instance/{phi_id} - Get Phase Instance Details
+#### GET /phases/instance/{phi_id} - Get Phase Instance Details
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
@@ -407,27 +407,27 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### POST /phases-master - Create Master Phase
+#### POST /phases/master - Create Master Phase
 - **Status Code:** 201
 - **Content-Type:** application/json
-- **Schema:** Same as GET /phases-master/{phm_id}
+- **Schema:** Same as GET /phases/master/{phm_id}
 
-#### POST /phases-instance - Create Phase Instance
+#### POST /phases/instance - Create Phase Instance
 - **Status Code:** 201
 - **Content-Type:** application/json
-- **Schema:** Same as GET /phases-instance/{phi_id}
+- **Schema:** Same as GET /phases/instance/{phi_id}
 
-#### PUT /phases-master/{phm_id} - Update Master Phase
+#### PUT /phases/master/{phm_id} - Update Master Phase
 - **Status Code:** 200
 - **Content-Type:** application/json
-- **Schema:** Same as GET /phases-master/{phm_id}
+- **Schema:** Same as GET /phases/master/{phm_id}
 
-#### PUT /phases-instance/{phi_id} - Update Phase Instance
+#### PUT /phases/instance/{phi_id} - Update Phase Instance
 - **Status Code:** 200
 - **Content-Type:** application/json
-- **Schema:** Same as GET /phases-instance/{phi_id}
+- **Schema:** Same as GET /phases/instance/{phi_id}
 
-#### DELETE /phases-master/{phm_id} - Delete Master Phase
+#### DELETE /phases/master/{phm_id} - Delete Master Phase
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
@@ -438,7 +438,7 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-#### DELETE /phases-instance/{phi_id} - Delete Phase Instance
+#### DELETE /phases/instance/{phi_id} - Delete Phase Instance
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
@@ -521,19 +521,19 @@ The Phases API supports deep hierarchical filtering using instance IDs:
 ### 7.2. Filter Combinations
 ```bash
 # Filter phases by migration
-GET /phases-instance?migrationId=123e4567-e89b-12d3-a456-426614174000
+GET /phases/instance?migrationId=123e4567-e89b-12d3-a456-426614174000
 
 # Filter phases by specific iteration within migration
-GET /phases-instance?migrationId=123e4567-e89b-12d3-a456-426614174000&iterationId=987fcdeb-51a2-43d1-9c45-123456789abc
+GET /phases/instance?migrationId=123e4567-e89b-12d3-a456-426614174000&iterationId=987fcdeb-51a2-43d1-9c45-123456789abc
 
 # Filter phases by plan instance
-GET /phases-instance?planInstanceId=456e7890-e12c-23d4-b567-537625285111
+GET /phases/instance?planInstanceId=456e7890-e12c-23d4-b567-537625285111
 
 # Filter phases by sequence instance  
-GET /phases-instance?sequenceInstanceId=789abc12-f34e-45f6-c890-648736396222
+GET /phases/instance?sequenceInstanceId=789abc12-f34e-45f6-c890-648736396222
 
 # Combined filtering with team and status
-GET /phases-instance?planInstanceId=456e7890-e12c-23d4-b567-537625285111&teamId=5&statusId=2
+GET /phases/instance?planInstanceId=456e7890-e12c-23d4-b567-537625285111&teamId=5&statusId=2
 ```
 
 ## 8. Control Point Workflow
@@ -602,10 +602,10 @@ POST /phases/789abc12-f34e-45f6-c890-648736396222/controls/456def78-g90h-56i7-j2
 GET /sequences-instance/987fcdeb-51a2-43d1-9c45-123456789abc
 
 # 2. Get phases within sequence
-GET /phases-instance?sequenceInstanceId=987fcdeb-51a2-43d1-9c45-123456789abc
+GET /phases/instance?sequenceInstanceId=987fcdeb-51a2-43d1-9c45-123456789abc
 
 # 3. Create new phase instance for sequence
-POST /phases-instance
+POST /phases/instance
 {
   "phm_id": "master-phase-uuid",
   "sqi_id": "987fcdeb-51a2-43d1-9c45-123456789abc"
@@ -698,7 +698,7 @@ def description = requestData.phm_description as String
 
 #### Bulk Reorder Master Phases
 ```bash
-PUT /phases-master/reorder
+PUT /phases/master/reorder
 {
   "sequenceId": "987fcdeb-51a2-43d1-9c45-123456789abc",
   "phaseOrderMap": {
@@ -711,7 +711,7 @@ PUT /phases-master/reorder
 
 #### Move Single Phase Instance
 ```bash
-POST /phases-instance/789abc12-f34e-45f6-c890-648736396222/move
+POST /phases/instance/789abc12-f34e-45f6-c890-648736396222/move
 {
   "newOrder": 3
 }

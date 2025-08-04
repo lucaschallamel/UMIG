@@ -37,13 +37,16 @@
     * **Tiered association strategy** based on business criticality
     * **Complete data generator updates** for audit compliance
   * **Phases API with Control Points (US-003):** Enterprise-grade implementation completed 4 August 2025
-    * **939-line PhasesApi.groovy** with 21 REST endpoints for master/instance operations
+    * **1,060+ line PhasesApi.groovy** with 21 REST endpoints consolidated under single entry point
     * **1,139-line PhaseRepository** with control point validation and emergency override logic
+    * **Endpoint Consolidation Refactoring:** Unified API organization aligned with Plans/Sequences patterns
+    * **API Organization:** Single `phases` endpoint with path-based routing (`/phases/master`, `/phases/instance`)
     * **Control Point System:** Automated quality gates with MANDATORY/OPTIONAL/CONDITIONAL types
     * **Progress Aggregation:** Weighted calculation (70% steps + 30% control points)
     * **Emergency Override:** Critical path functionality with full audit trail
     * **30 integration tests** and **1,694-line unit test suite** achieving 90%+ coverage
     * **Performance targets met:** <200ms response time for all operations
+    * **PostgreSQL Compatibility:** Fixed timestamp casting issues for improved reliability
   * **Hierarchical Filtering:** Full implementation of hierarchical filtering (ADR-030) across all APIs
   * **Type Safety:** Robust Groovy type safety and filtering patterns (ADR-031) preventing runtime errors
   * **Error Handling:** Comprehensive error handling with SQL state mapping and detailed error messages
@@ -97,8 +100,7 @@
 ## 2. What's Left to Build (MVP Scope)
 
 * **Phase 2: Backend Development (ScriptRunner)** - **Sprint 0 Final API**
-  * **US-004: Instructions API with Distribution** - Final API in sequence (3-4 hours)
-  * **US-005: Database Migrations** - Once API designs complete (2-3 hours)
+  * **US-004: Instructions API with Distribution** - Final API in sequence (3-4 hours) - Ready for implementation with proven patterns
   * **Event Logging:** Implement backend logic for the `event_log` system
   * **Planning Feature:** Implement HTML export endpoint for shareable macro-plans
   * **Email Templates Admin GUI:** Complete admin interface for template management (low priority)
@@ -132,6 +134,7 @@
   * US-002b Audit Fields Standardization (✅ 4 August 2025)
   * US-002c Documentation Automation (✅ 4 August 2025)
   * US-003 Phases API with Control Points (✅ 4 August 2025)
+  * US-003b Phases API Endpoint Consolidation (✅ 4 August 2025)
 * **Remaining:** US-004 Instructions API (final Sprint 0 API)
-* **Timeline:** Final API ready for implementation with mature patterns
-* **Confidence:** Very High - 4/5 major APIs complete, control point system operational, pattern library comprehensive
+* **Timeline:** Final API ready for implementation with comprehensive patterns established
+* **Confidence:** Very High - 4/5 major APIs complete, endpoint consolidation proven, pattern library comprehensive
