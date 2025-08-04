@@ -220,15 +220,18 @@ UMIG is built on:
 - **tms_x_usr_id** (SERIAL, PK)
 - **tms_id** (INT, FK → teams_tms)
 - **usr_id** (INT, FK → users_usr)
-- **created_at** (TIMESTAMPTZ)
-- **created_by** (INT): User ID of creator (not FK, but is an integer `usr_id` for audit)
-- **Primary Key:** (`tms_id`, `usr_id`)
+- **created_at** (TIMESTAMPTZ): When the user was added to the team
+- **created_by** (VARCHAR(255)): User trigram (usr_code) of who added the user to the team
+- **Unique:** (`tms_id`, `usr_id`)
+- **Audit Strategy:** Tier 1 - Critical association requiring full audit tracking
 - **Note:** All user-team relationships and audit trails are managed here. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for migration rationale and business logic.
 
 ### 5.2. Team-Application (`teams_tms_x_applications_app`)
 - **tms_id** (INT, FK → teams_tms)
 - **app_id** (INT, FK → applications_app)
+- **created_at** (TIMESTAMPTZ): When the application was linked to the team
 - **PK:** (tms_id, app_id)
+- **Audit Strategy:** Tier 2 - Standard association with minimal audit (created_at only)
 
 ### 5.3. Environment-Application (`environments_env_x_applications_app`)
 - **env_id** (INT, FK → environments_env)
@@ -255,26 +258,29 @@ UMIG is built on:
 - **lbl_x_stm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
 - **stm_id** (UUID, FK → steps_master_stm)
-- **created_at** (TIMESTAMPTZ)
-- **created_by** (INT, FK → users_usr)
+- **created_at** (TIMESTAMPTZ): When the label was applied to the step
+- **created_by** (VARCHAR(255)): User trigram (usr_code) of who applied the label
 - **Unique:** (lbl_id, stm_id)
+- **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
 ### 5.8. Labels-Applications (`labels_lbl_x_applications_app`)
 - **lbl_x_app_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
 - **app_id** (INT, FK → applications_app)
-- **created_at** (TIMESTAMPTZ)
-- **created_by** (VARCHAR)
+- **created_at** (TIMESTAMPTZ): When the label was applied to the application
+- **created_by** (VARCHAR(255)): User trigram (usr_code) of who applied the label
 - **Unique:** (lbl_id, app_id)
+- **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
 ### 5.9. Labels-Controls (`labels_lbl_x_controls_master_ctm`)
 - **lbl_x_ctm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
 - **ctm_id** (UUID, FK → controls_master_ctm)
-- **created_at** (TIMESTAMPTZ)
-- **created_by** (VARCHAR)
+- **created_at** (TIMESTAMPTZ): When the label was applied to the control
+- **created_by** (VARCHAR(255)): User trigram (usr_code) of who applied the label
 - **Unique:** (lbl_id, ctm_id)
 - **Purpose:** Associates labels with control checkpoints for categorization and filtering
+- **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
 ---
 
@@ -566,6 +572,7 @@ erDiagram
     teams_tms_x_applications_app {
         INT tms_id FK
         INT app_id FK
+        TIMESTAMPTZ created_at
     }
     environments_env_x_applications_app {
         INT env_id FK
@@ -589,12 +596,19 @@ erDiagram
         INT lbl_id FK
         UUID stm_id FK
         TIMESTAMPTZ created_at
-        INT created_by FK
+        VARCHAR created_by
     }
     labels_lbl_x_applications_app {
         INT lbl_x_app_id PK
         INT lbl_id FK
         INT app_id FK
+        TIMESTAMPTZ created_at
+        VARCHAR created_by
+    }
+    labels_lbl_x_controls_master_ctm {
+        INT lbl_x_ctm_id PK
+        INT lbl_id FK
+        UUID ctm_id FK
         TIMESTAMPTZ created_at
         VARCHAR created_by
     }
@@ -645,11 +659,101 @@ erDiagram
     labels_lbl_x_steps_master_stm }o--|| steps_master_stm : "step"
     labels_lbl_x_applications_app }o--|| labels_lbl : "label"
     labels_lbl_x_applications_app }o--|| applications_app : "application"
+    labels_lbl_x_controls_master_ctm }o--|| labels_lbl : "label"
+    labels_lbl_x_controls_master_ctm }o--|| controls_master_ctm : "control"
 ```
 
 ---
 
-## 7. Recent Changes & Migration Notes
+## 7. Audit Fields Standardization (US-002b & US-002d)
+
+### Standard Audit Fields Pattern
+All tables in the UMIG database now follow a standardized audit fields pattern (migrations 016 & 017):
+
+#### Core Audit Fields
+- **created_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
+- **created_at** (TIMESTAMPTZ): Timestamp when the record was created
+- **updated_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
+- **updated_at** (TIMESTAMPTZ): Timestamp when the record was last updated (auto-updated via trigger)
+
+#### Audit Field Values (US-002d)
+The `created_by` and `updated_by` fields store the following values:
+- **User trigram**: The 3-character `usr_code` from the `users_usr` table (e.g., 'JDS' for John Doe Smith)
+- **'system'**: For operations performed by the system or background processes
+- **'generator'**: For data created by data generation scripts
+- **'migration'**: For data created or modified during database migrations
+
+A helper function `get_user_code(user_email VARCHAR)` is available to retrieve user trigrams from email addresses.
+
+#### Tables with Audit Fields
+The following tables have been standardized with the audit fields pattern:
+
+**Master Tables:**
+- sequences_master_sqm, phases_master_phm, steps_master_stm
+- controls_master_ctm, instructions_master_inm
+
+**Instance Tables:**
+- sequences_instance_sqi, phases_instance_phi, steps_instance_sti
+- controls_instance_cti, instructions_instance_ini
+
+**Reference Tables:**
+- teams_tms, applications_app, environments_env
+- roles_rls, environment_roles_enr, step_types_stt
+- iteration_types_itt, status_sts, email_templates_emt
+
+**Special Cases:**
+- **users_usr**: Has created_at/updated_at from migration 012, added created_by/updated_by in migration 016
+- **labels_lbl**: Already had created_by as INTEGER (user reference), only added updated_by/updated_at
+
+#### Automatic Update Triggers
+All tables with audit fields have PostgreSQL triggers that automatically update the `updated_at` timestamp on any UPDATE operation using the `update_updated_at_column()` function.
+
+#### Association Tables Audit Strategy (US-002d)
+Association (join) tables follow a tiered audit approach based on business criticality:
+
+**Tier 1 - Critical Associations (Full Audit)**
+- `teams_tms_x_users_usr`: User-team assignments (created_at, created_by as VARCHAR)
+- `environment_roles_enr_x_users_usr`: User-role assignments (when created)
+- **Rationale**: These track access control and organizational structure changes
+
+**Tier 2 - Standard Associations (Minimal Audit)**
+- `teams_tms_x_applications_app`: Team-application links (created_at only)
+- `labels_lbl_x_steps_master_stm`: Label-step associations (created_at, created_by)
+- `labels_lbl_x_applications_app`: Label-application associations (created_at, created_by)
+- `labels_lbl_x_controls_master_ctm`: Label-control associations (created_at, created_by)
+- **Rationale**: These provide basic tracking without over-engineering
+
+**Tier 3 - Simple Associations (No Audit)**
+- `environments_env_x_applications_app`: Environment-application links
+- `environments_env_x_iterations_ite`: Environment-iteration links
+- `steps_master_stm_x_iteration_types_itt`: Step-iteration type links
+- `steps_master_stm_x_teams_tms_impacted`: Step-impacted teams links
+- **Rationale**: These are pure many-to-many relationships with minimal change tracking needs
+
+#### Performance Indexes
+Audit field indexes have been created for common query patterns:
+- Master tables: Composite index on (created_by, created_at)
+- Instance tables: Composite index on (created_by, created_at)
+- Frequently queried reference tables: Index on created_at
+
+---
+
+## 8. Recent Changes & Migration Notes
+
+### 2025-08-04: Audit Fields Standardization (US-002b & US-002d)
+- **Migration 016**: Standardized audit fields across all 25+ tables
+- **Migration 017**: Standardized association table audit fields using tiered approach
+- **Key Design Decisions (US-002d)**:
+  - Use user trigrams (usr_code) instead of user IDs for audit fields
+  - Implement tiered audit strategy for association tables based on business criticality
+  - Convert existing INTEGER created_by fields to VARCHAR(255) for consistency
+- **Trigger Function**: Reused `update_updated_at_column()` function from migration 012
+- **Helper Function**: Added `get_user_code(user_email)` for retrieving user trigrams
+- **Special Cases**: 
+  - Converted teams_tms_x_users_usr and labels_lbl_x_steps_master_stm from INTEGER to VARCHAR created_by
+  - Added created_at to teams_tms_x_applications_app for Tier 2 audit tracking
+- **Performance**: Added indexes for common audit field query patterns
+- **Generator Updates**: Updated all data generators to populate audit fields with 'generator'
 
 ### 2025-07-15: Teams Association Management and Environment Search Enhancement
 - **Teams Association APIs**: Implemented comprehensive team-application association management:
@@ -700,9 +804,9 @@ All changes are reflected in this document and the ERD.
 
 ---
 
-## 8. Implementation Patterns & Best Practices
+## 9. Implementation Patterns & Best Practices
 
-### 8.1. Type Safety in Repository Methods
+### 9.1. Type Safety in Repository Methods
 All repository methods must use explicit type casting when handling query parameters:
 
 ```groovy
@@ -718,7 +822,7 @@ if (filters.teamId) {
 }
 ```
 
-### 8.2. Master vs Instance ID Filtering
+### 9.2. Master vs Instance ID Filtering
 Always use instance IDs for hierarchical filtering to ensure correct step retrieval:
 
 ```groovy
@@ -731,7 +835,7 @@ query += ' AND phi.phi_id = :phaseId'    // phase instance
 query += ' AND plm.plm_id = :planId'     // plan master
 ```
 
-### 8.3. Complete Field Selection
+### 9.3. Complete Field Selection
 All SQL queries must include ALL fields referenced in result mapping:
 
 ```groovy
@@ -742,7 +846,7 @@ SELECT sti.sti_id, stm.stm_id, stm.stt_code, stm.stm_number, ...
 SELECT sti.sti_id, stm.stt_code, stm.stm_number, ...
 ```
 
-### 8.4. Many-to-Many Relationship Handling
+### 9.4. Many-to-Many Relationship Handling
 Handle optional many-to-many relationships gracefully:
 
 ```groovy
@@ -756,7 +860,7 @@ try {
 }
 ```
 
-### 8.5. Active User Filtering Pattern
+### 9.5. Active User Filtering Pattern
 Handle active status filtering with proper validation:
 
 ```groovy
@@ -778,9 +882,65 @@ if (activeFilter != null) {
 }
 ```
 
+### 9.6. Audit Fields Handling Pattern
+Properly manage audit fields in create and update operations:
+
+```groovy
+// CREATE operation - set all audit fields
+def currentUserCode = getUserCode(currentUserEmail) ?: 'system'  // Get trigram
+def now = new Timestamp(System.currentTimeMillis())
+
+params.created_by = currentUserCode  // User trigram (e.g., 'JDS')
+params.created_at = now
+params.updated_by = currentUserCode  // User trigram
+params.updated_at = now  // Will be auto-updated by trigger on subsequent updates
+
+// UPDATE operation - only set updated_by (updated_at handled by trigger)
+params.updated_by = currentUserCode  // User trigram
+// updated_at is automatically set by PostgreSQL trigger
+
+// Helper function to get user trigram from email
+def getUserCode(String email) {
+    def result = DatabaseUtil.withSql { sql ->
+        sql.firstRow('SELECT usr_code FROM users_usr WHERE usr_email = ?', [email])
+    }
+    return result?.usr_code ?: 'system'
+}
+
+// Utility class usage (AuditFieldsUtil.groovy - if created)
+import umig.utils.AuditFieldsUtil
+
+// For create operations
+def auditFields = AuditFieldsUtil.getCreateAuditFields(currentUserCode)
+params.putAll(auditFields)
+
+// For update operations
+def updateFields = AuditFieldsUtil.getUpdateAuditFields(currentUserCode)
+params.putAll(updateFields)
+
+// Association table audit patterns
+// Tier 1 - Critical (full audit)
+sql.execute("""
+    INSERT INTO teams_tms_x_users_usr (tms_id, usr_id, created_at, created_by)
+    VALUES (?, ?, CURRENT_TIMESTAMP, ?)
+""", [teamId, userId, currentUserCode])
+
+// Tier 2 - Standard (minimal audit)
+sql.execute("""
+    INSERT INTO teams_tms_x_applications_app (tms_id, app_id, created_at)
+    VALUES (?, ?, CURRENT_TIMESTAMP)
+""", [teamId, appId])
+
+// Tier 3 - Simple (no audit)
+sql.execute("""
+    INSERT INTO environments_env_x_applications_app (env_id, app_id)
+    VALUES (?, ?)
+""", [envId, appId])
+```
+
 ---
 
-## 9. References & Further Reading
+## 10. References & Further Reading
 
 - [ADR-029: Full Attribute Instantiation Instance Tables](../adr/ADR-029-full-attribute-instantiation-instance-tables.md)
 - [ADR-031: Groovy Type Safety and Filtering Patterns](../adr/ADR-031-groovy-type-safety-and-filtering-patterns.md)

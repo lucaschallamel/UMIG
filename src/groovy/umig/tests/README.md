@@ -4,9 +4,11 @@ This folder contains all Groovy-based tests for the UMIG project.
 
 ## Structure
 - `apis/`: Unit tests for individual API endpoints
+- `unit/`: Spock-based unit tests with mocked dependencies
 - `integration/`: Integration tests requiring live database connections
 - `grab-postgres-jdbc.groovy`: JDBC driver dependency setup
-- `run-integration-tests.sh`: Test runner script
+- `run-integration-tests.sh`: Integration test runner script
+- `run-unit-tests.sh`: Unit test runner script
 
 ### Diagnostic Tools
 - `checkEnvironmentAssociations.groovy`: General environment association validation
@@ -27,11 +29,19 @@ Before running these tests, ensure you have the following installed and configur
 
 3. **`.env` File**: The integration tests read database credentials directly from the `.env` file located at `local-dev-setup/.env`. Ensure this file exists and contains the correct `UMIG_DB_USER`, `UMIG_DB_PASSWORD`, and `UMIG_DB_NAME` variables.
 
-## Running Integration Tests
+## Running Tests
 
-The easiest way to run all integration tests is to use the provided test runner script. This script handles setting up the classpath for the necessary database drivers.
+### Unit Tests
 
-From the **root of the project**, run:
+Unit tests use Spock framework and mock all external dependencies. From the **root of the project**, run:
+
+```bash
+./src/groovy/umig/tests/run-unit-tests.sh
+```
+
+### Integration Tests
+
+Integration tests require the full development environment to be running. From the **root of the project**, run:
 
 ```bash
 ./src/groovy/umig/tests/run-integration-tests.sh
@@ -77,8 +87,40 @@ This will download the driver to the correct location. You should see:
 
 You can now re-run the integration tests.
 
+## Test Coverage
+
+### Sequences API Tests (US-002)
+
+- **Unit Tests**: `unit/SequenceRepositoryTest.groovy`
+  - 25+ test methods covering all repository operations
+  - ADR-026 compliant specific SQL mocks
+  - Circular dependency validation testing
+  - Type safety validation (ADR-031)
+  - Error handling scenarios
+
+- **Integration Tests**: `integration/SequencesApiIntegrationTest.groovy`
+  - 20 comprehensive test scenarios
+  - CRUD operations for master and instance sequences
+  - Hierarchical filtering (migration, iteration, plan, team)
+  - Ordering operations and bulk reordering
+  - Error handling and constraint validation
+  - Live database testing with complete cleanup
+
+### Plans API Tests
+
+- **Integration Tests**: `integration/PlansApiIntegrationTest.groovy`
+  - 13 test scenarios covering CRUD operations
+  - Hierarchical filtering and status management
+  - Error handling for invalid data
+
 ## Adding a New Integration Test
 
 1. Create your new test script file in the `tests/integration/` directory.
-2. Follow the pattern in `stepViewApiIntegrationTest.groovy` for loading credentials and connecting to the database.
+2. Follow the pattern in `PlansApiIntegrationTest.groovy` for loading credentials and connecting to the database.
 3. Add a new line to the `run-integration-tests.sh` script to execute your new test.
+
+## Adding a New Unit Test
+
+1. Create your new test class in the `tests/unit/` directory using Spock framework.
+2. Follow ADR-026 requirements for specific SQL mocks (no generic matchers).
+3. Add test execution to the `run-unit-tests.sh` script.

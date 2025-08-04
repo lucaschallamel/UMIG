@@ -41,12 +41,12 @@ async function generateAllEnvironments(environments, options = {}) {
   const envByName = {};
   for (const env of environments) {
     const query = `
-      INSERT INTO environments_env (env_code, env_name, env_description)
-      VALUES ($1, $2, $3)
+      INSERT INTO environments_env (env_code, env_name, env_description, created_by, created_at, updated_by, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (env_code) DO NOTHING
       RETURNING env_id, env_name;
     `;
-    const res = await client.query(query, [env.name, env.name, env.description]);
+    const res = await client.query(query, [env.name, env.name, env.description, 'generator', new Date(), 'generator', new Date()]);
     if (res.rows.length > 0) {
       envByName[res.rows[0].env_name] = res.rows[0].env_id;
     }

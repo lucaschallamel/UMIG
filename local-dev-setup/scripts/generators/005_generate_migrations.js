@@ -69,8 +69,8 @@ async function generateMigrations(config, options = {}) {
     endDate.setMonth(endDate.getMonth() + DURATION_MONTHS);
 
     const migQuery = `
-      INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date, created_by, created_at, updated_by, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING mig_id;
     `;
     const migResult = await client.query(migQuery, [
@@ -81,6 +81,10 @@ async function generateMigrations(config, options = {}) {
       TYPE,
       startDate,
       endDate,
+      'generator',
+      new Date(),
+      'generator',
+      new Date()
     ]);
     const migId = migResult.rows[0].mig_id;
 
@@ -106,8 +110,8 @@ async function generateIterationsForPlan(migId, planId, iterationConfig, migStar
       iterEndDate.setDate(iterEndDate.getDate() + 13); // 2 weeks duration
 
       const iteQuery = `
-        INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status)
-        VALUES ($1, $2, $3, $4, $5, $6);
+        INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status, created_by, created_at, updated_by, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
       `;
       await client.query(iteQuery, [
         migId,
@@ -116,6 +120,10 @@ async function generateIterationsForPlan(migId, planId, iterationConfig, migStar
         `${type.toUpperCase()} Iteration ${i + 1} for Plan ${planId}`,
         `This is the ${i + 1} iteration of type ${type.toUpperCase()} for migration ${migId} under plan ${planId}`,
         faker.helpers.arrayElement(iterationStatuses),
+        'generator',
+        new Date(),
+        'generator',
+        new Date()
       ]);
     }
   }

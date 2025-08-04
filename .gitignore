@@ -147,3 +147,6 @@ tmp/lint/
 .screenshots/
 *.bkp
 *.dtmp
+
+# Crush AI assistant
+.crush/
