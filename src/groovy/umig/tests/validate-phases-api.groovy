@@ -6,6 +6,11 @@ import groovy.json.JsonBuilder
 def baseUrl = "http://localhost:8090/rest/scriptrunner/latest/custom"
 def jsonSlurper = new JsonSlurper()
 
+// Authentication credentials (from .env)
+def username = "admin"
+def password = "Spaceop!13"
+def auth = "${username}:${password}".bytes.encodeBase64().toString()
+
 println "=" * 60
 println "PHASES API VALIDATION TEST"
 println "=" * 60
@@ -13,87 +18,92 @@ println "=" * 60
 def testResults = []
 
 // Test 1: Get Master Phases
-println "\n1. Testing GET /phasesmaster..."
+println "\n1. Testing GET /phases/master..."
 try {
-    def url = new URL("${baseUrl}/phasesmaster")
+    def url = new URL("${baseUrl}/phases/master")
     def connection = url.openConnection()
     connection.setRequestProperty("Accept", "application/json")
+    connection.setRequestProperty("Authorization", "Basic ${auth}")
     
     if (connection.responseCode == 200) {
         def response = jsonSlurper.parse(connection.inputStream)
         println "   ✅ Success: Retrieved ${response.size()} master phases"
-        testResults << "GET /phasesmaster: PASS"
+        testResults << "GET /phases/master: PASS"
     } else {
         println "   ❌ Failed: HTTP ${connection.responseCode}"
-        testResults << "GET /phasesmaster: FAIL (${connection.responseCode})"
+        testResults << "GET /phases/master: FAIL (${connection.responseCode})"
     }
 } catch (Exception e) {
     println "   ❌ Error: ${e.message}"
-    testResults << "GET /phasesmaster: ERROR"
+    testResults << "GET /phases/master: ERROR"
 }
 
 // Test 2: Get Phase Instances
-println "\n2. Testing GET /phasesinstance..."
+println "\n2. Testing GET /phases/instance..."
 try {
-    def url = new URL("${baseUrl}/phasesinstance")
+    def url = new URL("${baseUrl}/phases/instance")
     def connection = url.openConnection()
     connection.setRequestProperty("Accept", "application/json")
+    connection.setRequestProperty("Authorization", "Basic ${auth}")
     
     if (connection.responseCode == 200) {
         def response = jsonSlurper.parse(connection.inputStream)
         println "   ✅ Success: Retrieved ${response.size()} phase instances"
-        testResults << "GET /phasesinstance: PASS"
+        testResults << "GET /phases/instance: PASS"
     } else {
         println "   ❌ Failed: HTTP ${connection.responseCode}"
-        testResults << "GET /phasesinstance: FAIL (${connection.responseCode})"
+        testResults << "GET /phases/instance: FAIL (${connection.responseCode})"
     }
 } catch (Exception e) {
     println "   ❌ Error: ${e.message}"
-    testResults << "GET /phasesinstance: ERROR"
+    testResults << "GET /phases/instance: ERROR"
 }
 
 // Test 3: Get specific master phase
-println "\n3. Testing GET /phasesmaster/{id}..."
+println "\n3. Testing GET /phases/master/{id}..."
 try {
     // First get a master phase ID
-    def listUrl = new URL("${baseUrl}/phasesmaster")
+    def listUrl = new URL("${baseUrl}/phases/master")
     def listConn = listUrl.openConnection()
     listConn.setRequestProperty("Accept", "application/json")
+    listConn.setRequestProperty("Authorization", "Basic ${auth}")
     
     if (listConn.responseCode == 200) {
         def phases = jsonSlurper.parse(listConn.inputStream)
         if (phases.size() > 0) {
             def phaseId = phases[0].phm_id
             
-            def url = new URL("${baseUrl}/phasesmaster/${phaseId}")
+            def url = new URL("${baseUrl}/phases/master/${phaseId}")
             def connection = url.openConnection()
             connection.setRequestProperty("Accept", "application/json")
+    connection.setRequestProperty("Authorization", "Basic ${auth}")
             
             if (connection.responseCode == 200) {
                 def response = jsonSlurper.parse(connection.inputStream)
                 println "   ✅ Success: Retrieved master phase '${response.phm_name}'"
-                testResults << "GET /phasesmaster/{id}: PASS"
+                testResults << "GET /phases/master/{id}: PASS"
             } else {
                 println "   ❌ Failed: HTTP ${connection.responseCode}"
-                testResults << "GET /phasesmaster/{id}: FAIL (${connection.responseCode})"
+                testResults << "GET /phases/master/{id}: FAIL (${connection.responseCode})"
             }
         } else {
             println "   ⚠️  No master phases found to test"
-            testResults << "GET /phasesmaster/{id}: SKIP"
+            testResults << "GET /phases/master/{id}: SKIP"
         }
     }
 } catch (Exception e) {
     println "   ❌ Error: ${e.message}"
-    testResults << "GET /phasesmaster/{id}: ERROR"
+    testResults << "GET /phases/master/{id}: ERROR"
 }
 
 // Test 4: Get phase instance with control points
 println "\n4. Testing control points retrieval..."
 try {
     // First get a phase instance ID
-    def listUrl = new URL("${baseUrl}/phasesinstance")
+    def listUrl = new URL("${baseUrl}/phases/instance")
     def listConn = listUrl.openConnection()
     listConn.setRequestProperty("Accept", "application/json")
+    listConn.setRequestProperty("Authorization", "Basic ${auth}")
     
     if (listConn.responseCode == 200) {
         def phases = jsonSlurper.parse(listConn.inputStream)
@@ -103,6 +113,7 @@ try {
             def url = new URL("${baseUrl}/phases/${phaseId}/controls")
             def connection = url.openConnection()
             connection.setRequestProperty("Accept", "application/json")
+    connection.setRequestProperty("Authorization", "Basic ${auth}")
             
             if (connection.responseCode == 200) {
                 def response = jsonSlurper.parse(connection.inputStream)
@@ -126,18 +137,20 @@ try {
 println "\n5. Testing hierarchical filtering..."
 try {
     // Get a sequence ID first
-    def seqUrl = new URL("${baseUrl}/sequencesinstance")
+    def seqUrl = new URL("${baseUrl}/sequences/instance")
     def seqConn = seqUrl.openConnection()
     seqConn.setRequestProperty("Accept", "application/json")
+    seqConn.setRequestProperty("Authorization", "Basic ${auth}")
     
     if (seqConn.responseCode == 200) {
         def sequences = jsonSlurper.parse(seqConn.inputStream)
         if (sequences.size() > 0) {
             def sequenceId = sequences[0].sqi_id
             
-            def url = new URL("${baseUrl}/phasesinstance?sequenceInstanceId=${sequenceId}")
+            def url = new URL("${baseUrl}/phases/instance?sequenceInstanceId=${sequenceId}")
             def connection = url.openConnection()
             connection.setRequestProperty("Accept", "application/json")
+    connection.setRequestProperty("Authorization", "Basic ${auth}")
             
             if (connection.responseCode == 200) {
                 def response = jsonSlurper.parse(connection.inputStream)
@@ -157,9 +170,10 @@ try {
 // Test 6: Test phase progress calculation
 println "\n6. Testing phase progress calculation..."
 try {
-    def listUrl = new URL("${baseUrl}/phasesinstance")
+    def listUrl = new URL("${baseUrl}/phases/instance")
     def listConn = listUrl.openConnection()
     listConn.setRequestProperty("Accept", "application/json")
+    listConn.setRequestProperty("Authorization", "Basic ${auth}")
     
     if (listConn.responseCode == 200) {
         def phases = jsonSlurper.parse(listConn.inputStream)
@@ -169,6 +183,7 @@ try {
             def url = new URL("${baseUrl}/phases/${phaseId}/progress")
             def connection = url.openConnection()
             connection.setRequestProperty("Accept", "application/json")
+    connection.setRequestProperty("Authorization", "Basic ${auth}")
             
             if (connection.responseCode == 200) {
                 def response = jsonSlurper.parse(connection.inputStream)

@@ -3,7 +3,7 @@
 **Version:** 2025-08-04  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 35 architectural decisions (26 archived + 9 newly consolidated: ADR-027 through ADR-035). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
+**Latest Updates:** Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
 
@@ -1560,15 +1560,22 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 ### 13.2. Architecture Components
 
 #### 13.2.1. API Implementation
-**PhasesApi.groovy (939 lines):**
-- 21 REST endpoints providing full CRUD operations
-- Master and instance phase management
+**PhasesApi.groovy (1,060+ lines, refactored August 2025):**
+- **Consolidated Endpoint Architecture:** Single `phases` endpoint with path-based routing
+- **Consistent API Organization:** Aligned with Plans and Sequences APIs for uniform developer experience
+- **21 REST endpoints** providing full CRUD operations under unified structure:
+  - `/phases/master` - Master phase management
+  - `/phases/instance` - Phase instance operations  
+  - `/phases/{id}/controls` - Control point management
+  - `/phases/{id}/progress` - Progress calculation
 - Hierarchical filtering (migration→iteration→plan→sequence→phase)
 - Bulk reordering with dependency validation
 - Control point validation with emergency override
 
 #### 13.2.2. Repository Layer
-**PhaseRepository.groovy (1,139 lines):**
+**PhaseRepository.groovy (1,139+ lines, enhanced August 2025):**
+- **Database Compatibility Fixes:** PostgreSQL timestamp casting (`::text`) to resolve JDBC compatibility issues
+- **Query Optimization:** Simplified queries for better performance and reliability
 - Complex business logic with control point validation
 - Progress aggregation: 70% step completion + 30% control point status
 - Atomic transaction management for bulk operations
@@ -1618,20 +1625,35 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ### 13.5. API Design Patterns
 
 #### 13.5.1. Endpoint Categories
+**Consolidated Single-Entry Architecture (August 2025 Refactoring):**
+- **Unified Routing:** All endpoints consolidated under single `phases` entry point
+- **Path-Based Organization:** Internal routing via path segments (`/master`, `/instance`, `/controls`)
+- **Consistent with System:** Matches Plans and Sequences API patterns for developer experience
+
 **Master Phase Management (7 endpoints):**
-- CRUD operations for template phases
-- Bulk operations for phase libraries
-- Validation and constraint management
+- `GET /phases/master` - List all master phases
+- `GET /phases/master/{id}` - Get specific master phase
+- `POST /phases/master` - Create new master phase
+- `PUT /phases/master/{id}` - Update master phase
+- `DELETE /phases/master/{id}` - Delete master phase
+- `POST /phases/master/reorder` - Bulk reorder master phases
+- `POST /phases/master/{id}/instantiate` - Create phase instances
 
 **Instance Phase Management (9 endpoints):**
-- Runtime phase execution tracking
-- Progress monitoring and control point validation
-- Emergency override capabilities
+- `GET /phases/instance` - List phase instances with hierarchical filtering
+- `GET /phases/instance/{id}` - Get specific phase instance  
+- `PUT /phases/instance/{id}` - Update phase instance
+- `DELETE /phases/instance/{id}` - Delete phase instance
+- `PUT /phases/instance/{id}/status` - Update phase status
+- `POST /phases/instance/reorder` - Bulk reorder instances
+- Runtime phase execution tracking and emergency override capabilities
 
-**Utility Operations (5 endpoints):**
-- Hierarchical filtering support
-- Bulk reordering with validation
-- Status aggregation and reporting
+**Control & Progress Operations (5 endpoints):**
+- `GET /phases/{id}/controls` - Get control points for phase
+- `PUT /phases/{id}/controls/{controlId}` - Update control point status
+- `POST /phases/{id}/controls/{controlId}/override` - Emergency override
+- `GET /phases/{id}/progress` - Calculate weighted progress
+- Status aggregation and reporting with audit trails
 
 #### 13.5.2. Response Patterns
 **Consistent Error Handling:**

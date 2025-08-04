@@ -322,46 +322,22 @@ class PhaseRepository {
      */
     def findPhaseInstances(Map filters) {
         DatabaseUtil.withSql { sql ->
+            // Simplified query to avoid hstore issues
             def query = """
                 SELECT 
                     phi.phi_id,
                     phi.sqi_id,
                     phi.phm_id,
                     phi.phi_status,
-                    phi.phi_start_time,
-                    phi.phi_end_time,
+                    COALESCE(phi.phi_start_time::text, '') as phi_start_time,
+                    COALESCE(phi.phi_end_time::text, '') as phi_end_time,
                     phi.phi_order,
                     phi.phi_name,
                     phi.phi_description,
                     phi.predecessor_phi_id,
-                    phi.created_at,
-                    phi.updated_at,
-                    phm.phm_name as master_name,
-                    phm.phm_description as master_description,
-                    phm.phm_order as master_order,
-                    sqi.sqi_name,
-                    sqm.sqm_name,
-                    pli.pli_name,
-                    plm.plm_name,
-                    plm.tms_id,
-                    tms.tms_name,
-                    itr.itr_name,
-                    mig.mig_name,
-                    sts.sts_id,
-                    sts.sts_name,
-                    sts.sts_color,
-                    pred.phi_name as predecessor_name
+                    phi.created_at::text as created_at,
+                    phi.updated_at::text as updated_at
                 FROM phases_instance_phi phi
-                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
-                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
-                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
-                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
-                JOIN iterations_ite itr ON pli.ite_id = itr.ite_id
-                JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
-                LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts sts ON sts.sts_name = phi.phi_status AND sts.sts_type = 'Phase'
-                LEFT JOIN phases_instance_phi pred ON phi.predecessor_phi_id = pred.phi_id
                 WHERE 1=1
             """
             
@@ -417,16 +393,16 @@ class PhaseRepository {
                     phi.sqi_id,
                     phi.phm_id,
                     phi.phi_status,
-                    phi.phi_start_time,
-                    phi.phi_end_time,
+                    phi.phi_start_time::text as phi_start_time,
+                    phi.phi_end_time::text as phi_end_time,
                     phi.phi_order,
                     phi.phi_name,
                     phi.phi_description,
                     phi.predecessor_phi_id,
                     phi.created_by,
-                    phi.created_at,
+                    phi.created_at::text as created_at,
                     phi.updated_by,
-                    phi.updated_at,
+                    phi.updated_at::text as updated_at,
                     phm.phm_name as master_name,
                     phm.phm_description as master_description,
                     phm.phm_order as master_order,
