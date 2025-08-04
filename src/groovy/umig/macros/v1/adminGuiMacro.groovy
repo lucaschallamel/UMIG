@@ -139,13 +139,13 @@ return """
                             <li><a href="#" class="nav-item" data-section="migrations" data-entity="migrations">
                                 <span class="item-icon">🚀</span> Migrations
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="master-plans" data-entity="plans-master">
+                            <li><a href="#" class="nav-item" data-section="master-plans" data-entity="plansmaster">
                                 <span class="item-icon">📑</span> Master Plans
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="master-sequences" data-entity="sequences-master">
+                            <li><a href="#" class="nav-item" data-section="master-sequences" data-entity="sequencesmaster">
                                 <span class="item-icon">🔗</span> Master Sequences
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="master-phases" data-entity="phases-master">
+                            <li><a href="#" class="nav-item" data-section="master-phases" data-entity="phasesmaster">
                                 <span class="item-icon">⏱️</span> Master Phases
                             </a></li>
                             <li><a href="#" class="nav-item" data-section="master-steps" data-entity="steps-master">
@@ -167,10 +167,13 @@ return """
                             <li><a href="#" class="nav-item" data-section="iterations" data-entity="iterations">
                                 <span class="item-icon">🔄</span> Iterations
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="sequences" data-entity="sequences-instance">
+                            <li><a href="#" class="nav-item" data-section="plans" data-entity="plansinstance">
+                                <span class="item-icon">📋</span> Plans
+                            </a></li>
+                            <li><a href="#" class="nav-item" data-section="sequences" data-entity="sequencesinstance">
                                 <span class="item-icon">🔗</span> Sequences
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="phases" data-entity="phases-instance">
+                            <li><a href="#" class="nav-item" data-section="phases" data-entity="phasesinstance">
                                 <span class="item-icon">⏱️</span> Phases
                             </a></li>
                             <li><a href="#" class="nav-item" data-section="steps" data-entity="steps-instance">

@@ -64,6 +64,12 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   * **UI/UX Centralization:** `/docs/roadmap/ux-ui/` subfolder with interface specifications, design assets, and templates
   * **Clear Separation of Concerns:** Development (sprints) vs Design (ux-ui) with dedicated README files
   * **Scalable Structure:** Ready for sprint1/, sprint2/, sprint3/ expansion and additional UI components
+* **Control Point System Patterns:** Enterprise-grade quality gate management (4 August 2025)
+  * **Multi-Type Validation:** MANDATORY/OPTIONAL/CONDITIONAL control types with state machine (PENDING→VALIDATED/FAILED→OVERRIDDEN)
+  * **Emergency Override Capability:** Critical path functionality with full audit trail capturing reason, actor, and timestamp
+  * **Weighted Progress Aggregation:** 70% step completion + 30% control point validation for accurate phase progress
+  * **Transaction-Safe Operations:** Control point updates wrapped in database transactions with rollback capability
+  * **Hierarchical Validation:** Control points cascade through phases with parent-child validation dependencies
 
 ## 3. Component Relationships
 

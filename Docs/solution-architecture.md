@@ -3,7 +3,7 @@
 **Version:** 2025-08-04  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 35 architectural decisions (26 archived + 9 newly consolidated: ADR-027 through ADR-035). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
+**Latest Updates:** Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
 
@@ -1546,6 +1546,165 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 - Evaluate audit field requirements for new entity types
 - Consider audit log archiving strategy for long-term data retention
 - Assess advanced audit requirements (field-level change tracking)
+
+---
+
+## 13. Phases API Implementation with Control Point System (US-003)
+
+### 13.1. Implementation Overview
+
+**Status:** Completed (August 2025)  
+**Impact:** High - Core MVP functionality for quality gate management  
+**Test Coverage:** 90%+ with comprehensive integration testing  
+
+### 13.2. Architecture Components
+
+#### 13.2.1. API Implementation
+**PhasesApi.groovy (1,060+ lines, refactored August 2025):**
+- **Consolidated Endpoint Architecture:** Single `phases` endpoint with path-based routing
+- **Consistent API Organization:** Aligned with Plans and Sequences APIs for uniform developer experience
+- **21 REST endpoints** providing full CRUD operations under unified structure:
+  - `/phases/master` - Master phase management
+  - `/phases/instance` - Phase instance operations  
+  - `/phases/{id}/controls` - Control point management
+  - `/phases/{id}/progress` - Progress calculation
+- Hierarchical filtering (migration→iteration→plan→sequence→phase)
+- Bulk reordering with dependency validation
+- Control point validation with emergency override
+
+#### 13.2.2. Repository Layer
+**PhaseRepository.groovy (1,139+ lines, enhanced August 2025):**
+- **Database Compatibility Fixes:** PostgreSQL timestamp casting (`::text`) to resolve JDBC compatibility issues
+- **Query Optimization:** Simplified queries for better performance and reliability
+- Complex business logic with control point validation
+- Progress aggregation: 70% step completion + 30% control point status
+- Atomic transaction management for bulk operations
+- Circular dependency detection and prevention
+
+#### 13.2.3. Quality Assurance
+**Comprehensive Testing:**
+- 30 integration test scenarios covering all endpoints
+- 1,694 lines of unit tests with edge case coverage
+- API validation scripts for endpoint verification
+- Performance testing meeting <200ms response targets
+
+### 13.3. Control Point Validation System
+
+#### 13.3.1. Automated Quality Gates
+**Control Point Types:**
+- **Pre-Conditions:** Requirements validation before phase execution
+- **Mid-Point Checks:** Progress validation during phase execution  
+- **Post-Conditions:** Completion criteria verification
+- **Emergency Overrides:** Critical path bypass with full audit trail
+
+#### 13.3.2. Progress Calculation
+**Weighted Progress Algorithm:**
+```groovy
+phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
+```
+
+**Benefits:**
+- Real-time progress visibility for operations teams
+- Automated risk detection through control point failures
+- Evidence-based completion criteria with audit trails
+
+### 13.4. Hierarchical Navigation Patterns
+
+#### 13.4.1. Parent-Child Filtering
+**Filter Chain:** migration → iteration → plan → sequence → phase
+- Cascading filter reset when parent selection changes
+- Instance ID usage (not master IDs) for correct data retrieval
+- Performance-optimized queries with proper indexing
+
+#### 13.4.2. Bulk Operations Support
+**Atomic Reordering:**
+- Transaction-based ordering changes with rollback capability
+- Dependency validation preventing circular relationships
+- Batch update optimization for large-scale reordering
+
+### 13.5. API Design Patterns
+
+#### 13.5.1. Endpoint Categories
+**Consolidated Single-Entry Architecture (August 2025 Refactoring):**
+- **Unified Routing:** All endpoints consolidated under single `phases` entry point
+- **Path-Based Organization:** Internal routing via path segments (`/master`, `/instance`, `/controls`)
+- **Consistent with System:** Matches Plans and Sequences API patterns for developer experience
+
+**Master Phase Management (7 endpoints):**
+- `GET /phases/master` - List all master phases
+- `GET /phases/master/{id}` - Get specific master phase
+- `POST /phases/master` - Create new master phase
+- `PUT /phases/master/{id}` - Update master phase
+- `DELETE /phases/master/{id}` - Delete master phase
+- `POST /phases/master/reorder` - Bulk reorder master phases
+- `POST /phases/master/{id}/instantiate` - Create phase instances
+
+**Instance Phase Management (9 endpoints):**
+- `GET /phases/instance` - List phase instances with hierarchical filtering
+- `GET /phases/instance/{id}` - Get specific phase instance  
+- `PUT /phases/instance/{id}` - Update phase instance
+- `DELETE /phases/instance/{id}` - Delete phase instance
+- `PUT /phases/instance/{id}/status` - Update phase status
+- `POST /phases/instance/reorder` - Bulk reorder instances
+- Runtime phase execution tracking and emergency override capabilities
+
+**Control & Progress Operations (5 endpoints):**
+- `GET /phases/{id}/controls` - Get control points for phase
+- `PUT /phases/{id}/controls/{controlId}` - Update control point status
+- `POST /phases/{id}/controls/{controlId}/override` - Emergency override
+- `GET /phases/{id}/progress` - Calculate weighted progress
+- Status aggregation and reporting with audit trails
+
+#### 13.5.2. Response Patterns
+**Consistent Error Handling:**
+- SQL state mapping: 23503→400 (constraint), 23505→409 (conflict)
+- Detailed error messages with context information
+- Graceful degradation for partial failures
+
+### 13.6. Integration Points
+
+#### 13.6.1. Frontend Integration
+**Admin GUI Phase Management:**
+- Modular JavaScript components for phase operations
+- Real-time progress updates via AJAX polling
+- Emergency override UI with confirmation workflows
+
+#### 13.6.2. Database Integration
+**Schema Compliance:**
+- Full audit field implementation (ADR-035)
+- Type safety patterns (ADR-034)
+- Hierarchical filtering support (ADR-030)
+
+### 13.7. Business Value Delivered
+
+#### 13.7.1. Risk Mitigation
+- Automated quality gates preventing execution errors
+- Control point validation ensuring readiness criteria
+- Emergency override capabilities for critical situations
+
+#### 13.7.2. Operational Visibility
+- Real-time progress tracking across all phases
+- Evidence-based completion status with audit trails
+- Hierarchical navigation supporting complex migration structures
+
+#### 13.7.3. Development Foundation
+- Proven patterns for remaining MVP APIs (Plans, Instructions)
+- Comprehensive test coverage ensuring reliability
+- Performance benchmarks validating scalability requirements
+
+### 13.8. Implementation Standards Established
+
+#### 13.8.1. Proven Patterns
+- Repository pattern with complex business logic
+- Control point validation with override capabilities
+- Hierarchical filtering with performance optimization
+- Comprehensive testing with integration scenarios
+
+#### 13.8.2. Quality Standards
+- 90%+ test coverage requirement
+- <200ms response time targets
+- Comprehensive API documentation with examples
+- Type safety compliance throughout implementation
 
 ---
 
