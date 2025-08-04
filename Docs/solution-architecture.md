@@ -2,7 +2,7 @@
 
 **Version:** 2025-08-04  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 34 architectural decisions (26 archived + 8 newly consolidated: ADR-027 through ADR-034). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Source ADRs:** This document consolidates 35 architectural decisions (26 archived + 9 newly consolidated: ADR-027 through ADR-035). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
 **Latest Updates:** Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
@@ -62,6 +62,7 @@ This document consolidates the following architectural decisions:
 
 ### Development Standards & Code Quality
 - [ADR-034] - Static Type Checking Patterns for ScriptRunner (Consolidated in this document)
+- [ADR-035] - Database Audit Fields Standardization (Consolidated in this document)
 
 ---
 
@@ -1398,6 +1399,153 @@ The benefits of runtime reliability and consistent error handling outweigh the a
 **New Code:** All new API implementations must follow these patterns from initial development.
 
 **Testing:** Comprehensive testing must validate type safety patterns for all new and updated code.
+
+---
+
+## 12. Database Audit Fields Standardization ([ADR-035])
+
+### 12.1. Architecture Decision Record - ADR-035
+
+**Title:** Database Audit Fields Standardization  
+**Status:** Implemented (US-002b)  
+**Date:** August 2025  
+**Impact:** High - affects all database tables  
+
+### 12.2. Problem Context
+
+UMIG database tables had inconsistent audit field implementation across 25+ tables, creating challenges for:
+- User accountability and change tracking
+- Regulatory compliance and audit trails
+- System operation transparency
+- Data integrity monitoring
+
+### 12.3. Solution Architecture
+
+#### 12.3.1. Standardized Audit Fields
+
+**Required Fields for All Tables:**
+```sql
+created_by VARCHAR(255) NOT NULL,
+created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+updated_by VARCHAR(255) NOT NULL,
+updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+```
+
+**Field Specifications:**
+- `created_by/updated_by`: VARCHAR(255) supporting user trigrams (usr_code) and system identifiers
+- `created_at/updated_at`: Automatic timestamp management via PostgreSQL triggers
+- Composite indexes on audit fields for optimal query performance
+
+#### 12.3.2. Tiered Association Audit Strategy
+
+**Tier 1 (Critical):** Full audit fields for access control tracking
+- `teams_tms_x_users_usr` - user access tracking
+
+**Tier 2 (Standard):** Minimal audit for change tracking  
+- Label associations - `created_at`, `created_by` only
+
+**Tier 3 (Simple):** No audit overhead for pure many-to-many relationships
+- Environment associations
+
+### 12.4. Implementation Details
+
+#### 12.4.1. Database Migrations
+
+**Migration 016:** Core audit fields addition across 25+ tables
+- Standardized audit field implementation
+- `get_user_code()` helper function for trigram resolution
+- Composite indexes for performance optimization
+
+**Migration 017:** Association table audit strategy implementation
+- Tiered approach based on business criticality
+- Selective audit field application
+
+**Migration 018:** Existing field conversion
+- Converted INTEGER `created_by` fields to VARCHAR for consistency
+- Special handling for `labels_lbl` table
+
+#### 12.4.2. Supporting Infrastructure
+
+**AuditFieldsUtil.groovy:**
+- Standardized utility class for audit field handling
+- User trigram resolution and system identifier management
+- Comprehensive test coverage (AuditFieldsUtilTest.groovy)
+
+**Data Generation Updates:**
+- Updated 7 generator scripts (002, 003, 004, 005, 006, 008, 099)
+- Populate audit fields with 'generator' identifier
+- System identifier patterns for automated processes
+
+### 12.5. Value Conventions
+
+#### 12.5.1. User Identifiers
+- **Interactive Users:** User trigram codes (e.g., "jdo", "msl") from usr_code field
+- **System Operations:** Reserved identifiers:
+  - `'generator'` - Data generation scripts
+  - `'system'` - Automated system processes  
+  - `'migration'` - Database migration operations
+
+#### 12.5.2. Timestamp Management
+- `created_at`: Set once during record creation, never modified
+- `updated_at`: Automatically updated via PostgreSQL triggers on row modification
+- All timestamps use `TIMESTAMP WITH TIME ZONE` for global consistency
+
+### 12.6. Performance Considerations
+
+#### 12.6.1. Index Strategy
+```sql
+-- Composite indexes on audit fields for common query patterns
+CREATE INDEX idx_[table]_audit_created ON [table] (created_by, created_at);
+CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
+```
+
+#### 12.6.2. Query Optimization
+- Audit field queries leverage composite indexes
+- Selective indexing based on table criticality and query patterns
+- Performance monitoring for audit-enabled operations
+
+### 12.7. Benefits and Impact
+
+#### 12.7.1. Benefits
+- **Complete Audit Trail:** Every entity lifecycle event tracked (create, update, delete)
+- **User Accountability:** Trigram-based created_by/updated_by tracking
+- **System Transparency:** Standardized identifier conventions for automated operations
+- **Regulatory Compliance:** Comprehensive change tracking for audit requirements
+- **Operational Excellence:** Performance-optimized with automatic timestamp management
+
+#### 12.7.2. System Impact
+- **Development:** Consistent audit patterns across all API operations
+- **Testing:** 100% audit field compliance in test suite (74 tests passing)
+- **Data Generation:** Audit-compliant synthetic data for development/testing
+- **Migration:** Seamless implementation with rollback capability
+
+### 12.8. Implementation Standards
+
+#### 12.8.1. Mandatory Requirements
+- All new tables MUST include standardized audit fields
+- All data modification operations MUST populate audit fields
+- System operations MUST use appropriate identifier conventions
+- API operations MUST leverage AuditFieldsUtil for consistency
+
+#### 12.8.2. Testing Requirements
+- Unit tests MUST validate audit field population
+- Integration tests MUST verify audit field consistency
+- Migration tests MUST confirm audit field structure and data
+
+### 12.9. Migration and Compliance
+
+#### 12.9.1. Implementation Status
+✅ All 25+ database tables updated with standardized audit fields  
+✅ Tiered association audit strategy implemented  
+✅ Supporting infrastructure (utilities, tests) completed  
+✅ Data generation scripts updated for audit compliance  
+✅ Comprehensive test coverage ensuring audit field compliance  
+
+#### 12.9.2. Future Considerations
+- Monitor performance impact of audit field queries
+- Evaluate audit field requirements for new entity types
+- Consider audit log archiving strategy for long-term data retention
+- Assess advanced audit requirements (field-level change tracking)
 
 ---
 

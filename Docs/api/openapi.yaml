@@ -3782,10 +3782,16 @@ components:
         tms_id:
           type: integer
           description: ID of the team (from master)
+        created_by:
+          type: string
+          description: User who created the plan instance
         created_at:
           type: string
           format: date-time
           description: Creation timestamp
+        updated_by:
+          type: string
+          description: User who last updated the plan instance
         updated_at:
           type: string
           format: date-time
@@ -3799,12 +3805,6 @@ components:
             plm_description:
               type: string
               description: Description from master plan
-            created_by:
-              type: string
-              description: User who created the instance
-            updated_by:
-              type: string
-              description: User who last updated the instance
 
     PlanInstanceInput:
       type: object
@@ -4009,10 +4009,16 @@ components:
         tms_name:
           type: string
           description: Name of the team
+        created_by:
+          type: string
+          description: User who created the sequence instance
         created_at:
           type: string
           format: date-time
           description: Creation timestamp
+        updated_by:
+          type: string
+          description: User who last updated the sequence instance
         updated_at:
           type: string
           format: date-time
