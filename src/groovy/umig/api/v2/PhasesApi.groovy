@@ -1,0 +1,939 @@
+package umig.api.v2
+
+import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
+import umig.repository.PhaseRepository
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+import groovy.json.JsonException
+import groovy.transform.BaseScript
+
+import javax.servlet.http.HttpServletRequest
+import javax.ws.rs.core.MultivaluedMap
+import javax.ws.rs.core.Response
+import java.sql.SQLException
+import java.util.UUID
+
+@BaseScript CustomEndpointDelegate delegate
+
+final PhaseRepository phaseRepository = new PhaseRepository()
+
+/**
+ * Handles error responses with proper SQL state mapping
+ */
+private Response handleError(Exception e) {
+    if (e instanceof SQLException) {
+        def sqlState = e.SQLState
+        switch (sqlState) {
+            case '23503': // Foreign key violation
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Foreign key constraint violation: ${e.message}"]).toString())
+                    .build()
+            case '23505': // Unique violation
+                return Response.status(Response.Status.CONFLICT)
+                    .entity(new JsonBuilder([error: "Unique constraint violation: ${e.message}"]).toString())
+                    .build()
+            case '23514': // Check constraint violation
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Check constraint violation: ${e.message}"]).toString())
+                    .build()
+            default:
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: "Database error: ${e.message}"]).toString())
+                    .build()
+        }
+    } else if (e instanceof IllegalArgumentException) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: e.message]).toString())
+            .build()
+    } else {
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([error: "Internal server error: ${e.message}"]).toString())
+            .build()
+    }
+}
+
+// ==================== MASTER PHASE MANAGEMENT (5 endpoints) ====================
+
+/**
+ * Handles GET requests for master phases.
+ * - GET /phases-master -> returns all master phases
+ * - GET /phases-master/{phm_id} -> returns specific master phase
+ * - GET /phases-master?sequenceId={uuid} -> returns phases for sequence
+ */
+phasesmaster(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    try {
+        // GET /phases-master/{phm_id} - get specific master phase
+        if (pathParts.size() == 1) {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            def phase = phaseRepository.findMasterPhaseById(phaseId)
+            
+            if (!phase) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Master phase not found"]).toString())
+                    .build()
+            }
+            
+            return Response.ok(new JsonBuilder(phase).toString()).build()
+        }
+        
+        // GET /phases-master with optional filtering
+        if (pathParts.empty) {
+            def phases
+            
+            // Filter by sequence ID if provided
+            if (queryParams.getFirst("sequenceId")) {
+                def sequenceId = UUID.fromString(queryParams.getFirst("sequenceId") as String)
+                phases = phaseRepository.findMasterPhasesBySequenceId(sequenceId)
+            } else {
+                phases = phaseRepository.findAllMasterPhases()
+            }
+            
+            return Response.ok(new JsonBuilder(phases).toString()).build()
+        }
+        
+        return Response.status(Response.Status.NOT_FOUND)
+            .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+            .build()
+            
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+            .build()
+    } catch (Exception e) {
+        return handleError(e)
+    }
+}
+
+/**
+ * Handles POST requests to create new master phases.
+ * Request body should contain: sqm_id, phm_name, phm_description, phm_order (optional), predecessor_phm_id (optional)
+ */
+phasesmaster(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    try {
+        if (!body || body.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                .build()
+        }
+        
+        def requestData = new JsonSlurper().parseText(body) as Map
+        
+        // Validate required fields
+        if (!requestData.sqm_id || !requestData.phm_name) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Missing required fields: sqm_id, phm_name"]).toString())
+                .build()
+        }
+        
+        // ADR-031: Type safety with explicit casting
+        def phaseData = [:]
+        phaseData.sqm_id = UUID.fromString(requestData.sqm_id as String)
+        phaseData.phm_name = requestData.phm_name as String
+        phaseData.phm_description = requestData.phm_description as String
+        
+        if (requestData.phm_order) {
+            phaseData.phm_order = Integer.parseInt(requestData.phm_order as String)
+        }
+        
+        if (requestData.predecessor_phm_id) {
+            phaseData.predecessor_phm_id = UUID.fromString(requestData.predecessor_phm_id as String)
+        }
+        
+        def result = phaseRepository.createMasterPhase(phaseData)
+        
+        if (result) {
+            return Response.status(Response.Status.CREATED)
+                .entity(new JsonBuilder(result).toString())
+                .build()
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Failed to create master phase"]).toString())
+                .build()
+        }
+        
+    } catch (JsonException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+            .build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+            .build()
+    } catch (Exception e) {
+        return handleError(e)
+    }
+}
+
+/**
+ * Handles PUT requests to update master phases.
+ */
+phasesmaster(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // PUT /phases-master/{phm_id}
+    if (pathParts.size() == 1) {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            
+            if (!body || body.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            def requestData = new JsonSlurper().parseText(body) as Map
+            
+            // ADR-031: Type safety for updates
+            def updateData = [:]
+            if (requestData.phm_name) {
+                updateData.phm_name = requestData.phm_name as String
+            }
+            if (requestData.phm_description) {
+                updateData.phm_description = requestData.phm_description as String
+            }
+            if (requestData.predecessor_phm_id) {
+                updateData.predecessor_phm_id = UUID.fromString(requestData.predecessor_phm_id as String)
+            }
+            
+            def result = phaseRepository.updateMasterPhase(phaseId, updateData)
+            
+            if (result) {
+                return Response.ok(new JsonBuilder(result).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Master phase not found"]).toString())
+                    .build()
+            }
+            
+        } catch (JsonException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+                .build()
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+/**
+ * Handles DELETE requests to delete master phases.
+ */
+phasesmaster(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // DELETE /phases-master/{phm_id}
+    if (pathParts.size() == 1) {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            def success = phaseRepository.deleteMasterPhase(phaseId)
+            
+            if (success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Master phase deleted successfully"
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.CONFLICT)
+                    .entity(new JsonBuilder([error: "Cannot delete master phase with dependencies"]).toString())
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+// ==================== INSTANCE PHASE OPERATIONS (5 endpoints) ====================
+
+/**
+ * Handles GET requests for phase instances.
+ * - GET /phases-instance -> returns all phase instances with filtering
+ * - GET /phases-instance/{phi_id} -> returns specific phase instance
+ */
+phasesinstance(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    try {
+        // GET /phases-instance/{phi_id} - get specific phase instance
+        if (pathParts.size() == 1) {
+            def instanceId = UUID.fromString(pathParts[0] as String)
+            def instance = phaseRepository.findPhaseInstanceById(instanceId)
+            
+            if (!instance) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Phase instance not found"]).toString())
+                    .build()
+            }
+            
+            return Response.ok(new JsonBuilder(instance).toString()).build()
+        }
+        
+        // GET /phases-instance with hierarchical filtering
+        if (pathParts.empty) {
+            def filters = [:]
+            
+            // ADR-031: Type safety for all filters
+            if (queryParams.getFirst("migrationId")) {
+                filters.migrationId = queryParams.getFirst("migrationId") as String
+            }
+            
+            if (queryParams.getFirst("iterationId")) {
+                filters.iterationId = queryParams.getFirst("iterationId") as String
+            }
+            
+            if (queryParams.getFirst("planInstanceId")) {
+                filters.planInstanceId = queryParams.getFirst("planInstanceId") as String
+            }
+            
+            if (queryParams.getFirst("sequenceInstanceId")) {
+                filters.sequenceInstanceId = queryParams.getFirst("sequenceInstanceId") as String
+            }
+            
+            if (queryParams.getFirst("teamId")) {
+                filters.teamId = queryParams.getFirst("teamId") as String
+            }
+            
+            if (queryParams.getFirst("statusId")) {
+                filters.statusId = queryParams.getFirst("statusId") as String
+            }
+            
+            def instances = phaseRepository.findPhaseInstances(filters)
+            return Response.ok(new JsonBuilder(instances).toString()).build()
+        }
+        
+        return Response.status(Response.Status.NOT_FOUND)
+            .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+            .build()
+            
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+            .build()
+    } catch (Exception e) {
+        return handleError(e)
+    }
+}
+
+/**
+ * Handles POST requests to create phase instances from master phases.
+ * Request body should contain: phm_id, sqi_id, plus optional overrides
+ */
+phasesinstance(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    try {
+        if (!body || body.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                .build()
+        }
+        
+        def requestData = new JsonSlurper().parseText(body) as Map
+        
+        // Validate required fields
+        if (!requestData.phm_id || !requestData.sqi_id) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Missing required fields: phm_id, sqi_id"]).toString())
+                .build()
+        }
+        
+        // ADR-031: Type safety
+        def masterPhaseId = UUID.fromString(requestData.phm_id as String)
+        def sequenceInstanceId = UUID.fromString(requestData.sqi_id as String)
+        
+        def overrides = [:]
+        if (requestData.phi_name) {
+            overrides.phi_name = requestData.phi_name as String
+        }
+        if (requestData.phi_description) {
+            overrides.phi_description = requestData.phi_description as String
+        }
+        if (requestData.phi_status) {
+            overrides.phi_status = requestData.phi_status as String
+        }
+        if (requestData.phi_order) {
+            overrides.phi_order = Integer.parseInt(requestData.phi_order as String)
+        }
+        if (requestData.predecessor_phi_id) {
+            overrides.predecessor_phi_id = UUID.fromString(requestData.predecessor_phi_id as String)
+        }
+        
+        def result = phaseRepository.createPhaseInstance(masterPhaseId, sequenceInstanceId, overrides)
+        
+        if (result) {
+            return Response.status(Response.Status.CREATED)
+                .entity(new JsonBuilder(result).toString())
+                .build()
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Failed to create phase instance"]).toString())
+                .build()
+        }
+        
+    } catch (JsonException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+            .build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+            .build()
+    } catch (Exception e) {
+        return handleError(e)
+    }
+}
+
+/**
+ * Handles PUT requests to update phase instances.
+ */
+phasesinstance(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // PUT /phases-instance/{phi_id}
+    if (pathParts.size() == 1) {
+        try {
+            def instanceId = UUID.fromString(pathParts[0] as String)
+            
+            if (!body || body.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            def requestData = new JsonSlurper().parseText(body) as Map
+            
+            // ADR-031: Type safety for updates
+            def updateData = [:]
+            if (requestData.phi_name) {
+                updateData.phi_name = requestData.phi_name as String
+            }
+            if (requestData.phi_description) {
+                updateData.phi_description = requestData.phi_description as String
+            }
+            if (requestData.phi_status) {
+                updateData.phi_status = requestData.phi_status as String
+            }
+            if (requestData.phi_order) {
+                updateData.phi_order = Integer.parseInt(requestData.phi_order as String)
+            }
+            if (requestData.predecessor_phi_id) {
+                updateData.predecessor_phi_id = UUID.fromString(requestData.predecessor_phi_id as String)
+            }
+            if (requestData.phi_start_time) {
+                updateData.phi_start_time = requestData.phi_start_time
+            }
+            if (requestData.phi_end_time) {
+                updateData.phi_end_time = requestData.phi_end_time
+            }
+            
+            def result = phaseRepository.updatePhaseInstance(instanceId, updateData)
+            
+            if (result) {
+                return Response.ok(new JsonBuilder(result).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Phase instance not found"]).toString())
+                    .build()
+            }
+            
+        } catch (JsonException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+                .build()
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+/**
+ * Handles DELETE requests to delete phase instances.
+ */
+phasesinstance(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // DELETE /phases-instance/{phi_id}
+    if (pathParts.size() == 1) {
+        try {
+            def instanceId = UUID.fromString(pathParts[0] as String)
+            def success = phaseRepository.deletePhaseInstance(instanceId)
+            
+            if (success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Phase instance deleted successfully"
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.CONFLICT)
+                    .entity(new JsonBuilder([error: "Cannot delete phase instance with dependencies"]).toString())
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+// ==================== CONTROL POINTS MANAGEMENT (4 endpoints) ====================
+
+/**
+ * Handles GET requests for phase control points.
+ * - GET /phases/{phi_id}/controls -> returns control points for phase
+ */
+phases(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // GET /phases/{phi_id}/controls
+    if (pathParts.size() == 2 && pathParts[1] == 'controls') {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            def controls = phaseRepository.findControlPoints(phaseId)
+            
+            return Response.ok(new JsonBuilder(controls).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    // GET /phases/{phi_id}/progress - get phase progress
+    if (pathParts.size() == 2 && pathParts[1] == 'progress') {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            def progress = phaseRepository.calculatePhaseProgress(phaseId)
+            
+            return Response.ok(new JsonBuilder([
+                phi_id: phaseId,
+                progress_percentage: progress
+            ]).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+/**
+ * Handles POST requests for control point operations.
+ * - POST /phases/{phi_id}/controls/validate -> validates control points
+ * - POST /phases/{phi_id}/controls/{cti_id}/override -> overrides control with reason
+ */
+phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // POST /phases/{phi_id}/controls/validate
+    if (pathParts.size() == 3 && pathParts[1] == 'controls' && pathParts[2] == 'validate') {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            def validation = phaseRepository.validateControlPoints(phaseId)
+            
+            return Response.ok(new JsonBuilder(validation).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    // POST /phases/{phi_id}/controls/{cti_id}/override
+    if (pathParts.size() == 4 && pathParts[1] == 'controls' && pathParts[3] == 'override') {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            def controlId = UUID.fromString(pathParts[2] as String)
+            
+            if (!body || body.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            def requestData = new JsonSlurper().parseText(body) as Map
+            def reason = requestData.reason as String ?: "Override requested"
+            def overrideBy = requestData.overrideBy as String ?: "system"
+            
+            def success = phaseRepository.overrideControl(controlId, reason, overrideBy)
+            
+            if (success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Control point overridden successfully"
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Control point not found"]).toString())
+                    .build()
+            }
+            
+        } catch (JsonException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+                .build()
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid UUID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+/**
+ * Handles PUT requests for control point updates.
+ * - PUT /phases/{phi_id}/controls/{cti_id} -> updates control point status
+ */
+phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // PUT /phases/{phi_id}/controls/{cti_id}
+    if (pathParts.size() == 3 && pathParts[1] == 'controls') {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            def controlId = UUID.fromString(pathParts[2] as String)
+            
+            if (!body || body.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            def requestData = new JsonSlurper().parseText(body) as Map
+            
+            // ADR-031: Type safety for status updates
+            def statusData = [:]
+            if (requestData.cti_status) {
+                statusData.cti_status = requestData.cti_status as String
+            }
+            if (requestData.usr_id_it_validator) {
+                statusData.usr_id_it_validator = Integer.parseInt(requestData.usr_id_it_validator as String)
+            }
+            if (requestData.usr_id_biz_validator) {
+                statusData.usr_id_biz_validator = Integer.parseInt(requestData.usr_id_biz_validator as String)
+            }
+            
+            def success = phaseRepository.updateControlPoint(controlId, statusData)
+            
+            if (success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Control point updated successfully"
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Control point not found"]).toString())
+                    .build()
+            }
+            
+        } catch (JsonException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+                .build()
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+// ==================== ORDERING MANAGEMENT (4 endpoints) ====================
+
+/**
+ * Handles PUT requests for reordering operations.
+ * - PUT /phases-master/reorder -> bulk reorder master phases
+ * - PUT /phases-instance/reorder -> bulk reorder phase instances
+ */
+phasesmasterreorder(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    try {
+        if (!body || body.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                .build()
+        }
+        
+        def requestData = new JsonSlurper().parseText(body) as Map
+        
+        if (!requestData.sequenceId || !requestData.phaseOrderMap) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Missing required fields: sequenceId, phaseOrderMap"]).toString())
+                .build()
+        }
+        
+        // ADR-031: Type safety
+        def sequenceId = UUID.fromString(requestData.sequenceId as String)
+        def phaseOrderMap = [:]
+        
+        (requestData.phaseOrderMap as Map).each { phaseIdStr, orderValue ->
+            def phaseId = UUID.fromString(phaseIdStr as String)
+            def order = Integer.parseInt(orderValue as String)
+            phaseOrderMap[phaseId] = order
+        }
+        
+        def success = phaseRepository.reorderMasterPhases(sequenceId, phaseOrderMap)
+        
+        if (success) {
+            return Response.ok(new JsonBuilder([
+                success: true,
+                message: "Master phases reordered successfully"
+            ]).toString()).build()
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to reorder master phases"]).toString())
+                .build()
+        }
+        
+    } catch (JsonException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+            .build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+            .build()
+    } catch (Exception e) {
+        return handleError(e)
+    }
+}
+
+/**
+ * Handles PUT requests for reordering phase instances.
+ */
+phasesinstancereorder(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    try {
+        if (!body || body.trim().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                .build()
+        }
+        
+        def requestData = new JsonSlurper().parseText(body) as Map
+        
+        if (!requestData.sequenceInstanceId || !requestData.phaseOrderMap) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Missing required fields: sequenceInstanceId, phaseOrderMap"]).toString())
+                .build()
+        }
+        
+        // ADR-031: Type safety
+        def sequenceInstanceId = UUID.fromString(requestData.sequenceInstanceId as String)
+        def phaseOrderMap = [:]
+        
+        (requestData.phaseOrderMap as Map).each { phaseIdStr, orderValue ->
+            def phaseId = UUID.fromString(phaseIdStr as String)
+            def order = Integer.parseInt(orderValue as String)
+            phaseOrderMap[phaseId] = order
+        }
+        
+        def success = phaseRepository.reorderPhaseInstances(sequenceInstanceId, phaseOrderMap)
+        
+        if (success) {
+            return Response.ok(new JsonBuilder([
+                success: true,
+                message: "Phase instances reordered successfully"
+            ]).toString()).build()
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to reorder phase instances"]).toString())
+                .build()
+        }
+        
+    } catch (JsonException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+            .build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+            .build()
+    } catch (Exception e) {
+        return handleError(e)
+    }
+}
+
+/**
+ * Handles POST requests for individual phase moves.
+ * - POST /phases-master/{phm_id}/move -> move master phase to new position
+ * - POST /phases-instance/{phi_id}/move -> move instance phase to new position
+ */
+phasesmastermove(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // POST /phases-master/{phm_id}/move
+    if (pathParts.size() == 1) {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            
+            if (!body || body.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            def requestData = new JsonSlurper().parseText(body) as Map
+            
+            if (!requestData.newOrder) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Missing required field: newOrder"]).toString())
+                    .build()
+            }
+            
+            // ADR-031: Type safety
+            def newOrder = Integer.parseInt(requestData.newOrder as String)
+            def success = phaseRepository.updateMasterPhaseOrder(phaseId, newOrder)
+            
+            if (success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Master phase moved successfully"
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Master phase not found"]).toString())
+                    .build()
+            }
+            
+        } catch (JsonException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+                .build()
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
+
+/**
+ * Handles POST requests for moving phase instances.
+ */
+phasesinstancemove(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // POST /phases-instance/{phi_id}/move
+    if (pathParts.size() == 1) {
+        try {
+            def phaseId = UUID.fromString(pathParts[0] as String)
+            
+            if (!body || body.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            def requestData = new JsonSlurper().parseText(body) as Map
+            
+            if (!requestData.newOrder) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Missing required field: newOrder"]).toString())
+                    .build()
+            }
+            
+            // ADR-031: Type safety
+            def newOrder = Integer.parseInt(requestData.newOrder as String)
+            def success = phaseRepository.updatePhaseInstanceOrder(phaseId, newOrder)
+            
+            if (success) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Phase instance moved successfully"
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Phase instance not found"]).toString())
+                    .build()
+            }
+            
+        } catch (JsonException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid JSON format"]).toString())
+                .build()
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid data format: ${e.message}"]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e)
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
+        .build()
+}
