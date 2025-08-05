@@ -809,7 +809,7 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
                     def affectedRows = instructionRepository.deleteInstanceInstruction(iniId)
                     
                     if ((affectedRows as Integer) > 0) {
-                        deletedIds << deletionMap
+                        deleted << [type: 'instance', iniId: iniId, originalData: deletionMap]
                     } else {
                         errors << [type: 'instance', error: "Instruction instance not found", originalData: deletionMap]
                     }
