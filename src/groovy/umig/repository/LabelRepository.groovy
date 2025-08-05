@@ -312,22 +312,22 @@ class LabelRepository {
             
             if (updates.containsKey('lbl_name')) {
                 setClause.add('lbl_name = :lbl_name')
-                params.lbl_name = updates.lbl_name
+                params.lbl_name = updates['lbl_name']
             }
             
             if (updates.containsKey('lbl_description')) {
                 setClause.add('lbl_description = :lbl_description')
-                params.lbl_description = updates.lbl_description
+                params.lbl_description = updates['lbl_description']
             }
             
             if (updates.containsKey('lbl_color')) {
                 setClause.add('lbl_color = :lbl_color')
-                params.lbl_color = updates.lbl_color
+                params.lbl_color = updates['lbl_color']
             }
             
             if (updates.containsKey('mig_id')) {
                 setClause.add('mig_id = :mig_id')
-                params.mig_id = updates.mig_id
+                params.mig_id = updates['mig_id']
             }
             
             if (setClause.isEmpty()) {

@@ -48,7 +48,7 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 * **Modular Frontend Architecture:** JavaScript applications are built with modular architecture (8-module pattern) replacing monolithic approaches.
 * **Documentation Standards:** Comprehensive API documentation with OpenAPI specifications and generated Postman collections ensure consistency.
 * **Architecture Documentation:** All 33 ADRs consolidated into solution-architecture.md as single source of truth.
-* **Instructions API Pattern:** Template-based instruction management (US-004, January 2025)
+* **Instructions API Pattern:** Template-based instruction management (US-004, 5 August 2025)
   * **Template Architecture:** Master/instance pattern supporting instruction templates with execution instances
   * **Hierarchical Integration:** Complete filtering across migration→iteration→plan→sequence→phase→step levels
   * **Workflow Integration:** Seamless integration with Steps, Teams, Labels, and Controls for complete instruction lifecycle
@@ -76,6 +76,13 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   * **Weighted Progress Aggregation:** 70% step completion + 30% control point validation for accurate phase progress
   * **Transaction-Safe Operations:** Control point updates wrapped in database transactions with rollback capability
   * **Hierarchical Validation:** Control points cascade through phases with parent-child validation dependencies
+* **Groovy Static Type Checking Patterns:** Enhanced type safety for production reliability (5 August 2025)
+  * **Explicit Type Casting:** All query parameters cast explicitly (UUID.fromString(), Integer.parseInt(), Boolean.valueOf())
+  * **Collection Type Safety:** Proper List<Map> declarations with explicit casting for query results
+  * **Method Signature Standardisation:** Clear parameter types and return types across all API endpoints and repositories
+  * **Variable Declaration:** Explicit 'def' declarations preventing undeclared variable errors
+  * **Static Analysis Compliance:** Full Groovy 3.0.15 compatibility with enhanced IDE support and error detection
+  * **Error Prevention:** Compile-time validation eliminating ClassCastException and NoSuchMethodException runtime errors
 
 ## 3. Component Relationships
 

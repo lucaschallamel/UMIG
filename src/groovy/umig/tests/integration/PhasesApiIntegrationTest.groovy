@@ -20,7 +20,7 @@ import groovyx.net.http.HttpResponseException
 import java.util.UUID
 
 // Database configuration
-def dbUrl = System.getenv('DATABASE_URL') ?: 'jdbc:postgresql://postgres:5432/umig_app_db'
+def dbUrl = System.getenv('DATABASE_URL') ?: 'jdbc:postgresql://localhost:5432/umig_app_db'
 def dbUser = System.getenv('DATABASE_USER') ?: 'umig_app_user'
 def dbPassword = System.getenv('DATABASE_PASSWORD') ?: '123456'
 def dbDriver = 'org.postgresql.Driver'

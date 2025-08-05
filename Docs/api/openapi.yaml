@@ -1560,7 +1560,9 @@ paths:
       tags:
         - Instructions
       summary: Delete master instruction
-      description: Deletes a master instruction template and all its instances.
+      description: |
+        Deletes a master instruction and all its instances (cascade deletion).
+        This operation cannot be undone.
       operationId: deleteMasterInstruction
       parameters:
         - name: instructionId
@@ -1569,14 +1571,10 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Master instruction ID
+          description: Master instruction ID to delete
       responses:
-        '200':
-          description: Master instruction deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DeleteResponse'
+        '204':
+          description: Master instruction deleted successfully (no content)
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -1705,6 +1703,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InstructionInstance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Instructions
+      summary: Delete instruction instance
+      description: |
+        Deletes a specific instruction instance.
+        This operation cannot be undone.
+      operationId: deleteInstructionInstance
+      parameters:
+        - name: instructionInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Instruction instance ID to delete
+      responses:
+        '204':
+          description: Instruction instance deleted successfully (no content)
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -1871,6 +1894,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InstructionCompletionAnalytics'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/bulk:
+    delete:
+      tags:
+        - Instructions
+      summary: Bulk delete instruction instances
+      description: |
+        Deletes multiple instruction instances in a single operation.
+        Returns summary of successful and failed deletions.
+      operationId: bulkDeleteInstructions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - instructionInstanceIds
+              properties:
+                instructionInstanceIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                  description: List of instruction instance IDs to delete
+      responses:
+        '200':
+          description: Bulk deletion result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: integer
+                    description: Number of successfully deleted instances
+                  failed:
+                    type: integer
+                    description: Number of failed deletions
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Instance ID that failed to delete
+                        reason:
+                          type: string
+                          description: Reason for deletion failure
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
