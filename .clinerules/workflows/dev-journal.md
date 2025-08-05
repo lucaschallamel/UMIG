@@ -1,5 +1,6 @@
 ---
 description: At the end of each session, we look back at everything that was said and done, and we write down a Development Journal Entry
+agents: gendev-documentation-generator, quad-sme-documentation, quad-sme-technical-writer, gendev-memory-manager, gendev-system-architect
 ---
 The Developer Journal is a great way to keep track of our progress and document the way we made design decisions and coding breakthroughs.
 

@@ -1,5 +1,17 @@
 # API Coding Patterns (UMIG)
 
+## Instructions API Pattern (2025-01-23)
+- Complete instruction template and execution management system with 14 REST endpoints
+- Implements hierarchical filtering across all entity levels: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`, `?stepId=`
+- **TEMPLATE-BASED ARCHITECTURE**: Master/instance pattern supporting instruction templates with execution instances
+- **TYPE SAFETY**: Mandatory explicit casting patterns `UUID.fromString(filters.stepId as String)` following ADR-031
+- **INTEGRATION**: Seamless integration with Steps, Teams, Labels, and Controls for complete instruction lifecycle management
+- Full repository pattern with InstructionRepository (19 methods) for comprehensive testability
+- **BULK OPERATIONS**: Support for bulk instruction creation, updates, and status management
+- **ERROR HANDLING**: SQL state mapping (23503→400, 23505→409) with proper HTTP responses
+- Comprehensive unit and integration testing with 90%+ coverage including ScriptRunner compatibility
+- **CRITICAL**: Uses instance IDs (stm_id, phi_id, sqi_id, pli_id) for hierarchical filtering, not master IDs
+
 ## Sequences API Pattern (2025-07-31)
 - Complete CRUD implementation with advanced ordering functionality following established patterns
 - Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?planId=` support

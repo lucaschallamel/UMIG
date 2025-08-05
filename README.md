@@ -53,6 +53,7 @@ UMIG/
 │           ├── api/                  # REST API endpoints
 │           │   ├── README.md         # API documentation
 │           │   └── v2/               # Version 2 APIs
+│           │       ├── InstructionsApi.groovy
 │           │       ├── PlansApi.groovy
 │           │       ├── SequencesApi.groovy
 │           │       ├── TeamMembersApi.groovy
@@ -396,6 +397,16 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (August 2025)
+- **Instructions API Implementation**: Complete instruction template and execution management system (January 23, 2025)
+  - **14 REST Endpoints**: Full CRUD operations for instruction masters and instances following UMIG patterns
+  - **InstructionsApi.groovy**: Comprehensive API implementation with hierarchical filtering across all entity levels
+  - **InstructionRepository.groovy**: 19-method repository with complete lifecycle management and bulk operations
+  - **Template-Based Architecture**: Master/instance pattern supporting instruction templates with execution instances
+  - **Integration**: Seamless integration with Steps, Teams, Labels, and Controls for complete instruction management
+  - **Type Safety**: Explicit casting for all parameters following ADR-031 with comprehensive error handling
+  - **90%+ Test Coverage**: Comprehensive unit and integration tests with ScriptRunner compatibility
+  - **Complete Documentation**: API documentation, OpenAPI specification updates, and Postman collection
+  - **Executive Presentations**: Stakeholder-ready architecture presentations and technical documentation
 - **Phases API Implementation with Control Point System**: Complete quality gate management system (August 4, 2025)
   - **Endpoint Consolidation Refactoring**: Unified all 21 endpoints under single `phases` entry point for consistent developer experience
   - **API Organization**: Aligned with Plans and Sequences APIs using path-based routing (`/phases/master`, `/phases/instance`)
@@ -407,7 +418,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
   - 30 comprehensive integration test scenarios with 1,694 lines of unit tests (90%+ coverage)
   - Complete API documentation (898 lines) with examples and updated OpenAPI specification
   - Performance optimization meeting <200ms response time targets
-  - Foundation for remaining MVP APIs (Plans, Instructions) with proven patterns
+  - Foundation for remaining MVP APIs with proven patterns
 - **Database Audit Fields Standardization**: Comprehensive audit trail implementation across entire system (August 4, 2025)
   - Standardized audit fields (created_by, created_at, updated_by, updated_at) added to all 25+ database tables
   - Implemented tiered association audit strategy based on business criticality
@@ -490,7 +501,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ### 🚧 MVP Remaining Work
 
-- **Core REST APIs**: ✅ Plans (completed), ✅ Sequences (completed), ✅ Phases (completed), Instructions endpoints  
+- **Core REST APIs**: ✅ Plans (completed), ✅ Sequences (completed), ✅ Phases (completed), ✅ Instructions (completed)
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export
 - **Data Import Strategy**: Migration from existing Confluence/Draw.io/Excel sources
