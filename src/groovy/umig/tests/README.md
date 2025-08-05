@@ -4,7 +4,7 @@ This folder contains all Groovy-based tests for the UMIG project.
 
 ## Structure
 - `apis/`: Unit tests for individual API endpoints
-- `unit/`: Spock-based unit tests with mocked dependencies
+- `unit/`: Unit tests with mocked dependencies (simplified due to Groovy 3.0.x constraints)
 - `integration/`: Integration tests requiring live database connections
 - `grab-postgres-jdbc.groovy`: JDBC driver dependency setup
 - `run-integration-tests.sh`: Integration test runner script
@@ -20,9 +20,12 @@ This folder contains all Groovy-based tests for the UMIG project.
 
 Before running these tests, ensure you have the following installed and configured:
 
-1. **Groovy**: The language used for writing the test scripts. If you don't have it, you can install it via Homebrew:
+1. **Groovy 3.0.15**: Required for ScriptRunner 8 compatibility. Install via SDKMAN:
     ```bash
-    brew install groovy
+    curl -s "https://get.sdkman.io" | bash
+    source "$HOME/.sdkman/bin/sdkman-init.sh"
+    sdk install groovy 3.0.15
+    sdk use groovy 3.0.15
     ```
 
 2. **Running Local Environment**: The full UMIG development stack (Confluence, PostgreSQL) must be running via Podman. Refer to the main `README.md` in the project root for setup instructions.
@@ -87,7 +90,62 @@ This will download the driver to the correct location. You should see:
 
 You can now re-run the integration tests.
 
+## Groovy 3.0.x Compatibility Notes
+
+### Known Issues
+ScriptRunner 8 uses Groovy 3.0.x, which has dependency resolution issues with certain libraries:
+- **JAX-RS API (javax.ws.rs:javax.ws.rs-api)**: Causes Grape to hang indefinitely
+- **HTTP Builder**: Version conflicts with Groovy 3.0.x
+
+### Working Pattern for Unit Tests
+Due to dependency constraints, unit tests use a simplified pattern without Spock:
+
+```groovy
+#!/usr/bin/env groovy
+
+@Grab('org.postgresql:postgresql:42.7.3')
+
+import groovy.json.JsonBuilder
+
+// Mock response utility
+class MockResponse {
+    static ok(content) {
+        return [status: 200, entity: content]
+    }
+}
+
+// Test class
+class ApiTest {
+    static void testEndpoint() {
+        def response = MockResponse.ok(new JsonBuilder([
+            data: expectedData
+        ]).toString())
+        
+        assert response.status == 200
+        println "✅ Test passed"
+    }
+}
+
+ApiTest.testEndpoint()
+```
+
+### Working Dependencies
+- `org.postgresql:postgresql:42.7.3` - PostgreSQL driver
+- `org.codehaus.groovy:groovy-sql:3.0.15` - Groovy SQL support
+
 ## Test Coverage
+
+### Instructions API Tests
+- **Unit Tests**: `unit/api/v2/InstructionsApiWorkingTest.groovy`
+  - Simplified unit tests without JAX-RS dependencies
+  - Mock response testing
+  - ADR-031 type safety compliance
+
+- **Integration Tests**: `integration/InstructionsApiIntegrationTestWorking.groovy`
+  - Full CRUD operations testing
+  - Hierarchical filtering validation
+  - Database constraint testing
+  - Complete test data cleanup
 
 ### Sequences API Tests (US-002)
 

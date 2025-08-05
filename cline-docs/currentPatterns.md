@@ -1,7 +1,11 @@
 # Current Patterns - UMIG Project
 
-**Last Updated**: 4 August 2025  
+**Last Updated**: 5 August 2025  
 **Pattern Status**: Mature and proven across 4 major API implementations + control point system
+
+## Consolidated Documentation Notice
+
+This file has been consolidated with /docs/currentPatterns.md to eliminate duplication and maintain a single source of truth for current development patterns.
 
 ## Core Development Patterns
 
@@ -411,6 +415,60 @@ class AuditFieldsUtil {
 # - Authentication and authorisation details
 ```
 
+## Additional Detailed Examples (from legacy docs/currentPatterns.md)
+
+### Static Type Checking Deep Dive
+
+The following patterns were identified during US-002 implementation to prevent ClassCastException errors in ScriptRunner:
+
+#### Complete Field Selection Pattern
+**Critical Rule**: Always include ALL fields referenced in result mapping:
+
+```groovy
+// CORRECT - All referenced fields included in SELECT
+def query = '''
+    SELECT stm.stm_id, stm.stm_name, stm.stm_description,
+           stt.stt_code, stt.stt_name, phi.phi_id
+    FROM steps_master_stm stm
+    JOIN step_types_stt stt ON stm.stt_id = stt.stt_id
+    JOIN phases_instance phi ON stm.phi_id = phi.phi_id
+'''
+
+// INCORRECT - Missing fields cause "No such property" errors
+def query = '''
+    SELECT stm.stm_id, stm.stm_name
+    FROM steps_master_stm stm
+    JOIN step_types_stt stt ON stm.stt_id = stt.stt_id
+'''
+// Later reference to stt.stt_code or phi.phi_id will fail
+```
+
+### Advanced Testing Coverage Strategies
+
+**Maintenance Pattern**:
+```groovy
+// Test organization by functionality
+class SequenceRepositoryTest {
+    // CRUD operations (30% of tests)
+    void testCreateMasterSequence()
+    void testFindSequenceById()
+    void testUpdateSequenceStatus()
+    void testDeleteSequence()
+    
+    // Advanced functionality (40% of tests)
+    void testReorderSequences()
+    void testValidateCircularDependencies()
+    void testHierarchicalFiltering()
+    
+    // Error handling (30% of tests)
+    void testInvalidParameterHandling()
+    void testConstraintViolations()
+    void testTransactionRollback()
+}
+```
+
 ---
 
-**Pattern Maturity**: These patterns have proven successful across 3 major implementations (APIs + infrastructure) with measurable velocity improvements and comprehensive quality standards. Ready for application to US-003 and US-004 with very high confidence.
+**Pattern Maturity**: These patterns have proven successful across 4 major implementations (APIs + infrastructure + control point system) with measurable velocity improvements and comprehensive quality standards. Ready for application to US-004 with very high confidence.
+
+**Documentation Consolidation**: This file now contains the complete pattern library from both /cline-docs/currentPatterns.md and /docs/currentPatterns.md (consolidated 5 August 2025).

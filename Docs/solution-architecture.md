@@ -3,7 +3,7 @@
 **Version:** 2025-08-04  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 35 architectural decisions (26 archived + 9 newly consolidated: ADR-027 through ADR-035). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
+**Latest Updates:** Instructions API implementation (US-004, January 2025), Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
 

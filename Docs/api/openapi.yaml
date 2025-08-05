@@ -35,6 +35,8 @@ tags:
     description: Operations about email templates for notifications.
   - name: Steps
     description: Operations about steps, step instances, and status management.
+  - name: Instructions
+    description: Operations about instructions, completion tracking, and analytics.
   - name: Comments
     description: Operations about step comments and collaboration.
   - name: Statuses
@@ -1411,6 +1413,466 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== INSTRUCTIONS API ====================
+  
+  /instructions:
+    get:
+      tags:
+        - Instructions
+      summary: Get master instructions with hierarchical filtering
+      description: |
+        Retrieves master instructions with optional hierarchical filtering by step, plan, sequence, or phase.
+        Results are ordered by instruction order within each step.
+      operationId: getMasterInstructions
+      parameters:
+        - name: stepId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by step master ID
+        - name: planId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by plan instance ID
+        - name: sequenceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by sequence instance ID
+        - name: phaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by phase instance ID
+      responses:
+        '200':
+          description: List of master instructions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterInstruction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/master:
+    post:
+      tags:
+        - Instructions
+      summary: Create a new master instruction
+      description: Creates a new master instruction template for a step.
+      operationId: createMasterInstruction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasterInstructionCreate'
+      responses:
+        '201':
+          description: Master instruction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterInstruction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/master/{instructionId}:
+    get:
+      tags:
+        - Instructions
+      summary: Get master instruction by ID
+      description: Retrieves a specific master instruction by its ID.
+      operationId: getMasterInstructionById
+      parameters:
+        - name: instructionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master instruction ID
+      responses:
+        '200':
+          description: Master instruction details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterInstruction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Instructions
+      summary: Update master instruction
+      description: Updates an existing master instruction template.
+      operationId: updateMasterInstruction
+      parameters:
+        - name: instructionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master instruction ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MasterInstructionUpdate'
+      responses:
+        '200':
+          description: Master instruction updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterInstruction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - Instructions
+      summary: Delete master instruction
+      description: Deletes a master instruction template and all its instances.
+      operationId: deleteMasterInstruction
+      parameters:
+        - name: instructionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master instruction ID
+      responses:
+        '200':
+          description: Master instruction deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/master/{stepId}/reorder:
+    post:
+      tags:
+        - Instructions
+      summary: Reorder master instructions within a step
+      description: Updates the order of master instructions within a specific step.
+      operationId: reorderMasterInstructions
+      parameters:
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step master ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstructionReorderRequest'
+      responses:
+        '200':
+          description: Instructions reordered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReorderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/instance/{stepInstanceId}:
+    get:
+      tags:
+        - Instructions
+      summary: Get instruction instances for a step instance
+      description: Retrieves all instruction instances for a specific step instance, ordered by sequence.
+      operationId: getInstructionInstances
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+      responses:
+        '200':
+          description: List of instruction instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstructionInstance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Instructions
+      summary: Create instruction instances for a step
+      description: Creates instruction instances from master templates for a specific step instance.
+      operationId: createInstructionInstances
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstructionInstanceCreate'
+      responses:
+        '201':
+          description: Instruction instances created successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstructionInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/instance/{instructionInstanceId}:
+    get:
+      tags:
+        - Instructions
+      summary: Get instruction instance by ID
+      description: Retrieves a specific instruction instance by its ID.
+      operationId: getInstructionInstanceById
+      parameters:
+        - name: instructionInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Instruction instance ID
+      responses:
+        '200':
+          description: Instruction instance details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructionInstance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/instance/{instructionInstanceId}/complete:
+    post:
+      tags:
+        - Instructions
+      summary: Mark instruction instance as completed
+      description: Marks an instruction instance as completed by a specific user with timestamp.
+      operationId: completeInstructionInstance
+      parameters:
+        - name: instructionInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Instruction instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstructionCompleteRequest'
+      responses:
+        '200':
+          description: Instruction instance completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructionCompleteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/instance/{instructionInstanceId}/uncomplete:
+    post:
+      tags:
+        - Instructions
+      summary: Mark instruction instance as not completed
+      description: Reverts an instruction instance completion status (sets ini_is_completed to false).
+      operationId: uncompleteInstructionInstance
+      parameters:
+        - name: instructionInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Instruction instance ID
+      responses:
+        '200':
+          description: Instruction instance uncompleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructionUncompleteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/bulk/complete:
+    post:
+      tags:
+        - Instructions
+      summary: Bulk complete instruction instances
+      description: Marks multiple instruction instances as completed by a specific user.
+      operationId: bulkCompleteInstructions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkInstructionCompleteRequest'
+      responses:
+        '200':
+          description: Instructions completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkInstructionCompleteResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/analytics/progress:
+    get:
+      tags:
+        - Instructions
+      summary: Get instruction progress analytics
+      description: |
+        Retrieves instruction completion progress statistics with hierarchical filtering.
+        Returns progress metrics for migrations, iterations, or teams.
+      operationId: getInstructionProgressAnalytics
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by migration ID
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by iteration ID
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by team ID
+      responses:
+        '200':
+          description: Instruction progress analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructionProgressAnalytics'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /instructions/analytics/completion:
+    get:
+      tags:
+        - Instructions
+      summary: Get instruction completion timeline
+      description: |
+        Retrieves instruction completion timeline data for progress tracking and reporting.
+        Shows completion trends over time.
+      operationId: getInstructionCompletionAnalytics
+      parameters:
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by iteration ID
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by team ID
+      responses:
+        '200':
+          description: Instruction completion timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructionCompletionAnalytics'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -4160,6 +4622,359 @@ components:
         emailsSent:
           type: integer
           description: Number of notification emails sent
+
+    # ==================== INSTRUCTION SCHEMAS ====================
+
+    MasterInstruction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Master instruction ID
+        stepMasterId:
+          type: string
+          format: uuid
+          description: Associated step master ID
+        name:
+          type: string
+          description: Instruction name
+        description:
+          type: string
+          nullable: true
+          description: Instruction description
+        content:
+          type: string
+          description: Detailed instruction content
+        instructionOrder:
+          type: integer
+          description: Order/sequence within the step
+        teamId:
+          type: integer
+          nullable: true
+          description: Responsible team ID
+        teamName:
+          type: string
+          nullable: true
+          description: Responsible team name
+        controlId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Associated control ID
+        controlName:
+          type: string
+          nullable: true
+          description: Associated control name
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        createdBy:
+          type: integer
+          description: User who created the instruction
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        updatedBy:
+          type: integer
+          nullable: true
+          description: User who last updated the instruction
+
+    MasterInstructionCreate:
+      type: object
+      required:
+        - stepMasterId
+        - name
+        - content
+        - instructionOrder
+      properties:
+        stepMasterId:
+          type: string
+          format: uuid
+          description: Associated step master ID
+        name:
+          type: string
+          description: Instruction name
+        description:
+          type: string
+          nullable: true
+          description: Instruction description
+        content:
+          type: string
+          description: Detailed instruction content
+        instructionOrder:
+          type: integer
+          description: Order/sequence within the step
+        teamId:
+          type: integer
+          nullable: true
+          description: Responsible team ID
+        controlId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Associated control ID
+        createdBy:
+          type: integer
+          description: User creating the instruction
+
+    MasterInstructionUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Instruction name
+        description:
+          type: string
+          nullable: true
+          description: Instruction description
+        content:
+          type: string
+          description: Detailed instruction content
+        instructionOrder:
+          type: integer
+          description: Order/sequence within the step
+        teamId:
+          type: integer
+          nullable: true
+          description: Responsible team ID
+        controlId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Associated control ID
+        updatedBy:
+          type: integer
+          description: User updating the instruction
+
+    InstructionInstanceCreate:
+      type: object
+      required:
+        - masterInstructionIds
+      properties:
+        masterInstructionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of master instruction IDs to create instances from
+
+    InstructionCompleteRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: integer
+          description: User ID marking the instruction as complete
+
+    InstructionUncompleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the uncomplete action was successful
+        message:
+          type: string
+          description: Success message
+        instructionInstanceId:
+          type: string
+          format: uuid
+          description: Instruction instance ID
+
+    BulkInstructionCompleteRequest:
+      type: object
+      required:
+        - instructionInstanceIds
+        - userId
+      properties:
+        instructionInstanceIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of instruction instance IDs to complete
+        userId:
+          type: integer
+          description: User ID marking the instructions as complete
+
+    BulkInstructionCompleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the bulk completion was successful
+        message:
+          type: string
+          description: Success message
+        completedCount:
+          type: integer
+          description: Number of instructions successfully completed
+        failedCount:
+          type: integer
+          description: Number of instructions that failed to complete
+        emailsSent:
+          type: integer
+          description: Number of notification emails sent
+
+    InstructionReorderRequest:
+      type: object
+      required:
+        - orderData
+      properties:
+        orderData:
+          type: array
+          items:
+            type: object
+            required:
+              - instructionId
+              - order
+            properties:
+              instructionId:
+                type: string
+                format: uuid
+                description: Instruction ID
+              order:
+                type: integer
+                description: New order position
+          description: List of instruction ID and order pairs
+
+    ReorderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the reorder was successful
+        message:
+          type: string
+          description: Success message
+        updatedCount:
+          type: integer
+          description: Number of instructions reordered
+
+    DeleteResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the deletion was successful
+        message:
+          type: string
+          description: Success message
+        deletedId:
+          type: string
+          format: uuid
+          description: ID of the deleted entity
+
+    InstructionProgressAnalytics:
+      type: object
+      properties:
+        totalInstructions:
+          type: integer
+          description: Total number of instruction instances
+        completedInstructions:
+          type: integer
+          description: Number of completed instruction instances
+        completionPercentage:
+          type: number
+          format: double
+          description: Completion percentage (0-100)
+        teamBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              teamId:
+                type: integer
+                description: Team ID
+              teamName:
+                type: string
+                description: Team name
+              totalInstructions:
+                type: integer
+                description: Total instructions for this team
+              completedInstructions:
+                type: integer
+                description: Completed instructions for this team
+              completionPercentage:
+                type: number
+                format: double
+                description: Team completion percentage
+          description: Progress breakdown by team
+        phaseBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              phaseId:
+                type: string
+                format: uuid
+                description: Phase instance ID
+              phaseName:
+                type: string
+                description: Phase name
+              totalInstructions:
+                type: integer
+                description: Total instructions in this phase
+              completedInstructions:
+                type: integer
+                description: Completed instructions in this phase
+              completionPercentage:
+                type: number
+                format: double
+                description: Phase completion percentage
+          description: Progress breakdown by phase
+
+    InstructionCompletionAnalytics:
+      type: object
+      properties:
+        timelineData:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                description: Date of completion
+              count:
+                type: integer
+                description: Number of instructions completed on this date
+              cumulativeCount:
+                type: integer
+                description: Cumulative count of completed instructions
+          description: Daily completion timeline
+        averageCompletionTime:
+          type: number
+          format: double
+          description: Average time to complete instructions (in hours)
+        peakCompletionDays:
+          type: array
+          items:
+            type: string
+            format: date
+          description: Days with highest completion activity
+        teamPerformance:
+          type: array
+          items:
+            type: object
+            properties:
+              teamId:
+                type: integer
+                description: Team ID
+              teamName:
+                type: string
+                description: Team name
+              averageCompletionTime:
+                type: number
+                format: double
+                description: Average completion time for this team (in hours)
+              totalCompleted:
+                type: integer
+                description: Total instructions completed by this team
+          description: Team performance metrics
 
     Comment:
       type: object

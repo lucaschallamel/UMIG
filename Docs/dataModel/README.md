@@ -118,12 +118,28 @@ UMIG is built on:
 - **ctm_is_critical** (BOOLEAN)
 
 ### 3.6. Instructions (`instructions_master_inm`)
-- **inm_id** (UUID, PK)
-- **stm_id** (UUID, FK → steps_master_stm)
-- **tms_id** (INT, FK → teams_tms, nullable)
-- **ctm_id** (UUID, FK → controls_master_ctm, nullable)
-- **inm_order** (INT)
-- **inm_body** (TEXT)
+Master instruction templates that define procedural steps within migration phases.
+
+- **inm_id** (UUID, PK): Unique instruction identifier
+- **stm_id** (UUID, FK → steps_master_stm): Parent step master
+- **tea_id** (INT, FK → teams_tea, nullable): Responsible team
+- **ctm_id** (UUID, FK → controls_master_ctm, nullable): Associated control point
+- **inm_name** (VARCHAR): Instruction name/title
+- **inm_description** (TEXT, nullable): Brief description
+- **inm_content** (TEXT): Detailed instruction content/steps
+- **inm_order** (INT): Order/sequence within the step
+- **inm_estimated_duration** (INT, nullable): Estimated duration in minutes
+- **inm_is_critical** (BOOLEAN, default false): Critical instruction flag
+- **inm_require_validation** (BOOLEAN, default false): Requires validation flag
+- **created_at** (TIMESTAMPTZ): Creation timestamp
+- **created_by** (INT, FK → users_usr): User who created the instruction
+- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp  
+- **updated_by** (INT, FK → users_usr, nullable): User who last updated the instruction
+
+**Relationships:**
+- Many instructions can belong to one step master
+- Instructions can optionally be assigned to a team
+- Instructions can optionally reference a control point for validation
 
 ### 3.7. Labels (`labels_lbl`)
 - **lbl_id** (INT, PK)
@@ -185,14 +201,39 @@ UMIG is built on:
   - ~~enr_id_target~~ (Replaced with proper enr_id field)
 
 ### 4.5. Instruction Instance (`instructions_instance_ini`)
-- **ini_id** (UUID, PK)
-- **sti_id** (UUID, FK → steps_instance_sti)
-- **inm_id** (UUID, FK → instructions_master_inm)
-- **tms_id** (INTEGER): Override team ID - Added in migration 010
-- **cti_id** (UUID): Override control instance ID - Added in migration 010
-- **ini_order** (INTEGER): Override order for the instruction instance - Added in migration 010
-- **ini_body** (TEXT): Override body for the instruction instance - Added in migration 010
-- **ini_duration_minutes** (INTEGER): Override duration for the instruction instance - Added in migration 010
+Execution instances of instruction templates created when step instances are instantiated.
+
+- **ini_id** (UUID, PK): Unique instruction instance identifier
+- **sti_id** (UUID, FK → steps_instance_sti): Parent step instance
+- **inm_id** (UUID, FK → instructions_master_inm): Source master instruction
+- **ini_name** (VARCHAR): Instance name (copied from master)
+- **ini_description** (TEXT, nullable): Instance description (copied from master)
+- **ini_content** (TEXT): Instance content (copied from master)
+- **ini_order** (INT): Instance order (copied from master)
+- **ini_estimated_duration** (INT, nullable): Instance estimated duration (copied from master)
+- **tea_id** (INT, FK → teams_tea, nullable): Assigned team (copied from master)
+- **ctm_id** (UUID, FK → controls_master_ctm, nullable): Associated control (copied from master)
+- **ini_is_critical** (BOOLEAN, default false): Critical flag (copied from master)
+- **ini_require_validation** (BOOLEAN, default false): Validation flag (copied from master)
+- **ini_is_completed** (BOOLEAN, default false): Completion status (simplified model)
+- **ini_completion_timestamp** (TIMESTAMPTZ, nullable): When instruction was completed
+- **ini_completed_by** (INT, FK → users_usr, nullable): User who completed the instruction
+- **ini_notes** (TEXT, nullable): Execution notes and comments
+- **created_at** (TIMESTAMPTZ): Creation timestamp
+- **created_by** (INT, FK → users_usr): User who created the instance
+- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp
+- **updated_by** (INT, FK → users_usr, nullable): User who last updated the instance
+
+**Full Attribute Instantiation Pattern:**
+All master instruction attributes are copied to instances during creation to preserve historical accuracy and allow for instance-specific overrides without affecting the master template.
+
+**Simplified Status Model:**
+Uses boolean `ini_is_completed` instead of complex status enumeration for clear binary state management - instruction is either completed or not completed.
+
+**Relationships:**
+- Each instruction instance belongs to exactly one step instance
+- Each instruction instance is created from exactly one master instruction
+- Multiple instances can be created from the same master instruction
 
 ### 4.6. Control Instance (`controls_instance_cti`)
 - **cti_id** (UUID, PK)
@@ -624,7 +665,7 @@ erDiagram
     steps_master_stm }o--|| environment_roles_enr : "targets environment"
     controls_master_ctm }o--|| phases_master_phm : "validates"
     instructions_master_inm }o--|| steps_master_stm : "details"
-    instructions_master_inm }o--|| teams_tms : "owned by"
+    instructions_master_inm }o--|| teams_tea : "assigned to"
     instructions_master_inm }o--|| controls_master_ctm : "can satisfy"
     plans_instance_pli }o--|| plans_master_plm : "instantiates"
     plans_instance_pli }o--|| iterations_ite : "executes for"
