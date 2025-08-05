@@ -18,7 +18,10 @@
     "generate-data:erase": "node scripts/umig_generate_fake_data.js --erase",
     "test": "jest --verbose --",
     "generate:postman": "cd ../docs/api/postman && npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags",
-    "generate:postman:enhanced": "node scripts/generate-postman-enhanced.js"
+    "generate:postman:enhanced": "node scripts/generate-postman-enhanced.js",
+    "lint:md": "prettier --check '**/*.md' --prose-wrap always --print-width 80",
+    "lint:md:fix": "prettier --write '**/*.md' --prose-wrap always --print-width 80",
+    "lint:md:aggressive": "prettier --check '**/*.md' --prose-wrap always --print-width 80 --tab-width 2 --single-quote --trailing-comma all"
   },
   "author": "Lucas Challamel",
   "license": "ISC",
@@ -37,6 +40,7 @@
     "@babel/preset-env": "^7.28.0",
     "babel-jest": "^30.0.2",
     "jest": "^29.7.0",
-    "openapi-to-postmanv2": "^5.0.0"
+    "openapi-to-postmanv2": "^5.0.0",
+    "prettier": "^3.0.0"
   }
 }

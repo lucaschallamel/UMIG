@@ -149,21 +149,23 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 - SQL state mappings: 23503→400, 23505→409
 - Robust error propagation through all layers
 
-## Status (July 2025)
+## Status (August 2025)
 
 ### ✅ Completed
 - Development environment, Admin UI (SPA pattern)
-- APIs: Users, Teams, Environments, Applications, Labels, Steps, Migrations
+- APIs: Users, Teams, Environments, Applications, Labels, Steps, Migrations, Plans, Sequences, Phases, Instructions
 - Iteration View: Primary runsheet interface with full filtering
 - Type safety patterns, hierarchical filtering
 - Architecture consolidation (solution-architecture.md)
 - Admin GUI modularization (8 components)
+- Groovy 3.0.15 static type checking compatibility
+- All core REST APIs with advanced features (control points, audit fields, bulk operations)
 
 ### 🚧 MVP Remaining
-- APIs: Plans, Sequences, Phases, Instructions
 - Main Dashboard UI
 - Planning Feature (HTML export)
 - Data Import Strategy
+- Event Logging backend implementation
 
 ## Key References
 - **PRIMARY**: `docs/solution-architecture.md` (ALWAYS REVIEW FIRST)
@@ -189,4 +191,4 @@ Execute: `"Run the [workflow-name] workflow"`
 **Maturity**: Functional stage, proven patterns
 **Timeline**: 4-week MVP deadline
 **Focus**: Remaining APIs using established patterns
-**Templates**: StepsApi.groovy, TeamsApi.groovy, LabelsApi.groovy
+**Templates**: StepsApi.groovy, TeamsApi.groovy, LabelsApi.groovy, InstructionsApi.groovy
