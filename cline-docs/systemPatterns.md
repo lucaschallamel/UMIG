@@ -48,6 +48,12 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 * **Modular Frontend Architecture:** JavaScript applications are built with modular architecture (8-module pattern) replacing monolithic approaches.
 * **Documentation Standards:** Comprehensive API documentation with OpenAPI specifications and generated Postman collections ensure consistency.
 * **Architecture Documentation:** All 33 ADRs consolidated into solution-architecture.md as single source of truth.
+* **Instructions API Pattern:** Template-based instruction management (US-004, January 2025)
+  * **Template Architecture:** Master/instance pattern supporting instruction templates with execution instances
+  * **Hierarchical Integration:** Complete filtering across migration→iteration→plan→sequence→phase→step levels
+  * **Workflow Integration:** Seamless integration with Steps, Teams, Labels, and Controls for complete instruction lifecycle
+  * **Bulk Operations:** Efficient multi-instruction management for complex migration scenarios
+  * **Executive Documentation:** Stakeholder-ready architecture presentations and comprehensive technical documentation
 * **Association Management Pattern:** Many-to-many relationships are managed through dedicated API endpoints with add/remove functionality and proper UI integration.
 * **Dynamic Filtering Pattern:** Hierarchical dropdowns dynamically filter based on parent selections (e.g., steps filtered by selected migration).
 * **Data Import Strategy:** Efficient bulk loading using PostgreSQL `\copy` command (ADR-028) for importing Confluence JSON exports.

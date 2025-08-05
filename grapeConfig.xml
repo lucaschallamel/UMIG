@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<ivy-settings>
+  <settings defaultResolver="downloadGrapes"/>
+  <resolvers>
+    <chain name="downloadGrapes" returnFirst="true">
+      <!-- Local cache -->
+      <filesystem name="cachedGrapes">
+        <ivy pattern="${user.home}/.groovy/grapes/[organisation]/[module]/ivy-[revision].xml"/>
+        <artifact pattern="${user.home}/.groovy/grapes/[organisation]/[module]/[type]s/[artifact]-[revision](-[classifier]).[ext]"/>
+      </filesystem>
+      <!-- Maven Central -->
+      <ibiblio name="mavenCentral" m2compatible="true"/>
+      <!-- Local Maven -->
+      <ibiblio name="localMaven" root="file:${user.home}/.m2/repository/" m2compatible="true"/>
+    </chain>
+  </resolvers>
+</ivy-settings>

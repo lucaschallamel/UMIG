@@ -1,5 +1,6 @@
-import groovy.lang.Grab
-@Grab('org.postgresql:postgresql:42.2.20')
+#!/usr/bin/env groovy
+
+@Grab('org.postgresql:postgresql:42.7.3')
 import org.postgresql.Driver
 
-println "✅ PostgreSQL JDBC driver downloaded via Grape."
+println "✅ PostgreSQL JDBC driver (42.7.3) downloaded via Grape."
