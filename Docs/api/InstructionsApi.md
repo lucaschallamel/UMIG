@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0  
 **API Version:** v2  
-**Last Updated:** January 23, 2025
+**Last Updated:** August 5, 2025
 
 ## Overview
 
@@ -118,9 +118,9 @@ Creates a new master instruction template.
   "teamName": "DevOps Team",
   "controlId": "def67890-e89b-12d3-a456-426614174003",
   "controlName": "DEPLOYMENT_CONTROL",
-  "createdAt": "2025-01-23T09:45:00Z",
+  "createdAt": "2025-08-05T09:45:00Z",
   "createdBy": 1001,
-  "updatedAt": "2025-01-23T09:45:00Z",
+  "updatedAt": "2025-08-05T09:45:00Z",
   "updatedBy": null
 }
 ```
@@ -153,15 +153,20 @@ Updates an existing master instruction template.
 
 #### DELETE /instructions/master/{instructionId} - Delete Master Instruction
 
-Deletes a master instruction and all its instances.
+Deletes a master instruction and all its instances (cascade deletion).
 
-**Response (200 OK):**
-```json
-{
-  "success": true,
-  "message": "Master instruction deleted successfully",
-  "deletedId": "789e0123-e89b-12d3-a456-426614174001"
-}
+**Parameters:**
+- `instructionId`: Master instruction UUID (path parameter)
+
+**Response (204 No Content):** No response body
+
+**Error Responses:**
+- **400 Bad Request**: Foreign key constraint violation
+- **404 Not Found**: Master instruction not found
+
+**Example Request:**
+```bash
+DELETE /instructions/master/789e0123-e89b-12d3-a456-426614174001
 ```
 
 #### POST /instructions/master/{stepId}/reorder - Reorder Instructions
@@ -244,6 +249,24 @@ Retrieves a specific instruction instance by ID.
 
 **Response (200 OK):** Single instruction instance object
 
+#### DELETE /instructions/instance/{instructionInstanceId} - Delete Instruction Instance
+
+Deletes a specific instruction instance.
+
+**Parameters:**
+- `instructionInstanceId`: Instruction instance UUID (path parameter)
+
+**Response (204 No Content):** No response body
+
+**Error Responses:**
+- **400 Bad Request**: Invalid UUID format or foreign key constraint violation
+- **404 Not Found**: Instruction instance not found
+
+**Example Request:**
+```bash
+DELETE /instructions/instance/inst-instance-001
+```
+
 ### 3. Completion Management
 
 #### POST /instructions/instance/{instructionInstanceId}/complete - Complete Instruction
@@ -307,6 +330,47 @@ Marks multiple instruction instances as completed.
   "emailsSent": 6
 }
 ```
+
+#### DELETE /instructions/bulk - Bulk Delete Instructions
+
+Deletes multiple instruction instances in a single operation.
+
+**Request Body:**
+```json
+{
+  "instructionInstanceIds": [
+    "inst-instance-1",
+    "inst-instance-2",
+    "inst-instance-3"
+  ]
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "deleted": 3,
+  "failed": 0,
+  "errors": []
+}
+```
+
+**Response with partial failures (200 OK):**
+```json
+{
+  "deleted": 2,
+  "failed": 1,
+  "errors": [
+    {
+      "id": "inst-instance-3",
+      "reason": "Instruction instance not found"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- **400 Bad Request**: Missing required field `instructionInstanceIds`
 
 ### 4. Analytics Endpoints
 
@@ -448,7 +512,8 @@ await fetch('/instructions/bulk/complete', {
 ### HTTP Status Codes
 
 - **200 OK**: Successful operation
-- **201 Created**: Resource created successfully  
+- **201 Created**: Resource created successfully
+- **204 No Content**: Successful deletion (no response body)
 - **400 Bad Request**: Invalid input or SQL constraint violation (23503)
 - **404 Not Found**: Resource not found
 - **409 Conflict**: Duplicate entry or unique constraint violation (23505)
@@ -502,6 +567,20 @@ await fetch('/instructions/bulk/complete', {
 }
 ```
 
+#### 4. Negative Duration Validation (400)
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Duration minutes cannot be negative",
+    "details": {
+      "field": "inmDurationMinutes",
+      "value": -30
+    }
+  }
+}
+```
+
 ## Best Practices
 
 ### 1. Performance Optimization
@@ -517,11 +596,23 @@ GET /instructions // then filter locally
 
 **Batch Operations:**
 ```javascript
-// ✅ Good: Use bulk completion
+// ✅ Good: Use bulk operations
 POST /instructions/bulk/complete
+DELETE /instructions/bulk
 
-// ❌ Avoid: Individual completion calls in loop
+// ❌ Avoid: Individual calls in loop
 instructions.forEach(inst => POST /instructions/instance/${inst.id}/complete)
+instructions.forEach(inst => DELETE /instructions/instance/${inst.id})
+```
+
+**Cascade Deletion:**
+```javascript
+// ✅ Good: Delete master to cascade all instances
+DELETE /instructions/master/${masterId}
+
+// ❌ Avoid: Manually deleting each instance first
+instances.forEach(inst => DELETE /instructions/instance/${inst.id})
+DELETE /instructions/master/${masterId}
 ```
 
 ### 2. Error Handling
@@ -605,6 +696,37 @@ class InstructionsAPI {
     const response = await fetch(`${this.baseUrl}/instructions/analytics/progress?${params}`);
     return response.json();
   }
+  
+  async deleteInstance(instructionInstanceId) {
+    const response = await fetch(`${this.baseUrl}/instructions/instance/${instructionInstanceId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+    return response.status === 204;
+  }
+  
+  async deleteMaster(masterId) {
+    const response = await fetch(`${this.baseUrl}/instructions/master/${masterId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message);
+    }
+    return response.status === 204;
+  }
+  
+  async bulkDelete(instructionInstanceIds) {
+    const response = await fetch(`${this.baseUrl}/instructions/bulk`, {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({instructionInstanceIds})
+    });
+    return response.json();
+  }
 }
 
 // Usage
@@ -622,6 +744,20 @@ await api.completeInstruction('inst-instance-001', 1001);
 const progress = await api.getProgressAnalytics({
   iterationId: 'iter-001'
 });
+
+// Delete a single instruction instance
+await api.deleteInstance('inst-instance-001');
+
+// Delete a master instruction (cascades to instances)
+await api.deleteMaster('master-001');
+
+// Bulk delete multiple instances
+const result = await api.bulkDelete([
+  'inst-instance-001',
+  'inst-instance-002',
+  'inst-instance-003'
+]);
+console.log(`Deleted: ${result.deleted}, Failed: ${result.failed}`);
 ```
 
 ### Groovy Integration (Backend)
@@ -709,7 +845,17 @@ curl -X POST "/instructions/instance/inst-inst-001/complete" \
 
 ## Changelog
 
-### Version 1.0.0 (January 23, 2025)
+### Version 1.1.0 (January 25, 2025)
+- Added DELETE endpoints for instruction management
+  - DELETE /instructions/master/{id} - Delete master with cascade
+  - DELETE /instructions/instance/{id} - Delete single instance
+  - DELETE /instructions/bulk - Bulk delete instances
+- Added negative duration validation for create/update operations
+- Improved code organization with extracted handler methods
+- Enhanced security with AuthenticationService integration
+- Updated error responses to use 204 No Content for deletions
+
+### Version 1.0.0 (August 5, 2025)
 - Initial Instructions API implementation  
 - 14 REST endpoints covering full CRUD operations
 - Master/instance pattern with completion tracking

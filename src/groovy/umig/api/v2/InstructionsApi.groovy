@@ -37,137 +37,21 @@ instructions(httpMethod: "GET", groups: ["confluence-users", "confluence-adminis
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
     try {
-        // GET /instructions/analytics/progress - return progress metrics
+        // Route to appropriate handler based on path structure
         if (pathParts.size() == 2 && pathParts[0] == 'analytics' && pathParts[1] == 'progress') {
-            def filters = [:]
-            
-            // Extract query parameters for filtering
-            if (queryParams.getFirst("migrationId")) {
-                filters.migrationId = queryParams.getFirst("migrationId")
-            }
-            if (queryParams.getFirst("iterationId")) {
-                filters.iterationId = queryParams.getFirst("iterationId")
-            }
-            if (queryParams.getFirst("planInstanceId")) {
-                filters.planInstanceId = queryParams.getFirst("planInstanceId")
-            }
-            if (queryParams.getFirst("sequenceInstanceId")) {
-                filters.sequenceInstanceId = queryParams.getFirst("sequenceInstanceId")
-            }
-            if (queryParams.getFirst("phaseInstanceId")) {
-                filters.phaseInstanceId = queryParams.getFirst("phaseInstanceId")
-            }
-            if (queryParams.getFirst("stepInstanceId")) {
-                filters.stepInstanceId = queryParams.getFirst("stepInstanceId")
-            }
-            if (queryParams.getFirst("teamId")) {
-                filters.teamId = queryParams.getFirst("teamId")
-            }
-            
-            def progressMetrics = instructionRepository.findInstructionsWithHierarchicalFiltering(filters)
-            
-            def metrics = progressMetrics as Map
-            return Response.ok(new JsonBuilder([
-                total_instructions: metrics.total,
-                completed_instructions: metrics.completed,
-                pending_instructions: metrics.pending,
-                completion_percentage: metrics.completion_percentage,
-                instructions: metrics.instructions
-            ]).toString()).build()
+            return handleAnalyticsProgressRequest(queryParams)
         }
         
-        // GET /instructions/analytics/completion - return completion statistics
         if (pathParts.size() == 2 && pathParts[0] == 'analytics' && pathParts[1] == 'completion') {
-            def migrationId = queryParams.getFirst("migrationId")
-            def teamId = queryParams.getFirst("teamId")
-            def iterationId = queryParams.getFirst("iterationId")
-            
-            if (migrationId) {
-                // Type safety per ADR-031
-                def migUuid = UUID.fromString(migrationId as String)
-                def stats = instructionRepository.getInstructionStatisticsByMigration(migUuid)
-                return Response.ok(new JsonBuilder(stats).toString()).build()
-            } else if (teamId && iterationId) {
-                // Type safety per ADR-031
-                def tmsId = Integer.parseInt(teamId as String)
-                def iteUuid = UUID.fromString(iterationId as String)
-                def workload = instructionRepository.getTeamWorkload(tmsId, iteUuid)
-                return Response.ok(new JsonBuilder(workload).toString()).build()
-            } else if (teamId) {
-                // Type safety per ADR-031
-                def tmsId = Integer.parseInt(teamId as String)
-                def stats = instructionRepository.getInstructionStatisticsByTeam(tmsId)
-                return Response.ok(new JsonBuilder(stats).toString()).build()
-            } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Missing required parameter: migrationId or teamId"]).toString())
-                    .build()
-            }
+            return handleAnalyticsCompletionRequest(queryParams)
         }
         
-        // GET /instructions/instance/{id} - return instance details
         if (pathParts.size() == 2 && pathParts[0] == 'instance') {
-            def instanceId = pathParts[1]
-            
-            try {
-                // Type safety per ADR-031
-                UUID instanceUuid = UUID.fromString(instanceId)
-                def instructionInstance = instructionRepository.findInstanceInstructionById(instanceUuid)
-                
-                if (!instructionInstance) {
-                    return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new JsonBuilder([error: "Instruction instance not found for ID: ${instanceId}"]).toString())
-                        .build()
-                }
-                
-                return Response.ok(new JsonBuilder(instructionInstance).toString()).build()
-                
-            } catch (IllegalArgumentException e) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid instruction instance ID format: ${instanceId}"]).toString())
-                    .build()
-            }
+            return handleInstanceDetailsRequest(pathParts[1])
         }
         
-        // GET /instructions with query parameters for hierarchical filtering
         if (pathParts.empty) {
-            def stepId = queryParams.getFirst("stepId")
-            def stepInstanceId = queryParams.getFirst("stepInstanceId")
-            
-            if (stepId) {
-                // Filter by step master ID
-                try {
-                    // Type safety per ADR-031
-                    def stmUuid = UUID.fromString(stepId as String)
-                    def instructions = instructionRepository.findMasterInstructionsByStepId(stmUuid)
-                    
-                    return Response.ok(new JsonBuilder(instructions).toString()).build()
-                    
-                } catch (IllegalArgumentException e) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid step ID format"]).toString())
-                        .build()
-                }
-            } else if (stepInstanceId) {
-                // Filter by step instance ID
-                try {
-                    // Type safety per ADR-031
-                    def stiUuid = UUID.fromString(stepInstanceId as String)
-                    def instructions = instructionRepository.findInstanceInstructionsByStepInstanceId(stiUuid)
-                    
-                    return Response.ok(new JsonBuilder(instructions).toString()).build()
-                    
-                } catch (IllegalArgumentException e) {
-                    return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
-                        .build()
-                }
-            } else {
-                // Return all master instructions (not recommended for production)
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "stepId or stepInstanceId parameter required"]).toString())
-                    .build()
-            }
+            return handleInstructionsFilterRequest(queryParams)
         }
         
         // Invalid path
@@ -178,6 +62,206 @@ instructions(httpMethod: "GET", groups: ["confluence-users", "confluence-adminis
     } catch (Exception e) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .entity(new JsonBuilder([error: "Internal server error: ${e.message}"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles GET /instructions/analytics/progress requests
+ * Returns progress metrics with hierarchical filtering support
+ */
+private Response handleAnalyticsProgressRequest(MultivaluedMap queryParams) {
+    def filters = extractHierarchicalFilters(queryParams)
+    def progressMetrics = instructionRepository.findInstructionsWithHierarchicalFiltering(filters)
+    
+    def metrics = progressMetrics as Map
+    return Response.ok(new JsonBuilder([
+        total_instructions: metrics.total,
+        completed_instructions: metrics.completed,
+        pending_instructions: metrics.pending,
+        completion_percentage: metrics.completion_percentage,
+        instructions: metrics.instructions
+    ]).toString()).build()
+}
+
+/**
+ * Handles GET /instructions/analytics/completion requests
+ * Returns completion statistics based on migration, team, or iteration filters
+ */
+private Response handleAnalyticsCompletionRequest(MultivaluedMap queryParams) {
+    def migrationId = queryParams.getFirst("migrationId")
+    def teamId = queryParams.getFirst("teamId")
+    def iterationId = queryParams.getFirst("iterationId")
+    
+    if (migrationId) {
+        return handleCompletionByMigration(migrationId)
+    } else if (teamId && iterationId) {
+        return handleTeamWorkload(teamId, iterationId)
+    } else if (teamId) {
+        return handleCompletionByTeam(teamId)
+    } else {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Missing required parameter: migrationId or teamId"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles GET /instructions/instance/{id} requests
+ * Returns specific instruction instance details
+ */
+private Response handleInstanceDetailsRequest(String instanceId) {
+    try {
+        // Type safety per ADR-031
+        UUID instanceUuid = UUID.fromString(instanceId)
+        def instructionInstance = instructionRepository.findInstanceInstructionById(instanceUuid)
+        
+        if (!instructionInstance) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([error: "Instruction instance not found for ID: ${instanceId}"]).toString())
+                .build()
+        }
+        
+        return Response.ok(new JsonBuilder(instructionInstance).toString()).build()
+        
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid instruction instance ID format: ${instanceId}"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles GET /instructions requests with query parameters
+ * Filters instructions by step master ID or step instance ID
+ */
+private Response handleInstructionsFilterRequest(MultivaluedMap queryParams) {
+    def stepId = queryParams.getFirst("stepId")
+    def stepInstanceId = queryParams.getFirst("stepInstanceId")
+    
+    if (stepId) {
+        return handleInstructionsByStepId(stepId)
+    } else if (stepInstanceId) {
+        return handleInstructionsByStepInstanceId(stepInstanceId)
+    } else {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "stepId or stepInstanceId parameter required"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Extracts hierarchical filters from query parameters
+ */
+private Map extractHierarchicalFilters(MultivaluedMap queryParams) {
+    def filters = [:]
+    
+    if (queryParams.getFirst("migrationId")) {
+        filters.migrationId = queryParams.getFirst("migrationId")
+    }
+    if (queryParams.getFirst("iterationId")) {
+        filters.iterationId = queryParams.getFirst("iterationId")
+    }
+    if (queryParams.getFirst("planInstanceId")) {
+        filters.planInstanceId = queryParams.getFirst("planInstanceId")
+    }
+    if (queryParams.getFirst("sequenceInstanceId")) {
+        filters.sequenceInstanceId = queryParams.getFirst("sequenceInstanceId")
+    }
+    if (queryParams.getFirst("phaseInstanceId")) {
+        filters.phaseInstanceId = queryParams.getFirst("phaseInstanceId")
+    }
+    if (queryParams.getFirst("stepInstanceId")) {
+        filters.stepInstanceId = queryParams.getFirst("stepInstanceId")
+    }
+    if (queryParams.getFirst("teamId")) {
+        filters.teamId = queryParams.getFirst("teamId")
+    }
+    
+    return filters
+}
+
+/**
+ * Handles completion statistics by migration ID
+ */
+private Response handleCompletionByMigration(String migrationId) {
+    try {
+        // Type safety per ADR-031
+        def migUuid = UUID.fromString(migrationId as String)
+        def stats = instructionRepository.getInstructionStatisticsByMigration(migUuid)
+        return Response.ok(new JsonBuilder(stats).toString()).build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid migration ID format"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles team workload calculation by team and iteration
+ */
+private Response handleTeamWorkload(String teamId, String iterationId) {
+    try {
+        // Type safety per ADR-031
+        def tmsId = Integer.parseInt(teamId as String)
+        def iteUuid = UUID.fromString(iterationId as String)
+        def workload = instructionRepository.getTeamWorkload(tmsId, iteUuid)
+        return Response.ok(new JsonBuilder(workload).toString()).build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid team ID or iteration ID format"]).toString())
+            .build()
+    } catch (NumberFormatException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid team ID format"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles completion statistics by team ID
+ */
+private Response handleCompletionByTeam(String teamId) {
+    try {
+        // Type safety per ADR-031
+        def tmsId = Integer.parseInt(teamId as String)
+        def stats = instructionRepository.getInstructionStatisticsByTeam(tmsId)
+        return Response.ok(new JsonBuilder(stats).toString()).build()
+    } catch (NumberFormatException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid team ID format"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles instructions filtered by step master ID
+ */
+private Response handleInstructionsByStepId(String stepId) {
+    try {
+        // Type safety per ADR-031
+        def stmUuid = UUID.fromString(stepId as String)
+        def instructions = instructionRepository.findMasterInstructionsByStepId(stmUuid)
+        return Response.ok(new JsonBuilder(instructions).toString()).build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid step ID format"]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles instructions filtered by step instance ID
+ */
+private Response handleInstructionsByStepInstanceId(String stepInstanceId) {
+    try {
+        // Type safety per ADR-031
+        def stiUuid = UUID.fromString(stepInstanceId as String)
+        def instructions = instructionRepository.findInstanceInstructionsByStepInstanceId(stiUuid)
+        return Response.ok(new JsonBuilder(instructions).toString()).build()
+    } catch (IllegalArgumentException e) {
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
             .build()
     }
 }
@@ -273,7 +357,7 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
                         ]
                     ]).toString()).build()
             } else {
-                return Response.status(206)
+                return Response.ok()
                     .entity(new JsonBuilder([
                         success: false,
                         created: created,
@@ -722,9 +806,13 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
                 try {
                     def deletionMap = deletion as Map
                     def iniId = UUID.fromString(deletionMap.iniId as String)
-                    // Note: InstructionRepository doesn't have deleteInstanceInstruction method
-                    // This would need to be implemented if instance deletion is required
-                    errors << [type: 'instance', error: "Instance deletion not implemented", originalData: deletionMap]
+                    def affectedRows = instructionRepository.deleteInstanceInstruction(iniId)
+                    
+                    if ((affectedRows as Integer) > 0) {
+                        deleted << [type: 'instance', iniId: iniId, originalData: deletionMap]
+                    } else {
+                        errors << [type: 'instance', error: "Instruction instance not found", originalData: deletionMap]
+                    }
                     
                 } catch (Exception e) {
                     errors << [type: 'instance', error: e.message, originalData: deletion]
@@ -768,11 +856,19 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
                 // Type safety per ADR-031
                 UUID instanceUuid = UUID.fromString(instanceId)
                 
-                // Note: InstructionRepository doesn't have deleteInstanceInstruction method
-                // This would need to be implemented for full functionality
-                return Response.status(501)
-                    .entity(new JsonBuilder([error: "Instance deletion not yet implemented"]).toString())
-                    .build()
+                def affectedRows = instructionRepository.deleteInstanceInstruction(instanceUuid)
+                
+                if ((affectedRows as Integer) > 0) {
+                    return Response.ok(new JsonBuilder([
+                        success: true,
+                        message: "Instruction instance deleted successfully",
+                        iniId: instanceId
+                    ]).toString()).build()
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND)
+                        .entity(new JsonBuilder([error: "Instruction instance not found"]).toString())
+                        .build()
+                }
                     
             } catch (IllegalArgumentException e) {
                 return Response.status(Response.Status.BAD_REQUEST)

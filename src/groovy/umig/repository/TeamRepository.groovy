@@ -169,7 +169,7 @@ class TeamRepository {
                 ${whereClause}
             """
             
-            def totalCount = sql.firstRow(countQuery, params)?.total_count ?: 0
+            def totalCount = (sql.firstRow(countQuery, params)?.total_count ?: 0) as Integer
             
             // Calculate pagination
             def offset = (pageNumber - 1) * pageSize
@@ -181,7 +181,7 @@ class TeamRepository {
             def teams = sql.rows(paginatedQuery, params)
             
             // Calculate pagination metadata
-            def totalPages = Math.ceil(totalCount / pageSize) as int
+            def totalPages = Math.ceil((double) totalCount / pageSize) as int
             def hasNext = pageNumber < totalPages
             def hasPrevious = pageNumber > 1
             

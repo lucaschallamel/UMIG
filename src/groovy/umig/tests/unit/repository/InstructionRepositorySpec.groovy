@@ -16,7 +16,7 @@
  * Run from project root: ./src/groovy/umig/tests/run-unit-tests.sh
  */
 
-@Grab('org.spockframework:spock-core:2.3-groovy-4.0')
+@Grab('org.spockframework:spock-core:2.3-groovy-3.0')
 @Grab('org.postgresql:postgresql:42.7.3')
 
 import spock.lang.Specification

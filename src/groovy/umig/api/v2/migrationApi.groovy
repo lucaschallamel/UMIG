@@ -10,6 +10,7 @@ import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 import java.util.UUID
 import org.apache.log4j.LogManager
+import org.apache.log4j.Logger
 
 @BaseScript CustomEndpointDelegate delegate
 
@@ -17,7 +18,7 @@ import org.apache.log4j.LogManager
 final MigrationRepository migrationRepository = new MigrationRepository()
 
 @Field
-final log = LogManager.getLogger(getClass())
+final Logger log = LogManager.getLogger(getClass())
 
 // GET /migrations, /migrations/{id}, /migrations/{id}/iterations
 migrations(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
