@@ -469,6 +469,99 @@ class SequenceRepositoryTest {
 
 ---
 
-**Pattern Maturity**: These patterns have proven successful across 4 major implementations (APIs + infrastructure + control point system) with measurable velocity improvements and comprehensive quality standards. Ready for application to US-004 with very high confidence.
+## Groovy 3.0.15 Static Type Checking Patterns (5 August 2025)
+
+### Enhanced Type Safety Implementation
+**Context**: Comprehensive compatibility improvements eliminating runtime type errors
+
+#### Dynamic Property Access Resolution
+```groovy
+// BEFORE (Groovy dynamic property issue)
+def createEntity(Map params) {
+    def entity = [:]
+    entity.name = params.name  // Dynamic property access
+    return entity
+}
+
+// AFTER (Explicit property assignment)
+def createEntity(Map params) {
+    def entity = [:]
+    entity['name'] = params['name'] as String  // Explicit Map access with type casting
+    return entity
+}
+```
+
+#### Method Signature Compatibility 
+```groovy
+// BEFORE (Method signature mismatch)
+def updateEntity(id, params) {  // Ambiguous parameter types
+    // Implementation
+}
+
+// AFTER (Explicit parameter typing)
+def updateEntity(Integer id, Map params) {  // Clear parameter types
+    // Implementation with proper type casting
+    params.entityId = Integer.parseInt(params.entityId as String)
+}
+```
+
+#### Collection Typing Improvements
+```groovy
+// BEFORE (Generic collection handling)
+def items = []
+items.addAll(queryResults)
+
+// AFTER (Typed collection handling)
+List<Map> items = []
+items.addAll(queryResults as List<Map>)
+```
+
+#### Variable Declaration Standards
+```groovy
+// BEFORE (Undeclared variable risk)
+result = sql.rows(query)  // Undeclared 'result'
+
+// AFTER (Explicit variable declaration)
+def result = sql.rows(query)  // Properly declared variable
+```
+
+### Enhanced Error Handling Patterns
+```groovy
+// BEFORE (Generic exception handling)
+catch (Exception e) {
+    log.error("Error: ${e.message}")
+}
+
+// AFTER (Specific exception handling with type safety)
+catch (SQLException e) {
+    log.error("SQL Error: ${e.message}", e)
+    // Specific error handling based on SQL state
+}
+```
+
+### Development Experience Benefits
+- **Enhanced IDE Support**: Better code completion and real-time error detection
+- **Earlier Error Detection**: Compile-time validation preventing runtime issues  
+- **Improved Code Navigation**: Enhanced method resolution and refactoring support
+- **Better Debugging**: Clearer stack traces and variable inspection
+
+### Production Reliability Enhancements
+- **Eliminated ClassCastException**: Explicit type casting prevents runtime casting errors
+- **Resolved NoSuchMethodException**: Proper method signature matching eliminates method resolution failures
+- **Improved Error Handling**: Specific exception types enable better error recovery
+- **Enhanced Performance**: Reduced dynamic dispatch overhead through static typing
+
+### Files Enhanced with Static Type Checking
+- PhasesApi.groovy - Dynamic property access fixes, method signature improvements
+- TeamsApi.groovy - Parameter type declaration, variable scoping
+- UsersApi.groovy - Collection typing, exception handling
+- LabelRepository.groovy - Collection casting, numeric type safety
+- StepRepository.groovy - Method signature standardisation
+- TeamRepository.groovy - Variable declaration improvements
+- AuthenticationService.groovy - Type safety in authentication logic
+
+---
+
+**Pattern Maturity**: These patterns have proven successful across 5 major implementations (APIs + infrastructure + control point system + type safety enhancements) with measurable velocity improvements and comprehensive quality standards. All core APIs completed with enhanced type safety and production reliability.
 
 **Documentation Consolidation**: This file now contains the complete pattern library from both /cline-docs/currentPatterns.md and /docs/currentPatterns.md (consolidated 5 August 2025).

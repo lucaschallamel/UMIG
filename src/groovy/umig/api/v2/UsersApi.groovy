@@ -54,7 +54,7 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             def userCode = queryParams.getFirst('userCode')
             if (userCode) {
                 // Find user by userCode for authentication
-                def user = userRepository.findUserByCode(userCode as String)
+                def user = userRepository.findUserByUsername(userCode as String)
                 if (user) {
                     return Response.ok(new JsonBuilder([user]).toString()).build()
                 } else {
@@ -276,7 +276,6 @@ users(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             error: "Database error occurred during update.",
             details: e.getMessage(),
             sqlState: e.getSQLState(),
-            userData: userData,
             stackTrace: e.getStackTrace().take(5).collect { it.toString() }
         ]).toString()).build()
     } catch (Exception e) {

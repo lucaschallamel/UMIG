@@ -1,6 +1,6 @@
 # API Coding Patterns (UMIG)
 
-## Instructions API Pattern (2025-01-23)
+## Instructions API Pattern (2025-08-05)
 - Complete instruction template and execution management system with 14 REST endpoints
 - Implements hierarchical filtering across all entity levels: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`, `?stepId=`
 - **TEMPLATE-BASED ARCHITECTURE**: Master/instance pattern supporting instruction templates with execution instances

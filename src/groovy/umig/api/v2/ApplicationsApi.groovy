@@ -209,26 +209,26 @@ applications(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
         def applicationData = jsonSlurper.parseText(body)
 
         // Basic validation
-        if (!applicationData.app_code || applicationData.app_code.toString().trim().isEmpty()) {
+        if (!applicationData['app_code'] || applicationData['app_code'].toString().trim().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "app_code is required"]).toString()).build()
         }
 
-        if (applicationData.app_code.toString().length() > 50) {
+        if (applicationData['app_code'].toString().length() > 50) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "app_code must be 50 characters or less"]).toString()).build()
         }
 
-        if (applicationData.app_name && applicationData.app_name.toString().length() > 64) {
+        if (applicationData['app_name'] && applicationData['app_name'].toString().length() > 64) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "app_name must be 64 characters or less"]).toString()).build()
         }
 
         // Create application
-        def newApplication = applicationRepository.createApplication(applicationData)
+        def newApplication = applicationRepository.createApplication(applicationData as Map)
         return Response.status(Response.Status.CREATED).entity(new JsonBuilder(newApplication).toString()).build()
 
     } catch (SQLException e) {
         log.error("Database error in POST /applications", e)
         // Handle specific SQL errors
-        if (e.sqlState == "23505") { // Unique constraint violation
+        if (e.getSQLState() == "23505") { // Unique constraint violation
             return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Application with this code already exists"]).toString()).build()
         }
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
@@ -265,7 +265,7 @@ applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
             
         } catch (SQLException e) {
             log.error("Database error in PUT /applications/{appId}/environments/{envId}", e)
-            if (e.sqlState == "23503") { // Foreign key constraint violation
+            if (e.getSQLState() == "23503") { // Foreign key constraint violation
                 return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Environment not found"]).toString()).build()
             }
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
@@ -297,7 +297,7 @@ applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
             
         } catch (SQLException e) {
             log.error("Database error in PUT /applications/{appId}/teams/{teamId}", e)
-            if (e.sqlState == "23503") { // Foreign key constraint violation
+            if (e.getSQLState() == "23503") { // Foreign key constraint violation
                 return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Team not found"]).toString()).build()
             }
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
@@ -329,7 +329,7 @@ applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
             
         } catch (SQLException e) {
             log.error("Database error in PUT /applications/{appId}/labels/{labelId}", e)
-            if (e.sqlState == "23503") { // Foreign key constraint violation
+            if (e.getSQLState() == "23503") { // Foreign key constraint violation
                 return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Application or Label not found"]).toString()).build()
             }
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
@@ -355,20 +355,20 @@ applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
         def applicationData = jsonSlurper.parseText(body)
 
         // Basic validation
-        if (!applicationData.app_code || applicationData.app_code.toString().trim().isEmpty()) {
+        if (!applicationData['app_code'] || applicationData['app_code'].toString().trim().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "app_code is required"]).toString()).build()
         }
 
-        if (applicationData.app_code.toString().length() > 50) {
+        if (applicationData['app_code'].toString().length() > 50) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "app_code must be 50 characters or less"]).toString()).build()
         }
 
-        if (applicationData.app_name && applicationData.app_name.toString().length() > 64) {
+        if (applicationData['app_name'] && applicationData['app_name'].toString().length() > 64) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "app_name must be 64 characters or less"]).toString()).build()
         }
 
         // Update application
-        def updatedApplication = applicationRepository.updateApplication(appId, applicationData)
+        def updatedApplication = applicationRepository.updateApplication(appId as Integer, applicationData as Map)
         if (!updatedApplication) {
             return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Application with ID ${appId} not found."]).toString()).build()
         }
@@ -377,7 +377,7 @@ applications(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
 
     } catch (SQLException e) {
         log.error("Database error in PUT /applications/{id}", e)
-        if (e.sqlState == "23505") { // Unique constraint violation
+        if (e.getSQLState() == "23505") { // Unique constraint violation
             return Response.status(Response.Status.CONFLICT).entity(new JsonBuilder([error: "Application with this code already exists"]).toString()).build()
         }
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()
@@ -512,7 +512,7 @@ applications(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
 
     } catch (SQLException e) {
         log.error("Database error in DELETE /applications/{id}", e)
-        if (e.sqlState == "23503") { // Foreign key constraint violation
+        if (e.getSQLState() == "23503") { // Foreign key constraint violation
             return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Cannot delete application. It is referenced by other records."]).toString()).build()
         }
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "Database error occurred: ${e.message}"]).toString()).build()

@@ -22,7 +22,7 @@ final PhaseRepository phaseRepository = new PhaseRepository()
  */
 private Response handleError(Exception e) {
     if (e instanceof SQLException) {
-        def sqlState = e.SQLState
+        def sqlState = e.getSQLState()
         switch (sqlState) {
             case '23503': // Foreign key violation
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -153,7 +153,7 @@ phases(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
         // GET /phases/{phi_id}/controls - get control points for phase
         if (pathParts.size() == 2 && pathParts[1] == 'controls') {
             def phaseId = UUID.fromString(pathParts[0] as String)
-            def controls = phaseRepository.getPhaseControlPoints(phaseId)
+            def controls = phaseRepository.findControlPoints(phaseId)
             
             return Response.ok(new JsonBuilder(controls).toString()).build()
         }
@@ -204,20 +204,20 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
             def requestData = jsonSlurper.parseText(body)
             
             // Validate required fields
-            if (!requestData.sqm_id || !requestData.phm_name) {
+            if (!requestData['sqm_id'] || !requestData['phm_name']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "sqm_id and phm_name are required"]).toString())
                     .build()
             }
             
-            def masterPhase = phaseRepository.createMasterPhase(
-                UUID.fromString(requestData.sqm_id as String),
-                requestData.phm_name as String,
-                requestData.phm_description as String,
-                requestData.phm_order as Integer,
-                requestData.predecessor_phm_id ? UUID.fromString(requestData.predecessor_phm_id as String) : null,
-                requestData.control_points ?: []
-            )
+            def phaseData = [:]
+            phaseData['sqm_id'] = UUID.fromString(requestData['sqm_id'] as String)
+            phaseData['phm_name'] = requestData['phm_name'] as String
+            phaseData['phm_description'] = requestData['phm_description'] as String
+            phaseData['phm_order'] = requestData['phm_order'] as Integer
+            phaseData['predecessor_phm_id'] = requestData['predecessor_phm_id'] ? UUID.fromString(requestData['predecessor_phm_id'] as String) : null
+            
+            def masterPhase = phaseRepository.createMasterPhase(phaseData)
             
             return Response.status(Response.Status.CREATED)
                 .entity(new JsonBuilder(masterPhase).toString())
@@ -225,7 +225,7 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
         }
         
         // POST /phases/master/{phm_id}/instantiate - create instances from master
-        if (pathParts.size() == 2 && pathParts[0] == 'master' && pathParts[1] == 'instantiate') {
+        if (pathParts.size() == 3 && pathParts[1] == 'master' && pathParts[2] == 'instantiate') {
             if (!body || body.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Request body is required"]).toString())
@@ -235,22 +235,20 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.sqi_id) {
+            if (!requestData['sqi_id']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "sqi_id is required"]).toString())
                     .build()
             }
             
             def masterPhaseId = UUID.fromString(pathParts[0] as String)
-            def sequenceInstanceId = UUID.fromString(requestData.sqi_id as String)
+            def sequenceInstanceId = UUID.fromString(requestData['sqi_id'] as String)
             
-            def instances = phaseRepository.createPhaseInstancesFromMaster(
-                masterPhaseId,
-                sequenceInstanceId
-            )
+            // Create single phase instance from master phase
+            def instance = phaseRepository.createPhaseInstance(masterPhaseId, sequenceInstanceId)
             
             return Response.status(Response.Status.CREATED)
-                .entity(new JsonBuilder(instances).toString())
+                .entity(new JsonBuilder(instance).toString())
                 .build()
         }
         
@@ -268,20 +266,23 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
             def requestData = jsonSlurper.parseText(body)
             
             // Validate required fields
-            if (!requestData.phm_id || !requestData.sqi_id) {
+            if (!requestData['phm_id'] || !requestData['sqi_id']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "phm_id and sqi_id are required"]).toString())
                     .build()
             }
             
+            def overrides = [:]
+            overrides['phi_name'] = requestData['phi_name'] as String
+            overrides['phi_description'] = requestData['phi_description'] as String
+            overrides['phi_order'] = requestData['phi_order'] as Integer
+            overrides['predecessor_phi_id'] = requestData['predecessor_phi_id'] ? UUID.fromString(requestData['predecessor_phi_id'] as String) : null
+            overrides['phi_status'] = requestData['phi_status'] as String ?: 'NOT_STARTED'
+            
             def phaseInstance = phaseRepository.createPhaseInstance(
-                UUID.fromString(requestData.phm_id as String),
-                UUID.fromString(requestData.sqi_id as String),
-                requestData.phi_name as String,
-                requestData.phi_description as String,
-                requestData.phi_order as Integer,
-                requestData.predecessor_phi_id ? UUID.fromString(requestData.predecessor_phi_id as String) : null,
-                requestData.sts_id ? UUID.fromString(requestData.sts_id as String) : null
+                UUID.fromString(requestData['phm_id'] as String),
+                UUID.fromString(requestData['sqi_id'] as String),
+                overrides
             )
             
             return Response.status(Response.Status.CREATED)
@@ -297,10 +298,7 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
             def jsonSlurper = new JsonSlurper()
             def requestData = body ? jsonSlurper.parseText(body) : [:]
             
-            def validationResult = phaseRepository.validateAllControlPoints(
-                phaseId,
-                requestData.userId as String ?: 'system'
-            )
+            def validationResult = phaseRepository.validateControlPoints(phaseId)
             
             return Response.ok(new JsonBuilder(validationResult).toString()).build()
         }
@@ -319,16 +317,16 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.reason || !requestData.overrideBy) {
+            if (!requestData['reason'] || !requestData['overrideBy']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "reason and overrideBy are required"]).toString())
                     .build()
             }
             
-            def result = phaseRepository.overrideControlPoint(
+            def result = phaseRepository.overrideControl(
                 controlId,
-                requestData.reason as String,
-                requestData.overrideBy as String
+                requestData['reason'] as String,
+                requestData['overrideBy'] as String
             )
             
             return Response.ok(new JsonBuilder(result).toString()).build()
@@ -374,15 +372,20 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.sqm_id || !requestData.phase_order) {
+            if (!requestData['sqm_id'] || !requestData['phase_order']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "sqm_id and phase_order array are required"]).toString())
                     .build()
             }
             
+            def phaseOrder = [:]
+            requestData['phase_order'].eachWithIndex { phaseId, index ->
+                phaseOrder[UUID.fromString(phaseId as String)] = (index as Integer) + 1
+            }
+            
             def result = phaseRepository.reorderMasterPhases(
-                UUID.fromString(requestData.sqm_id as String),
-                requestData.phase_order.collect { UUID.fromString(it as String) }
+                UUID.fromString(requestData['sqm_id'] as String),
+                phaseOrder
             )
             
             return Response.status(Response.Status.NO_CONTENT).build()
@@ -401,17 +404,20 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.target_sqm_id) {
+            if (!requestData['target_sqm_id']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "target_sqm_id is required"]).toString())
                     .build()
             }
             
-            def result = phaseRepository.moveMasterPhase(
-                phaseId,
-                UUID.fromString(requestData.target_sqm_id as String),
-                requestData.new_order as Integer
-            )
+            // Move operation would need to be implemented as update + reorder
+            def updateData = [:]
+            updateData['sqm_id'] = UUID.fromString(requestData['target_sqm_id'] as String)
+            if (requestData['new_order']) {
+                updateData['phm_order'] = requestData['new_order'] as Integer
+            }
+            
+            def result = phaseRepository.updateMasterPhase(phaseId, updateData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
         }
@@ -429,13 +435,13 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            def result = phaseRepository.updateMasterPhase(
-                phaseId,
-                requestData.phm_name as String,
-                requestData.phm_description as String,
-                requestData.phm_order as Integer,
-                requestData.predecessor_phm_id ? UUID.fromString(requestData.predecessor_phm_id as String) : null
-            )
+            def updateData = [:]
+            updateData['phm_name'] = requestData['phm_name'] as String
+            updateData['phm_description'] = requestData['phm_description'] as String
+            updateData['phm_order'] = requestData['phm_order'] as Integer
+            updateData['predecessor_phm_id'] = requestData['predecessor_phm_id'] ? UUID.fromString(requestData['predecessor_phm_id'] as String) : null
+            
+            def result = phaseRepository.updateMasterPhase(phaseId, updateData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
         }
@@ -453,15 +459,20 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.sqi_id || !requestData.phase_order) {
+            if (!requestData['sqi_id'] || !requestData['phase_order']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "sqi_id and phase_order array are required"]).toString())
                     .build()
             }
             
+            def phaseOrder = [:]
+            requestData['phase_order'].eachWithIndex { phaseId, index ->
+                phaseOrder[UUID.fromString(phaseId as String)] = (index as Integer) + 1
+            }
+            
             def result = phaseRepository.reorderPhaseInstances(
-                UUID.fromString(requestData.sqi_id as String),
-                requestData.phase_order.collect { UUID.fromString(it as String) }
+                UUID.fromString(requestData['sqi_id'] as String),
+                phaseOrder
             )
             
             return Response.status(Response.Status.NO_CONTENT).build()
@@ -480,17 +491,20 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.target_sqi_id) {
+            if (!requestData['target_sqi_id']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "target_sqi_id is required"]).toString())
                     .build()
             }
             
-            def result = phaseRepository.movePhaseInstance(
-                phaseId,
-                UUID.fromString(requestData.target_sqi_id as String),
-                requestData.new_order as Integer
-            )
+            // Move operation would need to be implemented as update + reorder
+            def updateData = [:]
+            updateData['sqi_id'] = UUID.fromString(requestData['target_sqi_id'] as String)
+            if (requestData['new_order']) {
+                updateData['phi_order'] = requestData['new_order'] as Integer
+            }
+            
+            def result = phaseRepository.updatePhaseInstance(phaseId, updateData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
         }
@@ -508,16 +522,16 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.sts_id) {
+            if (!requestData['sts_id']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "sts_id is required"]).toString())
                     .build()
             }
             
-            def result = phaseRepository.updatePhaseInstanceStatus(
-                phaseId,
-                UUID.fromString(requestData.sts_id as String)
-            )
+            def updateData = [:]
+            updateData['phi_status'] = requestData['sts_id'] as String
+            
+            def result = phaseRepository.updatePhaseInstance(phaseId, updateData)
             
             return Response.status(Response.Status.NO_CONTENT).build()
         }
@@ -535,14 +549,14 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            def result = phaseRepository.updatePhaseInstance(
-                phaseId,
-                requestData.phi_name as String,
-                requestData.phi_description as String,
-                requestData.phi_order as Integer,
-                requestData.predecessor_phi_id ? UUID.fromString(requestData.predecessor_phi_id as String) : null,
-                requestData.sts_id ? UUID.fromString(requestData.sts_id as String) : null
-            )
+            def updateData = [:]
+            updateData['phi_name'] = requestData['phi_name'] as String
+            updateData['phi_description'] = requestData['phi_description'] as String
+            updateData['phi_order'] = requestData['phi_order'] as Integer
+            updateData['predecessor_phi_id'] = requestData['predecessor_phi_id'] ? UUID.fromString(requestData['predecessor_phi_id'] as String) : null
+            updateData['phi_status'] = requestData['sts_id'] ? requestData['sts_id'] as String : null
+            
+            def result = phaseRepository.updatePhaseInstance(phaseId, updateData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
         }
@@ -563,17 +577,19 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             def jsonSlurper = new JsonSlurper()
             def requestData = jsonSlurper.parseText(body)
             
-            if (!requestData.status) {
+            if (!requestData['status']) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "status is required"]).toString())
                     .build()
             }
             
-            def result = phaseRepository.updateControlPointStatus(
-                controlId,
-                requestData.status as String,
-                requestData.validatedBy as String ?: 'system'
-            )
+            def statusData = [:]
+            statusData['cti_status'] = requestData['status'] as String
+            if (requestData['validatedBy']) {
+                statusData['usr_id_it_validator'] = requestData['validatedBy'] as String
+            }
+            
+            def result = phaseRepository.updateControlPoint(controlId, statusData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
         }

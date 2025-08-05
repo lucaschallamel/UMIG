@@ -773,10 +773,10 @@ class StepRepository {
             def comments = findCommentsByStepInstanceId(stepInstanceId)
             
             // Get labels for this step (using master step ID)
-            def labels = []
+            List labels = []
             if (stepInstance.stm_id) {
                 try {
-                    labels = findLabelsByStepId(stepInstance.stm_id as UUID)
+                    labels = findLabelsByStepId(stepInstance.stm_id as UUID) as List
                     println "DEBUG: Found ${labels.size()} labels for step ${stepInstance.stm_id}"
                 } catch (Exception e) {
                     println "ERROR fetching labels: ${e.message}"

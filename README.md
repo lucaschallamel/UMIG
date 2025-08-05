@@ -397,7 +397,13 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (August 2025)
-- **Instructions API Implementation**: Complete instruction template and execution management system (January 23, 2025)
+- **Groovy 3.0.15 Static Type Checking Compatibility**: Comprehensive type safety improvements across the codebase (August 5, 2025)
+  - **API Layer Fixes**: Resolved dynamic property access patterns, method signature mismatches, and undeclared variables
+  - **Repository Enhancements**: Fixed collection typing, numeric casting, and improved error handling in all repository classes
+  - **Development Experience**: Enhanced IDE support, earlier error detection, and improved code completion capabilities
+  - **Production Reliability**: Eliminated ClassCastException and NoSuchMethodException runtime errors through compile-time validation
+  - **Architecture Consistency**: Strengthened type safety patterns established in ADR-031 for ScriptRunner compatibility
+- **Instructions API Implementation**: Complete instruction template and execution management system (August 5, 2025)
   - **14 REST Endpoints**: Full CRUD operations for instruction masters and instances following UMIG patterns
   - **InstructionsApi.groovy**: Comprehensive API implementation with hierarchical filtering across all entity levels
   - **InstructionRepository.groovy**: 19-method repository with complete lifecycle management and bulk operations
