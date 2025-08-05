@@ -32,7 +32,7 @@ class InstructionsApiIntegrationSpec extends Specification {
     @Shared RESTClient client
     
     // Database configuration
-    @Shared def dbUrl = System.getenv('DATABASE_URL') ?: 'jdbc:postgresql://postgres:5432/umig_app_db'
+    @Shared def dbUrl = System.getenv('DATABASE_URL') ?: 'jdbc:postgresql://localhost:5432/umig_app_db'
     @Shared def dbUser = System.getenv('DATABASE_USER') ?: 'umig_app_user'
     @Shared def dbPassword = System.getenv('DATABASE_PASSWORD') ?: '123456'
     @Shared def dbDriver = 'org.postgresql.Driver'

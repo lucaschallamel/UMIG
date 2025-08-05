@@ -6,6 +6,7 @@ import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
 import groovy.transform.Field
 
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 
@@ -37,15 +38,15 @@ import umig.utils.DatabaseUtil
 // GET /emailTemplates - List all email templates
 emailTemplates(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body ->
     try {
-        def activeOnly = queryParams.getFirst("activeOnly")?.toBoolean() ?: false
+        def activeOnly = queryParams.getFirst("activeOnly")?.asBoolean() ?: false
         
         def templates = DatabaseUtil.withSql { sql ->
-            EmailTemplateRepository.findAll(sql, activeOnly)
+            EmailTemplateRepository.findAll(sql, activeOnly as Boolean)
         }
         
         def response = [
             data: templates,
-            total: templates.size()
+            total: (templates as List).size()
         ]
         
         return Response.ok(new JsonBuilder(response).toString()).build()
@@ -116,22 +117,22 @@ emailTemplates(httpMethod: "POST", groups: ["confluence-administrators"]) { Mult
         
         // Validate template type
         def validTypes = ['STEP_OPENED', 'INSTRUCTION_COMPLETED', 'STEP_STATUS_CHANGED', 'CUSTOM']
-        if (!validTypes.contains(json.emt_type)) {
+        if (!validTypes.contains(json['emt_type'])) {
             def error = [error: "Invalid template type. Must be one of: ${validTypes.join(', ')}"]
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder(error).toString())
                 .build()
         }
         
-        def currentUser = getCurrentUser()?.username ?: 'system'
+        def currentUser = getCurrentUser()?['username'] ?: 'system'
         
         def templateData = [
-            emt_type: json.emt_type,
-            emt_name: json.emt_name,
-            emt_subject: json.emt_subject,
-            emt_body_html: json.emt_body_html,
-            emt_body_text: json.emt_body_text ?: '',
-            emt_is_active: json.emt_is_active != false,  // Default to true
+            emt_type: json['emt_type'],
+            emt_name: json['emt_name'],
+            emt_subject: json['emt_subject'],
+            emt_body_html: json['emt_body_html'],
+            emt_body_text: json['emt_body_text'] ?: '',
+            emt_is_active: json['emt_is_active'] != false,  // Default to true
             emt_created_by: currentUser,
             emt_updated_by: currentUser
         ]
@@ -185,7 +186,7 @@ emailTemplates(httpMethod: "PUT", groups: ["confluence-administrators"]) { Multi
     
     try {
         def json = new JsonSlurper().parseText(body)
-        def currentUser = getCurrentUser()?.username ?: 'system'
+        def currentUser = getCurrentUser()?['username'] ?: 'system'
         
         // Check if template exists
         def existingTemplate = DatabaseUtil.withSql { sql ->
@@ -200,9 +201,9 @@ emailTemplates(httpMethod: "PUT", groups: ["confluence-administrators"]) { Multi
         }
         
         // Validate template type if provided
-        if (json.emt_type) {
+        if (json['emt_type']) {
             def validTypes = ['STEP_OPENED', 'INSTRUCTION_COMPLETED', 'STEP_STATUS_CHANGED', 'CUSTOM']
-            if (!validTypes.contains(json.emt_type)) {
+            if (!validTypes.contains(json['emt_type'])) {
                 def error = [error: "Invalid template type. Must be one of: ${validTypes.join(', ')}"]
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder(error).toString())
@@ -211,12 +212,12 @@ emailTemplates(httpMethod: "PUT", groups: ["confluence-administrators"]) { Multi
         }
         
         def templateData = [
-            emt_type: json.emt_type,
-            emt_name: json.emt_name,
-            emt_subject: json.emt_subject,
-            emt_body_html: json.emt_body_html,
-            emt_body_text: json.emt_body_text,
-            emt_is_active: json.emt_is_active,
+            emt_type: json['emt_type'],
+            emt_name: json['emt_name'],
+            emt_subject: json['emt_subject'],
+            emt_body_html: json['emt_body_html'],
+            emt_body_text: json['emt_body_text'],
+            emt_is_active: json['emt_is_active'],
             emt_updated_by: currentUser
         ]
         

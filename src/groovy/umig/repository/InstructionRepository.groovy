@@ -1,6 +1,7 @@
 package umig.repository
 
 import umig.utils.DatabaseUtil
+import umig.utils.AuthenticationService
 import java.util.UUID
 import java.sql.SQLException
 import groovy.sql.Sql
@@ -110,13 +111,21 @@ class InstructionRepository {
                 def inmBody = params.inmBody as String
                 def inmDurationMinutes = params.inmDurationMinutes ? Integer.parseInt(params.inmDurationMinutes as String) : null
                 
+                // Validate duration is not negative
+                if (inmDurationMinutes != null && inmDurationMinutes < 0) {
+                    throw new IllegalArgumentException("Duration cannot be negative")
+                }
+                
+                // Get system user from AuthenticationService
+                def systemUser = AuthenticationService.getSystemUser()
+                
                 def result = sql.firstRow('''
                     INSERT INTO instructions_master_inm (
                         stm_id, tms_id, ctm_id, inm_order, inm_body, inm_duration_minutes,
                         created_by, created_at, updated_by, updated_at
                     ) VALUES (
                         :stmId, :tmsId, :ctmId, :inmOrder, :inmBody, :inmDurationMinutes,
-                        'system', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP
+                        :createdBy, CURRENT_TIMESTAMP, :updatedBy, CURRENT_TIMESTAMP
                     ) RETURNING inm_id
                 ''', [
                     stmId: stmId,
@@ -124,7 +133,9 @@ class InstructionRepository {
                     ctmId: ctmId,
                     inmOrder: inmOrder,
                     inmBody: inmBody,
-                    inmDurationMinutes: inmDurationMinutes
+                    inmDurationMinutes: inmDurationMinutes,
+                    createdBy: systemUser,
+                    updatedBy: systemUser
                 ])
                 
                 return result.inm_id
@@ -173,16 +184,25 @@ class InstructionRepository {
                     queryParams.inmBody = params.inmBody
                 }
                 if (params.containsKey('inmDurationMinutes')) {
+                    def duration = params.inmDurationMinutes as Integer
+                    // Validate duration is not negative
+                    if (duration != null && duration < 0) {
+                        throw new IllegalArgumentException("Duration cannot be negative")
+                    }
                     updates << "inm_duration_minutes = :inmDurationMinutes"
-                    queryParams.inmDurationMinutes = params.inmDurationMinutes as Integer
+                    queryParams.inmDurationMinutes = duration
                 }
                 
                 if (updates.isEmpty()) {
                     return 0
                 }
                 
+                // Get system user from AuthenticationService
+                def systemUser = AuthenticationService.getSystemUser()
+                queryParams.updatedBy = systemUser
+                
                 updates << "updated_at = CURRENT_TIMESTAMP"
-                updates << "updated_by = 'system'"
+                updates << "updated_by = :updatedBy"
                 
                 return sql.executeUpdate("""
                     UPDATE instructions_master_inm 
@@ -252,11 +272,14 @@ class InstructionRepository {
                         def inmId = UUID.fromString(item.inmId as String)
                         def newOrder = Integer.parseInt(item.newOrder as String)
                         
+                        // Get system user from AuthenticationService
+                        def systemUser = AuthenticationService.getSystemUser()
+                        
                         affectedRows += sql.executeUpdate("""
                             UPDATE instructions_master_inm 
-                            SET inm_order = :newOrder, updated_at = CURRENT_TIMESTAMP, updated_by = 'system'
+                            SET inm_order = :newOrder, updated_at = CURRENT_TIMESTAMP, updated_by = :updatedBy
                             WHERE inm_id = :inmId AND stm_id = :stmId
-                        """, [inmId: inmId, newOrder: newOrder, stmId: stmId])
+                        """, [inmId: inmId, newOrder: newOrder, stmId: stmId, updatedBy: systemUser])
                     }
                     
                     return affectedRows
@@ -401,14 +424,14 @@ class InstructionRepository {
                                 inm.inm_order,
                                 inm.inm_body,
                                 inm.inm_duration_minutes,
-                                'system' as created_by,
+                                :createdBy as created_by,
                                 CURRENT_TIMESTAMP as created_at,
-                                'system' as updated_by,
+                                :updatedBy as updated_by,
                                 CURRENT_TIMESTAMP as updated_at
                             FROM instructions_master_inm inm
                             WHERE inm.inm_id = :inmId
                             RETURNING ini_id
-                        ''', [stiId: stiId, inmId: inmId])
+                        ''', [stiId: stiId, inmId: inmId, createdBy: AuthenticationService.getSystemUser(), updatedBy: AuthenticationService.getSystemUser()])
                         
                         if (result) {
                             createdIds << result.ini_id
@@ -448,9 +471,9 @@ class InstructionRepository {
                         ini_completed_at = CURRENT_TIMESTAMP,
                         usr_id_completed_by = :userId,
                         updated_at = CURRENT_TIMESTAMP,
-                        updated_by = 'system'
+                        updated_by = :updatedBy
                     WHERE ini_id = :iniId AND ini_is_completed = false
-                ''', [iniId: iniId, userId: userId])
+                ''', [iniId: iniId, userId: userId, updatedBy: AuthenticationService.getSystemUser()])
             } catch (SQLException e) {
                 if (e.getSQLState() == '23503') {
                     throw new IllegalArgumentException("User does not exist", e)
@@ -479,9 +502,9 @@ class InstructionRepository {
                         ini_completed_at = NULL,
                         usr_id_completed_by = NULL,
                         updated_at = CURRENT_TIMESTAMP,
-                        updated_by = 'system'
+                        updated_by = :updatedBy
                     WHERE ini_id = :iniId AND ini_is_completed = true
-                ''', [iniId: iniId])
+                ''', [iniId: iniId, updatedBy: AuthenticationService.getSystemUser()])
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to uncomplete instruction ${iniId}", e)
             }
@@ -504,11 +527,15 @@ class InstructionRepository {
                 sql.withTransaction {
                     def affectedRows = 0
                     
+                    // Get system user from AuthenticationService
+                    def systemUser = AuthenticationService.getSystemUser()
+                    
                     // Process in batches of 100 to avoid parameter limits
                     iniIds.collate(100).each { batch ->
                         def placeholders = batch.collect { '?' }.join(',')
                         def allParams = []
                         allParams.add(userId)
+                        allParams.add(systemUser)
                         allParams.addAll(batch)
                         
                         def updateCount = sql.executeUpdate("""
@@ -518,7 +545,7 @@ class InstructionRepository {
                                 ini_completed_at = CURRENT_TIMESTAMP,
                                 usr_id_completed_by = ?,
                                 updated_at = CURRENT_TIMESTAMP,
-                                updated_by = 'system'
+                                updated_by = ?
                             WHERE ini_id IN (${placeholders}) AND ini_is_completed = false
                         """.toString(), allParams)
                         
@@ -532,6 +559,31 @@ class InstructionRepository {
                     throw new IllegalArgumentException("User does not exist", e)
                 }
                 throw new RuntimeException("Failed to bulk complete instructions", e)
+            }
+        }
+    }
+
+    /**
+     * Deletes an instruction instance.
+     * @param iniId UUID of the instruction instance to delete
+     * @return Number of affected rows (1 if deleted successfully, 0 if not found)
+     */
+    def deleteInstanceInstruction(UUID iniId) {
+        if (!iniId) {
+            throw new IllegalArgumentException("Instruction instance ID cannot be null")
+        }
+        
+        DatabaseUtil.withSql { sql ->
+            try {
+                return sql.executeUpdate("""
+                    DELETE FROM instructions_instance_ini 
+                    WHERE ini_id = :iniId
+                """, [iniId: iniId])
+            } catch (SQLException e) {
+                if (e.getSQLState() == '23503') {
+                    throw new IllegalArgumentException("Cannot delete instruction instance due to foreign key constraint", e)
+                }
+                throw new RuntimeException("Failed to delete instruction instance ${iniId}", e)
             }
         }
     }
@@ -903,15 +955,17 @@ class InstructionRepository {
                             inm_order,
                             inm_body,
                             inm_duration_minutes,
-                            'system' as created_by,
+                            :createdBy as created_by,
                             CURRENT_TIMESTAMP as created_at,
-                            'system' as updated_by,
+                            :updatedBy as updated_by,
                             CURRENT_TIMESTAMP as updated_at
                         FROM instructions_master_inm
                         WHERE stm_id = :sourceStmId
                         ORDER BY inm_order
                         RETURNING inm_id
-                    ''', [sourceStmId: sourceStmId, targetStmId: targetStmId])
+                    ''', [sourceStmId: sourceStmId, targetStmId: targetStmId, 
+                          createdBy: AuthenticationService.getSystemUser(), 
+                          updatedBy: AuthenticationService.getSystemUser()])
                     
                     return results.collect { it.inm_id }
                 }

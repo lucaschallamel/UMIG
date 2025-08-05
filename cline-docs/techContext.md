@@ -61,3 +61,15 @@
   * **Connection Pool Configuration:** Dedicated 'umig_db_pool' setup with PostgreSQL JDBC  
   * **Single File Per Endpoint:** Eliminates ScriptRunner endpoint confusion
   * **Development Infrastructure:** Automated Postman collection generation with auto-auth and dynamic baseUrl
+* **Instructions API Implementation Patterns:** Template-based instruction management (US-004, 5 August 2025)
+  * **14-Endpoint REST API:** Complete instruction template and execution management system
+  * **19-Method Repository:** Complete lifecycle management with bulk operations and analytics
+  * **Template-Based Architecture:** Master/instance pattern with full attribute instantiation for execution tracking
+  * **Hierarchical Integration:** Seamless filtering across all migration→iteration→plan→sequence→phase→step levels
+  * **Executive Documentation:** Stakeholder-ready architecture presentations in HTML, PDF, and Markdown formats
+* **Groovy 3.0.15 Static Type Checking Patterns:** Enhanced production reliability (5 August 2025)
+  * **Explicit Type Casting:** UUID.fromString(), Integer.parseInt(), Boolean.valueOf() for all parameters
+  * **Collection Type Safety:** List<Map> declarations with proper casting for query results
+  * **Method Signature Standards:** Clear parameter and return types across APIs and repositories
+  * **IDE Enhancement:** Improved code completion, navigation, and error detection
+  * **Error Prevention:** Compile-time validation preventing ClassCastException and NoSuchMethodException
