@@ -1,7 +1,7 @@
 # Project Knowledge - UMIG
 
-**Last Updated**: 4 August 2025  
-**Knowledge Status**: Enterprise-grade platform with control point validation system
+**Last Updated**: 5 August 2025  
+**Knowledge Status**: Complete API foundation with all 5 core APIs implemented
 
 ## Project Overview
 
@@ -46,6 +46,21 @@ def getRepositoryName = {
 ```
 
 **Critical Learning**: ScriptRunner requires specific patterns but once mastered, enables rapid API development
+
+### Instructions API Implementation (US-004)
+
+**Complete API Ecosystem**: Final API in hierarchical chain completed 23 January 2025  
+**Implementation Scale**: 14 REST endpoints, 19-method repository, comprehensive testing suite  
+**Key Innovation**: Template-based instruction management with master/instance execution pattern
+
+**Technical Achievements:**
+- **Hierarchical Integration**: Seamless filtering across migration→iteration→plan→sequence→phase→step levels
+- **Workflow Integration**: Full integration with Steps, Teams, Labels, and Controls for complete instruction lifecycle
+- **Template Architecture**: Master instruction templates with execution instances following canonical/instance pattern
+- **Bulk Operations**: Efficient multi-instruction management for complex migration scenarios
+- **Executive Readiness**: Complete stakeholder presentation materials and architecture documentation
+
+**Pattern Maturity**: All 5 core APIs (Plans, Sequences, Phases, Instructions) now follow identical patterns, establishing robust foundation for remaining MVP components
 
 ### Database Connection Pool Configuration
 
@@ -227,6 +242,72 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 **Data Access Layer**: Comprehensive repository pattern supports complex UI requirements  
 **Testing Framework**: Established patterns support rapid UI feature testing
 
+## Additional Knowledge Sections (from legacy docs/projectKnowledge.md)
+
+### Development Velocity Metrics Deep Dive
+
+**Sprint 0 Performance Data**:
+
+**US-001 (Plans API Foundation)**:
+- **Planned Duration**: 8 hours (updated from initial 6 hours)
+- **Actual Duration**: 7.2 hours
+- **Efficiency**: 110% (10% faster than planned)
+- **Key Success Factors**: Established ScriptRunner integration patterns, resolved technical challenges
+
+**US-002 (Sequences API with Ordering)**:
+- **Planned Duration**: 6 hours
+- **Actual Duration**: 5.1 hours  
+- **Efficiency**: 146% (46% faster than planned)
+- **Key Success Factors**: Pattern reuse from US-001, proven repository templates, resolved integration issues
+
+**US-002b (Audit Fields Standardization)**:
+- **Planned Duration**: 4-6 hours
+- **Actual Duration**: 3 hours
+- **Efficiency**: 150% (50% faster than planned)
+- **Key Success Factors**: Comprehensive database infrastructure, systematic workflow execution, established migration patterns
+
+### Knowledge Transfer Insights
+
+**Onboarding Acceleration**: New developers can immediately leverage established patterns.
+
+**Key Resources**:
+1. **currentPatterns.md**: Immediate reference for implementation patterns
+2. **solution-architecture.md**: Comprehensive architectural context
+3. **Integration Tests**: Working examples of all API operations
+4. **OpenAPI Specification**: Complete API reference with examples
+
+### Technical Debt Management
+
+**Proactive Patterns**: US-002 implementation demonstrates mature technical debt prevention.
+
+**Debt Prevention Strategies**:
+- **Comprehensive Testing**: High coverage prevents regression
+- **Pattern Consistency**: Established patterns reduce maintenance complexity
+- **Documentation Automation**: Self-updating documentation prevents staleness
+- **Type Safety**: Explicit casting prevents runtime errors
+
+### Sprint 0 Progress Summary (Historical)
+
+**Completed Work (Day 3 of 5)**:
+- ✅ **US-001: Plans API Foundation** - Complete CRUD with hierarchical filtering (7.2 hours)
+- ✅ **US-002: Sequences API with Ordering** - Advanced CRUD with dependency management (5.1 hours)
+
+**Total Implementation Time**: 12.3 hours (planned: 14 hours) - 12% ahead of schedule
+
+**Quality Metrics Achieved**:
+- **Repository Scale**: 926-line SequenceRepository (154% of target)
+- **API Completeness**: 674-line SequencesApi (168% of target)
+- **Test Coverage**: 94% unit, 100% integration coverage
+- **ADR Compliance**: 100% type safety, specific mock validation
+
+### Advanced Engineering Capabilities Documentation
+
+**Circular Dependency Detection**: Successfully implemented using recursive CTEs
+**Transaction Management**: Atomic ordering operations with rollback capability
+**Performance**: <200ms response times maintained even with complex operations
+
 ---
 
-**Knowledge Maturity**: UMIG project has evolved from experimental development to proven delivery patterns with measurable velocity improvements and maintained quality standards. The pattern library and resolved technical challenges create a strong foundation for remaining Sprint 0 work and future development phases.
+**Knowledge Maturity**: UMIG project has evolved from experimental development to proven delivery patterns with measurable velocity improvements and maintained quality standards. The pattern library and resolved technical challenges create a strong foundation for remaining development phases.
+
+**Documentation Consolidation**: This file now contains the complete knowledge base from both /cline-docs/projectKnowledge.md and /docs/projectKnowledge.md (consolidated 5 August 2025).

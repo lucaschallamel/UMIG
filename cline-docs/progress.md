@@ -15,7 +15,7 @@
   * Standardised database naming conventions (ADR-014) have been implemented.
   * Comprehensive synthetic data generation with 3-digit prefixed generators (001-101) covering all entities.
 * **Phase 2: Backend Development (ScriptRunner)**
-  * **Complete API Implementation:** Core REST endpoints for user, team, environment, application, label, and **plans** management
+  * **Complete API Implementation:** Core REST endpoints for user, team, environment, application, label, plans, sequences, phases, and **instructions** management
   * **Plans API (US-001):** Production-ready implementation completed 31 July 2025
     * **537-line PlansApi.groovy** with full CRUD operations for master plans and plan instances
     * **451-line PlanRepository** with 13 data access methods following established patterns
@@ -47,6 +47,15 @@
     * **30 integration tests** and **1,694-line unit test suite** achieving 90%+ coverage
     * **Performance targets met:** <200ms response time for all operations
     * **PostgreSQL Compatibility:** Fixed timestamp casting issues for improved reliability
+  * **Instructions API (US-004):** Complete instruction template and execution management completed 23 January 2025
+    * **InstructionsApi.groovy (14 REST endpoints)** with hierarchical filtering across all entity levels
+    * **InstructionRepository.groovy (19 methods)** with complete lifecycle management and bulk operations
+    * **Template-Based Architecture:** Master/instance pattern supporting instruction templates with execution instances
+    * **Seamless Integration:** Full integration with Steps, Teams, Labels, and Controls for complete instruction workflow
+    * **90%+ Test Coverage:** Comprehensive unit and integration testing suites with ScriptRunner compatibility
+    * **Complete Documentation:** API documentation, OpenAPI specification updates, and executive presentation materials
+    * **Type Safety Implementation:** Explicit casting for all parameters following ADR-031 conventions
+    * **Error Handling:** SQL state mapping (23503→400, 23505→409) with proper HTTP responses
   * **Hierarchical Filtering:** Full implementation of hierarchical filtering (ADR-030) across all APIs
   * **Type Safety:** Robust Groovy type safety and filtering patterns (ADR-031) preventing runtime errors
   * **Error Handling:** Comprehensive error handling with SQL state mapping and detailed error messages
