@@ -867,21 +867,21 @@ class ControlRepository {
         DatabaseUtil.withSql { sql ->
             // Note: This would typically query an audit table
             // For now, return the current validation state
-            def control = findControlInstanceById(controlId)
+            Map control = findControlInstanceById(controlId) as Map
             if (!control) {
                 return []
             }
             
             return [
                 [
-                    cti_id: control.cti_id,
+                    cti_id: control['cti_id'],
                     action: 'VALIDATION',
-                    status: control.cti_status,
-                    validated_at: control.cti_validated_at,
-                    it_validator: control.it_validator_name,
-                    biz_validator: control.biz_validator_name,
-                    updated_by: control.updated_by,
-                    updated_at: control.updated_at
+                    status: control['cti_status'],
+                    validated_at: control['cti_validated_at'],
+                    it_validator: control['it_validator_name'],
+                    biz_validator: control['biz_validator_name'],
+                    updated_by: control['updated_by'],
+                    updated_at: control['updated_at']
                 ]
             ]
         }
@@ -931,28 +931,28 @@ class ControlRepository {
      */
     def exportControlReport(Map filters) {
         DatabaseUtil.withSql { sql ->
-            def controls = findControlInstances(filters)
+            List<Map> controls = findControlInstances(filters) as List<Map>
             
             // Calculate summary statistics
-            def totalControls = controls.size()
-            def passedControls = controls.count { it.cti_status == 'PASSED' }
-            def failedControls = controls.count { it.cti_status == 'FAILED' }
-            def pendingControls = controls.count { it.cti_status == 'PENDING' }
-            def criticalControls = controls.count { it.cti_is_critical }
-            def failedCriticalControls = controls.findAll { 
-                it.cti_is_critical && it.cti_status == 'FAILED' 
+            int totalControls = controls.size()
+            int passedControls = controls.count { Map it -> it['cti_status'] == 'PASSED' }
+            int failedControls = controls.count { Map it -> it['cti_status'] == 'FAILED' }
+            int pendingControls = controls.count { Map it -> it['cti_status'] == 'PENDING' }
+            int criticalControls = controls.count { Map it -> it['cti_is_critical'] }
+            List<Map> failedCriticalControls = controls.findAll { Map it -> 
+                it['cti_is_critical'] && it['cti_status'] == 'FAILED' 
             }
             
             // Group by phase for phase-level statistics
-            def phaseStats = [:]
-            controls.groupBy { it.phi_id }.each { phaseId, phaseControls ->
-                def phaseTotal = phaseControls.size()
-                def phasePassed = phaseControls.count { it.cti_status == 'PASSED' }
-                def phaseCompletion = phaseTotal > 0 ? 
-                    (phasePassed.doubleValue() / phaseTotal.doubleValue()) * 100.0d : 0.0d
+            Map phaseStats = [:]
+            controls.groupBy { Map it -> it['phi_id'] }.each { phaseId, List<Map> phaseControls ->
+                int phaseTotal = phaseControls.size()
+                int phasePassed = phaseControls.count { Map it -> it['cti_status'] == 'PASSED' }
+                double phaseCompletion = phaseTotal > 0 ? 
+                    ((double) phasePassed / (double) phaseTotal) * 100.0d : 0.0d
                 
                 phaseStats[phaseId] = [
-                    phase_name: phaseControls[0].phi_name,
+                    phase_name: phaseControls[0]['phi_name'],
                     total_controls: phaseTotal,
                     passed_controls: phasePassed,
                     completion_percentage: Math.round(phaseCompletion * 100.0d) / 100.0d
@@ -968,11 +968,11 @@ class ControlRepository {
                     critical_controls: criticalControls,
                     failed_critical_count: failedCriticalControls.size(),
                     overall_completion: totalControls > 0 ? 
-                        Math.round((passedControls.doubleValue() / totalControls.doubleValue()) * 10000.0d) / 100.0d : 0.0d
+                        Math.round(((double) passedControls / (double) totalControls) * 10000.0d) / 100.0d : 0.0d
                 ],
                 phase_statistics: phaseStats,
-                failed_critical_controls: failedCriticalControls.collect { 
-                    [cti_id: it.cti_id, cti_name: it.cti_name, phi_name: it.phi_name] 
+                failed_critical_controls: failedCriticalControls.collect { Map it -> 
+                    [cti_id: it['cti_id'], cti_name: it['cti_name'], phi_name: it['phi_name']] 
                 },
                 control_details: controls,
                 export_timestamp: new Date().format("yyyy-MM-dd HH:mm:ss"),
