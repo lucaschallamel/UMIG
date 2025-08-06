@@ -93,20 +93,20 @@ async function generateInstanceData(config, options = {}) {
   }
 
   // Fetch available statuses from status_sts table for each entity type
-  const planStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Plan']);
-  const planStatuses = planStatusesResult.rows.map(row => row.sts_name);
+  const planStatusesResult = await client.query('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1', ['Plan']);
+  const planStatusIds = planStatusesResult.rows.map(row => row.sts_id);
   
-  const sequenceStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Sequence']);
-  const sequenceStatuses = sequenceStatusesResult.rows.map(row => row.sts_name);
+  const sequenceStatusesResult = await client.query('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1', ['Sequence']);
+  const sequenceStatusIds = sequenceStatusesResult.rows.map(row => row.sts_id);
   
-  const phaseStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Phase']);
-  const phaseStatuses = phaseStatusesResult.rows.map(row => row.sts_name);
+  const phaseStatusesResult = await client.query('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1', ['Phase']);
+  const phaseStatusIds = phaseStatusesResult.rows.map(row => row.sts_id);
   
-  const stepStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Step']);
-  const stepStatuses = stepStatusesResult.rows.map(row => row.sts_name);
+  const stepStatusesResult = await client.query('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1', ['Step']);
+  const stepStatusIds = stepStatusesResult.rows.map(row => row.sts_id);
   
-  const controlStatusesResult = await client.query('SELECT sts_name FROM status_sts WHERE sts_type = $1', ['Control']);
-  const controlStatuses = controlStatusesResult.rows.map(row => row.sts_name);
+  const controlStatusesResult = await client.query('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1', ['Control']);
+  const controlStatusIds = controlStatusesResult.rows.map(row => row.sts_id);
 
   // For each iteration, create an instance of the specific master plan it is linked to.
   for (const iteration of iterations.rows) {
@@ -131,7 +131,7 @@ async function generateInstanceData(config, options = {}) {
         iteration.ite_id,
         `Instance of Plan ${masterPlanId.toString().substring(0, 8)} for Iteration ${iteration.ite_id.toString().substring(0, 8)}`,
         faker.lorem.sentence(),
-        faker.helpers.arrayElement(planStatuses),
+        faker.helpers.arrayElement(planStatusIds),
         ownerId,
         'generator',
         new Date(),
@@ -165,7 +165,7 @@ async function generateInstanceData(config, options = {}) {
         [
           planInstanceId, 
           masterSequence.sqm_id, 
-          faker.helpers.arrayElement(sequenceStatuses),
+          faker.helpers.arrayElement(sequenceStatusIds),
           sqi_name,
           sqi_description,
           sqi_order,
@@ -202,7 +202,7 @@ async function generateInstanceData(config, options = {}) {
           [
             sequenceInstanceId, 
             masterPhase.phm_id, 
-            faker.helpers.arrayElement(phaseStatuses),
+            faker.helpers.arrayElement(phaseStatusIds),
             phi_name,
             phi_description,
             phi_order,
@@ -245,7 +245,7 @@ async function generateInstanceData(config, options = {}) {
             [
               phaseInstanceId, 
               masterStep.stm_id, 
-              faker.helpers.arrayElement(stepStatuses),
+              faker.helpers.arrayElement(stepStatusIds),
               sti_name,
               sti_description,
               sti_duration_minutes,
@@ -334,7 +334,7 @@ async function generateInstanceData(config, options = {}) {
             [
               phaseInstanceId, 
               masterControl.ctm_id, 
-              faker.helpers.arrayElement(controlStatuses),
+              faker.helpers.arrayElement(controlStatusIds),
               cti_order,
               cti_name,
               cti_description,

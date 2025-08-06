@@ -54,6 +54,12 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
     client.query.mockImplementation((sql) => {
       if (sql.includes('SELECT usr_id FROM users_usr')) return Promise.resolve({ rows: mockUsers });
       if (sql.includes('SELECT plm_id FROM plans_master_plm')) return Promise.resolve({ rows: mockPlans });
+      if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1') && sql.includes("'Migration'")) {
+        return Promise.resolve({ rows: [{ sts_id: 1, sts_name: 'PLANNING' }, { sts_id: 2, sts_name: 'IN_PROGRESS' }] });
+      }
+      if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1') && sql.includes("'Iteration'")) {
+        return Promise.resolve({ rows: [{ sts_id: 3, sts_name: 'PLANNING' }, { sts_id: 4, sts_name: 'IN_PROGRESS' }] });
+      }
       if (sql.includes('INSERT INTO migrations_mig')) return Promise.resolve({ rows: [{ mig_id: `mig-${Math.random()}` }] });
       return Promise.resolve({ rows: [] }); // For INSERT/TRUNCATE
     });
@@ -91,6 +97,12 @@ describe('Migrations Generator (05_generate_migrations.js)', () => {
       client.query.mockImplementation((sql, values) => {
         if (sql.includes('SELECT usr_id FROM users_usr')) return Promise.resolve({ rows: mockUsers });
         if (sql.includes('SELECT plm_id FROM plans_master_plm')) return Promise.resolve({ rows: mockPlans });
+        if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1') && values && values[0] === 'Migration') {
+          return Promise.resolve({ rows: [{ sts_id: 1, sts_name: 'PLANNING' }, { sts_id: 2, sts_name: 'IN_PROGRESS' }] });
+        }
+        if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1') && values && values[0] === 'Iteration') {
+          return Promise.resolve({ rows: [{ sts_id: 3, sts_name: 'PLANNING' }, { sts_id: 4, sts_name: 'IN_PROGRESS' }] });
+        }
         if (sql.includes('INSERT INTO migrations_mig')) {
           const migId = `mig-${capturedData.migrations.length + 1}`;
           capturedData.migrations.push({ usr_id_owner: values[0] });

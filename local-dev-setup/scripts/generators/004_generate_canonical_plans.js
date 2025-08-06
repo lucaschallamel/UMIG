@@ -36,10 +36,14 @@ async function generateCanonicalPlans(config, options = {}) {
   const teams = await dbClient.query('SELECT tms_id FROM teams_tms');
   const stepTypes = await dbClient.query('SELECT stt_code FROM step_types_stt');
   const envRoles = await dbClient.query('SELECT enr_id FROM environment_roles_enr');
-    const iterationTypes = await dbClient.query('SELECT itt_code FROM iteration_types_itt');
+  const iterationTypes = await dbClient.query('SELECT itt_code FROM iteration_types_itt');
 
-  if (teams.rows.length === 0 || stepTypes.rows.length === 0 || envRoles.rows.length === 0 || iterationTypes.rows.length === 0) {
-    throw new Error('Cannot generate plans: Missing master data (teams, step types, environment roles, or iteration types).');
+  // Fetch available statuses from status_sts table
+  const planStatusesResult = await dbClient.query('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1', ['Plan']);
+  const planStatusIds = planStatusesResult.rows.map(row => row.sts_id);
+
+  if (teams.rows.length === 0 || stepTypes.rows.length === 0 || envRoles.rows.length === 0 || iterationTypes.rows.length === 0 || planStatusIds.length === 0) {
+    throw new Error('Cannot generate plans: Missing master data (teams, step types, environment roles, iteration types, or plan statuses).');
   }
 
   for (let i = 0; i < config.CANONICAL_PLANS.PER_MIGRATION * config.MIGRATIONS.COUNT; i++) {
@@ -47,7 +51,7 @@ async function generateCanonicalPlans(config, options = {}) {
 
     const planRes = await dbClient.query(
       'INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, created_at, updated_by, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING plm_id',
-      [teamId, `Canonical Plan ${i + 1}`, faker.lorem.sentence(), faker.helpers.arrayElement(['DRAFT', 'ACTIVE']), 'generator', new Date(), 'generator', new Date()]
+      [teamId, `Canonical Plan ${i + 1}`, faker.lorem.sentence(), faker.helpers.arrayElement(planStatusIds), 'generator', new Date(), 'generator', new Date()]
     );
     const plmId = planRes.rows[0].plm_id;
 

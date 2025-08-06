@@ -195,279 +195,484 @@ ALTER TABLE migrations_mig RENAME COLUMN mig_status_id TO mig_status;
 | steps_instance_sti | sti_status VARCHAR(50) | sti_status INTEGER FK | VARCHAR → FK | Step |
 | controls_instance_cti | cti_status VARCHAR(50) | cti_status INTEGER FK | VARCHAR → FK | Control |
 
-## Implementation Results
+## Detailed Implementation Plan
 
-### Core Deliverables Completed
+Based on comprehensive requirements analysis using the story-detailed-plan workflow, this user story requires systematic database schema transformation, repository layer updates, API enhancements, and frontend integration.
 
-**Database Schema Transformation**:
-- ✅ 8 entity tables successfully normalized to foreign key relationships
-- ✅ Zero data loss during migration process
-- ✅ Full referential integrity enforcement implemented
-- ✅ Rollback procedures validated and documented
-- ✅ Performance impact analysis completed (no degradation detected)
+### Implementation Strategy Overview
 
-**StatusRepository Implementation**:
-- ✅ Centralized status lookup functionality
-- ✅ Type-based status filtering methods
-- ✅ Status metadata retrieval with color coding
-- ✅ Status validation helper methods
-- ✅ Integration with existing repository patterns
+**Approach**: Phased migration with zero-downtime deployment
+**Timeline**: 9 working days across 5 phases
+**Risk Level**: Medium (comprehensive mitigation strategies defined)
+**Integration Points**: 8 entity tables, 8 repository classes, 8 API endpoints
 
-```groovy
-class StatusRepository {
-    
-    def getStatusById(Integer statusId) {
-        DatabaseUtil.withSql { sql ->
-            def query = '''
-                SELECT sts_id, sts_name, sts_color, sts_type
-                FROM status_sts
-                WHERE sts_id = :statusId
-            '''
-            return sql.firstRow(query, [statusId: statusId])
-        }
-    }
-    
-    def getStatusByNameAndType(String name, String type) {
-        DatabaseUtil.withSql { sql ->
-            def query = '''
-                SELECT sts_id, sts_name, sts_color, sts_type
-                FROM status_sts
-                WHERE sts_name = :name AND sts_type = :type
-            '''
-            return sql.firstRow(query, [name: name, type: type])
-        }
-    }
-    
-    def getAllStatusesForType(String type) {
-        DatabaseUtil.withSql { sql ->
-            def query = '''
-                SELECT sts_id, sts_name, sts_color
-                FROM status_sts
-                WHERE sts_type = :type
-                ORDER BY sts_id
-            '''
-            return sql.rows(query, [type: type])
-        }
-    }
-}
+### Phase 1: Database Migration Design
+
+**Migration File**: `019_status_field_normalization.sql`
+
+**Schema Transformation Strategy**:
+1. **Add new INTEGER status foreign key columns** (preserving existing VARCHAR columns initially)
+2. **Populate new columns** using status_sts table lookups
+3. **Add foreign key constraints** and performance indexes
+4. **Validate data integrity** and referential consistency
+5. **Drop old VARCHAR columns** after complete validation
+
+**Affected Entity Tables**:
+- `migrations_mig.mig_status` → `mig_status_id INTEGER FK`
+- `iterations_ite.ite_status` → `ite_status_id INTEGER FK`
+- `plans_master_plm.plm_status` → `plm_status_id INTEGER FK`
+- `plans_instance_pli.pli_status` → `pli_status_id INTEGER FK`
+- `sequences_instance_sqi.sqi_status` → `sqi_status_id INTEGER FK`
+- `phases_instance_phi.phi_status` → `phi_status_id INTEGER FK`
+- `steps_instance_sti.sti_status` → `sti_status_id INTEGER FK`
+- `controls_instance_cti.cti_status` → `cti_status_id INTEGER FK`
+
+**Data Migration Example**:
+```sql
+-- Add new FK column
+ALTER TABLE migrations_mig ADD COLUMN mig_status_id INTEGER;
+
+-- Populate with status_sts lookups
+UPDATE migrations_mig SET mig_status_id = (
+    SELECT sts_id FROM status_sts 
+    WHERE sts_name = mig_status AND sts_type = 'Migration'
+);
+
+-- Add constraints after validation
+ALTER TABLE migrations_mig 
+    ADD CONSTRAINT fk_migrations_mig_status 
+    FOREIGN KEY (mig_status_id) REFERENCES status_sts(sts_id);
+
+-- Performance index
+CREATE INDEX idx_migrations_mig_status_id ON migrations_mig(mig_status_id);
 ```
 
-**API Response Enhancement**:
-- ✅ Enhanced all API responses to include status metadata
-- ✅ Backward compatibility maintained where possible
-- ✅ Consistent error handling for invalid status values
-- ✅ Status validation implemented in all update operations
+**Rollback Capability**:
+Complete rollback script provided for each transformation step, enabling safe migration execution with emergency recovery procedures.
+
+### Phase 2: Repository Layer Enhancement
+
+**StatusRepository Integration Pattern**:
+All 8 entity repositories will integrate StatusRepository for enriched status responses:
 
 ```groovy
-// Before: Simple status name
-{
-    "mig_id": "123",
-    "mig_status": "IN_PROGRESS"
-}
-
-// After: Rich status metadata
-{
-    "mig_id": "123",
-    "mig_status": {
-        "id": 2,
-        "name": "IN_PROGRESS",
-        "color": "#0066CC"
-    }
-}
-```
-
-### Liquibase Migration Implementation
-
-**Migration File**: `local-dev-setup/liquibase/migrations/019_normalize_status_fields.sql`
-- ✅ Complete schema transformation script
-- ✅ Data migration and validation procedures
-- ✅ Rollback scripts for emergency recovery
-- ✅ Performance impact mitigation strategies
-
-### Repository Layer Updates
-
-**All Entity Repositories Updated**:
-- ✅ MigrationRepository: Status lookup with metadata
-- ✅ IterationRepository: Enhanced status handling
-- ✅ PlanRepository: Both master and instance status management
-- ✅ SequenceRepository: Status validation integration
-- ✅ PhaseRepository: Phase status workflow support
-- ✅ StepRepository: Step status progression tracking
-- ✅ ControlRepository: Control validation status management
-
-## Key Implementation Patterns
-
-### Status Metadata Integration
-
-```groovy
-// Pattern for enhanced API responses
-def enhanceWithStatusMetadata(Map entity, String statusField) {
+// Enhanced status metadata integration
+def enhanceWithStatusMetadata(Map entity, String statusField, String entityType) {
     if (entity[statusField]) {
-        def statusInfo = statusRepository.getStatusById(entity[statusField] as Integer)
-        entity[statusField] = [
-            id: statusInfo.sts_id,
-            name: statusInfo.sts_name,
-            color: statusInfo.sts_color
+        def statusInfo = statusRepository.findStatusByNameAndType(entity[statusField] as String, entityType)
+        entity.statusMetadata = [
+            id: statusInfo.id,
+            name: statusInfo.name,
+            color: statusInfo.color,
+            type: statusInfo.type
         ]
     }
     return entity
 }
 ```
 
-### Status Validation Pattern
+**Repository Updates Required**:
+- **MigrationRepository**: Enhance findAllMigrations, findMigrationById
+- **IterationRepository**: Enhance findAllIterations, findIterationById
+- **PlanRepository**: Enhance master and instance find methods
+- **SequenceRepository**: Enhance findSequenceInstances methods
+- **PhaseRepository**: Enhance findPhaseInstances methods
+- **StepRepository**: Enhance findStepInstances, findStepInstanceById
+- **ControlRepository**: Enhance findControlInstances methods
 
-```groovy
-// Centralized status validation
-def validateStatusForType(String statusName, String entityType) {
-    def status = statusRepository.getStatusByNameAndType(statusName, entityType)
-    if (!status) {
-        throw new IllegalArgumentException("Invalid status '${statusName}' for entity type '${entityType}'")
-    }
-    return status.sts_id
+### Phase 3: API Response Enhancement
+
+**Enhanced API Response Structure**:
+
+**Before (current)**:
+```json
+{
+  "id": "uuid-123",
+  "name": "Migration Step",
+  "status": "IN_PROGRESS"
 }
 ```
 
-### Migration Safety Pattern
-
-```groovy
-// Safe migration with rollback capability
-DatabaseUtil.withTransaction { sql ->
-    try {
-        // Add new column
-        sql.execute("ALTER TABLE ${tableName} ADD COLUMN ${newColumn} INTEGER")
-        
-        // Migrate data
-        def migrationResult = sql.executeUpdate(migrationQuery)
-        
-        // Validate migration
-        def validationCount = sql.firstRow(validationQuery).count
-        if (validationCount != expectedCount) {
-            throw new RuntimeException("Migration validation failed")
-        }
-        
-        // Add constraints
-        sql.execute("ALTER TABLE ${tableName} ADD CONSTRAINT ${constraintName}")
-        
-        return migrationResult
-    } catch (Exception e) {
-        // Transaction automatically rolls back
-        throw e
-    }
+**After (enhanced with metadata)**:
+```json
+{
+  "id": "uuid-123",
+  "name": "Migration Step", 
+  "status": "IN_PROGRESS",
+  "statusMetadata": {
+    "id": 4,
+    "name": "IN_PROGRESS",
+    "color": "#0066CC",
+    "type": "Step"
+  }
 }
 ```
 
-## Challenges Resolved
+**Backward Compatibility Strategy**:
+- Maintain existing `status` string field for legacy clients
+- Add new `statusMetadata` object for enhanced features
+- Preserve all existing API endpoint signatures
+- Maintain same HTTP response codes and error handling
 
-### 1. Data Migration Complexity
-**Challenge**: Converting 8 tables with existing data while maintaining referential integrity  
-**Solution**: 
-- Implemented phased migration approach with validation at each step
-- Created comprehensive mapping tables for all existing status values
-- Built automated rollback procedures for each migration phase
-- Validated data integrity before and after each transformation
+**API Endpoints Affected** (8 endpoints):
+- `/api/v2/migrations` - Migration status enhancement
+- `/api/v2/iterations` - Iteration status enhancement
+- `/api/v2/plans` (master & instance) - Plan status enhancement
+- `/api/v2/sequences` - Sequence status enhancement
+- `/api/v2/phases` - Phase status enhancement
+- `/api/v2/steps` - Step status enhancement
+- `/api/v2/instructions` - Control status enhancement
 
-### 2. API Backward Compatibility
-**Challenge**: Maintaining existing API contracts while enhancing responses  
-**Solution**: 
-- Implemented dual-mode responses supporting both old and new formats
-- Added feature flags for gradual rollout of enhanced responses
-- Created migration guides for API consumers
-- Maintained string-based status access for legacy compatibility
+### Phase 4: Frontend Integration
 
-### 3. Performance Impact Mitigation
-**Challenge**: Ensuring foreign key relationships don't degrade query performance  
-**Solution**: 
-- Added appropriate indexes on all new foreign key columns
-- Optimized join queries with proper query planning
-- Implemented query performance benchmarking
-- Created monitoring alerts for performance regression
+**UI Enhancement Requirements**:
+- **Status Color Coding**: Apply status colors throughout Admin GUI
+- **Enhanced Filtering**: Leverage status metadata for improved filtering
+- **Visual Indicators**: Use status colors for progress indication
+- **Accessibility**: Ensure color coding meets WCAG compliance
 
-### 4. Status Consistency Validation
-**Challenge**: Ensuring all existing status values have valid mappings  
-**Solution**: 
-- Created comprehensive status audit scripts
-- Built validation procedures for unmapped status values
-- Implemented default status assignment for edge cases
-- Created status cleanup procedures for data quality
+**Admin GUI Components Affected**:
+- Entity listing tables with status columns
+- Status filtering dropdowns
+- Progress indicators and status badges
+- Status change interfaces
 
-## Data Quality Impact Assessment
+### Phase 5: Testing & Validation Strategy
 
-### Before Normalization
-- **Status Validation**: None - any string value accepted
-- **Consistency**: Inconsistent status naming across entities
-- **Metadata**: No color coding or additional status information
-- **Data Quality**: Risk of invalid status values
-- **UI Consistency**: Inconsistent status displays
+**Testing Levels**:
 
-### After Normalization
-- **Status Validation**: 100% referential integrity enforcement
-- **Consistency**: Centralized status definitions across all entities
-- **Metadata**: Rich status information with color coding
-- **Data Quality**: Guaranteed valid status values only
-- **UI Consistency**: Uniform status displays with color coding
+1. **Unit Testing** (95% coverage target):
+   - StatusRepository enhanced methods
+   - All repository status integration methods
+   - API response structure validation
 
-### Migration Statistics
-- **Tables Migrated**: 8 entity tables
-- **Status Fields Converted**: 8 VARCHAR fields to INTEGER FKs
-- **Data Records Processed**: 2,500+ entity records migrated
-- **Invalid Status Values**: 12 unmapped values resolved with defaults
-- **Data Loss**: 0 records lost during migration
-- **Performance Impact**: 0% degradation measured
+2. **Integration Testing** (90% coverage target):
+   - Full API endpoint testing with enhanced responses
+   - Database migration validation
+   - Performance testing (<200ms response time maintenance)
 
-## Quality Metrics Achieved
+3. **System Testing**:
+   - End-to-end workflow testing
+   - UI integration with enhanced status display
+   - Data integrity validation
 
-- **Data Integrity**: 100% referential integrity across all status fields ✅
-- **Migration Success Rate**: 100% - zero data loss ✅
-- **Performance Impact**: 0% degradation, 5% improvement in status queries ✅
-- **API Compatibility**: 100% backward compatibility maintained ✅
-- **Status Validation**: 100% invalid status prevention ✅
-- **UI Consistency**: Unified color coding across all entity displays ✅
+**Performance Benchmarks**:
+- API response times must remain <200ms
+- Database query performance maintained with proper indexing
+- StatusRepository caching for frequently accessed statuses
 
-## Success Criteria Validation
+**Data Validation Procedures**:
+- Pre-migration status mapping verification
+- Post-migration data integrity checks
+- Referential constraint validation
+- Rollback procedure testing
 
-1. **Database Transformation**
-   - ✅ All 8 status fields converted to foreign key relationships
-   - ✅ Full referential integrity established and enforced
-   - ✅ Zero data loss during migration process
-   - ✅ Performance benchmarks maintained or improved
+### Technical Architecture Decisions
 
-2. **API Enhancement**
-   - ✅ All APIs return status metadata (name, color, type)
-   - ✅ Status validation implemented for all update operations
-   - ✅ Backward compatibility maintained for existing clients
-   - ✅ Consistent error handling for invalid status values
+**Following Established UMIG Patterns**:
+- **ADR-031**: Type safety with explicit casting maintained
+- **ADR-030**: Hierarchical filtering preserved with enhanced schema
+- **ADR-027**: N-tier architecture maintained across all layers
+- **Repository Pattern**: Consistent with existing 4-6 find operations structure
+- **API Patterns**: Following StepsApi.groovy consolidated endpoint approach
 
-3. **Data Quality**
-   - ✅ No invalid status values possible in the system
-   - ✅ Consistent status naming across all entities
-   - ✅ Centralized status management and updates
-   - ✅ Full audit trail for status changes
+**StatusRepository as Central Service**:
+- Single source of truth for all status operations
+- Caching layer for performance optimization
+- Type-based status lookup methods
+- Integration point for all entity repositories
 
-## Sprint 3 Impact and Lessons Learned
+**Database Design Decisions**:
+- INTEGER foreign keys for performance and storage efficiency
+- Composite indexes for query optimization
+- Maintains audit field compliance across all transformations
+- Preserves existing table structure with FK additions
 
-### System-Wide Benefits
-1. **Data Integrity Foundation**: Established referential integrity that prevents invalid status values across the entire system
-2. **UI Consistency**: Enabled consistent color coding and status displays across all admin interfaces
-3. **API Enhancement**: Provided rich metadata that enhances all subsequent API implementations
-4. **Quality Assurance**: Created validation patterns that improve data quality for all entities
+### Risk Assessment & Mitigation
 
-### Development Velocity Impact
-1. **Pattern Reuse**: StatusRepository became a reusable component for all subsequent APIs
-2. **Validation Standards**: Established status validation patterns used in US-003, US-004, and US-005
-3. **Migration Expertise**: Built database migration skills that accelerated subsequent schema changes
-4. **Quality Confidence**: Referential integrity provides confidence for all data operations
+**High Risk - Data Loss During Migration**:
+- *Mitigation*: Comprehensive backup procedures, validation queries, rollback capability
+- *Validation*: Multi-stage verification of data mapping accuracy
+- *Recovery*: Complete rollback scripts for emergency procedures
 
-### Technical Debt Reduction
-1. **Schema Consistency**: Eliminated inconsistent VARCHAR status fields across the system
-2. **Validation Gaps**: Closed data quality gaps that could have caused production issues
-3. **Maintenance Overhead**: Reduced status management complexity with centralized approach
-4. **Future Extensibility**: Created foundation for advanced status workflows and transitions
+**Medium Risk - Performance Degradation**:
+- *Mitigation*: Strategic indexing on FK columns, StatusRepository caching
+- *Validation*: Performance benchmarking before and after migration
+- *Monitoring*: Response time monitoring during deployment
 
-### Foundation for Subsequent Work
-- **US-003 (Phases API)**: Leveraged normalized status system for phase workflow management
-- **US-004 (Instructions API)**: Built upon status validation patterns for instruction lifecycle
-- **US-005 (Controls API)**: Used status normalization for quality gate validation workflows
-- **Admin UI**: Consistent status displays with color coding across all entity views
+**Low Risk - API Compatibility Issues**:
+- *Mitigation*: Maintain existing response structure with enhancements
+- *Validation*: Comprehensive integration testing with existing clients
+- *Rollback*: API versioning strategy if compatibility issues arise
+
+### Success Criteria & Acceptance Testing
+
+**Database Transformation Success**:
+- ✅ All 8 entity tables converted to FK relationships
+- ✅ Zero data loss during migration process
+- ✅ Full referential integrity enforcement
+- ✅ Performance maintained or improved
+
+**API Enhancement Success**:
+- ✅ All endpoints return enhanced status metadata
+- ✅ Backward compatibility maintained
+- ✅ Response times remain <200ms
+- ✅ Hierarchical filtering functionality preserved
+
+**System Integration Success**:
+- ✅ Admin UI displays status colors correctly
+- ✅ All status operations function properly
+- ✅ Error handling updated for FK constraints
+- ✅ Documentation updated with new patterns
+
+**Test Coverage Success**:
+- ✅ 95% unit test coverage on repository changes
+- ✅ 90% integration test coverage on API changes
+- ✅ 100% data migration test coverage
+- ✅ Performance benchmarks maintained
+
+## Implementation Results (Status: READY FOR IMPLEMENTATION)
+
+This comprehensive planning phase has established:
+- **Complete technical specification** for all 5 implementation phases
+- **Detailed task breakdown** with effort estimates (9 working days total)
+- **Risk mitigation strategies** for all identified risks
+- **Test coverage specifications** for quality assurance
+- **Performance benchmarks** for success validation
+
+The implementation plan provides systematic approach to achieving the 5 story points for US-006, with clear deliverables, acceptance criteria, and success metrics. All architectural patterns follow established UMIG conventions while enhancing system capabilities with centralized status management.
+
+### Implementation Readiness Status
+
+**Current Status**: ✅ READY FOR IMPLEMENTATION  
+**Planning Complete**: All 5 phases defined with technical specifications  
+**Risk Analysis**: Comprehensive mitigation strategies established  
+**Success Criteria**: Clear acceptance criteria and test coverage defined
+
+**Next Steps**:
+1. Create database migration 019 following the detailed schema transformation plan
+2. Execute phased repository updates with StatusRepository integration
+3. Implement API enhancements with status metadata responses
+4. Update Admin GUI with status color coding
+5. Execute comprehensive testing and validation procedures
+
+**Foundation Assets Ready**:
+- ✅ status_sts table exists with 27 predefined statuses
+- ✅ StatusRepository.groovy provides lookup methods  
+- ✅ Established patterns from existing APIs (StepsApi, TeamsApi, LabelsApi)
+- ✅ Comprehensive development environment and testing infrastructure
+
+## Detailed Implementation Task Plan
+
+### 📋 Complete Task Breakdown (9 Working Days)
+
+#### Phase 1: Database Migration (Day 1-2) - 8 hours total
+**Task 1.1: Create Migration Script** (2 hours)
+- [ ] Create `019_status_field_normalization.sql` in liquibase migrations
+- [ ] Define changelog entry with author and description
+- [ ] Add rollback procedures for each transformation step
+- [ ] Document migration assumptions and prerequisites
+
+**Task 1.2: Add Foreign Key Columns** (2 hours)
+- [ ] Add `mig_status_id INTEGER` to migrations_mig table
+- [ ] Add `ite_status_id INTEGER` to iterations_ite table
+- [ ] Add `plm_status_id INTEGER` to plans_master_plm table
+- [ ] Add `pli_status_id INTEGER` to plans_instance_pli table
+- [ ] Add `sqi_status_id INTEGER` to sequences_instance_sqi table
+- [ ] Add `phi_status_id INTEGER` to phases_instance_phi table
+- [ ] Add `sti_status_id INTEGER` to steps_instance_sti table
+- [ ] Add `cti_status_id INTEGER` to controls_instance_cti table
+
+**Task 1.3: Populate New Columns** (2 hours)
+- [ ] Map existing VARCHAR status values to status_sts IDs
+- [ ] Handle unmapped values with appropriate defaults
+- [ ] Validate data mapping accuracy with verification queries
+- [ ] Document any data transformation decisions
+
+**Task 1.4: Add Constraints and Indexes** (1 hour)
+- [ ] Add NOT NULL constraints to all new status ID columns
+- [ ] Create foreign key constraints to status_sts table
+- [ ] Add performance indexes on all FK columns
+- [ ] Test constraint enforcement with invalid data attempts
+
+**Task 1.5: Validation and Rollback Scripts** (1 hour)
+- [ ] Create pre-migration backup procedures
+- [ ] Write validation queries for data integrity checks
+- [ ] Test complete rollback capability
+- [ ] Document emergency recovery procedures
+
+#### Phase 2: Repository Layer Enhancement (Day 3-4) - 8 hours total
+**Task 2.1: StatusRepository Integration** (2 hours)
+- [ ] Review existing StatusRepository implementation
+- [ ] Add caching layer for frequently accessed statuses
+- [ ] Create type-based lookup methods
+- [ ] Add batch status retrieval methods for performance
+
+**Task 2.2: Update Entity Repositories** (4 hours)
+- [ ] MigrationRepository: Add status metadata enhancement
+- [ ] IterationRepository: Integrate status lookups
+- [ ] PlanRepository: Update master and instance methods
+- [ ] SequenceRepository: Add status metadata to responses
+- [ ] PhaseRepository: Enhance instance retrieval methods
+- [ ] StepRepository: Update findStepInstances methods
+- [ ] ControlRepository: Add status metadata integration
+- [ ] InstructionRepository: Update for control status handling
+
+**Task 2.3: Add Status Metadata Methods** (2 hours)
+- [ ] Create `enhanceWithStatusMetadata()` utility method
+- [ ] Add status validation methods for updates
+- [ ] Implement status change audit tracking
+- [ ] Create status filtering helper methods
+
+#### Phase 3: API Response Enhancement (Day 5-6) - 8 hours total
+**Task 3.1: Update API Endpoints** (4 hours)
+- [ ] MigrationsApi: Add status metadata to responses
+- [ ] IterationsApi: Enhance with status information
+- [ ] PlansApi: Update master and instance endpoints
+- [ ] SequencesApi: Add status metadata fields
+- [ ] PhasesApi: Enhance response structure
+- [ ] StepsApi: Update with status metadata
+- [ ] InstructionsApi: Add control status metadata
+- [ ] StatusApi: Create centralized status lookup endpoint
+
+**Task 3.2: Backward Compatibility Layer** (2 hours)
+- [ ] Maintain existing status string field in responses
+- [ ] Add optional statusMetadata object
+- [ ] Preserve existing endpoint signatures
+- [ ] Document migration path for API clients
+
+**Task 3.3: Response Structure Validation** (2 hours)
+- [ ] Update OpenAPI specification with new fields
+- [ ] Validate JSON response structures
+- [ ] Test with existing API clients
+- [ ] Performance benchmark API responses
+
+#### Phase 4: Frontend Integration (Day 7) - 6 hours total
+**Task 4.1: Admin GUI Status Display** (3 hours)
+- [ ] Update entity listing tables with status colors
+- [ ] Add status badges with color coding
+- [ ] Implement status tooltips with metadata
+- [ ] Update status change interfaces
+
+**Task 4.2: Color Coding Implementation** (2 hours)
+- [ ] Create CSS classes for status colors
+- [ ] Implement dynamic color application
+- [ ] Ensure WCAG accessibility compliance
+- [ ] Add color legend documentation
+
+**Task 4.3: Filter Enhancements** (1 hour)
+- [ ] Update status filter dropdowns
+- [ ] Add status type filtering
+- [ ] Implement multi-status selection
+- [ ] Test filter performance
+
+#### Phase 5: Testing & Validation (Day 8-9) - 10 hours total
+**Task 5.1: Unit Testing** (3 hours)
+- [ ] StatusRepository test coverage (95% target)
+- [ ] Repository enhancement tests
+- [ ] API response structure tests
+- [ ] Utility method testing
+
+**Task 5.2: Integration Testing** (3 hours)
+- [ ] Full API endpoint testing (90% coverage)
+- [ ] Database migration validation
+- [ ] Cross-entity status consistency
+- [ ] Error handling scenarios
+
+**Task 5.3: Performance Validation** (2 hours)
+- [ ] API response time benchmarks (<200ms)
+- [ ] Database query performance testing
+- [ ] StatusRepository cache effectiveness
+- [ ] Load testing with concurrent requests
+
+**Task 5.4: End-to-End Testing** (2 hours)
+- [ ] Complete workflow testing
+- [ ] UI integration validation
+- [ ] Data integrity verification
+- [ ] User acceptance testing
+
+### 🎯 Implementation Sequence & Dependencies
+
+```mermaid
+graph LR
+    A[Phase 1: Database] --> B[Phase 2: Repository]
+    B --> C[Phase 3: API]
+    C --> D[Phase 4: Frontend]
+    B --> E[Phase 5: Testing]
+    C --> E
+    D --> E
+```
+
+**Critical Path**: Database Migration → Repository Updates → API Enhancement → Frontend → Testing
+
+**Parallel Work Opportunities**:
+- Repository and API updates can proceed in parallel after database migration
+- Unit tests can be written alongside implementation
+- Documentation can be updated continuously
+
+### ⚠️ Risk Mitigation Strategies
+
+**High Risk: Data Loss During Migration**
+- Mitigation: Complete backup before migration
+- Validation: Row count verification pre/post migration
+- Recovery: Tested rollback scripts ready
+
+**Medium Risk: Performance Degradation**
+- Mitigation: Strategic indexing and caching
+- Validation: Performance benchmarks before/after
+- Recovery: Index tuning and query optimization
+
+**Low Risk: API Compatibility**
+- Mitigation: Backward compatible response structure
+- Validation: Existing client testing
+- Recovery: API versioning if needed
+
+### ✅ Quality Gates & Checkpoints
+
+**Gate 1: Database Migration Complete**
+- [ ] All tables successfully migrated
+- [ ] Data integrity validated
+- [ ] Rollback tested
+- [ ] Performance benchmarks met
+
+**Gate 2: Repository Layer Complete**
+- [ ] All repositories enhanced
+- [ ] StatusRepository integrated
+- [ ] Unit tests passing (95% coverage)
+
+**Gate 3: API Enhancement Complete**
+- [ ] All endpoints updated
+- [ ] Backward compatibility verified
+- [ ] Integration tests passing (90% coverage)
+
+**Gate 4: Frontend Integration Complete**
+- [ ] Status colors displaying correctly
+- [ ] Filters working properly
+- [ ] Accessibility validated
+
+**Gate 5: Final Validation**
+- [ ] All tests passing
+- [ ] Performance requirements met
+- [ ] Documentation updated
+- [ ] Ready for deployment
+
+### 📅 Timeline Summary
+
+- **Total Effort**: 40 hours (5 working days at 8 hours/day)
+- **Calendar Time**: 9 working days (allowing for reviews and iterations)
+- **Start Date**: TBD
+- **Target Completion**: TBD
+
+### 🚀 Implementation Kickoff Checklist
+
+Before starting implementation:
+- [ ] Review this complete task plan
+- [ ] Ensure development environment is ready
+- [ ] Confirm database backup procedures
+- [ ] Review existing StatusRepository implementation
+- [ ] Familiarize with established patterns (StepsApi, TeamsApi)
+- [ ] Set up test data generation scripts
+- [ ] Create feature branch for development
 
 ## References
 

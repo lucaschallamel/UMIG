@@ -385,7 +385,7 @@ class SequenceRepository {
                 JOIN iterations_ite itr ON pli.ite_id = itr.itr_id
                 JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts sts ON sts.sts_name = sqi.sqi_status AND sts.sts_type = 'Sequence'
+                LEFT JOIN status_sts sts ON sqi.sqi_status = sts.sts_id
                 LEFT JOIN sequences_instance_sqi pred ON sqi.predecessor_sqi_id = pred.sqi_id
                 WHERE 1=1
             """
@@ -420,7 +420,10 @@ class SequenceRepository {
             
             query += ' ORDER BY sqi.sqi_order, sqi.created_at'
             
-            return sql.rows(query, params)
+            def results = sql.rows(query, params)
+            return results.collect { row ->
+                enrichSequenceInstanceWithStatusMetadata(row)
+            }
         }
     }
     
@@ -431,7 +434,7 @@ class SequenceRepository {
      */
     def findSequenceInstanceById(UUID instanceId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
+            def result = sql.firstRow("""
                 SELECT 
                     sqi.sqi_id,
                     sqi.pli_id,
@@ -467,10 +470,12 @@ class SequenceRepository {
                 JOIN iterations_ite itr ON pli.ite_id = itr.itr_id
                 JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts sts ON sts.sts_name = sqi.sqi_status AND sts.sts_type = 'Sequence'
+                LEFT JOIN status_sts sts ON sqi.sqi_status = sts.sts_id
                 LEFT JOIN sequences_instance_sqi pred ON sqi.predecessor_sqi_id = pred.sqi_id
                 WHERE sqi.sqi_id = :instanceId
             """, [instanceId: instanceId])
+            
+            return result ? enrichSequenceInstanceWithStatusMetadata(result) : null
         }
     }
     
@@ -510,7 +515,7 @@ class SequenceRepository {
                     def instanceData = [
                         pli_id: planInstanceId,
                         sqm_id: masterSeq.sqm_id,
-                        sqi_status: 'NOT_STARTED',
+                        sqi_status: getDefaultSequenceInstanceStatusId(sql),
                         sqi_name: masterSeq.sqm_name,
                         sqi_description: masterSeq.sqm_description,
                         sqi_order: masterSeq.sqm_order,
@@ -601,29 +606,41 @@ class SequenceRepository {
     /**
      * Updates only the status of a sequence instance.
      * @param instanceId The UUID of the instance
-     * @param status The new status name
+     * @param statusId The new status ID (INTEGER)
      * @param userId The user making the update
      * @return true if updated successfully, false otherwise
      */
-    def updateSequenceInstanceStatus(UUID instanceId, String status, Integer userId) {
+    def updateSequenceInstanceStatus(UUID instanceId, Integer statusId, Integer userId) {
         DatabaseUtil.withSql { sql ->
+            // Verify status exists and is Sequence type
+            def status = sql.firstRow("""
+                SELECT sts_id, sts_name 
+                FROM status_sts 
+                WHERE sts_id = :statusId AND sts_type = 'Sequence'
+            """, [statusId: statusId])
+            
+            if (!status) {
+                return false
+            }
+            
+            def statusName = status.sts_name
             def rowsUpdated = sql.executeUpdate("""
                 UPDATE sequences_instance_sqi 
-                SET sqi_status = :status,
+                SET sqi_status = :statusId,
                     updated_by = 'system',
                     updated_at = CURRENT_TIMESTAMP,
                     sqi_start_time = CASE 
-                        WHEN :status = 'IN_PROGRESS' AND sqi_start_time IS NULL 
+                        WHEN :statusName = 'IN_PROGRESS' AND sqi_start_time IS NULL 
                         THEN CURRENT_TIMESTAMP 
                         ELSE sqi_start_time 
                     END,
                     sqi_end_time = CASE 
-                        WHEN :status = 'COMPLETED' 
+                        WHEN :statusName = 'COMPLETED' 
                         THEN CURRENT_TIMESTAMP 
                         ELSE NULL 
                     END
                 WHERE sqi_id = :instanceId
-            """, [instanceId: instanceId, status: status])
+            """, [instanceId: instanceId, statusId: statusId, statusName: statusName])
             
             return rowsUpdated > 0
         }
@@ -928,5 +945,76 @@ class SequenceRepository {
                 last_updated: stats.last_updated
             ]
         }
+    }
+    
+    // ==================== STATUS METADATA ENRICHMENT ====================
+    
+    /**
+     * Enriches sequence instance data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing sequence instance and status data
+     * @return Enhanced sequence instance map with statusMetadata
+     */
+    private Map enrichSequenceInstanceWithStatusMetadata(Map row) {
+        return [
+            sqi_id: row.sqi_id,
+            pli_id: row.pli_id,
+            sqm_id: row.sqm_id,
+            sqi_status: row.sts_name ?: 'UNKNOWN', // Backward compatibility - return status name as string
+            sqi_start_time: row.sqi_start_time,
+            sqi_end_time: row.sqi_end_time,
+            sqi_name: row.sqi_name,
+            sqi_description: row.sqi_description,
+            sqi_order: row.sqi_order,
+            predecessor_sqi_id: row.predecessor_sqi_id,
+            created_by: row.created_by ?: null,
+            created_at: row.created_at,
+            updated_by: row.updated_by ?: null,
+            updated_at: row.updated_at,
+            // Master sequence details
+            master_name: row.master_name,
+            master_description: row.master_description,
+            master_order: row.master_order,
+            // Plan and hierarchy details
+            pli_name: row.pli_name,
+            plm_name: row.plm_name,
+            tms_id: row.tms_id,
+            tms_name: row.tms_name,
+            ite_name: row.ite_name ?: null,
+            mig_name: row.mig_name ?: null,
+            predecessor_name: row.predecessor_name,
+            // Enhanced status metadata
+            statusMetadata: row.sts_id ? [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ] : null
+        ]
+    }
+    
+    /**
+     * Gets the default status ID for new sequence instances.
+     * @param sql Active SQL connection
+     * @return Integer status ID for 'NOT_STARTED' Sequence status
+     */
+    private Integer getDefaultSequenceInstanceStatusId(groovy.sql.Sql sql) {
+        Map defaultStatus = sql.firstRow("""
+            SELECT sts_id 
+            FROM status_sts 
+            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Sequence'
+            LIMIT 1
+        """) as Map
+        
+        // Fallback to any Sequence status if NOT_STARTED not found
+        if (!defaultStatus) {
+            defaultStatus = sql.firstRow("""
+                SELECT sts_id 
+                FROM status_sts 
+                WHERE sts_type = 'Sequence'
+                LIMIT 1
+            """) as Map
+        }
+        
+        return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
     }
 }
