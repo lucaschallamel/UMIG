@@ -14,11 +14,11 @@ class PlanRepository {
     
     /**
      * Retrieves all master plans with status and team information.
-     * @return List of master plans with enriched data
+     * @return List of master plans with enriched status metadata
      */
     def findAllMasterPlans() {
         DatabaseUtil.withSql { sql ->
-            return sql.rows("""
+            def results = sql.rows("""
                 SELECT 
                     plm.plm_id, 
                     plm.tms_id, 
@@ -32,23 +32,28 @@ class PlanRepository {
                     sts.sts_id,
                     sts.sts_name,
                     sts.sts_color,
+                    sts.sts_type,
                     tms.tms_name
                 FROM plans_master_plm plm
-                LEFT JOIN status_sts sts ON sts.sts_name = plm.plm_status AND sts.sts_type = 'Plan'
+                JOIN status_sts sts ON plm.plm_status = sts.sts_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
                 ORDER BY plm.created_at DESC
             """)
+            
+            return results.collect { row ->
+                enrichMasterPlanWithStatusMetadata(row)
+            }
         }
     }
     
     /**
-     * Finds a specific master plan by ID.
+     * Finds a specific master plan by ID with status metadata.
      * @param planId The UUID of the master plan
-     * @return Map containing plan details or null if not found
+     * @return Map containing plan details with enhanced status information, or null if not found
      */
     def findMasterPlanById(UUID planId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
+            def result = sql.firstRow("""
                 SELECT 
                     plm.plm_id, 
                     plm.tms_id, 
@@ -62,23 +67,45 @@ class PlanRepository {
                     sts.sts_id,
                     sts.sts_name,
                     sts.sts_color,
+                    sts.sts_type,
                     tms.tms_name
                 FROM plans_master_plm plm
-                LEFT JOIN status_sts sts ON sts.sts_name = plm.plm_status AND sts.sts_type = 'Plan'
+                JOIN status_sts sts ON plm.plm_status = sts.sts_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
                 WHERE plm.plm_id = :planId
             """, [planId: planId])
+            
+            return result ? enrichMasterPlanWithStatusMetadata(result) : null
         }
     }
     
     /**
      * Creates a new master plan.
      * @param planData Map containing plan data (tms_id, plm_name, plm_description, plm_status)
+     *                 Note: plm_status should be INTEGER status ID, not string
      * @return Map containing the created plan or null on failure
      */
     def createMasterPlan(Map planData) {
         DatabaseUtil.withSql { sql ->
-            def result = sql.firstRow("""
+            // Ensure plm_status is an INTEGER (status ID)
+            def statusId = planData.plm_status
+            if (statusId instanceof String) {
+                // Convert status name to ID if string provided
+                def statusRow = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = :statusName AND sts_type = 'Plan'", 
+                    [statusName: statusId])
+                statusId = statusRow?.sts_id
+            }
+            
+            if (!statusId) {
+                // Default to PLANNING status if not found
+                def defaultStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Plan'")
+                statusId = defaultStatus?.sts_id
+            }
+            
+            Map insertData = planData.clone() as Map
+            insertData.plm_status = statusId
+            
+            Map result = sql.firstRow("""
                 INSERT INTO plans_master_plm (
                     tms_id, plm_name, plm_description, plm_status, 
                     created_by, updated_by
@@ -87,7 +114,7 @@ class PlanRepository {
                     'system', 'system'
                 )
                 RETURNING plm_id
-            """, planData)
+            """, insertData) as Map
             
             if (result?.plm_id) {
                 return findMasterPlanById(result.plm_id as UUID)
@@ -113,6 +140,13 @@ class PlanRepository {
             def setClauses = []
             def queryParams = [:]
             def updatableFields = ['tms_id', 'plm_name', 'plm_description', 'plm_status']
+            
+            // Handle status conversion if needed
+            if (planData.plm_status instanceof String) {
+                def statusRow = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = :statusName AND sts_type = 'Plan'", 
+                    [statusName: planData.plm_status])
+                planData.plm_status = statusRow?.sts_id
+            }
             
             planData.each { key, value ->
                 if (key in updatableFields) {
@@ -175,14 +209,15 @@ class PlanRepository {
                     sts.sts_id,
                     sts.sts_name,
                     sts.sts_color,
+                    sts.sts_type,
                     usr.usr_name as owner_name,
-                    itr.itr_name,
+                    ite.ite_name,
                     mig.mig_name
                 FROM plans_instance_pli pli
                 JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
-                JOIN iterations_itr itr ON pli.ite_id = itr.itr_id
-                JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
-                LEFT JOIN status_sts sts ON sts.sts_name = pli.pli_status AND sts.sts_type = 'Plan'
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                JOIN status_sts sts ON pli.pli_status = sts.sts_id
                 LEFT JOIN users_usr usr ON pli.usr_id_owner = usr.usr_id
                 WHERE 1=1
             """
@@ -212,7 +247,10 @@ class PlanRepository {
             
             query += ' ORDER BY pli.created_at DESC'
             
-            return sql.rows(query, params)
+            def results = sql.rows(query, params)
+            return results.collect { row ->
+                enrichPlanInstanceWithStatusMetadata(row)
+            }
         }
     }
     
@@ -223,7 +261,7 @@ class PlanRepository {
      */
     def findPlanInstanceById(UUID instanceId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
+            def result = sql.firstRow("""
                 SELECT 
                     pli.pli_id,
                     pli.plm_id,
@@ -242,17 +280,20 @@ class PlanRepository {
                     sts.sts_id,
                     sts.sts_name,
                     sts.sts_color,
+                    sts.sts_type,
                     usr.usr_name as owner_name,
-                    itr.itr_name,
+                    ite.ite_name,
                     mig.mig_name
                 FROM plans_instance_pli pli
                 JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
-                JOIN iterations_itr itr ON pli.ite_id = itr.itr_id
-                JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
-                LEFT JOIN status_sts sts ON sts.sts_name = pli.pli_status AND sts.sts_type = 'Plan'
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                JOIN status_sts sts ON pli.pli_status = sts.sts_id
                 LEFT JOIN users_usr usr ON pli.usr_id_owner = usr.usr_id
                 WHERE pli.pli_id = :instanceId
             """, [instanceId: instanceId])
+            
+            return result ? enrichPlanInstanceWithStatusMetadata(result) : null
         }
     }
     
@@ -283,11 +324,11 @@ class PlanRepository {
                 ite_id: iterationId,
                 pli_name: overrides.pli_name ?: masterPlan.plm_name,
                 pli_description: overrides.pli_description ?: masterPlan.plm_description,
-                pli_status: 'NOT_STARTED', // Default status for new instances
+                pli_status: getDefaultPlanInstanceStatusId(sql), // Default status ID for new instances
                 usr_id_owner: userId
             ]
             
-            def result = sql.firstRow("""
+            Map result = sql.firstRow("""
                 INSERT INTO plans_instance_pli (
                     plm_id, ite_id, pli_name, pli_description, pli_status, 
                     usr_id_owner, created_by, updated_by
@@ -296,7 +337,7 @@ class PlanRepository {
                     :usr_id_owner, 'system', 'system'
                 )
                 RETURNING pli_id
-            """, instanceData)
+            """, instanceData) as Map
             
             if (result?.pli_id) {
                 return findPlanInstanceById(result.pli_id as UUID)
@@ -348,14 +389,14 @@ class PlanRepository {
     /**
      * Updates only the status of a plan instance.
      * @param instanceId The UUID of the instance
-     * @param statusId The new status ID
+     * @param statusId The new status ID (INTEGER)
      * @return true if updated successfully, false otherwise
      */
     def updatePlanInstanceStatus(UUID instanceId, Integer statusId) {
         DatabaseUtil.withSql { sql ->
-            // Get status name from status_sts table
+            // Verify status exists and is Plan type
             def status = sql.firstRow("""
-                SELECT sts_name 
+                SELECT sts_id, sts_name 
                 FROM status_sts 
                 WHERE sts_id = :statusId AND sts_type = 'Plan'
             """, [statusId: statusId])
@@ -366,11 +407,11 @@ class PlanRepository {
             
             def rowsUpdated = sql.executeUpdate("""
                 UPDATE plans_instance_pli 
-                SET pli_status = :statusName,
+                SET pli_status = :statusId,
                     updated_by = 'system',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE pli_id = :instanceId
-            """, [instanceId: instanceId, statusName: status.sts_name])
+            """, [instanceId: instanceId, statusId: statusId])
             
             return rowsUpdated > 0
         }
@@ -421,14 +462,15 @@ class PlanRepository {
             return sql.rows("""
                 SELECT 
                     'master' as plan_type,
-                    plm_id as plan_id,
-                    plm_name as plan_name,
-                    plm_description as plan_description,
-                    plm_status as plan_status,
-                    created_at,
-                    updated_at
-                FROM plans_master_plm
-                WHERE tms_id = :teamId
+                    plm.plm_id as plan_id,
+                    plm.plm_name as plan_name,
+                    plm.plm_description as plan_description,
+                    sts.sts_name as plan_status,
+                    plm.created_at,
+                    plm.updated_at
+                FROM plans_master_plm plm
+                JOIN status_sts sts ON plm.plm_status = sts.sts_id
+                WHERE plm.tms_id = :teamId
                 
                 UNION ALL
                 
@@ -437,15 +479,105 @@ class PlanRepository {
                     pli.pli_id as plan_id,
                     pli.pli_name as plan_name,
                     pli.pli_description as plan_description,
-                    pli.pli_status as plan_status,
+                    sts.sts_name as plan_status,
                     pli.created_at,
                     pli.updated_at
                 FROM plans_instance_pli pli
                 JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN status_sts sts ON pli.pli_status = sts.sts_id
                 WHERE plm.tms_id = :teamId
                 
                 ORDER BY created_at DESC
             """, [teamId: teamId])
         }
+    }
+    
+    // ==================== STATUS METADATA ENRICHMENT ====================
+    
+    /**
+     * Enriches master plan data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing plan and status data
+     * @return Enhanced plan map with statusMetadata
+     */
+    private Map enrichMasterPlanWithStatusMetadata(Map row) {
+        return [
+            plm_id: row.plm_id,
+            tms_id: row.tms_id,
+            plm_name: row.plm_name,
+            plm_description: row.plm_description,
+            plm_status: row.sts_name, // Backward compatibility - return status name as string
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            tms_name: row.tms_name,
+            // Enhanced status metadata
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
+    }
+    
+    /**
+     * Enriches plan instance data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing plan instance and status data
+     * @return Enhanced plan instance map with statusMetadata
+     */
+    private Map enrichPlanInstanceWithStatusMetadata(Map row) {
+        return [
+            pli_id: row.pli_id,
+            plm_id: row.plm_id,
+            ite_id: row.ite_id,
+            pli_name: row.pli_name,
+            pli_description: row.pli_description,
+            pli_status: row.sts_name, // Backward compatibility - return status name as string
+            usr_id_owner: row.usr_id_owner,
+            created_by: row.created_by ?: null,
+            created_at: row.created_at,
+            updated_by: row.updated_by ?: null,
+            updated_at: row.updated_at,
+            plm_name: row.plm_name,
+            plm_description: row.plm_description ?: null,
+            tms_id: row.tms_id,
+            owner_name: row.owner_name,
+            ite_name: row.ite_name ?: null,
+            mig_name: row.mig_name ?: null,
+            // Enhanced status metadata
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
+    }
+    
+    /**
+     * Gets the default status ID for new plan instances.
+     * @param sql Active SQL connection
+     * @return Integer status ID for 'NOT_STARTED' Plan status
+     */
+    private Integer getDefaultPlanInstanceStatusId(groovy.sql.Sql sql) {
+        Map defaultStatus = sql.firstRow("""
+            SELECT sts_id 
+            FROM status_sts 
+            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Plan'
+            LIMIT 1
+        """) as Map
+        
+        // Fallback to any Plan status if NOT_STARTED not found
+        if (!defaultStatus) {
+            defaultStatus = sql.firstRow("""
+                SELECT sts_id 
+                FROM status_sts 
+                WHERE sts_type = 'Plan'
+                LIMIT 1
+            """) as Map
+        }
+        
+        return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
     }
 }

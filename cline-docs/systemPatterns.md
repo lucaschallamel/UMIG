@@ -99,3 +99,363 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 * `ScriptRunner` -> sends email via -> `Confluence Mail API / MailHog (local testing)`
 * `EmailService` -> processes templates with -> `SimpleTemplateEngine`
 * `Email System` -> logs all events to -> `audit_log_aud` table with JSONB details
+
+## 4. Core Development Patterns
+
+### ScriptRunner API Pattern (Proven)
+
+**Template**: StepsApi.groovy → PlansApi.groovy → SequencesApi.groovy  
+**Success Rate**: 100% implementation success with consistent structure
+
+#### Mandatory Components
+```groovy
+// 1. Base Script Configuration
+@BaseScript CustomEndpointDelegate delegate
+@Grab('org.postgresql:postgresql:42.5.0')
+
+// 2. Lazy Repository Loading (Critical for ScriptRunner)
+def getRepositoryName = {
+    def repoClass = this.class.classLoader.loadClass('umig.repository.RepositoryName')
+    return repoClass.newInstance()
+}
+
+// 3. Endpoint Definition with Security
+entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
+    // Implementation
+}
+```
+
+#### Type Safety Pattern (ADR-031 Compliance)
+```groovy
+// MANDATORY: Explicit casting for all query parameters
+if (queryParams.getFirst('migrationId')) {
+    filters.migrationId = UUID.fromString(queryParams.getFirst('migrationId') as String)
+}
+if (queryParams.getFirst('teamId')) {
+    filters.teamId = Integer.parseInt(queryParams.getFirst('teamId') as String)
+}
+```
+
+### Repository Pattern (Proven)
+
+**Scale Range**: 451-926 lines, 13-25+ methods  
+**Architecture**: DatabaseUtil.withSql wrapper with comprehensive method coverage
+
+#### Standard Method Categories
+1. **Find Operations** (4-6 methods)
+   - `findAllMaster*()`, `findMaster*ById()`
+   - `find*Instances()`, `find*InstanceById()`
+   
+2. **Create Operations** (2-3 methods)
+   - `createMaster*()`, `create*InstancesFromMaster()`
+   
+3. **Update Operations** (2-4 methods)
+   - `update*InstanceStatus()`, `update*Order()` (where applicable)
+   
+4. **Delete Operations** (2 methods)
+   - `deleteMaster*()`, `delete*Instance()`
+   
+5. **Advanced Operations** (3-12 methods)
+   - Hierarchical filtering, validation, specialised business logic
+
+#### Database Connection Pattern
+```groovy
+// MANDATORY: Use DatabaseUtil wrapper
+DatabaseUtil.withSql { sql ->
+    return sql.rows('SELECT * FROM table_name WHERE condition = :param', [param: value])
+}
+```
+
+### Hierarchical Filtering Pattern (ADR-030)
+
+**Implementation**: Use instance IDs (pli_id, sqi_id, phi_id), NOT master IDs  
+**Success Rate**: 100% accuracy across Plans and Sequences APIs
+
+```groovy
+// Standard hierarchical filter implementation
+def filters = [:]
+if (queryParams.getFirst('migrationId')) {
+    filters.migrationId = UUID.fromString(queryParams.getFirst('migrationId') as String)
+}
+if (queryParams.getFirst('iterationId')) {
+    filters.iterationId = UUID.fromString(queryParams.getFirst('iterationId') as String)
+}
+if (queryParams.getFirst('planId')) { // or parentId for current level
+    filters.planId = UUID.fromString(queryParams.getFirst('planId') as String)
+}
+```
+
+### Testing Pattern (ADR-026 Compliance)
+
+**Structure**: Unit tests + Integration tests with 90%+ coverage  
+**Mock Strategy**: Specific SQL query mocks with exact regex patterns
+
+#### Unit Test Pattern
+```groovy
+class EntityRepositoryTest extends GroovyTestCase {
+    def setup() {
+        DatabaseUtil.metaClass.static.withSql = mockSqlClosure
+    }
+    
+    void testSpecificMethod() {
+        // Arrange: specific SQL mock with regex pattern
+        // Act: call repository method
+        // Assert: verify result and SQL call
+    }
+}
+```
+
+#### Integration Test Pattern
+```groovy
+class EntityApiIntegrationTest extends GroovyTestCase {
+    // Real database testing with PostgreSQL from local-dev-setup
+    // 15-20 test scenarios covering all endpoints and error conditions
+    // Proper cleanup and test isolation
+}
+```
+
+## 5. Advanced Patterns
+
+### Circular Dependency Detection
+
+**Implementation**: Recursive Common Table Expressions (CTEs)  
+**Performance**: Validated for plans with 50+ sequences
+
+```sql
+WITH RECURSIVE dependency_chain AS (
+    SELECT sqm_id, predecessor_sqm_id, 1 as depth, ARRAY[sqm_id] as path
+    FROM sequences_master_sqm WHERE plm_id = :planId
+    UNION ALL
+    SELECT s.sqm_id, s.predecessor_sqm_id, dc.depth + 1, dc.path || s.sqm_id
+    FROM sequences_master_sqm s
+    JOIN dependency_chain dc ON s.predecessor_sqm_id = dc.sqm_id
+    WHERE s.sqm_id != ALL(dc.path) AND dc.depth < 50
+)
+SELECT COUNT(*) FROM dependency_chain 
+WHERE sqm_id = ANY(path[1:array_length(path,1)-1])
+```
+
+### Transaction-Based Ordering
+
+**Use Case**: Complex ordering operations requiring atomicity  
+**Implementation**: BEGIN/COMMIT/ROLLBACK with comprehensive error handling
+
+```groovy
+def complexOrderingOperation(params) {
+    DatabaseUtil.withSql { sql ->
+        sql.execute("BEGIN")
+        try {
+            // Multiple related updates
+            sql.execute("COMMIT")
+            return success
+        } catch (Exception e) {
+            sql.execute("ROLLBACK")
+            throw e
+        }
+    }
+}
+```
+
+### Control Point Validation Pattern
+
+```groovy
+// Weighted calculation: 70% steps + 30% control points
+def calculatePhaseProgress(UUID phaseId) {
+    def stepProgress = getStepCompletionPercentage(phaseId)
+    def controlProgress = getControlPointStatusPercentage(phaseId)
+    return (stepProgress * 0.7) + (controlProgress * 0.3)
+}
+```
+
+### Emergency Override Pattern
+```groovy
+def overrideControlPoint(UUID controlId, String reason, String overrideBy) {
+    DatabaseUtil.withSql { sql ->
+        sql.withTransaction {
+            // Update control status with audit trail
+            sql.execute("""
+                UPDATE controls_instance_cti 
+                SET cti_status = 'OVERRIDDEN',
+                    cti_override_reason = :reason,
+                    cti_override_by = :overrideBy,
+                    cti_override_timestamp = NOW()
+                WHERE cti_id = :controlId
+            """, [controlId: controlId, reason: reason, overrideBy: overrideBy])
+        }
+    }
+}
+```
+
+### Endpoint Consolidation Pattern
+
+**Pattern**: Single endpoint name with path-based routing vs multiple endpoint names
+
+```groovy
+// AFTER: Single endpoint with path routing (consolidated)
+phases(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
+    def additionalPath = getAdditionalPath(request)
+    switch(additionalPath) {
+        case "master":
+            return handleMasterOperation(request)
+        case "instance": 
+            return handleInstanceOperation(request)
+        default:
+            return handleDefaultOperation(request)
+    }
+}
+```
+
+## 6. Documentation Patterns
+
+### OpenAPI Specification Pattern
+
+**Maintenance**: Auto-updated with each API implementation  
+**Structure**: Comprehensive endpoint documentation with examples
+
+- **Endpoints**: Complete CRUD operations with path parameters
+- **Schemas**: Entity definitions with full attribute specifications  
+- **Examples**: Request/response examples for all operations
+- **Error Responses**: HTTP status code mapping with descriptions
+
+### Postman Collection Pattern
+
+**Generation**: Automated via enhanced generation script  
+**Features**: Auto-authentication, dynamic baseUrl, environment-driven configuration
+
+```javascript
+// Enhanced collection generation with:
+// - Automatic Basic Auth configuration
+// - Environment variable integration
+// - 19,239-line comprehensive collection
+```
+
+## 7. Error Handling Patterns
+
+### SQL State Mapping (Consistent)
+
+```groovy
+// Standard error response mapping
+catch (SQLException e) {
+    def sqlState = e.getSQLState() ?: "00000"
+    switch (sqlState) {
+        case "23503": // Foreign key violation
+            return Response.status(400).entity([error: "Invalid reference"]).build()
+        case "23505": // Unique constraint violation  
+            return Response.status(409).entity([error: "Resource already exists"]).build()
+        default:
+            return Response.status(500).entity([error: "Database error"]).build()
+    }
+}
+```
+
+### HTTP Status Code Standards
+
+- **200**: Successful GET operations
+- **201**: Successful POST operations (creation)
+- **204**: Successful PUT/DELETE operations
+- **400**: Bad request (validation errors, invalid references)
+- **409**: Conflict (unique constraint violations)
+- **500**: Server errors (unexpected database issues)
+
+## 8. Quality Assurance Patterns
+
+### Definition of Done (24 Criteria)
+
+1. **Functional Requirements**: All CRUD operations implemented and tested
+2. **Type Safety**: ADR-031 compliance with explicit casting
+3. **Repository Pattern**: Consistent with established structure (13-25+ methods)
+4. **API Pattern**: ScriptRunner compatibility with lazy loading
+5. **Hierarchical Filtering**: ADR-030 compliance using instance IDs
+6. **Error Handling**: Comprehensive SQL state mapping and HTTP responses
+7. **Testing Coverage**: 90%+ unit test coverage, comprehensive integration tests
+8. **Documentation**: OpenAPI specification and README updates
+9. **Performance**: API response times <200ms for typical queries
+10. **Code Quality**: Consistent formatting and clear documentation
+
+## 9. Infrastructure Patterns
+
+### Audit Fields Standardization Pattern
+
+**Implementation**: Comprehensive audit fields across 25+ database tables  
+**Infrastructure**: AuditFieldsUtil.groovy utility class with standardised methods
+
+#### Standard Audit Fields Schema
+```sql
+-- Mandatory audit fields for all entities
+created_by VARCHAR(255) DEFAULT 'system',
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_by VARCHAR(255) DEFAULT 'system',
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+```
+
+#### AuditFieldsUtil Pattern
+```groovy
+class AuditFieldsUtil {
+    static Map<String, Object> getStandardAuditFields(String actor = 'system') {
+        return [
+            created_by: actor,
+            created_at: new Date(),
+            updated_by: actor,
+            updated_at: new Date()
+        ]
+    }
+}
+```
+
+### Performance Optimization Patterns
+
+#### Centralized Filter Validation Pattern
+```groovy
+private Map validateFilters(Map filters) {
+    return filters.findAll { k, v -> v != null }.collectEntries { k, v ->
+        switch(k) {
+            case ~/.*Id$/: 
+                if (k in ['teamId', 'statusId', 'userId']) {
+                    return [k, Integer.parseInt(v as String)]
+                } else {
+                    return [k, UUID.fromString(v as String)]
+                }
+            default: 
+                return [k, v as String]
+        }
+    }
+}
+```
+
+## 10. Groovy 3.0.15 Static Type Checking Patterns
+
+### Enhanced Type Safety Implementation
+
+#### Dynamic Property Access Resolution
+```groovy
+// AFTER (Explicit property assignment)
+def createEntity(Map params) {
+    def entity = [:]
+    entity['name'] = params['name'] as String  // Explicit Map access with type casting
+    return entity
+}
+```
+
+#### Method Signature Compatibility 
+```groovy
+// AFTER (Explicit parameter typing)
+def updateEntity(Integer id, Map params) {  // Clear parameter types
+    // Implementation with proper type casting
+    params.entityId = Integer.parseInt(params.entityId as String)
+}
+```
+
+### Development Experience Benefits
+- **Enhanced IDE Support**: Better code completion and real-time error detection
+- **Earlier Error Detection**: Compile-time validation preventing runtime issues  
+- **Improved Code Navigation**: Enhanced method resolution and refactoring support
+- **Better Debugging**: Clearer stack traces and variable inspection
+
+### Files Enhanced with Static Type Checking
+- PhasesApi.groovy - Dynamic property access fixes, method signature improvements
+- TeamsApi.groovy - Parameter type declaration, variable scoping
+- UsersApi.groovy - Collection typing, exception handling
+- LabelRepository.groovy - Collection casting, numeric type safety
+- StepRepository.groovy - Method signature standardisation
+- TeamRepository.groovy - Variable declaration improvements
+- AuthenticationService.groovy - Type safety in authentication logic

@@ -208,30 +208,7 @@ class StepRepository {
             
             // Transform results to frontend-compatible format
             return results.collect { row ->
-                [
-                    id: row.sti_id,
-                    stmId: row.stm_id,
-                    sttCode: row.stt_code,
-                    stmNumber: row.stm_number,
-                    name: row.sti_name ?: row.master_name,
-                    status: row.sti_status,
-                    durationMinutes: row.sti_duration_minutes,
-                    ownerTeamId: row.tms_id_owner,
-                    ownerTeamName: row.owner_team_name,
-                    // Hierarchy context
-                    sequenceId: row.sqm_id,
-                    sequenceName: row.sqm_name,
-                    sequenceNumber: row.sqm_order,
-                    phaseId: row.phm_id,
-                    phaseName: row.phm_name,
-                    phaseNumber: row.phm_order,
-                    planId: row.plm_id,
-                    planName: row.plm_name,
-                    iterationId: row.ite_id,
-                    iterationName: row.ite_name,
-                    migrationId: row.mig_id,
-                    migrationName: row.mig_name
-                ] as Map
+                enrichStepInstanceWithStatusMetadata(row)
             } as List<Map>
         }
     }
@@ -300,7 +277,7 @@ class StepRepository {
                 // Update the status
                 def updateCount = sql.executeUpdate('''
                     UPDATE steps_instance_sti 
-                    SET sti_status = :newStatus,
+                    SET sti_status = (SELECT sts_id FROM status_sts WHERE sts_name = :newStatus AND sts_type = 'Step'),
                         sti_end_time = CASE WHEN :newStatus = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END
                     WHERE sti_id = :stepInstanceId
                 ''', [newStatus: newStatus, stepInstanceId: stepInstanceId])
@@ -366,14 +343,16 @@ class StepRepository {
                 }
                 
                 // Check if already opened
-                if (stepInstance.sti_status == 'OPEN' || stepInstance.sti_status == 'IN_PROGRESS' || stepInstance.sti_status == 'COMPLETED') {
+                // Convert status ID to name for backward compatibility check
+                def statusName = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :statusId", [statusId: stepInstance.sti_status])?.sts_name
+                if (statusName in ['OPEN', 'IN_PROGRESS', 'COMPLETED']) {
                     return [success: false, error: "Step has already been opened (status: ${stepInstance.sti_status})"]
                 }
                 
                 // Mark as opened by updating status to OPEN
                 def updateCount = sql.executeUpdate('''
                     UPDATE steps_instance_sti 
-                    SET sti_status = 'OPEN',
+                    SET sti_status = (SELECT sts_id FROM status_sts WHERE sts_name = 'OPEN' AND sts_type = 'Step'),
                         sti_start_time = CURRENT_TIMESTAMP,
                         usr_id_owner = :userId
                     WHERE sti_id = :stepInstanceId
@@ -1065,5 +1044,60 @@ class StepRepository {
             
             return deleteCount == 1
         }
+    }
+    
+    /**
+     * Enriches step instance data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing step instance data
+     * @return Enhanced step instance map with statusMetadata
+     */
+    private Map enrichStepInstanceWithStatusMetadata(Map row) {
+        // Get status metadata if status is an ID
+        def statusMetadata = null
+        def statusName = row.sti_status
+        
+        if (row.sti_status instanceof Number) {
+            // Status is already an ID, get the name and metadata
+            def statusInfo = DatabaseUtil.withSql { sql ->
+                sql.firstRow("SELECT sts_name, sts_color, sts_type FROM status_sts WHERE sts_id = :statusId", 
+                    [statusId: row.sti_status])
+            }
+            if (statusInfo) {
+                statusName = statusInfo.sts_name
+                statusMetadata = [
+                    id: row.sti_status,
+                    name: statusInfo.sts_name,
+                    color: statusInfo.sts_color,
+                    type: statusInfo.sts_type
+                ]
+            }
+        }
+        
+        return [
+            id: row.sti_id,
+            stmId: row.stm_id,
+            sttCode: row.stt_code,
+            stmNumber: row.stm_number,
+            name: row.sti_name ?: row.master_name,
+            status: statusName, // Backward compatibility - return status name as string
+            durationMinutes: row.sti_duration_minutes,
+            ownerTeamId: row.tms_id_owner,
+            ownerTeamName: row.owner_team_name,
+            // Hierarchy context
+            sequenceId: row.sqm_id,
+            sequenceName: row.sqm_name,
+            sequenceNumber: row.sqm_order,
+            phaseId: row.phm_id,
+            phaseName: row.phm_name,
+            phaseNumber: row.phm_order,
+            planId: row.plm_id,
+            planName: row.plm_name,
+            iterationId: row.ite_id,
+            iterationName: row.ite_name,
+            migrationId: row.mig_id,
+            migrationName: row.mig_name,
+            // Enhanced status metadata
+            statusMetadata: statusMetadata
+        ] as Map
     }
 }

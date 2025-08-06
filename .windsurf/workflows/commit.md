@@ -1,25 +1,52 @@
 ---
-description: This is the basic workflow to gather last changes, prepare a relevant commit message and commit the staged code changes
+description: Enhanced AI-assisted workflow to gather changes, analyze context, and create comprehensive commit messages with GENDEV agent integration
 ---
 
----
-description: This is the basic workflow to gather last changes, prepare a relevant commit message and commit the staged code changes
----
+# Enhanced Commit Workflow with GENDEV Agent Integration
+
+**AI-Assisted workflow for creating comprehensive commit messages with specialized agent expertise**
+
+## Purpose
+
+This enhanced workflow leverages GENDEV agents to ensure:
+- Comprehensive change analysis with AI assistance
+- High-quality commit messages following Conventional Commits 1.0
+- Automated quality validation and security review
+- Context-aware documentation and impact assessment
+- Consistent application of project standards
+
+## When to Use
+
+- Before every commit to the repository
+- When you have staged changes ready for commit
+- As part of your regular development workflow
+- Before creating pull requests
+- When working on complex or multi-faceted changes
+
+## Prerequisites
+
+- Changes are staged (`git add`)
+- GENDEV agents are available in your Claude Code environment
+- You understand the basic scope of your changes
+- Related documentation updates are included
+- Tests are passing (if applicable)
+
 This workflow guides the creation of a high-quality, comprehensive commit message that accurately reflects all staged changes, adhering strictly to the Conventional Commits 1.0 standard.
 
 **1. Comprehensive Evidence Gathering (MANDATORY - Prevent tunnel vision):**
 
 **1.1. Staged Changes Analysis:**
-* **Detailed Diff Review:** Run `git diff --staged --stat` to get both summary and detailed view of all staged changes.
-* **File-by-File Analysis:** Run `git diff --staged --name-status` to see the operation type (Modified, Added, Deleted) for each file.
-* **Functional Area Classification:** Group staged files by functional area:
+
+- **Detailed Diff Review:** Run `git diff --staged --stat` to get both summary and detailed view of all staged changes.
+- **File-by-File Analysis:** Run `git diff --staged --name-status` to see the operation type (Modified, Added, Deleted) for each file.
+- **Functional Area Classification:** Group staged files by functional area:
   - **API Changes:** `src/groovy/umig/api/`, `src/groovy/umig/repository/`
   - **UI Changes:** `src/groovy/umig/web/js/`, `src/groovy/umig/web/css/`, `src/groovy/umig/macros/`
   - **Documentation:** `docs/`, `README.md`, `CHANGELOG.md`, `*.md` files
   - **Tests:** `src/groovy/umig/tests/`, `local-dev-setup/__tests__/`
   - **Configuration:** `local-dev-setup/liquibase/`, `*.json`, `*.yml`, `*.properties`
   - **Database:** Migration files, schema changes
-* **Change Type Analysis:** For each file, determine the type of change:
+- **Change Type Analysis:** For each file, determine the type of change:
   - New functionality added
   - Existing functionality modified
   - Bug fixes
@@ -27,87 +54,128 @@ This workflow guides the creation of a high-quality, comprehensive commit messag
   - Documentation updates
   - Test additions or modifications
 
-**1.2. Unstaged and Untracked Files Review:**
-* **Related Files Check:** Run `git status --porcelain` to identify any untracked or unstaged files that might be related.
-* **Completeness Verification:** Ensure all related changes are staged or deliberately excluded.
-* **User Prompt:** If potentially related files are unstaged, prompt the user about inclusion.
+**1.2. Enhanced Unstaged and Untracked Files Analysis:**
 
-**1.3. Work Stream Identification:**
-* **Primary Work Stream:** Identify the main type of work being committed.
-* **Secondary Work Streams:** Identify supporting changes (e.g., tests, documentation, configuration).
-* **Cross-Functional Impact:** Note changes that span multiple functional areas.
-* **Architecture Impact:** Identify any architectural or pattern changes.
+**Agent Integration:**
+```bash
+# Use QA Coordinator for completeness validation
+/gd:qa-coordinator --validation_scope=commit --quality_threshold=high
+```
 
-**2. Multi-Context Rationale Analysis (MANDATORY - Address tunnel vision):**
+**Manual Commands:**
+```bash
+# Check for unstaged changes
+git diff
 
-**2.1. Session Context Review:**
-* **Conversation Timeline:** Review the entire session conversation to understand the evolution of the work.
-* **Initial Problem:** Identify the original problem or task that initiated the changes.
-* **Decision Points:** Note key decisions made during the session that influenced the implementation.
-* **Scope Evolution:** If the work expanded beyond the initial scope, understand how and why.
+# Check for untracked files
+git ls-files --others --exclude-standard
+```
 
-**2.2. Development Context:**
-* **Dev Journal Review:** If a development journal entry was created during the session, review it for high-level narrative.
-* **Related Work:** Check if this commit is part of a larger feature or bug fix spanning multiple commits.
-* **Previous Commits:** Review recent commits to understand the progression of work.
+**Agent-Enhanced Assessment:**
+- Automated detection of related files that should be included
+- Identification of temporary files requiring cleanup
+- Validation of new files against project standards
+- Cross-reference with documentation requirements
 
-**2.3. Business and Technical Context:**
-* **Business Impact:** Understand what user-facing or system benefits this change provides.
-* **Technical Motivation:** Identify the technical reasons for the changes (performance, maintainability, new features).
-* **Problem-Solution Mapping:** For each work stream, clearly understand:
-  - What problem was being solved
-  - Why this particular solution was chosen
-  - What alternatives were considered
-  - What the outcome achieves
+**1.3. Intelligent Work Stream Identification:**
 
-**2.4. Change Dependencies:**
-* **Cross-Stream Dependencies:** How different work streams in this commit depend on each other.
-* **External Dependencies:** Any external factors that influenced the changes.
-* **Future Implications:** What this change enables or constrains for future development.
+**Agent Integration:**
+```bash
+# Use Context Manager for work stream analysis
+/gd:context-manager --context_scope=session --analysis_depth=comprehensive
+```
 
-**3. Multi-Stream Commit Message Synthesis (MANDATORY - Address tunnel vision):**
+**Enhanced Work Stream Analysis:**
+- **Primary work stream**: Main feature/fix with impact assessment
+- **Secondary work streams**: Related improvements with dependency mapping
+- **Incidental work streams**: Cleanup activities with quality metrics
+- **Cross-cutting concerns**: Security, performance, or architectural implications
 
-The goal is to create a message that comprehensively explains all changes and their context for future developers.
+**2. AI-Assisted Multi-Context Rationale Analysis (MANDATORY - Address tunnel vision):**
 
-**3.1. Type and Scope Selection:**
-* **Primary Type:** Choose the most significant type from the allowed list (`feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`).
-* **Multi-Stream Consideration:** If multiple significant work streams exist, choose the type that best represents the overall impact.
-* **Scope Selection:** Identify the primary part of the codebase affected:
-  - **Specific Components:** `api`, `ui`, `db`, `auth`, `docs`, `tests`
-  - **Functional Areas:** `admin`, `migration`, `iteration`, `planning`
-  - **System-Wide:** Use broader scopes for cross-cutting changes
+**Agent Integration:**
+```bash
+# Use Requirements Analyst for context understanding
+/gd:requirements-analyst --analysis_depth=comprehensive --stakeholder_scope=technical
+```
 
-**3.2. Subject Line Construction:**
-* **Imperative Mood:** Write a concise summary (under 50 characters) in imperative mood.
-* **Multi-Stream Subject:** If multiple work streams are significant, write a subject that captures the overall achievement.
-* **Specific vs General:** Balance specificity with comprehensiveness.
+**2.1. Enhanced Session Context Review:**
 
-**3.3. Body Structure (Enhanced for Multi-Stream):**
-* **Primary Change Description:** Start with the main change and its motivation.
-* **Work Stream Breakdown:** For each significant work stream:
-  - **What Changed:** Specific files, components, or functionality
-  - **Why Changed:** Problem being solved or improvement being made
-  - **How Changed:** Technical approach or implementation details
-  - **Impact:** What this enables or improves
-* **Cross-Stream Integration:** How different work streams work together.
-* **Technical Decisions:** Explain significant design choices and why alternatives were rejected.
-* **Context:** Provide enough context for future developers to understand the change.
+- **Conversation Timeline:** AI-assisted review of session evolution
+- **Initial Problem:** Automated identification of root requirements
+- **Decision Points:** Agent-tracked decision rationale
+- **Scope Evolution:** Impact analysis of scope changes
 
-**3.4. Footer Considerations:**
-* **Breaking Changes:** Use `BREAKING CHANGE:` for any breaking changes with migration notes.
-* **Issue References:** Reference related issues (e.g., `Closes #123`, `Relates to #456`).
-* **Co-authorship:** Add `Co-Authored-By:` for pair programming or AI assistance.
+**2.2. AI-Enhanced Development Context:**
+
+- **Dev Journal Review:** Automated narrative extraction and summarization
+- **Related Work:** Cross-commit dependency analysis
+- **Previous Commits:** Pattern recognition and consistency checking
+
+**2.3. Comprehensive Business and Technical Context:**
+
+**Agent Benefits:**
+- **Business Impact:** Automated stakeholder impact assessment
+- **Technical Motivation:** Architecture compliance validation
+- **Problem-Solution Mapping:** AI-assisted decision documentation
+- **Alternative Analysis:** Automated trade-off documentation
+
+**2.4. Intelligent Change Dependencies:**
+
+- **Cross-Stream Dependencies:** Automated dependency mapping
+- **External Dependencies:** Integration impact analysis
+- **Future Implications:** Predictive impact assessment
+
+**3. AI-Enhanced Multi-Stream Commit Message Synthesis (MANDATORY - Address tunnel vision):**
+
+**Agent Integration:**
+```bash
+# Use Documentation Generator for commit message creation
+/gd:documentation-generator --doc_type=commit-message --audience_level=expert --format_style=conventional
+```
+
+The goal is to create a comprehensive, AI-validated message that explains all changes and their context.
+
+**3.1. Intelligent Type and Scope Selection:**
+
+**Agent Benefits:**
+- **Primary Type:** AI-assisted analysis of change significance
+- **Multi-Stream Consideration:** Automated impact weighting
+- **Scope Selection:** Intelligent component classification
+
+**3.2. AI-Optimized Subject Line Construction:**
+
+- **Imperative Mood:** Natural language optimization
+- **Multi-Stream Subject:** Automated narrative synthesis
+- **Specific vs General:** AI-balanced specificity
+
+**3.3. Context-Rich Body Structure:**
+
+**Agent-Enhanced Structure:**
+- **Primary Change Description:** AI-generated motivation analysis
+- **Work Stream Breakdown:** Automated impact documentation
+- **Cross-Stream Integration:** Dependency visualization
+- **Technical Decisions:** AI-assisted rationale capture
+- **Context:** Comprehensive future-developer context
+
+**3.4. Automated Footer Construction:**
+
+- **Breaking Changes:** Automated impact detection
+- **Issue References:** Intelligent cross-referencing
+- **Co-authorship:** Session-based attribution
 
 **3.5. Message Assembly:**
-* **Single Coherent Story:** Weave multiple work streams into a single, coherent narrative.
-* **Logical Flow:** Organize information in a logical sequence that makes sense to readers.
-* **Appropriate Detail:** Include enough detail to understand the change without overwhelming.
+
+- **Single Coherent Story:** Weave multiple work streams into a single, coherent narrative.
+- **Logical Flow:** Organize information in a logical sequence that makes sense to readers.
+- **Appropriate Detail:** Include enough detail to understand the change without overwhelming.
 
 **4. Anti-Tunnel Vision Verification (MANDATORY - Use before finalizing):**
 
 Before presenting the commit message, verify you have addressed ALL of the following:
 
 **Content Coverage:**
+
 - [ ] All staged files are explained in the commit message
 - [ ] All functional areas touched are documented
 - [ ] All work streams are identified and described
@@ -115,6 +183,7 @@ Before presenting the commit message, verify you have addressed ALL of the follo
 - [ ] Cross-functional impacts are noted
 
 **Technical Completeness:**
+
 - [ ] Code changes include rationale for the approach taken
 - [ ] API changes are summarized with impact
 - [ ] UI changes are explained with user impact
@@ -123,6 +192,7 @@ Before presenting the commit message, verify you have addressed ALL of the follo
 - [ ] Test changes are explained
 
 **Context and Rationale:**
+
 - [ ] Original problem or motivation is clearly stated
 - [ ] Solution approach is justified
 - [ ] Technical decisions are explained
@@ -130,6 +200,7 @@ Before presenting the commit message, verify you have addressed ALL of the follo
 - [ ] Future implications are considered
 
 **Message Quality:**
+
 - [ ] Subject line is under 50 characters and imperative mood
 - [ ] Body explains "what" and "why" for each work stream
 - [ ] Information is organized in logical flow
@@ -137,6 +208,7 @@ Before presenting the commit message, verify you have addressed ALL of the follo
 - [ ] Conventional Commits format is followed
 
 **Completeness Verification:**
+
 - [ ] All evidence from steps 1-2 is reflected in the message
 - [ ] No significant work is missing from the description
 - [ ] Multi-stream nature is properly represented
@@ -144,5 +216,5 @@ Before presenting the commit message, verify you have addressed ALL of the follo
 
 **5. Await Confirmation and Commit:**
 
-* Present the generated commit message to the user for review.
-* After receiving confirmation, execute the `git commit` command.
+- Present the generated commit message to the user for review.
+- After receiving confirmation, execute the `git commit` command.

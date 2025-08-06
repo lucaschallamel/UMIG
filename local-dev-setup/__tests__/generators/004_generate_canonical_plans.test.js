@@ -65,6 +65,9 @@ describe('Canonical Plans Generator (04_generate_canonical_plans.js)', () => {
       if (sql.includes('FROM step_types_stt')) return Promise.resolve({ rows: mockStepTypes });
       if (sql.includes('FROM environment_roles_enr')) return Promise.resolve({ rows: mockEnvRoles });
       if (sql.includes('FROM iteration_types_itt')) return Promise.resolve({ rows: mockIterationTypes });
+      if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1')) {
+        return Promise.resolve({ rows: [{ sts_id: 1, sts_name: 'PLANNING' }, { sts_id: 2, sts_name: 'ACTIVE' }] });
+      }
       if (sql.startsWith('INSERT INTO')) return Promise.resolve({ rows: [{ plm_id: 1, sqm_id: 1, phm_id: 1, stm_id: 1 }] });
       return Promise.resolve({ rows: [] }); // For TRUNCATEs
     });
@@ -81,22 +84,51 @@ describe('Canonical Plans Generator (04_generate_canonical_plans.js)', () => {
     });
 
     it('should throw an error if master data is missing', async () => {
-      const expectedError = 'Cannot generate plans: Missing master data (teams, step types, environment roles, or iteration types).';
+      const expectedError = 'Cannot generate plans: Missing master data (teams, step types, environment roles, iteration types, or plan statuses).';
 
       // Scenario 1: No teams
-      client.query.mockResolvedValueOnce({ rows: [] });
+      client.query.mockImplementation(sql => {
+        if (sql.includes('FROM teams_tms')) return Promise.resolve({ rows: [] });
+        return Promise.resolve({ rows: [{}] }); // Return something for other queries
+      });
       await expect(generateCanonicalPlans(CONFIG, {})).rejects.toThrow(expectedError);
 
       // Scenario 2: No step types
-      client.query.mockResolvedValueOnce({ rows: mockTeams }).mockResolvedValueOnce({ rows: [] });
+      client.query.mockImplementation(sql => {
+        if (sql.includes('FROM teams_tms')) return Promise.resolve({ rows: mockTeams });
+        if (sql.includes('FROM step_types_stt')) return Promise.resolve({ rows: [] });
+        return Promise.resolve({ rows: [{}] }); // Return something for other queries
+      });
       await expect(generateCanonicalPlans(CONFIG, {})).rejects.toThrow(expectedError);
 
       // Scenario 3: No env roles
-      client.query.mockResolvedValueOnce({ rows: mockTeams }).mockResolvedValueOnce({ rows: mockStepTypes }).mockResolvedValueOnce({ rows: [] });
+      client.query.mockImplementation(sql => {
+        if (sql.includes('FROM teams_tms')) return Promise.resolve({ rows: mockTeams });
+        if (sql.includes('FROM step_types_stt')) return Promise.resolve({ rows: mockStepTypes });
+        if (sql.includes('FROM environment_roles_enr')) return Promise.resolve({ rows: [] });
+        return Promise.resolve({ rows: [{}] }); // Return something for other queries
+      });
       await expect(generateCanonicalPlans(CONFIG, {})).rejects.toThrow(expectedError);
 
       // Scenario 4: No iteration types
-      client.query.mockResolvedValueOnce({ rows: mockTeams }).mockResolvedValueOnce({ rows: mockStepTypes }).mockResolvedValueOnce({ rows: mockEnvRoles }).mockResolvedValueOnce({ rows: [] });
+      client.query.mockImplementation(sql => {
+        if (sql.includes('FROM teams_tms')) return Promise.resolve({ rows: mockTeams });
+        if (sql.includes('FROM step_types_stt')) return Promise.resolve({ rows: mockStepTypes });
+        if (sql.includes('FROM environment_roles_enr')) return Promise.resolve({ rows: mockEnvRoles });
+        if (sql.includes('FROM iteration_types_itt')) return Promise.resolve({ rows: [] });
+        return Promise.resolve({ rows: [{}] }); // Return something for other queries
+      });
+      await expect(generateCanonicalPlans(CONFIG, {})).rejects.toThrow(expectedError);
+
+      // Scenario 5: No plan statuses
+      client.query.mockImplementation(sql => {
+        if (sql.includes('FROM teams_tms')) return Promise.resolve({ rows: mockTeams });
+        if (sql.includes('FROM step_types_stt')) return Promise.resolve({ rows: mockStepTypes });
+        if (sql.includes('FROM environment_roles_enr')) return Promise.resolve({ rows: mockEnvRoles });
+        if (sql.includes('FROM iteration_types_itt')) return Promise.resolve({ rows: mockIterationTypes });
+        if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1')) return Promise.resolve({ rows: [] });
+        return Promise.resolve({ rows: [{}] }); // Return something for other queries
+      });
       await expect(generateCanonicalPlans(CONFIG, {})).rejects.toThrow(expectedError);
     });
 
@@ -111,6 +143,9 @@ describe('Canonical Plans Generator (04_generate_canonical_plans.js)', () => {
         if (sql.includes('FROM step_types_stt')) return Promise.resolve({ rows: mockStepTypes });
         if (sql.includes('FROM environment_roles_enr')) return Promise.resolve({ rows: mockEnvRoles });
         if (sql.includes('FROM iteration_types_itt')) return Promise.resolve({ rows: mockIterationTypes });
+        if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1')) {
+          return Promise.resolve({ rows: [{ sts_id: 1, sts_name: 'PLANNING' }, { sts_id: 2, sts_name: 'ACTIVE' }] });
+        }
 
         // IMPORTANT: Check for join tables FIRST to avoid being caught by the more general 'steps_master_stm' check.
         if (sql.startsWith('INSERT INTO steps_master_stm_x_teams_tms_impacted')) {

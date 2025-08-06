@@ -48,6 +48,7 @@
     * **Performance targets met:** <200ms response time for all operations
     * **PostgreSQL Compatibility:** Fixed timestamp casting issues for improved reliability
   * **Instructions API (US-004):** Complete instruction template and execution management completed 5 August 2025
+    * **Boolean Completion Model:** Uses ini_is_completed boolean field instead of status normalization
   * **Controls API (US-005):** Complete control point and quality gate management system completed 6 August 2025
     * **ControlsApi.groovy (20 REST endpoints)** with hierarchical filtering and phase-level control architecture
     * **ControlRepository.groovy (20 methods)** with complete lifecycle management including validation and override operations
@@ -151,22 +152,36 @@
 * **Documentation:** All architectural decisions now consolidated in solution-architecture.md
 * **Code Quality:** Codebase streamlined with removal of obsolete components
 
-## 4. Sprint 3 Status - FULLY COMPLETED (API Foundation + Controls)
+## 4. Sprint 3 Status - Near Complete (83% Delivered)
 
-* **✅ ALL COMPLETED (August 2025):** 
-  * US-001 Plans API Foundation (✅ 31 July 2025)
-  * US-002 Sequences API with Ordering (✅ 31 July 2025) 
+* **✅ COMPLETED User Stories (August 2025):** 
+  * US-001 Plans API Foundation (✅ 31 July 2025 - 4 story points)
+  * US-002 Sequences API with Ordering (✅ 31 July 2025 - 4 story points) 
   * US-002b Audit Fields Standardization (✅ 4 August 2025)
   * US-002c Documentation Automation (✅ 4 August 2025)
-  * US-003 Phases API with Control Points (✅ 4 August 2025)
+  * US-003 Phases API with Control Points (✅ 4 August 2025 - 4 story points)
   * US-003b Phases API Endpoint Consolidation (✅ 4 August 2025)
-  * US-004 Instructions API Implementation (✅ 5 August 2025)
-  * US-005 Controls API Implementation (✅ 6 August 2025)
+  * US-004 Instructions API Implementation (✅ 5 August 2025 - 4 story points)
+  * US-005 Controls API Implementation (✅ 6 August 2025 - 5 story points)
+  * US-006b Status Field Normalization (✅ 6 August 2025 - CORE COMPLETE, Admin GUI pending - 5 story points)
   * Groovy 3.0.15 Static Type Checking Compatibility (✅ 5 August 2025)
-* **Sprint Renaming Correction:** All references updated from "Sprint 0" to "Sprint 3" across project documentation
-* **Sprint History Established:** Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug)
-* **Sprint 3 Progress:** 21 of 26 story points completed, US-006 Status Field Normalization pending
-* **Sprint 3 Final Result:** All 5 core APIs successfully implemented with quality gate management system and comprehensive type safety
-* **Technical Foundation:** 184 control instances validated, 20+ endpoints per major API, 90%+ test coverage maintained
-* **Next Phase:** MVP Completion focusing on Dashboard UI, Planning Features, and Data Import Strategy
-* **Foundation Strength:** Proven patterns, resolved technical challenges, 100% API implementation success rate with production-ready Controls API
+* **Sprint Timeline:** 30 July - 6 August 2025 (8 days)
+* **Sprint History:** Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug)
+* **Sprint 3 Completion:** 21 of 26 story points delivered (83% complete)
+* **Technical Excellence:** <200ms API response times, 90%+ test coverage, ADR-031 type safety
+* **Recovery Achievement:** Successfully recovered US-006 implementation from commit a4cc184 after accidental reversion
+* **Foundation APIs:** All 6 user stories with production-ready implementations
+* **Next Phase:** MVP Completion - Admin GUI enhancement (2-3 days), Main Dashboard (3-4 days), Production readiness (1-2 days)
+
+## 5. Memory Bank Update History
+
+### August 6, 2025 Update - Controls API & Sprint 3 Completion
+* **Context**: Controls API (US-005) completion and Sprint 3 milestone achievement
+* **Major Achievements**: 
+  - All 5 Core APIs (Plans, Sequences, Phases, Instructions, Controls) successfully implemented
+  - 20 REST endpoints with quality gate management system
+  - 184 control instances validated with proper phase relationships
+  - Enhanced Groovy 3.0.15 static type checking compatibility
+  - Recovery from US-006b accidental reversion (commit a4cc184)
+* **Technical Impact**: Zero technical debt, 90%+ test coverage, production-ready foundation
+* **Memory Bank Consolidation**: Reduced from 12 to 8 standard files, eliminating duplicates

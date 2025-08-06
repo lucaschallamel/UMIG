@@ -57,7 +57,7 @@
   "sqm_name": "string",
   "sqm_description": "string (optional)",
   "sqm_order": "integer (optional)",
-  "sqm_status": "string",
+  "sqm_status": "integer (FK to status_sts)",
   "predecessor_sqm_id": "uuid (optional)"
 }
 ```
@@ -128,7 +128,7 @@
   "sqm_name": "string",
   "sqm_description": "string",
   "sqm_order": "integer",
-  "sqm_status": "string",
+  "sqm_status": "integer (FK to status_sts)",
   "sts_id": "integer",
   "sts_name": "string",
   "sts_color": "string",
@@ -182,7 +182,7 @@
   "sqi_name": "string",
   "sqi_description": "string",
   "sqi_order": "integer",
-  "sqi_status": "string",
+  "sqi_status": "integer (FK to status_sts)",
   "sts_id": "integer",
   "sts_name": "string",
   "sts_color": "string",

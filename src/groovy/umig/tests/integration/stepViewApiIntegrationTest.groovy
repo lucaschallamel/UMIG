@@ -1,6 +1,10 @@
 import groovy.lang.Grab
-@Grab('org.codehaus.groovy:groovy-sql:3.0.9')
+@GrabConfig(systemClassLoader=true)
+@Grab('org.codehaus.groovy:groovy-sql:3.0.15')
+@Grab('org.postgresql:postgresql:42.7.3')
+@Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 import groovy.sql.Sql
+import groovyx.net.http.RESTClient
 
 /**
  * Loads key-value pairs from a .env file.
