@@ -48,16 +48,17 @@
     * **Performance targets met:** <200ms response time for all operations
     * **PostgreSQL Compatibility:** Fixed timestamp casting issues for improved reliability
   * **Instructions API (US-004):** Complete instruction template and execution management completed 5 August 2025
-    * **InstructionsApi.groovy (14 REST endpoints)** with hierarchical filtering across all entity levels (migration→iteration→plan→sequence→phase→step)
-    * **InstructionRepository.groovy (19 methods)** with complete lifecycle management and bulk operations
-    * **Template-Based Architecture:** Master/instance pattern supporting instruction templates with execution instances following canonical/instance pattern  
-    * **Seamless Integration:** Full integration with Steps, Teams, Labels, and Controls for complete instruction workflow
-    * **90%+ Test Coverage:** Comprehensive unit and integration testing suites with ScriptRunner compatibility validation
-    * **Complete Documentation:** API documentation, OpenAPI specification updates, executive presentation materials in multiple formats
-    * **Type Safety Implementation:** Explicit casting for all parameters following ADR-031 conventions with comprehensive validation
-    * **Error Handling:** SQL state mapping (23503→400, 23505→409) with proper HTTP responses and detailed error context
-    * **Bulk Operations:** Efficient multi-instruction management for complex migration scenarios with atomic transactions
-    * **Analytics Integration:** Built-in progress and timeline analytics for real-time visibility into instruction completion
+  * **Controls API (US-005):** Complete control point and quality gate management system completed 6 August 2025
+    * **ControlsApi.groovy (20 REST endpoints)** with hierarchical filtering and phase-level control architecture
+    * **ControlRepository.groovy (20 methods)** with complete lifecycle management including validation and override operations
+    * **Quality Gate System:** Critical/non-critical control types per ADR-016 with automated quality gates preventing execution errors
+    * **Progress Calculation:** Real-time control status tracking (PENDING, VALIDATED, PASSED, FAILED, CANCELLED, TODO) with weighted aggregation
+    * **Bulk Operations:** Efficient control instantiation and validation across multiple phases with transaction safety
+    * **Type Safety:** Full Groovy 3.0.15 static type checking compatibility with explicit casting throughout
+    * **Comprehensive Testing:** Unit test suite (ControlsApiUnitTest.groovy) with mocked database operations following ADR-026 patterns
+    * **Integration Testing:** ControlsApiIntegrationTest.groovy with full endpoint coverage and database validation
+    * **Database Validation:** 184 control instances properly linked through hierarchy with 41.85% critical control distribution
+    * **Complete Documentation:** Updated OpenAPI specification with all 20 endpoints, comprehensive API documentation, and regenerated Postman collection
   * **Hierarchical Filtering:** Full implementation of hierarchical filtering (ADR-030) across all APIs
   * **Type Safety:** Robust Groovy type safety and filtering patterns (ADR-031) preventing runtime errors
   * **Groovy 3.0.15 Compatibility (5 August 2025):** Comprehensive static type checking compatibility improvements
@@ -144,7 +145,7 @@
 * **Documentation:** All architectural decisions now consolidated in solution-architecture.md
 * **Code Quality:** Codebase streamlined with removal of obsolete components
 
-## 4. Sprint 0 Status - COMPLETED (API Foundation)
+## 4. Sprint 0 Status - FULLY COMPLETED (API Foundation + Controls)
 
 * **✅ ALL COMPLETED:** 
   * US-001 Plans API Foundation (✅ 31 July 2025)
@@ -154,7 +155,9 @@
   * US-003 Phases API with Control Points (✅ 4 August 2025)
   * US-003b Phases API Endpoint Consolidation (✅ 4 August 2025)
   * US-004 Instructions API Implementation (✅ 5 August 2025)
+  * US-005 Controls API Implementation (✅ 6 August 2025)
   * Groovy 3.0.15 Static Type Checking Compatibility (✅ 5 August 2025)
-* **Sprint 0 Result:** All 5 core APIs successfully implemented with advanced features and comprehensive type safety
-* **Next Phase:** MVP completion focusing on Dashboard UI, Planning Features, and Data Import Strategy
-* **Foundation Strength:** Proven patterns, resolved technical challenges, 100% API implementation success rate
+* **Sprint 0 Final Result:** All 5 core APIs successfully implemented with quality gate management system and comprehensive type safety
+* **Technical Foundation:** 184 control instances validated, 20+ endpoints per major API, 90%+ test coverage maintained
+* **Next Phase:** Sprint 1 Planning and MVP completion focusing on Dashboard UI, Planning Features, and Data Import Strategy
+* **Foundation Strength:** Proven patterns, resolved technical challenges, 100% API implementation success rate with production-ready Controls API
