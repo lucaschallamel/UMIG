@@ -416,7 +416,7 @@ class ControlRepository {
                 JOIN iterations_ite itr ON pli.ite_id = itr.ite_id
                 JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts sts ON sts.sts_name = cti.cti_status AND sts.sts_type = 'Control'
+                LEFT JOIN status_sts sts ON cti.cti_status = sts.sts_id
                 WHERE 1=1
             """
             
@@ -473,7 +473,7 @@ class ControlRepository {
      */
     def findControlInstanceById(UUID instanceId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
+            def result = sql.firstRow("""
                 SELECT 
                     cti.cti_id,
                     cti.phi_id,
@@ -524,11 +524,13 @@ class ControlRepository {
                 JOIN iterations_ite itr ON pli.ite_id = itr.ite_id
                 JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts sts ON sts.sts_name = cti.cti_status AND sts.sts_type = 'Control'
+                LEFT JOIN status_sts sts ON cti.cti_status = sts.sts_id
                 LEFT JOIN users_usr it_val ON cti.usr_id_it_validator = it_val.usr_id
                 LEFT JOIN users_usr biz_val ON cti.usr_id_biz_validator = biz_val.usr_id
                 WHERE cti.cti_id = :instanceId
             """, [instanceId: instanceId])
+            
+            return result ? enrichControlInstanceWithStatusMetadata(result) : null
         }
     }
     
@@ -569,7 +571,7 @@ class ControlRepository {
                     def instanceData = [
                         phi_id: phaseInstanceId,
                         ctm_id: masterControlId,
-                        cti_status: overrides.cti_status ?: 'PENDING',
+                        cti_status: overrides.cti_status ?: getDefaultControlInstanceStatusId(sql),
                         cti_name: overrides.cti_name ?: masterControl.ctm_name,
                         cti_description: overrides.cti_description ?: masterControl.ctm_description,
                         cti_order: overrides.cti_order ?: masterControl.ctm_order,
@@ -698,11 +700,28 @@ class ControlRepository {
                 Map<String, Object> queryParams = [controlId: controlId]
                 
                 if (validationData.cti_status) {
-                    setClauses.add("cti_status = :cti_status")
-                    queryParams.put("cti_status", validationData.cti_status as String)
+                    // Handle status conversion if string provided
+                    def statusId = validationData.cti_status
+                    if (statusId instanceof String) {
+                        def statusRow = sql.firstRow("""
+                            SELECT sts_id FROM status_sts 
+                            WHERE sts_name = :statusName AND sts_type = 'Control'
+                        """, [statusName: statusId])
+                        statusId = statusRow?.sts_id
+                    }
                     
-                    if (validationData.cti_status in ['PASSED', 'FAILED']) {
-                        setClauses.add("cti_validated_at = CURRENT_TIMESTAMP")
+                    if (statusId) {
+                        setClauses.add("cti_status = :cti_status")
+                        queryParams.put("cti_status", statusId as Integer)
+                        
+                        // Check if this is a completion status
+                        def statusName = sql.firstRow("""
+                            SELECT sts_name FROM status_sts WHERE sts_id = :statusId
+                        """, [statusId: statusId])?.sts_name
+                        
+                        if (statusName in ['PASSED', 'FAILED']) {
+                            setClauses.add("cti_validated_at = CURRENT_TIMESTAMP")
+                        }
                     }
                 }
                 
@@ -745,14 +764,22 @@ class ControlRepository {
             try {
                 // Note: Override tracking fields would need to be added to the schema
                 // For now, we mark as PASSED and add audit fields
+                
+                // Get PASSED status ID for Control type
+                def passedStatus = sql.firstRow("""
+                    SELECT sts_id FROM status_sts 
+                    WHERE sts_name = 'PASSED' AND sts_type = 'Control'
+                """)
+                def passedStatusId = passedStatus?.sts_id ?: 1 // Fallback
+                
                 def rowsUpdated = sql.executeUpdate("""
                     UPDATE controls_instance_cti 
-                    SET cti_status = 'PASSED',
+                    SET cti_status = :passedStatusId,
                         cti_validated_at = CURRENT_TIMESTAMP,
                         updated_by = :overrideBy,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE cti_id = :controlId
-                """, [controlId: controlId, overrideBy: overrideBy])
+                """, [controlId: controlId, overrideBy: overrideBy, passedStatusId: passedStatusId])
                 
                 if (rowsUpdated > 0) {
                     return findControlInstanceById(controlId)
@@ -852,11 +879,28 @@ class ControlRepository {
                 Map<String, Object> queryParams = [phaseId: phaseId]
                 
                 if (validationData.cti_status) {
-                    setClauses.add("cti_status = :cti_status")
-                    queryParams.put("cti_status", validationData.cti_status as String)
+                    // Handle status conversion if string provided
+                    def statusId = validationData.cti_status
+                    if (statusId instanceof String) {
+                        def statusRow = sql.firstRow("""
+                            SELECT sts_id FROM status_sts 
+                            WHERE sts_name = :statusName AND sts_type = 'Control'
+                        """, [statusName: statusId])
+                        statusId = statusRow?.sts_id
+                    }
                     
-                    if (validationData.cti_status in ['PASSED', 'FAILED']) {
-                        setClauses.add("cti_validated_at = CURRENT_TIMESTAMP")
+                    if (statusId) {
+                        setClauses.add("cti_status = :cti_status")
+                        queryParams.put("cti_status", statusId as Integer)
+                        
+                        // Check if this is a completion status
+                        def statusName = sql.firstRow("""
+                            SELECT sts_name FROM status_sts WHERE sts_id = :statusId
+                        """, [statusId: statusId])?.sts_name
+                        
+                        if (statusName in ['PASSED', 'FAILED']) {
+                            setClauses.add("cti_validated_at = CURRENT_TIMESTAMP")
+                        }
                     }
                 }
                 
@@ -1013,5 +1057,85 @@ class ControlRepository {
                 filters_applied: filters
             ]
         }
+    }
+    
+    // ==================== STATUS METADATA ENRICHMENT ====================
+    
+    /**
+     * Enriches control instance data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing control instance and status data
+     * @return Enhanced control instance map with statusMetadata
+     */
+    private Map enrichControlInstanceWithStatusMetadata(Map row) {
+        return [
+            cti_id: row.cti_id,
+            phi_id: row.phi_id,
+            ctm_id: row.ctm_id,
+            cti_status: row.sts_name ?: 'UNKNOWN', // Backward compatibility - return status name as string
+            cti_validated_at: row.cti_validated_at,
+            usr_id_it_validator: row.usr_id_it_validator,
+            usr_id_biz_validator: row.usr_id_biz_validator,
+            cti_order: row.cti_order,
+            cti_name: row.cti_name,
+            cti_description: row.cti_description,
+            cti_type: row.cti_type,
+            cti_is_critical: row.cti_is_critical,
+            cti_code: row.cti_code,
+            created_by: row.created_by ?: null,
+            created_at: row.created_at,
+            updated_by: row.updated_by ?: null,
+            updated_at: row.updated_at,
+            master_name: row.master_name,
+            master_description: row.master_description,
+            master_order: row.master_order ?: null,
+            master_type: row.master_type,
+            master_is_critical: row.master_is_critical,
+            master_code: row.master_code,
+            phi_name: row.phi_name,
+            phm_name: row.phm_name,
+            sqi_name: row.sqi_name,
+            sqm_name: row.sqm_name,
+            pli_name: row.pli_name,
+            plm_name: row.plm_name,
+            tms_id: row.tms_id,
+            tms_name: row.tms_name,
+            itr_name: row.itr_name,
+            mig_name: row.mig_name,
+            it_validator_name: row.it_validator_name,
+            biz_validator_name: row.biz_validator_name,
+            // Enhanced status metadata (only when status data is available)
+            statusMetadata: row.sts_id ? [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: 'Control'
+            ] : null
+        ]
+    }
+    
+    /**
+     * Gets the default status ID for new control instances.
+     * @param sql Active SQL connection
+     * @return Integer status ID for 'NOT_STARTED' Control status
+     */
+    private Integer getDefaultControlInstanceStatusId(groovy.sql.Sql sql) {
+        Map defaultStatus = sql.firstRow("""
+            SELECT sts_id 
+            FROM status_sts 
+            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Control'
+            LIMIT 1
+        """) as Map
+        
+        // Fallback to any Control status if NOT_STARTED not found
+        if (!defaultStatus) {
+            defaultStatus = sql.firstRow("""
+                SELECT sts_id 
+                FROM status_sts 
+                WHERE sts_type = 'Control'
+                LIMIT 1
+            """) as Map
+        }
+        
+        return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
     }
 }

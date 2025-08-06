@@ -169,4 +169,64 @@ class MigrationRepository {
             """, [iterationId: iterationId])
         }
     }
+    
+    /**
+     * Enriches migration data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing migration and status data
+     * @return Enhanced migration map with statusMetadata
+     */
+    private Map enrichMigrationWithStatusMetadata(Map row) {
+        return [
+            mig_id: row.mig_id,
+            usr_id_owner: row.usr_id_owner,
+            mig_name: row.mig_name,
+            mig_description: row.mig_description,
+            mig_status: row.sts_name, // Backward compatibility - return status name as string
+            mig_type: row.mig_type,
+            mig_start_date: row.mig_start_date,
+            mig_end_date: row.mig_end_date,
+            mig_business_cutover_date: row.mig_business_cutover_date,
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            // Enhanced status metadata
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
+    }
+    
+    /**
+     * Enriches iteration data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing iteration and status data
+     * @return Enhanced iteration map with statusMetadata
+     */
+    private Map enrichIterationWithStatusMetadata(Map row) {
+        return [
+            ite_id: row.ite_id,
+            mig_id: row.mig_id,
+            plm_id: row.plm_id,
+            itt_code: row.itt_code,
+            ite_name: row.ite_name,
+            ite_description: row.ite_description,
+            ite_status: row.sts_name, // Backward compatibility - return status name as string
+            ite_static_cutover_date: row.ite_static_cutover_date,
+            ite_dynamic_cutover_date: row.ite_dynamic_cutover_date,
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            // Enhanced status metadata
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
+    }
 }

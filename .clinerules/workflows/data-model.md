@@ -1,62 +1,132 @@
----
-description: How to safely refine the data model, update migrations, and keep data generation and tests in sync
----
+# Enhanced Data Model Refinement & Synchronisation Workflow with GENDEV Integration
 
-# Data Model Refinement & Synchronisation Workflow
+AI-enhanced data model workflow with schema design, validation, and synchronisation.
 
-This workflow ensures every data model change is robust, consistent, and reflected across migrations, documentation, data generation, and tests.
+## Prerequisites
+- Database design principles, Liquibase, SQL optimization
+- Database management system, testing framework, GENDEV agents
+- Access to dev environment, migration tools, documentation repos
 
----
+## Enhanced Workflow Steps
 
-## 1. Reference the Authoritative Sources
+### 1. AI-Enhanced Authoritative Source Analysis
 
-Before making or reviewing any data model change, consult these key documents:
-- `/docs/solution-architecture.md` — **PRIMARY**: Comprehensive solution architecture and design decisions
-- `/docs/dataModel/README.md` — Data model documentation and ERD
-- `/local-dev-setup/liquibase/changelogs/001_unified_baseline.sql` — Baseline schema (Liquibase)
-- `/docs/adr/` — Current ADRs (skip `/docs/adr/archive/` - consolidated in solution-architecture.md)
+#### 1.1 Architecture Review
+```bash
+/gd:system-architect --architecture_focus=data --design_methodology=domain-driven --scalability_target=enterprise
+```
+- Review `/docs/solution-architecture.md`, `/docs/dataModel/README.md`, liquibase changelogs, ADRs
+- Automated architecture consistency validation
 
-## 2. Plan the Change
+#### 1.2 Documentation Analysis
+```bash
+/gd:documentation-generator --doc_type=technical --audience_level=developer --format_style=structured
+```
+- ERD analysis, schema documentation, migration history, constraint validation
 
-- Identify the business or technical rationale for the change.
-- Determine the impact on existing tables, columns, relationships, and constraints.
-- Draft or update the ERD as needed.
+### 2. AI-Enhanced Change Planning
 
-## 3. Update the Schema
+#### 2.1 Business Impact Analysis
+```bash
+/gd:business-process-analyst --analysis_scope=data-model --process_complexity=enterprise
+```
+- Business rationale, technical impact, performance modeling, migration risk assessment
 
-- Create or edit the appropriate Liquibase changelog(s) (never edit the baseline directly after project start).
-- Follow naming conventions and migration strategy as per ADRs.
-- Document every change with clear comments in the changelog.
+#### 2.2 ERD Design and Validation
+```bash
+/gd:system-architect --architecture_focus=data --design_methodology=domain-driven
+```
+- Automated ERD generation, normalization validation, relationship optimization
 
-## 4. Update Data Model Documentation
+### 3. AI-Enhanced Schema Updates
 
-- Reflect all changes in `/docs/dataModel/README.md` (ERD, field lists, rationale).
-- If the change is significant, consider updating or creating an ADR.
+#### 3.1 Migration Strategy
+```bash
+/gd:database-specialist --db_type=postgresql --optimization_focus=migration
+```
+- Automated migration generation, rollback planning, performance optimization, dependency resolution
 
-## 5. Synchronise Data Generation Scripts
+#### 3.2 Security and Compliance
+```bash
+/gd:security-architect --security_model=zero-trust --compliance_level=enterprise
+```
+- Data privacy compliance, access control design, audit trail integration, PII identification
 
-- Review and update `local-dev-setup/data-utils/umig_generate_fake_data.js` (FAKER-based generator).
-- Adjust or add generators in `local-dev-setup/data-utils/generators/` as needed.
-- Ensure all generated data matches the new/updated schema.
+### 4. AI-Enhanced Documentation Management
 
-## 6. Update and Extend Tests
+#### 4.1 Documentation Generation
+```bash
+/gd:documentation-generator --doc_type=database --audience_level=technical --format_style=comprehensive
+```
+- Automated ERD updates, field documentation, relationship documentation, business rules, ADR generation
 
-- Update all related tests in `local-dev-setup/data-utils/__tests__/` to cover new/changed fields and relationships.
-- Add new fixture data if needed.
-- Ensure tests remain non-destructive and deterministic.
+### 5. AI-Powered Data Generation Synchronisation
 
-## 7. Validate
+#### 5.1 Test Data Generation
+```bash
+/gd:test-data-generator --data_type=realistic --volume=medium --compliance_mode=privacy-safe
+```
+- Schema-aware generation, relationship consistency, performance optimization, privacy compliance
 
-- Run all migrations in a fresh environment (dev/test).
-- Run the data generation script and all tests; confirm no failures or regressions.
-- Review the ERD and documentation for completeness and accuracy.
+#### 5.2 Generator Synchronisation
+```bash
+/gd:code-generator --template_type=data-utilities --target_language=javascript
+```
+- Automated generator updates, constraint validation, performance monitoring, version sync
 
-## 8. Document and Communicate
+### 6. AI-Enhanced Testing and Validation
 
-- Update `CHANGELOG.md` with a summary of the data model change.
-- If required, update the main `README.md` and any relevant ADRs.
-- Consider adding a Developer Journal entry to narrate the rationale and process.
+#### 6.1 Test Suite Generation
+```bash
+/gd:test-suite-generator --test_types=integration,performance,security --coverage_target=95
+```
+- Automated test generation, migration testing, performance testing, data integrity, security testing
 
----
+#### 6.2 Continuous Validation
+```bash
+/gd:qa-coordinator --qa_scope=database --automation_level=high
+```
+- Real-time schema validation, performance regression testing, data quality monitoring, compliance monitoring
 
-> _Use this workflow every time you refine the data model to maintain project discipline, testability, and documentation integrity._
+### 7. AI-Assisted Validation and Deployment
+
+#### 7.1 Multi-Environment Validation
+```bash
+/gd:environment-manager --environment_type=database --deployment_strategy=blue-green
+```
+- Automated environment testing, migration simulation, performance benchmarking, data consistency validation
+
+### 8. AI-Enhanced Documentation and Communication
+
+#### 8.1 Change Documentation
+```bash
+/gd:content-creator --content_type=technical --audience_level=mixed --tone=informative
+```
+- Automated changelog generation, impact communication, developer journal automation, ADR management
+
+## Enhanced Success Metrics
+
+**Schema Quality:** 95% constraint validation, 90% bug reduction, 80% performance improvement, 99% migration success
+**Development Efficiency:** 70% faster implementation, 85% documentation reduction, 95% test coverage, 60% communication improvement
+**Compliance and Security:** 100% privacy compliance, 95% vulnerability detection, 90% audit completeness, 99% data integrity
+
+## Tips for Success
+
+1. Start with architecture validation using AI agents
+2. Automate documentation, testing, and validation
+3. Integrate security and compliance throughout
+4. Use AI for predictive performance analysis
+5. Generate comprehensive test suites with AI
+6. Maintain AI-enhanced documentation discipline
+7. Implement continuous monitoring and validation
+
+## Related GENDEV Agents
+
+- **gendev-system-architect**: Data architecture design and validation
+- **gendev-database-specialist**: Database optimization and migration management
+- **gendev-security-architect**: Data security and compliance validation
+- **gendev-test-suite-generator**: Comprehensive database testing automation
+- **gendev-documentation-generator**: Automated schema and ERD documentation
+- **gendev-business-process-analyst**: Business impact and requirement analysis
+- **gendev-qa-coordinator**: Quality assurance and validation orchestration
+- **gendev-environment-manager**: Multi-environment deployment and validation

@@ -10,7 +10,10 @@
  * Run from project root: ./src/groovy/umig/tests/run-integration-tests.sh
  */
 
+@GrabConfig(systemClassLoader=true)
 @Grab('org.postgresql:postgresql:42.7.3')
+@GrabExclude('xml-apis:xml-apis')
+@GrabExclude('xerces:xercesImpl')
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 
 import groovy.sql.Sql
@@ -62,6 +65,10 @@ try {
     // Setup test data
     println "\n📋 Setting up test data..."
     
+    // Clean up any existing test data first
+    sql.execute("DELETE FROM teams_tms WHERE tms_email = 'sequences-test@example.com'")
+    sql.execute("DELETE FROM users_usr WHERE usr_email = 'sequence.tester@example.com' OR usr_code = 'SEQ'")
+    
     // Create test team
     def teamResult = sql.firstRow("""
         INSERT INTO teams_tms (tms_name, tms_email, tms_description, created_by, updated_by)
@@ -81,35 +88,58 @@ try {
     println "  Created test user: ${testUserId}"
     
     // Create test migration and iteration
-    def migrationResult = sql.firstRow("""
-        INSERT INTO migrations_mig (mig_code, mig_name, mig_status, created_by, updated_by)
-        VALUES ('SEQ-TEST', 'Sequence Test Migration', 'ACTIVE', 'system', 'system')
-        RETURNING mig_id
+    // First get a valid status ID for migrations
+    def migStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Migration' AND sts_name = 'PLANNING'
+        LIMIT 1
     """)
+    def migStatusId = migStatusResult?.sts_id ?: 1  // Default to 1 if not found
+    
+    def migrationResult = sql.firstRow("""
+        INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_type, mig_status, created_by, updated_by)
+        VALUES (:userId, 'Sequence Test Migration', 'MIGRATION', :statusId, 'system', 'system')
+        RETURNING mig_id
+    """, [userId: testUserId, statusId: migStatusId])
     testMigrationId = migrationResult.mig_id
     println "  Created test migration: ${testMigrationId}"
     
-    def iterationResult = sql.firstRow("""
-        INSERT INTO iterations_ite (itr_code, itr_name, itr_type, mig_id, created_by, updated_by)
-        VALUES ('SEQ-IT1', 'Sequence Test Iteration', 'CUTOVER', :migId, 'system', 'system')
-        RETURNING itr_id
-    """, [migId: testMigrationId])
-    testIterationId = iterationResult.itr_id
-    println "  Created test iteration: ${testIterationId}"
+    // Get a valid status ID for plans
+    def planStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Plan' AND sts_name = 'DRAFT'
+        LIMIT 1
+    """)
+    def planStatusId = planStatusResult?.sts_id ?: 1  // Default to 1 if not found
     
-    // Create test master plan
+    // Create test master plan first (needed for iteration)
     def planResult = sql.firstRow("""
         INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, updated_by)
-        VALUES (:teamId, 'Sequence Test Plan', 'Plan for sequence testing', 'DRAFT', 'system', 'system')
+        VALUES (:teamId, 'Sequence Test Plan', 'Plan for sequence testing', :statusId, 'system', 'system')
         RETURNING plm_id
-    """, [teamId: testTeamId])
+    """, [teamId: testTeamId, statusId: planStatusId])
     testMasterPlanId = planResult.plm_id
-    println "  Created test master plan: ${testMasterPlanId}"
+    
+    // Get a valid status ID for iterations
+    def iteStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Iteration' AND sts_name = 'PENDING'
+        LIMIT 1
+    """)
+    def iteStatusId = iteStatusResult?.sts_id ?: 1  // Default to 1 if not found
+    
+    def iterationResult = sql.firstRow("""
+        INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status, created_by, updated_by)
+        VALUES (:migId, :plmId, 'CUTOVER', 'Sequence Test Iteration', 'Test iteration description', :statusId, 'system', 'system')
+        RETURNING ite_id
+    """, [migId: testMigrationId, plmId: testMasterPlanId, statusId: iteStatusId])
+    testIterationId = iterationResult.ite_id
+    println "  Created test iteration: ${testIterationId}"
     
     // Create test plan instance
     def planInstanceResult = sql.firstRow("""
-        INSERT INTO plans_instance_pli (plm_id, ite_id, usr_id_owner, pli_name, pli_description, created_by, updated_by)
-        VALUES (:planId, :iterationId, :userId, 'Sequence Test Plan Instance', 'Instance for sequence testing', 'system', 'system')
+        INSERT INTO plans_instance_pli (plm_id, ite_id, usr_id_owner, pli_name, pli_description, pli_status, created_by, updated_by)
+        VALUES (:planId, :iterationId, :userId, 'Sequence Test Plan Instance', 'Instance for sequence testing', 5, 'system', 'system')
         RETURNING pli_id
     """, [planId: testMasterPlanId, iterationId: testIterationId, userId: testUserId])
     testPlanInstanceId = planInstanceResult.pli_id

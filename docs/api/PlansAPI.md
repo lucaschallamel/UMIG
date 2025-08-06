@@ -53,7 +53,7 @@
   "tms_id": "integer",
   "plm_name": "string",
   "plm_description": "string (optional)",
-  "plm_status": "string"
+  "plm_status": "integer (FK to status_sts)"
 }
 ```
 - **Example:**
@@ -102,7 +102,7 @@
   "tms_name": "string",
   "plm_name": "string",
   "plm_description": "string",
-  "plm_status": "string",
+  "plm_status": "integer (FK to status_sts)",
   "sts_id": "integer",
   "sts_name": "string",
   "sts_color": "string",
@@ -145,7 +145,7 @@
   "mig_name": "string",
   "pli_name": "string",
   "pli_description": "string",
-  "pli_status": "string",
+  "pli_status": "integer (FK to status_sts)",
   "sts_id": "integer",
   "sts_name": "string",
   "sts_color": "string",
