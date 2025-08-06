@@ -52,6 +52,19 @@ private Response handleError(Exception e) {
     }
 }
 
+/**
+ * Builds standardized success responses with consistent JSON formatting.
+ * This ensures all successful API responses follow the same pattern.
+ * @param data The data to return in the response body
+ * @param status The HTTP status code (defaults to OK/200)
+ * @return Response object with JSON body
+ */
+private Response buildSuccessResponse(Object data, Response.Status status = Response.Status.OK) {
+    return Response.status(status)
+        .entity(new JsonBuilder(data).toString())
+        .build()
+}
+
 // ==================== CONTROLS API - GET ENDPOINTS ====================
 
 /**
@@ -81,7 +94,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
                     .build()
             }
             
-            return Response.ok(new JsonBuilder(control).toString()).build()
+            return buildSuccessResponse(control)
         }
         
         // GET /controls/master with optional filtering
@@ -96,7 +109,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
                 controls = controlRepository.findAllMasterControls()
             }
             
-            return Response.ok(new JsonBuilder(controls).toString()).build()
+            return buildSuccessResponse(controls)
         }
         
         // ==================== INSTANCE CONTROL GET OPERATIONS ====================
@@ -149,7 +162,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
             }
             
             def instances = controlRepository.findControlInstances(filters)
-            return Response.ok(new JsonBuilder(instances).toString()).build()
+            return buildSuccessResponse(instances)
         }
         
         // ==================== PROGRESS GET OPERATIONS ====================
@@ -159,7 +172,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
             def phaseId = UUID.fromString(pathParts[0] as String)
             def progress = controlRepository.calculatePhaseControlProgress(phaseId)
             
-            return Response.ok(new JsonBuilder(progress).toString()).build()
+            return buildSuccessResponse(progress)
         }
         
         return Response.status(Response.Status.NOT_FOUND)
