@@ -166,6 +166,139 @@ class ControlsApiUnitTest {
         println "✅ reorderMasterControls() test passed"
     }
     
+    // ==================== EDGE CASE TESTS ====================
+    
+    static void testCalculatePhaseControlProgressWithZeroControls() {
+        println "Testing calculatePhaseControlProgress() with zero controls..."
+        
+        def phaseId = UUID.randomUUID()
+        def mockSql = [
+            rows: { query, params -> 
+                return [] // No controls
+            }
+        ] as Sql
+        
+        DatabaseUtil.metaClass.static.withSql = { Closure closure ->
+            return closure.call(mockSql)
+        }
+        
+        def repository = new ControlRepository()
+        def progress = repository.calculatePhaseControlProgress(phaseId)
+        
+        assert progress['totalControls'] == 0
+        assert progress['validatedControls'] == 0
+        assert progress['passedControls'] == 0
+        assert progress['failedControls'] == 0
+        assert progress['pendingControls'] == 0
+        assert progress['criticalControls'] == 0
+        assert progress['progressPercentage'] == 0.0
+        println "✅ calculatePhaseControlProgress() with zero controls test passed"
+    }
+    
+    static void testCalculatePhaseControlProgressWithAllFailedCriticalControls() {
+        println "Testing calculatePhaseControlProgress() with all failed critical controls..."
+        
+        def phaseId = UUID.randomUUID()
+        def mockSql = [
+            rows: { query, params -> 
+                return [
+                    [cti_id: UUID.randomUUID(), cti_status: 'FAILED', cti_is_critical: true],
+                    [cti_id: UUID.randomUUID(), cti_status: 'FAILED', cti_is_critical: true],
+                    [cti_id: UUID.randomUUID(), cti_status: 'FAILED', cti_is_critical: true]
+                ]
+            }
+        ] as Sql
+        
+        DatabaseUtil.metaClass.static.withSql = { Closure closure ->
+            return closure.call(mockSql)
+        }
+        
+        def repository = new ControlRepository()
+        def progress = repository.calculatePhaseControlProgress(phaseId)
+        
+        assert progress['totalControls'] == 3
+        assert progress['validatedControls'] == 0
+        assert progress['passedControls'] == 0
+        assert progress['failedControls'] == 3
+        assert progress['pendingControls'] == 0
+        assert progress['criticalControls'] == 3
+        assert progress['progressPercentage'] == 0.0 // No passed or validated controls
+        assert progress['criticalFailure'] == true // All critical controls failed
+        println "✅ calculatePhaseControlProgress() with all failed critical controls test passed"
+    }
+    
+    static void testCalculatePhaseControlProgressWithMixedValidationStates() {
+        println "Testing calculatePhaseControlProgress() with mixed validation states..."
+        
+        def phaseId = UUID.randomUUID()
+        def mockSql = [
+            rows: { query, params -> 
+                return [
+                    [cti_id: UUID.randomUUID(), cti_status: 'VALIDATED', cti_is_critical: true],
+                    [cti_id: UUID.randomUUID(), cti_status: 'PASSED', cti_is_critical: true],
+                    [cti_id: UUID.randomUUID(), cti_status: 'FAILED', cti_is_critical: false],
+                    [cti_id: UUID.randomUUID(), cti_status: 'PENDING', cti_is_critical: false],
+                    [cti_id: UUID.randomUUID(), cti_status: 'CANCELLED', cti_is_critical: false],
+                    [cti_id: UUID.randomUUID(), cti_status: 'TODO', cti_is_critical: true]
+                ]
+            }
+        ] as Sql
+        
+        DatabaseUtil.metaClass.static.withSql = { Closure closure ->
+            return closure.call(mockSql)
+        }
+        
+        def repository = new ControlRepository()
+        def progress = repository.calculatePhaseControlProgress(phaseId)
+        
+        assert progress['totalControls'] == 6
+        assert progress['validatedControls'] == 1
+        assert progress['passedControls'] == 1
+        assert progress['failedControls'] == 1
+        assert progress['pendingControls'] == 1
+        assert progress['criticalControls'] == 3
+        // Progress: (1 validated + 1 passed) / 6 = 33.33%
+        assert Math.abs(progress['progressPercentage'] - 33.33) < 0.01
+        println "✅ calculatePhaseControlProgress() with mixed validation states test passed"
+    }
+    
+    static void testValidateControlWithNullValues() {
+        println "Testing validateControl() with null values..."
+        
+        def controlId = UUID.randomUUID()
+        def updateCalled = false
+        
+        def mockSql = [
+            firstRow: { query, params -> 
+                return [cti_id: controlId, cti_name: 'Test Control']
+            },
+            executeUpdate: { query, params ->
+                updateCalled = true
+                // Verify null values are handled properly
+                assert params.cti_status == 'VALIDATED'
+                assert params.usr_id_it_validator == null // null validator
+                assert params.usr_id_biz_validator == null // null validator
+                return 1
+            }
+        ] as Sql
+        
+        DatabaseUtil.metaClass.static.withSql = { Closure closure ->
+            return closure.call(mockSql)
+        }
+        
+        def repository = new ControlRepository()
+        def validationData = [
+            cti_status: 'VALIDATED',
+            usr_id_it_validator: null,
+            usr_id_biz_validator: null
+        ]
+        def result = repository.validateControl(controlId, validationData)
+        
+        assert updateCalled
+        assert result != null
+        println "✅ validateControl() with null values test passed"
+    }
+    
     static void main(String[] args) {
         println "============================================"
         println "Controls API Unit Tests"
@@ -179,7 +312,12 @@ class ControlsApiUnitTest {
             'findControlInstanceById': this.&testFindControlInstanceById,
             'calculatePhaseControlProgress': this.&testCalculatePhaseControlProgress,
             'validateControl': this.&testValidateControl,
-            'reorderMasterControls': this.&testReorderMasterControls
+            'reorderMasterControls': this.&testReorderMasterControls,
+            // Edge case tests
+            'calculatePhaseControlProgress with zero controls': this.&testCalculatePhaseControlProgressWithZeroControls,
+            'calculatePhaseControlProgress with all failed critical': this.&testCalculatePhaseControlProgressWithAllFailedCriticalControls,
+            'calculatePhaseControlProgress with mixed states': this.&testCalculatePhaseControlProgressWithMixedValidationStates,
+            'validateControl with null values': this.&testValidateControlWithNullValues
         ]
         
         tests.each { name, test ->

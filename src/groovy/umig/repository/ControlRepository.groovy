@@ -332,6 +332,38 @@ class ControlRepository {
     // ==================== INSTANCE CONTROL OPERATIONS ====================
     
     /**
+     * Validates and transforms filter parameters with proper type casting.
+     * Centralizes filter validation logic for better performance and maintainability.
+     * @param filters Raw filter map from API request
+     * @return Map with properly typed filter values
+     */
+    private Map validateFilters(Map filters) {
+        if (!filters) return [:]
+        
+        return filters.findAll { k, v -> v != null }.collectEntries { k, v ->
+            switch(k) {
+                // UUID fields
+                case ~/.*Id$/:
+                    if (k in ['teamId', 'statusId', 'userId']) {
+                        // Integer ID fields
+                        return [k, Integer.parseInt(v as String)]
+                    } else {
+                        // UUID ID fields
+                        return [k, UUID.fromString(v as String)]
+                    }
+                // Integer fields
+                case 'limit':
+                case 'offset':
+                case 'order':
+                    return [k, Integer.parseInt(v as String)]
+                // String fields
+                default:
+                    return [k, v as String]
+            }
+        }
+    }
+    
+    /**
      * Finds control instances with hierarchical filtering.
      * @param filters Map containing optional filters (migrationId, iterationId, planInstanceId, sequenceInstanceId, phaseInstanceId, teamId, statusId)
      * @return List of control instances with enriched data
@@ -388,42 +420,44 @@ class ControlRepository {
                 WHERE 1=1
             """
             
+            // Use centralized filter validation for better performance
+            def validatedFilters = validateFilters(filters)
             def params = [:]
             
-            // Add filters with type safety (ADR-031)
-            if (filters.migrationId) {
+            // Add filters with validated types
+            if (validatedFilters.migrationId) {
                 query += ' AND mig.mig_id = :migrationId'
-                params.migrationId = UUID.fromString(filters.migrationId as String)
+                params.migrationId = validatedFilters.migrationId
             }
             
-            if (filters.iterationId) {
+            if (validatedFilters.iterationId) {
                 query += ' AND pli.ite_id = :iterationId'
-                params.iterationId = UUID.fromString(filters.iterationId as String)
+                params.iterationId = validatedFilters.iterationId
             }
             
-            if (filters.planInstanceId) {
+            if (validatedFilters.planInstanceId) {
                 query += ' AND sqi.pli_id = :planInstanceId'
-                params.planInstanceId = UUID.fromString(filters.planInstanceId as String)
+                params.planInstanceId = validatedFilters.planInstanceId
             }
             
-            if (filters.sequenceInstanceId) {
+            if (validatedFilters.sequenceInstanceId) {
                 query += ' AND phi.sqi_id = :sequenceInstanceId'
-                params.sequenceInstanceId = UUID.fromString(filters.sequenceInstanceId as String)
+                params.sequenceInstanceId = validatedFilters.sequenceInstanceId
             }
             
-            if (filters.phaseInstanceId) {
+            if (validatedFilters.phaseInstanceId) {
                 query += ' AND cti.phi_id = :phaseInstanceId'
-                params.phaseInstanceId = UUID.fromString(filters.phaseInstanceId as String)
+                params.phaseInstanceId = validatedFilters.phaseInstanceId
             }
             
-            if (filters.teamId) {
+            if (validatedFilters.teamId) {
                 query += ' AND plm.tms_id = :teamId'
-                params.teamId = Integer.parseInt(filters.teamId as String)
+                params.teamId = validatedFilters.teamId
             }
             
-            if (filters.statusId) {
+            if (validatedFilters.statusId) {
                 query += ' AND sts.sts_id = :statusId'
-                params.statusId = Integer.parseInt(filters.statusId as String)
+                params.statusId = validatedFilters.statusId
             }
             
             query += ' ORDER BY cti.cti_order, cti.created_at'
