@@ -1,5 +1,38 @@
 ### [Unreleased]
 
+#### 2025-08-06 (Documentation Synchronization: US-006b Status Field Normalization ADR-035)
+- **Documentation(Architecture):** Comprehensive documentation synchronization for US-006b Status Field Normalization
+  - Verified ADR-035 numbering consistency across solution-architecture.md and CHANGELOG.md
+  - Confirmed chronological ADR sequence: ADR-034 (Static Type Checking Patterns) → ADR-035 (Status Field Normalization, US-006b)
+  - Updated all cross-references to maintain architectural decision record integrity
+  - Enhanced sprint documentation with current implementation status and completion criteria
+- **Quality Assurance(Documentation):** Enhanced technical accuracy and consistency
+  - Validated all ADR references align with implementation timeline and recovery status
+  - Ensured US-006b recovery notes accurately reflect commit a4cc184 restoration
+  - Maintained comprehensive audit trail for all architectural decisions
+  - Updated sprint3-us006b.md references to reflect correct ADR-035 designation
+
+#### 2025-08-06 (US-006b Recovery: Status Field Normalization Implementation Restored)
+- **Recovery(US-006b):** Successfully recovered Status Field Normalization implementation from commit a4cc184
+  - Recovered 8 critical API and repository files accidentally reverted in commit 7056d21
+  - ControlsApi.groovy: Full INTEGER FK status implementation with validation
+  - InstructionsApi.groovy: Boolean completion tracking (no status FK per design)
+  - PlansApi.groovy, SequencesApi.groovy, StepsApi.groovy: Status field normalization
+  - migrationApi.groovy: Migration-level status handling
+  - ControlRepository.groovy: Repository layer status validation with FK constraints
+  - InstructionRepository.groovy: Boolean completion logic implementation
+- **Architecture(ADR-035):** Status Field Normalization design consolidated in solution-architecture.md
+  - Converted all entity status fields from VARCHAR(50) to INTEGER FK references
+  - Created centralized status_sts table with 24 pre-populated status records
+  - Implemented foreign key constraints ensuring referential integrity
+  - Instructions use boolean ini_is_completed field instead of status FK (by design)
+  - All recovered implementations pass integration tests and comply with specifications
+- **Documentation Updates:** Comprehensive documentation synchronization for US-006b
+  - Updated sprint3-us006b.md with recovery notes and current implementation status
+  - Added ADR-035 section to solution-architecture.md documenting normalization architecture
+  - Phase 2 (API Updates) and Phase 3 (Repository Layer) marked as COMPLETE - Recovered
+  - Remaining work identified: Admin GUI components and API response enhancements
+
 #### 2025-08-06 (Documentation Synchronization: Sprint Renaming and Status Updates)
 - **Documentation(Sprint Organization):** Comprehensive sprint renaming and documentation synchronization
   - Renamed all Sprint 0 references to Sprint 3 throughout project documentation reflecting accurate chronological history
@@ -81,7 +114,7 @@
   - Added comprehensive import statements and proper variable declarations
   - Enhanced error handling for type conversion operations throughout the system
 - **Documentation(Architecture):** Updated solution architecture with new compatibility patterns
-  - Added comprehensive documentation of Groovy 3.0.15 compatibility improvements
+  - Added comprehensive documentation of Groovy 3.0.15 compatibility improvements (ADR-034)
   - Established mandatory practices and testing requirements for type safety
   - Defined migration strategy and future development standards for static type checking
   - Documented technical implementation patterns and benefits achieved

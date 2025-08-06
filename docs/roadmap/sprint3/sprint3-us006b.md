@@ -1,277 +1,285 @@
- # Sprint 3 - US-006b: Status Field Normalization (Completion Plan)
+# Sprint 3 - US-006b: Status Field Normalization (Completion Plan)
 
-  ## Current Implementation Status (August 2025)
+## Current Implementation Status (August 2025)
 
-  ### ✅ Completed Components
+### ✅ Completed Components
 
-  #### Phase 1: Database Schema
+#### Phase 1: Database Schema
 
-  - ✅ `status_sts` table created with all columns
-  - ✅ 24 status records populated (4 per entity type)
-  - ✅ Foreign keys added for Plans, Sequences, Phases, Steps
+- ✅ `status_sts` table created with all columns
+- ✅ 24 status records populated (4 per entity type)
+- ✅ Foreign keys added for Plans, Sequences, Phases, Steps
 
-  #### Phase 2: API Updates (Partial)
+#### Phase 2: API Updates (COMPLETE - Recovered from commit a4cc184)
 
-  - ✅ PlansApi.groovy - Using integer status IDs
-  - ✅ SequencesApi.groovy - Using integer status IDs
-  - ✅ PhasesApi.groovy - Using integer status IDs
-  - ✅ StepsApi.groovy - Using integer status IDs
-  - ✅ InstructionsApi.groovy - Uses ini_is_completed boolean (no status needed)
-  - ✅ ControlsApi.groovy - Using integer status IDs with validation
+- ✅ PlansApi.groovy - Using integer status IDs
+- ✅ SequencesApi.groovy - Using integer status IDs
+- ✅ PhasesApi.groovy - Using integer status IDs
+- ✅ StepsApi.groovy - Using integer status IDs
+- ✅ InstructionsApi.groovy - Uses ini_is_completed boolean (no status needed)
+- ✅ ControlsApi.groovy - Using integer status IDs with validation
 
-  #### Phase 5: Testing (Partial)
+#### Phase 3: Repository Layer (COMPLETE - Recovered from commit a4cc184)
 
-  - ✅ Integration tests updated for Plans, Sequences, Phases, Steps
-  - ✅ Tests using correct status IDs
-  - ✅ Instructions tests validate ini_is_completed boolean
-  - ✅ Controls tests validate FK constraints
+- ✅ ControlRepository.groovy - Integer FK status implementation
+- ✅ InstructionRepository.groovy - Boolean completion tracking
+- ✅ All repositories validate against status_sts table
 
-  ### ❌ Missing Components
+#### Phase 5: Testing (Partial)
 
-  #### Database
+- ✅ Integration tests updated for Plans, Sequences, Phases, Steps
+- ✅ Tests using correct status IDs
+- ✅ Instructions tests validate ini_is_completed boolean
+- ✅ Controls tests validate FK constraints
 
-  - ✅ Instructions use ini_is_completed boolean (no FK needed)
-  - ✅ Foreign key constraints for `controls_master_ctm.ctm_status`
-  - ✅ Foreign key constraints for `controls_instance_cti.cti_status`
+### ❌ Missing Components
 
-  #### APIs
+#### Admin GUI
 
-  - ✅ Instructions API: Uses ini_is_completed boolean (no status validation needed)
-  - ✅ Controls API: Status validation against status_sts implemented
-  - ✅ Controls API: JOIN with status_sts in GET operations implemented
+- ❌ No Status Management component
+- ❌ No status dropdowns in entity forms
+- ❌ No color-coded status visualization
+- ❌ No instructions management component
+- ❌ No controls management component
 
-  #### Admin GUI
+#### Documentation
 
-  - ❌ No Status Management component
-  - ❌ No status dropdowns in entity forms
-  - ❌ No color-coded status visualization
-  - ❌ No instructions management component
-  - ❌ No controls management component
+- ✅ OpenAPI spec updated for status normalization
+- ✅ ADR-035 created for status normalization decision
+- ❌ No user guide for status management
 
-  #### Documentation
+## Recovery Notes
 
-  - ✅ OpenAPI spec updated for status normalization
-  - ✅ ADR-035 created for status normalization decision
-  - ❌ No user guide for status management
+**IMPORTANT**: The US-006 API implementation was accidentally reverted in commit 7056d21 and has been successfully recovered from commit a4cc184. The following files were restored:
+- ControlsApi.groovy - Full INTEGER FK status implementation
+- InstructionsApi.groovy - Boolean completion tracking (no status FK per design)
+- PlansApi.groovy - Status field normalization
+- SequencesApi.groovy - Status field normalization
+- StepsApi.groovy - Status field normalization
+- migrationApi.groovy - Migration-level status handling
+- ControlRepository.groovy - Repository layer status validation
+- InstructionRepository.groovy - Boolean completion logic
 
-  ## Gap Analysis
+All recovered implementations pass integration tests and follow ADR-035 specifications.
 
-  ### Critical Gaps (Must Fix)
+## Gap Analysis
 
-    ✅ All critical gaps have been addressed:
-    1. **Database Integrity**: Controls have FK constraints, Instructions use boolean
-    2. **API Validation**: Controls API validates status, Instructions use boolean
-    3. **Data Consistency**: Valid status IDs enforced for Controls
+### Critical Gaps (Must Fix)
 
-  ### Important Gaps (Should Fix)
+  ✅ All critical gaps have been addressed:
+  1. **Database Integrity**: Controls have FK constraints, Instructions use boolean
+  2. **API Validation**: Controls API validates status, Instructions use boolean
+  3. **Data Consistency**: Valid status IDs enforced for Controls
 
-    1. **Admin GUI**: No interface for status management
-    2. **API Responses**: Missing status details (name, color) in responses
-    3. **Documentation**: OpenAPI spec outdated
+### Important Gaps (Should Fix)
 
-  ### Nice-to-Have Gaps
+  1. **Admin GUI**: No interface for status management
+  2. **API Responses**: Missing status details (name, color) in responses
+  3. **Documentation**: OpenAPI spec needs update for status normalization
 
-    1. **Bulk Operations**: No bulk status update capability
-    2. **Status History**: No audit trail for status changes
-    3. **Status Workflow**: No status transition rules
+### Nice-to-Have Gaps
 
-  ## Comprehensive Implementation Plan with GENDEV Agents
+  1. **Bulk Operations**: No bulk status update capability
+  2. **Status History**: No audit trail for status changes
+  3. **Status Workflow**: No status transition rules
 
-  ### Phase 1: System Architecture Analysis
+## Comprehensive Implementation Plan with GENDEV Agents
 
-  **Agent**: `gendev-system-architect`
-  **Objective**: Complete gap analysis and dependency mapping
+### Phase 1: System Architecture Analysis
 
-  **Deliverables**:
+**Agent**: `gendev-system-architect`
+**Objective**: Complete gap analysis and dependency mapping
 
-    1. Complete gap analysis with priorities
-    2. Dependency graph for all components
-    3. Risk assessment matrix
-    4. Implementation sequence recommendation
-    5. Validation criteria checklist
+**Deliverables**:
 
-  ### Phase 2: Database Migration Design
+  1. Complete gap analysis with priorities
+  2. Dependency graph for all components
+  3. Risk assessment matrix
+  4. Implementation sequence recommendation
+  5. Validation criteria checklist
 
-  **Agent**: `gendev-database-schema-designer`
-  **Objective**: Design FK constraints for Instructions/Controls
+### Phase 2: Database Migration Design
 
-  **Deliverables**:
+**Agent**: `gendev-database-schema-designer`
+**Objective**: Design FK constraints for Instructions/Controls
 
-    1. Liquibase migration script (021_add_status_foreign_keys.sql)
-    2. Data validation queries
-    3. Rollback procedures
-    4. Performance impact assessment
-    5. Test queries for verification
+**Deliverables**:
 
-  ### Phase 3: API Implementation Updates
+  1. Liquibase migration script (021_add_status_foreign_keys.sql)
+  2. Data validation queries
+  3. Rollback procedures
+  4. Performance impact assessment
+  5. Test queries for verification
 
-  **Agent**: `gendev-code-reviewer` + `gendev-api-designer`
-  **Objective**: Update Instructions and Controls APIs
+### Phase 3: API Implementation Updates
 
-  **Deliverables**:
+**Agent**: `gendev-code-reviewer` + `gendev-api-designer`
+**Objective**: Update Instructions and Controls APIs
 
-    1. Detailed code modifications (line-by-line)
-    2. SQL query updates with JOINs
-    3. Validation logic implementation
-    4. Error handling patterns
-    5. Response structure updates
+**Deliverables**:
 
-  ### Phase 4: Test Suite Enhancement
+  1. Detailed code modifications (line-by-line)
+  2. SQL query updates with JOINs
+  3. Validation logic implementation
+  4. Error handling patterns
+  5. Response structure updates
 
-  **Agent**: `gendev-test-suite-generator`
-  **Objective**: Update integration tests for complete coverage
+### Phase 4: Test Suite Enhancement
 
-  **Deliverables**:
+**Agent**: `gendev-test-suite-generator`
+**Objective**: Update integration tests for complete coverage
 
-    1. Updated test cases for Instructions API
-    2. Updated test cases for Controls API
-    3. FK constraint validation tests
-    4. Invalid status rejection tests
-    5. Performance test scenarios
+**Deliverables**:
 
-  ### Phase 5: Admin GUI Development
+  1. Updated test cases for Instructions API
+  2. Updated test cases for Controls API
+  3. FK constraint validation tests
+  4. Invalid status rejection tests
+  5. Performance test scenarios
 
-  **Agent**: `gendev-interface-designer`
-  **Objective**: Create status management interface
+### Phase 5: Admin GUI Development
 
-  **Deliverables**:
+**Agent**: `gendev-interface-designer`
+**Objective**: Create status management interface
 
-    1. statusManagement.js component
-    2. Status dropdowns for all entity forms
-    3. Color-coded status badges
-    4. CSS styling for status visualization
-    5. Integration with existing components
+**Deliverables**:
 
-  ### Phase 6: Documentation Updates
+  1. statusManagement.js component
+  2. Status dropdowns for all entity forms
+  3. Color-coded status badges
+  4. CSS styling for status visualization
+  5. Integration with existing components
 
-  **Agent**: `gendev-documentation-generator`
-  **Objective**: Complete all documentation
+### Phase 6: Documentation Updates
 
-  **Deliverables**:
+**Agent**: `gendev-documentation-generator`
+**Objective**: Complete all documentation
 
-    1. Updated OpenAPI specification
-    2. ADR-033 for status normalization
-    3. User guide for Admin GUI
-    4. Developer implementation guide
-    5. Migration procedures
+**Deliverables**:
 
-  ### Phase 7: Quality Assurance
+  1. Updated OpenAPI specification
+  2. ADR-035 for status normalization (completed)
+  3. User guide for Admin GUI
+  4. Developer implementation guide
+  5. Migration procedures
 
-  **Agent**: `gendev-qa-coordinator`
-  **Objective**: Comprehensive testing and validation
+### Phase 7: Quality Assurance
 
-  **Deliverables**:
+**Agent**: `gendev-qa-coordinator`
+**Objective**: Comprehensive testing and validation
 
-    1. Test execution report
-    2. Performance validation results
-    3. Security assessment
-    4. Acceptance criteria verification
-    5. Sign-off documentation
+**Deliverables**:
 
-  ## Execution Sequence
+  1. Test execution report
+  2. Performance validation results
+  3. Security assessment
+  4. Acceptance criteria verification
+  5. Sign-off documentation
 
-  ### Immediate Actions (Can be done in parallel)
+## Execution Sequence
 
-    1. Database migration script creation (Phase 2)
-    2. API code review and planning (Phase 3)
-    3. Test suite updates (Phase 4)
+### Immediate Actions (Can be done in parallel)
 
-  ### Sequential Implementation
+  1. Database migration script creation (Phase 2)
+  2. API code review and planning (Phase 3)
+  3. Test suite updates (Phase 4)
 
-    1. Execute database migrations
-    2. Update Instructions API
-    3. Update Controls API
-    4. Run updated integration tests
-    5. Develop Admin GUI components
-    6. Update documentation
-    7. Final QA validation
+### Sequential Implementation
 
-  ### Dependencies
+  1. Execute database migrations
+  2. Update Instructions API
+  3. Update Controls API
+  4. Run updated integration tests
+  5. Develop Admin GUI components
+  6. Update documentation
+  7. Final QA validation
 
-  Database Migrations
-      ↓
-  API Updates (Instructions, Controls)
-      ↓
-  Integration Tests
-      ↓
-  Admin GUI Development
-      ↓
-  Documentation
-      ↓
-  Final QA
+### Dependencies
 
-  ## Success Criteria
+Database Migrations
+    ↓
+API Updates (Instructions, Controls)
+    ↓
+Integration Tests
+    ↓
+Admin GUI Development
+    ↓
+Documentation
+    ↓
+Final QA
 
-  ### Database
+## Success Criteria
 
-  - [ ] All entity tables have FK constraints to status_sts
-  - [ ] No orphaned status values exist
-  - [ ] Constraints prevent invalid status assignments
+### Database
 
-  ### APIs
+- [ ] All entity tables have FK constraints to status_sts
+- [ ] No orphaned status values exist
+- [ ] Constraints prevent invalid status assignments
 
-  - [ ] All 6 entity APIs validate status against status_sts
-  - [ ] GET operations return status name and color
-  - [ ] Invalid status IDs return 400 errors
-  - [ ] Existing data continues to work
+### APIs
 
-  ### Admin GUI
+- [ ] All 6 entity APIs validate status against status_sts
+- [ ] GET operations return status name and color
+- [ ] Invalid status IDs return 400 errors
+- [ ] Existing data continues to work
 
-  - [ ] Status management CRUD interface functional
-  - [ ] All entity forms have status dropdowns
-  - [ ] Status colors display correctly
-  - [ ] Bulk operations work as expected
+### Admin GUI
 
-  ### Testing
+- [ ] Status management CRUD interface functional
+- [ ] All entity forms have status dropdowns
+- [ ] Status colors display correctly
+- [ ] Bulk operations work as expected
 
-  - [ ] All integration tests pass
-  - [ ] FK constraints are tested
-  - [ ] Invalid status handling tested
-  - [ ] Performance benchmarks met
+### Testing
 
-  ### Documentation
+- [ ] All integration tests pass
+- [ ] FK constraints are tested
+- [ ] Invalid status handling tested
+- [ ] Performance benchmarks met
 
-  - [ ] OpenAPI spec accurate
-  - [ ] ADR-033 documented
-  - [ ] User guides complete
-  - [ ] Developer docs updated
+### Documentation
 
-  ## Risk Mitigation
+- [ ] OpenAPI spec accurate
+- [ ] ADR-035 documented
+- [ ] User guides complete
+- [ ] Developer docs updated
 
-  ### High Risk
+## Risk Mitigation
 
-  - **Data Loss**: Create full backup before migrations
-  - **API Breaking Changes**: Maintain backward compatibility
-  - **FK Violations**: Validate all existing data first
+### High Risk
 
-  ### Medium Risk
+- **Data Loss**: Create full backup before migrations
+- **API Breaking Changes**: Maintain backward compatibility
+- **FK Violations**: Validate all existing data first
 
-  - **Performance Impact**: Test with production-like data
-  - **GUI Complexity**: Incremental implementation
-  - **Test Coverage**: Automated regression suite
+### Medium Risk
 
-  ### Low Risk
+- **Performance Impact**: Test with production-like data
+- **GUI Complexity**: Incremental implementation
+- **Test Coverage**: Automated regression suite
 
-  - **Documentation Gaps**: Review with team
-  - **Color Conflicts**: Use accessible color palette
-  - **Browser Compatibility**: Test on multiple browsers
+### Low Risk
 
-  ## Timeline Estimate
+- **Documentation Gaps**: Review with team
+- **Color Conflicts**: Use accessible color palette
+- **Browser Compatibility**: Test on multiple browsers
 
-  - **Phase 1-2**: 2 hours (Analysis & Design)
-  - **Phase 3-4**: 4 hours (Implementation)
-  - **Phase 5**: 4 hours (Admin GUI)
-  - **Phase 6-7**: 2 hours (Documentation & QA)
+## Timeline Estimate
 
-  **Total**: ~12 hours of focused development
+- **Phase 1-2**: 2 hours (Analysis & Design)
+- **Phase 3-4**: 4 hours (Implementation)
+- **Phase 5**: 4 hours (Admin GUI)
+- **Phase 6-7**: 2 hours (Documentation & QA)
 
-  ## Next Steps
+**Total**: ~12 hours of focused development
 
-    1. Execute GENDEV agent tasks for detailed specifications
-    2. Review and approve migration scripts
-    3. Implement API updates
-    4. Develop Admin GUI
-    5. Complete testing
-    6. Update documentation
-    7. Deploy to development environment
-    8. Team review and sign-off
+## Next Steps
+
+  1. Execute GENDEV agent tasks for detailed specifications
+  2. Review and approve migration scripts
+  3. Implement API updates
+  4. Develop Admin GUI
+  5. Complete testing
+  6. Update documentation
+  7. Deploy to development environment
+  8. Team review and sign-off

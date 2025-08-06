@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-08-06  
+**Version:** 2025-08-06 (Updated for US-006b Documentation Sync)  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 35 architectural decisions (26 archived + 9 newly consolidated: ADR-027 through ADR-035). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Sprint 3 completion milestone (5 of 6 user stories delivered, August 2025), Controls API performance optimizations with enhanced test coverage (August 2025), Groovy 3.0.15 static type checking compatibility improvements (August 2025), Instructions API implementation (US-004, August 2025), Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
+**Latest Updates:** Status field normalization implementation (US-006b, August 2025 - recovered from commit a4cc184), Sprint 3 completion milestone (5 of 6 user stories delivered, August 2025), Controls API performance optimizations with enhanced test coverage (August 2025), Groovy 3.0.15 static type checking compatibility improvements (August 2025), Instructions API implementation (US-004, August 2025), Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
 
@@ -62,7 +62,8 @@ This document consolidates the following architectural decisions:
 
 ### Development Standards & Code Quality
 - [ADR-034] - Static Type Checking Patterns for ScriptRunner (Consolidated in this document)
-- [ADR-035] - Database Audit Fields Standardization (Consolidated in this document)
+- [ADR-034] - Static Type Checking Patterns for ScriptRunner (Consolidated in this document)
+- [ADR-035] - Status Field Normalization (US-006b - Consolidated in this document)
 
 ---
 
@@ -597,15 +598,23 @@ The system implements a centralized status management approach to ensure consist
   - `sts_name`: Status name (e.g., 'PENDING', 'IN_PROGRESS', 'COMPLETED')
   - `sts_color`: Hex color code for UI display (e.g., '#00AA00' for green)
   - `sts_type`: Entity type the status applies to (Migration, Iteration, Plan, Sequence, Phase, Step, Control)
-- **Pre-populated Values:** 31 statuses covering all entity types:
-  - **Migration/Iteration/Plan/Sequence/Phase:** PLANNING, IN_PROGRESS, COMPLETED, CANCELLED
-  - **Step:** PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
-  - **Control:** TODO, PASSED, FAILED, CANCELLED
+- **Pre-populated Values:** 24 statuses covering all entity types:
+  - **Migration/Iteration/Plan/Sequence/Phase:** PLANNING, IN_PROGRESS, COMPLETED, CANCELLED (4 each)
+  - **Step:** PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED (7 total)
+  - **Control:** TODO, PASSED, FAILED, CANCELLED (4 total)
+  - **Note:** Instructions use boolean `ini_is_completed` field instead of status FK (by design)
+- **Implementation Status (US-006b):**
+  - ✅ All entity tables converted from VARCHAR(50) to INTEGER FK references
+  - ✅ Foreign key constraints enforced for data integrity
+  - ✅ API validation against status_sts table implemented
+  - ✅ Instructions API uses boolean completion tracking (no status FK needed)
+  - ✅ Repository layer validates all status changes
 - **Benefits:**
   - Ensures consistent status values across all data
   - Enables dynamic UI color coding
   - Simplifies status validation
   - Facilitates future status additions without code changes
+  - Referential integrity guaranteed through FK constraints
 
 ### 6.7. Role-Based Access Control System ([ADR-033])
 
@@ -1402,9 +1411,9 @@ The benefits of runtime reliability and consistent error handling outweigh the a
 
 ---
 
-## 12. Database Audit Fields Standardization ([ADR-035])
+## 12. Database Audit Fields Standardization
 
-### 12.1. Architecture Decision Record - ADR-035
+### 12.1. Architecture Decision Record - Database Audit Fields
 
 **Title:** Database Audit Fields Standardization  
 **Status:** Implemented (US-002b)  
@@ -1671,7 +1680,7 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 
 #### 13.6.2. Database Integration
 **Schema Compliance:**
-- Full audit field implementation (ADR-035)
+- Full audit field implementation
 - Type safety patterns (ADR-034)
 - Hierarchical filtering support (ADR-030)
 
@@ -1894,6 +1903,179 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 - **Null Value Handling**: Comprehensive testing of null validator scenarios
 - **Boundary Conditions**: Testing extreme cases in progress calculation
 - **Coverage Improvement**: Additional 4 test scenarios covering edge conditions
+
+---
+
+## 15. Status Field Normalization ([ADR-035] - US-006b)
+
+### 15.1. Architecture Decision Record - ADR-035
+
+**Title:** Status Field Normalization  
+**Status:** Implemented (US-006b - Recovered from commit a4cc184)  
+**Date:** August 2025  
+**Documentation Status:** Fully Documented (ADR-035 synchronized across all project documentation)  
+
+### 15.2. Context and Problem Statement
+
+The UMIG application originally stored status values as VARCHAR(50) strings across multiple entity tables. This approach led to:
+- Data inconsistency with variations in status strings
+- No referential integrity for status values
+- Difficulty in managing status-related business logic
+- Inability to centrally manage status colors and display properties
+- Risk of invalid status values entering the system
+
+### 15.3. Decision Drivers
+
+- **Data Integrity:** Need for guaranteed valid status values
+- **Consistency:** Uniform status management across all entities
+- **Maintainability:** Central location for status definitions
+- **Performance:** Indexed INTEGER comparisons faster than VARCHAR
+- **Extensibility:** Easy addition of new statuses without code changes
+
+### 15.4. Solution Architecture
+
+#### 15.4.1. Status Table Design
+
+**Central Status Table (`status_sts`):**
+```sql
+CREATE TABLE status_sts (
+    sts_id SERIAL PRIMARY KEY,
+    sts_name VARCHAR(50) NOT NULL,
+    sts_color VARCHAR(7),
+    sts_type VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Pre-populated Status Values:**
+- **Plan/Sequence/Phase:** PLANNING, IN_PROGRESS, COMPLETED, CANCELLED (4 each)
+- **Step:** PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED (7 total)
+- **Control:** TODO, PASSED, FAILED, CANCELLED (4 total)
+- **Total:** 24 status records
+
+#### 15.4.2. Entity Table Modifications
+
+**Foreign Key Implementation:**
+```sql
+-- Example for controls_master_ctm
+ALTER TABLE controls_master_ctm 
+    ADD COLUMN ctm_status INTEGER,
+    ADD CONSTRAINT fk_ctm_status 
+        FOREIGN KEY (ctm_status) 
+        REFERENCES status_sts(sts_id);
+```
+
+**Special Case - Instructions:**
+- Instructions use boolean `ini_is_completed` field
+- No status FK needed per business requirements
+- Simplifies completion tracking logic
+
+### 15.5. Implementation Details
+
+#### 15.5.1. API Layer Changes
+
+**Status Validation Pattern:**
+```groovy
+// ControlsApi.groovy example
+if (requestData.cti_status) {
+    def statusId = Integer.parseInt(requestData.cti_status as String)
+    // Validation happens at DB level via FK constraint
+}
+```
+
+**Repository Layer Validation:**
+```groovy
+// ControlRepository.groovy
+def validateStatus(Integer statusId, String entityType) {
+    def validStatuses = sql.rows("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = ? AND sts_id = ?
+    """, [entityType, statusId])
+    return !validStatuses.isEmpty()
+}
+```
+
+### 15.6. Migration Strategy
+
+#### 15.6.1. Phased Implementation
+
+**Phase 1: Database Schema (COMPLETE)**
+- Created status_sts table
+- Populated 24 status records
+- Added FK columns to entity tables
+
+**Phase 2: API Updates (COMPLETE - Recovered)**
+- PlansApi, SequencesApi, PhasesApi, StepsApi using INTEGER status
+- ControlsApi fully implements status validation
+- InstructionsApi uses boolean completion tracking
+- migrationApi handles migration-level statuses
+
+**Phase 3: Repository Layer (COMPLETE - Recovered)**
+- ControlRepository validates against status_sts
+- InstructionRepository uses boolean logic
+- All repositories enforce type safety
+
+**Phase 4: Testing (COMPLETE)**
+- Integration tests validate FK constraints
+- Tests confirm status validation logic
+- Instructions tests verify boolean field
+
+**Phase 5: Admin GUI (PENDING)**
+- Status management interface needed
+- Status dropdowns for entity forms
+- Color-coded status visualization
+
+### 15.7. Recovery Notes
+
+**Important:** The US-006b implementation was accidentally reverted in commit 7056d21 and has been successfully recovered from commit a4cc184. The recovery included:
+
+**Recovered Files:**
+- `ControlsApi.groovy` - Full INTEGER FK status implementation
+- `InstructionsApi.groovy` - Boolean completion tracking (no status FK)
+- `PlansApi.groovy` - Status field normalization
+- `SequencesApi.groovy` - Status field normalization  
+- `StepsApi.groovy` - Status field normalization
+- `migrationApi.groovy` - Migration-level status handling
+- `ControlRepository.groovy` - Repository layer status validation
+- `InstructionRepository.groovy` - Boolean completion logic
+
+All recovered implementations pass integration tests and comply with ADR specifications.
+
+### 15.8. Benefits Realized
+
+#### 15.8.1. Data Integrity
+- Foreign key constraints prevent invalid status values
+- Referential integrity guaranteed at database level
+- No orphaned or inconsistent status strings
+
+#### 15.8.2. Performance Improvements
+- INTEGER comparisons faster than VARCHAR
+- Indexed lookups on sts_id column
+- Reduced storage overhead
+
+#### 15.8.3. Maintainability
+- Central status management location
+- Easy addition of new statuses
+- Consistent validation logic across APIs
+
+### 15.9. Remaining Work
+
+#### 15.9.1. Admin GUI Components
+- Status management CRUD interface
+- Entity form status dropdowns
+- Color-coded status badges
+- Bulk status update capabilities
+
+#### 15.9.2. API Enhancements
+- Include status name and color in GET responses
+- Status transition validation rules
+- Status history tracking
+
+#### 15.9.3. Documentation
+- OpenAPI specification updates
+- User guide for status management
+- Developer documentation for status patterns
 
 ---
 
