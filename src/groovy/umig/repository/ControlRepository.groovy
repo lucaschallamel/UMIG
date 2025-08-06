@@ -1,7 +1,6 @@
 package umig.repository
 
 import umig.utils.DatabaseUtil
-import java.sql.SQLException
 import java.util.UUID
 
 /**
@@ -569,30 +568,10 @@ class ControlRepository {
                         return null
                     }
                     
-                    // Handle status validation
-                    def statusId = overrides.cti_status ?: getDefaultControlStatusId()
-                    if (overrides.cti_status) {
-                        // Convert string status to ID if needed
-                        if (overrides.cti_status instanceof String) {
-                            def statusRow = sql.firstRow("""
-                                SELECT sts_id FROM status_sts 
-                                WHERE sts_name = :statusName AND sts_type = 'Control'
-                            """, [statusName: overrides.cti_status])
-                            statusId = statusRow?.sts_id
-                        } else {
-                            statusId = overrides.cti_status as Integer
-                        }
-                        
-                        // Validate status ID exists
-                        if (statusId && !validateControlStatusId(statusId as Integer)) {
-                            throw new IllegalArgumentException("Invalid status ID for Control: ${statusId}")
-                        }
-                    }
-                    
                     def instanceData = [
                         phi_id: phaseInstanceId,
                         ctm_id: masterControlId,
-                        cti_status: statusId,
+                        cti_status: overrides.cti_status ?: getDefaultControlInstanceStatusId(sql),
                         cti_name: overrides.cti_name ?: masterControl.ctm_name,
                         cti_description: overrides.cti_description ?: masterControl.ctm_description,
                         cti_order: overrides.cti_order ?: masterControl.ctm_order,
@@ -675,23 +654,6 @@ class ControlRepository {
                 // Check if instance exists
                 if (!sql.firstRow('SELECT cti_id FROM controls_instance_cti WHERE cti_id = :instanceId', [instanceId: instanceId])) {
                     return null
-                }
-                
-                // Validate status if being updated
-                if (updates.containsKey('cti_status')) {
-                    def statusId = updates.cti_status
-                    if (statusId instanceof String) {
-                        def statusRow = sql.firstRow("""
-                            SELECT sts_id FROM status_sts 
-                            WHERE sts_name = :statusName AND sts_type = 'Control'
-                        """, [statusName: statusId])
-                        statusId = statusRow?.sts_id
-                        updates.cti_status = statusId
-                    }
-                    
-                    if (statusId && !validateControlStatusId(statusId as Integer)) {
-                        throw new IllegalArgumentException("Invalid status ID for Control: ${statusId}")
-                    }
                 }
                 
                 // Build dynamic update query
@@ -1175,61 +1137,5 @@ class ControlRepository {
         }
         
         return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
-    }
-    
-    /**
-     * Validates if a status ID exists for Control type in status_sts table.
-     * @param statusId Integer status ID to validate
-     * @return Boolean true if valid, false otherwise
-     */
-    def validateControlStatusId(Integer statusId) {
-        if (!statusId) {
-            return false
-        }
-        
-        DatabaseUtil.withSql { sql ->
-            try {
-                def result = sql.firstRow('''
-                    SELECT COUNT(*) as count 
-                    FROM status_sts 
-                    WHERE sts_id = :statusId AND sts_type = 'Control'
-                ''', [statusId: statusId])
-                
-                return (result.count as Integer) > 0
-            } catch (SQLException e) {
-                return false
-            }
-        }
-    }
-    
-    /**
-     * Gets default status ID for Control type from status_sts table.
-     * First tries 'NOT_STARTED', then falls back to any Control status.
-     * @return Integer default status ID
-     */
-    def getDefaultControlStatusId() {
-        DatabaseUtil.withSql { sql ->
-            // Try NOT_STARTED first
-            def defaultStatus = sql.firstRow("""
-                SELECT sts_id 
-                FROM status_sts 
-                WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Control'
-                LIMIT 1
-            """)
-            
-            if (defaultStatus) {
-                return defaultStatus.sts_id as Integer
-            }
-            
-            // Fallback to any Control status
-            defaultStatus = sql.firstRow("""
-                SELECT sts_id 
-                FROM status_sts 
-                WHERE sts_type = 'Control'
-                LIMIT 1
-            """)
-            
-            return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
-        }
     }
 }

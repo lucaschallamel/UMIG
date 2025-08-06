@@ -169,8 +169,6 @@ sequences(httpMethod: "GET", groups: ["confluence-users", "confluence-administra
                     sqi_name: sequence.sqi_name,
                     sqi_description: sequence.sqi_description,
                     sqi_status: sequence.sqi_status,
-                    status: sequence.status,  // Backward compatibility - string value
-                    statusMetadata: sequence.statusMetadata,
                     predecessor_sqi_id: sequence.predecessor_sqi_id,
                     predecessor_name: sequence.predecessor_name,
                     usr_id_owner: sequence.usr_id_owner,
@@ -501,24 +499,24 @@ sequences(httpMethod: "PUT", groups: ["confluence-users", "confluence-administra
             }
             
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def statusId = requestData.status ? Integer.parseInt(requestData.status as String) : null
+            def status = requestData.status as String
             def userId = requestData.usr_id ? Integer.parseInt(requestData.usr_id as String) : null
             
-            if (!statusId) {
+            if (!status) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Missing required field: status"]).toString())
                     .build()
             }
             
             SequenceRepository sequenceRepository = getSequenceRepository()
-            def result = sequenceRepository.updateSequenceInstanceStatus(instanceId, statusId, userId)
+            def result = sequenceRepository.updateSequenceInstanceStatus(instanceId, status, userId)
             
             if (result) {
                 return Response.ok(new JsonBuilder([
                     success: true,
                     message: "Sequence status updated successfully",
                     instanceId: instanceId,
-                    newStatusId: statusId
+                    newStatus: status
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.NOT_FOUND)
