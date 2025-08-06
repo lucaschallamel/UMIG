@@ -111,8 +111,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users", "confluence-administr
                     migrationId: iteration['mig_id'],
                     name: iteration['ite_name'],
                     description: iteration['ite_description'],
-                    status: iteration['ite_status'],  // Backward compatibility
-                    statusMetadata: iteration['statusMetadata'],
+                    status: iteration['ite_status'],
                     staticCutoverDate: iteration['ite_static_cutover_date'],
                     dynamicCutoverDate: iteration['ite_dynamic_cutover_date']
                 ]
@@ -131,8 +130,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users", "confluence-administr
                         migrationId: iteration['mig_id'],
                         name: iteration['ite_name'],
                         description: iteration['ite_description'],
-                        status: iteration['ite_status'],  // Backward compatibility
-                        statusMetadata: iteration['statusMetadata'],
+                        status: iteration['ite_status'],
                         staticCutoverDate: iteration['ite_static_cutover_date'],
                         dynamicCutoverDate: iteration['ite_dynamic_cutover_date']
                     ]
@@ -154,8 +152,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users", "confluence-administr
                     usr_id_owner: migration['usr_id_owner'],
                     name: migration['mig_name'],
                     description: migration['mig_description'],
-                    status: migration['mig_status'],  // Backward compatibility
-                    statusMetadata: migration['statusMetadata'],
+                    status: migration['mig_status'],
                     type: migration['mig_type'],
                     startDate: migration['mig_start_date'],
                     endDate: migration['mig_end_date'],
@@ -178,8 +175,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users", "confluence-administr
                     usr_id_owner: migration['usr_id_owner'],
                     name: migration['mig_name'],
                     description: migration['mig_description'],
-                    status: migration['mig_status'],  // Backward compatibility
-                    statusMetadata: migration['statusMetadata'],
+                    status: migration['mig_status'],
                     type: migration['mig_type'],
                     startDate: migration['mig_start_date'],
                     endDate: migration['mig_end_date'],

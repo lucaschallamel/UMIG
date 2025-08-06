@@ -6,8 +6,6 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.json.JsonException
 import groovy.transform.BaseScript
-import groovy.transform.TypeCheckingMode
-import groovy.transform.TypeChecked
 
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
@@ -15,8 +13,6 @@ import javax.ws.rs.core.Response
 import java.sql.SQLException
 import java.util.UUID
 
-@TypeChecked(TypeCheckingMode.SKIP)
-@SuppressWarnings(['GroovyUnusedDeclaration', 'GrMethodMayBeStatic'])
 @BaseScript CustomEndpointDelegate delegate
 
 final ControlRepository controlRepository = new ControlRepository()
@@ -262,7 +258,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             def overrides = [:]
             overrides['cti_name'] = requestData['cti_name'] as String
             overrides['cti_description'] = requestData['cti_description'] as String
-            overrides['cti_status'] = requestData['cti_status'] ?: 'NOT_STARTED'
+            overrides['cti_status'] = requestData['cti_status'] as String ?: 'PENDING'
             overrides['cti_order'] = requestData['cti_order'] as Integer
             overrides['cti_type'] = requestData['cti_type'] as String
             overrides['cti_is_critical'] = requestData['cti_is_critical'] as Boolean
@@ -361,7 +357,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             def overrides = [:]
             overrides['cti_name'] = requestData['cti_name'] as String
             overrides['cti_description'] = requestData['cti_description'] as String
-            overrides['cti_status'] = requestData['cti_status'] ?: 'NOT_STARTED'
+            overrides['cti_status'] = requestData['cti_status'] as String ?: 'PENDING'
             overrides['cti_order'] = requestData['cti_order'] as Integer
             overrides['cti_type'] = requestData['cti_type'] as String
             overrides['cti_is_critical'] = requestData['cti_is_critical'] as Boolean
@@ -554,7 +550,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             }
             
             def updateData = [:]
-            updateData['cti_status'] = requestData['cti_status']
+            updateData['cti_status'] = requestData['cti_status'] as String
             
             def result = controlRepository.updateControlInstance(controlId, updateData)
             
@@ -575,7 +571,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             def requestData = jsonSlurper.parseText(body)
             
             def validationData = [:]
-            validationData['cti_status'] = requestData['cti_status']
+            validationData['cti_status'] = requestData['cti_status'] as String
             validationData['usr_id_it_validator'] = requestData['usr_id_it_validator'] as Integer
             validationData['usr_id_biz_validator'] = requestData['usr_id_biz_validator'] as Integer
             
@@ -628,7 +624,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             def updateData = [:]
             updateData['cti_name'] = requestData['cti_name'] as String
             updateData['cti_description'] = requestData['cti_description'] as String
-            updateData['cti_status'] = requestData['cti_status']
+            updateData['cti_status'] = requestData['cti_status'] as String
             updateData['cti_order'] = requestData['cti_order'] as Integer
             updateData['cti_type'] = requestData['cti_type'] as String
             updateData['cti_is_critical'] = requestData['cti_is_critical'] as Boolean
@@ -659,7 +655,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             }
             
             def validationData = [:]
-            validationData['cti_status'] = requestData['cti_status']
+            validationData['cti_status'] = requestData['cti_status'] as String
             validationData['usr_id_it_validator'] = requestData['usr_id_it_validator'] as Integer
             validationData['usr_id_biz_validator'] = requestData['usr_id_biz_validator'] as Integer
             

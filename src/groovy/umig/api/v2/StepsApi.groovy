@@ -209,8 +209,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     id: step.id,
                     code: "${step.sttCode}-${String.format('%03d', step.stmNumber)}",
                     name: step.name,
-                    status: step.status,  // Backward compatibility - string value
-                    statusMetadata: step.statusMetadata,
+                    status: step.status,
                     durationMinutes: step.durationMinutes,
                     ownerTeamId: step.ownerTeamId,
                     ownerTeamName: step.ownerTeamName ?: 'Unassigned',
