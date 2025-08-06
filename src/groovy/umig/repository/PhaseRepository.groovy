@@ -387,7 +387,7 @@ class PhaseRepository {
      */
     def findPhaseInstanceById(UUID instanceId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
+            def result = sql.firstRow("""
                 SELECT 
                     phi.phi_id,
                     phi.sqi_id,
@@ -427,10 +427,12 @@ class PhaseRepository {
                 JOIN iterations_ite itr ON pli.ite_id = itr.ite_id
                 JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts sts ON sts.sts_name = phi.phi_status AND sts.sts_type = 'Phase'
+                LEFT JOIN status_sts sts ON phi.phi_status = sts.sts_id
                 LEFT JOIN phases_instance_phi pred ON phi.predecessor_phi_id = pred.phi_id
                 WHERE phi.phi_id = :instanceId
             """, [instanceId: instanceId])
+            
+            return result ? enrichPhaseInstanceWithStatusMetadata(result) : null
         }
     }
     
@@ -1111,5 +1113,77 @@ class PhaseRepository {
             
             return [:]
         }
+    }
+    
+    // ==================== STATUS METADATA ENRICHMENT ====================
+    
+    /**
+     * Enriches phase instance data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing phase instance and status data
+     * @return Enhanced phase instance map with statusMetadata
+     */
+    private Map enrichPhaseInstanceWithStatusMetadata(Map row) {
+        return [
+            phi_id: row.phi_id,
+            sqi_id: row.sqi_id,
+            phm_id: row.phm_id,
+            phi_status: row.sts_name ?: 'UNKNOWN', // Backward compatibility - return status name as string
+            phi_start_time: row.phi_start_time,
+            phi_end_time: row.phi_end_time,
+            phi_name: row.phi_name,
+            phi_description: row.phi_description,
+            phi_order: row.phi_order,
+            predecessor_phi_id: row.predecessor_phi_id,
+            created_by: row.created_by ?: null,
+            created_at: row.created_at,
+            updated_by: row.updated_by ?: null,
+            updated_at: row.updated_at,
+            // Master phase details
+            master_name: row.master_name ?: null,
+            master_description: row.master_description ?: null,
+            master_order: row.master_order ?: null,
+            // Sequence and plan hierarchy
+            sqi_name: row.sqi_name ?: null,
+            sqm_name: row.sqm_name ?: null,
+            plm_name: row.plm_name ?: null,
+            tms_id: row.tms_id,
+            tms_name: row.tms_name,
+            ite_name: row.ite_name ?: null,
+            mig_name: row.mig_name ?: null,
+            predecessor_name: row.predecessor_name,
+            // Enhanced status metadata
+            statusMetadata: row.sts_id ? [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ] : null
+        ]
+    }
+    
+    /**
+     * Gets the default status ID for new phase instances.
+     * @param sql Active SQL connection
+     * @return Integer status ID for 'NOT_STARTED' Phase status
+     */
+    private Integer getDefaultPhaseInstanceStatusId(groovy.sql.Sql sql) {
+        Map defaultStatus = sql.firstRow("""
+            SELECT sts_id 
+            FROM status_sts 
+            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Phase'
+            LIMIT 1
+        """) as Map
+        
+        // Fallback to any Phase status if NOT_STARTED not found
+        if (!defaultStatus) {
+            defaultStatus = sql.firstRow("""
+                SELECT sts_id 
+                FROM status_sts 
+                WHERE sts_type = 'Phase'
+                LIMIT 1
+            """) as Map
+        }
+        
+        return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
     }
 }
