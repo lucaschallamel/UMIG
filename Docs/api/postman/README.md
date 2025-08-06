@@ -30,11 +30,28 @@ This directory contains the Postman collection for testing the UMIG application'
 
 To update the collection after making changes to the OpenAPI specification:
 
-1. **Navigate to this directory** (`docs/api/postman`) in your terminal.
+### Method 1: Using npm script (Recommended)
+1. **Navigate to the local-dev-setup directory** in your terminal:
+    ```bash
+    cd local-dev-setup
+    ```
+2. **Run the enhanced generation script**:
+    ```bash
+    npm run generate:postman:enhanced
+    ```
+    This script will:
+    - Generate the collection from the OpenAPI spec
+    - Add authentication configuration
+    - Set up environment variables
+    - Enhance with test scripts
+
+### Method 2: Direct command (Basic)
+1. **Navigate to the docs/api/postman directory** in your terminal.
 2. **Run the following command**:
     ```bash
     npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags
     ```
+
 3. **Commit the updated collection file** (`UMIG_API_V2_Collection.postman_collection.json`) to Git.
 
 This ensures that the Postman collection always remains a true representation of the API contract.
