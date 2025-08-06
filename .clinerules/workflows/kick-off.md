@@ -1,5 +1,6 @@
 ---
 description: We run this workflow at the beginning of each new Cascade session, to make sure that the agent has the correct understanding of the state of the development.
+agents: gendev-projectplanner, gendev-projectorchestrator, gendev-requirementsanalyst, gendev-memory-manager, gendev-system-architect
 ---
 
 - Review the memories

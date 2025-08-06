@@ -69,15 +69,18 @@ COMMENT ON TABLE labels_lbl_x_steps_master_stm IS 'TIER 2 ASSOCIATION: Label-Ste
 -- PART 5: CREATE HELPER FUNCTION FOR USER CODE LOOKUP
 -- =====================================================
 
--- Create a helper function to get user code from email
-CREATE OR REPLACE FUNCTION get_user_code(user_email VARCHAR)
+-- Drop existing function if it exists and recreate with consistent parameter name
+DROP FUNCTION IF EXISTS get_user_code(VARCHAR);
+
+-- Create a helper function to get user code from email (matching parameter name from 016)
+CREATE OR REPLACE FUNCTION get_user_code(email_input VARCHAR)
 RETURNS VARCHAR AS $func$
 DECLARE
     user_code VARCHAR;
 BEGIN
     SELECT usr_code INTO user_code
     FROM users_usr
-    WHERE usr_email = user_email;
+    WHERE usr_email = email_input;
     
     RETURN COALESCE(user_code, 'system');
 END;
