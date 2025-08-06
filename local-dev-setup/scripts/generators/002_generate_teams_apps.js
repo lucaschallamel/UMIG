@@ -82,8 +82,8 @@ async function generateTeamApplicationLinks(client) {
       const appsToLink = faker.helpers.arrayElements(apps, linksToCreate);
       for (const appToLink of appsToLink) {
         await client.query(
-          'INSERT INTO teams_tms_x_applications_app (tms_id, app_id, created_at, created_by) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
-          [team.tms_id, appToLink.app_id, new Date(), 'generator']
+          'INSERT INTO teams_tms_x_applications_app (tms_id, app_id, created_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [team.tms_id, appToLink.app_id, new Date()]
         );
       }
     }

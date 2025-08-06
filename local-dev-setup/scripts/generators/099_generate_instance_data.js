@@ -313,45 +313,40 @@ async function generateInstanceData(config, options = {}) {
         );
         console.log(`          Found ${masterControls.rows.length} master controls for phase ${masterPhase.phm_id}`);
 
-        // For each control, create instances for each step in this phase
-        const stepInstancesInPhase = await client.query('SELECT sti_id FROM steps_instance_sti WHERE phi_id = $1', [phaseInstanceId]);
-        for (const stepInstanceResult of stepInstancesInPhase.rows) {
-          const stepInstanceId = stepInstanceResult.sti_id;
+        // For each control, create instances at the phase level (per ADR-016)
+        for (const masterControl of masterControls.rows) {
+          // Prepare override values for control instance
+          const cti_order = shouldOverrideAttribute() ? generateOverrideValue('order', masterControl.ctm_order) : masterControl.ctm_order;
+          const cti_name = shouldOverrideAttribute() ? generateOverrideValue('name') : masterControl.ctm_name;
+          const cti_description = shouldOverrideAttribute() ? generateOverrideValue('description') : masterControl.ctm_description;
+          const cti_type = shouldOverrideAttribute() ? generateOverrideValue('type') : masterControl.ctm_type;
+          const cti_is_critical = shouldOverrideAttribute() ? generateOverrideValue('boolean') : masterControl.ctm_is_critical;
+          const cti_code = shouldOverrideAttribute() ? generateOverrideValue('code') : masterControl.ctm_code;
           
-          for (const masterControl of masterControls.rows) {
-            // Prepare override values for control instance
-            const cti_order = shouldOverrideAttribute() ? generateOverrideValue('order', masterControl.ctm_order) : masterControl.ctm_order;
-            const cti_name = shouldOverrideAttribute() ? generateOverrideValue('name') : masterControl.ctm_name;
-            const cti_description = shouldOverrideAttribute() ? generateOverrideValue('description') : masterControl.ctm_description;
-            const cti_type = shouldOverrideAttribute() ? generateOverrideValue('type') : masterControl.ctm_type;
-            const cti_is_critical = shouldOverrideAttribute() ? generateOverrideValue('boolean') : masterControl.ctm_is_critical;
-            const cti_code = shouldOverrideAttribute() ? generateOverrideValue('code') : masterControl.ctm_code;
-            
-            await client.query(
-              `INSERT INTO controls_instance_cti (
-                sti_id, ctm_id, cti_status,
-                cti_order, cti_name, cti_description,
-                cti_type, cti_is_critical, cti_code,
-                created_by, created_at, updated_by, updated_at
-              )
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
-              [
-                stepInstanceId, 
-                masterControl.ctm_id, 
-                faker.helpers.arrayElement(controlStatuses),
-                cti_order,
-                cti_name,
-                cti_description,
-                cti_type,
-                cti_is_critical,
-                cti_code,
-                'generator',
-                new Date(),
-                'generator',
-                new Date()
-              ]
-            );
-          }
+          await client.query(
+            `INSERT INTO controls_instance_cti (
+              phi_id, ctm_id, cti_status,
+              cti_order, cti_name, cti_description,
+              cti_type, cti_is_critical, cti_code,
+              created_by, created_at, updated_by, updated_at
+            )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+            [
+              phaseInstanceId, 
+              masterControl.ctm_id, 
+              faker.helpers.arrayElement(controlStatuses),
+              cti_order,
+              cti_name,
+              cti_description,
+              cti_type,
+              cti_is_critical,
+              cti_code,
+              'generator',
+              new Date(),
+              'generator',
+              new Date()
+            ]
+          );
         }
       }
     }
