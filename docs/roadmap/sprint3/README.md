@@ -17,7 +17,7 @@
 - **[sprint3-us003.md](./sprint3-us003.md)** - US-003: Phases API with Control Points (✅ COMPLETED)
 - **[sprint3-us004.md](./sprint3-us004.md)** - US-004: Instructions API with Distribution (✅ COMPLETED)
 - **[sprint3-us005.md](./sprint3-us005.md)** - US-005: Controls API Implementation (✅ COMPLETED)
-- **[sprint3-us006.md](./sprint3-us006.md)** - US-006: Status Field Normalization (✅ COMPLETED)
+- **[sprint3-us006b.md](./sprint3-us006b.md)** - US-006: Status Field Normalization (✅ COMPLETED - Recovered from commit a4cc184)
 
 ## Sprint Results Overview
 
