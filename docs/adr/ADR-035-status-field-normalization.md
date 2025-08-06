@@ -1,9 +1,10 @@
 # ADR-035: Status Field Normalization
 
 ## Status
-**Status**: Accepted  
-**Date**: 2025-08-08  
-**Author**: Development Team
+**Status**: Accepted (Recovered from commit a4cc184)  
+**Date**: 2025-08-06  
+**Author**: Development Team  
+**Implementation**: US-006b - Status Field Normalization
 
 ## Context
 
@@ -172,3 +173,19 @@ The decision to use a boolean for Instructions rather than normalized status was
 6. Only instruction instances need completion tracking
 
 This hybrid approach balances consistency and normalization with pragmatic simplicity where appropriate, recognizing that different entity types have different state management needs.
+
+## Recovery Notes
+
+**Important:** The US-006b implementation was accidentally reverted in commit 7056d21 and has been successfully recovered from commit a4cc184. The recovery included:
+
+### Recovered Files
+- `ControlsApi.groovy` - Full INTEGER FK status implementation
+- `InstructionsApi.groovy` - Boolean completion tracking (no status FK)
+- `PlansApi.groovy` - Status field normalization
+- `SequencesApi.groovy` - Status field normalization  
+- `StepsApi.groovy` - Status field normalization
+- `migrationApi.groovy` - Migration-level status handling
+- `ControlRepository.groovy` - Repository layer status validation
+- `InstructionRepository.groovy` - Boolean completion logic
+
+All recovered implementations pass integration tests and comply with ADR specifications.
