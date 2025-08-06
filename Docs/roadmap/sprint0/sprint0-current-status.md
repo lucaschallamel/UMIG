@@ -1,8 +1,8 @@
 # Sprint 0 - Current Status (Enhanced)
 
-**Date**: July 31, 2025  
-**Sprint Progress**: Day 3 of 5 (60% complete)  
-**Last Updated**: Post US-002 Completion
+**Date**: August 6, 2025  
+**Sprint Progress**: COMPLETED  
+**Last Updated**: Post US-005 Completion
 
 ## Completed User Stories
 
@@ -43,21 +43,40 @@
   - **US-002b-audit-fields-standardization.md** specification completed
   - **US-002d-audit-fields-clarification.md** specification completed
 
-## Ready for Implementation
+### ✅ US-003: Phases API with Controls
+- **Status**: COMPLETED (4 August)
+- **Duration**: 8 hours
+- **Deliverables**:
+  - PhasesApi.groovy (1,060+ lines) with 21 endpoints
+  - PhaseRepository.groovy (1,139 lines) with control point validation
+  - Control point system with emergency override capabilities
+  - Progress aggregation (70% steps + 30% controls)
+  - Comprehensive test coverage (90%+)
+  - Complete API documentation and OpenAPI updates
 
+### ✅ US-004: Instructions API with Distribution
+- **Status**: COMPLETED (5 August)
+- **Duration**: 6 hours
+- **Deliverables**:
+  - InstructionsApi.groovy with 14 endpoints
+  - InstructionRepository.groovy (19 methods)
+  - Template-based architecture with execution instances
+  - Hierarchical filtering across all entity levels
+  - Integration with Steps, Teams, Labels, and Controls
+  - Complete test coverage and documentation
 
-
-### 📋 US-003: Phases API with Controls
-- **Status**: NOT STARTED
-- **Dependencies**: None (can be done in parallel)
-
-### 📋 US-004: Instructions API with Distribution
-- **Status**: NOT STARTED
-- **Dependencies**: None (can be done in parallel)
-
-### 📋 US-005: Database Migrations
-- **Status**: NOT STARTED
-- **Dependencies**: API designs should be complete first
+### ✅ US-005: Controls API Implementation
+- **Status**: COMPLETED (6 August)
+- **Duration**: 5 hours
+- **Deliverables**:
+  - ControlsApi.groovy with 20 comprehensive endpoints
+  - ControlRepository.groovy (20 methods) with validation and override operations
+  - Phase-level quality gate architecture per ADR-016
+  - Progress calculation with real-time status tracking
+  - Bulk operations for efficient instantiation and validation
+  - Static type checking compliance (Groovy 3.0.15)
+  - Unit and integration test suites
+  - Complete OpenAPI documentation
 
 ## Enhanced Sprint Velocity (Post-Review)
 

@@ -10,6 +10,7 @@
  * Run from project root: ./src/groovy/umig/tests/run-integration-tests.sh
  */
 
+@GrabConfig(systemClassLoader=true)
 @Grab('org.postgresql:postgresql:42.7.3')
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 

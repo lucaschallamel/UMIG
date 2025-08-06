@@ -935,10 +935,10 @@ class ControlRepository {
             
             // Calculate summary statistics
             int totalControls = controls.size()
-            int passedControls = controls.count { Map it -> it['cti_status'] == 'PASSED' }
-            int failedControls = controls.count { Map it -> it['cti_status'] == 'FAILED' }
-            int pendingControls = controls.count { Map it -> it['cti_status'] == 'PENDING' }
-            int criticalControls = controls.count { Map it -> it['cti_is_critical'] }
+            int passedControls = controls.count { Map it -> it['cti_status'] == 'PASSED' } as int
+            int failedControls = controls.count { Map it -> it['cti_status'] == 'FAILED' } as int
+            int pendingControls = controls.count { Map it -> it['cti_status'] == 'PENDING' } as int
+            int criticalControls = controls.count { Map it -> it['cti_is_critical'] } as int
             List<Map> failedCriticalControls = controls.findAll { Map it -> 
                 it['cti_is_critical'] && it['cti_status'] == 'FAILED' 
             }
@@ -947,7 +947,7 @@ class ControlRepository {
             Map phaseStats = [:]
             controls.groupBy { Map it -> it['phi_id'] }.each { phaseId, List<Map> phaseControls ->
                 int phaseTotal = phaseControls.size()
-                int phasePassed = phaseControls.count { Map it -> it['cti_status'] == 'PASSED' }
+                int phasePassed = phaseControls.count { Map it -> it['cti_status'] == 'PASSED' } as int
                 double phaseCompletion = phaseTotal > 0 ? 
                     ((double) phasePassed / (double) phaseTotal) * 100.0d : 0.0d
                 

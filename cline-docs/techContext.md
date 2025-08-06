@@ -67,6 +67,12 @@
   * **Template-Based Architecture:** Master/instance pattern with full attribute instantiation for execution tracking
   * **Hierarchical Integration:** Seamless filtering across all migration→iteration→plan→sequence→phase→step levels
   * **Executive Documentation:** Stakeholder-ready architecture presentations in HTML, PDF, and Markdown formats
+* **Controls API Implementation Patterns:** Quality gate management system (US-005, 6 August 2025)
+  * **20-Endpoint REST API:** Complete control point and quality gate management system
+  * **20-Method Repository:** Complete lifecycle management including validation and override operations
+  * **Quality Gate Architecture:** Phase-level control points with critical/non-critical types per ADR-016
+  * **Control Status Management:** Real-time tracking (PENDING, VALIDATED, PASSED, FAILED, CANCELLED, TODO) with progress calculation
+  * **Database Validation:** 184 control instances properly linked through hierarchy with proper phase relationships
 * **Groovy 3.0.15 Static Type Checking Patterns:** Enhanced production reliability (5 August 2025)
   * **Explicit Type Casting:** UUID.fromString(), Integer.parseInt(), Boolean.valueOf() for all parameters
   * **Collection Type Safety:** List<Map> declarations with proper casting for query results

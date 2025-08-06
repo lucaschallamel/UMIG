@@ -279,7 +279,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             def createdControls = []
             def failures = []
             
-            requestData['controls'].eachWithIndex { controlData, index ->
+            (requestData['controls'] as List).eachWithIndex { controlData, index ->
                 try {
                     if (!controlData['phm_id'] || !controlData['ctm_name']) {
                         failures.add([index: index, error: "phm_id and ctm_name are required"])
@@ -310,7 +310,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                 created: createdControls,
                 failures: failures,
                 summary: [
-                    total_requested: requestData['controls'].size(),
+                    total_requested: (requestData['controls'] as List).size(),
                     created_count: createdControls.size(),
                     failed_count: failures.size()
                 ]
@@ -383,7 +383,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             def createdInstances = []
             def failures = []
             
-            requestData['instances'].eachWithIndex { instanceData, index ->
+            (requestData['instances'] as List).eachWithIndex { instanceData, index ->
                 try {
                     if (!instanceData['ctm_id'] || !instanceData['phi_id']) {
                         failures.add([index: index, error: "ctm_id and phi_id are required"])
@@ -421,7 +421,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                 created: createdInstances,
                 failures: failures,
                 summary: [
-                    total_requested: requestData['instances'].size(),
+                    total_requested: (requestData['instances'] as List).size(),
                     created_count: createdInstances.size(),
                     failed_count: failures.size()
                 ]

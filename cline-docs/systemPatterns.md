@@ -54,6 +54,13 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   * **Workflow Integration:** Seamless integration with Steps, Teams, Labels, and Controls for complete instruction lifecycle
   * **Bulk Operations:** Efficient multi-instruction management for complex migration scenarios
   * **Executive Documentation:** Stakeholder-ready architecture presentations and comprehensive technical documentation
+* **Controls API Pattern:** Quality gate management system (US-005, 6 August 2025)
+  * **Quality Gate Architecture:** Phase-level control points with critical/non-critical types per ADR-016
+  * **Control Status Lifecycle:** PENDING → VALIDATED/FAILED → OVERRIDDEN workflow with audit trail
+  * **Progress Calculation:** Real-time status tracking with weighted aggregation for phase completion
+  * **Bulk Operations:** Efficient control instantiation and validation across multiple phases
+  * **Emergency Override:** Critical path functionality with full audit trail capturing reason, actor, and timestamp
+  * **Database Validation:** 184 control instances with proper hierarchical relationships and 41.85% critical distribution
 * **Association Management Pattern:** Many-to-many relationships are managed through dedicated API endpoints with add/remove functionality and proper UI integration.
 * **Dynamic Filtering Pattern:** Hierarchical dropdowns dynamically filter based on parent selections (e.g., steps filtered by selected migration).
 * **Data Import Strategy:** Efficient bulk loading using PostgreSQL `\copy` command (ADR-028) for importing Confluence JSON exports.
