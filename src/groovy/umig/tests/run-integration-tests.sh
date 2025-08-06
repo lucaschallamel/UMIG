@@ -54,6 +54,9 @@ groovy -cp "$JDBC_DRIVER_PATH" src/groovy/umig/tests/integration/PhasesApiIntegr
 printf "\n🧪 Running Instructions API Integration Test...\n"
 groovy -cp "$JDBC_DRIVER_PATH" src/groovy/umig/tests/integration/InstructionsApiIntegrationTestWorking.groovy || report_failure "InstructionsApiIntegrationTestWorking"
 
+printf "\n🧪 Running Controls API Integration Test...\n"
+groovy -cp "$JDBC_DRIVER_PATH" src/groovy/umig/tests/integration/ControlsApiIntegrationTest.groovy || report_failure "ControlsApiIntegrationTest"
+
 # --- Test Summary ---
 echo ""
 echo "Integration Test Summary"
