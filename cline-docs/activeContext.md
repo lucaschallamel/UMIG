@@ -1,15 +1,16 @@
 # Active Context - UMIG Project
 
-**Last Updated**: 5 August 2025, 17:30 GMT  
-**Current Status**: Sprint 0 COMPLETED - All Core APIs Implemented + Type Safety Enhanced  
-**Next Phase**: MVP Completion - Dashboard UI & Planning Features
+**Last Updated**: 6 August 2025, 16:00 GMT  
+**Current Status**: Sprint 0 FULLY COMPLETED - All 5 Core APIs + Controls API Delivered  
+**Next Phase**: Sprint 1 Planning & MVP Completion - Dashboard UI & Planning Features
 
 ## Sprint 0 Final Status: COMPLETED
 
 ### All Core APIs Successfully Implemented (5 of 5 Complete)
 
-**Sprint Duration**: 29 July - 5 August 2025 (extended)  
-**Final Objective**: Complete foundational API layer for hierarchical data model ✅
+**Sprint Duration**: 29 July - 6 August 2025 (completed)  
+**Final Objective**: Complete foundational API layer for hierarchical data model ✅  
+**Final Achievement**: Controls API (US-005) completed 6 August 2025 with quality gate management system
 
 #### ✅ All Major APIs Completed with Advanced Features
 
@@ -53,6 +54,18 @@
   - **Complete Documentation**: API documentation, OpenAPI specification updates, and executive presentation materials
   - **Type Safety Implementation**: Explicit casting for all parameters following ADR-031 conventions
   - **Error Handling**: SQL state mapping (23503→400, 23505→409) with proper HTTP responses
+
+- **US-005: Controls API Implementation** - COMPLETED (6 August 2025)
+  - **20 REST Endpoints**: Complete control point and quality gate management system
+  - **ControlsApi.groovy**: Hierarchical filtering across all entity levels with phase-level control architecture
+  - **ControlRepository.groovy**: 20 methods with complete lifecycle management including validation and override operations
+  - **Quality Gate System**: Critical/non-critical control types per ADR-016 with automated quality gates
+  - **Progress Calculation**: Real-time control status tracking (PENDING, VALIDATED, PASSED, FAILED, CANCELLED, TODO)
+  - **Bulk Operations**: Efficient control instantiation and validation across multiple phases
+  - **Type Safety**: Full Groovy 3.0.15 static type checking compatibility with explicit casting
+  - **Comprehensive Testing**: Unit test suite with mocked database operations and integration tests
+  - **Database Validation**: 184 control instances properly linked through hierarchy with 41.85% critical controls
+  - **Complete Documentation**: Updated OpenAPI specification, Controls API documentation, and regenerated Postman collection
 
 ### Recent Technology Enhancements (August 2025)
 

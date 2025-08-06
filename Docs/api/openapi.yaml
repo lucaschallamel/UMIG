@@ -37,6 +37,8 @@ tags:
     description: Operations about steps, step instances, and status management.
   - name: Instructions
     description: Operations about instructions, completion tracking, and analytics.
+  - name: Controls
+    description: Operations about controls, validation checkpoints, and progress tracking.
   - name: Comments
     description: Operations about step comments and collaboration.
   - name: Statuses
@@ -1950,6 +1952,622 @@ paths:
                           description: Reason for deletion failure
         '400':
           $ref: '#/components/responses/BadRequest'
+        '500':
+  # ==================== CONTROLS API ====================
+  
+  /controls/master:
+    get:
+      tags:
+        - Controls
+      summary: Get all master control templates
+      description: |
+        Retrieves all master control templates with optional filtering by phase.
+        Results include phase hierarchy information.
+      operationId: getAllMasterControls
+      parameters:
+        - name: phaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter controls by master phase ID
+      responses:
+        '200':
+          description: List of master control templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterControl'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Controls
+      summary: Create a new master control template
+      description: Creates a new master control template for a phase.
+      operationId: createMasterControl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMasterControlRequest'
+      responses:
+        '201':
+          description: Master control created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterControl'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/master/{controlId}:
+    get:
+      tags:
+        - Controls
+      summary: Get master control by ID
+      description: Retrieves a specific master control template by its ID.
+      operationId: getMasterControlById
+      parameters:
+        - name: controlId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master control ID
+      responses:
+        '200':
+          description: Master control details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterControl'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Controls
+      summary: Update master control
+      description: Updates an existing master control template.
+      operationId: updateMasterControl
+      parameters:
+        - name: controlId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master control ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMasterControlRequest'
+      responses:
+        '200':
+          description: Master control updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterControl'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Controls
+      summary: Delete master control
+      description: Deletes a master control template if no instances exist.
+      operationId: deleteMasterControl
+      parameters:
+        - name: controlId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master control ID
+      responses:
+        '204':
+          description: Master control deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Cannot delete - control has existing instances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/master/reorder:
+    put:
+      tags:
+        - Controls
+      summary: Reorder master controls within phase
+      description: Updates the display order of master controls within a phase.
+      operationId: reorderMasterControls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderControlsRequest'
+      responses:
+        '204':
+          description: Controls reordered successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/master/bulk:
+    post:
+      tags:
+        - Controls
+      summary: Create multiple master controls
+      description: Creates multiple master control templates in a single operation.
+      operationId: bulkCreateMasterControls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                controls:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CreateMasterControlRequest'
+                  description: Array of master controls to create
+      responses:
+        '201':
+          description: Bulk creation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkControlResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/master/{controlId}/instantiate:
+    post:
+      tags:
+        - Controls
+      summary: Create instance from master control
+      description: Creates a control instance from a specific master control template.
+      operationId: instantiateMasterControl
+      parameters:
+        - name: controlId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master control ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstantiateControlRequest'
+      responses:
+        '201':
+          description: Control instance created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/instance:
+    get:
+      tags:
+        - Controls
+      summary: Get control instances with hierarchical filtering
+      description: |
+        Retrieves control instances with optional hierarchical filtering.
+        Supports filtering by migration, iteration, plan, sequence, phase, team, and status.
+      operationId: getControlInstances
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by migration ID (hierarchical)
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by iteration ID (hierarchical)
+        - name: planInstanceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by plan instance ID (hierarchical)
+        - name: sequenceInstanceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by sequence instance ID (hierarchical)
+        - name: phaseInstanceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by phase instance ID (hierarchical)
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by team ID
+        - name: statusId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by status ID
+      responses:
+        '200':
+          description: List of control instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ControlInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      tags:
+        - Controls
+      summary: Create a new control instance
+      description: Creates a new control instance from a master control template.
+      operationId: createControlInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateControlInstanceRequest'
+      responses:
+        '201':
+          description: Control instance created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/instance/{instanceId}:
+    get:
+      tags:
+        - Controls
+      summary: Get control instance by ID
+      description: Retrieves a specific control instance by its ID.
+      operationId: getControlInstanceById
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Control instance ID
+      responses:
+        '200':
+          description: Control instance details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlInstance'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Controls
+      summary: Update control instance
+      description: Updates an existing control instance.
+      operationId: updateControlInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Control instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateControlInstanceRequest'
+      responses:
+        '200':
+          description: Control instance updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      tags:
+        - Controls
+      summary: Delete control instance
+      description: Deletes a control instance.
+      operationId: deleteControlInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Control instance ID
+      responses:
+        '204':
+          description: Control instance deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/instance/{instanceId}/status:
+    put:
+      tags:
+        - Controls
+      summary: Update control instance status
+      description: Updates the status of a control instance.
+      operationId: updateControlInstanceStatus
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Control instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cti_status
+              properties:
+                cti_status:
+                  type: string
+                  description: New status value
+                  enum: [PENDING, IN_PROGRESS, VALIDATED, FAILED, OVERRIDDEN]
+      responses:
+        '204':
+          description: Status updated successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/instance/{instanceId}/validate:
+    put:
+      tags:
+        - Controls
+      summary: Validate control with IT/Business approval
+      description: Validates a control instance with IT and business validator assignments.
+      operationId: validateControlInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Control instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateControlRequest'
+      responses:
+        '200':
+          description: Control validated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/instance/{instanceId}/override:
+    put:
+      tags:
+        - Controls
+      summary: Override control with justification
+      description: Overrides a control instance with a documented reason and approval.
+      operationId: overrideControlInstance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Control instance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OverrideControlRequest'
+      responses:
+        '200':
+          description: Control overridden successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlInstance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/instance/bulk:
+    post:
+      tags:
+        - Controls
+      summary: Create multiple control instances
+      description: Creates multiple control instances in a single operation.
+      operationId: bulkCreateControlInstances
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                instances:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CreateControlInstanceRequest'
+                  description: Array of control instances to create
+      responses:
+        '201':
+          description: Bulk creation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkControlResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/instance/bulk/validate:
+    put:
+      tags:
+        - Controls
+      summary: Validate all controls in a phase
+      description: Validates all control instances within a phase instance simultaneously.
+      operationId: bulkValidateControls
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkValidateControlsRequest'
+      responses:
+        '200':
+          description: Bulk validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  validated:
+                    type: integer
+                    description: Number of controls validated
+                  failed:
+                    type: integer
+                    description: Number of validation failures
+                  total:
+                    type: integer
+                    description: Total controls processed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /controls/{phaseId}/progress:
+    get:
+      tags:
+        - Controls
+      summary: Calculate control progress for phase
+      description: |
+        Calculates control validation progress for a phase instance.
+        Returns metrics including total controls, validated controls, and progress percentages.
+      operationId: getPhaseControlProgress
+      parameters:
+        - name: phaseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Phase instance ID
+      responses:
+        '200':
+          description: Phase control progress metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlProgress'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -5052,6 +5670,532 @@ components:
                 type: integer
                 description: Total instructions completed by this team
           description: Team performance metrics
+
+    # --- Control Schemas ---
+    MasterControl:
+      type: object
+      properties:
+        ctm_id:
+          type: string
+          format: uuid
+          description: Master control ID
+        phm_id:
+          type: string
+          format: uuid
+          description: Associated phase master ID
+        ctm_order:
+          type: integer
+          description: Display order within phase
+        ctm_name:
+          type: string
+          description: Control name
+        ctm_description:
+          type: string
+          nullable: true
+          description: Control description
+        ctm_type:
+          type: string
+          nullable: true
+          description: Control type (VALIDATION, CHECK, APPROVAL)
+        ctm_is_critical:
+          type: boolean
+          description: Whether this is a critical control
+        ctm_code:
+          type: string
+          nullable: true
+          description: Control code identifier
+        created_by:
+          type: string
+          description: User who created the control
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_by:
+          type: string
+          nullable: true
+          description: User who last updated the control
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last update timestamp
+        phm_name:
+          type: string
+          description: Phase master name
+        phase_description:
+          type: string
+          nullable: true
+          description: Phase description
+        sqm_id:
+          type: string
+          format: uuid
+          description: Sequence master ID
+        sqm_name:
+          type: string
+          description: Sequence master name
+        sequence_description:
+          type: string
+          nullable: true
+          description: Sequence description
+        plm_id:
+          type: string
+          format: uuid
+          description: Plan master ID
+        plm_name:
+          type: string
+          description: Plan master name
+        plan_description:
+          type: string
+          nullable: true
+          description: Plan description
+        tms_id:
+          type: integer
+          description: Team ID
+        tms_name:
+          type: string
+          description: Team name
+
+    ControlInstance:
+      type: object
+      properties:
+        cti_id:
+          type: string
+          format: uuid
+          description: Control instance ID
+        ctm_id:
+          type: string
+          format: uuid
+          description: Master control ID
+        phi_id:
+          type: string
+          format: uuid
+          description: Associated phase instance ID
+        cti_order:
+          type: integer
+          description: Display order within phase
+        cti_name:
+          type: string
+          description: Control instance name
+        cti_description:
+          type: string
+          nullable: true
+          description: Control instance description
+        cti_type:
+          type: string
+          nullable: true
+          description: Control type
+        cti_is_critical:
+          type: boolean
+          description: Whether this is a critical control
+        cti_code:
+          type: string
+          nullable: true
+          description: Control code identifier
+        cti_status:
+          type: string
+          description: Control status (PENDING, IN_PROGRESS, VALIDATED, FAILED, OVERRIDDEN)
+        usr_id_it_validator:
+          type: integer
+          nullable: true
+          description: IT validator user ID
+        usr_id_biz_validator:
+          type: integer
+          nullable: true
+          description: Business validator user ID
+        created_by:
+          type: string
+          description: User who created the instance
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_by:
+          type: string
+          nullable: true
+          description: User who last updated the instance
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last update timestamp
+        ctm_name:
+          type: string
+          description: Master control name
+        master_description:
+          type: string
+          nullable: true
+          description: Master control description
+        phi_name:
+          type: string
+          description: Phase instance name
+        phase_description:
+          type: string
+          nullable: true
+          description: Phase instance description
+        sqi_id:
+          type: string
+          format: uuid
+          description: Sequence instance ID
+        sequence_name:
+          type: string
+          description: Sequence instance name
+        pli_id:
+          type: string
+          format: uuid
+          description: Plan instance ID
+        plan_name:
+          type: string
+          description: Plan instance name
+        ite_id:
+          type: string
+          format: uuid
+          description: Iteration ID
+        iteration_name:
+          type: string
+          description: Iteration name
+        mig_id:
+          type: string
+          format: uuid
+          description: Migration ID
+        migration_name:
+          type: string
+          description: Migration name
+        it_validator_name:
+          type: string
+          nullable: true
+          description: IT validator name
+        biz_validator_name:
+          type: string
+          nullable: true
+          description: Business validator name
+
+    CreateMasterControlRequest:
+      type: object
+      required:
+        - phm_id
+        - ctm_name
+      properties:
+        phm_id:
+          type: string
+          format: uuid
+          description: Phase master ID
+        ctm_name:
+          type: string
+          description: Control name
+        ctm_description:
+          type: string
+          nullable: true
+          description: Control description
+        ctm_type:
+          type: string
+          nullable: true
+          description: Control type
+        ctm_is_critical:
+          type: boolean
+          nullable: true
+          description: Whether this is a critical control
+        ctm_code:
+          type: string
+          nullable: true
+          description: Control code identifier
+        ctm_order:
+          type: integer
+          nullable: true
+          description: Display order within phase
+
+    UpdateMasterControlRequest:
+      type: object
+      properties:
+        ctm_name:
+          type: string
+          description: Control name
+        ctm_description:
+          type: string
+          nullable: true
+          description: Control description
+        ctm_type:
+          type: string
+          nullable: true
+          description: Control type
+        ctm_is_critical:
+          type: boolean
+          nullable: true
+          description: Whether this is a critical control
+        ctm_code:
+          type: string
+          nullable: true
+          description: Control code identifier
+
+    CreateControlInstanceRequest:
+      type: object
+      required:
+        - ctm_id
+        - phi_id
+      properties:
+        ctm_id:
+          type: string
+          format: uuid
+          description: Master control ID
+        phi_id:
+          type: string
+          format: uuid
+          description: Phase instance ID
+        cti_name:
+          type: string
+          nullable: true
+          description: Override control name
+        cti_description:
+          type: string
+          nullable: true
+          description: Override control description
+        cti_status:
+          type: string
+          nullable: true
+          description: Initial status (defaults to PENDING)
+        cti_order:
+          type: integer
+          nullable: true
+          description: Override display order
+        cti_type:
+          type: string
+          nullable: true
+          description: Override control type
+        cti_is_critical:
+          type: boolean
+          nullable: true
+          description: Override critical flag
+        cti_code:
+          type: string
+          nullable: true
+          description: Override control code
+        usr_id_it_validator:
+          type: integer
+          nullable: true
+          description: IT validator user ID
+        usr_id_biz_validator:
+          type: integer
+          nullable: true
+          description: Business validator user ID
+
+    UpdateControlInstanceRequest:
+      type: object
+      properties:
+        cti_name:
+          type: string
+          description: Control instance name
+        cti_description:
+          type: string
+          nullable: true
+          description: Control instance description
+        cti_status:
+          type: string
+          nullable: true
+          description: Control status
+        cti_order:
+          type: integer
+          nullable: true
+          description: Display order
+        cti_type:
+          type: string
+          nullable: true
+          description: Control type
+        cti_is_critical:
+          type: boolean
+          nullable: true
+          description: Critical flag
+        cti_code:
+          type: string
+          nullable: true
+          description: Control code
+        usr_id_it_validator:
+          type: integer
+          nullable: true
+          description: IT validator user ID
+        usr_id_biz_validator:
+          type: integer
+          nullable: true
+          description: Business validator user ID
+
+    InstantiateControlRequest:
+      type: object
+      required:
+        - phi_id
+      properties:
+        phi_id:
+          type: string
+          format: uuid
+          description: Phase instance ID
+        cti_name:
+          type: string
+          nullable: true
+          description: Override control name
+        cti_description:
+          type: string
+          nullable: true
+          description: Override control description
+        cti_status:
+          type: string
+          nullable: true
+          description: Initial status (defaults to PENDING)
+        cti_order:
+          type: integer
+          nullable: true
+          description: Override display order
+        cti_type:
+          type: string
+          nullable: true
+          description: Override control type
+        cti_is_critical:
+          type: boolean
+          nullable: true
+          description: Override critical flag
+        cti_code:
+          type: string
+          nullable: true
+          description: Override control code
+
+    ReorderControlsRequest:
+      type: object
+      required:
+        - phm_id
+        - control_order
+      properties:
+        phm_id:
+          type: string
+          format: uuid
+          description: Phase master ID
+        control_order:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Ordered array of control IDs
+
+    ValidateControlRequest:
+      type: object
+      properties:
+        cti_status:
+          type: string
+          description: New status (typically VALIDATED)
+        usr_id_it_validator:
+          type: integer
+          nullable: true
+          description: IT validator user ID
+        usr_id_biz_validator:
+          type: integer
+          nullable: true
+          description: Business validator user ID
+
+    OverrideControlRequest:
+      type: object
+      required:
+        - reason
+        - overrideBy
+      properties:
+        reason:
+          type: string
+          description: Justification for overriding the control
+        overrideBy:
+          type: string
+          description: Email or identifier of person overriding
+
+    BulkValidateControlsRequest:
+      type: object
+      required:
+        - phi_id
+      properties:
+        phi_id:
+          type: string
+          format: uuid
+          description: Phase instance ID
+        cti_status:
+          type: string
+          description: New status for all controls
+        usr_id_it_validator:
+          type: integer
+          nullable: true
+          description: IT validator user ID
+        usr_id_biz_validator:
+          type: integer
+          nullable: true
+          description: Business validator user ID
+
+    BulkControlResult:
+      type: object
+      properties:
+        created:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/MasterControl'
+              - $ref: '#/components/schemas/ControlInstance'
+          description: Successfully created controls
+        failures:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+                description: Index in request array
+              error:
+                type: string
+                description: Error message
+          description: Failed control creations
+        summary:
+          type: object
+          properties:
+            total_requested:
+              type: integer
+              description: Total controls requested
+            created_count:
+              type: integer
+              description: Number successfully created
+            failed_count:
+              type: integer
+              description: Number of failures
+
+    ControlProgress:
+      type: object
+      properties:
+        phi_id:
+          type: string
+          format: uuid
+          description: Phase instance ID
+        phase_name:
+          type: string
+          description: Phase name
+        total_controls:
+          type: integer
+          description: Total number of controls
+        validated_controls:
+          type: integer
+          description: Number of validated controls
+        pending_controls:
+          type: integer
+          description: Number of pending controls
+        overridden_controls:
+          type: integer
+          description: Number of overridden controls
+        critical_controls:
+          type: integer
+          description: Total critical controls
+        critical_validated:
+          type: integer
+          description: Number of validated critical controls
+        progress_percentage:
+          type: number
+          format: double
+          description: Overall progress percentage
+        critical_progress_percentage:
+          type: number
+          format: double
+          description: Critical controls progress percentage
+        validation_status:
+          type: string
+          description: Overall validation status (COMPLETE, IN_PROGRESS, NOT_STARTED)
+          enum: [COMPLETE, IN_PROGRESS, NOT_STARTED]
 
     Comment:
       type: object
