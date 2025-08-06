@@ -1,7 +1,7 @@
 # UMIG - Unified Migration Implementation Guide
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Development Status](https://img.shields.io/badge/Status-MVP%20Development-orange.svg)]()
+[![Development Status](https://img.shields.io/badge/Status-Sprint%203%20Near%20Complete-brightgreen.svg)]()
 [![ScriptRunner](https://img.shields.io/badge/ScriptRunner-Confluence-green.svg)]()
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-blue.svg)]()
 
