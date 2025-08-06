@@ -368,11 +368,11 @@ class PerformanceBaselineValidator {
     }
     
     /**
-     * Generate performance report for Sprint 0 completion
+     * Generate performance report for Sprint 3 completion
      */
     static Map generateSprintPerformanceReport(List<String> completedAPIs) {
         def report = [
-            sprint: 'Sprint 0',
+            sprint: 'Sprint 3',
             completion_date: new Date(),
             apis_tested: completedAPIs.size(),
             performance_summary: [:],
