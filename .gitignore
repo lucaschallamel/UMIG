@@ -107,9 +107,21 @@ FakesAssemblies/
 .DS_Store
 .AppleDouble
 .LSOverride
-Thumbs.db
 .Spotlight-V100
 .Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.fseventsd
+.DocumentRevisions-V100
+.TemporaryItems
+.apdisk
+*.dmg
+*.sparseimage
+*.sparsebundle
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
 
 # IDE - VS Code
 .vscode/

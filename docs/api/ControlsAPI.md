@@ -94,7 +94,7 @@
   "phi_id": "uuid",
   "cti_name": "string (optional)",
   "cti_description": "string (optional)",
-  "cti_status": "string (optional)",
+  "cti_status": "integer (optional, FK to status_sts)",
   "cti_order": "integer (optional)",
   "cti_type": "string (optional)",
   "cti_is_critical": "boolean (optional)",
@@ -141,7 +141,7 @@
 - **Schema:**
 ```json
 {
-  "cti_status": "string",
+  "cti_status": "integer (FK to status_sts)",
   "usr_id_it_validator": "integer (optional)",
   "usr_id_biz_validator": "integer (optional)"
 }
@@ -247,7 +247,7 @@
   "cti_type": "string",
   "cti_is_critical": "boolean",
   "cti_code": "string",
-  "cti_status": "string",
+  "cti_status": "integer (FK to status_sts)",
   "usr_id_it_validator": "integer",
   "usr_id_biz_validator": "integer",
   "created_by": "string",

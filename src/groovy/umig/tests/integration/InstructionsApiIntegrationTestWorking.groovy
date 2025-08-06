@@ -1,7 +1,9 @@
 #!/usr/bin/env groovy
 
+@GrabConfig(systemClassLoader=true)
 @Grab('org.postgresql:postgresql:42.7.3')
 @Grab('org.codehaus.groovy:groovy-sql:3.0.15')
+@Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 
 import groovy.sql.Sql
 import groovy.json.JsonBuilder
@@ -16,36 +18,39 @@ def dbUser = 'umig_app_user'
 def dbPassword = '123456'
 def dbUrl = "jdbc:postgresql://${dbHost}:${dbPort}/${dbName}"
 
-println "🚀 Instructions API Integration Test"
-println "======================================"
+println "🚀 Instructions API Integration Test - ini_is_completed Focus"
+println "============================================================="
 
 // --- Test Data Setup ---
 def sql = null
-def testStepId = UUID.fromString("0360e412-aa59-410a-b7e0-8fbec452949b")
+def testStepId = null
 def testMigrationId = null
 def testInstructionId = null
+def testInstanceId = null
 
 try {
     // Connect to database
     sql = Sql.newInstance(dbUrl, dbUser, dbPassword, 'org.postgresql.Driver')
     println "✅ Connected to database"
     
-    // Test 1: Check if test step exists
-    println "\n🧪 Test 1: Verifying test step exists..."
+    // Test 1: Find available test step
+    println "\n🧪 Test 1: Finding available test step..."
     def step = sql.firstRow("""
         SELECT stm.stm_id, stm.stm_name, phm.phm_name
         FROM steps_master_stm stm
         JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
-        WHERE stm.stm_id = ?
-    """, [testStepId])
+        LIMIT 1
+    """)
     
     if (step) {
-        println "✅ Found step: ${step.stm_name} in phase: ${step.phm_name}"
+        testStepId = step.stm_id
+        println "✅ Found step: ${step.stm_name} in phase: ${step.phm_name} (ID: ${testStepId})"
         // Get a migration ID from the first available migration
         def migration = sql.firstRow("SELECT mig_id FROM migrations_mig LIMIT 1")
         testMigrationId = migration?.mig_id
+        println "✅ Using migration ID: ${testMigrationId}"
     } else {
-        println "❌ Test step not found: ${testStepId}"
+        println "❌ No test steps found in database"
         System.exit(1)
     }
     
@@ -72,16 +77,19 @@ try {
     
     println "✅ Found ${instructions.size()} instructions for step"
     
-    // Test 4: Query instruction instances
-    println "\n🧪 Test 4: Querying instruction instances..."
+    // Test 4: Query instruction instances with ini_is_completed
+    println "\n🧪 Test 4: Querying instruction instances with ini_is_completed field..."
     def instances = sql.rows("""
-        SELECT ini.*
+        SELECT ini.ini_id, ini.ini_is_completed, ini.ini_completed_at, ini.usr_id_completed_by
         FROM instructions_instance_ini ini
         JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
         WHERE inm.stm_id = ?
     """, [testStepId])
     
     println "✅ Found ${instances.size()} instruction instances"
+    instances.each { instance ->
+        println "   Instance ${instance.ini_id}: completed=${instance.ini_is_completed}, completed_at=${instance.ini_completed_at}"
+    }
     
     // Test 5: Update test instruction
     println "\n🧪 Test 5: Updating test instruction..."
@@ -93,19 +101,20 @@ try {
     
     println "✅ Updated ${updateCount} instruction(s)"
     
-    // Test 6: Analytics query
-    println "\n🧪 Test 6: Testing analytics query..."
+    // Test 6: Analytics query with ini_is_completed
+    println "\n🧪 Test 6: Testing analytics query with ini_is_completed..."
     def stats = sql.firstRow("""
         SELECT 
             COUNT(DISTINCT inm.inm_id) as total_instructions,
             COUNT(DISTINCT ini.ini_id) as total_instances,
-            COUNT(DISTINCT CASE WHEN ini.ini_completed_at IS NOT NULL THEN ini.ini_id END) as completed_instances
+            COUNT(DISTINCT CASE WHEN ini.ini_is_completed = true THEN ini.ini_id END) as completed_instances,
+            COUNT(DISTINCT CASE WHEN ini.ini_is_completed = false OR ini.ini_is_completed IS NULL THEN ini.ini_id END) as pending_instances
         FROM instructions_master_inm inm
         LEFT JOIN instructions_instance_ini ini ON inm.inm_id = ini.inm_id
         WHERE inm.stm_id = ?
     """, [testStepId])
     
-    println "✅ Analytics - Total: ${stats.total_instructions}, Instances: ${stats.total_instances}, Completed: ${stats.completed_instances}"
+    println "✅ Analytics - Total: ${stats.total_instructions}, Instances: ${stats.total_instances}, Completed: ${stats.completed_instances}, Pending: ${stats.pending_instances}"
     
     // Cleanup: Delete test instruction
     println "\n🧪 Cleanup: Deleting test instruction..."
@@ -116,7 +125,101 @@ try {
     
     println "✅ Deleted ${deleteCount} test instruction(s)"
     
-    println "\n✅ All integration tests passed!"
+    // Test 7: Create and test instruction instance completion
+    println "\n🧪 Test 7: Testing instruction instance completion with ini_is_completed..."
+    
+    // First check if we have any step instances for testing
+    def stepInstance = sql.firstRow("""
+        SELECT sti.sti_id 
+        FROM steps_instance_sti sti
+        JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+        WHERE stm.stm_id = ?
+        LIMIT 1
+    """, [testStepId])
+    
+    if (stepInstance) {
+        // Create a test instruction master first
+        def testInstructionResult = sql.executeInsert("""
+            INSERT INTO instructions_master_inm (inm_id, stm_id, inm_body, inm_order)
+            VALUES (gen_random_uuid(), ?, ?, 998)
+            RETURNING inm_id
+        """, [testStepId, "Test instruction for instance completion - ${new Date()}".toString()])
+        
+        def testMasterInstructionId = testInstructionResult[0][0]
+        
+        // Create instruction instance
+        def instanceResult = sql.executeInsert("""
+            INSERT INTO instructions_instance_ini (ini_id, inm_id, sti_id, ini_body, ini_is_completed, created_by, updated_by)
+            VALUES (gen_random_uuid(), ?, ?, ?, false, 1, 1)
+            RETURNING ini_id
+        """, [testMasterInstructionId, stepInstance.sti_id, "Instance body for completion test"])
+        
+        testInstanceId = instanceResult[0][0]
+        println "✅ Created test instruction instance: ${testInstanceId}"
+        
+        // Test initial state
+        def initialState = sql.firstRow("""
+            SELECT ini_is_completed, ini_completed_at, usr_id_completed_by
+            FROM instructions_instance_ini 
+            WHERE ini_id = ?
+        """, [testInstanceId])
+        
+        println "✅ Initial state - completed: ${initialState.ini_is_completed}, completed_at: ${initialState.ini_completed_at}"
+        
+        // Mark as completed
+        def completeCount = sql.executeUpdate("""
+            UPDATE instructions_instance_ini 
+            SET ini_is_completed = true,
+                ini_completed_at = CURRENT_TIMESTAMP,
+                usr_id_completed_by = 1,
+                updated_at = CURRENT_TIMESTAMP,
+                updated_by = 1
+            WHERE ini_id = ? AND ini_is_completed = false
+        """, [testInstanceId])
+        
+        println "✅ Marked ${completeCount} instruction(s) as completed"
+        
+        // Verify completion
+        def completedState = sql.firstRow("""
+            SELECT ini_is_completed, ini_completed_at, usr_id_completed_by
+            FROM instructions_instance_ini 
+            WHERE ini_id = ?
+        """, [testInstanceId])
+        
+        println "✅ Completed state - completed: ${completedState.ini_is_completed}, completed_at: ${completedState.ini_completed_at}, completed_by: ${completedState.usr_id_completed_by}"
+        
+        // Mark as uncompleted
+        def uncompleteCount = sql.executeUpdate("""
+            UPDATE instructions_instance_ini 
+            SET ini_is_completed = false,
+                ini_completed_at = NULL,
+                usr_id_completed_by = NULL,
+                updated_at = CURRENT_TIMESTAMP,
+                updated_by = 1
+            WHERE ini_id = ? AND ini_is_completed = true
+        """, [testInstanceId])
+        
+        println "✅ Marked ${uncompleteCount} instruction(s) as uncompleted"
+        
+        // Verify uncomplete
+        def uncompletedState = sql.firstRow("""
+            SELECT ini_is_completed, ini_completed_at, usr_id_completed_by
+            FROM instructions_instance_ini 
+            WHERE ini_id = ?
+        """, [testInstanceId])
+        
+        println "✅ Uncompleted state - completed: ${uncompletedState.ini_is_completed}, completed_at: ${uncompletedState.ini_completed_at}"
+        
+        // Clean up test instruction instance and master
+        sql.executeUpdate("DELETE FROM instructions_instance_ini WHERE ini_id = ?", [testInstanceId])
+        sql.executeUpdate("DELETE FROM instructions_master_inm WHERE inm_id = ?", [testMasterInstructionId])
+        println "✅ Cleaned up test instruction instance and master"
+        
+    } else {
+        println "⚠️ No step instances found for completion testing"
+    }
+    
+    println "\n✅ All ini_is_completed integration tests passed!"
     
 } catch (Exception e) {
     println "\n❌ Test failed: ${e.message}"

@@ -5,6 +5,8 @@ import umig.utils.AuthenticationService
 import java.util.UUID
 import java.sql.SQLException
 import groovy.sql.Sql
+import groovy.transform.TypeCheckingMode
+import groovy.transform.TypeChecked
 
 /**
  * Repository for INSTRUCTION master and instance data following UMIG patterns.
@@ -14,6 +16,7 @@ import groovy.sql.Sql
  * - instructions_master_inm: Master instruction templates
  * - instructions_instance_ini: Instance instruction execution records
  */
+@TypeChecked(TypeCheckingMode.SKIP)
 class InstructionRepository {
 
     // ==================== MASTER INSTRUCTION METHODS ====================
@@ -119,6 +122,8 @@ class InstructionRepository {
                 // Get system user from AuthenticationService
                 def systemUser = AuthenticationService.getSystemUser()
                 
+                // Status field removed per US-006 status normalization
+                
                 def result = sql.firstRow('''
                     INSERT INTO instructions_master_inm (
                         stm_id, tms_id, ctm_id, inm_order, inm_body, inm_duration_minutes,
@@ -191,6 +196,10 @@ class InstructionRepository {
                     }
                     updates << "inm_duration_minutes = :inmDurationMinutes"
                     queryParams.inmDurationMinutes = duration
+                }
+                // Status handling removed per US-006 status normalization
+                if (params.containsKey('inmStatus')) {
+                    // Gracefully ignore status parameter for backward compatibility
                 }
                 
                 if (updates.isEmpty()) {
@@ -464,6 +473,8 @@ class InstructionRepository {
         
         DatabaseUtil.withSql { sql ->
             try {
+                // Status handling removed per US-006 status normalization
+                
                 return sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
                     SET 
@@ -495,6 +506,8 @@ class InstructionRepository {
         
         DatabaseUtil.withSql { sql ->
             try {
+                // Status handling removed per US-006 status normalization
+                
                 return sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
                     SET 
@@ -509,6 +522,21 @@ class InstructionRepository {
                 throw new RuntimeException("Failed to uncomplete instruction ${iniId}", e)
             }
         }
+    }
+
+    /**
+     * Updates the status of an instruction instance.
+     * DEPRECATED: Status field removed per US-006 status normalization.
+     * This method is kept for backward compatibility but does nothing.
+     * @param iniId UUID of the instruction instance
+     * @param statusId Integer status ID to set (ignored)
+     * @return Number of affected rows (always 0)
+     */
+    @Deprecated
+    def updateInstructionInstanceStatus(UUID iniId, Integer statusId) {
+        // Status functionality removed per US-006 status normalization
+        // This method is kept for backward compatibility but performs no operations
+        return 0
     }
 
     /**
@@ -920,7 +948,8 @@ class InstructionRepository {
                     LEFT JOIN instructions_instance_ini ini ON inm.inm_id = ini.inm_id
                     WHERE inm.ctm_id = :ctmId
                     GROUP BY inm.inm_id, inm.stm_id, inm.tms_id, inm.ctm_id, inm.inm_order, 
-                             inm.inm_body, inm.inm_duration_minutes, stm.stm_name, tms.tms_name, ctm.ctm_name
+                             inm.inm_body, inm.inm_duration_minutes,
+                             stm.stm_name, tms.tms_name, ctm.ctm_name
                     ORDER BY inm.inm_order ASC
                 ''', [ctmId: ctmId])
             } catch (SQLException e) {
@@ -978,6 +1007,20 @@ class InstructionRepository {
                 throw new RuntimeException("Failed to clone master instructions from ${sourceStmId} to ${targetStmId}", e)
             }
         }
+    }
+
+    /**
+     * Validates that a status ID exists and is valid for Instructions.
+     * DEPRECATED: Status field removed per US-006 status normalization.
+     * This method is kept for backward compatibility but always returns false.
+     * @param statusId Integer status ID to validate (ignored)
+     * @return Boolean always false (status functionality removed)
+     */
+    @Deprecated
+    def validateInstructionStatusId(Integer statusId) {
+        // Status functionality removed per US-006 status normalization
+        // This method is kept for backward compatibility but always returns false
+        return false
     }
 
     /**

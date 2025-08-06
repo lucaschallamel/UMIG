@@ -79,8 +79,8 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     plm_name: plan.plm_name,
                     plm_description: plan.plm_description,
                     plm_status: plan.plm_status,
-                    status_name: plan.sts_name,
-                    status_color: plan.sts_color,
+                    status: plan.sts_name,  // Backward compatibility
+                    statusMetadata: plan.statusMetadata,
                     team_name: plan.tms_name,
                     created_by: plan.created_by,
                     created_at: plan.created_at,
@@ -160,8 +160,8 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     pli_name: plan.pli_name,
                     pli_description: plan.pli_description,
                     pli_status: plan.pli_status,
-                    status_name: plan.sts_name,
-                    status_color: plan.sts_color,
+                    status: plan.sts_name,  // Backward compatibility
+                    statusMetadata: plan.statusMetadata,
                     usr_id_owner: plan.usr_id_owner,
                     owner_name: plan.owner_name,
                     master_plan_name: plan.plm_name,

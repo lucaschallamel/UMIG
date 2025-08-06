@@ -128,7 +128,7 @@ The Phases API provides critical quality gate management for migration execution
   "sqi_id": "UUID string (required)",
   "phi_name": "string (optional, overrides master)",
   "phi_description": "string (optional, overrides master)",
-  "phi_status": "string (optional)",
+  "phi_status": "integer (optional, FK to status_sts)",
   "phi_order": "integer (optional)",
   "predecessor_phi_id": "UUID string (optional)"
 }
@@ -139,7 +139,7 @@ The Phases API provides critical quality gate management for migration execution
   "phm_id": "123e4567-e89b-12d3-a456-426614174000",
   "sqi_id": "456e7890-e89b-12d3-a456-426614174001",
   "phi_name": "Production Pre-Migration Verification",
-  "phi_status": "pending",
+  "phi_status": 5,
   "phi_order": 1
 }
 ```
@@ -151,7 +151,7 @@ The Phases API provides critical quality gate management for migration execution
 {
   "phi_name": "string (optional)",
   "phi_description": "string (optional)",
-  "phi_status": "string (optional)",
+  "phi_status": "integer (optional, FK to status_sts)",
   "phi_order": "integer (optional)",
   "predecessor_phi_id": "UUID string (optional)",
   "phi_start_time": "timestamp (optional)",
@@ -161,7 +161,7 @@ The Phases API provides critical quality gate management for migration execution
 - **Example:**
 ```json
 {
-  "phi_status": "in_progress",
+  "phi_status": 6,
   "phi_start_time": "2025-08-04T10:00:00Z"
 }
 ```
@@ -171,7 +171,7 @@ The Phases API provides critical quality gate management for migration execution
 - **Schema:**
 ```json
 {
-  "cti_status": "string (optional)",
+  "cti_status": "integer (optional, FK to status_sts)",
   "usr_id_it_validator": "integer (optional)",
   "usr_id_biz_validator": "integer (optional)"
 }
@@ -317,7 +317,7 @@ The Phases API provides critical quality gate management for migration execution
     "sqi_id": "UUID string",
     "phi_name": "string",
     "phi_description": "string",
-    "phi_status": "string",
+    "phi_status": "integer (FK to status_sts)",
     "phi_order": "integer",
     "predecessor_phi_id": "UUID string or null",
     "phi_start_time": "ISO 8601 timestamp or null",
@@ -339,7 +339,7 @@ The Phases API provides critical quality gate management for migration execution
   "sqi_id": "UUID string",
   "phi_name": "string",
   "phi_description": "string",
-  "phi_status": "string",
+  "phi_status": "integer (FK to status_sts)",
   "phi_order": "integer",
   "predecessor_phi_id": "UUID string or null",
   "phi_start_time": "ISO 8601 timestamp or null",
@@ -362,7 +362,7 @@ The Phases API provides critical quality gate management for migration execution
     "phi_id": "UUID string",
     "cti_name": "string",
     "cti_description": "string",
-    "cti_status": "string",
+    "cti_status": "integer (FK to status_sts)",
     "cti_type": "string",
     "usr_id_it_validator": "integer or null",
     "usr_id_biz_validator": "integer or null",

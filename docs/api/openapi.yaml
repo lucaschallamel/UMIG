@@ -1953,6 +1953,8 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '500':
+          $ref: '#/components/responses/InternalServerError'
+  
   # ==================== CONTROLS API ====================
   
   /controls/master:
@@ -4135,9 +4137,8 @@ paths:
                 - sts_id
               properties:
                 sts_id:
-                  type: string
-                  format: uuid
-                  description: New status ID
+                  type: integer
+                  description: New status ID (foreign key to status_sts table)
       responses:
         '204':
           description: Status updated successfully
@@ -6475,8 +6476,8 @@ components:
           type: string
           description: Description of the plan instance
         pli_status:
-          type: string
-          description: Current status of the plan instance
+          type: integer
+          description: Current status of the plan instance (foreign key to status_sts table)
         sts_id:
           type: integer
           description: Status ID
@@ -6554,8 +6555,8 @@ components:
           type: string
           description: Description of the plan instance
         pli_status:
-          type: string
-          description: Status of the plan instance
+          type: integer
+          description: Status of the plan instance (foreign key to status_sts table)
         usr_id_owner:
           type: integer
           description: ID of the user who owns this instance
@@ -6699,8 +6700,8 @@ components:
           type: integer
           description: Display order within the plan instance
         sqi_status:
-          type: string
-          description: Current status of the sequence instance
+          type: integer
+          description: Current status of the sequence instance (foreign key to status_sts table)
         sts_id:
           type: integer
           description: Status ID
@@ -7244,8 +7245,8 @@ components:
           type: string
           description: Description of the phase instance
         phi_status:
-          type: string
-          description: Current status of the phase instance
+          type: integer
+          description: Status ID (foreign key to status_sts table)
         phi_order:
           type: integer
           description: Display order within the sequence instance
