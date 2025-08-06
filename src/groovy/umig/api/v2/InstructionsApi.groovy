@@ -2,7 +2,6 @@ package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.InstructionRepository
-import umig.repository.StatusRepository
 import umig.repository.UserRepository
 import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
@@ -18,7 +17,6 @@ import java.sql.SQLException
 @BaseScript CustomEndpointDelegate delegate
 
 final InstructionRepository instructionRepository = new InstructionRepository()
-final StatusRepository statusRepository = new StatusRepository()
 final UserRepository userRepository = new UserRepository()
 
 /**
@@ -33,8 +31,8 @@ final UserRepository userRepository = new UserRepository()
  * Results are ordered by instruction order within each step.
  */
 instructions(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     try {
         // Route to appropriate handler based on path structure
@@ -71,16 +69,16 @@ instructions(httpMethod: "GET", groups: ["confluence-users", "confluence-adminis
  * Returns progress metrics with hierarchical filtering support
  */
 private Response handleAnalyticsProgressRequest(MultivaluedMap queryParams) {
-    def filters = extractHierarchicalFilters(queryParams)
-    def progressMetrics = instructionRepository.findInstructionsWithHierarchicalFiltering(filters)
+    Map<String, String> filters = extractHierarchicalFilters(queryParams)
+    List<Map<String, Object>> progressMetrics = instructionRepository.findInstructionsWithHierarchicalFiltering(filters)
     
-    def metrics = progressMetrics as Map
+    Map<String, Object> metrics = progressMetrics as Map<String, Object>
     return Response.ok(new JsonBuilder([
-        total_instructions: metrics.total,
-        completed_instructions: metrics.completed,
-        pending_instructions: metrics.pending,
-        completion_percentage: metrics.completion_percentage,
-        instructions: metrics.instructions
+        total_instructions: metrics['total'],
+        completed_instructions: metrics['completed'],
+        pending_instructions: metrics['pending'],
+        completion_percentage: metrics['completion_percentage'],
+        instructions: metrics['instructions']
     ]).toString()).build()
 }
 
@@ -89,9 +87,9 @@ private Response handleAnalyticsProgressRequest(MultivaluedMap queryParams) {
  * Returns completion statistics based on migration, team, or iteration filters
  */
 private Response handleAnalyticsCompletionRequest(MultivaluedMap queryParams) {
-    def migrationId = queryParams.getFirst("migrationId")
-    def teamId = queryParams.getFirst("teamId")
-    def iterationId = queryParams.getFirst("iterationId")
+    String migrationId = queryParams.getFirst("migrationId")
+    String teamId = queryParams.getFirst("teamId")
+    String iterationId = queryParams.getFirst("iterationId")
     
     if (migrationId) {
         return handleCompletionByMigration(migrationId)
@@ -114,7 +112,7 @@ private Response handleInstanceDetailsRequest(String instanceId) {
     try {
         // Type safety per ADR-031
         UUID instanceUuid = UUID.fromString(instanceId)
-        def instructionInstance = instructionRepository.findInstanceInstructionById(instanceUuid)
+        Map<String, Object> instructionInstance = instructionRepository.findInstanceInstructionById(instanceUuid)
         
         if (!instructionInstance) {
             return Response.status(Response.Status.NOT_FOUND)
@@ -136,8 +134,8 @@ private Response handleInstanceDetailsRequest(String instanceId) {
  * Filters instructions by step master ID or step instance ID
  */
 private Response handleInstructionsFilterRequest(MultivaluedMap queryParams) {
-    def stepId = queryParams.getFirst("stepId")
-    def stepInstanceId = queryParams.getFirst("stepInstanceId")
+    String stepId = queryParams.getFirst("stepId")
+    String stepInstanceId = queryParams.getFirst("stepInstanceId")
     
     if (stepId) {
         return handleInstructionsByStepId(stepId)
@@ -153,29 +151,29 @@ private Response handleInstructionsFilterRequest(MultivaluedMap queryParams) {
 /**
  * Extracts hierarchical filters from query parameters
  */
-private Map extractHierarchicalFilters(MultivaluedMap queryParams) {
-    def filters = [:]
+private Map<String, String> extractHierarchicalFilters(MultivaluedMap queryParams) {
+    Map<String, String> filters = [:]
     
     if (queryParams.getFirst("migrationId")) {
-        filters.migrationId = queryParams.getFirst("migrationId")
+        filters['migrationId'] = queryParams.getFirst("migrationId")
     }
     if (queryParams.getFirst("iterationId")) {
-        filters.iterationId = queryParams.getFirst("iterationId")
+        filters['iterationId'] = queryParams.getFirst("iterationId")
     }
     if (queryParams.getFirst("planInstanceId")) {
-        filters.planInstanceId = queryParams.getFirst("planInstanceId")
+        filters['planInstanceId'] = queryParams.getFirst("planInstanceId")
     }
     if (queryParams.getFirst("sequenceInstanceId")) {
-        filters.sequenceInstanceId = queryParams.getFirst("sequenceInstanceId")
+        filters['sequenceInstanceId'] = queryParams.getFirst("sequenceInstanceId")
     }
     if (queryParams.getFirst("phaseInstanceId")) {
-        filters.phaseInstanceId = queryParams.getFirst("phaseInstanceId")
+        filters['phaseInstanceId'] = queryParams.getFirst("phaseInstanceId")
     }
     if (queryParams.getFirst("stepInstanceId")) {
-        filters.stepInstanceId = queryParams.getFirst("stepInstanceId")
+        filters['stepInstanceId'] = queryParams.getFirst("stepInstanceId")
     }
     if (queryParams.getFirst("teamId")) {
-        filters.teamId = queryParams.getFirst("teamId")
+        filters['teamId'] = queryParams.getFirst("teamId")
     }
     
     return filters
@@ -187,8 +185,8 @@ private Map extractHierarchicalFilters(MultivaluedMap queryParams) {
 private Response handleCompletionByMigration(String migrationId) {
     try {
         // Type safety per ADR-031
-        def migUuid = UUID.fromString(migrationId as String)
-        def stats = instructionRepository.getInstructionStatisticsByMigration(migUuid)
+        UUID migUuid = UUID.fromString(migrationId as String)
+        Map<String, Object> stats = instructionRepository.getInstructionStatisticsByMigration(migUuid)
         return Response.ok(new JsonBuilder(stats).toString()).build()
     } catch (IllegalArgumentException e) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -203,9 +201,9 @@ private Response handleCompletionByMigration(String migrationId) {
 private Response handleTeamWorkload(String teamId, String iterationId) {
     try {
         // Type safety per ADR-031
-        def tmsId = Integer.parseInt(teamId as String)
-        def iteUuid = UUID.fromString(iterationId as String)
-        def workload = instructionRepository.getTeamWorkload(tmsId, iteUuid)
+        Integer tmsId = Integer.parseInt(teamId as String)
+        UUID iteUuid = UUID.fromString(iterationId as String)
+        List<Map<String, Object>> workload = instructionRepository.getTeamWorkload(tmsId, iteUuid)
         return Response.ok(new JsonBuilder(workload).toString()).build()
     } catch (IllegalArgumentException e) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -224,8 +222,8 @@ private Response handleTeamWorkload(String teamId, String iterationId) {
 private Response handleCompletionByTeam(String teamId) {
     try {
         // Type safety per ADR-031
-        def tmsId = Integer.parseInt(teamId as String)
-        def stats = instructionRepository.getInstructionStatisticsByTeam(tmsId)
+        Integer tmsId = Integer.parseInt(teamId as String)
+        Map<String, Object> stats = instructionRepository.getInstructionStatisticsByTeam(tmsId)
         return Response.ok(new JsonBuilder(stats).toString()).build()
     } catch (NumberFormatException e) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -240,8 +238,8 @@ private Response handleCompletionByTeam(String teamId) {
 private Response handleInstructionsByStepId(String stepId) {
     try {
         // Type safety per ADR-031
-        def stmUuid = UUID.fromString(stepId as String)
-        def instructions = instructionRepository.findMasterInstructionsByStepId(stmUuid)
+        UUID stmUuid = UUID.fromString(stepId as String)
+        List<Map<String, Object>> instructions = instructionRepository.findMasterInstructionsByStepId(stmUuid)
         return Response.ok(new JsonBuilder(instructions).toString()).build()
     } catch (IllegalArgumentException e) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -256,8 +254,8 @@ private Response handleInstructionsByStepId(String stepId) {
 private Response handleInstructionsByStepInstanceId(String stepInstanceId) {
     try {
         // Type safety per ADR-031
-        def stiUuid = UUID.fromString(stepInstanceId as String)
-        def instructions = instructionRepository.findInstanceInstructionsByStepInstanceId(stiUuid)
+        UUID stiUuid = UUID.fromString(stepInstanceId as String)
+        List<Map<String, Object>> instructions = instructionRepository.findInstanceInstructionsByStepInstanceId(stiUuid)
         return Response.ok(new JsonBuilder(instructions).toString()).build()
     } catch (IllegalArgumentException e) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -275,17 +273,17 @@ private Response handleInstructionsByStepInstanceId(String stepInstanceId) {
  * Request body should contain appropriate instruction data based on endpoint.
  */
 instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     try {
         // POST /instructions/bulk - handle bulk creation
         if (pathParts.size() == 1 && pathParts[0] == 'bulk') {
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:]
             if (body) {
                 try {
-                    requestData = new JsonSlurper().parseText(body) as Map
+                    requestData = new JsonSlurper().parseText(body) as Map<String, Object>
                 } catch (Exception e) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -293,33 +291,44 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
                 }
             }
             
-            def instructions = requestData.instructions as List
+            List<Map<String, Object>> instructions = requestData['instructions'] as List<Map<String, Object>>
             if (!instructions || instructions.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Missing required field: instructions array"]).toString())
                     .build()
             }
             
-            def masterInstructions = instructions.findAll { (it as Map).type == 'master' || !(it as Map).containsKey('type') }
-            def instanceInstructions = instructions.findAll { (it as Map).type == 'instance' }
+            List<Map<String, Object>> masterInstructions = instructions.findAll { Map<String, Object> it -> 
+                it['type'] == 'master' || !it.containsKey('type') 
+            }
+            List<Map<String, Object>> instanceInstructions = instructions.findAll { Map<String, Object> it -> 
+                it['type'] == 'instance' 
+            }
             
-            def created = []
-            def errors = []
+            List<Map<String, Object>> created = []
+            List<Map<String, Object>> errors = []
             
             // Process master instructions
-            masterInstructions.each { instruction ->
+            masterInstructions.each { Map<String, Object> instruction ->
                 try {
-                    def instructionMap = instruction as Map
-                    def instructionParams = [
-                        stmId: instructionMap.stmId,
-                        tmsId: instructionMap.tmsId,
-                        ctmId: instructionMap.ctmId,
-                        inmOrder: instructionMap.inmOrder,
-                        inmBody: instructionMap.inmBody,
-                        inmDurationMinutes: instructionMap.inmDurationMinutes
+                    Map<String, Object> instructionMap = instruction
+                    
+                    // Status validation removed per US-006 status normalization
+                    if (instructionMap['inmStatus'] != null) {
+                        // Gracefully ignore status parameter for backward compatibility
+                    }
+                    
+                    Map<String, Object> instructionParams = [
+                        stmId: instructionMap['stmId'],
+                        tmsId: instructionMap['tmsId'],
+                        ctmId: instructionMap['ctmId'],
+                        inmOrder: instructionMap['inmOrder'],
+                        inmBody: instructionMap['inmBody'],
+                        inmDurationMinutes: instructionMap['inmDurationMinutes'],
+                        inmStatus: instructionMap['inmStatus']
                     ]
                     
-                    def createdId = instructionRepository.createMasterInstruction(instructionParams)
+                    UUID createdId = instructionRepository.createMasterInstruction(instructionParams)
                     created << [type: 'master', inmId: createdId, originalData: instruction]
                     
                 } catch (Exception e) {
@@ -328,14 +337,16 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
             }
             
             // Process instance instructions
-            instanceInstructions.each { instruction ->
+            instanceInstructions.each { Map<String, Object> instruction ->
                 try {
-                    def instructionMap = instruction as Map
-                    def stiId = UUID.fromString(instructionMap.stiId as String)
-                    def inmIds = (instructionMap.inmIds as List).collect { UUID.fromString(it as String) }
+                    Map<String, Object> instructionMap = instruction
+                    UUID stiId = UUID.fromString(instructionMap['stiId'] as String)
+                    List<UUID> inmIds = (instructionMap['inmIds'] as List<String>).collect { String id -> 
+                        UUID.fromString(id) 
+                    }
                     
-                    def createdInstanceIds = instructionRepository.createInstanceInstructions(stiId, inmIds)
-                    createdInstanceIds.each { instanceId ->
+                    List<UUID> createdInstanceIds = instructionRepository.createInstanceInstructions(stiId, inmIds)
+                    createdInstanceIds.each { UUID instanceId ->
                         created << [type: 'instance', iniId: instanceId, originalData: instruction]
                     }
                     
@@ -374,10 +385,10 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
         // POST /instructions/instance - create instruction instance
         if (pathParts.size() == 1 && pathParts[0] == 'instance') {
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:]
             if (body) {
                 try {
-                    requestData = new JsonSlurper().parseText(body) as Map
+                    requestData = new JsonSlurper().parseText(body) as Map<String, Object>
                 } catch (Exception e) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -385,8 +396,8 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
                 }
             }
             
-            def stiId = requestData.stiId
-            def inmIds = requestData.inmIds as List
+            String stiId = requestData['stiId'] as String
+            List<String> inmIds = requestData['inmIds'] as List<String>
             
             if (!stiId || !inmIds || inmIds.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -396,10 +407,12 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
             
             try {
                 // Type safety per ADR-031
-                def stepInstanceUuid = UUID.fromString(stiId as String)
-                def masterInstructionUuids = inmIds.collect { UUID.fromString(it as String) }
+                UUID stepInstanceUuid = UUID.fromString(stiId as String)
+                List<UUID> masterInstructionUuids = inmIds.collect { String id -> 
+                    UUID.fromString(id) 
+                }
                 
-                def createdInstanceIds = instructionRepository.createInstanceInstructions(stepInstanceUuid, masterInstructionUuids)
+                List<UUID> createdInstanceIds = instructionRepository.createInstanceInstructions(stepInstanceUuid, masterInstructionUuids)
                 
                 return Response.status(Response.Status.CREATED)
                     .entity(new JsonBuilder([
@@ -430,10 +443,10 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
         // POST /instructions - create master instruction
         if (pathParts.empty) {
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:]
             if (body) {
                 try {
-                    requestData = new JsonSlurper().parseText(body) as Map
+                    requestData = new JsonSlurper().parseText(body) as Map<String, Object>
                 } catch (Exception e) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -441,9 +454,10 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
                 }
             }
             
-            def stmId = requestData.stmId
-            def inmOrder = requestData.inmOrder
-            def inmBody = requestData.inmBody
+            String stmId = requestData['stmId'] as String
+            Object inmOrder = requestData['inmOrder']
+            String inmBody = requestData['inmBody'] as String
+            Object inmStatus = requestData['inmStatus']
             
             if (!stmId || inmOrder == null || !inmBody) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -451,17 +465,23 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
                     .build()
             }
             
+            // Status validation removed per US-006 status normalization
+            if (inmStatus != null) {
+                // Gracefully ignore status parameter for backward compatibility
+            }
+            
             try {
-                def instructionParams = [
+                Map<String, Object> instructionParams = [
                     stmId: stmId,
-                    tmsId: requestData.tmsId,
-                    ctmId: requestData.ctmId,
+                    tmsId: requestData['tmsId'],
+                    ctmId: requestData['ctmId'],
                     inmOrder: inmOrder,
                     inmBody: inmBody,
-                    inmDurationMinutes: requestData.inmDurationMinutes
+                    inmDurationMinutes: requestData['inmDurationMinutes'],
+                    inmStatus: inmStatus
                 ]
                 
-                def createdId = instructionRepository.createMasterInstruction(instructionParams)
+                UUID createdId = instructionRepository.createMasterInstruction(instructionParams)
                 
                 return Response.status(Response.Status.CREATED)
                     .entity(new JsonBuilder([
@@ -509,17 +529,17 @@ instructions(httpMethod: "POST", groups: ["confluence-users", "confluence-admini
  * Request body should contain appropriate update data based on endpoint.
  */
 instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     try {
         // PUT /instructions/bulk - handle bulk updates
         if (pathParts.size() == 1 && pathParts[0] == 'bulk') {
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:]
             if (body) {
                 try {
-                    requestData = new JsonSlurper().parseText(body) as Map
+                    requestData = new JsonSlurper().parseText(body) as Map<String, Object>
                 } catch (Exception e) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -527,34 +547,42 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
                 }
             }
             
-            def updates = requestData.updates as List
+            List<Map<String, Object>> updates = requestData['updates'] as List<Map<String, Object>>
             if (!updates || updates.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Missing required field: updates array"]).toString())
                     .build()
             }
             
-            def masterUpdates = updates.findAll { (it as Map).type == 'master' || !(it as Map).containsKey('type') }
-            def instanceUpdates = updates.findAll { (it as Map).type == 'instance' }
+            List<Map<String, Object>> masterUpdates = updates.findAll { Map<String, Object> it -> 
+                it['type'] == 'master' || !it.containsKey('type') 
+            }
+            List<Map<String, Object>> instanceUpdates = updates.findAll { Map<String, Object> it -> 
+                it['type'] == 'instance' 
+            }
             
-            def updated = []
-            def errors = []
+            List<Map<String, Object>> updated = []
+            List<Map<String, Object>> errors = []
             
             // Process master instruction updates
-            masterUpdates.each { update ->
+            masterUpdates.each { Map<String, Object> update ->
                 try {
-                    def updateMap = update as Map
-                    def inmId = UUID.fromString(updateMap.inmId as String)
-                    def updateParams = [:]
+                    Map<String, Object> updateMap = update
+                    UUID inmId = UUID.fromString(updateMap['inmId'] as String)
+                    Map<String, Object> updateParams = [:]
                     
-                    if (updateMap.containsKey('tmsId')) updateParams.tmsId = updateMap.tmsId
-                    if (updateMap.containsKey('ctmId')) updateParams.ctmId = updateMap.ctmId
-                    if (updateMap.containsKey('inmOrder')) updateParams.inmOrder = updateMap.inmOrder
-                    if (updateMap.containsKey('inmBody')) updateParams.inmBody = updateMap.inmBody
-                    if (updateMap.containsKey('inmDurationMinutes')) updateParams.inmDurationMinutes = updateMap.inmDurationMinutes
+                    if (updateMap.containsKey('tmsId')) updateParams['tmsId'] = updateMap['tmsId']
+                    if (updateMap.containsKey('ctmId')) updateParams['ctmId'] = updateMap['ctmId']
+                    if (updateMap.containsKey('inmOrder')) updateParams['inmOrder'] = updateMap['inmOrder']
+                    if (updateMap.containsKey('inmBody')) updateParams['inmBody'] = updateMap['inmBody']
+                    if (updateMap.containsKey('inmDurationMinutes')) updateParams['inmDurationMinutes'] = updateMap['inmDurationMinutes']
+                    if (updateMap.containsKey('inmStatus')) {
+                        // Status handling removed per US-006 status normalization
+                        // Gracefully ignore status parameter for backward compatibility
+                    }
                     
-                    def affectedRows = instructionRepository.updateMasterInstruction(inmId, updateParams)
-                    if ((affectedRows as Integer) > 0) {
+                    Integer affectedRows = instructionRepository.updateMasterInstruction(inmId, updateParams)
+                    if (affectedRows > 0) {
                         updated << [type: 'master', inmId: inmId, originalData: updateMap]
                     } else {
                         errors << [type: 'master', error: "Instruction not found", originalData: updateMap]
@@ -566,22 +594,22 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
             }
             
             // Process instance instruction updates (status completion)
-            instanceUpdates.each { update ->
+            instanceUpdates.each { Map<String, Object> update ->
                 try {
-                    def updateMap = update as Map
-                    def iniId = UUID.fromString(updateMap.iniId as String)
-                    def userId = updateMap.userId ? Integer.parseInt(updateMap.userId as String) : null
+                    Map<String, Object> updateMap = update
+                    UUID iniId = UUID.fromString(updateMap['iniId'] as String)
+                    Integer userId = updateMap['userId'] ? Integer.parseInt(updateMap['userId'] as String) : null
                     
-                    if (updateMap.action == 'complete' && userId) {
-                        def affectedRows = instructionRepository.completeInstruction(iniId, userId)
-                        if ((affectedRows as Integer) > 0) {
+                    if (updateMap['action'] == 'complete' && userId) {
+                        Integer affectedRows = instructionRepository.completeInstruction(iniId, userId)
+                        if (affectedRows > 0) {
                             updated << [type: 'instance', iniId: iniId, action: 'completed', originalData: updateMap]
                         } else {
                             errors << [type: 'instance', error: "Instruction instance not found or already completed", originalData: updateMap]
                         }
-                    } else if (updateMap.action == 'uncomplete') {
-                        def affectedRows = instructionRepository.uncompleteInstruction(iniId)
-                        if ((affectedRows as Integer) > 0) {
+                    } else if (updateMap['action'] == 'uncomplete') {
+                        Integer affectedRows = instructionRepository.uncompleteInstruction(iniId)
+                        if (affectedRows > 0) {
                             updated << [type: 'instance', iniId: iniId, action: 'uncompleted', originalData: updateMap]
                         } else {
                             errors << [type: 'instance', error: "Instruction instance not found or not completed", originalData: updateMap]
@@ -609,17 +637,17 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
         
         // PUT /instructions/instance/{id} - update instance status
         if (pathParts.size() == 2 && pathParts[0] == 'instance') {
-            def instanceId = pathParts[1]
+            String instanceId = pathParts[1]
             
             try {
                 // Type safety per ADR-031
-                def instanceUuid = UUID.fromString(instanceId)
+                UUID instanceUuid = UUID.fromString(instanceId)
                 
                 // Parse request body
-                def requestData = [:]
+                Map<String, Object> requestData = [:]
                 if (body) {
                     try {
-                        requestData = new JsonSlurper().parseText(body) as Map
+                        requestData = new JsonSlurper().parseText(body) as Map<String, Object>
                     } catch (Exception e) {
                         return Response.status(Response.Status.BAD_REQUEST)
                             .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -627,8 +655,9 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
                     }
                 }
                 
-                def action = requestData.action as String ?: 'complete'
-                def userId = requestData.userId ? Integer.parseInt(requestData.userId as String) : null
+                String action = (requestData['action'] as String) ?: 'complete'
+                Integer userId = requestData['userId'] ? Integer.parseInt(requestData['userId'] as String) : null
+                Integer statusId = requestData['statusId'] ? Integer.parseInt(requestData['statusId'] as String) : null
                 
                 if (action == 'complete') {
                     if (!userId) {
@@ -637,8 +666,8 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
                             .build()
                     }
                     
-                    def affectedRows = instructionRepository.completeInstruction(instanceUuid, userId)
-                    if ((affectedRows as Integer) > 0) {
+                    Integer affectedRows = instructionRepository.completeInstruction(instanceUuid, userId)
+                    if (affectedRows > 0) {
                         return Response.ok(new JsonBuilder([
                             success: true,
                             message: "Instruction completed successfully",
@@ -652,8 +681,8 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
                             .build()
                     }
                 } else if (action == 'uncomplete') {
-                    def affectedRows = instructionRepository.uncompleteInstruction(instanceUuid)
-                    if ((affectedRows as Integer) > 0) {
+                    Integer affectedRows = instructionRepository.uncompleteInstruction(instanceUuid)
+                    if (affectedRows > 0) {
                         return Response.ok(new JsonBuilder([
                             success: true,
                             message: "Instruction marked as incomplete",
@@ -665,9 +694,14 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
                             .entity(new JsonBuilder([error: "Instruction instance not found or not completed"]).toString())
                             .build()
                     }
+                } else if (action == 'update_status') {
+                    // Status update functionality removed per US-006 status normalization
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Status updates are no longer supported. Use ini_is_completed field instead."]).toString())
+                        .build()
                 } else {
                     return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid action. Must be 'complete' or 'uncomplete'"]).toString())
+                        .entity(new JsonBuilder([error: "Invalid action. Must be 'complete' or 'uncomplete'. Status updates no longer supported."]).toString())
                         .build()
                 }
                 
@@ -687,17 +721,17 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
         
         // PUT /instructions/{id} - update master instruction
         if (pathParts.size() == 1) {
-            def instructionId = pathParts[0]
+            String instructionId = pathParts[0]
             
             try {
                 // Type safety per ADR-031
-                def instructionUuid = UUID.fromString(instructionId)
+                UUID instructionUuid = UUID.fromString(instructionId)
                 
                 // Parse request body
-                def requestData = [:]
+                Map<String, Object> requestData = [:]
                 if (body) {
                     try {
-                        requestData = new JsonSlurper().parseText(body) as Map
+                        requestData = new JsonSlurper().parseText(body) as Map<String, Object>
                     } catch (Exception e) {
                         return Response.status(Response.Status.BAD_REQUEST)
                             .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -705,12 +739,16 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
                     }
                 }
                 
-                def updateParams = [:]
-                if (requestData.containsKey('tmsId')) updateParams.tmsId = requestData.tmsId
-                if (requestData.containsKey('ctmId')) updateParams.ctmId = requestData.ctmId
-                if (requestData.containsKey('inmOrder')) updateParams.inmOrder = requestData.inmOrder
-                if (requestData.containsKey('inmBody')) updateParams.inmBody = requestData.inmBody
-                if (requestData.containsKey('inmDurationMinutes')) updateParams.inmDurationMinutes = requestData.inmDurationMinutes
+                Map<String, Object> updateParams = [:]
+                if (requestData.containsKey('tmsId')) updateParams['tmsId'] = requestData['tmsId']
+                if (requestData.containsKey('ctmId')) updateParams['ctmId'] = requestData['ctmId']
+                if (requestData.containsKey('inmOrder')) updateParams['inmOrder'] = requestData['inmOrder']
+                if (requestData.containsKey('inmBody')) updateParams['inmBody'] = requestData['inmBody']
+                if (requestData.containsKey('inmDurationMinutes')) updateParams['inmDurationMinutes'] = requestData['inmDurationMinutes']
+                if (requestData.containsKey('inmStatus')) {
+                    // Status handling removed per US-006 status normalization
+                    // Gracefully ignore status parameter for backward compatibility
+                }
                 
                 if (updateParams.isEmpty()) {
                     return Response.status(Response.Status.BAD_REQUEST)
@@ -718,9 +756,9 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
                         .build()
                 }
                 
-                def affectedRows = instructionRepository.updateMasterInstruction(instructionUuid, updateParams)
+                Integer affectedRows = instructionRepository.updateMasterInstruction(instructionUuid, updateParams)
                 
-                if ((affectedRows as Integer) > 0) {
+                if (affectedRows > 0) {
                     return Response.ok(new JsonBuilder([
                         success: true,
                         message: "Master instruction updated successfully",
@@ -770,17 +808,17 @@ instructions(httpMethod: "PUT", groups: ["confluence-users", "confluence-adminis
  * Endpoint 12: DELETE /instructions/bulk -> handle bulk deletion
  */
 instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     try {
         // DELETE /instructions/bulk - handle bulk deletion
         if (pathParts.size() == 1 && pathParts[0] == 'bulk') {
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:]
             if (body) {
                 try {
-                    requestData = new JsonSlurper().parseText(body) as Map
+                    requestData = new JsonSlurper().parseText(body) as Map<String, Object>
                 } catch (Exception e) {
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -788,27 +826,31 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
                 }
             }
             
-            def deletions = requestData.deletions as List
+            List<Map<String, Object>> deletions = requestData['deletions'] as List<Map<String, Object>>
             if (!deletions || deletions.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Missing required field: deletions array"]).toString())
                     .build()
             }
             
-            def masterDeletions = deletions.findAll { (it as Map).type == 'master' || !(it as Map).containsKey('type') }
-            def instanceDeletions = deletions.findAll { (it as Map).type == 'instance' }
+            List<Map<String, Object>> masterDeletions = deletions.findAll { Map<String, Object> it -> 
+                it['type'] == 'master' || !it.containsKey('type') 
+            }
+            List<Map<String, Object>> instanceDeletions = deletions.findAll { Map<String, Object> it -> 
+                it['type'] == 'instance' 
+            }
             
-            def deleted = []
-            def errors = []
+            List<Map<String, Object>> deleted = []
+            List<Map<String, Object>> errors = []
             
             // Process instance deletions first (foreign key constraints)
-            instanceDeletions.each { deletion ->
+            instanceDeletions.each { Map<String, Object> deletion ->
                 try {
-                    def deletionMap = deletion as Map
-                    def iniId = UUID.fromString(deletionMap.iniId as String)
-                    def affectedRows = instructionRepository.deleteInstanceInstruction(iniId)
+                    Map<String, Object> deletionMap = deletion
+                    UUID iniId = UUID.fromString(deletionMap['iniId'] as String)
+                    Integer affectedRows = instructionRepository.deleteInstanceInstruction(iniId)
                     
-                    if ((affectedRows as Integer) > 0) {
+                    if (affectedRows > 0) {
                         deleted << [type: 'instance', iniId: iniId, originalData: deletionMap]
                     } else {
                         errors << [type: 'instance', error: "Instruction instance not found", originalData: deletionMap]
@@ -820,12 +862,12 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
             }
             
             // Process master instruction deletions
-            masterDeletions.each { deletion ->
+            masterDeletions.each { Map<String, Object> deletion ->
                 try {
-                    def deletionMap = deletion as Map
-                    def inmId = UUID.fromString(deletionMap.inmId as String)
-                    def affectedRows = instructionRepository.deleteMasterInstruction(inmId)
-                    if ((affectedRows as Integer) > 0) {
+                    Map<String, Object> deletionMap = deletion
+                    UUID inmId = UUID.fromString(deletionMap['inmId'] as String)
+                    Integer affectedRows = instructionRepository.deleteMasterInstruction(inmId)
+                    if (affectedRows > 0) {
                         deleted << [type: 'master', inmId: inmId, originalData: deletionMap]
                     } else {
                         errors << [type: 'master', error: "Instruction not found", originalData: deletionMap]
@@ -850,15 +892,15 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
         
         // DELETE /instructions/instance/{id} - delete instance
         if (pathParts.size() == 2 && pathParts[0] == 'instance') {
-            def instanceId = pathParts[1]
+            String instanceId = pathParts[1]
             
             try {
                 // Type safety per ADR-031
                 UUID instanceUuid = UUID.fromString(instanceId)
                 
-                def affectedRows = instructionRepository.deleteInstanceInstruction(instanceUuid)
+                Integer affectedRows = instructionRepository.deleteInstanceInstruction(instanceUuid)
                 
-                if ((affectedRows as Integer) > 0) {
+                if (affectedRows > 0) {
                     return Response.ok(new JsonBuilder([
                         success: true,
                         message: "Instruction instance deleted successfully",
@@ -879,15 +921,15 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
         
         // DELETE /instructions/{id} - delete master instruction
         if (pathParts.size() == 1) {
-            def instructionId = pathParts[0]
+            String instructionId = pathParts[0]
             
             try {
                 // Type safety per ADR-031
-                def instructionUuid = UUID.fromString(instructionId)
+                UUID instructionUuid = UUID.fromString(instructionId)
                 
-                def affectedRows = instructionRepository.deleteMasterInstruction(instructionUuid)
+                Integer affectedRows = instructionRepository.deleteMasterInstruction(instructionUuid)
                 
-                if ((affectedRows as Integer) > 0) {
+                if (affectedRows > 0) {
                     return Response.ok(new JsonBuilder([
                         success: true,
                         message: "Master instruction deleted successfully",
@@ -920,28 +962,20 @@ instructions(httpMethod: "DELETE", groups: ["confluence-users", "confluence-admi
 
 /**
  * GET endpoint to fetch status options for Instruction entities
- * Returns all statuses from status_sts table where sts_type = 'Instruction'
- * Used for populating dynamic status dropdowns
+ * DEPRECATED: Status endpoints removed per US-006 status normalization.
+ * This endpoint is kept for backward compatibility but returns empty results.
  */
 statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
-    // GET /statuses/instruction - return all instruction statuses
+    // GET /statuses/instruction - return empty statuses (status functionality removed)
     if (pathParts.size() == 1 && pathParts[0] == 'instruction') {
-        try {
-            def statuses = statusRepository.findStatusesByType('Instruction')
-            
-            return Response.ok(new JsonBuilder(statuses).toString()).build()
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(new JsonBuilder([error: "Failed to fetch instruction statuses: ${e.message}"]).toString())
-                .build()
-        }
+        return Response.ok(new JsonBuilder([]).toString()).build()
     }
     
     return Response.status(Response.Status.NOT_FOUND)
-        .entity(new JsonBuilder([error: "Invalid status endpoint"]).toString())
+        .entity(new JsonBuilder([error: "Status endpoints are no longer supported"]).toString())
         .build()
 }
 
@@ -957,10 +991,10 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
 reorder(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
         // Parse request body
-        def requestData = [:]
+        Map<String, Object> requestData = [:]
         if (body) {
             try {
-                requestData = new JsonSlurper().parseText(body) as Map
+                requestData = new JsonSlurper().parseText(body) as Map<String, Object>
             } catch (Exception e) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Invalid JSON format in request body"]).toString())
@@ -968,8 +1002,8 @@ reorder(httpMethod: "POST", groups: ["confluence-users", "confluence-administrat
             }
         }
         
-        def stmId = requestData.stmId
-        def orderData = requestData.orderData as List
+        String stmId = requestData['stmId'] as String
+        List<Map<String, Object>> orderData = requestData['orderData'] as List<Map<String, Object>>
         
         if (!stmId || !orderData || orderData.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -979,8 +1013,8 @@ reorder(httpMethod: "POST", groups: ["confluence-users", "confluence-administrat
         
         try {
             // Type safety per ADR-031
-            def stepUuid = UUID.fromString(stmId as String)
-            def affectedRows = instructionRepository.reorderMasterInstructions(stepUuid, orderData)
+            UUID stepUuid = UUID.fromString(stmId as String)
+            Integer affectedRows = instructionRepository.reorderMasterInstructions(stepUuid, orderData)
             
             return Response.ok(new JsonBuilder([
                 success: true,
@@ -1014,7 +1048,7 @@ reorder(httpMethod: "POST", groups: ["confluence-users", "confluence-administrat
  * Supports project management and reporting needs
  */
 timeline(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def iterationId = queryParams.getFirst("iterationId")
+    String iterationId = queryParams.getFirst("iterationId")
     
     if (!iterationId) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -1024,8 +1058,8 @@ timeline(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     
     try {
         // Type safety per ADR-031
-        def iterationUuid = UUID.fromString(iterationId as String)
-        def timeline = instructionRepository.getInstructionCompletionTimeline(iterationUuid)
+        UUID iterationUuid = UUID.fromString(iterationId as String)
+        List<Map<String, Object>> timeline = instructionRepository.getInstructionCompletionTimeline(iterationUuid)
         
         return Response.ok(new JsonBuilder([
             iterationId: iterationId,

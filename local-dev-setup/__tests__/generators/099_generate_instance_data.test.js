@@ -76,8 +76,19 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
           return Promise.resolve(mockUsers);
         }
         if (sql.includes('SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1')) {
-          // Need to check which type is being requested based on context or parameters
-          // For now, return plan statuses as default (this might need refinement based on actual parameter matching)
+          // Return appropriate status type based on the parameter passed
+          const callArgs = arguments;
+          if (callArgs.length > 1) {
+            const statusType = callArgs[1][0]; // First parameter is the status type
+            switch (statusType) {
+              case 'Plan': return Promise.resolve(mockStatuses.plan);
+              case 'Sequence': return Promise.resolve(mockStatuses.sequence);
+              case 'Phase': return Promise.resolve(mockStatuses.phase);
+              case 'Step': return Promise.resolve(mockStatuses.step);
+              case 'Control': return Promise.resolve(mockStatuses.control);
+              default: return Promise.resolve(mockStatuses.plan);
+            }
+          }
           return Promise.resolve(mockStatuses.plan);
         }
         if (sql.includes('INSERT INTO plans_instance_pli')) {
@@ -143,19 +154,26 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
 
       const sqlQueries = client.query.mock.calls.map(call => call[0]);
 
+      // Validate Plan Instance INSERT includes status field
+      const planInsert = sqlQueries.find(sql => sql.includes('INSERT INTO plans_instance_pli'));
+      expect(planInsert).toContain('pli_status');
+
       const sequenceInsert = sqlQueries.find(sql => sql.includes('INSERT INTO sequences_instance_sqi'));
+      expect(sequenceInsert).toContain('sqi_status');
       expect(sequenceInsert).toContain('sqi_name');
       expect(sequenceInsert).toContain('sqi_description');
       expect(sequenceInsert).toContain('sqi_order');
       expect(sequenceInsert).toContain('predecessor_sqi_id');
 
       const phaseInsert = sqlQueries.find(sql => sql.includes('INSERT INTO phases_instance_phi'));
+      expect(phaseInsert).toContain('phi_status');
       expect(phaseInsert).toContain('phi_name');
       expect(phaseInsert).toContain('phi_description');
       expect(phaseInsert).toContain('phi_order');
       expect(phaseInsert).toContain('predecessor_phi_id');
 
       const stepInsert = sqlQueries.find(sql => sql.includes('INSERT INTO steps_instance_sti'));
+      expect(stepInsert).toContain('sti_status');
       expect(stepInsert).toContain('sti_name');
       expect(stepInsert).toContain('sti_description');
       expect(stepInsert).toContain('sti_duration_minutes');
@@ -163,6 +181,7 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
       expect(stepInsert).toContain('enr_id');
 
       const instructionInsert = sqlQueries.find(sql => sql.includes('INSERT INTO instructions_instance_ini'));
+      expect(instructionInsert).toContain('ini_is_completed');
       expect(instructionInsert).toContain('ini_order');
       expect(instructionInsert).toContain('ini_body');
       expect(instructionInsert).toContain('ini_duration_minutes');
@@ -170,6 +189,7 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
       expect(instructionInsert).toContain('cti_id');
 
       const controlInsert = sqlQueries.find(sql => sql.includes('INSERT INTO controls_instance_cti'));
+      expect(controlInsert).toContain('cti_status');
       expect(controlInsert).toContain('cti_order');
       expect(controlInsert).toContain('cti_name');
       expect(controlInsert).toContain('cti_description');

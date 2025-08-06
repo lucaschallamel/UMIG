@@ -10,7 +10,10 @@
  * Run from project root: ./src/groovy/umig/tests/run-integration-tests.sh
  */
 
+@GrabConfig(systemClassLoader=true)
 @Grab('org.postgresql:postgresql:42.7.3')
+@GrabExclude('xml-apis:xml-apis')
+@GrabExclude('xerces:xercesImpl')
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 
 import groovy.sql.Sql
@@ -59,6 +62,19 @@ try {
     // Setup test data
     println "\n📋 Setting up test data..."
     
+    // Clean up any existing test data first (in correct order due to foreign keys)
+    // First delete instances that depend on masters
+    sql.execute("DELETE FROM plans_instance_pli WHERE created_by = 'system' AND pli_name LIKE '%Test%'")
+    // Then iterations (depends on plans and migrations)
+    sql.execute("DELETE FROM iterations_ite WHERE created_by = 'system' AND ite_name LIKE '%Test%'")
+    // Then plans (depends on teams)
+    sql.execute("DELETE FROM plans_master_plm WHERE created_by = 'system' AND plm_name LIKE '%Test%'")
+    // Then migrations (depends on users)
+    sql.execute("DELETE FROM migrations_mig WHERE created_by = 'system' AND mig_name LIKE '%Test%'")
+    // Finally users and teams
+    sql.execute("DELETE FROM users_usr WHERE usr_email = 'test.user@example.com' OR usr_code = 'TST'")
+    sql.execute("DELETE FROM teams_tms WHERE tms_email = 'test@example.com'")
+    
     // Create test team
     def teamResult = sql.firstRow("""
         INSERT INTO teams_tms (tms_name, tms_email, tms_description, created_by, updated_by)
@@ -78,31 +94,58 @@ try {
     println "  Created test user: ${testUserId}"
     
     // Create test migration and iteration
-    def migrationResult = sql.firstRow("""
-        INSERT INTO migrations_mig (mig_code, mig_name, mig_status, created_by, updated_by)
-        VALUES ('TEST', 'Test Migration', 'ACTIVE', 'system', 'system')
-        RETURNING mig_id
+    // First get a valid status ID for migrations
+    def migStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Migration' AND sts_name = 'PLANNING'
+        LIMIT 1
     """)
+    def migStatusId = migStatusResult?.sts_id ?: 1  // Default to 1 if not found
+    
+    def migrationResult = sql.firstRow("""
+        INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_type, mig_status, created_by, updated_by)
+        VALUES (:userId, 'Test Migration', 'MIGRATION', :statusId, 'system', 'system')
+        RETURNING mig_id
+    """, [userId: testUserId, statusId: migStatusId])
     def testMigrationId = migrationResult.mig_id
     println "  Created test migration: ${testMigrationId}"
     
+    // Get a valid status ID for iterations
+    def iteStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Iteration' AND sts_name = 'PENDING'
+        LIMIT 1
+    """)
+    def iteStatusId = iteStatusResult?.sts_id ?: 1  // Default to 1 if not found
+    
+    // First need to create a plan master for the iteration
+    def planMasterResult = sql.firstRow("""
+        INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, updated_by)
+        VALUES (:teamId, 'Test Plan Master', 'Test plan for iteration', :statusId, 'system', 'system')
+        RETURNING plm_id
+    """, [teamId: testTeamId, statusId: 5])  // Using 5 (PLANNING) for Plan status
+    def planMasterId = planMasterResult.plm_id
+    
     def iterationResult = sql.firstRow("""
-        INSERT INTO iterations_itr (itr_code, itr_name, itr_type, mig_id, created_by, updated_by)
-        VALUES ('TST-IT1', 'Test Iteration', 'CUTOVER', :migId, 'system', 'system')
-        RETURNING itr_id
-    """, [migId: testMigrationId])
-    testIterationId = iterationResult.itr_id
+        INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status, created_by, updated_by)
+        VALUES (:migId, :plmId, 'CUTOVER', 'Test Iteration', 'Test iteration description', :statusId, 'system', 'system')
+        RETURNING ite_id
+    """, [migId: testMigrationId, plmId: planMasterId, statusId: iteStatusId])
+    testIterationId = iterationResult.ite_id
     println "  Created test iteration: ${testIterationId}"
     
     // Test 1: Create Master Plan
     println "\n🧪 Test 1: Create Master Plan"
+    // Use PLANNING status (ID: 5) for Plans
+    def planningStatusId = 5  // PLANNING status for Plan type
+    
     def createResponse = client.post(
         path: 'plans/master',
         body: [
             tms_id: testTeamId,
             plm_name: 'Integration Test Plan',
             plm_description: 'Plan created by integration test',
-            plm_status: 'DRAFT'
+            plm_status: planningStatusId  // Use integer status ID
         ]
     )
     
@@ -187,21 +230,12 @@ try {
     // Test 8: Update Plan Instance Status
     println "\n🧪 Test 8: Update Plan Instance Status"
     
-    // First, create a status if needed
-    def statusCheck = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'IN_PROGRESS' AND sts_type = 'Plan'")
-    def statusId = statusCheck?.sts_id
-    if (!statusId) {
-        def statusResult = sql.firstRow("""
-            INSERT INTO status_sts (sts_name, sts_type, sts_color, created_by, updated_by)
-            VALUES ('IN_PROGRESS', 'Plan', '#0000FF', 'system', 'system')
-            RETURNING sts_id
-        """)
-        statusId = statusResult.sts_id
-    }
+    // Use IN_PROGRESS status (ID: 6) for Plan type
+    def inProgressStatusId = 6  // IN_PROGRESS status for Plan type
     
     def statusResponse = client.put(
         path: "plans/${testPlanInstanceId}/status",
-        body: [statusId: statusId]
+        body: [statusId: inProgressStatusId]
     )
     
     assert statusResponse.status == 200
@@ -278,8 +312,8 @@ try {
                 sql.execute("DELETE FROM plans_master_plm WHERE plm_id = ?", [testMasterPlanId])
             }
             if (testIterationId) {
-                sql.execute("DELETE FROM iterations_itr WHERE itr_id = ?", [testIterationId])
-                sql.execute("DELETE FROM migrations_mig WHERE mig_id IN (SELECT mig_id FROM iterations_itr WHERE itr_id = ?)", [testIterationId])
+                sql.execute("DELETE FROM iterations_ite WHERE ite_id = ?", [testIterationId])
+                sql.execute("DELETE FROM migrations_mig WHERE mig_id IN (SELECT mig_id FROM iterations_ite WHERE ite_id = ?)", [testIterationId])
             }
             if (testUserId) {
                 sql.execute("DELETE FROM users_usr WHERE usr_id = ?", [testUserId])

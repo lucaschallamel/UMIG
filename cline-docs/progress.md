@@ -48,6 +48,7 @@
     * **Performance targets met:** <200ms response time for all operations
     * **PostgreSQL Compatibility:** Fixed timestamp casting issues for improved reliability
   * **Instructions API (US-004):** Complete instruction template and execution management completed 5 August 2025
+    * **Boolean Completion Model:** Uses ini_is_completed boolean field instead of status normalization
   * **Controls API (US-005):** Complete control point and quality gate management system completed 6 August 2025
     * **ControlsApi.groovy (20 REST endpoints)** with hierarchical filtering and phase-level control architecture
     * **ControlRepository.groovy (20 methods)** with complete lifecycle management including validation and override operations

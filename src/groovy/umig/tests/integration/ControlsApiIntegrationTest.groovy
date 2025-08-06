@@ -12,6 +12,8 @@
 
 @GrabConfig(systemClassLoader=true)
 @Grab('org.postgresql:postgresql:42.7.3')
+@GrabExclude('xml-apis:xml-apis')
+@GrabExclude('xerces:xercesImpl')
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 
 import groovy.sql.Sql
@@ -71,6 +73,10 @@ try {
     // Setup test data
     println "\n📋 Setting up test data..."
     
+    // Clean up any existing test data first
+    sql.execute("DELETE FROM teams_tms WHERE tms_email = 'controls-test@example.com'")
+    sql.execute("DELETE FROM users_usr WHERE usr_email = 'control.tester@example.com' OR usr_code = 'CTL'")
+    
     // Create test team
     def teamResult = sql.firstRow("""
         INSERT INTO teams_tms (tms_name, tms_email, tms_description, created_by, updated_by)
@@ -90,35 +96,58 @@ try {
     println "  Created test user: ${testUserId}"
     
     // Create test migration and iteration
-    def migrationResult = sql.firstRow("""
-        INSERT INTO migrations_mig (mig_code, mig_name, mig_status, created_by, updated_by)
-        VALUES ('CTL-TEST', 'Control Test Migration', 'ACTIVE', 'system', 'system')
-        RETURNING mig_id
+    // First get a valid status ID for migrations
+    def migStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Migration' AND sts_name = 'PLANNING'
+        LIMIT 1
     """)
+    def migStatusId = migStatusResult?.sts_id ?: 1  // Default to 1 if not found
+    
+    def migrationResult = sql.firstRow("""
+        INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_type, mig_status, created_by, updated_by)
+        VALUES (:userId, 'Control Test Migration', 'MIGRATION', :statusId, 'system', 'system')
+        RETURNING mig_id
+    """, [userId: testUserId, statusId: migStatusId])
     testMigrationId = migrationResult.mig_id
     println "  Created test migration: ${testMigrationId}"
     
-    def iterationResult = sql.firstRow("""
-        INSERT INTO iterations_ite (itr_code, itr_name, itr_type, mig_id, created_by, updated_by)
-        VALUES ('CTL-IT1', 'Control Test Iteration', 'CUTOVER', :migId, 'system', 'system')
-        RETURNING itr_id
-    """, [migId: testMigrationId])
-    testIterationId = iterationResult.itr_id
-    println "  Created test iteration: ${testIterationId}"
+    // Get a valid status ID for plans
+    def planStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Plan' AND sts_name = 'DRAFT'
+        LIMIT 1
+    """)
+    def planStatusId = planStatusResult?.sts_id ?: 1  // Default to 1 if not found
     
-    // Create test master plan
+    // Create test master plan first (needed for iteration)
     def planResult = sql.firstRow("""
         INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, updated_by)
-        VALUES (:teamId, 'Control Test Plan', 'Plan for control testing', 'DRAFT', 'system', 'system')
+        VALUES (:teamId, 'Control Test Plan', 'Plan for control testing', :statusId, 'system', 'system')
         RETURNING plm_id
-    """, [teamId: testTeamId])
+    """, [teamId: testTeamId, statusId: planStatusId])
     testMasterPlanId = planResult.plm_id
-    println "  Created test master plan: ${testMasterPlanId}"
+    
+    // Get a valid status ID for iterations
+    def iteStatusResult = sql.firstRow("""
+        SELECT sts_id FROM status_sts 
+        WHERE sts_type = 'Iteration' AND sts_name = 'PENDING'
+        LIMIT 1
+    """)
+    def iteStatusId = iteStatusResult?.sts_id ?: 1  // Default to 1 if not found
+    
+    def iterationResult = sql.firstRow("""
+        INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status, created_by, updated_by)
+        VALUES (:migId, :plmId, 'CUTOVER', 'Control Test Iteration', 'Test iteration description', :statusId, 'system', 'system')
+        RETURNING ite_id
+    """, [migId: testMigrationId, plmId: testMasterPlanId, statusId: iteStatusId])
+    testIterationId = iterationResult.ite_id
+    println "  Created test iteration: ${testIterationId}"
     
     // Create test plan instance
     def planInstanceResult = sql.firstRow("""
-        INSERT INTO plans_instance_pli (plm_id, ite_id, usr_id_owner, pli_name, pli_description, created_by, updated_by)
-        VALUES (:planId, :iterationId, :userId, 'Control Test Plan Instance', 'Instance for control testing', 'system', 'system')
+        INSERT INTO plans_instance_pli (plm_id, ite_id, usr_id_owner, pli_name, pli_description, pli_status, created_by, updated_by)
+        VALUES (:planId, :iterationId, :userId, 'Control Test Plan Instance', 'Instance for control testing', 5, 'system', 'system')
         RETURNING pli_id
     """, [planId: testMasterPlanId, iterationId: testIterationId, userId: testUserId])
     testPlanInstanceId = planInstanceResult.pli_id
@@ -135,8 +164,8 @@ try {
     
     // Create test sequence instance
     def sequenceInstanceResult = sql.firstRow("""
-        INSERT INTO sequences_instance_sqi (sqm_id, pli_id, sqi_name, sqi_description, sqi_order, created_by, updated_by)
-        VALUES (:sequenceId, :planInstanceId, 'Control Test Sequence Instance', 'Instance for control testing', 1, 'system', 'system')
+        INSERT INTO sequences_instance_sqi (sqm_id, pli_id, sqi_name, sqi_description, sqi_order, sqi_status, created_by, updated_by)
+        VALUES (:sequenceId, :planInstanceId, 'Control Test Sequence Instance', 'Instance for control testing', 1, 13, 'system', 'system')
         RETURNING sqi_id
     """, [sequenceId: testMasterSequenceId, planInstanceId: testPlanInstanceId])
     testSequenceInstanceId = sequenceInstanceResult.sqi_id
@@ -153,8 +182,8 @@ try {
     
     // Create test phase instance
     def phaseInstanceResult = sql.firstRow("""
-        INSERT INTO phases_instance_phi (phm_id, sqi_id, phi_name, phi_description, phi_order, created_by, updated_by)
-        VALUES (:phaseId, :sequenceInstanceId, 'Control Test Phase Instance', 'Instance for control testing', 1, 'system', 'system')
+        INSERT INTO phases_instance_phi (phm_id, sqi_id, phi_name, phi_description, phi_order, phi_status, created_by, updated_by)
+        VALUES (:phaseId, :sequenceInstanceId, 'Control Test Phase Instance', 'Instance for control testing', 1, 17, 'system', 'system')
         RETURNING phi_id
     """, [phaseId: testMasterPhaseId, sequenceInstanceId: testSequenceInstanceId])
     testPhaseInstanceId = phaseInstanceResult.phi_id
@@ -597,8 +626,263 @@ try {
     assert elapsedTime20 < 200
     println "✅ Audit fields populated correctly in ${elapsedTime20}ms"
     
+    // Test 21: Create Control Instance with Valid Status ID (Integer)
+    println "\n🧪 Test 21: Create Control Instance with Valid Status ID (Integer)"
+    def startTime21 = System.currentTimeMillis()
+    
+    // Get a valid Control status ID
+    def validStatusResult = sql.firstRow("""
+        SELECT sts_id, sts_name, sts_color FROM status_sts 
+        WHERE sts_type = 'Control' AND sts_name = 'TODO'
+        LIMIT 1
+    """)
+    def validStatusId = validStatusResult.sts_id
+    
+    def createWithValidStatusResponse = client.post(
+        path: "controls/master/${testMasterControlId}/instantiate",
+        body: [
+            phi_id: testPhaseInstanceId.toString(),
+            cti_name: 'Test Valid Status Control',
+            cti_description: 'Instance created with valid status ID',
+            cti_status: validStatusId // Using integer ID
+        ]
+    )
+    
+    def elapsedTime21 = System.currentTimeMillis() - startTime21
+    assert createWithValidStatusResponse.status == 201
+    assert createWithValidStatusResponse.data.cti_status == validStatusId.toString()
+    assert elapsedTime21 < 200
+    def testValidStatusControlId = UUID.fromString(createWithValidStatusResponse.data.cti_id as String)
+    println "✅ Control instance created with valid status ID in ${elapsedTime21}ms: ${testValidStatusControlId}"
+    
+    // Test 22: Create Control Instance with Valid Status Name (String)
+    println "\n🧪 Test 22: Create Control Instance with Valid Status Name (String)"
+    def startTime22 = System.currentTimeMillis()
+    
+    def createWithValidStatusNameResponse = client.post(
+        path: "controls/master/${testMasterControlId}/instantiate",
+        body: [
+            phi_id: testPhaseInstanceId.toString(),
+            cti_name: 'Test Valid Status Name Control',
+            cti_description: 'Instance created with valid status name',
+            cti_status: 'PASSED' // Using string name
+        ]
+    )
+    
+    def elapsedTime22 = System.currentTimeMillis() - startTime22
+    assert createWithValidStatusNameResponse.status == 201
+    // Should resolve to the correct status ID
+    def passedStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PASSED' AND sts_type = 'Control'").sts_id
+    assert createWithValidStatusNameResponse.data.cti_status == passedStatusId.toString()
+    assert elapsedTime22 < 200
+    def testValidStatusNameControlId = UUID.fromString(createWithValidStatusNameResponse.data.cti_id as String)
+    println "✅ Control instance created with valid status name in ${elapsedTime22}ms: ${testValidStatusNameControlId}"
+    
+    // Test 23: Create Control Instance with Invalid Status (Should fail with 400)
+    println "\n🧪 Test 23: Create Control Instance with Invalid Status"
+    def startTime23 = System.currentTimeMillis()
+    
+    try {
+        def createWithInvalidStatusResponse = client.post(
+            path: "controls/master/${testMasterControlId}/instantiate",
+            body: [
+                phi_id: testPhaseInstanceId.toString(),
+                cti_name: 'Test Invalid Status Control',
+                cti_description: 'Instance created with invalid status',
+                cti_status: 99999 // Invalid status ID
+            ]
+        )
+        assert false, "Should have thrown exception for invalid status"
+    } catch (HttpResponseException e) {
+        def elapsedTime23 = System.currentTimeMillis() - startTime23
+        assert e.response.status == 400
+        assert e.response.data.toString().toLowerCase().contains('status') || 
+               e.response.data.toString().toLowerCase().contains('foreign')
+        assert elapsedTime23 < 200
+        println "✅ Invalid status rejection works in ${elapsedTime23}ms - returned 400"
+    }
+    
+    // Test 24: Update Control Instance with Valid Status
+    println "\n🧪 Test 24: Update Control Instance with Valid Status"
+    def startTime24 = System.currentTimeMillis()
+    
+    def failedStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'FAILED' AND sts_type = 'Control'").sts_id
+    
+    def updateWithValidStatusResponse = client.put(
+        path: "controls/instance/${testValidStatusControlId}",
+        body: [
+            cti_status: failedStatusId
+        ]
+    )
+    
+    def elapsedTime24 = System.currentTimeMillis() - startTime24
+    assert updateWithValidStatusResponse.status == 200
+    assert updateWithValidStatusResponse.data.cti_status == failedStatusId.toString()
+    assert elapsedTime24 < 200
+    println "✅ Control instance status updated successfully in ${elapsedTime24}ms"
+    
+    // Test 25: Update Control Instance with Invalid Status (Should fail with 400)
+    println "\n🧪 Test 25: Update Control Instance with Invalid Status"
+    def startTime25 = System.currentTimeMillis()
+    
+    try {
+        def updateWithInvalidStatusResponse = client.put(
+            path: "controls/instance/${testValidStatusControlId}",
+            body: [
+                cti_status: 'INVALID_STATUS' // Invalid status name
+            ]
+        )
+        assert false, "Should have thrown exception for invalid status"
+    } catch (HttpResponseException e) {
+        def elapsedTime25 = System.currentTimeMillis() - startTime25
+        assert e.response.status == 400
+        assert e.response.data.toString().toLowerCase().contains('status') || 
+               e.response.data.toString().toLowerCase().contains('invalid') ||
+               e.response.data.toString().toLowerCase().contains('foreign')
+        assert elapsedTime25 < 200
+        println "✅ Invalid status update rejection works in ${elapsedTime25}ms - returned 400"
+    }
+    
+    // Test 26: Get Control Instance Returns Status Details
+    println "\n🧪 Test 26: Get Control Instance Returns Status Details"
+    def startTime26 = System.currentTimeMillis()
+    
+    def getControlWithStatusResponse = client.get(path: "controls/instance/${testValidStatusControlId}")
+    
+    def elapsedTime26 = System.currentTimeMillis() - startTime26
+    assert getControlWithStatusResponse.status == 200
+    assert getControlWithStatusResponse.data.cti_status != null
+    // Check if status details are included (sts_name and sts_color)
+    assert getControlWithStatusResponse.data.sts_name != null
+    assert getControlWithStatusResponse.data.sts_color != null
+    assert getControlWithStatusResponse.data.sts_name == 'FAILED'
+    assert getControlWithStatusResponse.data.sts_color == '#FF0000'
+    assert elapsedTime26 < 200
+    println "✅ Control instance returns status details in ${elapsedTime26}ms - status: ${getControlWithStatusResponse.data.sts_name} (${getControlWithStatusResponse.data.sts_color})"
+    
+    // Test 27: Foreign Key Constraint Enforcement at Database Level
+    println "\n🧪 Test 27: Foreign Key Constraint Enforcement at Database Level"
+    def startTime27 = System.currentTimeMillis()
+    
+    try {
+        // Try to insert directly into database with invalid status FK
+        sql.execute("""
+            INSERT INTO controls_instance_cti 
+            (ctm_id, phi_id, cti_name, cti_description, cti_status, created_by, updated_by)
+            VALUES (?, ?, 'Direct DB Insert Test', 'Testing FK constraint', 99999, 'test', 'test')
+        """, [testMasterControlId, testPhaseInstanceId])
+        assert false, "Should have thrown FK constraint violation"
+    } catch (Exception e) {
+        def elapsedTime27 = System.currentTimeMillis() - startTime27
+        assert e.message.toLowerCase().contains('foreign') || 
+               e.message.toLowerCase().contains('constraint') ||
+               e.message.toLowerCase().contains('violates')
+        assert elapsedTime27 < 200
+        println "✅ Database FK constraint enforced in ${elapsedTime27}ms - prevented invalid status insertion"
+    }
+    
+    // Test 28: Status Filtering with Integer and String Values
+    println "\n🧪 Test 28: Status Filtering with Integer and String Values"
+    def startTime28 = System.currentTimeMillis()
+    
+    // Test filtering by status ID (integer)
+    def statusIdFilterResponse = client.get(
+        path: 'controls/instance',
+        query: [statusId: failedStatusId.toString()]
+    )
+    
+    assert statusIdFilterResponse.status == 200
+    assert statusIdFilterResponse.data instanceof List
+    // Should find our FAILED control
+    def failedControls = statusIdFilterResponse.data.findAll { it.sts_name == 'FAILED' }
+    assert failedControls.size() > 0
+    
+    // Test filtering by status name (string)
+    def statusNameFilterResponse = client.get(
+        path: 'controls/instance',
+        query: [statusId: 'PASSED']
+    )
+    
+    def elapsedTime28 = System.currentTimeMillis() - startTime28
+    assert statusNameFilterResponse.status == 200
+    assert statusNameFilterResponse.data instanceof List
+    assert elapsedTime28 < 200
+    println "✅ Status filtering works with both integers and strings in ${elapsedTime28}ms - found ${failedControls.size()} failed controls"
+    
+    // Test 29: Bulk Status Update with Validation
+    println "\n🧪 Test 29: Bulk Status Update with Validation"
+    def startTime29 = System.currentTimeMillis()
+    
+    // Create another test control for bulk operations
+    def createBulkTestResponse = client.post(
+        path: "controls/master/${testMasterControlId}/instantiate",
+        body: [
+            phi_id: testPhaseInstanceId.toString(),
+            cti_name: 'Bulk Test Control',
+            cti_description: 'Control for bulk status testing'
+        ]
+    )
+    def bulkTestControlId = UUID.fromString(createBulkTestResponse.data.cti_id as String)
+    
+    // Bulk update status
+    def passedStatusIdForBulk = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PASSED' AND sts_type = 'Control'").sts_id
+    
+    def bulkStatusUpdateResponse = client.put(
+        path: "controls/instance/bulk/status",
+        body: [
+            phi_id: testPhaseInstanceId.toString(),
+            cti_status: passedStatusIdForBulk,
+            control_ids: [testValidStatusControlId.toString(), bulkTestControlId.toString()]
+        ]
+    )
+    
+    def elapsedTime29 = System.currentTimeMillis() - startTime29
+    assert bulkStatusUpdateResponse.status == 200 || bulkStatusUpdateResponse.status == 204
+    assert elapsedTime29 < 300 // Allow extra time for bulk operations
+    println "✅ Bulk status update with validation completed in ${elapsedTime29}ms"
+    
+    // Test 30: Status History and Audit Trail
+    println "\n🧪 Test 30: Status History and Audit Trail"
+    def startTime30 = System.currentTimeMillis()
+    
+    // Update status again to create history
+    def cancelledStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'CANCELLED' AND sts_type = 'Control'").sts_id
+    
+    def statusHistoryUpdateResponse = client.put(
+        path: "controls/instance/${testValidStatusControlId}/status",
+        body: [
+            cti_status: cancelledStatusId
+        ]
+    )
+    
+    // Verify the update was recorded with audit fields
+    def auditCheckResponse = client.get(path: "controls/instance/${testValidStatusControlId}")
+    
+    def elapsedTime30 = System.currentTimeMillis() - startTime30
+    assert statusHistoryUpdateResponse.status == 204
+    assert auditCheckResponse.status == 200
+    assert auditCheckResponse.data.cti_status == cancelledStatusId.toString()
+    assert auditCheckResponse.data.sts_name == 'CANCELLED'
+    assert auditCheckResponse.data.updated_at != null
+    assert auditCheckResponse.data.updated_by != null
+    assert elapsedTime30 < 200
+    println "✅ Status history and audit trail works in ${elapsedTime30}ms - status changed to CANCELLED"
+    
+    // Clean up additional test controls
+    if (testValidStatusControlId) {
+        sql.execute("DELETE FROM controls_instance_cti WHERE cti_id = ?", [testValidStatusControlId])
+    }
+    if (testValidStatusNameControlId) {
+        sql.execute("DELETE FROM controls_instance_cti WHERE cti_id = ?", [testValidStatusNameControlId])
+    }
+    if (bulkTestControlId) {
+        sql.execute("DELETE FROM controls_instance_cti WHERE cti_id = ?", [bulkTestControlId])
+    }
+    println "  Cleaned up additional FK test controls"
+
     println "\n============================================"
-    println "✅ All 20 Controls API tests passed!"
+    println "✅ All 30 Controls API tests passed!"
+    println "✅ FK constraint validation tests completed successfully!"
     println "============================================"
     
 } catch (Exception e) {

@@ -1,225 +1,161 @@
 ---
-description: Sprint Review & Retrospective (UMIG)
+description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent integration.
 ---
 
-# Sprint Review & Retrospective Workflow
+# Enhanced Sprint Review & Retrospective Workflow with GENDEV Integration
 
-> **Filename convention:** `{yyyymmdd}-sprint-review.md` (e.g., `20250627-sprint-review.md`). Place in `/docs/devJournal/`.
+> **Filename convention:** `{yyyymmdd}-sprint-review.md`. Place in `/docs/devJournal/`.
 
-This workflow guides the team through a structured review and retrospective at the end of each sprint or major iteration. It ensures that all accomplishments, learnings, and opportunities for improvement are captured, and that the next sprint is set up for success.
+## AI-Enhanced Sprint Context Gathering
 
----
+**Sprint Analysis:**
+```bash
+/gd:businessprocessanalyst --analysis_type=sprint_analysis --scope=comprehensive --focus=performance_insights
+```
 
-## 1. Gather Sprint Context
+**Metrics Collection:**
+```bash
+/gd:qacoordinator --metrics_type=sprint_performance --scope=comprehensive --focus=quantitative_analysis
+```
 
-**Before generating the sprint review document, fill in or confirm the following:**
+**Traditional Commands:**
+- Commits: `git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline | wc -l`
+- PRs: `git log --merges --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline | wc -l`
+- Issues: `git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --grep="close[sd]\\|fixe[sd]" --oneline | wc -l`
 
-- **Sprint Dates:** (Enter start and end date, e.g., 2025-06-16 – 2025-06-27)
-- **Participants:** (List all team members involved)
-- **Branch/Release:** (Run the command below to list all branches created or active during the sprint)
-    ```sh
-    git branch --format='%(refname:short) %(creatordate:short)' | grep 'YYYY-MM'
-    ```
-- **Metrics:** (Run the following commands, replacing dates as appropriate)
-  - **Commits:**
-      ```sh
-      git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline | wc -l
-      ```
-  - **PRs Merged:**
-      ```sh
-      git log --merges --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline | wc -l
-      ```
-      For details:
-      ```sh
-      git log --merges --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline
-      ```
-  - **Issues Closed:**
-      ```sh
-      git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --grep="close[sd]\\|fixe[sd]" --oneline | wc -l
-      ```
-      For a list:
-      ```sh
-      git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --grep="close[sd]\\|fixe[sd]" --oneline
-      ```
-- **Highlights:** (What are the biggest achievements or milestones? E.g., POC completion)
-- **Blockers:** (Any major blockers or pain points encountered)
-- **Learnings:** (Key technical, process, or team insights)
+**Insight Generation:**
+```bash
+/gd:documentationgenerator --analysis_type=sprint_insights --scope=comprehensive --focus=learning_extraction
+```
 
----
+## AI-Enhanced Sprint Review Document
 
-## 2. Generate the Sprint Review Document
-
-Once the above context is filled, generate a new file named `{yyyymmdd}-sprint-review.md` in `/docs/devJournal/` using the following structure:
-
----
+**Document Generation:**
+```bash
+/gd:documentationgenerator --document_type=sprint_review --scope=comprehensive --focus=structured_analysis
+```
 
 ### 1. Sprint Overview
-
-- **Sprint Dates:** (start date – end date)
-- **Sprint Goal:** (Summarise the main objective or theme of the sprint)
-- **Participants:** (List team members involved)
-- **Branch/Release:** (List all relevant branches/tags)
+```bash
+/gd:businessprocessanalyst --overview_type=sprint_summary --scope=comprehensive --focus=strategic_alignment
+```
+- Sprint Dates, Goal, Participants, Branch/Release, Strategic Alignment
 
 ---
 
 ### 2. Achievements & Deliverables
-
-- **Major Features Completed:** (Bullet list, with links to PRs or dev journal entries)
-- **Technical Milestones:** (E.g., architectural decisions, major refactors, new patterns adopted)
-- **Documentation Updates:** (Summarise key documentation, changelog, or ADR updates)
-- **Testing & Quality:** (Describe test coverage improvements, integration test results, bug fixes)
-
----
+```bash
+/gd:codereviewer --analysis_type=sprint_achievements --scope=comprehensive --focus=deliverable_assessment
+```
+- Major Features, Technical Milestones, Documentation Updates, Testing & Quality, Code Quality Metrics
 
 ### 3. Sprint Metrics
-
-- **Commits:** (Paste result)
-- **PRs Merged:** (Paste result and details)
-- **Issues Closed:** (Paste result and details)
-- **Branches Created:** (Paste result)
-
----
+```bash
+/gd:qacoordinator --metrics_type=sprint_performance --scope=comprehensive --focus=trend_analysis
+```
+- Commits, PRs Merged, Issues Closed, Branches Created, Performance Trends, Quality Metrics
 
 ### 4. Review of Sprint Goals
-
-- **What was planned:** (Paste or paraphrase the original sprint goal)
-- **What was achieved:** (Honest assessment of goal completion)
-- **What was not completed:** (List and explain any items not finished, with reasons)
-
----
+```bash
+/gd:businessprocessanalyst --analysis_type=goal_achievement --scope=sprint_objectives --focus=completion_assessment
+```
+- What was planned, What was achieved, What was not completed, Achievement Rate, Goal Alignment
 
 ### 5. Demo & Walkthrough
-
-- **Screenshots, GIFs, or short video links:** (if available)
-- **Instructions for reviewers:** (How to test/review the new features)
-
----
+```bash
+/gd:documentationgenerator --content_type=demo_materials --scope=sprint_deliverables --focus=user_experience
+```
+- Visual Documentation, Demo Scripts, Reviewer Instructions, Feature Highlights, User Impact
 
 ### 6. Retrospective
+```bash
+/gd:businessprocessanalyst --analysis_type=retrospective --scope=comprehensive --focus=continuous_improvement
+```
 
 #### What Went Well
+- Effective practices, positive surprises, successful workflows, team collaboration highlights
 
-- (Successes, effective practices, positive surprises)
-
-#### What Didn’t Go Well
-
-- (Blockers, pain points, technical debt, process issues)
+#### What Didn't Go Well
+- Blockers with root cause analysis, pain points, technical debt, recurring issues
 
 #### What We Learned
+- Technical insights, process learnings, team dynamics, best practices
 
-- (Technical, process, or team insights)
-
-#### What We’ll Try Next
-
-- (Actions to improve, experiments for next sprint)
+#### What We'll Try Next
+- Prioritized improvement actions, experiments for next sprint, process optimizations
 
 ---
 
 ### 7. Action Items & Next Steps
-
-- (Concrete actions, owners, deadlines for next sprint)
-
----
+```bash
+/gd:businessprocessanalyst --planning_type=action_items --scope=next_sprint --focus=strategic_priorities
+```
+- Priority-Ranked Actions, Owner Assignment, Deadlines, Success Metrics, Risk Assessment
 
 ### 8. References
-
-- **Dev Journal Entries:** (List all relevant `/docs/devJournal/YYYYMMDD-nn.md` files)
-- **ADR(s):** (Link to any new or updated ADRs)
-- **Changelog/Docs:** (Links to major documentation changes)
-  - CHANGELOG.md
-  - .cline-docs/progress.md
-  - .cline-docs/activeContext.md
+```bash
+/gd:documentationgenerator --reference_type=sprint_documentation --scope=comprehensive --focus=cross_linking
+```
+- Dev Journal Entries, ADRs, Changelog/Docs, Cross-References, Knowledge Base
 
 ---
 
 > _Use this workflow at the end of each sprint to ensure a culture of continuous improvement, transparency, and knowledge sharing._
 
+---
 
-> **Filename convention:** `{yyyymmdd}-sprint-review.md` (e.g., `20250627-sprint-review.md`). Place in `/docs/devJournal/`.
+## Best Practices with GENDEV Integration
 
+**Sequential Agent Usage:**
+1. Analysis: `gendev-business-process-analyst` → `gendev-qa-coordinator`
+2. Documentation: `gendev-documentation-generator` → `gendev-code-reviewer`
+3. Planning: `gendev-business-process-analyst` → `gendev-system-architect`
 
-This workflow guides the team through a structured review and retrospective at the end of each sprint or major iteration. It ensures that all accomplishments, learnings, and opportunities for improvement are captured, and that the next sprint is set up for success.
+**Key Practices:**
+- Cross-agent validation for critical insights
+- Iterative improvement of AI prompts
+- Knowledge base building through AI insights
+- Pattern recognition for recurring issues
+
+## Success Metrics
+- **Quality:** 95% topic coverage, 90% actionable insights
+- **Efficiency:** 60% reduction in prep time, 90% pattern recognition
+- **Improvement:** 90% action completion, 85% knowledge retention
+
+## AI Integration Tips
+- Start with AI analysis for data-driven foundation
+- Combine quantitative AI with qualitative human insights
+- Use predictive analysis for future planning
+- Leverage cross-project learning patterns
 
 ---
 
-## 1. Sprint Overview
+## Traditional Sprint Review Template
 
-- **Sprint Dates:** (start date – end date)
-- **Sprint Goal:** (Summarise the main objective or theme of the sprint)
-- **Participants:** (List team members involved)
-- **Branch/Release:** (Relevant branch/tag or release milestone)
+> **Filename convention:** `{yyyymmdd}-sprint-review.md`. Place in `/docs/devJournal/`.
 
----
+### 1. Sprint Overview
+- Sprint Dates, Goal, Participants, Branch/Release
 
-## 2. Achievements & Deliverables
+### 2. Achievements & Deliverables
+- Major Features, Technical Milestones, Documentation, Testing & Quality
 
-- **Major Features Completed:** (Bullet list, with links to PRs or dev journal entries)
-- **Technical Milestones:** (E.g., architectural decisions, major refactors, new patterns adopted)
-- **Documentation Updates:** (Summarise key documentation, changelog, or ADR updates)
-- **Testing & Quality:** (Describe test coverage improvements, integration test results, bug fixes)
+### 3. Sprint Metrics
+- Commits, PRs Merged, Issues Closed, Test Coverage
 
----
+### 4. Review of Sprint Goals
+- What was planned, achieved, not completed
 
-## 3. Sprint Metrics
+### 5. Demo & Walkthrough
+- Screenshots/GIFs, reviewer instructions
 
-- **Commits:** (Number or summary, e.g., `git log --since="YYYY-MM-DD" --until="YYYY-MM-DD" --oneline | wc -l`)
-- **PRs Merged:** (Count and/or links)
-- **Issues Closed:** (Count and/or links)
-- **Test Coverage:** (Summarise if measured)
+### 6. Retrospective
+- What Went Well, What Didn't Go Well, What We Learned, What We'll Try Next
 
----
+### 7. Action Items & Next Steps
+- Concrete actions, owners, deadlines
 
-## 4. Review of Sprint Goals
+### 8. References
+- Dev Journal Entries, ADRs, Changelog/Docs
 
-- **What was planned:** (Paste or paraphrase the original sprint goal)
-- **What was achieved:** (Honest assessment of goal completion)
-- **What was not completed:** (List and explain any items not finished, with reasons)
-
----
-
-## 5. Demo & Walkthrough
-
-- **Screenshots, GIFs, or short video links** (if available)
-- **Instructions for reviewers:** (How to test/review the new features)
-
----
-
-## 6. Retrospective
-
-### What Went Well
-
-- (Bullet points: successes, effective practices, positive surprises)
-
-### What Didn’t Go Well
-
-- (Bullet points: blockers, pain points, technical debt, process issues)
-
-### What We Learned
-
-- (Bullet points: technical, process, or team insights)
-
-### What We’ll Try Next
-
-- (Bullet points: actions to improve, experiments for next sprint)
-
----
-
-## 7. Action Items & Next Steps
-
-- (Bullet list of concrete actions, owners, and deadlines for the next sprint)
-
----
-
-## 8. References
-
-- **Dev Journal Entries:** (List all relevant `/docs/devJournal/YYYYMMDD-nn.md` files)
-- **ADR(s):** (Link to any new or updated ADRs)
-- **Changelog/Docs:** (Links to major documentation changes)
-- CHANGELOG.md
-- .cline-docs/progress.md
-- .cline-docs/activeContext.md
-
-
----
-
-> _Use this template at the end of each sprint to ensure a culture of continuous improvement, transparency, and knowledge sharing._
+> _Use this template for continuous improvement and knowledge sharing._
