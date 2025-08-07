@@ -1,6 +1,7 @@
 # ADR-034: Liquibase SQL Compatibility Constraints
 
 ## Status
+
 **Status**: Accepted  
 **Date**: 2025-08-06  
 **Author**: Development Team
@@ -26,12 +27,14 @@ We will **avoid using dollar-quoted PL/pgSQL blocks** in all Liquibase migration
 ## Consequences
 
 ### Positive
+
 - **Reliability**: Migrations will execute consistently without parsing errors
 - **Portability**: Simpler SQL is more portable across different database versions
 - **Debugging**: Easier to debug and test individual SQL statements
 - **Maintenance**: Clearer, more straightforward migration scripts
 
 ### Negative
+
 - **Limited logic**: Cannot use complex procedural logic in migrations
 - **Verbose validation**: Multi-table validations require UNION queries instead of loops
 - **No transactions**: Cannot use explicit transaction control within DO blocks
@@ -40,6 +43,7 @@ We will **avoid using dollar-quoted PL/pgSQL blocks** in all Liquibase migration
 ## Examples
 
 ### ❌ Avoid This Pattern
+
 ```sql
 -- This will cause Liquibase parsing errors
 DO $$
@@ -47,12 +51,13 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'status_sts') THEN
         RAISE EXCEPTION 'Migration prerequisite failed: status_sts table does not exist.';
     END IF;
-    
+
     RAISE NOTICE 'Validation passed';
 END $$;
 ```
 
 ### ✅ Use This Pattern Instead
+
 ```sql
 -- Simple validation query that Liquibase can parse
 SELECT COUNT(*) AS status_count FROM status_sts;

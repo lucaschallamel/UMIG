@@ -921,7 +921,7 @@ class SequenceRepository {
             def stats = sql.firstRow("""
                 SELECT 
                     COUNT(*) as total_sequences,
-                    COUNT(CASE WHEN ${statusColumn} = 'NOT_STARTED' THEN 1 END) as not_started,
+                    COUNT(CASE WHEN ${statusColumn} = 'PLANNING' THEN 1 END) as planning,
                     COUNT(CASE WHEN ${statusColumn} = 'IN_PROGRESS' THEN 1 END) as in_progress,
                     COUNT(CASE WHEN ${statusColumn} = 'COMPLETED' THEN 1 END) as completed,
                     MIN(created_at) as first_created,
@@ -937,7 +937,7 @@ class SequenceRepository {
             
             return [
                 total_sequences: stats.total_sequences,
-                not_started: stats.not_started,
+                planning: stats.planning,
                 in_progress: stats.in_progress,
                 completed: stats.completed,
                 completion_rate: completionRate,
@@ -995,17 +995,17 @@ class SequenceRepository {
     /**
      * Gets the default status ID for new sequence instances.
      * @param sql Active SQL connection
-     * @return Integer status ID for 'NOT_STARTED' Sequence status
+     * @return Integer status ID for 'PLANNING' Sequence status
      */
     private Integer getDefaultSequenceInstanceStatusId(groovy.sql.Sql sql) {
         Map defaultStatus = sql.firstRow("""
             SELECT sts_id 
             FROM status_sts 
-            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Sequence'
+            WHERE sts_name = 'PLANNING' AND sts_type = 'Sequence'
             LIMIT 1
         """) as Map
         
-        // Fallback to any Sequence status if NOT_STARTED not found
+        // Fallback to any Sequence status if PLANNING not found
         if (!defaultStatus) {
             defaultStatus = sql.firstRow("""
                 SELECT sts_id 

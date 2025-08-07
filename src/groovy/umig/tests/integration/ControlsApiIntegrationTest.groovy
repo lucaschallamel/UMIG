@@ -270,14 +270,14 @@ try {
     def validateResponse = client.put(
         path: "controls/instance/${testControlInstanceId}/validate",
         body: [
-            cti_status: 'VALIDATED',
+            cti_status: 'PASSED',
             usr_id_it_validator: testUserId
         ]
     )
     
     def elapsedTime4 = System.currentTimeMillis() - startTime4
     assert validateResponse.status == 200
-    assert validateResponse.data.success == true || validateResponse.data.cti_status == 'VALIDATED'
+    assert validateResponse.data.success == true || validateResponse.data.cti_status == 'PASSED'
     assert elapsedTime4 < 200
     println "✅ Control validated successfully in ${elapsedTime4}ms"
     
@@ -334,7 +334,7 @@ try {
         path: "controls/instance/bulk/validate",
         body: [
             phi_id: testPhaseInstanceId.toString(),
-            cti_status: 'VALIDATED',
+            cti_status: 'PASSED',
             usr_id_it_validator: testUserId
         ]
     )
@@ -399,7 +399,7 @@ try {
     
     def statusFilterResponse = client.get(
         path: 'controls/instance',
-        query: [statusId: 'VALIDATED']
+        query: [statusId: 'PASSED']
     )
     
     def elapsedTime10 = System.currentTimeMillis() - startTime10

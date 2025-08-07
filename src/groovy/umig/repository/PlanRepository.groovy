@@ -558,17 +558,17 @@ class PlanRepository {
     /**
      * Gets the default status ID for new plan instances.
      * @param sql Active SQL connection
-     * @return Integer status ID for 'NOT_STARTED' Plan status
+     * @return Integer status ID for 'PLANNING' Plan status
      */
     private Integer getDefaultPlanInstanceStatusId(groovy.sql.Sql sql) {
         Map defaultStatus = sql.firstRow("""
             SELECT sts_id 
             FROM status_sts 
-            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Plan'
+            WHERE sts_name = 'PLANNING' AND sts_type = 'Plan'
             LIMIT 1
         """) as Map
         
-        // Fallback to any Plan status if NOT_STARTED not found
+        // Fallback to any Plan status if PLANNING not found
         if (!defaultStatus) {
             defaultStatus = sql.firstRow("""
                 SELECT sts_id 

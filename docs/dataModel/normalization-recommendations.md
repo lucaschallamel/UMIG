@@ -19,6 +19,7 @@ The UMIG data model has several normalization issues that impact API development
 ### 1. Audit Fields Inconsistency
 
 #### Tables WITH Complete Audit Fields
+
 - `plans_master_plm` ✅ (created_by, created_at, updated_by, updated_at)
 - `migrations_mig` ✅ (created_by, created_at, updated_by, updated_at)
 - `iterations_ite` ✅ (created_by, created_at, updated_by, updated_at)
@@ -26,7 +27,9 @@ The UMIG data model has several normalization issues that impact API development
 - `users_usr` ⚠️ (only created_at, updated_at - missing created_by, updated_by)
 
 #### Tables MISSING Audit Fields Completely
+
 **Master Tables:**
+
 - `sequences_master_sqm` ❌
 - `phases_master_phm` ❌
 - `steps_master_stm` ❌
@@ -34,6 +37,7 @@ The UMIG data model has several normalization issues that impact API development
 - `instructions_master_inm` ❌
 
 **Instance Tables:**
+
 - `sequences_instance_sqi` ❌
 - `phases_instance_phi` ❌
 - `steps_instance_sti` ❌
@@ -41,6 +45,7 @@ The UMIG data model has several normalization issues that impact API development
 - `instructions_instance_ini` ❌
 
 **Reference Tables:**
+
 - `teams_tms` ❌
 - `applications_app` ❌
 - `environments_env` ❌
@@ -54,6 +59,7 @@ The UMIG data model has several normalization issues that impact API development
 The instance tables have been denormalized by duplicating master fields (via migration 010):
 
 #### Duplicated Fields Pattern
+
 ```sql
 -- Example: sequences_instance_sqi duplicates from sequences_master_sqm
 sqi_name         -- Duplicates sqm_name
@@ -63,6 +69,7 @@ predecessor_sqi_id -- Duplicates predecessor_sqm_id
 ```
 
 This pattern is repeated across all instance tables:
+
 - `sequences_instance_sqi` (4 duplicated fields)
 - `phases_instance_phi` (4 duplicated fields)
 - `steps_instance_sti` (5 duplicated fields)
@@ -70,6 +77,7 @@ This pattern is repeated across all instance tables:
 - `controls_instance_cti` (6 duplicated fields)
 
 **Issues with this approach:**
+
 - Data redundancy and potential inconsistency
 - Increased storage requirements
 - Complex synchronization logic needed
@@ -79,16 +87,19 @@ This pattern is repeated across all instance tables:
 ### 3. Missing Standard Fields
 
 #### Status Management
+
 - Status fields are VARCHAR(50) without FK constraints to a status table
 - No standardized status values or transitions
 - Inconsistent status field naming (mig_status, ite_status, pli_status, etc.)
 
 #### Soft Delete Support
+
 - No soft delete capability (no deleted_at, is_deleted fields)
 - Physical deletes can cause referential integrity issues
 - No audit trail for deletions
 
 #### Versioning
+
 - No version tracking for master entities
 - Cannot track changes over time
 - No way to rollback to previous versions
@@ -98,6 +109,7 @@ This pattern is repeated across all instance tables:
 ### 1. Standardize Audit Fields
 
 #### Create Standard Audit Columns for ALL Tables
+
 ```sql
 -- Standard audit fields to add to ALL tables (except join tables)
 created_by VARCHAR(255) NOT NULL DEFAULT 'system',
@@ -109,6 +121,7 @@ is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 ```
 
 #### Implementation Priority
+
 1. **High Priority** (affects API operations):
    - All master tables (sequences, phases, steps, controls, instructions)
    - All instance tables
@@ -123,6 +136,7 @@ is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 ### 2. Normalize Instance Tables
 
 #### Option A: True Normalization (Recommended)
+
 Remove duplicated fields from instance tables and always join to master:
 
 ```sql
@@ -157,6 +171,7 @@ CREATE TABLE sequences_instance_overrides (
 ```
 
 #### Option B: Hybrid Approach
+
 Keep override fields but make them explicitly nullable and document that NULL means "use master value":
 
 ```sql
@@ -166,7 +181,7 @@ ALTER TABLE sequences_instance_sqi
     ALTER COLUMN sqi_description DROP NOT NULL;
 
 -- Add comments to clarify
-COMMENT ON COLUMN sequences_instance_sqi.sqi_name IS 
+COMMENT ON COLUMN sequences_instance_sqi.sqi_name IS
     'Override name - NULL means use master value from sequences_master_sqm.sqm_name';
 ```
 
@@ -204,6 +219,7 @@ CREATE TABLE status_transitions (
 ### 4. Abstract Common Patterns
 
 #### Create Base Entity Pattern
+
 Consider using table inheritance or a base entity table:
 
 ```sql
@@ -233,24 +249,28 @@ CREATE TABLE sequences_master_sqm (
 ## Migration Strategy
 
 ### Phase 1: Add Audit Fields (Week 1)
+
 1. Create Liquibase migration to add audit fields to all tables
 2. Set default values for existing records
 3. Update all repository classes to handle audit fields
 4. Modify APIs to populate audit fields
 
 ### Phase 2: Normalize Instance Tables (Week 2)
+
 1. Create override tables for instance-specific changes
 2. Migrate existing override data to new structure
 3. Update repository methods to handle joins
 4. Refactor APIs to use normalized structure
 
 ### Phase 3: Implement Status Management (Week 3)
+
 1. Create status and transition tables
 2. Migrate existing status values
 3. Update APIs to use status tables
 4. Implement status transition validation
 
 ### Phase 4: Testing & Validation (Week 4)
+
 1. Comprehensive testing of all APIs
 2. Performance testing with normalized structure
 3. Data integrity validation
@@ -259,11 +279,13 @@ CREATE TABLE sequences_master_sqm (
 ## Impact Analysis
 
 ### API Impact
+
 - **Repository Layer**: All repository classes need updates for audit fields
 - **API Endpoints**: Minimal changes if repositories handle complexity
 - **Performance**: Slight increase in query complexity, but better data integrity
 
 ### Benefits
+
 1. **Consistency**: Standard fields across all tables
 2. **Auditability**: Complete audit trail for all changes
 3. **Maintainability**: Cleaner, more normalized structure
@@ -271,6 +293,7 @@ CREATE TABLE sequences_master_sqm (
 5. **API Standardization**: Consistent patterns across all endpoints
 
 ### Risks
+
 1. **Migration Complexity**: Large number of tables to update
 2. **Testing Effort**: All APIs need retesting
 3. **Performance**: Additional joins may impact query performance
@@ -279,15 +302,19 @@ CREATE TABLE sequences_master_sqm (
 ## Recommended Immediate Actions
 
 ### Priority 1: Standardize Audit Fields
+
 Add audit fields to all tables with a single Liquibase migration. This is the highest impact, lowest risk change.
 
 ### Priority 2: Create Status Management
+
 Implement proper status tables to replace VARCHAR status fields. This improves data integrity and enables workflow management.
 
 ### Priority 3: Document Override Strategy
+
 Clearly define when and how instance overrides should be used. Consider if the current denormalized approach is truly needed.
 
 ### Priority 4: Plan Normalization
+
 Evaluate if the benefits of normalization outweigh the migration effort. Consider a gradual approach starting with new tables.
 
 ## Conclusion
@@ -295,6 +322,7 @@ Evaluate if the benefits of normalization outweigh the migration effort. Conside
 The current data model has significant normalization issues that impact development efficiency and data integrity. The most critical issue is the lack of consistent audit fields, which should be addressed immediately. The denormalized instance tables represent a more complex challenge that requires careful consideration of trade-offs between normalization and practical implementation needs.
 
 Implementing these recommendations will:
+
 - Reduce code duplication in APIs and repositories
 - Improve data consistency and integrity
 - Provide better auditability

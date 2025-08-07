@@ -3,6 +3,7 @@
 ---
 
 ## 1. API Overview
+
 - **API Name:** Labels API
 - **Purpose:** Manage labels with full CRUD operations, hierarchical filtering, and association management for applications and steps
 - **Owner:** UMIG Development Team
@@ -10,43 +11,47 @@
 
 ## 2. Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/labels` | Get all labels with optional hierarchical filtering |
-| GET | `/labels/{id}` | Get a specific label by ID |
-| POST | `/labels` | Create a new label |
-| PUT | `/labels/{id}` | Update an existing label |
-| DELETE | `/labels/{id}` | Delete a label |
-| GET | `/labels/{id}/steps` | Get steps associated with a label |
-| POST | `/labels/{labelId}/applications/{applicationId}` | Add application association |
-| DELETE | `/labels/{labelId}/applications/{applicationId}` | Remove application association |
-| POST | `/labels/{labelId}/steps/{stepId}` | Add step association |
-| DELETE | `/labels/{labelId}/steps/{stepId}` | Remove step association |
+| Method | Path                                             | Description                                         |
+| ------ | ------------------------------------------------ | --------------------------------------------------- |
+| GET    | `/labels`                                        | Get all labels with optional hierarchical filtering |
+| GET    | `/labels/{id}`                                   | Get a specific label by ID                          |
+| POST   | `/labels`                                        | Create a new label                                  |
+| PUT    | `/labels/{id}`                                   | Update an existing label                            |
+| DELETE | `/labels/{id}`                                   | Delete a label                                      |
+| GET    | `/labels/{id}/steps`                             | Get steps associated with a label                   |
+| POST   | `/labels/{labelId}/applications/{applicationId}` | Add application association                         |
+| DELETE | `/labels/{labelId}/applications/{applicationId}` | Remove application association                      |
+| POST   | `/labels/{labelId}/steps/{stepId}`               | Add step association                                |
+| DELETE | `/labels/{labelId}/steps/{stepId}`               | Remove step association                             |
 
 ## 3. Request Details
+
 ### 3.1. Path Parameters
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| id | Integer | Yes (for specific endpoints) | Label ID |
-| labelId | Integer | Yes (for association endpoints) | Label ID |
-| applicationId | Integer | Yes (for app associations) | Application ID |
-| stepId | UUID | Yes (for step associations) | Step Master ID |
+| Name          | Type    | Required                        | Description    |
+| ------------- | ------- | ------------------------------- | -------------- |
+| id            | Integer | Yes (for specific endpoints)    | Label ID       |
+| labelId       | Integer | Yes (for association endpoints) | Label ID       |
+| applicationId | Integer | Yes (for app associations)      | Application ID |
+| stepId        | UUID    | Yes (for step associations)     | Step Master ID |
 
 ### 3.2. Query Parameters (GET /labels only)
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| migrationId | UUID | No | Filter labels by migration ID |
-| iterationId | UUID | No | Filter labels by iteration ID |
-| planId | UUID | No | Filter labels by plan instance ID |
-| sequenceId | UUID | No | Filter labels by sequence instance ID |
-| phaseId | UUID | No | Filter labels by phase instance ID |
+| Name        | Type | Required | Description                           |
+| ----------- | ---- | -------- | ------------------------------------- |
+| migrationId | UUID | No       | Filter labels by migration ID         |
+| iterationId | UUID | No       | Filter labels by iteration ID         |
+| planId      | UUID | No       | Filter labels by plan instance ID     |
+| sequenceId  | UUID | No       | Filter labels by sequence instance ID |
+| phaseId     | UUID | No       | Filter labels by phase instance ID    |
 
 ### 3.3. Request Body
+
 #### POST /labels - Create Label
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "lbl_name": "string (required)",
@@ -55,7 +60,9 @@
   "mig_id": "UUID string (required)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "lbl_name": "High Priority",
@@ -66,8 +73,10 @@
 ```
 
 #### PUT /labels/{id} - Update Label
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "lbl_name": "string (optional)",
@@ -76,7 +85,9 @@
   "mig_id": "UUID string (optional)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "lbl_name": "Critical Priority",
@@ -85,12 +96,15 @@
 ```
 
 ## 4. Response Details
+
 ### 4.1. Success Responses
 
 #### GET /labels - List Labels
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 [
   {
@@ -103,9 +117,11 @@
 ```
 
 #### GET /labels/{id} - Get Label Details
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "lbl_id": "integer",
@@ -127,9 +143,11 @@
 ```
 
 #### GET /labels/{id}/steps - Get Label Steps
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "steps": [
@@ -144,23 +162,28 @@
 ```
 
 #### POST /labels - Create Label
+
 - **Status Code:** 201
 - **Content-Type:** application/json
 - **Schema:** Same as GET /labels/{id}
 
 #### PUT /labels/{id} - Update Label
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:** Same as GET /labels/{id}
 
 #### DELETE /labels/{id} - Delete Label
+
 - **Status Code:** 204
 - **Content-Type:** N/A (No Content)
 
 #### POST/DELETE Association Endpoints
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "success": true,
@@ -170,46 +193,50 @@
 
 ### 4.2. Error Responses
 
-| Status Code | Content-Type | Schema | Example | Description |
-|-------------|--------------|--------|---------|-------------|
-| 400 | application/json | {"error": "string"} | {"error": "Invalid migration ID format"} | Invalid UUID format or missing required fields |
-| 404 | application/json | {"error": "string"} | {"error": "Label not found"} | Resource not found |
-| 409 | application/json | {"error": "string"} | {"error": "Label name already exists in this migration"} | Duplicate constraint violation |
-| 500 | application/json | {"error": "string"} | {"error": "A database error occurred"} | Internal server error |
+| Status Code | Content-Type     | Schema              | Example                                                  | Description                                    |
+| ----------- | ---------------- | ------------------- | -------------------------------------------------------- | ---------------------------------------------- |
+| 400         | application/json | {"error": "string"} | {"error": "Invalid migration ID format"}                 | Invalid UUID format or missing required fields |
+| 404         | application/json | {"error": "string"} | {"error": "Label not found"}                             | Resource not found                             |
+| 409         | application/json | {"error": "string"} | {"error": "Label name already exists in this migration"} | Duplicate constraint violation                 |
+| 500         | application/json | {"error": "string"} | {"error": "A database error occurred"}                   | Internal server error                          |
 
 ## 5. Authentication & Authorization
+
 - **Required?** Yes
 - **Mechanism:** Confluence Basic Authentication
 - **Permissions:** confluence-users, confluence-administrators
 
 ## 6. Rate Limiting & Security
+
 - **Rate Limits:** None specified
 - **RLS (Row-Level Security):** No
 - **Input Validation:** UUID format validation for query parameters
 - **Other Security Considerations:** SQL injection prevention via parameterized queries
 
 ## 7. Business Logic & Side Effects
+
 - **Key Logic:**
   - **GET /labels**: Hierarchical filtering follows specific path: filtered phases → step instances → master steps → labels
   - Query flow: PHI instances → STI via phi_id → STM via stm_id → labels via labels_lbl_x_steps_master_stm
   - Progressive filtering: fewer labels returned at deeper hierarchy levels
   - Returns distinct labels only
-  - **CRUD Operations**: 
+  - **CRUD Operations**:
     - Labels are scoped to migrations (unique constraint on mig_id + lbl_name)
     - Migration ID can be updated via PUT endpoint
     - Deletion removes all associations (cascade)
   - **Association Management**:
     - Many-to-many relationships with applications and steps
     - Associations are tracked with audit fields (created_at, created_by)
-- **Side Effects:** 
+- **Side Effects:**
   - POST/PUT/DELETE operations modify database state
   - DELETE removes all associated relationships
-- **Idempotency:** 
+- **Idempotency:**
   - GET operations: Yes
   - PUT operations: Yes (same data produces same result)
   - POST/DELETE associations: Yes (duplicate adds/removes are handled gracefully)
 
 ## 8. Dependencies & Backing Services
+
 - **DB Tables/Entities:**
   - `labels_lbl` (primary)
   - `labels_lbl_x_steps_master_stm` (label-step relationships)
@@ -223,16 +250,19 @@
 - **Other Services:** DatabaseUtil for connection management
 
 ## 9. Versioning & Deprecation
+
 - **API Version:** V2
 - **Deprecation Policy:** Follow project deprecation guidelines
 
 ## 10. Testing & Mock Data
+
 - **Unit Tests:** None specified
 - **Integration Tests:** Manual testing performed
 - **E2E Tests:** None specified
 - **Mock Data/Fixtures:** Synthetic data via data generators (24 labels total)
 
 ## 11. Changelog
+
 - **Date:** 2025-07-09
 - **Change:** Created Labels API with hierarchical filtering support
 - **Author:** Claude AI Assistant

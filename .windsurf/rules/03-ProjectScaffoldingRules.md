@@ -9,6 +9,7 @@ trigger: manual
 ## Project structure
 
 The project should include the following files and folders:
+
 - a .clineignore file
 - a .gitignore file primed for a regular project managed with CLINE in Microsoft VSCode
 - a generic readme.md file

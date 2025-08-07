@@ -103,6 +103,7 @@ Implementation of the Instructions API that completes UMIG's hierarchical migrat
 **✅ ZERO SCHEMA CHANGES REQUIRED** - Uses existing production tables from `001_unified_baseline.sql`
 
 #### Master Instructions (`instructions_master_inm`)
+
 ```sql
 CREATE TABLE instructions_master_inm (
     inm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -119,6 +120,7 @@ CREATE TABLE instructions_master_inm (
 ```
 
 #### Instance Instructions (`instructions_instance_ini`)
+
 ```sql
 CREATE TABLE instructions_instance_ini (
     ini_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -134,6 +136,7 @@ CREATE TABLE instructions_instance_ini (
 ```
 
 #### Performance Indexes
+
 ```sql
 CREATE INDEX idx_inm_stm_id_order ON instructions_master_inm(stm_id, inm_order);
 CREATE INDEX idx_ini_sti_id ON instructions_instance_ini(sti_id);
@@ -146,14 +149,16 @@ CREATE INDEX idx_inm_tms_id ON instructions_master_inm(tms_id) WHERE tms_id IS N
 **Base Path**: `/rest/scriptrunner/latest/custom/instructions`
 
 #### Master Instruction Endpoints (6)
+
 - `GET /instructions/master` - List all master instructions
-- `GET /instructions/master/{inm_id}` - Get specific master instruction  
+- `GET /instructions/master/{inm_id}` - Get specific master instruction
 - `POST /instructions/master` - Create master instruction
 - `PUT /instructions/master/{inm_id}` - Update master instruction
 - `PUT /instructions/master/reorder` - Reorder master instructions
 - `DELETE /instructions/master/{inm_id}` - Delete master instruction
 
 #### Instance Instruction Endpoints (8)
+
 - `GET /instructions/instance` - List instruction instances
 - `GET /instructions/instance/filtered` - Hierarchical filtered list
 - `GET /instructions/instance/{ini_id}` - Get specific instance
@@ -165,6 +170,7 @@ CREATE INDEX idx_inm_tms_id ON instructions_master_inm(tms_id) WHERE tms_id IS N
 - `DELETE /instructions/instance/{ini_id}` - Delete instance
 
 #### Analytics Endpoints (1)
+
 - `GET /instructions/statistics` - Completion statistics and analytics
 
 **Total**: 14 endpoints implemented with consolidated routing pattern
@@ -174,6 +180,7 @@ CREATE INDEX idx_inm_tms_id ON instructions_master_inm(tms_id) WHERE tms_id IS N
 ### API Implementation Deliverables
 
 **✅ Complete API Implementation**
+
 - 14 REST endpoints operational with <185ms average response time
 - Consolidated endpoint pattern with single entry point per HTTP method
 - Repository pattern with 19 core methods implemented
@@ -181,6 +188,7 @@ CREATE INDEX idx_inm_tms_id ON instructions_master_inm(tms_id) WHERE tms_id IS N
 - Comprehensive error handling with SQL state mapping
 
 **✅ Advanced Features**
+
 - Hierarchical filtering across all migration levels
 - Team assignment and distribution capabilities
 - Bulk operations with transaction integrity
@@ -188,6 +196,7 @@ CREATE INDEX idx_inm_tms_id ON instructions_master_inm(tms_id) WHERE tms_id IS N
 - Statistics and analytics generation
 
 **✅ Integration Points**
+
 - Steps API integration (parent-child relationships)
 - Teams API integration (assignment validation)
 - Users API integration (completion tracking)
@@ -197,14 +206,18 @@ CREATE INDEX idx_inm_tms_id ON instructions_master_inm(tms_id) WHERE tms_id IS N
 ### Key Implementation Patterns
 
 #### Simplified Status Model
+
 The Instructions API implements a simplified boolean completion model instead of complex state machines:
+
 - **Status**: `ini_is_completed` (true/false)
 - **Audit Trail**: `ini_completed_at`, `usr_id_completed_by`
 - **Performance**: Faster queries and reduced complexity
 - **Coverage**: Meets 99% of real-world use cases
 
 #### Team Assignment Integration
+
 Instructions support optional team assignment with inheritance:
+
 - **Master Level**: Team assignment at template level
 - **Instance Inheritance**: Instances inherit team assignments
 - **Validation**: Integration with Teams API for validation
@@ -212,9 +225,10 @@ Instructions support optional team assignment with inheritance:
 - **Bulk Operations**: Efficient team distribution
 
 #### Hierarchical Filtering Implementation
+
 ```sql
 WITH RECURSIVE hierarchy AS (
-    SELECT 
+    SELECT
         ini.ini_id, inm.inm_order, inm.inm_body,
         sti.sti_name, phi.phi_name, sqi.sqi_name,
         pli.pli_name, ite.ite_name, mig.mig_name
@@ -234,6 +248,7 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 ## Testing Implementation
 
 ### Test Coverage Achieved
+
 - **Unit Tests**: 95% coverage (exceeded 90% target)
 - **Integration Tests**: 92% coverage (exceeded 85% target)
 - **End-to-End Tests**: 88% coverage (exceeded 80% target)
@@ -242,7 +257,9 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 ### Test Categories Implementation
 
 #### Unit Tests (150+ tests)
+
 **Repository Layer (50 tests)**:
+
 - CRUD operations for master/instance instructions
 - Transaction handling and rollback scenarios
 - SQL pattern validation with regex mocking (ADR-026)
@@ -250,6 +267,7 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 - Type conversion and parameter validation
 
 **Business Logic (40 tests)**:
+
 - Validation rules for instruction ordering
 - Status transition workflows (pending → completed)
 - Team assignment validation logic
@@ -257,6 +275,7 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 - Concurrency handling scenarios
 
 **API Layer (60 tests)**:
+
 - Endpoint routing and parameter handling
 - Request/response validation patterns
 - Error mapping and HTTP status codes
@@ -264,7 +283,9 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 - Performance benchmarking validation
 
 #### Integration Tests (50+ tests)
+
 **End-to-End Workflows (20 tests)**:
+
 - Complete instruction lifecycle (create → assign → complete)
 - Hierarchical filtering across all migration levels
 - Team assignment and distribution flows
@@ -272,6 +293,7 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 - Analytics and statistics generation
 
 **Cross-Component Integration (20 tests)**:
+
 - Steps API integration and parent relationships
 - Teams API integration for assignments validation
 - Users API integration for completion tracking
@@ -279,6 +301,7 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 - Email notification integration testing
 
 **Database Integration (10 tests)**:
+
 - Transaction integrity with concurrent access
 - Foreign key constraint validation
 - Performance with realistic data volumes (1000+ instructions)
@@ -286,7 +309,9 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 - Index utilization verification
 
 #### Performance Tests (20+ tests)
+
 **Load Tests (10 tests)**:
+
 - 50+ concurrent users completing instructions
 - Bulk operations with 1000+ instructions
 - Sustained load testing over extended periods
@@ -294,6 +319,7 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 - Database connection pool stress testing
 
 **Benchmark Tests (10 tests)**:
+
 - API response times (<200ms requirement - achieved <185ms)
 - Database query performance optimization
 - Memory usage patterns and optimization
@@ -303,32 +329,40 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 ## Challenges Resolved
 
 ### Code Quality Enhancement
+
 **Challenge**: Large API methods and incomplete CRUD functionality
 **Resolution**: Implemented comprehensive code review improvements:
+
 - Refactored large methods into smaller, focused handlers
 - Added missing deletion functionality with proper cascade handling
 - Enhanced validation for negative duration values
 - Created centralized AuthenticationService for user management
 
 ### Performance Optimization
+
 **Challenge**: Hierarchical filtering performance across deep data structures
-**Resolution**: 
+**Resolution**:
+
 - Implemented optimized CTE queries for hierarchical traversal
 - Created strategic indexes for common query patterns
 - Added materialized view patterns for complex aggregations
 - Achieved <185ms average response times (target <200ms)
 
 ### Team Assignment Integration
+
 **Challenge**: Complex team distribution and validation requirements
 **Resolution**:
+
 - Implemented optional team assignment at master level
 - Created inheritance patterns for instances
 - Added bulk distribution capabilities
 - Integrated validation with existing Teams API
 
 ### Testing Complexity
+
 **Challenge**: Comprehensive testing across hierarchical data model
 **Resolution**:
+
 - Created 150+ unit tests with ADR-026 SQL mocking
 - Implemented 50+ integration tests for cross-component validation
 - Added 20+ performance tests for load scenarios
@@ -337,25 +371,30 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 ## Quality Metrics Achieved
 
 ### Code Quality Results
+
 - **Coverage**: 95% (exceeded 90% target)
-- **Complexity**: <10 per method (within target)  
+- **Complexity**: <10 per method (within target)
 - **Duplication**: <5% (within target)
 - **Technical Debt**: <2 days (within target)
 - **Maintainability**: Grade A (target achieved)
 
 ### Performance Validation
+
 **Response Time Benchmarks**:
+
 - Single instruction GET: 45ms (target: <50ms)
 - Filtered list (1000 items): 185ms (target: <200ms)
 - Bulk complete (100 items): 450ms (target: <500ms)
 - Statistics calculation: 280ms (target: <300ms)
 
 **Throughput Results**:
+
 - Sustained: 120 requests/second (target: 100+)
 - Peak: 580 requests/second (target: 500+)
 - Concurrent Users: 65+ (target: 50+)
 
 ### Security Validation
+
 - **Authentication**: All endpoints require Confluence authentication
 - **Authorization**: Team-based access control implemented
 - **Input Validation**: SQL injection prevention verified
@@ -365,6 +404,7 @@ SELECT * FROM hierarchy ORDER BY inm_order;
 ## Sprint 3 Impact
 
 ### Hierarchical Data Model Completion
+
 The Instructions API completes UMIG's comprehensive hierarchical migration management architecture:
 
 ```
@@ -378,12 +418,14 @@ Migration (mig) - Top-level migration event
 ```
 
 ### Foundation Pattern Establishment
+
 **Consolidated Endpoint Pattern**: Single entry point per HTTP method with path-based routing became the standard for all Sprint 3 APIs
 **Repository Pattern**: Consistent data access layer with transaction management
 **Type Safety**: ADR-031 compliance patterns established across all APIs
 **Error Handling**: SQL state mapping and comprehensive error responses
 
 ### Business Value Delivered
+
 - **Granular Task Management**: Instructions provide detailed task tracking within steps
 - **Team Distribution**: Clear assignment of responsibilities to specific teams
 - **Progress Visibility**: Real-time completion tracking and progress metrics
@@ -391,6 +433,7 @@ Migration (mig) - Top-level migration event
 - **Operational Efficiency**: Reduced coordination overhead through automated distribution
 
 ### Technical Foundation
+
 - **Complete Data Model**: Instructions complete the hierarchical migration model
 - **API Consistency**: Follows established UMIG patterns and conventions
 - **Performance Optimization**: Sub-200ms response times maintained
@@ -399,18 +442,21 @@ Migration (mig) - Top-level migration event
 ## Documentation Deliverables
 
 ### Technical Documentation
+
 - **OpenAPI 3.0 Specification**: Complete specification with all 14 endpoints
 - **API Developer Guide**: Integration patterns and usage examples
 - **Repository Documentation**: Code patterns and SQL query examples
 - **Database Schema Guide**: Production schema documentation and relationships
 
 ### Integration Resources
+
 - **Postman Collection**: Complete test collection with request examples
 - **JavaScript Client Examples**: Frontend integration patterns
 - **Error Handling Guide**: Comprehensive error scenarios and responses
 - **Performance Tuning Guide**: Optimization recommendations and best practices
 
 ### Operational Documentation
+
 - **Deployment Guide**: Zero-downtime deployment procedures
 - **Monitoring Setup**: Performance metrics and alerting configuration
 - **Troubleshooting Guide**: Common issues and resolution procedures
@@ -419,6 +465,7 @@ Migration (mig) - Top-level migration event
 ## Lessons Learned
 
 ### What Worked Well
+
 - **Existing Schema Utilization**: Leveraging production-ready database schema eliminated migration risks
 - **Consolidated Endpoint Pattern**: Single entry point per HTTP method simplified routing and maintenance
 - **Simplified Status Model**: Boolean completion tracking met 99% of use cases while reducing complexity
@@ -426,12 +473,14 @@ Migration (mig) - Top-level migration event
 - **Comprehensive Testing**: High coverage and performance validation prevented production issues
 
 ### Architecture Patterns for Future APIs
+
 - **Consistent Patterns**: Continue using consolidated endpoint pattern for maintainability
 - **Performance First**: Maintain sub-200ms response time targets for all operations
 - **Test-Driven Development**: Comprehensive test coverage prevents production issues
 - **Documentation Investment**: Complete documentation reduces onboarding time and support burden
 
 ### Sprint 3 Success Factors
+
 - **Team Assignment Integration**: Optional team assignment provides flexibility without complexity
 - **Bulk Operations**: Transaction integrity with bulk operations improves performance
 - **Hierarchical Filtering**: CTE-based filtering provides efficient cross-level queries
@@ -442,14 +491,16 @@ Migration (mig) - Top-level migration event
 ### Completion Criteria Verification
 
 **✅ Functional Requirements**:
+
 - All 14 API endpoints implemented and operational
-- Hierarchical filtering working across all migration levels  
+- Hierarchical filtering working across all migration levels
 - Team assignment and distribution operational with validation
 - Simplified completion tracking implemented with audit trails
 - Master/instance pattern fully operational with inheritance
 - Bulk operations implemented with transaction integrity
 
 **✅ Non-Functional Requirements**:
+
 - API response times <200ms (achieved 185ms average)
 - 95% test coverage achieved (exceeded 90% target)
 - Security and authorization implemented with audit trails
@@ -458,6 +509,7 @@ Migration (mig) - Top-level migration event
 - Production deployment successful with monitoring active
 
 **✅ Integration Requirements**:
+
 - Steps API integration complete with parent-child relationships
 - Teams API integration operational with validation
 - Users API integration functional with completion tracking
@@ -472,17 +524,19 @@ Migration (mig) - Top-level migration event
 **Monitoring**: Active with comprehensive metrics and no issues detected  
 **Performance**: All SLAs met with response times averaging 185ms  
 **User Feedback**: Positive initial response from migration coordinators  
-**Quality**: Exceeded all quality and performance targets  
+**Quality**: Exceeded all quality and performance targets
 
 ### Business Impact Delivered
 
 **Immediate Benefits**:
+
 - Complete hierarchical migration management capability operational
 - Granular task tracking with team assignment and distribution
 - Real-time progress visibility and completion metrics
 - Quality gate integration for critical instruction validation
 
 **Operational Improvements**:
+
 - Reduced coordination overhead through automated instruction distribution
 - Improved accountability with clear assignment and completion tracking
 - Better time management with duration estimates and actual tracking
@@ -496,9 +550,11 @@ Migration (mig) - Top-level migration event
 **Overall Sprint 3 Success**: Complete hierarchical migration management platform operational
 
 ### User Story
+
 As a migration coordinator, I need to manage detailed instructions within each step of the migration process, including the ability to distribute instructions to specific teams or individuals, so that I can ensure clear communication and precise execution of migration tasks.
 
 ### Business Value
+
 - Provides granular task management at the instruction level
 - Enables distribution of specific instructions to responsible parties
 - Completes the hierarchical data model for migration management
@@ -507,6 +563,7 @@ As a migration coordinator, I need to manage detailed instructions within each s
 ## Requirements Analysis
 
 ### Functional Requirements
+
 1. **CRUD Operations for Master Instructions**
    - Create master instruction templates linked to master steps
    - Read/retrieve master instructions with filtering
@@ -535,6 +592,7 @@ As a migration coordinator, I need to manage detailed instructions within each s
    - Support bulk distribution operations
 
 ### Non-Functional Requirements
+
 1. **Performance**: API response times <200ms
 2. **Security**: Confluence user group authorization
 3. **Compatibility**: ScriptRunner and PostgreSQL compatible
@@ -544,6 +602,7 @@ As a migration coordinator, I need to manage detailed instructions within each s
 ## Technical Design
 
 ### API Endpoints (Following Consolidated Pattern)
+
 ```
 /rest/scriptrunner/latest/custom/instructions
 ├── GET /instructions/master                    # List all master instructions
@@ -564,9 +623,11 @@ As a migration coordinator, I need to manage detailed instructions within each s
 ```
 
 ### Database Schema
+
 Following the canonical MASTER/INSTANCE pattern:
 
 #### Master Instructions Table (instructions_master_inm)
+
 ```sql
 - inm_id (UUID, PK)
 - stm_id (UUID, FK to steps_master_stm)
@@ -582,6 +643,7 @@ Following the canonical MASTER/INSTANCE pattern:
 ```
 
 #### Instance Instructions Table (instructions_instance_ini)
+
 ```sql
 - ini_id (UUID, PK)
 - inm_id (UUID, FK to instructions_master_inm)
@@ -603,6 +665,7 @@ Following the canonical MASTER/INSTANCE pattern:
 ```
 
 ### Repository Pattern Implementation
+
 Following established patterns, InstructionRepository will include:
 
 1. **Find Operations** (6 methods)
@@ -637,24 +700,28 @@ Following established patterns, InstructionRepository will include:
 ### Implementation Plan
 
 #### Phase 1: Repository Implementation (1.5 hours)
+
 1. Create InstructionRepository.groovy
 2. Implement all 19 repository methods
 3. Add transaction support for complex operations
 4. Include ordering logic with gap handling
 
 #### Phase 2: API Implementation (2 hours)
+
 1. Create InstructionsApi.groovy with consolidated endpoint
 2. Implement all 14 REST endpoints
 3. Add hierarchical filtering support
 4. Include type safety with explicit casting
 
 #### Phase 3: Testing (1 hour)
+
 1. Create InstructionRepositoryTest.groovy
 2. Create InstructionsApiIntegrationTest.groovy
 3. Add validation script
 4. Achieve 90%+ coverage
 
 #### Phase 4: Documentation (0.5 hours)
+
 1. Create InstructionsAPI.md
 2. Update openapi.yaml
 3. Regenerate Postman collection
@@ -663,12 +730,14 @@ Following established patterns, InstructionRepository will include:
 ## Testing Strategy
 
 ### Unit Tests
+
 - Mock SQL queries with regex patterns
 - Test all repository methods
 - Validate ordering logic
 - Test distribution functionality
 
 ### Integration Tests
+
 - Test all 14 endpoints
 - Validate hierarchical filtering
 - Test status transitions
@@ -676,6 +745,7 @@ Following established patterns, InstructionRepository will include:
 - Performance validation (<200ms)
 
 ### Test Scenarios
+
 1. Create master instruction
 2. Update master instruction
 3. Delete master with instances
@@ -695,12 +765,14 @@ Following established patterns, InstructionRepository will include:
 ## Dependencies and Risks
 
 ### Dependencies
+
 - Existing Steps API (parent entity)
 - Teams and Users APIs (for distribution)
 - Audit fields infrastructure (US-002b)
 - DatabaseUtil and ScriptRunner setup
 
 ### Risks
+
 1. **Complexity of distribution logic** - Mitigate with clear requirements
 2. **Performance with large instruction sets** - Mitigate with proper indexing
 3. **Ordering conflicts** - Mitigate with transaction management
@@ -725,7 +797,8 @@ Following established patterns, InstructionRepository will include:
 
 ---
 
-**Next Steps**: 
+**Next Steps**:
+
 1. Review and approve this specification
 2. Create database migrations if needed
 3. Begin implementation following the phased approach

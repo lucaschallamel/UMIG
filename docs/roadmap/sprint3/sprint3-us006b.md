@@ -51,6 +51,7 @@
 ## Recovery Notes
 
 **IMPORTANT**: The US-006 API implementation was accidentally reverted in commit 7056d21 and has been successfully recovered from commit a4cc184. The following files were restored:
+
 - ControlsApi.groovy - Full INTEGER FK status implementation
 - InstructionsApi.groovy - Boolean completion tracking (no status FK per design)
 - PlansApi.groovy - Status field normalization
@@ -66,22 +67,23 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 ### Critical Gaps (Must Fix)
 
-  ✅ All critical gaps have been addressed:
-  1. **Database Integrity**: Controls have FK constraints, Instructions use boolean
-  2. **API Validation**: Controls API validates status, Instructions use boolean
-  3. **Data Consistency**: Valid status IDs enforced for Controls
+✅ All critical gaps have been addressed:
+
+1. **Database Integrity**: Controls have FK constraints, Instructions use boolean
+2. **API Validation**: Controls API validates status, Instructions use boolean
+3. **Data Consistency**: Valid status IDs enforced for Controls
 
 ### Important Gaps (Should Fix)
 
-  1. **Admin GUI**: No interface for status management
-  2. **API Responses**: Missing status details (name, color) in responses
-  3. **Documentation**: OpenAPI spec needs update for status normalization
+1. **Admin GUI**: No interface for status management
+2. **API Responses**: Missing status details (name, color) in responses
+3. **Documentation**: OpenAPI spec needs update for status normalization
 
 ### Nice-to-Have Gaps
 
-  1. **Bulk Operations**: No bulk status update capability
-  2. **Status History**: No audit trail for status changes
-  3. **Status Workflow**: No status transition rules
+1. **Bulk Operations**: No bulk status update capability
+2. **Status History**: No audit trail for status changes
+3. **Status Workflow**: No status transition rules
 
 ## Comprehensive Implementation Plan with GENDEV Agents
 
@@ -92,11 +94,11 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 **Deliverables**:
 
-  1. Complete gap analysis with priorities
-  2. Dependency graph for all components
-  3. Risk assessment matrix
-  4. Implementation sequence recommendation
-  5. Validation criteria checklist
+1. Complete gap analysis with priorities
+2. Dependency graph for all components
+3. Risk assessment matrix
+4. Implementation sequence recommendation
+5. Validation criteria checklist
 
 ### Phase 2: Database Migration Design
 
@@ -105,11 +107,11 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 **Deliverables**:
 
-  1. Liquibase migration script (021_add_status_foreign_keys.sql)
-  2. Data validation queries
-  3. Rollback procedures
-  4. Performance impact assessment
-  5. Test queries for verification
+1. Liquibase migration script (021_add_status_foreign_keys.sql)
+2. Data validation queries
+3. Rollback procedures
+4. Performance impact assessment
+5. Test queries for verification
 
 ### Phase 3: API Implementation Updates
 
@@ -118,11 +120,11 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 **Deliverables**:
 
-  1. Detailed code modifications (line-by-line)
-  2. SQL query updates with JOINs
-  3. Validation logic implementation
-  4. Error handling patterns
-  5. Response structure updates
+1. Detailed code modifications (line-by-line)
+2. SQL query updates with JOINs
+3. Validation logic implementation
+4. Error handling patterns
+5. Response structure updates
 
 ### Phase 4: Test Suite Enhancement
 
@@ -131,11 +133,11 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 **Deliverables**:
 
-  1. Updated test cases for Instructions API
-  2. Updated test cases for Controls API
-  3. FK constraint validation tests
-  4. Invalid status rejection tests
-  5. Performance test scenarios
+1. Updated test cases for Instructions API
+2. Updated test cases for Controls API
+3. FK constraint validation tests
+4. Invalid status rejection tests
+5. Performance test scenarios
 
 ### Phase 5: Admin GUI Development
 
@@ -144,11 +146,11 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 **Deliverables**:
 
-  1. statusManagement.js component
-  2. Status dropdowns for all entity forms
-  3. Color-coded status badges
-  4. CSS styling for status visualization
-  5. Integration with existing components
+1. statusManagement.js component
+2. Status dropdowns for all entity forms
+3. Color-coded status badges
+4. CSS styling for status visualization
+5. Integration with existing components
 
 ### Phase 6: Documentation Updates
 
@@ -157,11 +159,11 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 **Deliverables**:
 
-  1. Updated OpenAPI specification
-  2. ADR-035 for status normalization (completed)
-  3. User guide for Admin GUI
-  4. Developer implementation guide
-  5. Migration procedures
+1. Updated OpenAPI specification
+2. ADR-035 for status normalization (completed)
+3. User guide for Admin GUI
+4. Developer implementation guide
+5. Migration procedures
 
 ### Phase 7: Quality Assurance
 
@@ -170,42 +172,42 @@ All recovered implementations pass integration tests and follow ADR-035 specific
 
 **Deliverables**:
 
-  1. Test execution report
-  2. Performance validation results
-  3. Security assessment
-  4. Acceptance criteria verification
-  5. Sign-off documentation
+1. Test execution report
+2. Performance validation results
+3. Security assessment
+4. Acceptance criteria verification
+5. Sign-off documentation
 
 ## Execution Sequence
 
 ### Immediate Actions (Can be done in parallel)
 
-  1. Database migration script creation (Phase 2)
-  2. API code review and planning (Phase 3)
-  3. Test suite updates (Phase 4)
+1. Database migration script creation (Phase 2)
+2. API code review and planning (Phase 3)
+3. Test suite updates (Phase 4)
 
 ### Sequential Implementation
 
-  1. Execute database migrations
-  2. Update Instructions API
-  3. Update Controls API
-  4. Run updated integration tests
-  5. Develop Admin GUI components
-  6. Update documentation
-  7. Final QA validation
+1. Execute database migrations
+2. Update Instructions API
+3. Update Controls API
+4. Run updated integration tests
+5. Develop Admin GUI components
+6. Update documentation
+7. Final QA validation
 
 ### Dependencies
 
 Database Migrations
-    ↓
+↓
 API Updates (Instructions, Controls)
-    ↓
+↓
 Integration Tests
-    ↓
+↓
 Admin GUI Development
-    ↓
+↓
 Documentation
-    ↓
+↓
 Final QA
 
 ## Success Criteria
@@ -275,11 +277,11 @@ Final QA
 
 ## Next Steps
 
-  1. Execute GENDEV agent tasks for detailed specifications
-  2. Review and approve migration scripts
-  3. Implement API updates
-  4. Develop Admin GUI
-  5. Complete testing
-  6. Update documentation
-  7. Deploy to development environment
-  8. Team review and sign-off
+1. Execute GENDEV agent tasks for detailed specifications
+2. Review and approve migration scripts
+3. Implement API updates
+4. Develop Admin GUI
+5. Complete testing
+6. Update documentation
+7. Deploy to development environment
+8. Team review and sign-off

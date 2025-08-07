@@ -35,12 +35,12 @@ try {
                 sti.sti_name,
                 sti.sti_status
             FROM steps_instance_sti sti
-            WHERE sti.sti_status = 'NOT_STARTED'
+            WHERE sti.sti_status = 'PENDING'
             LIMIT 1
         ''')
         
         if (!testStep) {
-            println "   No NOT_STARTED steps found!"
+            println "   No PENDING steps found!"
             return
         }
         

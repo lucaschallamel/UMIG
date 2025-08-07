@@ -1,6 +1,7 @@
 # ADR-035: Status Field Normalization
 
 ## Status
+
 **Status**: Accepted (Recovered from commit a4cc184)  
 **Date**: 2025-08-06  
 **Author**: Development Team  
@@ -22,7 +23,9 @@ During Sprint 3, we needed to standardize status management across the system wh
 We will implement a **hybrid approach** to status management:
 
 ### 1. Normalized Status Table (`status_sts`)
+
 Create a centralized lookup table for all status values with:
+
 - Unique ID (integer primary key)
 - Name (string identifier)
 - Color (hex code for UI visualization)
@@ -31,7 +34,9 @@ Create a centralized lookup table for all status values with:
 - Active flag (for soft deletion)
 
 ### 2. Foreign Key Constraints for Complex Entities
+
 Implement FK constraints for entities with complex workflows:
+
 - **Plans** (`pln_status` → `status_sts.sts_id`)
 - **Sequences** (`sqm_status` → `status_sts.sts_id`)
 - **Phases** (`phm_status` → `status_sts.sts_id`)
@@ -39,7 +44,9 @@ Implement FK constraints for entities with complex workflows:
 - **Controls** (`ctm_status`, `cti_status` → `status_sts.sts_id`)
 
 ### 3. Simple Boolean for Instructions
+
 Instructions use a simpler model for BOTH master and instance levels:
+
 - **Instruction Masters**: No status field at all
 - **Instruction Instances**: Use `ini_is_completed` boolean field only
 - No FK constraints to status table for either level
@@ -47,7 +54,9 @@ Instructions use a simpler model for BOTH master and instance levels:
 - Completion tracked with timestamp (`ini_completed_at`) and user (`usr_id_completed_by`)
 
 ### 4. API Flexibility
+
 APIs accept status as either:
+
 - Integer ID (direct reference)
 - String name (resolved to ID)
 - Returns `statusMetadata` object with full details
@@ -55,6 +64,7 @@ APIs accept status as either:
 ## Consequences
 
 ### Positive
+
 - **Data Integrity**: FK constraints prevent invalid status values
 - **Centralized Management**: Single source of truth for status definitions
 - **Flexible API**: Backward compatible with string status names
@@ -64,18 +74,21 @@ APIs accept status as either:
 - **Performance**: Integer comparisons faster than string comparisons
 
 ### Negative
+
 - **Migration Complexity**: Existing data must be migrated to use IDs
 - **Additional Joins**: GET operations require JOIN with status_sts
 - **Learning Curve**: Developers must understand the dual input format
 - **Schema Complexity**: Additional table and relationships
 
 ### Neutral
+
 - **Hybrid Approach**: Different patterns for different entity types
 - **Backward Compatibility**: APIs still accept string status names
 
 ## Implementation Details
 
 ### Status Table Structure
+
 ```sql
 CREATE TABLE status_sts (
     sts_id SERIAL PRIMARY KEY,
@@ -90,27 +103,34 @@ CREATE TABLE status_sts (
 
 ### Standard Status Values per Entity
 
-**Plans/Sequences/Phases**:
-- NOT_STARTED (Gray)
-- IN_PROGRESS (Blue)
-- COMPLETED (Green)
-- ON_HOLD (Yellow)
+**Migration/Iteration/Plan/Sequence/Phase** (4 each):
 
-**Steps**:
-- TODO (Yellow)
-- IN_PROGRESS (Blue)
-- COMPLETED (Green)
-- BLOCKED (Red)
+- PLANNING (Orange #FFA500)
+- IN_PROGRESS (Blue #0066CC)
+- COMPLETED (Green #00AA00)
+- CANCELLED (Red #CC0000)
 
-**Controls**:
-- PENDING (Gray)
-- VALIDATED (Green)
-- PASSED (Green)
-- FAILED (Red)
-- CANCELLED (Dark Red)
-- TODO (Yellow)
+**Step** (7 total):
+
+- PENDING (Light Grey #DDDDDD)
+- TODO (Yellow #FFFF00)
+- IN_PROGRESS (Blue #0066CC)
+- COMPLETED (Green #00AA00)
+- FAILED (Red #FF0000)
+- BLOCKED (Orange #FF6600)
+- CANCELLED (Dark Red #CC0000)
+
+**Control** (4 total):
+
+- TODO (Yellow #FFFF00)
+- PASSED (Green #00AA00)
+- FAILED (Red #FF0000)
+- CANCELLED (Dark Red #CC0000)
+
+**Note:** Instructions use boolean `ini_is_completed` field instead of status FK (by design)
 
 ### API Pattern
+
 ```groovy
 // Accept both formats
 def status = params.cti_status
@@ -136,16 +156,19 @@ response.statusMetadata = [
 ## Migration Strategy
 
 ### Phase 1: Database Schema (✅ Complete)
+
 1. Create status_sts table
 2. Populate with standard values
 3. Add FK constraints for Plans, Sequences, Phases, Steps
 
 ### Phase 2: Controls Migration (✅ Complete)
+
 1. Add FK constraints for Controls tables
 2. Update ControlsApi with validation
 3. Update integration tests
 
 ### Phase 3: Instructions Confirmation (✅ Complete)
+
 1. Confirm Instructions use boolean field only
 2. No FK constraints needed
 3. Document the decision
@@ -165,6 +188,7 @@ response.statusMetadata = [
 ## Notes
 
 The decision to use a boolean for Instructions rather than normalized status was based on:
+
 1. Instructions have a simple binary state (completed/not completed)
 2. No need for intermediate states or complex workflows at either master or instance level
 3. Reduces complexity and improves performance
@@ -179,10 +203,11 @@ This hybrid approach balances consistency and normalization with pragmatic simpl
 **Important:** The US-006b implementation was accidentally reverted in commit 7056d21 and has been successfully recovered from commit a4cc184. The recovery included:
 
 ### Recovered Files
+
 - `ControlsApi.groovy` - Full INTEGER FK status implementation
 - `InstructionsApi.groovy` - Boolean completion tracking (no status FK)
 - `PlansApi.groovy` - Status field normalization
-- `SequencesApi.groovy` - Status field normalization  
+- `SequencesApi.groovy` - Status field normalization
 - `StepsApi.groovy` - Status field normalization
 - `migrationApi.groovy` - Migration-level status handling
 - `ControlRepository.groovy` - Repository layer status validation

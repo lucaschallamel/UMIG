@@ -7,6 +7,7 @@
 ## Context
 
 The project requires a stable, maintainable, and scalable method for defining and deploying Groovy-based REST endpoints in ScriptRunner for Confluence. Initial development attempts resulted in two primary issues:
+
 1. **Runtime Errors:** Using manual UI registration or incorrect system properties led to `bundle://... Cannot open URL` errors, where ScriptRunner could discover endpoints but not locate the script files at execution time.
 2. **Compilation Errors:** Attempts to use certain implementation patterns (e.g., `@Endpoint` annotation) resulted in `unable to resolve class` errors, preventing the scripts from compiling and registering.
 
@@ -24,11 +25,13 @@ The configuration is managed in `podman-compose.yml` by setting two specific Jav
 ### 2. Implementation Pattern
 
 All endpoint `.groovy` files must meet three criteria:
+
 1. Be placed within the appropriate package structure under `src/`.
 2. **Declare their package at the top of the file** (e.g., `package com.umig.api.v2`). This is mandatory for the classloader to resolve the script path correctly.
 3. **Implement the `CustomEndpointDelegate` pattern.** This is the standard, officially documented pattern for creating robust REST endpoints and is required to avoid compilation errors.
 
 The key components of this pattern are:
+
 - **Annotation:** `@BaseScript com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate delegate`
 - **Method-based Endpoints:** Each HTTP verb is handled by a separate method invocation named after the resource.
 - **Path Parameters:** Handled using the `getAdditionalPath(request)` helper method.

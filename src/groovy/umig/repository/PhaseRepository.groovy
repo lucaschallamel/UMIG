@@ -488,7 +488,7 @@ class PhaseRepository {
                     def instanceData = [
                         sqi_id: sequenceInstanceId,
                         phm_id: masterPhaseId,
-                        phi_status: overrides.phi_status ?: 'NOT_STARTED',
+                        phi_status: overrides.phi_status ?: 'PLANNING',
                         phi_name: overrides.phi_name ?: masterPhase.phm_name,
                         phi_description: overrides.phi_description ?: masterPhase.phm_description,
                         phi_order: overrides.phi_order ?: masterPhase.phm_order,
@@ -1084,7 +1084,7 @@ class PhaseRepository {
                     def stats = sql.firstRow("""
                         SELECT 
                             COUNT(*) as total_phases,
-                            COUNT(CASE WHEN phi_status = 'NOT_STARTED' THEN 1 END) as not_started,
+                            COUNT(CASE WHEN phi_status = 'PLANNING' THEN 1 END) as planning,
                             COUNT(CASE WHEN phi_status = 'IN_PROGRESS' THEN 1 END) as in_progress,
                             COUNT(CASE WHEN phi_status = 'COMPLETED' THEN 1 END) as completed,
                             MIN(created_at) as first_created,
@@ -1100,7 +1100,7 @@ class PhaseRepository {
                     
                     return [
                         total_phases: stats.total_phases,
-                        not_started: stats.not_started,
+                        planning: stats.planning,
                         in_progress: stats.in_progress,
                         completed: stats.completed,
                         completion_rate: completionRate,
@@ -1164,17 +1164,17 @@ class PhaseRepository {
     /**
      * Gets the default status ID for new phase instances.
      * @param sql Active SQL connection
-     * @return Integer status ID for 'NOT_STARTED' Phase status
+     * @return Integer status ID for 'PLANNING' Phase status
      */
     private Integer getDefaultPhaseInstanceStatusId(groovy.sql.Sql sql) {
         Map defaultStatus = sql.firstRow("""
             SELECT sts_id 
             FROM status_sts 
-            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Phase'
+            WHERE sts_name = 'PLANNING' AND sts_type = 'Phase'
             LIMIT 1
         """) as Map
         
-        // Fallback to any Phase status if NOT_STARTED not found
+        // Fallback to any Phase status if PLANNING not found
         if (!defaultStatus) {
             defaultStatus = sql.firstRow("""
                 SELECT sts_id 

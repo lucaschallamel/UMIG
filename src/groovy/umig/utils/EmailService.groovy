@@ -545,8 +545,6 @@ class EmailService {
             case 'BLOCKED':
             case 'FAILED':
                 return '#dc3545'
-            case 'ON_HOLD':
-                return '#ffc107'
             default:
                 return '#6c757d'
         }

@@ -1,27 +1,30 @@
 # STEPS Subview — UI/UX Specification (Iteration View)
 
 ## 1. Title & Purpose
+
 - **View/Component Name:** STEPS Subview (within Iteration View)
 - **Purpose:**  
   To provide a comprehensive, user-friendly interface for end users (NORMAL, PILOT, and CUTOVER roles) to view and interact with step details within the iteration view context. This subview serves as the primary touchpoint for executing, tracking, and commenting on implementation steps during cutover events, with integrated email notifications and audit logging.
 
 ## 2. Scope & Context
-- **User Roles:**  
+
+- **User Roles:**
   - **NORMAL User:** Views step details, marks instructions as complete, adds comments
   - **PILOT User:** Has all NORMAL capabilities, plus can open steps (triggers email notifications)
   - **ADMIN User:** Has all PILOT capabilities, plus can change step status and perform escalations
-- **Entry Points:**  
+- **Entry Points:**
   - Accessed via the Iteration View macro (`iterationViewMacro.groovy`) as a right-panel subview
   - Activated by clicking on a step row in the main runsheet table
   - Context is provided by the selected migration/iteration and applied filters
-- **Dependencies:**  
+- **Dependencies:**
   - **Backend APIs:** StepsApi, EmailTemplatesApi, audit logging endpoints
   - **Database Tables:** steps_instance_sti, instructions_instance_ini, audit_log_aud, email_templates_emt
   - **Services:** EmailService for notifications, AuditLogRepository for tracking
   - **UI Components:** Main runsheet table selection, filter bar state, notification system
 
 ## 3. Data Requirements
-- **Primary Data Sources:**  
+
+- **Primary Data Sources:**
   - `steps_instance_sti` (instance execution records)
   - `instructions_instance_ini` (instruction execution records)
   - `steps_master_stm` (canonical step templates)
@@ -32,31 +35,32 @@
   - `email_templates_emt` (notification templates)
   - `iterations_ite`,`migrations_mig`,`phases_instance_phi`,`phases_master_phm`,`plans_instance_pli`,`plans_master_plm`,`sequences_instance_sqi`,`sequences_master_sqm` (Hierarchical positionning of the step in a migration > plan > iteration > sequence > phase)
   - `environment_roles_enr`,`environments_env`,`environments_env_x_iterations_ite` (environment scope for the step)
-- **Key Data Fields:**  
+- **Key Data Fields:**
   - **STEP INSTANCE:** sti_id, sti_name, sti_status, sti_opened_by, sti_opened_date, sti_phase, sti_team_owner, sti_impacted_teams
   - **INSTRUCTION INSTANCE:** ini_id, ini_body, ini_order, ini_status, ini_completed_by, ini_completed_date, ini_team_owner
   - **AUDIT DATA:** usr_id, aud_action, aud_entity_type, aud_entity_id, aud_details (JSONB)
   - **TEAMS:** tms_name, tms_email (for notifications)
   - **EMAIL TEMPLATES:** emt_type, emt_subject, emt_body_html, emt_body_text
-- **Derived/Computed Data:**  
+- **Derived/Computed Data:**
   - Step selection from runsheet table click (sti_id passed to details panel)
   - Instruction completion progress (completed count / total count)
   - Email notification recipients (owner + impacted teams)
 
 ## 4. UI Layout & Structure
-- **Sections:**  
+
+- **Sections:**
   1. **Panel Header:** "📄 STEP DETAILS" with close/minimize controls
   2. **Step Summary Card:** Key information and current status
   3. **Step Actions Bar:** Status change buttons (role-based visibility)
   4. **Instructions Table:** Ordered list with completion tracking
   5. **Comments Section:** Chronological comments with form (future)
-- **Field/Table Layout:**  
+- **Field/Table Layout:**
   - **Step Summary:** Name, Status, Phase, Owner Team, Impacted Teams, Labels, Audit Info
   - **Instructions Table:**
     - Order | Body | Team | Status | Completed At | Completed By | Actions
   - **Action Buttons:** Open Step, Update Status, Mark Instructions Complete (role-based)
   - **Comments:** Author, Timestamp, Body, Reply Actions (future)
-- **Current Implementation:**  
+- **Current Implementation:**
   - Right panel (aside) with fixed width in iteration view
   - Dynamic content loading based on selected step from runsheet
   - Placeholder message when no step is selected
@@ -64,14 +68,16 @@
 ## 5. UX & Interaction
 
 ### 5.1. Interactive Elements (Pink Rectangles from Draw.io Mock)
+
 Based on the comprehensive Draw.io mock analysis, the following elements are interactive:
 
 #### Status Management
+
 - **Status Dropdown (STI_STATUS):**
   - **Functionality:** Color-coded dropdown that changes background color dynamically to reflect the current status
   - **Implementation:** Status options fetched from status_sts table where sts_type='Step'
     - PENDING (#808080) - Gray
-    - TODO (#FFA500) - Orange  
+    - TODO (#FFA500) - Orange
     - IN_PROGRESS (#0066CC) - Blue
     - COMPLETED (#00AA00) - Green
     - FAILED (#CC0000) - Red
@@ -82,6 +88,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
   - **Email Trigger:** Status changes trigger `STEP_STATUS_CHANGED` notifications
 
 #### Instruction Completion
+
 - **Instruction Checkboxes (INI_IS_COMPLETE):**
   - **Functionality:** Individual checkboxes for each instruction in the instructions table
   - **Implementation:** Three separate checkboxes as shown in mock (one per instruction row)
@@ -89,22 +96,22 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
   - **Email Trigger:** Completion triggers `INSTRUCTION_COMPLETED` notifications
 
 #### Comments Management (Full CRUD)
+
 - **CREATE: "NEW COMMENT" Button**
   - **Functionality:** Opens comment creation modal/form
   - **Role Access:** All authenticated users
   - **Implementation:** Modal with text area and submit/cancel buttons
-  
 - **EDIT: "EDIT" Buttons (per comment)**
   - **Functionality:** Opens comment editing modal pre-populated with existing content
   - **Role Access:** Comment author or ADMIN+ roles only
   - **Implementation:** In-place editing or modal with save/cancel options
-  
 - **DELETE: "DELETE" Buttons (per comment)**
   - **Functionality:** Confirmation dialog followed by comment removal
   - **Role Access:** Comment author or ADMIN+ roles only
   - **Implementation:** Custom confirmation dialog (avoid native confirm() flickering)
 
 ### 5.2. User Actions & Workflows
+
 - **Step Selection:** Click step row in runsheet → loads details in right panel
 - **Open Step (PILOT):** Button to open step → triggers email notifications to the associated teams (primary assignee and impacted via association table steps_master_stm_x_teams_tms_impacted) + event logging
 - **Update Status (PILOT+):** Dynamic color dropdown to change step status → triggers email notifications and event logging
@@ -118,12 +125,14 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
   - **DELETE:** "DELETE" button → confirmation dialog + removal (author/ADMIN only)
 
 ### 5.3. UI States & Feedback
+
 - **Loading:** Spinner with "Loading step details..." message
 - **Empty:** Placeholder "👋 Select a step from the runsheet to view details"
 - **Error:** Error message with retry option and specific error details
 - **Success:** Confirmation notifications for all actions with email delivery status
 
 ### 5.4. Validation & Feedback
+
 - **Status Validation:** Prevent invalid state transitions (e.g., cannot reopen completed steps)
 - **Role-Based Actions:** Show/hide buttons based on user role (NORMAL/PILOT/ADMIN)
 - **Immediate Feedback:** Toast notifications for all actions including email delivery status
@@ -131,13 +140,15 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 - **Dynamic Color Feedback:** Status dropdown background color reflects current status
 
 ### 5.5. Accessibility
+
 - **Keyboard Navigation:** Tab order through all interactive elements
 - **ARIA Labels:** Descriptive labels for screen readers
 - **Color Contrast:** Status indicators and dynamic colors meet WCAG AA standards
 - **Focus Management:** Proper focus handling for modal dialogs and dropdowns
 
 ## 6. Notifications & Side Effects
-- **Email Notification Triggers:**  
+
+- **Email Notification Triggers:**
   - **Step Opened (PILOT action):**
     - Template: STEP_OPENED
     - Recipients: Owner team + Impacted teams
@@ -150,7 +161,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
     - Template: INSTRUCTION_COMPLETED
     - Recipients: Owner team + Impacted teams
     - Audit: EMAIL_SENT/EMAIL_FAILED + INSTRUCTION_COMPLETED actions
-- **Audit/Tracking (audit_log_aud):**  
+- **Audit/Tracking (audit_log_aud):**
   - **User Actions:** All actions logged with usr_id, timestamp, and JSONB details
   - **Email Events:** Comprehensive logging of email delivery with recipient details
   - **Status Changes:** Before/after status values with business justification
@@ -159,6 +170,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 ## 7. Implementation Status & Next Steps
 
 ### ✅ Completed (July 2025)
+
 - **Backend Integration:** StepsApi with email notification methods implemented
 - **Email System:** Complete notification workflow with template management
 - **Audit Logging:** Comprehensive tracking of all user actions and email events
@@ -166,6 +178,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 - **Data Loading:** Dynamic step details loading from backend API
 
 ### 🚧 Current Implementation Gaps
+
 - **Interactive Elements:** Pink rectangle elements from Draw.io mock not yet implemented
 - **Dynamic Status Dropdown:** Color-coded status dropdown with dynamic background colors
 - **Comments CRUD:** Full CREATE/EDIT/DELETE comment operations with role-based access
@@ -175,6 +188,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 - **Instruction Checkboxes:** Individual instruction completion checkboxes not implemented
 
 ### 📋 Immediate Next Steps
+
 1. **Implement Interactive Elements (Pink Rectangles):**
    - **Status Dropdown:** Create color-coded dropdown with dynamic background colors
      - Fetch status options and colors from backend
@@ -205,6 +219,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
    - Progress tracking for instruction completion
 
 ### 🔮 Future Enhancements
+
 - **Comments System:** Rich text comments with team notifications
 - **Real-Time Updates:** WebSocket or polling for live status updates
 - **Offline Support:** Cache step details for offline access
@@ -215,6 +230,7 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 ### 🛠️ Technical Considerations
 
 #### Dynamic Color Status Dropdown Implementation
+
 - **Color Management:**
   - Backend API provides status options with associated color codes
   - JavaScript dynamically updates dropdown background color on selection change
@@ -222,8 +238,8 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
 - **Technical Pattern:**
   ```javascript
   // Example implementation approach
-  const statusDropdown = document.getElementById('status-dropdown');
-  statusDropdown.addEventListener('change', (e) => {
+  const statusDropdown = document.getElementById("status-dropdown");
+  statusDropdown.addEventListener("change", (e) => {
     const selectedStatus = e.target.value;
     const statusColor = getStatusColor(selectedStatus); // from API data
     e.target.style.backgroundColor = statusColor;
@@ -231,12 +247,14 @@ Based on the comprehensive Draw.io mock analysis, the following elements are int
   ```
 
 #### Comment Management System
+
 - **Modal Management:** Reuse existing ModalManager patterns from admin GUI
 - **Custom Confirmation:** Implement custom confirmation dialogs to avoid native confirm() flickering
 - **Role-Based Access:** Check user permissions before showing edit/delete buttons
 - **Audit Integration:** All comment operations logged to audit_log_aud table
 
 #### General Technical Requirements
+
 - **Error Handling:** Robust error handling for network failures and API errors
 - **Performance:** Optimize for large step lists with virtual scrolling
 - **Accessibility:** Full WCAG AA compliance with screen reader support

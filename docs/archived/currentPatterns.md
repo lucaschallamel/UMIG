@@ -21,6 +21,7 @@ During US-002 implementation, we discovered specific patterns that prevent runti
 #### 1. Mandatory Type Casting for Parameters
 
 **UUID Parameters (CRITICAL)**:
+
 ```groovy
 // CORRECT - Explicit casting prevents ClassCastException
 if (filters.migrationId) {
@@ -33,6 +34,7 @@ params.migrationId = UUID.fromString(filters.migrationId)  // Missing 'as String
 ```
 
 **Integer Parameters**:
+
 ```groovy
 // CORRECT - Explicit casting for integers
 if (filters.teamId) {
@@ -45,6 +47,7 @@ params.teamId = Integer.parseInt(filters.teamId)  // Missing 'as String'
 ```
 
 **Path Parameter Extraction**:
+
 ```groovy
 // CORRECT - Safe path parameter handling with null protection
 def pathParts = getAdditionalPath(request)?.split('/') ?: []
@@ -60,6 +63,7 @@ def id = Integer.parseInt(pathParts[0])
 #### 2. Evolution from Dynamic Property Access to Map Notation
 
 **Original Pattern (Problematic)**:
+
 ```groovy
 // Dynamic property access caused type inference issues
 def result = sql.rows(query)
@@ -70,6 +74,7 @@ result.each { row ->
 ```
 
 **Current Pattern (Correct)**:
+
 ```groovy
 // Map notation with explicit casting
 def result = sql.rows(query)
@@ -123,29 +128,31 @@ query += ' AND plm.plm_id = :planId'      // Wrong! Uses master ID
 **Pattern**: Use PostgreSQL recursive Common Table Expressions for complex dependency validation.
 
 **Implementation from US-002**:
+
 ```sql
 WITH RECURSIVE dependency_chain AS (
     -- Base case: all sequences in the plan
-    SELECT sqm_id, predecessor_sqm_id, 1 as depth, 
+    SELECT sqm_id, predecessor_sqm_id, 1 as depth,
            ARRAY[sqm_id] as path
-    FROM sequences_master_sqm 
+    FROM sequences_master_sqm
     WHERE plm_id = :planId
-    
+
     UNION ALL
-    
+
     -- Recursive case: follow predecessor relationships
-    SELECT s.sqm_id, s.predecessor_sqm_id, dc.depth + 1, 
+    SELECT s.sqm_id, s.predecessor_sqm_id, dc.depth + 1,
            dc.path || s.sqm_id
     FROM sequences_master_sqm s
     JOIN dependency_chain dc ON s.predecessor_sqm_id = dc.sqm_id
     WHERE s.sqm_id != ALL(dc.path) AND dc.depth < 50
 )
 SELECT COUNT(*) > 0 as has_cycle
-FROM dependency_chain 
+FROM dependency_chain
 WHERE sqm_id = ANY(path[1:array_length(path,1)-1])
 ```
 
 **Benefits**:
+
 - Detects circular dependencies in complex hierarchies
 - Prevents infinite loops with depth limiting
 - Path tracking for debugging dependency chains
@@ -156,6 +163,7 @@ WHERE sqm_id = ANY(path[1:array_length(path,1)-1])
 **Pattern**: Use explicit transaction management for complex ordering operations.
 
 **Implementation**:
+
 ```groovy
 def reorderMasterSequence(UUID planId, Map<UUID, Integer> sequenceOrderMap) {
     DatabaseUtil.withSql { sql ->
@@ -165,24 +173,24 @@ def reorderMasterSequence(UUID planId, Map<UUID, Integer> sequenceOrderMap) {
             if (!validateOrderingMap(sequenceOrderMap)) {
                 throw new IllegalArgumentException("Invalid ordering map")
             }
-            
+
             // Apply reordering
             sequenceOrderMap.each { sequenceId, newOrder ->
                 sql.executeUpdate("""
-                    UPDATE sequences_master_sqm 
+                    UPDATE sequences_master_sqm
                     SET sqm_order = :order, updated_date = CURRENT_TIMESTAMP
                     WHERE sqm_id = :sequenceId AND plm_id = :planId
                 """, [order: newOrder, sequenceId: sequenceId, planId: planId])
             }
-            
+
             // Validate final state
             if (!validateSequenceOrdering(planId)) {
                 throw new IllegalStateException("Ordering validation failed")
             }
-            
+
             sql.execute("COMMIT")
             return [success: true, message: "Sequences reordered successfully"]
-            
+
         } catch (Exception e) {
             sql.execute("ROLLBACK")
             throw new RuntimeException("Reordering failed: ${e.message}", e)
@@ -200,7 +208,7 @@ def reorderMasterSequence(UUID planId, Map<UUID, Integer> sequenceOrderMap) {
 ```groovy
 class ApiEndpoint {
     private SequenceRepository sequenceRepository
-    
+
     // Lazy initialization prevents startup issues
     private SequenceRepository getSequenceRepository() {
         if (!sequenceRepository) {
@@ -208,7 +216,7 @@ class ApiEndpoint {
         }
         return sequenceRepository
     }
-    
+
     // Usage in endpoint methods
     def sequences = getSequenceRepository().findSequencesByIteration(iterationId)
 }
@@ -222,7 +230,7 @@ class ApiEndpoint {
 try {
     def result = repository.createSequence(sequenceData)
     return Response.ok(result).build()
-    
+
 } catch (SQLException e) {
     switch (e.getSQLState()) {
         case '23503': // Foreign key constraint violation
@@ -278,7 +286,7 @@ def pathParts = getAdditionalPath(request)?.split('/') ?: []
 if (pathParts.size() == 2 && pathParts[0] == 'master' && pathParts[1] == 'reorder') {
     // Handle /sequences/master/reorder
     return handleMasterReorder(request, body)
-    
+
 } else if (pathParts.size() == 3 && pathParts[0] == 'instance' && pathParts[2] == 'status') {
     // Handle /sequences/instance/{id}/status
     def instanceId = UUID.fromString(pathParts[1] as String)
@@ -307,19 +315,19 @@ when(mockSql.executeUpdate(contains("UPDATE"), any(List))).thenReturn(1)
 
 ```groovy
 class SequencesApiIntegrationTest extends BaseIntegrationTest {
-    
+
     @Test
     void testHierarchicalFiltering() {
         // Setup test data
         def migration = createTestMigration()
         def iteration = createTestIteration(migration.mig_id)
         def plan = createTestPlan(iteration.itr_id)
-        
+
         // Test filtering
         def response = get("/sequences?planId=${plan.pli_id}")
         assert response.status == 200
         assert response.data.size() > 0
-        
+
         // Verify filter application
         response.data.each { sequence ->
             assert sequence.plan_id == plan.pli_id.toString()
@@ -341,7 +349,7 @@ def query = '''
            pli.pli_name, itr.itr_name, mig.mig_name
     FROM sequences_instance_sqi sqi
     JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
-    JOIN iterations_itr itr ON pli.itr_id = itr.itr_id  
+    JOIN iterations_itr itr ON pli.itr_id = itr.itr_id
     JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
     WHERE 1=1
 '''
@@ -363,7 +371,7 @@ if (filters.iterationId) {
 def updateMultipleSequenceOrders(Map<UUID, Integer> orderMap) {
     DatabaseUtil.withSql { sql ->
         def batch = sql.withBatch("""
-            UPDATE sequences_master_sqm 
+            UPDATE sequences_master_sqm
             SET sqm_order = ?, updated_date = CURRENT_TIMESTAMP
             WHERE sqm_id = ?
         """) { ps ->
@@ -425,15 +433,17 @@ def updateMultipleSequenceOrders(Map<UUID, Integer> orderMap) {
 ```javascript
 // Auto-authentication setup
 pm.request.auth = {
-    type: 'basic',
-    basic: {
-        username: '{{username}}',
-        password: '{{password}}'
-    }
+  type: "basic",
+  basic: {
+    username: "{{username}}",
+    password: "{{password}}",
+  },
 };
 
 // Dynamic base URL
-pm.request.url = pm.request.url.toString().replace('{{baseUrl}}', pm.environment.get('baseUrl'));
+pm.request.url = pm.request.url
+  .toString()
+  .replace("{{baseUrl}}", pm.environment.get("baseUrl"));
 ```
 
 ## Development Process Patterns
@@ -467,6 +477,7 @@ Based on US-002 success, use this systematic approach:
 **US-002 Achievement**: 46% faster delivery than planned (5.1 hours actual vs. 6 hours planned)
 
 **Key Factors**:
+
 - Proven pattern reuse from US-001
 - Resolved ScriptRunner integration challenges
 - Systematic four-phase approach
@@ -490,12 +501,12 @@ class SequenceRepositoryTest {
     void testFindSequenceById()
     void testUpdateSequenceStatus()
     void testDeleteSequence()
-    
+
     // Advanced functionality (40% of tests)
     void testReorderSequences()
     void testValidateCircularDependencies()
     void testHierarchicalFiltering()
-    
+
     // Error handling (30% of tests)
     void testInvalidParameterHandling()
     void testConstraintViolations()
@@ -508,6 +519,7 @@ class SequenceRepositoryTest {
 These patterns represent proven solutions from US-001 and US-002 implementations. They should be consistently applied across all future development to maintain code quality, performance, and reliability.
 
 **Key Success Factors**:
+
 1. **Type Safety**: Mandatory explicit casting for all ScriptRunner operations
 2. **Database Excellence**: Advanced SQL patterns with transaction management
 3. **Testing Rigor**: ADR-026 compliance with comprehensive coverage

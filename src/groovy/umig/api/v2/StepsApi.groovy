@@ -269,7 +269,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
  * 
  * Request body should contain:
  * {
- *   "status": "OPEN|IN_PROGRESS|COMPLETED|BLOCKED|ON_HOLD",
+ *   "status": "PENDING|TODO|IN_PROGRESS|COMPLETED|BLOCKED|FAILED|CANCELLED",
  *   "userId": 123 (optional, for audit logging)
  * }
  */

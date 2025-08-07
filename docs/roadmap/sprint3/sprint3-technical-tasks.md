@@ -1,52 +1,57 @@
-# Sprint 3 Technical Tasks (July 30-31, Aug 2-6, 2025)
+# Sprint 3 Technical Tasks (July 31, Aug 1, 4-6, 2025)
 
 ## Overview
+
 Sprint 3 establishes the foundation for AI-accelerated development with a **canonical-first approach**. We implement consolidated APIs that manage both master (canonical) and instance data layers, following the proven StepsApi pattern. This approach ensures proper canonical data management before instance operations.
 
 ## Canonical Data Architecture
 
 ### Design Decision: Consolidated APIs
+
 Following the successful StepsApi pattern, we implement **consolidated APIs** that handle both master (canonical) and instance operations in a single, cohesive API per entity type. This approach:
+
 - **Reduces complexity**: 6 APIs instead of 12+ separate APIs
 - **Maintains consistency**: Follows proven StepsApi patterns
 - **Accelerates delivery**: Critical for 4-week MVP timeline
 - **Simplifies frontend**: Single API endpoint per entity
 
 ### Canonical Entity Hierarchy
+
 1. **plans_master_plm** → plans_instance_pli
-2. **sequences_master_sqm** → sequences_instance_sqi  
+2. **sequences_master_sqm** → sequences_instance_sqi
 3. **phases_master_phm** → phases_instance_phi
 4. **steps_master_stm** → steps_instance_sti (existing)
 5. **instructions_master_inm** → instructions_instance_ini
 6. **controls_master_ctm** → (embedded in phases)
 
-## Day 1-2 (Wed-Thu, July 30-31): Technical Design & API Scaffolding
+## Day 1-2 (Thu-Fri, July 31, Aug 1): Technical Design & API Scaffolding
 
 ### 1. Generate Consolidated API Boilerplate
 
 #### Plans API (`/src/groovy/umig/api/v2/PlansApi.groovy`)
+
 ```groovy
 @BaseScript CustomEndpointDelegate delegate
 
 // Consolidated API handling both master and instance operations
-plans(httpMethod: "GET", groups: ["confluence-users"]) { 
+plans(httpMethod: "GET", groups: ["confluence-users"]) {
     MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    
+
     def pathParts = getAdditionalPath(request)?.tokenize('/') ?: []
-    
+
     // Master operations
     if (pathParts.size() >= 1 && pathParts[0] == 'master') {
         // GET /plans/master - List all master plans
         // GET /plans/master/{id} - Get specific master plan
         return handleMasterOperations(pathParts, queryParams)
     }
-    
+
     // Instance operations
     if (pathParts.size() >= 1 && pathParts[0] == 'instance') {
         // GET /plans/instance/{id} - Get specific instance
         return handleInstanceDetails(pathParts[1])
     }
-    
+
     // Default: List plan instances with filtering
     // GET /plans?migrationId=x&iterationId=y
     return handleInstanceListing(queryParams)
@@ -70,6 +75,7 @@ plans(httpMethod: "DELETE", groups: ["confluence-administrators"]) {
 ```
 
 **Key Features**:
+
 - Master CRUD operations with template management
 - Instance creation from masters with override capability
 - Hierarchical filtering (migration → iteration → plan)
@@ -77,6 +83,7 @@ plans(httpMethod: "DELETE", groups: ["confluence-administrators"]) {
 - Audit logging for all operations
 
 #### Sequences API (`/src/groovy/umig/api/v2/SequencesApi.groovy`)
+
 ```groovy
 // Follows same consolidated pattern
 sequences(httpMethod: "GET", groups: ["confluence-users"]) {
@@ -93,12 +100,14 @@ sequences(httpMethod: "PUT", groups: ["confluence-users"]) {
 ```
 
 **Special Features**:
+
 - Order management (sqm_order field)
 - Bulk reordering operations
 - Plan-based filtering
 - Progress roll-up calculations
 
 #### Phases API (`/src/groovy/umig/api/v2/PhasesApi.groovy`)
+
 ```groovy
 phases(httpMethod: "GET", groups: ["confluence-users"]) {
     // GET /phases/master - All master phases
@@ -113,12 +122,14 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) {
 ```
 
 **Special Features**:
+
 - Control point (quality gate) management
 - Progress aggregation from steps
 - Sequence-based filtering
 - Control validation logic
 
 #### Instructions API (`/src/groovy/umig/api/v2/InstructionsApi.groovy`)
+
 ```groovy
 instructions(httpMethod: "GET", groups: ["confluence-users"]) {
     // GET /instructions/master - All master instructions
@@ -134,12 +145,14 @@ instructions(httpMethod: "POST", groups: ["confluence-users"]) {
 ```
 
 **Special Features**:
+
 - Distribution tracking
 - Completion status
 - Step-based filtering
 - Bulk operations support
 
 #### Controls API (`/src/groovy/umig/api/v2/ControlsApi.groovy`) ✅ COMPLETED
+
 ```groovy
 // Full implementation with 20 comprehensive endpoints
 controls(httpMethod: "GET", groups: ["confluence-users"]) {
@@ -163,6 +176,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) {
 ```
 
 **Special Features** ✅ IMPLEMENTED:
+
 - Quality gate templates with validation tracking
 - Validation rules with IT/Business approval
 - Progress dependencies with real-time calculation
@@ -173,6 +187,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) {
 ### 2. Create Database Migrations
 
 #### Migration 034: Assignment Tables
+
 ```sql
 -- assignment_rules table
 CREATE TABLE assignment_rules_asr (
@@ -199,6 +214,7 @@ CREATE TABLE step_assignments_sta (
 ```
 
 #### Migration 035: Distribution Tracking
+
 ```sql
 -- distribution_log table
 CREATE TABLE distribution_log_dsl (
@@ -217,23 +233,24 @@ CREATE TABLE distribution_log_dsl (
 ### 3. Create Repository Classes (Canonical-First Design)
 
 #### PlanRepository.groovy
+
 ```groovy
 class PlanRepository {
     // Master (Canonical) Operations
-    List<Map> findAllMasterPlans() { 
+    List<Map> findAllMasterPlans() {
         DatabaseUtil.withSql { sql ->
-            sql.rows("""SELECT plm.*, sts.sts_name, sts.sts_color 
+            sql.rows("""SELECT plm.*, sts.sts_name, sts.sts_color
                        FROM plans_master_plm plm
                        JOIN status_sts sts ON plm.sts_id = sts.sts_id
                        WHERE plm.soft_delete_flag = false
                        ORDER BY plm.created_at DESC""")
         }
     }
-    
+
     Map createMasterPlan(Map planData) { }
     Map updateMasterPlan(String planId, Map updates) { }
-    
-    // Instance Operations  
+
+    // Instance Operations
     List<Map> findPlanInstancesByMigrationId(String migrationId) { }
     List<Map> findPlanInstancesByIterationId(String iterationId) { }
     Map createPlanInstance(String masterPlanId, String iterationId) { }
@@ -242,12 +259,13 @@ class PlanRepository {
 ```
 
 #### SequenceRepository.groovy
+
 ```groovy
 class SequenceRepository {
     // Master Operations
     List<Map> findMasterSequencesByPlanId(String planId) { }
     Map reorderMasterSequences(String planId, List<Map> orderData) { }
-    
+
     // Instance Operations
     List<Map> findSequenceInstancesByPlanInstanceId(String pliId) { }
     Map updateSequenceInstanceOrder(String siiId, Integer newOrder) { }
@@ -255,12 +273,13 @@ class SequenceRepository {
 ```
 
 #### PhaseRepository.groovy
+
 ```groovy
 class PhaseRepository {
     // Master Operations with Controls
     List<Map> findMasterPhasesBySequenceId(String sequenceId) { }
     List<Map> findControlsByPhaseId(String phaseId) { }
-    
+
     // Instance Operations with Progress
     Map calculatePhaseProgress(String phiId) { }
     Map updatePhaseInstanceStatus(String phiId, Integer statusId) { }
@@ -268,11 +287,12 @@ class PhaseRepository {
 ```
 
 #### InstructionRepository.groovy
+
 ```groovy
 class InstructionRepository {
     // Master Operations
     List<Map> findMasterInstructionsByStepId(String stepId) { }
-    
+
     // Instance Operations with Distribution
     List<Map> findInstructionInstancesByStepInstanceId(String stiId) { }
     Map markInstructionDistributed(String iniId, Map distributionData) { }
@@ -281,6 +301,7 @@ class InstructionRepository {
 ```
 
 #### ControlRepository.groovy ✅ COMPLETED
+
 ```groovy
 class ControlRepository {
     // Master Control Operations (5 methods)
@@ -289,7 +310,7 @@ class ControlRepository {
     Map createMasterControl(Map controlData) { }
     Map updateMasterControl(UUID ctmId, Map updates) { }
     Map deleteMasterControl(UUID ctmId) { }
-    
+
     // Instance Control Operations (7 methods)
     List<Map> findControlInstances(Map filters) { }
     Map findControlInstanceById(UUID ctiId) { }
@@ -298,7 +319,7 @@ class ControlRepository {
     Map validateControlInstance(UUID ctiId, Map validationData) { }
     Map overrideControlInstance(UUID ctiId, String reason, String overrideBy) { }
     Map deleteControlInstance(UUID ctiId) { }
-    
+
     // Advanced Operations (8 methods)
     Map calculatePhaseControlProgress(UUID phaseId) { }
     List<Map> bulkCreateControlInstances(List<Map> instancesData) { }
@@ -310,7 +331,8 @@ class ControlRepository {
 ### 4. UI Component Scaffolding (Canonical Management Focus)
 
 #### Admin GUI Components (New Tabs)
-- **Plans Management**: 
+
+- **Plans Management**:
   - Master plan templates library
   - Plan cloning/versioning interface
   - Instance creation from masters
@@ -328,6 +350,7 @@ class ControlRepository {
   - Distribution channel configuration
 
 #### Iteration View Extensions
+
 - **Template Selection**:
   - Master plan dropdown selector
   - Quick instance creation buttons
@@ -341,9 +364,10 @@ class ControlRepository {
   - Control point status indicators
   - Distribution completion metrics
 
-## Day 3 (Fri, Aug 2): Resume After Swiss Holiday
+## Day 3 (Mon, Aug 4): Resume After Weekend
 
 ### Quick Sync & Review
+
 - Review Day 1-2 outputs
 - Identify any blockers
 - Prepare parallel streams
@@ -351,24 +375,28 @@ class ControlRepository {
 ## Day 4-5 (Mon-Tue, Aug 5-6): Parallel API Development
 
 ### Stream 1: Plans & Sequences APIs (GENDEV_SystemArchitect)
+
 - Complete API implementation
 - Add hierarchical filtering
 - Implement ordering logic
 - Generate unit tests
 
 ### Stream 2: Phases & Instructions APIs (GENDEV_ApiDesigner)
+
 - Control point management
 - Distribution endpoints
 - Completion tracking
 - Test generation
 
 ### Stream 3: Assignment Schema & Repository (GENDEV_DatabaseSchemaDesigner)
+
 - Refine assignment schema
 - Create assignment repository
 - Bulk assignment methods
 - Performance optimization
 
 ### Stream 4: UI Mockups & Frontend (GENDEV_InterfaceDesigner)
+
 - Assignment interface mockup
 - Distribution dashboard design
 - Progress tracking components
@@ -377,11 +405,13 @@ class ControlRepository {
 ## Day 5 (Wed, Aug 6): Integration & Testing
 
 ### Morning: Integration
+
 - Merge all parallel streams
 - Resolve any conflicts
 - Update dependencies
 
 ### Afternoon: Testing & Documentation
+
 - Run full test suite
 - Update OpenAPI spec
 - Generate Postman collection
@@ -390,6 +420,7 @@ class ControlRepository {
 ## Deliverables Checklist
 
 ### APIs (5 Consolidated APIs with Master/Instance Operations) ✅ COMPLETED
+
 - [x] Plans API (master templates + instances) ✅
 - [x] Sequences API (with ordering operations) ✅
 - [x] Phases API (with control points) ✅
@@ -398,6 +429,7 @@ class ControlRepository {
 - [x] All APIs follow StepsApi consolidated pattern ✅
 
 ### Data Quality & Standardization ✅ COMPLETED
+
 - [x] Status Field Normalization (US-006) ✅
   - [x] Transform 8 entity tables from VARCHAR to INTEGER FK status fields
   - [x] StatusRepository implementation for centralized status operations
@@ -407,10 +439,12 @@ class ControlRepository {
   - [x] UI consistency with unified color coding system-wide
 
 ### Database (2 migrations)
+
 - [ ] Assignment tables migration
 - [ ] Distribution tracking migration
 
 ### Repositories (5 classes with Canonical-First Design) ✅ COMPLETED
+
 - [x] PlanRepository (master + instance methods) ✅
 - [x] SequenceRepository (with ordering logic) ✅
 - [x] PhaseRepository (with control management) ✅
@@ -418,6 +452,7 @@ class ControlRepository {
 - [x] ControlRepository (20 methods with validation/override) ✅
 
 ### UI Components (Canonical Management Focus)
+
 - [ ] Master plan template management UI
 - [ ] Sequence ordering interface
 - [ ] Phase control point editor
@@ -427,6 +462,7 @@ class ControlRepository {
 - [ ] Progress tracking visualization
 
 ### Documentation ✅ COMPLETED
+
 - [x] Updated OpenAPI specification ✅
 - [x] Postman collection with master/instance examples ✅
 - [x] API documentation showing consolidated patterns ✅
@@ -444,6 +480,7 @@ class ControlRepository {
 7. **Documentation**: ✅ Complete documentation with performance optimization patterns
 
 ### Sprint 3 Final Results
+
 - **Epic 1**: 26/26 story points completed ✅
 - **Core APIs**: 5/5 APIs implemented with enhancements ✅
 - **Data Quality**: Status normalization completed with zero data loss ✅
@@ -454,11 +491,13 @@ class ControlRepository {
 ## Risk Mitigation
 
 ### Technical Risks
+
 - **Pattern Deviation**: Strictly follow StepsApi.groovy patterns
 - **Integration Issues**: Daily integration checkpoints
 - **Holiday Disruption**: Front-load critical work before Aug 1
 
 ### Process Risks
+
 - **Parallel Conflicts**: Clear ownership boundaries
 - **Communication Gaps**: 5 PM daily sync mandatory
 - **Scope Creep**: Strict adherence to defined deliverables
@@ -466,12 +505,14 @@ class ControlRepository {
 ## Key Technical Decisions
 
 ### Why Consolidated APIs?
+
 1. **StepsApi Success**: 745 lines handles both master/instance elegantly
 2. **Time Efficiency**: 6 APIs vs 12+ separate APIs for MVP
 3. **Frontend Simplicity**: Single endpoint per entity type
 4. **Maintenance**: Related operations stay together
 
 ### Canonical-First Benefits
+
 1. **Template Reusability**: Create once, use many times
 2. **Version Control**: Track changes to master templates
 3. **Override Management**: Instances can customize without affecting masters
@@ -487,5 +528,5 @@ class ControlRepository {
 
 ---
 
-> Sprint 3 Start: July 30, 2025 | Duration: 5 working days | Delivery: August 6, 2025
+> Sprint 3 Start: July 31, 2025 | Duration: 5 working days | Delivery: August 6, 2025
 > Focus: Canonical-First Architecture with Consolidated APIs

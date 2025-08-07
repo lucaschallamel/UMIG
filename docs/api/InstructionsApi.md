@@ -35,6 +35,7 @@ groups: ["confluence-users", "confluence-administrators"]
 ```
 
 **Required Headers:**
+
 - `Authorization`: Confluence session or basic auth
 - `Content-Type`: `application/json` (for POST/PUT requests)
 
@@ -55,17 +56,20 @@ All endpoints are relative to the ScriptRunner custom REST base:
 Retrieves master instruction templates with optional hierarchical filtering.
 
 **Parameters:**
+
 - `stepId` (optional): Filter by step master UUID
-- `planId` (optional): Filter by plan instance UUID  
+- `planId` (optional): Filter by plan instance UUID
 - `sequenceId` (optional): Filter by sequence instance UUID
 - `phaseId` (optional): Filter by phase instance UUID
 
 **Example Request:**
+
 ```bash
 GET /instructions?stepId=123e4567-e89b-12d3-a456-426614174000
 ```
 
 **Example Response:**
+
 ```json
 [
   {
@@ -92,6 +96,7 @@ GET /instructions?stepId=123e4567-e89b-12d3-a456-426614174000
 Creates a new master instruction template.
 
 **Request Body:**
+
 ```json
 {
   "stepMasterId": "123e4567-e89b-12d3-a456-426614174000",
@@ -106,6 +111,7 @@ Creates a new master instruction template.
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "id": "new12345-e89b-12d3-a456-426614174004",
@@ -130,6 +136,7 @@ Creates a new master instruction template.
 Retrieves a specific master instruction by ID.
 
 **Parameters:**
+
 - `instructionId`: Master instruction UUID (path parameter)
 
 **Response (200 OK):** Single master instruction object (same format as above)
@@ -139,6 +146,7 @@ Retrieves a specific master instruction by ID.
 Updates an existing master instruction template.
 
 **Request Body:** (all fields optional)
+
 ```json
 {
   "name": "Updated instruction name",
@@ -156,15 +164,18 @@ Updates an existing master instruction template.
 Deletes a master instruction and all its instances (cascade deletion).
 
 **Parameters:**
+
 - `instructionId`: Master instruction UUID (path parameter)
 
 **Response (204 No Content):** No response body
 
 **Error Responses:**
+
 - **400 Bad Request**: Foreign key constraint violation
 - **404 Not Found**: Master instruction not found
 
 **Example Request:**
+
 ```bash
 DELETE /instructions/master/789e0123-e89b-12d3-a456-426614174001
 ```
@@ -174,17 +185,19 @@ DELETE /instructions/master/789e0123-e89b-12d3-a456-426614174001
 Updates the order of master instructions within a step.
 
 **Request Body:**
+
 ```json
 {
   "orderData": [
-    {"instructionId": "inst-1", "order": 1},
-    {"instructionId": "inst-2", "order": 2},
-    {"instructionId": "inst-3", "order": 3}
+    { "instructionId": "inst-1", "order": 1 },
+    { "instructionId": "inst-2", "order": 2 },
+    { "instructionId": "inst-3", "order": 3 }
   ]
 }
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -200,9 +213,11 @@ Updates the order of master instructions within a step.
 Retrieves all instruction instances for a specific step instance.
 
 **Parameters:**
+
 - `stepInstanceId`: Step instance UUID (path parameter)
 
 **Example Response:**
+
 ```json
 [
   {
@@ -215,7 +230,7 @@ Retrieves all instruction instances for a specific step instance.
     "isCompleted": true
   },
   {
-    "id": "inst-instance-2", 
+    "id": "inst-instance-2",
     "name": "Deploy application code",
     "description": "Deploy the latest application version",
     "content": "1. Stop application services\n2. Deploy new code\n3. Run database migrations\n4. Start services\n5. Verify deployment",
@@ -231,13 +246,10 @@ Retrieves all instruction instances for a specific step instance.
 Creates instruction instances from master templates for a step instance.
 
 **Request Body:**
+
 ```json
 {
-  "masterInstructionIds": [
-    "master-1",
-    "master-2", 
-    "master-3"
-  ]
+  "masterInstructionIds": ["master-1", "master-2", "master-3"]
 }
 ```
 
@@ -254,15 +266,18 @@ Retrieves a specific instruction instance by ID.
 Deletes a specific instruction instance.
 
 **Parameters:**
+
 - `instructionInstanceId`: Instruction instance UUID (path parameter)
 
 **Response (204 No Content):** No response body
 
 **Error Responses:**
+
 - **400 Bad Request**: Invalid UUID format or foreign key constraint violation
 - **404 Not Found**: Instruction instance not found
 
 **Example Request:**
+
 ```bash
 DELETE /instructions/instance/inst-instance-001
 ```
@@ -274,6 +289,7 @@ DELETE /instructions/instance/inst-instance-001
 Marks an instruction instance as completed.
 
 **Request Body:**
+
 ```json
 {
   "userId": 1001
@@ -281,6 +297,7 @@ Marks an instruction instance as completed.
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -296,6 +313,7 @@ Marks an instruction instance as completed.
 Reverts an instruction completion status.
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -309,6 +327,7 @@ Reverts an instruction completion status.
 Marks multiple instruction instances as completed.
 
 **Request Body:**
+
 ```json
 {
   "instructionInstanceIds": [
@@ -321,6 +340,7 @@ Marks multiple instruction instances as completed.
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -336,6 +356,7 @@ Marks multiple instruction instances as completed.
 Deletes multiple instruction instances in a single operation.
 
 **Request Body:**
+
 ```json
 {
   "instructionInstanceIds": [
@@ -347,6 +368,7 @@ Deletes multiple instruction instances in a single operation.
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "deleted": 3,
@@ -356,6 +378,7 @@ Deletes multiple instruction instances in a single operation.
 ```
 
 **Response with partial failures (200 OK):**
+
 ```json
 {
   "deleted": 2,
@@ -370,6 +393,7 @@ Deletes multiple instruction instances in a single operation.
 ```
 
 **Error Responses:**
+
 - **400 Bad Request**: Missing required field `instructionInstanceIds`
 
 ### 4. Analytics Endpoints
@@ -379,11 +403,13 @@ Deletes multiple instruction instances in a single operation.
 Retrieves instruction completion progress statistics.
 
 **Parameters:**
+
 - `migrationId` (optional): Filter by migration UUID
 - `iterationId` (optional): Filter by iteration UUID
 - `teamId` (optional): Filter by team ID
 
 **Example Response:**
+
 ```json
 {
   "totalInstructions": 150,
@@ -392,7 +418,7 @@ Retrieves instruction completion progress statistics.
   "teamBreakdown": [
     {
       "teamId": 1,
-      "teamName": "Database Team", 
+      "teamName": "Database Team",
       "totalInstructions": 45,
       "completedInstructions": 40,
       "completionPercentage": 88.89
@@ -422,10 +448,12 @@ Retrieves instruction completion progress statistics.
 Retrieves instruction completion timeline data.
 
 **Parameters:**
+
 - `iterationId` (optional): Filter by iteration UUID
 - `teamId` (optional): Filter by team ID
 
 **Example Response:**
+
 ```json
 {
   "timelineData": [
@@ -456,27 +484,32 @@ Retrieves instruction completion timeline data.
 ## Hierarchical Filtering Examples
 
 ### Filter by Step
+
 ```bash
 GET /instructions?stepId=123e4567-e89b-12d3-a456-426614174000
 ```
 
 ### Filter by Plan Instance
+
 ```bash
 GET /instructions?planId=plan-inst-001
 ```
 
 ### Filter by Sequence and Phase
-```bash 
+
+```bash
 GET /instructions?sequenceId=seq-inst-001&phaseId=phase-inst-001
 ```
 
 ### Progressive Filtering
+
 Start broad and narrow down:
+
 ```bash
 # 1. Get all instructions for a migration
 GET /instructions/analytics/progress?migrationId=mig-001
 
-# 2. Focus on specific iteration  
+# 2. Focus on specific iteration
 GET /instructions/analytics/progress?iterationId=iter-001
 
 # 3. Drill down to team level
@@ -486,24 +519,25 @@ GET /instructions/analytics/progress?iterationId=iter-001&teamId=15
 ## Bulk Operations Workflow
 
 ### Bulk Completion Pattern
+
 ```javascript
 // 1. Get instruction instances for a step
-const response = await fetch('/instructions/instance/step-inst-001');
+const response = await fetch("/instructions/instance/step-inst-001");
 const instructions = await response.json();
 
 // 2. Filter uncompleted instructions
 const uncompletedIds = instructions
-  .filter(inst => !inst.isCompleted)
-  .map(inst => inst.id);
+  .filter((inst) => !inst.isCompleted)
+  .map((inst) => inst.id);
 
 // 3. Bulk complete
-await fetch('/instructions/bulk/complete', {
-  method: 'POST',
-  headers: {'Content-Type': 'application/json'},
+await fetch("/instructions/bulk/complete", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     instructionInstanceIds: uncompletedIds,
-    userId: 1001
-  })
+    userId: 1001,
+  }),
 });
 ```
 
@@ -520,6 +554,7 @@ await fetch('/instructions/bulk/complete', {
 - **500 Internal Server Error**: Unexpected server error
 
 ### Error Response Format
+
 ```json
 {
   "error": {
@@ -536,6 +571,7 @@ await fetch('/instructions/bulk/complete', {
 ### Common Error Scenarios
 
 #### 1. Invalid UUID Format
+
 ```json
 {
   "error": {
@@ -546,10 +582,11 @@ await fetch('/instructions/bulk/complete', {
 ```
 
 #### 2. Foreign Key Violation (400)
+
 ```json
 {
   "error": {
-    "code": "FOREIGN_KEY_VIOLATION", 
+    "code": "FOREIGN_KEY_VIOLATION",
     "message": "Referenced step master does not exist",
     "sqlState": "23503"
   }
@@ -557,6 +594,7 @@ await fetch('/instructions/bulk/complete', {
 ```
 
 #### 3. Unique Constraint Violation (409)
+
 ```json
 {
   "error": {
@@ -568,6 +606,7 @@ await fetch('/instructions/bulk/complete', {
 ```
 
 #### 4. Negative Duration Validation (400)
+
 ```json
 {
   "error": {
@@ -586,6 +625,7 @@ await fetch('/instructions/bulk/complete', {
 ### 1. Performance Optimization
 
 **Use Hierarchical Filtering:**
+
 ```javascript
 // ✅ Good: Filter at the appropriate level
 GET /instructions?phaseId=phase-001
@@ -595,6 +635,7 @@ GET /instructions // then filter locally
 ```
 
 **Batch Operations:**
+
 ```javascript
 // ✅ Good: Use bulk operations
 POST /instructions/bulk/complete
@@ -606,6 +647,7 @@ instructions.forEach(inst => DELETE /instructions/instance/${inst.id})
 ```
 
 **Cascade Deletion:**
+
 ```javascript
 // ✅ Good: Delete master to cascade all instances
 DELETE /instructions/master/${masterId}
@@ -618,34 +660,38 @@ DELETE /instructions/master/${masterId}
 ### 2. Error Handling
 
 **Implement Proper Error Handling:**
+
 ```javascript
 try {
-  const response = await fetch('/instructions/master', {
-    method: 'POST',
-    body: JSON.stringify(instructionData)
+  const response = await fetch("/instructions/master", {
+    method: "POST",
+    body: JSON.stringify(instructionData),
   });
-  
+
   if (!response.ok) {
     const error = await response.json();
     if (response.status === 409) {
       // Handle duplicate instruction order
-      console.error('Instruction order conflict:', error.message);
+      console.error("Instruction order conflict:", error.message);
     } else if (response.status === 400) {
       // Handle validation errors
-      console.error('Invalid input:', error.message);
+      console.error("Invalid input:", error.message);
     }
   }
 } catch (err) {
-  console.error('Network error:', err);
+  console.error("Network error:", err);
 }
 ```
 
 ### 3. State Management
 
 **Track Completion State:**
+
 ```javascript
 // Monitor completion progress
-const progress = await fetch('/instructions/analytics/progress?iterationId=iter-001');
+const progress = await fetch(
+  "/instructions/analytics/progress?iterationId=iter-001",
+);
 const stats = await progress.json();
 
 if (stats.completionPercentage >= 100) {
@@ -675,87 +721,98 @@ class InstructionsAPI {
   constructor(baseUrl) {
     this.baseUrl = baseUrl;
   }
-  
+
   async getMasterInstructions(filters = {}) {
     const params = new URLSearchParams(filters);
     const response = await fetch(`${this.baseUrl}/instructions?${params}`);
     return response.json();
   }
-  
+
   async completeInstruction(instructionInstanceId, userId) {
-    const response = await fetch(`${this.baseUrl}/instructions/instance/${instructionInstanceId}/complete`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({userId})
-    });
+    const response = await fetch(
+      `${this.baseUrl}/instructions/instance/${instructionInstanceId}/complete`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      },
+    );
     return response.json();
   }
-  
+
   async getProgressAnalytics(filters = {}) {
     const params = new URLSearchParams(filters);
-    const response = await fetch(`${this.baseUrl}/instructions/analytics/progress?${params}`);
+    const response = await fetch(
+      `${this.baseUrl}/instructions/analytics/progress?${params}`,
+    );
     return response.json();
   }
-  
+
   async deleteInstance(instructionInstanceId) {
-    const response = await fetch(`${this.baseUrl}/instructions/instance/${instructionInstanceId}`, {
-      method: 'DELETE'
-    });
+    const response = await fetch(
+      `${this.baseUrl}/instructions/instance/${instructionInstanceId}`,
+      {
+        method: "DELETE",
+      },
+    );
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message);
     }
     return response.status === 204;
   }
-  
+
   async deleteMaster(masterId) {
-    const response = await fetch(`${this.baseUrl}/instructions/master/${masterId}`, {
-      method: 'DELETE'
-    });
+    const response = await fetch(
+      `${this.baseUrl}/instructions/master/${masterId}`,
+      {
+        method: "DELETE",
+      },
+    );
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message);
     }
     return response.status === 204;
   }
-  
+
   async bulkDelete(instructionInstanceIds) {
     const response = await fetch(`${this.baseUrl}/instructions/bulk`, {
-      method: 'DELETE',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({instructionInstanceIds})
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ instructionInstanceIds }),
     });
     return response.json();
   }
 }
 
 // Usage
-const api = new InstructionsAPI('/rest/scriptrunner/latest/custom');
+const api = new InstructionsAPI("/rest/scriptrunner/latest/custom");
 
 // Get instructions for a specific step
 const instructions = await api.getMasterInstructions({
-  stepId: 'step-master-001'
+  stepId: "step-master-001",
 });
 
 // Complete an instruction
-await api.completeInstruction('inst-instance-001', 1001);
+await api.completeInstruction("inst-instance-001", 1001);
 
 // Get progress analytics
 const progress = await api.getProgressAnalytics({
-  iterationId: 'iter-001'
+  iterationId: "iter-001",
 });
 
 // Delete a single instruction instance
-await api.deleteInstance('inst-instance-001');
+await api.deleteInstance("inst-instance-001");
 
 // Delete a master instruction (cascades to instances)
-await api.deleteMaster('master-001');
+await api.deleteMaster("master-001");
 
 // Bulk delete multiple instances
 const result = await api.bulkDelete([
-  'inst-instance-001',
-  'inst-instance-002',
-  'inst-instance-003'
+  "inst-instance-001",
+  "inst-instance-002",
+  "inst-instance-003",
 ]);
 console.log(`Deleted: ${result.deleted}, Failed: ${result.failed}`);
 ```
@@ -766,16 +823,16 @@ console.log(`Deleted: ${result.deleted}, Failed: ${result.failed}`);
 // Example service layer usage
 @Service
 class InstructionService {
-    
+
     InstructionRepository instructionRepository = new InstructionRepository()
-    
+
     def completeInstructionsForStep(UUID stepInstanceId, Integer userId) {
         // Get all incomplete instructions for step
         def instructions = instructionRepository.findInstanceInstructionsByStepInstanceId(stepInstanceId)
         def incompleteIds = instructions
             .findAll { !it.ini_is_completed }
             .collect { UUID.fromString(it.ini_id as String) }
-        
+
         if (incompleteIds) {
             // Bulk complete
             return instructionRepository.bulkCompleteInstructions(incompleteIds, userId)
@@ -788,6 +845,7 @@ class InstructionService {
 ## Testing Strategies
 
 ### Unit Testing
+
 ```groovy
 class InstructionRepositoryTest {
     @Test
@@ -799,9 +857,9 @@ class InstructionRepositoryTest {
             instructionOrder: 1,
             createdBy: 1001
         ]
-        
+
         def result = instructionRepository.createMasterInstruction(params)
-        
+
         assert result.success == true
         assert result.instruction.name == "Test Instruction"
     }
@@ -809,6 +867,7 @@ class InstructionRepositoryTest {
 ```
 
 ### Integration Testing
+
 ```bash
 # Test complete workflow
 curl -X POST "/instructions/master" \
@@ -817,7 +876,7 @@ curl -X POST "/instructions/master" \
 
 curl -X GET "/instructions?stepId=step-001"
 
-curl -X POST "/instructions/instance/step-inst-001" \  
+curl -X POST "/instructions/instance/step-inst-001" \
   -H "Content-Type: application/json" \
   -d '{"masterInstructionIds": ["master-001"]}'
 
@@ -829,16 +888,19 @@ curl -X POST "/instructions/instance/inst-inst-001/complete" \
 ## Migration & Deployment Notes
 
 ### Database Dependencies
+
 - Requires tables: `instructions_master_inm`, `instructions_instance_ini`
 - Depends on: `steps_master_stm`, `steps_instance_sti`, `teams_tea`, `controls_master_ctm`
 - Audit fields: All tables include `created_at`, `created_by`, `updated_at`, `updated_by`
 
 ### Performance Considerations
+
 - Instructions are typically queried by step instance (indexed)
 - Completion analytics may require optimization for large datasets
 - Consider pagination for endpoints returning large result sets
 
 ### Security Notes
+
 - All endpoints require Confluence group membership
 - User IDs are validated against active Confluence users
 - SQL injection prevention through parameterized queries
@@ -846,6 +908,7 @@ curl -X POST "/instructions/instance/inst-inst-001/complete" \
 ## Changelog
 
 ### Version 1.1.0 (January 25, 2025)
+
 - Added DELETE endpoints for instruction management
   - DELETE /instructions/master/{id} - Delete master with cascade
   - DELETE /instructions/instance/{id} - Delete single instance
@@ -856,7 +919,8 @@ curl -X POST "/instructions/instance/inst-inst-001/complete" \
 - Updated error responses to use 204 No Content for deletions
 
 ### Version 1.0.0 (August 5, 2025)
-- Initial Instructions API implementation  
+
+- Initial Instructions API implementation
 - 14 REST endpoints covering full CRUD operations
 - Master/instance pattern with completion tracking
 - Hierarchical filtering support

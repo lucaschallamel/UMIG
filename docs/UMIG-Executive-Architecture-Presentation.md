@@ -2,8 +2,8 @@
 marp: true
 theme: ./umig-compact-theme.css
 paginate: true
-header: 'UMIG - Enterprise Migration Management Platform'
-footer: 'Confidential - Enterprise Architecture Review'
+header: "UMIG - Enterprise Migration Management Platform"
+footer: "Confidential - Enterprise Architecture Review"
 style: |
   /* Better layout utilities for content-heavy slides */
   .split-slide {
@@ -11,37 +11,37 @@ style: |
     gap: 1.5rem;
     line-height: 1.1;
   }
-  
+
   .split-slide > div {
     flex: 1;
     line-height: 1.1;
   }
-  
+
   .compact-table table {
     font-size: 0.65rem;
     margin: 0.2rem 0;
     line-height: 1.0;
   }
-  
+
   .compact-table th, .compact-table td {
     padding: 0.15rem 0.25rem;
     line-height: 1.0;
   }
-  
+
   .bullet-columns {
     columns: 2;
     column-gap: 1.5rem;
     break-inside: avoid;
     line-height: 1.1;
   }
-  
+
   .bullet-columns li {
     break-inside: avoid;
     margin: 0.1rem 0 !important;
     padding: 0 !important;
     line-height: 1.1 !important;
   }
-  
+
   .title-slide {
     justify-content: center;
     text-align: center;
@@ -51,9 +51,11 @@ style: |
 <div class="title-slide">
 
 # UMIG: Enterprise Migration Management Platform
+
 ## Architecture Review & Security Assessment
 
 **Presentation for:**
+
 - Chief Architect - Technology Portfolio Registration
 - DevSecOps Team - Security & Risk Evaluation
 
@@ -74,8 +76,9 @@ style: |
 ## **UMIG: Strategic Enterprise Solution**
 
 **🎯 Business Value**
+
 - 60% reduction in migration execution time
-- 85% decrease in cutover-related incidents  
+- 85% decrease in cutover-related incidents
 - 95% improvement in team coordination
 - 340% projected ROI over 3 years
 
@@ -87,8 +90,9 @@ Native Confluence integration for **zero additional overhead**
 <div>
 
 **Key Benefits**
+
 - **Rapid Deployment**: 4-week MVP timeline
-- **Zero Infrastructure**: Uses existing Confluence  
+- **Zero Infrastructure**: Uses existing Confluence
 - **Enterprise Security**: Inherits platform security
 - **Proven Scale**: 1,443+ migration steps managed
 
@@ -129,16 +133,19 @@ Native Confluence integration for **zero additional overhead**
 ## **Enterprise Features**
 
 **Scale Proven**
+
 - 1,443+ migration steps
 - 30 iterations managed
 - 5 concurrent migrations
 
 **Technology Benefits**
+
 - **Zero Infrastructure**: Confluence-native
 - **Enterprise Security**: SSO integration
 - **Database Power**: PostgreSQL features
 
 **Performance**
+
 - <200ms API response times
 - 99.9% uptime design
 
@@ -152,12 +159,12 @@ Native Confluence integration for **zero additional overhead**
 
 <div class="compact-table">
 
-| Component | Technology | Business Justification |
-|-----------|------------|----------------------|
-| **Backend** | ScriptRunner + Groovy | Zero infrastructure overhead<br>Enterprise security inherited<br>Rapid development velocity |
-| **Frontend** | Vanilla JS + AUI | Native Confluence experience<br>No build complexity<br>Long-term stability |
-| **Database** | PostgreSQL 14+ | Enterprise-grade reliability<br>Advanced features (JSONB)<br>Open source with support |
-| **DevOps** | Podman + NodeJS | Containerized development<br>Cross-platform support<br>Automated orchestration |
+| Component    | Technology            | Business Justification                                                                      |
+| ------------ | --------------------- | ------------------------------------------------------------------------------------------- |
+| **Backend**  | ScriptRunner + Groovy | Zero infrastructure overhead<br>Enterprise security inherited<br>Rapid development velocity |
+| **Frontend** | Vanilla JS + AUI      | Native Confluence experience<br>No build complexity<br>Long-term stability                  |
+| **Database** | PostgreSQL 14+        | Enterprise-grade reliability<br>Advanced features (JSONB)<br>Open source with support       |
+| **DevOps**   | Podman + NodeJS       | Containerized development<br>Cross-platform support<br>Automated orchestration              |
 
 </div>
 
@@ -174,10 +181,11 @@ Native Confluence integration for **zero additional overhead**
 <div>
 
 ### ✅ **Security Strengths**
-- Confluence SSO integration  
-- Role-based access control (3-tier)  
-- SQL injection prevention (100%)  
-- Comprehensive audit trail  
+
+- Confluence SSO integration
+- Role-based access control (3-tier)
+- SQL injection prevention (100%)
+- Comprehensive audit trail
 - XSS protection patterns
 
 </div>
@@ -185,10 +193,11 @@ Native Confluence integration for **zero additional overhead**
 <div>
 
 ### 🔧 **Enhancement Areas**
-- Authentication TODO cleanup  
-- Input validation framework  
-- Security headers (OWASP)  
-- SAST/DAST integration  
+
+- Authentication TODO cleanup
+- Input validation framework
+- Security headers (OWASP)
+- SAST/DAST integration
 - Container scanning
 
 </div>
@@ -205,13 +214,13 @@ Native Confluence integration for **zero additional overhead**
 
 <div class="compact-table">
 
-| Risk Category | Status | Mitigation Strategy | Timeline |
-|--------------|--------|-------------------|----------|
-| **Security Gaps** | 🟡 Medium | Implement security roadmap | 4-6 weeks |
-| **Scalability** | 🟢 Low | Proven patterns, <200ms response | Ongoing |
-| **Vendor Lock-in** | 🟢 Low | Open standards, portable DB | N/A |
-| **Technical Debt** | 🟢 Low | 90%+ test coverage | Ongoing |
-| **Compliance** | 🟡 Medium | GDPR-ready, audit trails | 2-3 weeks |
+| Risk Category      | Status    | Mitigation Strategy              | Timeline  |
+| ------------------ | --------- | -------------------------------- | --------- |
+| **Security Gaps**  | 🟡 Medium | Implement security roadmap       | 4-6 weeks |
+| **Scalability**    | 🟢 Low    | Proven patterns, <200ms response | Ongoing   |
+| **Vendor Lock-in** | 🟢 Low    | Open standards, portable DB      | N/A       |
+| **Technical Debt** | 🟢 Low    | 90%+ test coverage               | Ongoing   |
+| **Compliance**     | 🟡 Medium | GDPR-ready, audit trails         | 2-3 weeks |
 
 </div>
 
@@ -228,12 +237,13 @@ Native Confluence integration for **zero additional overhead**
 ## **Hierarchical Data Model**
 
 ```
-Migrations (5) → Iterations (30) 
-→ Plans → Sequences → Phases 
+Migrations (5) → Iterations (30)
+→ Plans → Sequences → Phases
 → Steps (1,443+) → Instructions
 ```
 
 **Scale Metrics**
+
 - **5** active migrations
 - **30** iterations managed
 - **1,443+** step instances
@@ -243,16 +253,19 @@ Migrations (5) → Iterations (30)
 <div>
 
 **📊 Audit Trail**
+
 - User attribution tracking
-- Complete timestamp history  
+- Complete timestamp history
 - Change event logging
 
 **🔒 Access Control**
+
 - **NORMAL**: Read-only access
 - **PILOT**: Operational control
 - **ADMIN**: Full administration
 
 **✅ Data Governance**
+
 - GDPR compliance ready
 - Export/import capabilities
 - Encryption ready architecture
@@ -309,7 +322,7 @@ Migrations (5) → Iterations (30)
 <div class="bullet-columns">
 
 - **Syntax** validation
-- **Type checking** 
+- **Type checking**
 - **Lint** analysis
 - **Security** scanning
 - **Unit tests** execution
@@ -368,12 +381,12 @@ name: UMIG Security Pipeline
 on: [push, pull_request]
 
 stages:
-  - secret-detection      # TruffleHog
-  - sast-analysis        # SonarQube
-  - dependency-check     # OWASP
-  - container-security   # Trivy
-  - compliance-check     # Custom policies
-  - security-gates       # Quality gates
+  - secret-detection # TruffleHog
+  - sast-analysis # SonarQube
+  - dependency-check # OWASP
+  - container-security # Trivy
+  - compliance-check # Custom policies
+  - security-gates # Quality gates
 ```
 
 </div>
@@ -384,12 +397,12 @@ stages:
 
 <div class="compact-table">
 
-| Metric | Current | Target | Timeline |
-|--------|---------|--------|----------|
-| Critical Vulnerabilities | 8 | 0 | 4 weeks |
-| High Vulnerabilities | 24 | <5 | 6 weeks |
-| Security Test Coverage | 65% | >80% | 8 weeks |
-| Mean Time to Remediation | 14 days | <7 days | Ongoing |
+| Metric                   | Current | Target  | Timeline |
+| ------------------------ | ------- | ------- | -------- |
+| Critical Vulnerabilities | 8       | 0       | 4 weeks  |
+| High Vulnerabilities     | 24      | <5      | 6 weeks  |
+| Security Test Coverage   | 65%     | >80%    | 8 weeks  |
+| Mean Time to Remediation | 14 days | <7 days | Ongoing  |
 
 </div>
 
@@ -406,12 +419,14 @@ stages:
 <div>
 
 ## **Current Scale**
+
 - 5 migrations
-- 30 iterations  
+- 30 iterations
 - 1,443+ step instances
 - 50-100 concurrent users
 
 ## **Performance Targets**
+
 - <200ms API response ✅
 - <3s page load ✅
 - 99.9% uptime design
@@ -443,14 +458,17 @@ stages:
 ## **Operational Benefits**
 
 **60% Faster Migrations**
+
 - Reduced execution time
 - Streamlined processes
 
 **85% Fewer Incidents**
+
 - Better coordination
 - Proactive monitoring
 
 **95% Better Coordination**
+
 - Team alignment
 - Clear communication
 
@@ -462,13 +480,13 @@ stages:
 
 <div class="compact-table">
 
-| Category | Value |
-|----------|-------|
-| **Development Cost** | $450,000 |
-| **Annual Savings** | $520,000 |
+| Category                 | Value      |
+| ------------------------ | ---------- |
+| **Development Cost**     | $450,000   |
+| **Annual Savings**       | $520,000   |
 | **Risk Reduction Value** | $1,200,000 |
-| **Total Benefits** | $2,760,000 |
-| **ROI** | **340%** |
+| **Total Benefits**       | $2,760,000 |
+| **ROI**                  | **340%**   |
 
 </div>
 
@@ -487,11 +505,13 @@ stages:
 ## **Why UMIG Succeeds Where Others Fail**
 
 ### 🚀 **Rapid Deployment**
+
 - No infrastructure provisioning
 - Leverages existing Confluence
 - 4-week MVP to production
 
 ### 👥 **User Adoption**
+
 - Familiar Confluence interface
 - Zero training for basic users
 - Integrated documentation
@@ -501,11 +521,13 @@ stages:
 <div>
 
 ### 💰 **TCO Optimization**
+
 - No additional licenses
 - Shared infrastructure
 - Reduced operational overhead
 
 ### 🔒 **Enterprise Security**
+
 - Inherits Confluence security
 - Centralized authentication
 - Proven security model
@@ -525,12 +547,14 @@ stages:
 ## **Phased Enterprise Rollout**
 
 ### **Phase 1: Security Hardening (Weeks 1-6)**
+
 - ✅ Complete authentication cleanup
 - ✅ Implement input validation framework
 - ✅ Add security headers and scanning
 - ✅ Penetration testing
 
 ### **Phase 2: Production Deployment (Weeks 7-8)**
+
 - ✅ Production environment setup
 - ✅ Data migration from legacy systems
 - ✅ User training and documentation
@@ -541,6 +565,7 @@ stages:
 <div>
 
 ### **Phase 3: Enterprise Scale (Weeks 9-12)**
+
 - ✅ Full rollout to all teams
 - ✅ Performance optimization
 - ✅ Advanced feature deployment
@@ -561,12 +586,14 @@ stages:
 ## **Current State → Future Vision**
 
 ### 📍 **Current (v1.0)**
+
 - Monolithic deployment
 - Confluence-embedded
 - PostgreSQL backend
 - 40+ REST endpoints
 
 ### 🎯 **Future (v2.0)**
+
 - Microservice-ready
 - Event-driven architecture
 - GraphQL API layer
@@ -577,6 +604,7 @@ stages:
 <div>
 
 ### **Evolution Strategy**
+
 1. **Maintain backward compatibility**
 2. **Gradual service extraction**
 3. **API gateway pattern**
@@ -656,6 +684,7 @@ stages:
 <div>
 
 ### **Conditions**
+
 - Complete security remediation (4-6 weeks)
 - Maintain quarterly architecture reviews
 - Document pattern library for reuse
@@ -749,19 +778,19 @@ Frontend:
   - UI Framework: Atlassian User Interface (AUI) 9.x
   - State Management: Local state with event delegation
   - Real-time Updates: AJAX polling (5-second intervals)
-  
+
 Backend:
   - Platform: Atlassian ScriptRunner 6.x
   - Language: Apache Groovy 3.x
   - API Pattern: RESTful v2 with OpenAPI 3.0
   - Authentication: Confluence session-based
-  
+
 Database:
   - Engine: PostgreSQL 14+
   - Schema Management: Liquibase 4.x
   - Connection Pool: ScriptRunner built-in
   - Audit: Temporal tables pattern
-  
+
 Development:
   - Containers: Podman 4.x
   - Orchestration: NodeJS 18+ scripts
@@ -781,16 +810,16 @@ Development:
 
 <div class="compact-table">
 
-| Control Category | Implementation | Status | Evidence |
-|-----------------|----------------|---------|----------|
-| **Authentication** | Confluence SSO | ✅ Active | Session-based |
-| **Authorization** | RBAC (3-tier) | ✅ Active | Groups integration |
-| **Input Validation** | Parameterized | ⚠️ Partial | SQL only |
-| **Output Encoding** | XSS prevention | ✅ Active | Template escaping |
-| **Cryptography** | TLS 1.3 | ✅ Active | Confluence managed |
-| **Audit Logging** | Comprehensive | ✅ Active | 25+ tables |
-| **Error Handling** | Sanitized | ✅ Active | No stack traces |
-| **Session Mgmt** | Confluence | ✅ Active | Timeout policies |
+| Control Category     | Implementation | Status     | Evidence           |
+| -------------------- | -------------- | ---------- | ------------------ |
+| **Authentication**   | Confluence SSO | ✅ Active  | Session-based      |
+| **Authorization**    | RBAC (3-tier)  | ✅ Active  | Groups integration |
+| **Input Validation** | Parameterized  | ⚠️ Partial | SQL only           |
+| **Output Encoding**  | XSS prevention | ✅ Active  | Template escaping  |
+| **Cryptography**     | TLS 1.3        | ✅ Active  | Confluence managed |
+| **Audit Logging**    | Comprehensive  | ✅ Active  | 25+ tables         |
+| **Error Handling**   | Sanitized      | ✅ Active  | No stack traces    |
+| **Session Mgmt**     | Confluence     | ✅ Active  | Timeout policies   |
 
 </div>
 
@@ -799,6 +828,7 @@ Development:
 <div>
 
 ### **Vulnerability Summary**
+
 - **Critical**: 2 (authentication TODOs)
 - **High**: 6 (input validation gaps)
 - **Medium**: 12 (security headers)
@@ -816,15 +846,15 @@ Development:
 
 ```groovy
 // GET /rest/scriptrunner/latest/custom/phases/instance/{id}
-phases(httpMethod: "GET", groups: ["confluence-users"]) { 
+phases(httpMethod: "GET", groups: ["confluence-users"]) {
     MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    
+
     def pathSegments = getPathSegments(request)
-    
+
     if (pathSegments.size() == 3 && pathSegments[1] == "instance") {
         def phaseId = UUID.fromString(pathSegments[2] as String)
         def result = phaseRepository.findById(phaseId)
-        
+
         if (result) {
             return Response.ok(new JsonBuilder(result).toString()).build()
         } else {
@@ -837,6 +867,7 @@ phases(httpMethod: "GET", groups: ["confluence-users"]) {
 ```
 
 ### **Key Patterns**
+
 - Type-safe parameter handling
 - Comprehensive error responses
 - Repository pattern usage

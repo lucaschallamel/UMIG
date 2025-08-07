@@ -1,6 +1,7 @@
 # UMIG Project - Claude AI Assistant Guide
 
 ## Overview
+
 UMIG (Unified Migration Implementation Guide) - Pure ScriptRunner application for Atlassian Confluence managing complex IT cutover events.
 
 **Stack**: Groovy/ScriptRunner backend, Vanilla JS/AUI frontend, PostgreSQL/Liquibase, Podman containers, RESTful v2 APIs
@@ -10,11 +11,13 @@ UMIG (Unified Migration Implementation Guide) - Pure ScriptRunner application fo
 **35 specialized workflow agents** for development processes, code quality, and project management.
 
 ### Agent Delegation System
+
 - **Auto-Delegation**: Claude Code automatically delegates based on development context
 - **Manual Commands**: Use `/gd:[agent-name]` for explicit control
 - **Agent Locations**: `~/.claude/agents/gendev-*` and `~/.claude/commands/gd/`
 
 ### Agent Categories
+
 - **Requirements (4)**: `gendev-requirements-*`, `gendev-user-story-*`
 - **Architecture (5)**: `gendev-system-architect`, `gendev-api-designer`, `gendev-data-architect`
 - **Development (10)**: `gendev-code-reviewer`, `gendev-test-suite-generator`, `gendev-security-*`
@@ -22,6 +25,7 @@ UMIG (Unified Migration Implementation Guide) - Pure ScriptRunner application fo
 - **Operations (5)**: `gendev-cicd-builder`, `gendev-deployment-ops-manager`
 
 ### Quick Examples
+
 ```bash
 # Commands
 /gd:system-architect --architecture_style=microservices
@@ -40,16 +44,19 @@ Use the gendev-security-analyzer agent for vulnerability scanning
 **92 specialized domain expert agents** for strategic guidance, leadership coaching, and technical expertise.
 
 ### Agent Delegation System
+
 - **Auto-Delegation**: Claude Code automatically delegates based on domain context
 - **Manual Commands**: Use `/qd:[type]-[name]` for explicit control
 - **Agent Locations**: `~/.claude/agents/quad-*` and `~/.claude/commands/qd/`
 
 ### Agent Categories
+
 - **Coaches (26)**: `quad-coach-*` - Leadership, business, personal development
-- **Masters (18)**: `quad-master-*` - Strategic wisdom, complex analysis  
+- **Masters (18)**: `quad-master-*` - Strategic wisdom, complex analysis
 - **SMEs (48)**: `quad-sme-*` - Technical specialists, domain experts
 
 ### Quick Examples
+
 ```bash
 # Commands
 /qd:coach-leadership develop --level=senior
@@ -64,6 +71,7 @@ Use the quad-sme-security agent for threat modeling
 **Key**: Let Claude Code auto-delegate based on your domain needs. Use commands for precise control.
 
 ## Structure
+
 ```
 UMIG/
 ├── src/groovy/umig/         # Main source
@@ -85,6 +93,7 @@ UMIG/
 ```
 
 ## Commands
+
 ```bash
 # Environment (from local-dev-setup/)
 npm install && npm start     # Setup & start
@@ -98,6 +107,7 @@ npm test                     # Node.js tests
 ```
 
 ## Data Model
+
 **Hierarchy**: Migrations → Iterations → Plans → Sequences → Phases → Steps → Instructions
 **Pattern**: Canonical (`_master_`) vs Instance (`_instance_`) entities
 **Scale**: 5 migrations, 30 iterations, 5 plans → 13 sequences → 43 phases → 1,443+ step instances
@@ -105,6 +115,7 @@ npm test                     # Node.js tests
 ## Critical Patterns
 
 ### Database Access (MANDATORY)
+
 ```groovy
 DatabaseUtil.withSql { sql ->
     return sql.rows('SELECT * FROM table_name')
@@ -112,6 +123,7 @@ DatabaseUtil.withSql { sql ->
 ```
 
 ### REST Endpoints
+
 ```groovy
 @BaseScript CustomEndpointDelegate delegate
 entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
@@ -121,6 +133,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 ```
 
 ### Type Safety (ADR-031)
+
 ```groovy
 // MANDATORY explicit casting
 params.migrationId = UUID.fromString(filters.migrationId as String)
@@ -128,6 +141,7 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 ```
 
 ### Hierarchical Filtering
+
 - Use instance IDs (pli_id, sqi_id, phi_id), NOT master IDs
 - Include ALL fields in SELECT that are referenced in result mapping
 - API pattern: `/resource?parentId={uuid}`
@@ -135,6 +149,7 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 ## Development Rules
 
 ### Non-Negotiable Standards
+
 1. **API Pattern**: Reference StepsApi.groovy, TeamsApi.groovy, LabelsApi.groovy
 2. **Database**: `DatabaseUtil.withSql` pattern only
 3. **Type Safety**: Explicit casting for all query parameters
@@ -146,12 +161,14 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 9. **Repository Pattern**: All data access via repositories
 
 ### Error Handling
+
 - SQL state mappings: 23503→400, 23505→409
 - Robust error propagation through all layers
 
 ## Status (August 2025)
 
 ### ✅ Completed
+
 - Development environment, Admin UI (SPA pattern)
 - APIs: Users, Teams, Environments, Applications, Labels, Steps, Migrations, Plans, Sequences, Phases, Instructions
 - Iteration View: Primary runsheet interface with full filtering
@@ -162,12 +179,14 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 - All core REST APIs with advanced features (control points, audit fields, bulk operations)
 
 ### 🚧 MVP Remaining
+
 - Main Dashboard UI
 - Planning Feature (HTML export)
 - Data Import Strategy
 - Event Logging backend implementation
 
 ## Key References
+
 - **PRIMARY**: `docs/solution-architecture.md` (ALWAYS REVIEW FIRST)
 - **API**: `docs/api/openapi.yaml`, individual API docs
 - **Data Model**: `docs/dataModel/README.md`
@@ -175,7 +194,9 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 - **Roadmap**: `docs/roadmap/`
 
 ## Workflows
+
 Located in `.clinerules/workflows/`:
+
 - memory-bank-update, api-work, api-tests-specs-update
 - sprint-review, dev-journal, doc-update
 - commit, pull-request, data-model, kick-off
@@ -183,11 +204,13 @@ Located in `.clinerules/workflows/`:
 Execute: `"Run the [workflow-name] workflow"`
 
 ## Services
+
 - Confluence: http://localhost:8090
 - PostgreSQL: localhost:5432
 - MailHog: http://localhost:8025
 
 ## Context
+
 **Maturity**: Functional stage, proven patterns
 **Timeline**: 4-week MVP deadline
 **Focus**: Remaining APIs using established patterns

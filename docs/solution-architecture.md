@@ -10,6 +10,7 @@
 This document consolidates the following architectural decisions:
 
 ### Core Architecture & Technology Stack
+
 - [ADR-001](../adr/archive/ADR-001-Confluence-Integrated-Application-Architecture.md) - Confluence-Integrated Application Architecture
 - [ADR-002](../adr/archive/ADR-002-Backend-Implementation-with-Atlassian-ScriptRunner.md) - Backend Implementation with Atlassian ScriptRunner
 - [ADR-003](../adr/archive/ADR-003-Database-Technology-PostgreSQL.md) - Database Technology: PostgreSQL
@@ -18,6 +19,7 @@ This document consolidates the following architectural decisions:
 - [ADR-027](../adr/archive/ADR-027-n-tiers-model.md) - N-tiers Model Architecture
 
 ### Development Environment & Operations
+
 - [ADR-006](../adr/archive/ADR-006-Podman-and-Ansible-for-Local-Development-Environment.md) - Podman and Ansible for Local Development Environment
 - [ADR-007](../adr/archive/ADR-007-local-dev-setup-plugin-installation.md) - Local Dev Setup Plugin Installation
 - [ADR-013](../adr/archive/ADR-013-Data-Utilities-Language-NodeJS.md) - Data Utilities Language: NodeJS
@@ -25,6 +27,7 @@ This document consolidates the following architectural decisions:
 - [ADR-028](../adr/archive/ADR-028-data-import-strategy-for-confluence-json.md) - Data Import Strategy for Confluence JSON
 
 ### Database Design & Management
+
 - [ADR-008](../adr/archive/ADR-008-Database-Migration-Strategy-with-Liquibase.md) - Database Migration Strategy with Liquibase
 - [ADR-009](../adr/archive/ADR-009-Containerize-JDBC-Driver-for-Confluence.md) - Containerize JDBC Driver for Confluence
 - [ADR-010](../adr/archive/ADR-010-Database-Connection-Pooling-with-ScriptRunner.md) - Database Connection Pooling with ScriptRunner
@@ -32,6 +35,7 @@ This document consolidates the following architectural decisions:
 - [ADR-014](../adr/archive/ADR-014-database-naming-conventions.md) - Database Naming Conventions
 
 ### Data Model & Entity Design
+
 - [ADR-015](../adr/archive/ADR-015-canonical-implementation-plan-model.md) - Canonical Implementation Plan Model
 - [ADR-016](../adr/archive/ADR-016-control-and-instruction-model-refactoring.md) - Control and Instruction Model Refactoring
 - [ADR-021](../adr/archive/ADR-021%20-%20adr-step-comments.md) - Step Comments Functionality
@@ -40,6 +44,7 @@ This document consolidates the following architectural decisions:
 - [ADR-029](../adr/archive/ADR-029-full-attribute-instantiation-instance-tables.md) - Full Attribute Instantiation Instance Tables
 
 ### API Design & Implementation
+
 - [ADR-011](../adr/archive/ADR-011-ScriptRunner-REST-Endpoint-Configuration.md) - ScriptRunner REST Endpoint Configuration
 - [ADR-017](../adr/archive/ADR-017-V2-REST-API-Architecture.md) - V2 REST API Architecture
 - [ADR-023](../adr/archive/ADR-023-Standardized-Rest-Api-Patterns.md) - Standardized REST API Patterns
@@ -47,20 +52,25 @@ This document consolidates the following architectural decisions:
 - [ADR-031](../adr/archive/ADR-031-groovy-type-safety-and-filtering-patterns.md) - Groovy Type Safety and Filtering Patterns
 
 ### Application Structure & UI Patterns
+
 - [ADR-018](../adr/archive/ADR-018-Pure-ScriptRunner-Application-Structure.md) - Pure ScriptRunner Application Structure
 - [ADR-020](../adr/archive/ADR-020-spa-rest-admin-entity-management.md) - SPA+REST Admin Entity Management
 
 ### Testing & Quality Assurance
+
 - [ADR-019](../adr/archive/ADR-019-Integration-Testing-Framework.md) - Integration Testing Framework
 - [ADR-026](../adr/archive/ADR-026-Specific-Mocks-In-Tests.md) - Specific Mocks in Tests
 
 ### Communication & Notifications
+
 - [ADR-032](../adr/archive/ADR-032-email-notification-architecture.md) - Email Notification Architecture
 
 ### Security & Access Control
+
 - [ADR-033](../adr/archive/ADR-033-role-based-access-control-implementation.md) - Role-Based Access Control Implementation
 
 ### Development Standards & Code Quality
+
 - [ADR-034] - Static Type Checking Patterns for ScriptRunner (Consolidated in this document)
 - [ADR-034] - Static Type Checking Patterns for ScriptRunner (Consolidated in this document)
 - [ADR-035] - Status Field Normalization (US-006b - Consolidated in this document)
@@ -128,6 +138,7 @@ The UMIG application follows a structured N-Tier architecture to ensure clear se
    - **Components:** Repository classes, DatabaseUtil, SQL query builders
 
 #### Benefits of N-Tier Architecture
+
 - **Improved Structure:** Clear separation between presentation, business logic, and data access
 - **Enhanced Scalability:** Each tier can be optimized independently
 - **Better Reusability:** Business logic can be shared across different UI components
@@ -175,17 +186,20 @@ src/
 ### 4.2. REST API Implementation ([ADR-011], [ADR-023])
 
 #### Core Requirements
+
 - **Pattern:** All REST endpoints **must** use the `com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate` pattern. This is the **only** approved pattern and ensures stability.
 - **Configuration:** Endpoints are discovered via **Script Root Scanning**. This requires two system properties to be set in `CATALINA_OPTS`:
   - `plugin.script.roots`: Points to the directory containing the script packages (e.g., `/var/atlassian/application-data/confluence/scripts`).
   - `plugin.rest.scripts.package`: A comma-delimited list of packages to scan (e.g., `com.umig.api.v1,com.umig.api.v2`).
 
 #### File Structure Standards
+
 - **Package Declaration:** Each endpoint file **must** declare its package at the top (mandatory for class loading).
 - **Self-Contained Files:** Each endpoint is a completely self-contained `.groovy` file.
 - **Path Parameters:** Use `getAdditionalPath(request)` helper method for URL segments.
 
 #### API Design Standards ([ADR-023])
+
 - **Endpoint Separation:** Each HTTP method **must** have separate endpoint handlers (no central dispatcher pattern).
 - **Error Handling:**
   - Inline error handling using standard `try-catch` blocks within each endpoint.
@@ -217,6 +231,7 @@ Endpoints support query parameters that filter resources based on their position
    - `/teams?phaseId={uuid}` - Teams assigned to a phase instance
 
 2. **Repository Pattern:**
+
    ```groovy
    def findByMigrationId(UUID migrationId) {
        DatabaseUtil.withSql { sql ->
@@ -245,12 +260,14 @@ Endpoints support query parameters that filter resources based on their position
    ```
 
 **UI Integration:**
+
 - Frontend components progressively filter options based on user selections
 - Cascading refinement pattern: Migration → Iteration → Plan → Sequence → Phase
 - Dynamic filter updates maintain data consistency
 - Child filters automatically reset when parent selection changes
 
 **Progressive Filtering Example:**
+
 - Teams at migration level: 18 teams (all teams in migration)
 - Teams at iteration level: 15 teams (subset of migration teams)
 - Teams at plan level: 12 teams (subset of iteration teams)
@@ -258,6 +275,7 @@ Endpoints support query parameters that filter resources based on their position
 - Teams at phase level: 5 teams (subset of sequence teams)
 
 **Benefits:**
+
 - **API Consistency:** All resources follow the same filtering pattern
 - **Performance:** Optimized queries return only relevant data
 - **Flexibility:** Easy to add new filter parameters without breaking existing clients
@@ -265,6 +283,7 @@ Endpoints support query parameters that filter resources based on their position
 - **Maintainability:** Single endpoint per resource with consistent behavior
 
 #### Validation & Constraints
+
 - **CustomEndpointDelegate Only:** No other REST endpoint patterns are permitted (WebWork, JAX-RS, etc.).
 - **No Central Dispatchers:** Each endpoint must handle its specific HTTP method and logic directly.
 - **Database Error Translation:** All database constraint violations must be translated to appropriate HTTP status codes.
@@ -290,11 +309,13 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 - **Admin Interface ([ADR-020]):** The administration and entity management sections are built as a **Single Page Application (SPA)** to provide a modern, responsive interface.
 
 ### 5.3. Admin GUI Architecture (July 2025)
+
 - **Complete Administration System:** Comprehensive interface for managing Users, Teams, Environments, Applications, Labels, and all master/instance entities
 - **SPA Pattern Implementation:** Single JavaScript controller (`admin-gui.js`) managing all entities through dynamic routing and content loading
 - **Entity Configuration:** Centralized entity definitions with field specifications, validation rules, and UI behavior
 
 ### 5.4. Standalone Step View Pattern (July 2025)
+
 - **Purpose:** Provides focused, embeddable view for individual step execution outside the main iteration runsheet
 - **Architecture:** URL parameter-driven macro accepting migration name, iteration name, and step code for unique identification
 - **Implementation Pattern:**
@@ -305,24 +326,29 @@ The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for m
 - **Use Cases:** Confluence page embedding, direct step linking, focused task execution
 
 #### Implementation Details
+
 - **Unique Identification:** Three-parameter approach (`migrationName`, `iterationName`, `stepCode`) ensures step uniqueness across multiple migrations and iterations
 - **API Integration:** Custom endpoint validates parameters and queries step instances using hierarchical filtering
 - **UI Consistency:** Reuses all iteration view components and styling for consistent user experience
 - **Role-Based Security:** Inherits same access control patterns as main iteration interface
 
 ### 5.5. Admin GUI Extended Features
+
 - **Association Management:** Modal-based interfaces for managing many-to-many relationships (e.g., environment-application, environment-iteration, application-label associations)
 - **Custom Confirmation Dialogs:** Promise-based confirmation system replacing native `confirm()` to prevent UI flickering issues during destructive operations
 - **Notification System:** User feedback through slide-in/slide-out notifications with automatic dismissal
 - **Role-Based Access Control:** Navigation sections dynamically shown based on user roles (SUPERADMIN, ADMIN, PILOT)
 
 ### 5.6. Custom Confirmation Dialog Pattern
+
 The environment management system implements a custom confirmation dialog pattern to resolve UI flickering issues that occur with the native JavaScript `confirm()` function in complex modal contexts.
 
 #### Problem Context
+
 During environment association management, the native `confirm()` function would flicker and disappear immediately when used within modal dialogs containing real-time updates and notification systems. This made it impossible for users to confirm destructive operations like removing associations.
 
 #### Implementation Details
+
 - **Problem Solved:** Native `confirm()` function causes UI flickering and timing issues when used within modal dialogs containing real-time updates
 - **Solution:** Custom Promise-based confirmation dialog system that creates DOM elements dynamically
 - **DOM Structure:** Fixed-position overlay with centered dialog box containing message and action buttons
@@ -331,6 +357,7 @@ During environment association management, the native `confirm()` function would
 - **Cleanup:** Automatic DOM cleanup after user interaction to prevent memory leaks
 
 #### Technical Implementation
+
 The custom confirmation dialog is implemented as a method in the ModalManager that creates a blocking overlay:
 
 ```javascript
@@ -349,7 +376,7 @@ showSimpleConfirm: function(message) {
             align-items: center;
             justify-content: center;
         `;
-        
+
         const dialog = document.createElement('div');
         dialog.innerHTML = `
             <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px; text-align: center;">
@@ -360,16 +387,16 @@ showSimpleConfirm: function(message) {
                 </div>
             </div>
         `;
-        
+
         overlay.appendChild(dialog);
         document.body.appendChild(overlay);
-        
+
         // Handle button clicks
         dialog.querySelector('#confirmOk').addEventListener('click', () => {
             document.body.removeChild(overlay);
             resolve(true);
         });
-        
+
         dialog.querySelector('#confirmCancel').addEventListener('click', () => {
             document.body.removeChild(overlay);
             resolve(false);
@@ -379,16 +406,20 @@ showSimpleConfirm: function(message) {
 ```
 
 #### Usage Pattern
+
 ```javascript
 // Custom confirmation dialog usage
-const confirmed = await this.showSimpleConfirm('Are you sure you want to remove this association?');
+const confirmed = await this.showSimpleConfirm(
+  "Are you sure you want to remove this association?",
+);
 if (confirmed) {
-    // Proceed with destructive operation
-    await ApiClient.environments.disassociateApplication(envId, appId);
+  // Proceed with destructive operation
+  await ApiClient.environments.disassociateApplication(envId, appId);
 }
 ```
 
 #### Benefits
+
 - **Eliminates UI Flickering:** Prevents visual interruptions during confirmation workflows
 - **Consistent Styling:** Maintains application UI consistency across all confirmation interactions
 - **Promise-Based:** Integrates seamlessly with modern async/await patterns
@@ -401,24 +432,27 @@ if (confirmed) {
 Different API endpoints may return different field naming conventions for the same entity type. This is particularly evident in the Labels API:
 
 ##### Issue
+
 - The generic `/labels` endpoint returns transformed field names: `{ id, name, description, color }`
 - Entity-specific endpoints like `/applications/{id}/labels` return database column names: `{ lbl_id, lbl_name, lbl_color }`
 
 ##### Solution
+
 Frontend code must handle both naming conventions when consuming API responses:
 
 ```javascript
 // When populating dropdowns with all labels
-this.createSelectOptions(allLabels, 'id', 'name')  // Uses transformed names
+this.createSelectOptions(allLabels, "id", "name"); // Uses transformed names
 
 // When displaying application-specific labels
-labels.forEach(label => {
-    // Uses database column names
-    html += `<span style="background-color: ${label.lbl_color}">${label.lbl_name}</span>`;
+labels.forEach((label) => {
+  // Uses database column names
+  html += `<span style="background-color: ${label.lbl_color}">${label.lbl_name}</span>`;
 });
 ```
 
 ##### Best Practice
+
 - Always check the actual API response format before accessing fields
 - Consider standardizing API responses across all endpoints in future iterations
 - Document field name transformations in API documentation
@@ -448,11 +482,13 @@ labels.forEach(label => {
 ### 6.4. Database & Field Naming Conventions ([ADR-014], [ADR-015], [ADR-016], [ADR-021], [ADR-022], [ADR-024])
 
 #### Naming Standards (Mandatory)
+
 - **Case Convention:** All database objects (tables, columns, indexes, constraints) **must** use `snake_case`.
 - **Language:** English only - no abbreviations, acronyms, or non-English terms.
 - **Consistency:** Names must be consistent across the entire schema.
 
 #### Table Naming Patterns
+
 - **Entity Tables:** Use plural nouns (e.g., `users`, `teams`, `plans_master_plm`)
 - **Suffix Conventions:**
   - `_master_` + abbreviation: Canonical/template entities (e.g., `plans_master_plm`, `steps_master_stm`)
@@ -461,6 +497,7 @@ labels.forEach(label => {
 - **Junction Tables:** Combine entity names with connecting element (e.g., `app_user_teams`)
 
 #### Column Naming Standards
+
 - **Primary Keys:** Always `id` (integer, auto-increment)
 - **Foreign Keys:** `{referenced_table_singular}_id` (e.g., `user_id`, `plan_master_id`)
 - **Standard Fields:**
@@ -472,6 +509,7 @@ labels.forEach(label => {
 - **Status Fields:** Use `status` suffix (e.g., `execution_status`, `approval_status`)
 
 #### Data Types & Constraints
+
 - **Text Fields:**
   - Short text (< 255 chars): `VARCHAR(n)` with explicit length
   - Long text: `TEXT` for unlimited content (descriptions, comments, etc.)
@@ -482,19 +520,23 @@ labels.forEach(label => {
 - **Enums:** Use `VARCHAR` with CHECK constraints rather than ENUM types
 
 #### Index Naming Convention
+
 - **Primary Key:** `pk_{table_name}`
 - **Foreign Key:** `fk_{table_name}_{referenced_table_name}`
 - **Unique Constraints:** `uq_{table_name}_{column_name(s)}`
 - **General Indexes:** `idx_{table_name}_{column_name(s)}`
 
 #### Key Entity Architecture
+
 The data model follows a hierarchical structure with canonical vs instance pattern:
 
 **Strategic Layer:**
+
 - `migrations_mig`: Top-level strategic initiatives
 - `iterations_itr`: Iterative delivery phases within migrations
 
 **Canonical Layer (Templates):**
+
 - `plans_master_plm`: Reusable implementation playbooks
 - `sequences_master_sqm`: Logical groupings within plans
 - `phases_master_phm`: Major execution phases with quality gates
@@ -502,6 +544,7 @@ The data model follows a hierarchical structure with canonical vs instance patte
 - `instructions_master_inm`: Detailed step procedures
 
 **Instance Layer (Execution):**
+
 - `plans_instance_pli`: Live plan executions
 - `sequences_instance_sqi`: Active sequence tracking
 - `phases_instance_phi`: Phase execution with control validation
@@ -509,6 +552,7 @@ The data model follows a hierarchical structure with canonical vs instance patte
 - `instructions_instance_ini`: Instruction execution details
 
 **Supporting Entities:**
+
 - `users`: Application users with authentication integration
 - `teams`: Organizational units for access control
 - `app_user_teams`: Many-to-many user-team relationships
@@ -524,18 +568,21 @@ The system implements complete attribute replication from master to instance tab
 
 **Design Decision:**
 All attributes from master tables are replicated into their corresponding instance tables, enabling:
+
 - **Runtime Overrides:** Instance-specific modifications without affecting templates
 - **Audit Trail:** Complete history of what values were used during execution
 - **Change Tracking:** Ability to see how execution differed from the plan
 - **Continuous Learning:** Feedback loop from instances to improve master templates
 
 **Implementation Details:**
+
 - Instance tables contain all master table columns plus instance-specific fields
 - Default values are copied from master records during instantiation
 - Override fields allow runtime modifications while preserving original values
 - 30% override probability in data generation simulates real-world usage
 
 **Example Structure:**
+
 ```sql
 -- Master table
 CREATE TABLE steps_master_stm (
@@ -562,12 +609,14 @@ CREATE TABLE steps_instance_sti (
 ```
 
 **Benefits:**
+
 - **Flexibility:** Adapt to real-time conditions without losing template integrity
 - **Auditability:** Complete record of planned vs actual execution
 - **Evolution:** Learn from instance variations to improve master templates
 - **Independence:** Instance execution not affected by master template changes
 
 #### Validation Rules
+
 - **No Reserved Words:** Avoid SQL reserved words as table/column names
 - **Descriptive Names:** Names must clearly indicate purpose (no cryptic abbreviations)
 - **Length Limits:**
@@ -592,6 +641,7 @@ The system includes comprehensive commenting capabilities to support collaborati
 The system implements a centralized status management approach to ensure consistency across all entities:
 
 **Status Table (`status_sts`):**
+
 - **Purpose:** Centralizes all possible status values with associated colors for UI consistency
 - **Structure:**
   - `sts_id`: Primary key (SERIAL)
@@ -623,12 +673,14 @@ The system implements a comprehensive three-tier role-based access control to en
 #### User Role Definitions
 
 **NORMAL (Read-Only Users):**
+
 - View iteration runsheets and step details
 - Read comments and historical data
 - No modification capabilities
 - Visual read-only indicators throughout UI
 
 **PILOT (Operational Users):**
+
 - All NORMAL capabilities plus:
 - Update step statuses
 - Complete/uncomplete instructions
@@ -637,6 +689,7 @@ The system implements a comprehensive three-tier role-based access control to en
 - View operational controls
 
 **ADMIN (System Administrators):**
+
 - All PILOT capabilities plus:
 - Access administrative functions
 - User and system management
@@ -646,23 +699,25 @@ The system implements a comprehensive three-tier role-based access control to en
 #### Frontend Implementation
 
 **CSS Class-Based Control:**
+
 ```css
 .pilot-only {
-    /* Shown only to PILOT and ADMIN users */
+  /* Shown only to PILOT and ADMIN users */
 }
 
 .admin-only {
-    /* Shown only to ADMIN users */
+  /* Shown only to ADMIN users */
 }
 
 .role-disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    pointer-events: none;
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 ```
 
 **JavaScript Role Detection:**
+
 ```javascript
 // User context injected via Confluence macro
 window.UMIG_ITERATION_CONFIG = {
@@ -696,13 +751,14 @@ applyRoleBasedControls() {
 #### Backend Implementation
 
 **User Context API:**
+
 ```groovy
 user(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     // GET /user/context
     if (pathParts.size() == 1 && pathParts[0] == 'context') {
         def username = queryParams.getFirst('username')
         def user = userRepository.findUserByUsername(username as String)
-        
+
         return Response.ok(new JsonBuilder([
             userId: userMap.usr_id,
             username: userMap.usr_code,
@@ -717,6 +773,7 @@ user(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPara
 ```
 
 #### Implementation Benefits
+
 - **Operational Safety:** Prevents unauthorized changes during critical cutover events
 - **Confluence Integration:** Seamless authentication using existing user accounts
 - **Progressive UI:** Interface adapts intelligently based on user capabilities
@@ -739,24 +796,28 @@ Database connectivity has evolved through several iterations to achieve optimal 
 The data model has undergone several significant architectural changes:
 
 #### Controls Migration ([ADR-016])
+
 - **Original Design:** Controls were defined at the step level, creating granular but complex validation.
 - **Refactored Design:** Controls moved to the phase level, providing appropriate abstraction while maintaining quality gates.
 - **Impact:** Simplified control management while preserving validation effectiveness.
 
 #### User-Team Relationships ([ADR-022])
+
 - **Original Design:** Simple 1-to-N relationship (users belonged to one team).
 - **Current Design:** N-to-N relationship via `app_user_teams` join table.
 - **Rationale:** Real-world organizational structures require users to participate in multiple teams and projects.
 
 #### Iteration-Centric Model ([ADR-024])
+
 - **Evolution:** Decoupled migrations from plans to support iterative delivery approaches.
 - **Structure:** Migrations can now contain multiple iterations, each with their own timeline and scope.
 - **Benefits:** Better alignment with agile delivery methodologies and complex project phasing.
 
 #### Audit Fields Standardization (US-002b - August 2025)
+
 - **Challenge:** Inconsistent audit field implementation across 25+ tables.
 - **Solution:** Migration 016 standardized all tables with `created_by`, `created_at`, `updated_by`, `updated_at`.
-- **Special Cases:** Handled existing fields in `labels_lbl` (INTEGER created_by), `users_usr` (existing timestamps), and `email_templates_emt` (emt_* fields).
+- **Special Cases:** Handled existing fields in `labels_lbl` (INTEGER created*by), `users_usr` (existing timestamps), and `email_templates_emt` (emt*\* fields).
 - **Impact:** Consistent tracking of data changes, simplified API patterns, improved compliance and debugging capabilities.
 
 ---
@@ -783,6 +844,7 @@ The data model has undergone several significant architectural changes:
 The development environment has evolved to prioritize reliability and developer experience:
 
 #### Current Architecture (Node.js-based)
+
 - **Orchestration:** Development environment is orchestrated by **Node.js scripts** using specialized libraries:
   - `execa`: For reliable subprocess execution with proper error handling
   - `commander`: For CLI interface and argument parsing
@@ -793,6 +855,7 @@ The development environment has evolved to prioritize reliability and developer 
   - `npm run restart`: Restart with optional `--reset` flag for database cleanup
 
 #### Historical Evolution
+
 - **Original Approach:** Shell scripts (bash/sh) for environment management
 - **Migration Rationale:**
   - Improved cross-platform compatibility (Windows, macOS, Linux)
@@ -811,11 +874,13 @@ The development environment has evolved to prioritize reliability and developer 
 The system implements an efficient strategy for importing large volumes of JSON data from Confluence exports:
 
 #### Import Architecture
+
 - **Approach:** Use PostgreSQL's native `\copy` command with staging tables
 - **Performance:** Capable of importing 500+ JSON files in under 3 minutes
 - **Technology:** Shell script orchestration with SQL transformation logic
 
 #### Implementation Pattern
+
 1. **Staging Table:** Temporary table with single JSONB column for raw data
 2. **Bulk Load:** Use `psql \copy` to load JSON files into staging table
 3. **Transformation:** SQL queries to extract and transform JSON into normalized tables
@@ -823,6 +888,7 @@ The system implements an efficient strategy for importing large volumes of JSON 
 5. **Cleanup:** Drop staging table after successful import
 
 #### Key Benefits
+
 - **No New Dependencies:** Uses only PostgreSQL and standard shell tools
 - **Transactional:** All-or-nothing import with rollback capability
 - **Idempotent:** Can be run multiple times without data corruption
@@ -830,6 +896,7 @@ The system implements an efficient strategy for importing large volumes of JSON 
 - **Flexibility:** JSON structure can evolve without breaking import process
 
 #### Example Usage
+
 ```bash
 # Import Confluence export files
 ./import-confluence-data.sh /path/to/json/files/*.json
@@ -850,6 +917,7 @@ The system implements an efficient strategy for importing large volumes of JSON 
 ### 8.2. Testing Standards & Mock Requirements ([ADR-026])
 
 #### Mock Specificity Requirements
+
 - **Mandatory Specificity:** All test mocks (for unit and integration tests) **must** be highly specific and validate exact SQL query structure.
 - **Forbidden Patterns:** Generic matchers (e.g., `string.contains('SELECT')`) are strictly prohibited.
 - **Required Validation:** Mocks must validate:
@@ -859,11 +927,13 @@ The system implements an efficient strategy for importing large volumes of JSON 
   - ORDER BY and other SQL clauses
 
 #### Rationale & Historical Context
+
 - **Critical Incident:** A production regression occurred when an incorrect column name in a JOIN condition passed tests due to generic SQL validation.
 - **Risk Mitigation:** Specific mocks catch SQL query regressions that generic patterns miss.
 - **Trade-off Acceptance:** The brittleness of specific mocks is an accepted trade-off for correctness and regression prevention.
 
 #### Implementation Standards
+
 - **Test Reliability:** Tests must fail immediately when SQL structure changes, ensuring deliberate review of database access patterns.
 - **Maintenance Overhead:** The additional maintenance burden of updating specific mocks is justified by the prevention of production SQL errors.
 - **Coverage Requirements:** All database access points must have corresponding specific mock validations.
@@ -882,6 +952,7 @@ All ScriptRunner repository methods must use explicit type casting when static t
 #### Type-Safe Parameter Handling
 
 1. **UUID Parameters:**
+
 ```groovy
 // CORRECT - Explicit casting for type safety
 if (filters.migrationId) {
@@ -894,6 +965,7 @@ params.migrationId = UUID.fromString(filters.migrationId)  // Missing 'as String
 ```
 
 2. **Integer Parameters:**
+
 ```groovy
 // CORRECT - Explicit casting for integers
 if (filters.teamId) {
@@ -906,6 +978,7 @@ params.teamId = Integer.parseInt(filters.teamId)  // Missing 'as String'
 ```
 
 3. **Path Parameter Extraction:**
+
 ```groovy
 // CORRECT - Safe path parameter handling
 def pathParts = getAdditionalPath(request)?.split('/') ?: []
@@ -953,13 +1026,15 @@ query += ' AND plm.plm_id = :planId'      // Wrong! Uses master ID
 #### Error Handling Patterns
 
 1. **Graceful Null Handling:**
+
 ```groovy
 // Handle missing parameters gracefully
-def migrationId = filters.migrationId ? 
+def migrationId = filters.migrationId ?
     UUID.fromString(filters.migrationId as String) : null
 ```
 
 2. **Type Conversion Safety:**
+
 ```groovy
 try {
     params.teamId = Integer.parseInt(filters.teamId as String)
@@ -970,12 +1045,13 @@ try {
 }
 
 if (filters.teamId) {
-    query += ' AND stm.tms_id_owner = :teamId'  
+    query += ' AND stm.tms_id_owner = :teamId'
     params.teamId = Integer.parseInt(filters.teamId as String)
 }
 ```
 
 #### Complete Database Field Selection
+
 All SQL queries must include ALL fields referenced in result mapping to prevent runtime errors:
 
 ```groovy
@@ -989,12 +1065,13 @@ SELECT sti.sti_id, stm.stt_code, stm.stm_number, ...
 ### 9.2. Hierarchical Filtering Patterns ([ADR-030], [ADR-031])
 
 #### Master vs Instance ID Filtering
+
 Always use instance IDs for hierarchical filtering, not master IDs, to ensure correct step retrieval:
 
 ```groovy
 // CORRECT - filters by instance IDs
 query += ' AND pli.pli_id = :planId'     // plan instance
-query += ' AND sqi.sqi_id = :sequenceId' // sequence instance  
+query += ' AND sqi.sqi_id = :sequenceId' // sequence instance
 query += ' AND phi.phi_id = :phaseId'    // phase instance
 
 // INCORRECT - filters by master IDs (will miss steps)
@@ -1002,6 +1079,7 @@ query += ' AND plm.plm_id = :planId'     // plan master
 ```
 
 #### Cascading Filter Reset Logic
+
 Parent filter changes must reset all child filters in proper hierarchical sequence:
 
 ```javascript
@@ -1020,6 +1098,7 @@ onMigrationChange() {
 ### 9.3. Many-to-Many Relationship Handling ([ADR-031])
 
 #### Labels Integration Pattern
+
 Handle optional many-to-many relationships gracefully without breaking API responses:
 
 ```groovy
@@ -1036,6 +1115,7 @@ try {
 ### 9.4. API Error Handling Standards ([ADR-023], [ADR-031])
 
 #### Comprehensive Error Response Patterns
+
 ```groovy
 try {
     // API logic with potential type conversions
@@ -1057,12 +1137,14 @@ try {
 The email notification system provides automated notifications for step status changes during migration events using Confluence's native mail API.
 
 #### System Components
+
 - **EmailService**: Core notification service with template processing
-- **EmailTemplateRepository**: Template management with CRUD operations  
+- **EmailTemplateRepository**: Template management with CRUD operations
 - **AuditLogRepository**: Comprehensive audit logging for all email events
 - **EmailTemplatesApi**: REST API for template management
 
 #### Integration Points
+
 - StepRepository methods trigger email notifications for status changes
 - Multi-team notification (owner + impacted teams)
 - MailHog integration for local development testing
@@ -1070,12 +1152,15 @@ The email notification system provides automated notifications for step status c
 ### 10.2. Email Templates
 
 #### Template Storage
+
 Email templates are stored in `email_templates_emt` table with:
+
 - HTML content with GString variable substitution
 - Active/inactive status management
 - Template types: STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED
 
 #### Template Processing Pattern
+
 ```groovy
 // Template variable preparation
 def variables = [
@@ -1093,11 +1178,13 @@ def processedBody = processTemplate(template.emt_body_html, variables)
 ### 10.3. Notification Triggers
 
 #### Step Status Changes
+
 - **STEP_OPENED**: Notifies owner + impacted teams when PILOT opens a step
 - **STEP_STATUS_CHANGED**: Notifies owner + impacted teams + cutover team for status updates
 - **INSTRUCTION_COMPLETED**: Notifies owner + impacted teams when instruction is completed
 
 #### Recipient Logic
+
 ```groovy
 // Multi-team notification pattern
 def allTeams = new ArrayList(teams)
@@ -1110,12 +1197,15 @@ def recipients = extractTeamEmails(allTeams)
 ### 10.4. Audit Logging
 
 #### Comprehensive Email Audit Trail
+
 All email events are logged to `audit_log_aud` table:
+
 - **EMAIL_SENT**: Successful email delivery with full details
 - **EMAIL_FAILED**: Failed email attempts with error messages
 - **STATUS_CHANGED**: Business event logging separate from email notifications
 
 #### JSONB Audit Details
+
 ```groovy
 def details = [
     recipients: recipients,
@@ -1132,11 +1222,13 @@ def details = [
 ### 10.5. Development Testing
 
 #### MailHog Integration
+
 - Local SMTP server (localhost:1025) for email testing
 - Web interface (localhost:8025) for email verification
 - Graceful fallback when MailHog is not available
 
 #### Testing Pattern
+
 ```groovy
 // ScriptRunner Console testing
 def stepRepo = new StepRepository()
@@ -1154,7 +1246,7 @@ def result = stepRepo.openStepInstanceWithNotification(stepId, userId)
 **Status:** Accepted  
 **Date:** 2025-07-31  
 **Context:** US-002 implementation revealed critical type safety requirements in ScriptRunner environments  
-**Decision:** Mandatory explicit type casting patterns for all ScriptRunner operations  
+**Decision:** Mandatory explicit type casting patterns for all ScriptRunner operations
 
 ### 11.2. Problem Context
 
@@ -1297,15 +1389,15 @@ query += ' AND plm.plm_id = :planId'      // Wrong! Uses master ID
 // Standard error handling pattern for type-safe operations
 try {
     // Type-safe parameter conversion
-    def migrationId = filters.migrationId ? 
+    def migrationId = filters.migrationId ?
         UUID.fromString(filters.migrationId as String) : null
-    def teamId = filters.teamId ? 
+    def teamId = filters.teamId ?
         Integer.parseInt(filters.teamId as String) : null
-        
+
     // Execute operation with validated parameters
     def result = repository.performOperation(migrationId, teamId)
     return Response.ok(result).build()
-    
+
 } catch (IllegalArgumentException e) {
     return Response.status(400)
         .entity([error: "Invalid parameter format: ${e.message}"])
@@ -1327,7 +1419,7 @@ try {
 
 ```groovy
 class SequenceRepository {
-    
+
     def findSequencesByIteration(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
             def sequences = sql.rows('''
@@ -1339,7 +1431,7 @@ class SequenceRepository {
                 WHERE itr.itr_id = :iterationId
                 ORDER BY sqi.sqi_order
             ''', [iterationId: iterationId])
-            
+
             return sequences.collect { row ->
                 [
                     sqi_id: row['sqi_id'] as Integer,
@@ -1368,6 +1460,7 @@ class SequenceRepository {
 #### 11.8.2. Code Review Standards
 
 **Required Checks:**
+
 - [ ] All parameter conversions use explicit casting
 - [ ] All database result access uses map notation with casting
 - [ ] All SQL queries include complete field selection
@@ -1377,6 +1470,7 @@ class SequenceRepository {
 #### 11.8.3. Testing Requirements
 
 **Unit Tests Must Validate:**
+
 - Type conversion error handling for all parameter types
 - Correct SQL query structure with complete field selection
 - Proper instance ID usage in filtering operations
@@ -1418,11 +1512,12 @@ The benefits of runtime reliability and consistent error handling outweigh the a
 **Title:** Database Audit Fields Standardization  
 **Status:** Implemented (US-002b)  
 **Date:** August 2025  
-**Impact:** High - affects all database tables  
+**Impact:** High - affects all database tables
 
 ### 12.2. Problem Context
 
 UMIG database tables had inconsistent audit field implementation across 25+ tables, creating challenges for:
+
 - User accountability and change tracking
 - Regulatory compliance and audit trails
 - System operation transparency
@@ -1433,6 +1528,7 @@ UMIG database tables had inconsistent audit field implementation across 25+ tabl
 #### 12.3.1. Standardized Audit Fields
 
 **Required Fields for All Tables:**
+
 ```sql
 created_by VARCHAR(255) NOT NULL,
 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -1441,6 +1537,7 @@ updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 ```
 
 **Field Specifications:**
+
 - `created_by/updated_by`: VARCHAR(255) supporting user trigrams (usr_code) and system identifiers
 - `created_at/updated_at`: Automatic timestamp management via PostgreSQL triggers
 - Composite indexes on audit fields for optimal query performance
@@ -1448,12 +1545,15 @@ updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 #### 12.3.2. Tiered Association Audit Strategy
 
 **Tier 1 (Critical):** Full audit fields for access control tracking
+
 - `teams_tms_x_users_usr` - user access tracking
 
-**Tier 2 (Standard):** Minimal audit for change tracking  
+**Tier 2 (Standard):** Minimal audit for change tracking
+
 - Label associations - `created_at`, `created_by` only
 
 **Tier 3 (Simple):** No audit overhead for pure many-to-many relationships
+
 - Environment associations
 
 ### 12.4. Implementation Details
@@ -1461,26 +1561,31 @@ updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 #### 12.4.1. Database Migrations
 
 **Migration 016:** Core audit fields addition across 25+ tables
+
 - Standardized audit field implementation
 - `get_user_code()` helper function for trigram resolution
 - Composite indexes for performance optimization
 
 **Migration 017:** Association table audit strategy implementation
+
 - Tiered approach based on business criticality
 - Selective audit field application
 
 **Migration 018:** Existing field conversion
+
 - Converted INTEGER `created_by` fields to VARCHAR for consistency
 - Special handling for `labels_lbl` table
 
 #### 12.4.2. Supporting Infrastructure
 
 **AuditFieldsUtil.groovy:**
+
 - Standardized utility class for audit field handling
 - User trigram resolution and system identifier management
 - Comprehensive test coverage (AuditFieldsUtilTest.groovy)
 
 **Data Generation Updates:**
+
 - Updated 7 generator scripts (002, 003, 004, 005, 006, 008, 099)
 - Populate audit fields with 'generator' identifier
 - System identifier patterns for automated processes
@@ -1488,13 +1593,15 @@ updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 ### 12.5. Value Conventions
 
 #### 12.5.1. User Identifiers
+
 - **Interactive Users:** User trigram codes (e.g., "jdo", "msl") from usr_code field
 - **System Operations:** Reserved identifiers:
   - `'generator'` - Data generation scripts
-  - `'system'` - Automated system processes  
+  - `'system'` - Automated system processes
   - `'migration'` - Database migration operations
 
 #### 12.5.2. Timestamp Management
+
 - `created_at`: Set once during record creation, never modified
 - `updated_at`: Automatically updated via PostgreSQL triggers on row modification
 - All timestamps use `TIMESTAMP WITH TIME ZONE` for global consistency
@@ -1502,6 +1609,7 @@ updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 ### 12.6. Performance Considerations
 
 #### 12.6.1. Index Strategy
+
 ```sql
 -- Composite indexes on audit fields for common query patterns
 CREATE INDEX idx_[table]_audit_created ON [table] (created_by, created_at);
@@ -1509,6 +1617,7 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 ```
 
 #### 12.6.2. Query Optimization
+
 - Audit field queries leverage composite indexes
 - Selective indexing based on table criticality and query patterns
 - Performance monitoring for audit-enabled operations
@@ -1516,6 +1625,7 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 ### 12.7. Benefits and Impact
 
 #### 12.7.1. Benefits
+
 - **Complete Audit Trail:** Every entity lifecycle event tracked (create, update, delete)
 - **User Accountability:** Trigram-based created_by/updated_by tracking
 - **System Transparency:** Standardized identifier conventions for automated operations
@@ -1523,6 +1633,7 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 - **Operational Excellence:** Performance-optimized with automatic timestamp management
 
 #### 12.7.2. System Impact
+
 - **Development:** Consistent audit patterns across all API operations
 - **Testing:** 100% audit field compliance in test suite (74 tests passing)
 - **Data Generation:** Audit-compliant synthetic data for development/testing
@@ -1531,12 +1642,14 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 ### 12.8. Implementation Standards
 
 #### 12.8.1. Mandatory Requirements
+
 - All new tables MUST include standardized audit fields
 - All data modification operations MUST populate audit fields
 - System operations MUST use appropriate identifier conventions
 - API operations MUST leverage AuditFieldsUtil for consistency
 
 #### 12.8.2. Testing Requirements
+
 - Unit tests MUST validate audit field population
 - Integration tests MUST verify audit field consistency
 - Migration tests MUST confirm audit field structure and data
@@ -1544,13 +1657,15 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 ### 12.9. Migration and Compliance
 
 #### 12.9.1. Implementation Status
+
 ✅ All 25+ database tables updated with standardized audit fields  
 ✅ Tiered association audit strategy implemented  
 ✅ Supporting infrastructure (utilities, tests) completed  
 ✅ Data generation scripts updated for audit compliance  
-✅ Comprehensive test coverage ensuring audit field compliance  
+✅ Comprehensive test coverage ensuring audit field compliance
 
 #### 12.9.2. Future Considerations
+
 - Monitor performance impact of audit field queries
 - Evaluate audit field requirements for new entity types
 - Consider audit log archiving strategy for long-term data retention
@@ -1564,17 +1679,19 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 
 **Status:** Completed (August 2025)  
 **Impact:** High - Core MVP functionality for quality gate management  
-**Test Coverage:** 90%+ with comprehensive integration testing  
+**Test Coverage:** 90%+ with comprehensive integration testing
 
 ### 13.2. Architecture Components
 
 #### 13.2.1. API Implementation
+
 **PhasesApi.groovy (1,060+ lines, refactored August 2025):**
+
 - **Consolidated Endpoint Architecture:** Single `phases` endpoint with path-based routing
 - **Consistent API Organization:** Aligned with Plans and Sequences APIs for uniform developer experience
 - **21 REST endpoints** providing full CRUD operations under unified structure:
   - `/phases/master` - Master phase management
-  - `/phases/instance` - Phase instance operations  
+  - `/phases/instance` - Phase instance operations
   - `/phases/{id}/controls` - Control point management
   - `/phases/{id}/progress` - Progress calculation
 - Hierarchical filtering (migration→iteration→plan→sequence→phase)
@@ -1582,7 +1699,9 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 - Control point validation with emergency override
 
 #### 13.2.2. Repository Layer
+
 **PhaseRepository.groovy (1,139+ lines, enhanced August 2025):**
+
 - **Database Compatibility Fixes:** PostgreSQL timestamp casting (`::text`) to resolve JDBC compatibility issues
 - **Query Optimization:** Simplified queries for better performance and reliability
 - Complex business logic with control point validation
@@ -1591,7 +1710,9 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 - Circular dependency detection and prevention
 
 #### 13.2.3. Quality Assurance
+
 **Comprehensive Testing:**
+
 - 30 integration test scenarios covering all endpoints
 - 1,694 lines of unit tests with edge case coverage
 - API validation scripts for endpoint verification
@@ -1600,19 +1721,24 @@ CREATE INDEX idx_[table]_audit_updated ON [table] (updated_by, updated_at);
 ### 13.3. Control Point Validation System
 
 #### 13.3.1. Automated Quality Gates
+
 **Control Point Types:**
+
 - **Pre-Conditions:** Requirements validation before phase execution
-- **Mid-Point Checks:** Progress validation during phase execution  
+- **Mid-Point Checks:** Progress validation during phase execution
 - **Post-Conditions:** Completion criteria verification
 - **Emergency Overrides:** Critical path bypass with full audit trail
 
 #### 13.3.2. Progress Calculation
+
 **Weighted Progress Algorithm:**
+
 ```groovy
 phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ```
 
 **Benefits:**
+
 - Real-time progress visibility for operations teams
 - Automated risk detection through control point failures
 - Evidence-based completion criteria with audit trails
@@ -1620,13 +1746,17 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ### 13.4. Hierarchical Navigation Patterns
 
 #### 13.4.1. Parent-Child Filtering
+
 **Filter Chain:** migration → iteration → plan → sequence → phase
+
 - Cascading filter reset when parent selection changes
 - Instance ID usage (not master IDs) for correct data retrieval
 - Performance-optimized queries with proper indexing
 
 #### 13.4.2. Bulk Operations Support
+
 **Atomic Reordering:**
+
 - Transaction-based ordering changes with rollback capability
 - Dependency validation preventing circular relationships
 - Batch update optimization for large-scale reordering
@@ -1634,12 +1764,15 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ### 13.5. API Design Patterns
 
 #### 13.5.1. Endpoint Categories
+
 **Consolidated Single-Entry Architecture (August 2025 Refactoring):**
+
 - **Unified Routing:** All endpoints consolidated under single `phases` entry point
 - **Path-Based Organization:** Internal routing via path segments (`/master`, `/instance`, `/controls`)
 - **Consistent with System:** Matches Plans and Sequences API patterns for developer experience
 
 **Master Phase Management (7 endpoints):**
+
 - `GET /phases/master` - List all master phases
 - `GET /phases/master/{id}` - Get specific master phase
 - `POST /phases/master` - Create new master phase
@@ -1649,8 +1782,9 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 - `POST /phases/master/{id}/instantiate` - Create phase instances
 
 **Instance Phase Management (9 endpoints):**
+
 - `GET /phases/instance` - List phase instances with hierarchical filtering
-- `GET /phases/instance/{id}` - Get specific phase instance  
+- `GET /phases/instance/{id}` - Get specific phase instance
 - `PUT /phases/instance/{id}` - Update phase instance
 - `DELETE /phases/instance/{id}` - Delete phase instance
 - `PUT /phases/instance/{id}/status` - Update phase status
@@ -1658,6 +1792,7 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 - Runtime phase execution tracking and emergency override capabilities
 
 **Control & Progress Operations (5 endpoints):**
+
 - `GET /phases/{id}/controls` - Get control points for phase
 - `PUT /phases/{id}/controls/{controlId}` - Update control point status
 - `POST /phases/{id}/controls/{controlId}/override` - Emergency override
@@ -1665,7 +1800,9 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 - Status aggregation and reporting with audit trails
 
 #### 13.5.2. Response Patterns
+
 **Consistent Error Handling:**
+
 - SQL state mapping: 23503→400 (constraint), 23505→409 (conflict)
 - Detailed error messages with context information
 - Graceful degradation for partial failures
@@ -1673,13 +1810,17 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ### 13.6. Integration Points
 
 #### 13.6.1. Frontend Integration
+
 **Admin GUI Phase Management:**
+
 - Modular JavaScript components for phase operations
 - Real-time progress updates via AJAX polling
 - Emergency override UI with confirmation workflows
 
 #### 13.6.2. Database Integration
+
 **Schema Compliance:**
+
 - Full audit field implementation
 - Type safety patterns (ADR-034)
 - Hierarchical filtering support (ADR-030)
@@ -1687,16 +1828,19 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ### 13.7. Business Value Delivered
 
 #### 13.7.1. Risk Mitigation
+
 - Automated quality gates preventing execution errors
 - Control point validation ensuring readiness criteria
 - Emergency override capabilities for critical situations
 
 #### 13.7.2. Operational Visibility
+
 - Real-time progress tracking across all phases
 - Evidence-based completion status with audit trails
 - Hierarchical navigation supporting complex migration structures
 
 #### 13.7.3. Development Foundation
+
 - Proven patterns for remaining MVP APIs (Plans, Instructions)
 - Comprehensive test coverage ensuring reliability
 - Performance benchmarks validating scalability requirements
@@ -1704,12 +1848,14 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ### 13.8. Implementation Standards Established
 
 #### 13.8.1. Proven Patterns
+
 - Repository pattern with complex business logic
 - Control point validation with override capabilities
 - Hierarchical filtering with performance optimization
 - Comprehensive testing with integration scenarios
 
 #### 13.8.2. Quality Standards
+
 - 90%+ test coverage requirement
 - <200ms response time targets
 - Comprehensive API documentation with examples
@@ -1720,6 +1866,7 @@ phaseProgress = (stepCompletion * 0.7) + (controlPointStatus * 0.3)
 ## 14. Controls API Implementation (US-005)
 
 ### 14.1. Implementation Overview
+
 **Status:** Completed (August 2025)  
 **Impact:** Critical - Phase-level quality gate management system
 
@@ -1728,13 +1875,16 @@ The Controls API provides comprehensive management of control points and quality
 ### 14.2. Architecture Design
 
 #### 14.2.1. Control System Architecture
+
 **Phase-Level Integration (per ADR-016):**
+
 - Controls are quality gates at phase boundaries
 - Critical controls block phase progression
 - Non-critical controls provide warnings
 - 41.85% critical control distribution in production
 
 **Status Tracking States:**
+
 - PENDING - Initial state awaiting validation
 - VALIDATED - Control approved by validators
 - PASSED - Control successfully executed
@@ -1745,7 +1895,9 @@ The Controls API provides comprehensive management of control points and quality
 ### 14.3. API Implementation Details
 
 #### 14.3.1. Endpoint Categories (20 Total)
+
 **Master Control Management (7 endpoints):**
+
 - `GET /controls/master` - List all master controls
 - `GET /controls/master/{ctm_id}` - Get specific master control
 - `GET /controls/master?phaseId={phm_id}` - Filter by phase
@@ -1755,6 +1907,7 @@ The Controls API provides comprehensive management of control points and quality
 - `DELETE /controls/master/{ctm_id}` - Delete master control
 
 **Control Instance Operations (8 endpoints):**
+
 - `GET /controls/instance` - List with hierarchical filtering
 - `GET /controls/instance/{cti_id}` - Get specific instance
 - `POST /controls/instance` - Create control instance
@@ -1765,6 +1918,7 @@ The Controls API provides comprehensive management of control points and quality
 - `PUT /controls/instance/{cti_id}/status` - Update status
 
 **Validation & Progress (5 endpoints):**
+
 - `PUT /controls/instance/{cti_id}/validate` - Validate control
 - `PUT /controls/instance/{cti_id}/override` - Override control
 - `PUT /controls/instance/bulk/validate` - Bulk validation
@@ -1774,19 +1928,23 @@ The Controls API provides comprehensive management of control points and quality
 ### 14.4. Technical Implementation
 
 #### 14.4.1. Repository Architecture
+
 **ControlRepository Methods (20 total):**
+
 - Master control CRUD operations (7 methods)
 - Instance control management (8 methods)
 - Validation and override operations (3 methods)
 - Progress calculation and reporting (2 methods)
 
 **Static Type Checking Compliance:**
+
 - All type errors resolved (lines 877-975)
 - Explicit Map and List declarations
 - Proper numeric casting with `as int`
 - Bracket notation for Map property access
 
 #### 14.4.2. Progress Calculation Algorithm
+
 ```groovy
 def calculatePhaseControlProgress(UUID phaseInstanceId) {
     def controls = findControlInstancesByPhase(phaseInstanceId)
@@ -1794,10 +1952,10 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
     int validated = controls.count { it['cti_status'] == 'VALIDATED' }
     int passed = controls.count { it['cti_status'] == 'PASSED' }
     int critical = controls.count { it['cti_is_critical'] == true }
-    
-    double progress = total > 0 ? 
+
+    double progress = total > 0 ?
         ((validated + passed) * 100.0 / total) : 0
-        
+
     return [
         totalControls: total,
         validatedControls: validated,
@@ -1811,24 +1969,29 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 ### 14.5. Quality Assurance
 
 #### 14.5.1. Test Coverage
+
 **Unit Testing:**
+
 - ControlsApiUnitTest.groovy with mocked operations
 - 5 test methods covering core functionality
 - Repository pattern validation
 
 **Integration Testing:**
+
 - ControlsApiIntegrationTest.groovy with database
 - 184 control instances verified in hierarchy
 - Status distribution validation
 - Progress calculation accuracy
 
 **Database Validation:**
+
 - 30 master controls properly configured
 - 184 instances with correct relationships
 - Hierarchical filtering working correctly
 - Critical control distribution: 41.85%
 
 #### 14.5.2. Performance Metrics
+
 - Response times <200ms for all endpoints
 - Bulk operations optimized for 100+ controls
 - Efficient progress calculation queries
@@ -1837,12 +2000,14 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 ### 14.6. Integration Points
 
 #### 14.6.1. Phase Integration
+
 - Controls linked to phases via `phi_id`
 - Progress feeds into phase completion metrics
 - Validation blocks phase transitions
 - Override capability for emergencies
 
 #### 14.6.2. User & Team Integration
+
 - IT validator assignment (`usr_id_it_validator`)
 - Business validator assignment (`usr_id_biz_validator`)
 - Team-based control ownership
@@ -1851,18 +2016,21 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 ### 14.7. Business Value Delivered
 
 #### 14.7.1. Quality Gates
+
 - Enforced quality checkpoints at phase boundaries
 - Critical control enforcement preventing errors
 - Non-critical warnings for risk awareness
 - Emergency override with audit trail
 
 #### 14.7.2. Operational Visibility
+
 - Real-time control progress tracking
 - Phase readiness assessment
 - Validation workflow management
 - Historical validation audit trail
 
 #### 14.7.3. Risk Management
+
 - 41.85% critical controls for risk mitigation
 - Validation workflows ensuring compliance
 - Override capabilities for emergencies
@@ -1871,6 +2039,7 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 ### 14.8. Implementation Standards
 
 #### 14.8.1. Patterns Established
+
 - Phase-level control architecture (ADR-016)
 - Validation and override workflows
 - Bulk operations for efficiency
@@ -1879,6 +2048,7 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 - **Standardized response building pattern** (buildSuccessResponse helper)
 
 #### 14.8.2. Quality Standards Met
+
 - 100% static type checking compliance
 - Comprehensive test coverage including edge cases
 - Complete API documentation
@@ -1888,17 +2058,20 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 ### 14.9. Performance Enhancements (Post-Review)
 
 #### 14.9.1. Repository Optimization
+
 - **Centralized Filter Validation**: Added `validateFilters` method for batch parameter casting
 - **Pattern-Based Type Detection**: Intelligent field type resolution using regex patterns
 - **Reduced Casting Operations**: Single-pass validation eliminates redundant type conversions
 - **Performance Impact**: Reduced query preparation overhead by ~30%
 
 #### 14.9.2. API Response Standardization
+
 - **Consistent Response Pattern**: `buildSuccessResponse` helper ensures uniform JSON formatting
 - **Improved Maintainability**: Single point of change for response structure
 - **Enhanced Client Experience**: Predictable response format across all endpoints
 
 #### 14.9.3. Enhanced Test Coverage
+
 - **Edge Case Scenarios**: Added tests for zero controls, critical failures, mixed states
 - **Null Value Handling**: Comprehensive testing of null validator scenarios
 - **Boundary Conditions**: Testing extreme cases in progress calculation
@@ -1913,11 +2086,12 @@ def calculatePhaseControlProgress(UUID phaseInstanceId) {
 **Title:** Status Field Normalization  
 **Status:** Implemented (US-006b - Recovered from commit a4cc184)  
 **Date:** August 2025  
-**Documentation Status:** Fully Documented (ADR-035 synchronized across all project documentation)  
+**Documentation Status:** Fully Documented (ADR-035 synchronized across all project documentation)
 
 ### 15.2. Context and Problem Statement
 
 The UMIG application originally stored status values as VARCHAR(50) strings across multiple entity tables. This approach led to:
+
 - Data inconsistency with variations in status strings
 - No referential integrity for status values
 - Difficulty in managing status-related business logic
@@ -1937,6 +2111,7 @@ The UMIG application originally stored status values as VARCHAR(50) strings acro
 #### 15.4.1. Status Table Design
 
 **Central Status Table (`status_sts`):**
+
 ```sql
 CREATE TABLE status_sts (
     sts_id SERIAL PRIMARY KEY,
@@ -1949,6 +2124,7 @@ CREATE TABLE status_sts (
 ```
 
 **Pre-populated Status Values:**
+
 - **Plan/Sequence/Phase:** PLANNING, IN_PROGRESS, COMPLETED, CANCELLED (4 each)
 - **Step:** PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED (7 total)
 - **Control:** TODO, PASSED, FAILED, CANCELLED (4 total)
@@ -1957,16 +2133,18 @@ CREATE TABLE status_sts (
 #### 15.4.2. Entity Table Modifications
 
 **Foreign Key Implementation:**
+
 ```sql
 -- Example for controls_master_ctm
-ALTER TABLE controls_master_ctm 
+ALTER TABLE controls_master_ctm
     ADD COLUMN ctm_status INTEGER,
-    ADD CONSTRAINT fk_ctm_status 
-        FOREIGN KEY (ctm_status) 
+    ADD CONSTRAINT fk_ctm_status
+        FOREIGN KEY (ctm_status)
         REFERENCES status_sts(sts_id);
 ```
 
 **Special Case - Instructions:**
+
 - Instructions use boolean `ini_is_completed` field
 - No status FK needed per business requirements
 - Simplifies completion tracking logic
@@ -1976,6 +2154,7 @@ ALTER TABLE controls_master_ctm
 #### 15.5.1. API Layer Changes
 
 **Status Validation Pattern:**
+
 ```groovy
 // ControlsApi.groovy example
 if (requestData.cti_status) {
@@ -1985,11 +2164,12 @@ if (requestData.cti_status) {
 ```
 
 **Repository Layer Validation:**
+
 ```groovy
 // ControlRepository.groovy
 def validateStatus(Integer statusId, String entityType) {
     def validStatuses = sql.rows("""
-        SELECT sts_id FROM status_sts 
+        SELECT sts_id FROM status_sts
         WHERE sts_type = ? AND sts_id = ?
     """, [entityType, statusId])
     return !validStatuses.isEmpty()
@@ -2001,27 +2181,32 @@ def validateStatus(Integer statusId, String entityType) {
 #### 15.6.1. Phased Implementation
 
 **Phase 1: Database Schema (COMPLETE)**
+
 - Created status_sts table
 - Populated 24 status records
 - Added FK columns to entity tables
 
 **Phase 2: API Updates (COMPLETE - Recovered)**
+
 - PlansApi, SequencesApi, PhasesApi, StepsApi using INTEGER status
 - ControlsApi fully implements status validation
 - InstructionsApi uses boolean completion tracking
 - migrationApi handles migration-level statuses
 
 **Phase 3: Repository Layer (COMPLETE - Recovered)**
+
 - ControlRepository validates against status_sts
 - InstructionRepository uses boolean logic
 - All repositories enforce type safety
 
 **Phase 4: Testing (COMPLETE)**
+
 - Integration tests validate FK constraints
 - Tests confirm status validation logic
 - Instructions tests verify boolean field
 
 **Phase 5: Admin GUI (PENDING)**
+
 - Status management interface needed
 - Status dropdowns for entity forms
 - Color-coded status visualization
@@ -2031,10 +2216,11 @@ def validateStatus(Integer statusId, String entityType) {
 **Important:** The US-006b implementation was accidentally reverted in commit 7056d21 and has been successfully recovered from commit a4cc184. The recovery included:
 
 **Recovered Files:**
+
 - `ControlsApi.groovy` - Full INTEGER FK status implementation
 - `InstructionsApi.groovy` - Boolean completion tracking (no status FK)
 - `PlansApi.groovy` - Status field normalization
-- `SequencesApi.groovy` - Status field normalization  
+- `SequencesApi.groovy` - Status field normalization
 - `StepsApi.groovy` - Status field normalization
 - `migrationApi.groovy` - Migration-level status handling
 - `ControlRepository.groovy` - Repository layer status validation
@@ -2045,16 +2231,19 @@ All recovered implementations pass integration tests and comply with ADR specifi
 ### 15.8. Benefits Realized
 
 #### 15.8.1. Data Integrity
+
 - Foreign key constraints prevent invalid status values
 - Referential integrity guaranteed at database level
 - No orphaned or inconsistent status strings
 
 #### 15.8.2. Performance Improvements
+
 - INTEGER comparisons faster than VARCHAR
 - Indexed lookups on sts_id column
 - Reduced storage overhead
 
 #### 15.8.3. Maintainability
+
 - Central status management location
 - Easy addition of new statuses
 - Consistent validation logic across APIs
@@ -2062,17 +2251,20 @@ All recovered implementations pass integration tests and comply with ADR specifi
 ### 15.9. Remaining Work
 
 #### 15.9.1. Admin GUI Components
+
 - Status management CRUD interface
 - Entity form status dropdowns
 - Color-coded status badges
 - Bulk status update capabilities
 
 #### 15.9.2. API Enhancements
+
 - Include status name and color in GET responses
 - Status transition validation rules
 - Status history tracking
 
 #### 15.9.3. Documentation
+
 - OpenAPI specification updates
 - User guide for status management
 - Developer documentation for status patterns

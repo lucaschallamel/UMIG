@@ -57,12 +57,15 @@ Further extraction rules (e.g., tables, status tags) can be added as needed.
 
 1. **Export HTML** from Confluence into `rawData/`.
 2. **Generate compact JSON**:
+
    ```sh
    ./scrape_html_oneline.sh rawData/input.html
    ```
 
    - Produces `rawData/json/input.json` (one-line, strict JSON)
+
 3. **Import into PostgreSQL**:
+
    ```sh
    ./import_cutover_data.sh
    ```

@@ -285,7 +285,7 @@ class MockPlanRepository {
             ite_id: iterationId,
             pli_name: overrides.pli_name ?: "Instance from Master",
             pli_description: overrides.pli_description ?: "Created from master plan",
-            pli_status: "NOT_STARTED",
+            pli_status: "PLANNING",
             usr_id_owner: userId,
             created_at: new Date(),
             updated_at: new Date()

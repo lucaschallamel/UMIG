@@ -11,25 +11,30 @@ This document contains a consolidated summary of the key rules for this project,
 ## 1. Project Guidelines
 
 ### Architecture
+
 - [MSA] The project follows a **Microservice-Oriented Architecture**.
 - [TFA][MSA] All development must adhere to the principles in the **Twelve-Factor App** and [MSA] **Microservice Patterns** rule files.
 
 ### Documentation & ADRs
+
 - [SD] Keep `README.md`, `CHANGELOG.md`, and other documentation in `/docs` continuously updated.
 - [SD] Create Architecture Decision Records (ADRs) in `/docs/adr` for all significant architectural changes, including dependency changes, new patterns, or schema modifications.
 
 ### Code Style & Patterns
+
 - [ISA] Use OpenAPI Generator for generating API clients.
 - [CA] Prefer composition over inheritance.
 - [CA] Use the repository pattern for data access.
 - [REH] Follow established error handling patterns.
 
 ### Testing
+
 - [WF-TEST] Mandate unit tests for business logic, integration tests for API endpoints, and E2E tests for critical user flows.
 - [AC][CSD] Ensure all synthetic data generation scripts are idempotent and robust.
 - [WF-TEST] All tests must pass in CI before merging code.
 
 ### Security & Quality
+
 - [IV] **Input Validation:** Validate all external data before processing.
 - [RM] **Resource Management:** Close connections and free resources appropriately.
 - [CMV] **Constants Over Magic Values:** Use named constants instead of magic strings/numbers.
@@ -38,11 +43,13 @@ This document contains a consolidated summary of the key rules for this project,
 - [SEC-1] **CRITICAL: Do not read or modify `.env` or any other secrets files without explicit user approval.**
 
 ### Local Development & CI/CD
+
 - [CA] The local environment must be managed via the provided wrapper scripts for Podman/Docker and Ansible.
 - [DM] All environment configuration must be version-controlled.
 - CI/CD pipelines must run all linting, testing, and security scans, blocking merges on failure.
 
 ### Database Management
+
 - [DPS] Use a dedicated tool (e.g., Liquibase) for automated, version-controlled migrations. Manual schema changes are prohibited.
 - [DME] Maintain an up-to-date Entity Relationship Diagram (ERD) and a changelog for all database changes.
 - [CA] Adhere to consistent, project-wide naming conventions (e.g., snake_case).
@@ -84,7 +91,7 @@ This document contains a consolidated summary of the key rules for this project,
 ## 5. Microservice Architecture Patterns
 
 - [DBC] **Decomposition:**
-  - [DBC] **By Business Capability:** Define services based on what a business *does* (e.g., Order Management).
+  - [DBC] **By Business Capability:** Define services based on what a business _does_ (e.g., Order Management).
   - [DSD] **By Subdomain:** Define services around specific problem subdomains.
 - [MSG][RPI][CBR][SDC] **Communication:**
   - [MSG] **Asynchronous Messaging:** Prefer for inter-service communication to promote loose coupling and resilience.
@@ -115,6 +122,7 @@ This document contains a consolidated summary of the key rules for this project,
 Below are all reference codes and trigrams used throughout the UMIG rulebook for precise, unambiguous governance and review:
 
 ### Core Coding Principles & Workflow
+
 - [SF] Simplicity First
 - [RP] Readability Priority
 - [DM] Dependency Minimalism
@@ -140,6 +148,7 @@ Below are all reference codes and trigrams used throughout the UMIG rulebook for
 - [CSD] Code Smell Detection
 
 ### Security & Performance
+
 - [IV] Input Validation
 - [RM] Resource Management
 - [CMV] Constants Over Magic Values
@@ -152,12 +161,14 @@ Below are all reference codes and trigrams used throughout the UMIG rulebook for
 - [SEC-1] No secrets access without approval
 
 ### AI Communication
+
 - [RAT] Rule Application Tracking
 - [EDC] Explanation Depth Control
 - [AS] Alternative Suggestions
 - [KBT] Knowledge Boundary Transparency
 
 ### Microservice Patterns (Chris Richardson)
+
 - [MON] Monolithic Architecture
 - [MSA] Microservice Architecture
 - [DBC] Decompose by Business Capability

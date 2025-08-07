@@ -1275,7 +1275,7 @@ class PhaseRepositoryTest extends Specification {
         def isInstanceSequence = [sqi_id: sequenceId]
         def stats = [
             total_phases: 10,
-            not_started: 3,
+            planning: 3,
             in_progress: 4,
             completed: 3,
             first_created: new Date(),
@@ -1302,7 +1302,7 @@ class PhaseRepositoryTest extends Specification {
         1 * mockSql.firstRow({ String query ->
             query.contains('SELECT') &&
             query.contains('COUNT(*) as total_phases') &&
-            query.contains("COUNT(CASE WHEN phi_status = 'NOT_STARTED' THEN 1 END) as not_started") &&
+            query.contains("COUNT(CASE WHEN phi_status = 'PLANNING' THEN 1 END) as planning") &&
             query.contains("COUNT(CASE WHEN phi_status = 'IN_PROGRESS' THEN 1 END) as in_progress") &&
             query.contains("COUNT(CASE WHEN phi_status = 'COMPLETED' THEN 1 END) as completed") &&
             query.contains('FROM phases_instance_phi') &&
@@ -1311,7 +1311,7 @@ class PhaseRepositoryTest extends Specification {
         
         and: "returns instance statistics with calculated completion rate"
         result.total_phases == 10
-        result.not_started == 3
+        result.planning == 3
         result.in_progress == 4
         result.completed == 3
         result.completion_rate == 30.0 // 3/10 * 100

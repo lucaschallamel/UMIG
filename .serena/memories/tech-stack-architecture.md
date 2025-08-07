@@ -1,6 +1,7 @@
 # UMIG Technology Stack & Architecture
 
 ## Core Technology Stack
+
 - **Backend**: Groovy with Atlassian ScriptRunner
 - **Frontend**: Vanilla JavaScript with Atlassian User Interface (AUI) components
 - **Database**: PostgreSQL with Liquibase migrations
@@ -8,6 +9,7 @@
 - **Architecture**: RESTful v2 APIs with N-tier separation
 
 ## Architecture Patterns (Production Proven)
+
 - **N-Tier Architecture**: Clear separation between presentation, business logic, data access layers
 - **Repository Pattern**: All database access encapsulated in repository classes (20+ methods per major repository)
 - **REST API Design**: Standardized v2 endpoints with 20+ endpoints per major API
@@ -17,6 +19,7 @@
 - **Type Safety Patterns**: Full Groovy 3.0.15 static type checking compatibility with explicit casting
 
 ## Key Architectural Decisions (from solution-architecture.md)
+
 - **ADR-001**: Confluence-native integration (not standalone)
 - **ADR-002**: ScriptRunner backend for Confluence integration
 - **ADR-003**: PostgreSQL for enterprise-grade data management
@@ -30,6 +33,7 @@
 - **ADR-035**: Database audit fields standardization
 
 ## Development Philosophy (Proven in Production)
+
 - **Simplicity over complexity**: Direct, maintainable solutions with 90%+ test coverage
 - **Confluence-native**: Deep integration leveraging enterprise infrastructure
 - **Type safety**: Enhanced with full Groovy 3.0.15 static type checking compatibility

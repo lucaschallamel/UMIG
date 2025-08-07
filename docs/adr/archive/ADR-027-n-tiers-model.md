@@ -23,13 +23,13 @@ This layered approach will be enforced through code reviews and static analysis 
 
 ### Positive
 
-* **Improved Structure and Clarity**: The separation of concerns will result in a more organized, understandable, and maintainable codebase.
-* **Enhanced Scalability and Flexibility**: Decoupling the layers allows for easier addition of new data sources, business rules, or UI types (e.g., web, console, mobile) without impacting other parts of the application.
-* **Increased Reusability**: Components within each layer, especially in the business and data access layers, can be more easily reused across different parts of the application or even in other projects.
-* **Parallel Development**: Different teams can work on different layers simultaneously, potentially speeding up the development process.
-* **Industrialized Solution**: Promotes a high level of uncoupling between components, leading to a more robust and professional-grade application architecture.
+- **Improved Structure and Clarity**: The separation of concerns will result in a more organized, understandable, and maintainable codebase.
+- **Enhanced Scalability and Flexibility**: Decoupling the layers allows for easier addition of new data sources, business rules, or UI types (e.g., web, console, mobile) without impacting other parts of the application.
+- **Increased Reusability**: Components within each layer, especially in the business and data access layers, can be more easily reused across different parts of the application or even in other projects.
+- **Parallel Development**: Different teams can work on different layers simultaneously, potentially speeding up the development process.
+- **Industrialized Solution**: Promotes a high level of uncoupling between components, leading to a more robust and professional-grade application architecture.
 
 ### Negative
 
-* **Increased Complexity**: Introducing a formal layered architecture adds some initial complexity and overhead in terms of the number of classes and the amount of code required for data mapping between layers.
-* **Potential Performance Overhead**: The communication between layers can introduce a slight performance cost, although this is generally negligible in most applications and outweighed by the long-term benefits.
+- **Increased Complexity**: Introducing a formal layered architecture adds some initial complexity and overhead in terms of the number of classes and the amount of code required for data mapping between layers.
+- **Potential Performance Overhead**: The communication between layers can introduce a slight performance cost, although this is generally negligible in most applications and outweighed by the long-term benefits.

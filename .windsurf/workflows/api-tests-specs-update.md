@@ -22,6 +22,7 @@ Establishes `openapi.yaml` as single source of truth with GENDEV agents for inte
 #### 1.1 Intelligent Source Code Analysis
 
 **Use `gendev-api-designer` for comprehensive API analysis:**
+
 ```bash
 /gd:apidesigner --analysis_type=source_code --target_language=groovy --project_context=existing
 ```
@@ -31,11 +32,13 @@ Establishes `openapi.yaml` as single source of truth with GENDEV agents for inte
 #### 1.2 AI-Assisted Specification Design
 
 **Use `gendev-system-architect` for architectural validation:**
+
 ```bash
 /gd:systemarchitect --architecture_type=api --focus_area=specification --project_context=microservices
 ```
 
 **Manual Steps Enhanced by AI:**
+
 - **Identify API Changes:** AI analysis of Groovy source code (`src/com/umig/api/v2/*.groovy`)
 - **Edit the Spec:** AI-guided updates to `paths` and `components/schemas`
 - **Best Practice:** Use `allOf` patterns for non-destructive schema extension
@@ -46,6 +49,7 @@ Establishes `openapi.yaml` as single source of truth with GENDEV agents for inte
 #### 2.1 Comprehensive AI Validation
 
 **Use `gendev-qa-coordinator` for multi-dimensional validation:**
+
 ```bash
 /gd:qacoordinator --validation_type=api_specification --scope=comprehensive --standards=openapi3
 ```
@@ -55,6 +59,7 @@ Establishes `openapi.yaml` as single source of truth with GENDEV agents for inte
 #### 2.2 AI-Powered Error Resolution
 
 **Use `gendev-code-reviewer` for issue identification and resolution:**
+
 ```bash
 /gd:codereviewer --review_type=api_specification --focus=validation_errors
 ```
@@ -66,6 +71,7 @@ Establishes `openapi.yaml` as single source of truth with GENDEV agents for inte
 #### 3.1 Intelligent Test Strategy Planning
 
 **Use `gendev-test-suite-generator` for comprehensive test planning:**
+
 ```bash
 /gd:testsuitegenerator --test_type=api --coverage=comprehensive --framework=postman
 ```
@@ -75,16 +81,19 @@ Establishes `openapi.yaml` as single source of truth with GENDEV agents for inte
 #### 3.2 Enhanced Collection Generation
 
 **Navigate to directory:**
+
 ```bash
 cd docs/api/postman
 ```
 
 **AI-Enhanced Generation:**
+
 ```bash
 npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_collection.json -p -O folderStrategy=Tags,includeAuthInfoInExample=true,optimizeConversion=true
 ```
 
 **Post-Generation Enhancement:**
+
 ```bash
 /gd:testsuitegenerator --enhancement_type=postman_collection --focus=comprehensive_coverage
 ```
@@ -94,6 +103,7 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 #### 4.1 Intelligent Change Analysis
 
 **Use `gendev-code-reviewer` for comprehensive diff analysis:**
+
 ```bash
 /gd:codereviewer --review_type=api_changes --scope=specification_and_tests
 ```
@@ -103,6 +113,7 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 #### 4.2 Automated Testing and Validation
 
 **Use `gendev-qa-coordinator` for comprehensive testing:**
+
 ```bash
 /gd:qacoordinator --testing_type=api_integration --environment=development
 ```
@@ -114,6 +125,7 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 #### 5.1 Automated Documentation Generation
 
 **Use `gendev-documentation-generator` for comprehensive documentation:**
+
 ```bash
 /gd:documentationgenerator --doc_type=api_changes --format=comprehensive --audience=developers
 ```
@@ -123,6 +135,7 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 #### 5.2 Intelligent Commit Strategy
 
 **Use `gendev-code-reviewer` for commit optimization:**
+
 ```bash
 /gd:codereviewer --review_type=pre_commit --scope=api_specification
 ```
@@ -132,6 +145,7 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 #### 5.3 AI-Enhanced Documentation Updates
 
 **Use `gendev-documentation-generator` for ecosystem updates:**
+
 ```bash
 /gd:documentationgenerator --update_type=api_ecosystem --scope=comprehensive
 ```
@@ -143,18 +157,21 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 ## Enhanced Success Metrics
 
 ### Quality Metrics
+
 - **Specification Accuracy:** 99.9% consistency between code and OpenAPI spec
 - **Test Coverage:** 100% endpoint coverage with comprehensive scenarios
 - **Validation Success:** Zero specification errors before generation
 - **Documentation Completeness:** 95% automated coverage
 
 ### Efficiency Metrics
+
 - **Generation Time:** 80% reduction in manual creation time
 - **Error Detection:** 95% of issues caught before manual testing
 - **Documentation Sync:** 90% reduction in lag
 - **Review Efficiency:** 70% faster change review
 
 ### AI Integration Benefits
+
 - **Intelligent Analysis:** Automated API change detection
 - **Comprehensive Validation:** Multi-dimensional quality assurance
 - **Enhanced Testing:** AI-generated edge cases and performance scenarios
@@ -165,18 +182,21 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 ## Enhanced Key Principles
 
 ### Core Principles
+
 - **Single Source of Truth:** OpenAPI specification as authoritative source
 - **AI-Enhanced Quality:** GENDEV agents provide comprehensive validation
 - **Zero Manual Postman Editing:** Generated artifacts never manually modified
 - **Comprehensive Coverage:** Every endpoint tested with AI scenarios
 
 ### AI Integration Principles
+
 - **Intelligent Automation:** AI handles repetitive tasks
 - **Human-AI Collaboration:** AI augments decision-making
 - **Continuous Improvement:** AI suggests optimizations
 - **Quality Assurance:** Multiple agents provide validation
 
 ### Best Practices
+
 - **Agent Orchestration:** Use multiple GENDEV agents
 - **Iterative Enhancement:** Continuously improve with AI insights
 - **Documentation-First:** AI ensures synchronization
@@ -187,18 +207,21 @@ npx openapi-to-postmanv2 -s ../openapi.yaml -o ./UMIG_API_V2_Collection.postman_
 ## Tips for AI-Enhanced API Specification Management
 
 ### Effective Agent Usage
+
 1. **Start with Analysis:** Begin with `gendev-api-designer`
 2. **Validate Early:** Use `gendev-qa-coordinator` before changes
 3. **Document Continuously:** Leverage `gendev-documentation-generator`
 4. **Review Comprehensively:** Use `gendev-code-reviewer` for validation
 
 ### Workflow Optimization
+
 1. **Parallel Processing:** Run validation and documentation simultaneously
 2. **Incremental Updates:** Use AI for minimal change sets
 3. **Automated Testing:** Integrate AI tests into CI/CD
 4. **Continuous Monitoring:** Use AI for specification health checks
 
 ### Quality Assurance
+
 1. **Multi-Agent Validation:** Different agents for different aspects
 2. **Comprehensive Testing:** Include AI edge cases and performance tests
 3. **Documentation Consistency:** Ensure artifact synchronization

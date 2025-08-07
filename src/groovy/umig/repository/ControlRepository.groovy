@@ -1116,17 +1116,17 @@ class ControlRepository {
     /**
      * Gets the default status ID for new control instances.
      * @param sql Active SQL connection
-     * @return Integer status ID for 'NOT_STARTED' Control status
+     * @return Integer status ID for 'TODO' Control status
      */
     private Integer getDefaultControlInstanceStatusId(groovy.sql.Sql sql) {
         Map defaultStatus = sql.firstRow("""
             SELECT sts_id 
             FROM status_sts 
-            WHERE sts_name = 'NOT_STARTED' AND sts_type = 'Control'
+            WHERE sts_name = 'TODO' AND sts_type = 'Control'
             LIMIT 1
         """) as Map
         
-        // Fallback to any Control status if NOT_STARTED not found
+        // Fallback to any Control status if TODO not found
         if (!defaultStatus) {
             defaultStatus = sql.firstRow("""
                 SELECT sts_id 

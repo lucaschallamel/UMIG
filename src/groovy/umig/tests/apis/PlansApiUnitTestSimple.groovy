@@ -390,7 +390,7 @@ class PlanRepository {
                 ite_id: iterationId,
                 pli_name: overrides.pli_name ?: masterPlan.plm_name,
                 pli_description: overrides.pli_description ?: masterPlan.plm_description,
-                pli_status: 'NOT_STARTED', // Default status for new instances
+                pli_status: 'PLANNING', // Default status for new instances
                 usr_id_owner: userId
             ]
             

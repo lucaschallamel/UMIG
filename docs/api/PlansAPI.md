@@ -5,6 +5,7 @@
 ---
 
 ## 1. API Overview
+
 - **API Name:** Plans API v2
 - **Purpose:** Manage migration execution plans with hierarchical filtering and template instantiation
 - **Owner:** UMIG Development Team
@@ -12,42 +13,44 @@
 
 ## 2. Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /plans/master | List all master plan templates |
-| POST | /plans/master | Create new master plan template |
-| GET | /plans/master/{id} | Get specific master plan template |
-| PUT | /plans/master/{id} | Update master plan template |
-| DELETE | /plans/master/{id} | Soft delete master plan template |
-| GET | /plans | List plan instances with hierarchical filtering |
-| POST | /plans/instance | Create plan instance from master template |
-| GET | /plans/instance/{id} | Get specific plan instance |
-| PUT | /plans/instance/{id} | Update plan instance |
-| DELETE | /plans/instance/{id} | Delete plan instance |
-| PUT | /plans/{id}/status | Update plan instance status |
+| Method | Path                 | Description                                     |
+| ------ | -------------------- | ----------------------------------------------- |
+| GET    | /plans/master        | List all master plan templates                  |
+| POST   | /plans/master        | Create new master plan template                 |
+| GET    | /plans/master/{id}   | Get specific master plan template               |
+| PUT    | /plans/master/{id}   | Update master plan template                     |
+| DELETE | /plans/master/{id}   | Soft delete master plan template                |
+| GET    | /plans               | List plan instances with hierarchical filtering |
+| POST   | /plans/instance      | Create plan instance from master template       |
+| GET    | /plans/instance/{id} | Get specific plan instance                      |
+| PUT    | /plans/instance/{id} | Update plan instance                            |
+| DELETE | /plans/instance/{id} | Delete plan instance                            |
+| PUT    | /plans/{id}/status   | Update plan instance status                     |
 
 ## 3. Request Details
 
 ### 3.1. Path Parameters
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| id | UUID | Yes | Plan identifier (master or instance ID) |
+| Name | Type | Required | Description                             |
+| ---- | ---- | -------- | --------------------------------------- |
+| id   | UUID | Yes      | Plan identifier (master or instance ID) |
 
 ### 3.2. Query Parameters
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| migrationId | UUID | No | Filter plans by migration (hierarchical) |
-| iterationId | UUID | No | Filter plans by iteration (hierarchical) |
-| teamId | Integer | No | Filter plans by owning team |
-| statusId | Integer | No | Filter plans by status |
+| Name        | Type    | Required | Description                              |
+| ----------- | ------- | -------- | ---------------------------------------- |
+| migrationId | UUID    | No       | Filter plans by migration (hierarchical) |
+| iterationId | UUID    | No       | Filter plans by iteration (hierarchical) |
+| teamId      | Integer | No       | Filter plans by owning team              |
+| statusId    | Integer | No       | Filter plans by status                   |
 
 ### 3.3. Request Body
 
 #### Master Plan Creation
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "tms_id": "integer",
@@ -56,7 +59,9 @@
   "plm_status": "integer (FK to status_sts)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "tms_id": 1,
@@ -67,18 +72,22 @@
 ```
 
 #### Plan Instance Creation
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "plm_id": "uuid",
-  "ite_id": "uuid", 
+  "ite_id": "uuid",
   "usr_id_owner": "integer",
   "pli_name": "string (optional)",
   "pli_description": "string (optional)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "plm_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -92,9 +101,11 @@
 ## 4. Response Details
 
 ### 4.1. Success Response - Master Plan
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "plm_id": "uuid",
@@ -108,11 +119,13 @@
   "sts_color": "string",
   "created_by": "string",
   "created_at": "datetime",
-  "updated_by": "string", 
+  "updated_by": "string",
   "updated_at": "datetime"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "plm_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -132,9 +145,11 @@
 ```
 
 ### 4.2. Success Response - Plan Instance
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "pli_id": "uuid",
@@ -161,29 +176,32 @@
 
 ### 4.3. Error Responses
 
-| Status Code | Content-Type | Schema | Example | Description |
-|-------------|--------------|--------|---------|-------------|
-| 400 | application/json | Error | `{"error": "Invalid plan ID format"}` | Bad request - invalid parameters |
-| 404 | application/json | Error | `{"error": "Plan not found"}` | Resource not found |
-| 409 | application/json | Error | `{"error": "Plan with this name already exists"}` | Conflict - duplicate name |
-| 500 | application/json | Error | `{"error": "Internal server error"}` | Server error |
+| Status Code | Content-Type     | Schema | Example                                           | Description                      |
+| ----------- | ---------------- | ------ | ------------------------------------------------- | -------------------------------- |
+| 400         | application/json | Error  | `{"error": "Invalid plan ID format"}`             | Bad request - invalid parameters |
+| 404         | application/json | Error  | `{"error": "Plan not found"}`                     | Resource not found               |
+| 409         | application/json | Error  | `{"error": "Plan with this name already exists"}` | Conflict - duplicate name        |
+| 500         | application/json | Error  | `{"error": "Internal server error"}`              | Server error                     |
 
 ## 5. Authentication & Authorization
+
 - **Required?** Yes
 - **Mechanism:** Confluence session-based authentication
-- **Permissions:** 
+- **Permissions:**
   - Read operations: `confluence-users`
   - Create/Update operations: `confluence-users`
   - Delete operations: `confluence-administrators`
 
 ## 6. Rate Limiting & Security
+
 - **Rate Limits:** Standard Confluence limits apply
 - **RLS (Row-Level Security):** No
 - **Input Validation:** All UUID and integer parameters validated with explicit casting
 - **Other Security Considerations:** SQL injection prevention through parameterized queries
 
 ## 7. Business Logic & Side Effects
-- **Key Logic:** 
+
+- **Key Logic:**
   - Master plans serve as templates for creating instances
   - Plan instances inherit properties from master but can override name/description
   - Master plans cannot be deleted if active instances exist
@@ -194,7 +212,8 @@
 - **Idempotency:** PUT operations are idempotent for status and field updates
 
 ## 8. Dependencies & Backing Services
-- **DB Tables/Entities:** 
+
+- **DB Tables/Entities:**
   - `plans_master` - Master plan templates
   - `plans_instance` - Plan instances
   - `teams_master` - Team ownership
@@ -205,10 +224,12 @@
 - **Other Services:** Email notification service for status changes
 
 ## 9. Versioning & Deprecation
+
 - **API Version:** v2
 - **Deprecation Policy:** 6-month notice for breaking changes
 
 ## 10. Testing & Mock Data
+
 - **Unit Tests:** `PlansApiUnitTest.groovy`, `PlansApiUnitTestSimple.groovy`
 - **Integration Tests:** Covered in API integration test suite
 - **E2E Tests:** Via Postman collection
@@ -219,24 +240,31 @@
 The Plans API supports progressive hierarchical filtering:
 
 ### Migration Level
+
 ```
 GET /plans?migrationId=123e4567-e89b-12d3-a456-426614174000
 ```
+
 Returns all plan instances within the specified migration.
 
-### Iteration Level  
+### Iteration Level
+
 ```
 GET /plans?iterationId=987fcdeb-51a2-43d1-9c45-123456789abc
 ```
+
 Returns all plan instances within the specified iteration.
 
 ### Combined Filtering
+
 ```
 GET /plans?migrationId={mig-id}&teamId=1&statusId=2
 ```
+
 Returns plan instances matching all specified criteria.
 
 ## 12. Changelog
+
 - **2025-01-15:** Created comprehensive API specification with audit fields
 - **2024-12-15:** Initial implementation of Plans API v2
 - **Author:** Claude AI Assistant (UMIG Documentation Update)

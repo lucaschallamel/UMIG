@@ -1,13 +1,14 @@
 # ADR-008: Database Migration Strategy with Liquibase
 
-* **Status:** Proposed
-* **Date:** 2025-06-17
-* **Deciders:** The UMIG Development Team
-* **Technical Story:** N/A
+- **Status:** Proposed
+- **Date:** 2025-06-17
+- **Deciders:** The UMIG Development Team
+- **Technical Story:** N/A
 
 ## Context and Problem Statement
 
 The current process for managing database schema changes relies on two methods:
+
 1. An `init-db.sh` script that runs only when a new, empty database volume is created.
 2. Manual execution of SQL scripts for any subsequent changes on existing databases.
 
@@ -15,11 +16,11 @@ This approach is not scalable, is prone to human error, and lacks version contro
 
 ## Decision Drivers
 
-* **Repeatability:** Migrations must be runnable automatically and produce the same result on any environment.
-* **Safety:** The system should prevent accidental re-application of the same migration and support safe rollbacks where possible.
-* **Version Control:** Database schema changes should be versioned and stored alongside the application source code.
-* **Developer Experience:** New developers should be able to get a correctly-schemed database with a single command.
-* **Environment Consistency:** Ensure local, testing, and production environments are all on the same schema version.
+- **Repeatability:** Migrations must be runnable automatically and produce the same result on any environment.
+- **Safety:** The system should prevent accidental re-application of the same migration and support safe rollbacks where possible.
+- **Version Control:** Database schema changes should be versioned and stored alongside the application source code.
+- **Developer Experience:** New developers should be able to get a correctly-schemed database with a single command.
+- **Environment Consistency:** Ensure local, testing, and production environments are all on the same schema version.
 
 ## Considered Options
 
@@ -33,21 +34,22 @@ Chosen option: **"Adopt a Dedicated Migration Tool (Liquibase)"**, because it is
 
 ### Positive Consequences
 
-* Database schema changes become automated, version-controlled, and auditable.
-* Greatly reduces the risk of manual errors when applying schema changes.
-* Simplifies the onboarding process for new developers.
-* Ensures consistency across all environments.
-* Provides a clear and structured process for database evolution.
+- Database schema changes become automated, version-controlled, and auditable.
+- Greatly reduces the risk of manual errors when applying schema changes.
+- Simplifies the onboarding process for new developers.
+- Ensures consistency across all environments.
+- Provides a clear and structured process for database evolution.
 
 ### Negative Consequences (if any)
 
-* Introduces a new dependency (Liquibase) to the project stack.
-* Adds a small amount of complexity to the local development setup (e.g., a new container).
-* Requires a minor learning curve for developers to understand Liquibase's structure and commands.
+- Introduces a new dependency (Liquibase) to the project stack.
+- Adds a small amount of complexity to the local development setup (e.g., a new container).
+- Requires a minor learning curve for developers to understand Liquibase's structure and commands.
 
 ## Validation
 
 The decision will be considered successful when:
+
 1. Database migrations are applied automatically upon starting the development environment.
 2. A new developer can clone the repository, run `podman-compose up`, and have a fully migrated database without manual intervention.
 3. Schema changes can be reliably and repeatedly deployed across different machines.
@@ -56,32 +58,32 @@ The decision will be considered successful when:
 
 ### Manual SQL Scripts
 
-* Pros:
-  * No new dependencies.
-  * Simple for a single, initial setup.
-* Cons:
-  * Highly error-prone.
-  * Not scalable.
-  * No version tracking.
-  * Inconsistent across environments.
+- Pros:
+  - No new dependencies.
+  - Simple for a single, initial setup.
+- Cons:
+  - Highly error-prone.
+  - Not scalable.
+  - No version tracking.
+  - Inconsistent across environments.
 
 ### Custom Shell Scripts
 
-* Pros:
-  * No third-party dependencies.
-  * More structured than a purely manual process.
-* Cons:
-  * Requires building and maintaining a custom, fragile solution.
-  * Reinvents the wheel, ignoring mature solutions.
-  * Lacks advanced features like checksums, contexts, and automated rollback.
+- Pros:
+  - No third-party dependencies.
+  - More structured than a purely manual process.
+- Cons:
+  - Requires building and maintaining a custom, fragile solution.
+  - Reinvents the wheel, ignoring mature solutions.
+  - Lacks advanced features like checksums, contexts, and automated rollback.
 
 ### Adopt a Dedicated Migration Tool (Liquibase)
 
-* Pros:
-  * Fully automated and reliable.
-  * Industry-standard, well-documented, and community-supported.
-  * Provides robust features like change tracking, contexts, and preconditions.
-  * Database-agnostic, providing future flexibility.
-* Cons:
-  * Adds a new tool to the project.
-  * Requires initial configuration effort.
+- Pros:
+  - Fully automated and reliable.
+  - Industry-standard, well-documented, and community-supported.
+  - Provides robust features like change tracking, contexts, and preconditions.
+  - Database-agnostic, providing future flexibility.
+- Cons:
+  - Adds a new tool to the project.
+  - Requires initial configuration effort.

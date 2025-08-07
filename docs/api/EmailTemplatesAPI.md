@@ -5,6 +5,7 @@ The Email Templates API provides CRUD operations for managing email templates us
 ## Overview
 
 The email notification system in UMIG uses customizable templates for different types of notifications:
+
 - **STEP_OPENED**: Sent when a PILOT opens a step
 - **INSTRUCTION_COMPLETED**: Sent when a USER completes an instruction
 - **STEP_STATUS_CHANGED**: Sent when a USER changes step-level status
@@ -31,16 +32,19 @@ Email templates support Groovy template syntax for dynamic content substitution:
 ### Available Variables by Template Type
 
 #### STEP_OPENED
+
 - `stepInstance`: Step instance object
 - `stepUrl`: Direct URL to the step
 
 #### INSTRUCTION_COMPLETED
+
 - `instruction`: Instruction object
 - `stepInstance`: Related step instance
 - `completedAt`: Completion timestamp
 - `completedBy`: Username of completing user
 
 #### STEP_STATUS_CHANGED
+
 - `stepInstance`: Step instance object
 - `oldStatus`: Previous status
 - `newStatus`: New status
@@ -51,12 +55,14 @@ Email templates support Groovy template syntax for dynamic content substitution:
 ## Testing
 
 The email service integrates with:
+
 - **Confluence Mail Server**: For production email sending
 - **MailHog**: For local development testing at <http://localhost:8025>
 
 ## Integration Points
 
 The email templates are used by:
+
 - `StepRepository.updateStepStatus()` - For status change notifications
 - `StepRepository.openStep()` - For step opening notifications
 - `StepRepository.completeInstruction()` - For instruction completion notifications
@@ -64,6 +70,7 @@ The email templates are used by:
 ## Audit Logging
 
 All email notifications are logged in the `audit_log_aud` table with:
+
 - Recipients list
 - Subject line
 - Template used
@@ -73,6 +80,7 @@ All email notifications are logged in the `audit_log_aud` table with:
 ## Error Handling
 
 The API follows standard HTTP status codes:
+
 - `400`: Bad Request - Invalid template data or type
 - `404`: Not Found - Template doesn't exist
 - `409`: Conflict - Template name already exists

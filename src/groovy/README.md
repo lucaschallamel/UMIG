@@ -4,18 +4,19 @@ This document describes the structure and conventions for all Groovy backend cod
 
 ## Folder Map
 
-| Folder                       | Purpose                                   |
-|------------------------------|-------------------------------------------|
-| `umig/macros/`               | UI macro scripts (container only)         |
-| `umig/api/`                  | REST API endpoint scripts                 |
-| `umig/repository/`           | Data access layer (repository pattern)    |
-| `umig/utils/`                | Shared Groovy utilities                   |
-| `umig/web/js/`, `web/css/`   | Frontend JS/CSS assets for macros         |
-| `umig/tests/`                | Groovy-based tests (integration/unit)     |
+| Folder                     | Purpose                                |
+| -------------------------- | -------------------------------------- |
+| `umig/macros/`             | UI macro scripts (container only)      |
+| `umig/api/`                | REST API endpoint scripts              |
+| `umig/repository/`         | Data access layer (repository pattern) |
+| `umig/utils/`              | Shared Groovy utilities                |
+| `umig/web/js/`, `web/css/` | Frontend JS/CSS assets for macros      |
+| `umig/tests/`              | Groovy-based tests (integration/unit)  |
 
 All folders are under the `umig/` namespace for clarity, future-proofing, and to avoid name collisions. This structure supports ScriptRunner's scan path and project scalability ([CA], [SF], [ISA]).
 
 ## Key Principles
+
 - **Separation of Concerns:** Macros only render containers/load assets; business logic is in APIs and repositories.
 - **Versioning:** Use `v1/`, `v2/` subfolders for breaking changes in macros/APIs.
 - **Repository Pattern:** All DB access is via repository classes for testability and clarity.
@@ -23,9 +24,10 @@ All folders are under the `umig/` namespace for clarity, future-proofing, and to
 - **Testing:** See `tests/README.md` for how to add/run tests and manage dependencies.
 
 ## References
+
 - See `/docs/solution-architecture.md` and ADRs for architectural decisions.
 - See each subfolder's README for detailed usage and conventions.
-a new record on every call.
+  a new record on every call.
 - **`DELETE` for Membership/Association:** Removing a resource from a collection is also idempotent. If the association does not exist, the API should still return `204 No Content`, as the desired state (the resource is not in the collection) is met.
 
 ### 3. Error Handling and HTTP Response Codes
