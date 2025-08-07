@@ -1,20 +1,114 @@
 # Sprint 4 User Stories
 
-**Sprint**: Sprint 4 - MVP Delivery Sprint  
+**Sprint**: Sprint 4 - API Modernization & Dashboard Sprint  
 **Duration**: August 7-13, 2025 (5 working days)  
-**Total Story Points**: 6+ points (5 completed)  
-**Sprint Goal**: Deliver MVP with Main Dashboard, Planning Feature, Data Import, and Event Logging
+**Total Story Points**: 30 points (5 completed, 25 planned)  
+**Sprint Goal**: Modernize critical APIs and deliver Main Dashboard with UI enhancements
 
 **✅ Sprint 4 Progress**: 
-- US-017 Status Field Normalization (5 points) - COMPLETED ✅  
+- US-017 Status Field Normalization (5 points) - COMPLETED ✅ (Day 1)
 - Critical data model consistency issue resolved
 - All integration tests passing with normalized status implementation
 
+**📋 Sprint 4 Committed Scope** (25 points remaining):
+- US-024: StepsAPI Refactoring (5 points) - Days 2-3
+- US-025: MigrationsAPI Refactoring (3 points) - Days 2-3  
+- US-031: Admin GUI Complete Integration (8 points) - Days 3-4
+- US-028: Enhanced IterationView (3 points) - Day 4
+- US-022: Integration Test Suite Expansion (3 points) - Day 5
+- US-030: API Documentation Completion (3 points) - Day 5
+
 ---
 
-## Epic 1: Main Dashboard UI
+## Epic 5: API Modernization & Standardization
 
-### US-007: Executive Dashboard Implementation
+### US-024: StepsAPI Refactoring to Modern Patterns ⭐ HIGH PRIORITY
+
+**As a** system developer  
+**I want** to refactor StepsAPI to use the modern patterns established in Sprint 3  
+**So that** we have consistent API patterns and improved performance for Step operations
+
+**Acceptance Criteria:**
+
+- [ ] Implement master/instance separation patterns from Sprint 3
+- [ ] Add hierarchical filtering capabilities  
+- [ ] Implement bulk operations support
+- [ ] Add advanced query parameters (sorting, pagination, filtering)
+- [ ] Ensure status field normalization compliance
+- [ ] Performance optimization for large datasets (>1000 steps)
+- [ ] Comprehensive error handling with proper status codes
+- [ ] Full integration test coverage
+
+**Technical Notes:**
+
+- Follow patterns from PlansApi.groovy, SequencesApi.groovy
+- Ensure compatibility with existing IterationView and StepView
+- Maintain backward compatibility where possible
+- Target <200ms response time for standard queries
+
+**Story Points:** 5 (High complexity, critical path)  
+**Status:** 📋 COMMITTED
+
+---
+
+### US-025: MigrationsAPI Refactoring
+
+**As a** system developer  
+**I want** to refactor MigrationsAPI to modern patterns  
+**So that** the top-level entity API is consistent and performant
+
+**Acceptance Criteria:**
+
+- [ ] Implement consistent CRUD patterns
+- [ ] Add comprehensive filtering options
+- [ ] Support bulk status updates
+- [ ] Add progress aggregation endpoints
+- [ ] Implement proper transaction handling
+- [ ] Full error handling and validation
+
+**Technical Notes:**
+
+- This is the top-level entity affecting all other entities
+- Currently very basic implementation needs modernization
+- Critical for dashboard functionality
+
+**Story Points:** 3  
+**Status:** 📋 COMMITTED
+
+---
+
+## Epic 1: Admin GUI Completion
+
+### US-031: Admin GUI Complete Integration ⭐ HIGH PRIORITY
+
+**As a** system administrator  
+**I want** a fully functional Admin GUI for managing all UMIG entities  
+**So that** I can efficiently administer users, teams, migrations, and all canonical data
+
+**Acceptance Criteria:**
+
+- [ ] Complete integration with Sprint 3 APIs (Plans, Sequences, Phases, Instructions, Controls)
+- [ ] Connect Teams and Environments to existing APIs
+- [ ] Add Applications and Labels management interfaces
+- [ ] Integrate with refactored StepsAPI and MigrationsAPI from Sprint 4
+- [ ] Complete Iterations management interface
+- [ ] Add Audit logs viewing capability
+- [ ] Ensure role-based access control (SUPERADMIN, ADMIN, PILOT)
+- [ ] Maintain SPA architecture with consistent error handling
+
+**Technical Notes:**
+
+- Build on existing admin-gui.js configuration (9 entities already configured)
+- Leverage established SPA patterns from Sprint 2
+- Reuse pagination, sorting, and search components
+- Follow entity configuration pattern already in place
+
+**Story Points:** 8  
+**Status:** 📋 COMMITTED
+
+---
+
+### US-018: Main Dashboard Development [DEFERRED TO SPRINT 5]
 
 **As a** migration coordinator  
 **I want** a comprehensive dashboard showing migration status  
@@ -37,11 +131,64 @@
 - Leverage WebSocket for real-time updates if possible
 - Follow SPA pattern established in admin-gui.js
 
-**Story Points:** [TO ESTIMATE]
+**Story Points:** 5  
+**Status:** 🔄 DEFERRED - Admin GUI completion is more foundational
 
 ---
 
-### US-008: Dashboard Analytics Widgets
+### US-028: Enhanced IterationView with New APIs
+
+**As a** migration coordinator  
+**I want** the IterationView enhanced to use the refactored StepsAPI  
+**So that** I get improved performance and new features in the iteration interface
+
+**Acceptance Criteria:**
+
+- [ ] Integrate with refactored StepsAPI
+- [ ] Implement real-time status updates
+- [ ] Add bulk operations UI (select multiple steps)
+- [ ] Performance improvements for large datasets
+- [ ] Enhanced filtering with new API capabilities
+- [ ] Maintain all existing functionality
+
+**Technical Notes:**
+
+- Build on existing IterationView.js
+- Leverage new API endpoints for better performance
+- Quick win after StepsAPI refactoring
+
+**Story Points:** 3  
+**Status:** 📋 COMMITTED
+
+---
+
+### US-029: Enhanced StepView with New APIs [DEFERRED TO SPRINT 5]
+
+**As a** team member  
+**I want** the StepView enhanced with new API capabilities  
+**So that** I have a more responsive and feature-rich step execution interface
+
+**Acceptance Criteria:**
+
+- [ ] Integrate with refactored StepsAPI
+- [ ] Add quick status update buttons
+- [ ] Implement inline editing capabilities
+- [ ] Add keyboard shortcuts for common actions
+- [ ] Performance optimization for rapid updates
+- [ ] Enhanced error handling and user feedback
+
+**Technical Notes:**
+
+- Build on existing StepView implementation
+- Coordinate with IterationView enhancements
+- Focus on user productivity features
+
+**Story Points:** 3  
+**Status:** 🔄 DEFERRED - Lower priority than Admin GUI completion
+
+---
+
+### US-008: Dashboard Analytics Widgets [DEFERRED]
 
 **As a** project manager  
 **I want** analytical widgets showing trends and predictions  
@@ -297,33 +444,61 @@
 
 ## Technical Debt & Improvements
 
-### US-015: API Documentation Completion
+### US-022: Integration Test Suite Expansion
 
 **As a** developer  
-**I want** complete documentation for all API endpoints  
-**So that** I can properly integrate with and maintain the APIs
+**I want** comprehensive integration tests for all refactored APIs  
+**So that** we maintain quality and prevent regressions
 
 **Acceptance Criteria:**
 
-- [x] StepsAPI.md documentation created
-- [x] TeamMembersAPI.md documentation created
-- [x] stepViewAPI.md documentation created
-- [x] WebAPI.md documentation created
-- [x] API README updated with complete list
-- [x] Remove redundant UserApi.groovy file (DONE)
-- [x] Remove PhasesApi.groovy.backup file (DONE)
-- [ ] Update OpenAPI specification with missing endpoints
+- [ ] Complete test coverage for refactored StepsAPI
+- [ ] Complete test coverage for refactored MigrationsAPI
+- [ ] Test coverage for Dashboard API endpoints
+- [ ] Performance benchmarking tests
+- [ ] Load testing for concurrent operations
+- [ ] Test data generators for all entities
+- [ ] Achieve >90% code coverage
 
 **Technical Notes:**
 
-- Documentation already completed during planning phase
-- Only cleanup tasks remaining
+- Build on existing Jest and Groovy test infrastructure
+- Add performance assertions to tests
+- Include negative test cases
 
-**Story Points:** 1 (mostly done)
+**Story Points:** 3  
+**Status:** 📋 COMMITTED
 
 ---
 
-### US-016: Test Infrastructure Fixes
+### US-030: API Documentation Completion
+
+**As a** developer  
+**I want** complete and updated documentation for all APIs  
+**So that** the system is maintainable and understandable
+
+**Acceptance Criteria:**
+
+- [ ] Update OpenAPI spec with all new endpoints
+- [ ] Document all refactored API changes
+- [ ] Create migration guide for API consumers
+- [ ] Update Postman collections
+- [ ] Generate API changelog
+- [ ] Create performance tuning guide
+- [ ] Document new patterns and conventions
+
+**Technical Notes:**
+
+- Critical for long-term maintainability
+- Include code examples for common use cases
+- Auto-generate where possible
+
+**Story Points:** 3  
+**Status:** 📋 COMMITTED
+
+---
+
+### US-016: Test Infrastructure Fixes [DEFERRED]
 
 **As a** developer  
 **I want** to fix the integration test cleanup issues  
@@ -348,22 +523,36 @@
 
 ## Story Point Estimation
 
-| Story  | Complexity | Effort | Risk   | Points | Status |
-| ------ | ---------- | ------ | ------ | ------ | ------ |
-| US-007 | High       | High   | Medium | ?      | Pending |
-| US-008 | Medium     | Medium | Low    | ?      | Pending |
-| US-009 | Medium     | High   | Low    | ?      | Pending |
-| US-010 | Low        | Medium | Low    | ?      | Pending |
-| US-011 | High       | High   | High   | ?      | Pending |
-| US-012 | Medium     | Medium | Medium | ?      | Pending |
-| US-013 | Medium     | High   | Medium | ?      | Pending |
-| US-014 | Medium     | Medium | Low    | ?      | Pending |
-| US-015 | Low        | Low    | Low    | 1      | Pending |
-| US-016 | Low        | Low    | Low    | ?      | Pending |
-| US-017 | High       | High   | Medium | 5      | ✅ COMPLETED |
+### Sprint 4 Committed Stories (30 points total)
 
-**Total Estimated:** 6 points (with 5 points completed)  
-**Remaining:** [TO BE CALCULATED]
+| Story  | Description | Complexity | Points | Status | Day |
+| ------ | ----------- | ---------- | ------ | ------ | --- |
+| US-017 | Status Field Normalization | High | 5 | ✅ COMPLETED | Day 1 |
+| US-024 | StepsAPI Refactoring | High | 5 | 📋 COMMITTED | Days 2-3 |
+| US-025 | MigrationsAPI Refactoring | Medium | 3 | 📋 COMMITTED | Days 2-3 |
+| US-031 | Admin GUI Complete Integration | High | 8 | 📋 COMMITTED | Days 3-4 |
+| US-028 | Enhanced IterationView | Medium | 3 | 📋 COMMITTED | Day 4 |
+| US-022 | Integration Test Suite | Medium | 3 | 📋 COMMITTED | Day 5 |
+| US-030 | API Documentation | Low | 3 | 📋 COMMITTED | Day 5 |
+
+**Sprint 4 Total:** 30 points (5 completed + 25 committed)
+
+### Deferred to Sprint 5
+
+| Story  | Description | Points | Reason |
+| ------ | ----------- | ------ | ------ |
+| US-018 | Main Dashboard Development | 5 | Admin GUI more foundational |
+| US-029 | Enhanced StepView | 3 | Lower priority than Admin GUI |
+| US-008 | Dashboard Analytics Widgets | 5 | Complex charts, needs more time |
+| US-009 | HTML Report Generation | 3 | Not critical path |
+| US-010 | Planning Template Management | 3 | Depends on planning feature |
+| US-011 | Confluence JSON Import | 5 | High complexity, needs focus |
+| US-012 | CSV Bulk Import | 3 | Can use existing import |
+| US-013 | Audit Trail Implementation | 5 | Infrastructure change |
+| US-014 | Event Notification System | 3 | Enhancement |
+| US-016 | Test Infrastructure Fixes | 2 | Not blocking |
+
+**Deferred Total:** 29 points
 
 ---
 
