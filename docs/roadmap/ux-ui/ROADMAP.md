@@ -1,9 +1,11 @@
 # UX/UI Roadmap
 
 ## Purpose
+
 This roadmap outlines the planned rollout and evolution of UX/UI features for the UMIG MVP and beyond. It references all detailed specifications and explains the strategic, phased approach adopted by the team.
 
 ## Phased Strategy & Rationale
+
 For the MVP, we are prioritizing the delivery of high-impact end-user UI components (e.g., STEP View) to validate usability and business value early.
 
 - **Admin and backend management features** (e.g., managing migrations, iterations, teams, users, environments) will initially be handled via API endpoints and Postman workflows. This allows for rapid progress and robust backend validation before investing in a full-fledged admin UI.
@@ -11,6 +13,7 @@ For the MVP, we are prioritizing the delivery of high-impact end-user UI compone
 - The roadmap will be updated as priorities shift and as the need for more advanced UI features emerges.
 
 ## Current State
+
 - STEP View ([step-view.md](./step-view.md)): In progress
 
 ## Iteration Plan
@@ -18,6 +21,7 @@ For the MVP, we are prioritizing the delivery of high-impact end-user UI compone
 ---
 
 ### Iteration View (Implementation Plan View)
+
 [Spec: iteration-view.md](./iteration-view.md)
 
 **Epic:** As an end user or IT Cutover team member, I want a comprehensive, interactive runsheet view (Iteration View) to track, filter, and explore all steps and instructions for a selected migration and iteration, so I can execute my cutover tasks efficiently and with full context.
@@ -46,6 +50,7 @@ For the MVP, we are prioritizing the delivery of high-impact end-user UI compone
    - As a user, I receive clear feedback if there are no steps, if data fails to load, or if I lack permissions, so I always know what’s happening.
 
 **Future Enhancements (Backlog):**
+
 - Mark steps/instructions as complete (with audit trail)
 - Add/edit comments inline
 - Inline status changes (with permissions)
@@ -54,14 +59,15 @@ For the MVP, we are prioritizing the delivery of high-impact end-user UI compone
 
 ---
 
-| Iteration | Features/Views                         | Linked Specs              | Status      |
-|-----------|----------------------------------------|---------------------------|-------------|
-| 1         | STEP View (Normal, Cutover)            | step-view.md              | In progress |
-| 2         | Dashboard, Team Management             | dashboard.md, team.md     | Planned     |
-| 3         | Admin Screens, Advanced Filtering      | admin.md, filtering.md    | Backlog     |
-| ...       | ...                                    | ...                       | ...         |
+| Iteration | Features/Views                    | Linked Specs           | Status      |
+| --------- | --------------------------------- | ---------------------- | ----------- |
+| 1         | STEP View (Normal, Cutover)       | step-view.md           | In progress |
+| 2         | Dashboard, Team Management        | dashboard.md, team.md  | Planned     |
+| 3         | Admin Screens, Advanced Filtering | admin.md, filtering.md | Backlog     |
+| ...       | ...                               | ...                    | ...         |
 
 ## Future Enhancements
+
 - Inline editing
 - Real-time updates
 - Advanced filtering
@@ -72,6 +78,7 @@ For the MVP, we are prioritizing the delivery of high-impact end-user UI compone
 - Comments system for STEP instances
 
 ## Revision History
+
 - 2025-06-26: Roadmap created
 
 ---

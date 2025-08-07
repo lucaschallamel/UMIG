@@ -11,6 +11,7 @@ The Iteration View is designed to provide end users with a comprehensive, intera
 ## Development Process
 
 ### 1. Initial Specification Review
+
 - Started with the UI/UX specification in `docs/roadmap/iteration-view.md`
 - Analyzed the requirements for a 3-area layout design:
   - Top selector bar (migration/iteration context)
@@ -18,18 +19,21 @@ The Iteration View is designed to provide end users with a comprehensive, intera
   - Right step details panel (detailed step information)
 
 ### 2. ASCII Wireframe Creation
+
 - Created a detailed ASCII wireframe mockup to visualize the layout
 - Demonstrated the hierarchical structure (sequences → phases → steps)
 - Showed the relationship between the three synchronized subviews
 - Included all specified data elements and interactive components
 
 ### 3. HTML Structure Development
+
 - Built semantic HTML structure following the wireframe
 - Implemented proper accessibility considerations
 - Created responsive grid layouts for data tables
 - Structured content to support the three-panel design
 
 ### 4. CSS Styling Implementation
+
 - Applied Atlassian AUI design principles and color palette
 - Implemented responsive design with mobile-first approach
 - Created status indicators with color coding
@@ -37,6 +41,7 @@ The Iteration View is designed to provide end users with a comprehensive, intera
 - Ensured 50/50 split layout with scrollable content areas
 
 ### 5. JavaScript Interactivity
+
 - Developed a comprehensive `IterationView` class for state management
 - Implemented filtering functionality (sequence, phase, team, label, user teams)
 - Added step selection with synchronized panel updates
@@ -58,12 +63,14 @@ mock/
 ## Key Features Demonstrated
 
 ### Layout & Navigation
+
 - **Top Selector Bar**: Migration and iteration context selection
 - **Filter Bar**: Multiple filter options (sequence, phase, team, label, my teams only)
 - **Runsheet Panel**: Hierarchical view of sequences, phases, and steps
 - **Step Details Panel**: Comprehensive step information with instructions and comments
 
 ### Interactive Elements
+
 - **Step Selection**: Click any step to view detailed information
 - **Hierarchical Navigation**: Expand/collapse sequences and phases
 - **Filtering**: Dynamic filtering of steps based on multiple criteria
@@ -73,11 +80,13 @@ mock/
 - **Action Buttons**: Step status updates and instruction completion
 
 ### Responsive Design
+
 - **Desktop**: Full 50/50 split layout with all columns visible
 - **Tablet**: Maintains split layout with reduced column count
 - **Mobile**: Vertical stacking with essential information prioritized
 
 ### Data Model Integration
+
 - **Migration Context**: Dropdown selection drives the entire view
 - **Iteration Context**: Links to specific plans within migrations
 - **Hierarchical Structure**: Sequences → Phases → Steps → Instructions
@@ -87,12 +96,14 @@ mock/
 ## Technical Implementation
 
 ### HTML Structure
+
 - Semantic HTML5 elements for accessibility
 - Data attributes for JavaScript interaction
 - Responsive grid layouts using CSS Grid
 - Form elements for user input and filtering
 
 ### CSS Styling
+
 - CSS custom properties (variables) for consistent theming
 - Flexbox and CSS Grid for responsive layouts
 - Atlassian AUI color palette and typography
@@ -100,6 +111,7 @@ mock/
 - Mobile-first responsive design approach
 
 ### JavaScript Functionality
+
 - ES6 class-based architecture for maintainability
 - Event delegation for dynamic content handling
 - State management for filters and selection
@@ -121,18 +133,21 @@ mock/
 ## Alignment with UMIG Architecture
 
 ### Design Principles
+
 - **Atlassian AUI Styling**: Consistent with ScriptRunner/Confluence environment
 - **Responsive Design**: Mobile-friendly for field operations
 - **User-Centric**: Designed for end users during live cutover events
 - **Real-time Ready**: Structure supports AJAX polling for live updates
 
 ### Data Model Compatibility
+
 - **Iteration-Centric Model**: Aligns with `migrations` → `iterations` → `plans` hierarchy
 - **Canonical/Instance Pattern**: Ready for master template and execution instance data
 - **Team Integration**: Supports user role and team relationship filtering
 - **Status Tracking**: Compatible with audit logging and status progression
 
 ### Integration Readiness
+
 - **REST API Ready**: Structure supports backend API integration
 - **ScriptRunner Compatible**: Vanilla JavaScript for ScriptRunner macro implementation
 - **Database Aligned**: Field structure matches UMIG database schema

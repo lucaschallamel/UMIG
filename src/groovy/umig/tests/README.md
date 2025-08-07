@@ -5,16 +5,19 @@ This folder contains all Groovy-based tests for the UMIG project.
 ## 🎯 MANDATORY Testing Standards
 
 ### Groovy Version Constraint
+
 **MANDATORY**: All UMIG tests MUST be compatible with **Groovy 3.0.15**
 
 **Rationale**:
-- ScriptRunner for Confluence requires Groovy 3.0.x compatibility  
+
+- ScriptRunner for Confluence requires Groovy 3.0.x compatibility
 - Production environment uses Groovy 3.0.15
 - Consistency across development, testing, and production environments
 
 ### Framework Version Requirements
 
 #### Spock Framework
+
 - **Required Version**: `2.3-groovy-3.0`
 - **Forbidden**: `2.3-groovy-4.0` or any groovy-4.0 variants
 - **Template**:
@@ -23,14 +26,17 @@ This folder contains all Groovy-based tests for the UMIG project.
   ```
 
 #### Database Testing
+
 - **PostgreSQL JDBC**: `org.postgresql:postgresql:42.7.3`
 - **Connection**: Use `localhost` hostname, NOT `postgres`
 
 #### REST API Testing
+
 - **Rest Assured**: `io.rest-assured:rest-assured:5.3.2`
 - **JSON Path**: `io.rest-assured:json-path:5.3.2`
 
 ### Standard Test Dependencies Template
+
 ```groovy
 #!/usr/bin/env groovy
 /**
@@ -46,12 +52,14 @@ This folder contains all Groovy-based tests for the UMIG project.
 ```
 
 ## Structure
+
 - `unit/`: Unit tests with mocked dependencies using Spock framework
 - `integration/`: Integration tests requiring live database connections
 - `run-unit-tests.sh`: Unit test runner script
 - `run-integration-tests.sh`: Integration test runner script
 
 ### Diagnostic Tools
+
 - `checkEnvironmentAssociations.groovy`: General environment association validation
 - `checkCutoverProdEnvironments.groovy`: CUTOVER-specific environment checks
 - `compareEnvironmentAssignments.groovy`: Environment rule compliance verification
@@ -61,12 +69,13 @@ This folder contains all Groovy-based tests for the UMIG project.
 Before running these tests, ensure you have the following installed and configured:
 
 1. **Groovy 3.0.15**: Required for ScriptRunner 8 compatibility. Install via SDKMAN:
-    ```bash
-    curl -s "https://get.sdkman.io" | bash
-    source "$HOME/.sdkman/bin/sdkman-init.sh"
-    sdk install groovy 3.0.15
-    sdk use groovy 3.0.15
-    ```
+
+   ```bash
+   curl -s "https://get.sdkman.io" | bash
+   source "$HOME/.sdkman/bin/sdkman-init.sh"
+   sdk install groovy 3.0.15
+   sdk use groovy 3.0.15
+   ```
 
 2. **Running Local Environment**: The full UMIG development stack (Confluence, PostgreSQL) must be running via Podman. Refer to the main `README.md` in the project root for setup instructions.
 
@@ -93,12 +102,14 @@ Integration tests require the full development environment to be running. From t
 ### Compliance Validation
 
 #### Pre-Test Checklist
+
 1. ✅ Spock version is `2.3-groovy-3.0` (not groovy-4.0)
 2. ✅ Database connection uses `localhost`
 3. ✅ All @Grab annotations specify Groovy 3.0 compatible versions
 4. ✅ Test can run with `groovy --version` showing 3.0.15
 
 #### Test Execution Validation
+
 ```bash
 # Verify Groovy version
 groovy --version
@@ -107,21 +118,25 @@ groovy --version
 # Run unit tests
 ./src/groovy/umig/tests/run-unit-tests.sh
 
-# Run integration tests  
+# Run integration tests
 ./src/groovy/umig/tests/run-integration-tests.sh
 ```
 
 ## Common Issues and Solutions
 
 ### Issue: Spock 2.3-groovy-4.0 Incompatibility
+
 **Error**: "Spock 2.3.0-groovy-4.0 is not compatible with Groovy 3.0.15"
-**Solution**: 
+**Solution**:
+
 1. Change to `@Grab('org.spockframework:spock-core:2.3-groovy-3.0')`
 2. Clear cache: `rm -rf ~/.groovy/grapes/org.spockframework/`
 
 ### Issue: Database Connection Failed
+
 **Error**: "java.net.UnknownHostException: postgres"
 **Solution**: Use `localhost` instead of `postgres` in connection strings:
+
 ```groovy
 // ✅ Correct - Use localhost
 def dbUrl = "jdbc:postgresql://localhost:5432/umig_app_db"
@@ -131,6 +146,7 @@ def dbUrl = "jdbc:postgresql://postgres:5432/umig_app_db"
 ```
 
 ### Issue: Version Conflicts
+
 **Error**: Various dependency resolution errors
 **Solution**: Ensure ALL dependencies are Groovy 3.0 compatible
 
@@ -139,9 +155,10 @@ def dbUrl = "jdbc:postgresql://postgres:5432/umig_app_db"
 ### Instructions API Tests (US-004)
 
 #### Unit Tests Created
+
 1. **InstructionRepositoryDeleteInstanceSpec.groovy**
    - ✅ Successful deletion of instruction instance
-   - ✅ Return 0 when instance not found  
+   - ✅ Return 0 when instance not found
    - ✅ Null ID validation (throws IllegalArgumentException)
    - ✅ Foreign key constraint handling (SQL state 23503)
    - ✅ General SQL exception handling
@@ -161,29 +178,28 @@ def dbUrl = "jdbc:postgresql://postgres:5432/umig_app_db"
    - ✅ Early validation (before SQL execution)
 
 #### Integration Tests Created
+
 3. **InstructionsApiDeleteIntegrationTest.groovy**
    - **DELETE /instructions/instance/{id}**
      - ✅ Successful deletion (204 No Content)
      - ✅ 404 for non-existent instance
      - ✅ 400 for invalid UUID format
      - ✅ Database verification after deletion
-   
    - **DELETE /instructions/master/{id}**
      - ✅ Successful deletion with cascade
      - ✅ Verification of instance cascade deletion
      - ✅ Foreign key constraint handling
-   
    - **DELETE /instructions/bulk**
      - ✅ Multiple instance deletion
      - ✅ Partial failure handling (mix of valid/invalid IDs)
      - ✅ Request body validation
      - ✅ Error detail reporting
-   
    - **Authorization & Security**
      - ✅ 401 Unauthorized without token
      - ✅ AuthenticationService integration verification
 
 #### Code Improvements Validated
+
 1. **Method Extraction (InstructionsApi.groovy)**
    - Large methods refactored into smaller handlers
    - Improved code organization and maintainability
@@ -233,7 +249,9 @@ def dbUrl = "jdbc:postgresql://postgres:5432/umig_app_db"
 ## ADR Compliance
 
 ### ADR-026: Specific SQL Query Validation
+
 All repository tests MUST validate exact SQL queries:
+
 ```groovy
 // ✅ Correct - Validate specific SQL
 def sql = Mock(Sql)
@@ -241,7 +259,9 @@ def sql = Mock(Sql)
 ```
 
 ### ADR-031: Type Safety
+
 All parameter casting must be explicit:
+
 ```groovy
 // ✅ Correct - Explicit casting
 params.instructionId = UUID.fromString(id as String)
@@ -249,16 +269,19 @@ params.teamId = Integer.parseInt(teamId as String)
 ```
 
 ### ADR-030: Hierarchical Filtering
+
 All tests respect hierarchical filtering patterns in the APIs.
 
 ## Test Data Management
+
 - Complete hierarchy creation for realistic testing
 - Proper cleanup in reverse order (foreign keys)
 - Test isolation with 'test' user marker
 
 ## Coverage Metrics
+
 - Repository methods: 100% coverage for new functionality
-- API endpoints: 100% coverage for DELETE operations  
+- API endpoints: 100% coverage for DELETE operations
 - Error scenarios: Comprehensive edge case coverage
 - Security: Authentication and authorization validated
 
@@ -281,18 +304,18 @@ You need to trigger Grape to download the JDBC driver manually. Run this script 
 
 1. Create a file called `grab-postgres-jdbc.groovy` with the following contents:
 
-    ```groovy
-    @Grab('org.postgresql:postgresql:42.7.3')
-    import org.postgresql.Driver
+   ```groovy
+   @Grab('org.postgresql:postgresql:42.7.3')
+   import org.postgresql.Driver
 
-    println "✅  PostgreSQL JDBC driver downloaded via Grape."
-    ```
+   println "✅  PostgreSQL JDBC driver downloaded via Grape."
+   ```
 
 2. Run the script:
 
-    ```bash
-    groovy grab-postgres-jdbc.groovy
-    ```
+   ```bash
+   groovy grab-postgres-jdbc.groovy
+   ```
 
 This will download the driver to the correct location. You should see:
 
@@ -328,6 +351,7 @@ You can now re-run the integration tests.
 ## Documentation Updates
 
 When creating new tests:
+
 1. Update this document if new standards are established
 2. Document any new dependency versions
 3. Update test coverage metrics

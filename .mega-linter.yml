@@ -38,4 +38,4 @@ LOG_LEVEL: INFO
 # Disable linters that can be noisy or require extra configuration
 DISABLE:
   - COPYPASTE # Detects copy-pasted code, can be noisy initially
-  - SPELL     # Checks for spelling errors, requires a dictionary for custom words
+  - SPELL # Checks for spelling errors, requires a dictionary for custom words

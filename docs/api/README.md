@@ -12,7 +12,7 @@ You can use a variety of tools to view the `openapi.yaml` file in a more user-fr
 - **Redocly CLI (Recommended):**
   - [Redoc Online Viewer](https://redocly.github.io/redoc/) (copy-paste or upload `openapi.yaml`)
   - Local: `npm install -g @redocly/cli` then `redocly preview-docs openapi.yaml`
-  - *Note: `redoc-cli` is deprecated. Use `@redocly/cli` for all local Redoc documentation tasks. See: <https://www.npmjs.com/package/@redocly/cli>*
+  - _Note: `redoc-cli` is deprecated. Use `@redocly/cli` for all local Redoc documentation tasks. See: <https://www.npmjs.com/package/@redocly/cli>_
 - **Swagger Editor:**
   - [Swagger Editor](https://editor.swagger.io/) (copy-paste or upload `openapi.yaml`)
 - **VS Code Extensions:**
@@ -29,19 +29,28 @@ You can also use this file with OpenAPI Generator to produce client/server code 
 Individual API specifications are available for detailed documentation:
 
 ### Core APIs
-- **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
-- **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
-- **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships
-- **[Environments API](EnvironmentsAPI.md)** - Environment management with application and iteration associations
+
+- **[Applications API](ApplicationsAPI.md)** - Application management with environment associations
+- **[Controls API](ControlsAPI.md)** - Control point management for phase validation and quality gates
 - **[Email Templates API](EmailTemplatesAPI.md)** - Email template management for automated notifications
+- **[Environments API](EnvironmentsAPI.md)** - Environment management with application and iteration associations
+- **[Instructions API](InstructionsApi.md)** - Instruction management with team assignments and completion tracking
+- **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
+- **[Migrations API](migrationApi.md)** - Migration and iteration management with comprehensive filtering
+- **[Phases API](PhasesAPI.md)** - Phase management with control point validation and progress tracking
 - **[Plans API](PlansAPI.md)** - Plan management with master templates and instances
 - **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support
-- **[Phases API](PhasesAPI.md)** - Phase management with control point validation and progress tracking
-- **[Steps API](StepsAPI.md)** - Step management with email notification integration *(to be documented)*
-- **[Migrations API](MigrationsAPI.md)** - Migration and iteration management *(to be documented)*
+- **[Steps API](StepsAPI.md)** - Step management with hierarchical filtering and email notification integration
+- **[stepView API](stepViewAPI.md)** - Specialized API for standalone step view in Confluence pages
+- **[Team Members API](TeamMembersAPI.md)** - Team membership management and user-team associations
+- **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
+- **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships
+- **[Web API](WebAPI.md)** - Static asset serving for JavaScript and CSS resources
 
 ### Hierarchical Filtering
+
 The Teams and Labels APIs support hierarchical filtering based on the migration execution hierarchy:
+
 - **Migration Level** - Shows teams/labels involved in entire migration
 - **Iteration Level** - Shows teams/labels involved in specific iteration
 - **Plan Level** - Shows teams/labels involved in specific plan instance
@@ -53,6 +62,7 @@ This provides progressive filtering where options become more contextually relev
 ## API Testing with Postman
 
 A Postman collection is available for testing the API endpoints.
+
 - Collection: [`postman/UMIG_API_V2_Collection.postman_collection.json`](postman/UMIG_API_V2_Collection.postman_collection.json)
 - Usage Instructions: [`postman/README.md`](postman/README.md)
 
@@ -61,13 +71,14 @@ The collection is automatically generated from the OpenAPI specification and inc
 ## Recent API Updates
 
 ### Plans API (Completed)
+
 - **Full CRUD operations** for both master plan templates and plan instances
 - **Hierarchical filtering** by migration, iteration, team, and status
 - **Master plan endpoints**:
   - `GET /plans/master` - List all master plans with audit fields
   - `GET /plans/master/{id}` - Get specific master plan
   - `POST /plans/master` - Create new master plan
-  - `PUT /plans/master/{id}` - Update master plan  
+  - `PUT /plans/master/{id}` - Update master plan
   - `DELETE /plans/master/{id}` - Soft delete master plan
 - **Plan instance endpoints**:
   - `GET /plans` - List plan instances with filtering
@@ -78,6 +89,7 @@ The collection is automatically generated from the OpenAPI specification and inc
   - `PUT /plans/{id}/status` - Update instance status
 
 ### Sequences API (Completed)
+
 - **Full CRUD operations** for both master sequence templates and sequence instances
 - **Hierarchical filtering** by migration, iteration, plan, team, and status
 - **Ordering support** with predecessor relationships and sequence ordering
@@ -97,6 +109,7 @@ The collection is automatically generated from the OpenAPI specification and inc
   - `PUT /sequences/instance/{id}/status` - Update instance status
 
 ### Phases API (Completed)
+
 - **Full CRUD operations** for both master phase templates and phase instances
 - **Control point validation system** with emergency override capabilities
 - **Progress aggregation** combining step completion (70%) and control point status (30%)
@@ -124,13 +137,16 @@ The collection is automatically generated from the OpenAPI specification and inc
   - `PUT /phases/validate-dependencies` - Validate phase dependencies
 
 ### Environments API (Completed)
+
 - **Complete environments management system** with application and iteration associations
 - **CRUD operations** with counts display and relationship management
 - **Many-to-many relationships** with applications and iterations
 - **Environment role support** for iterations
 
 ### Audit Fields Standardization (US-002b)
+
 All API entities now include standardized audit fields:
+
 - **`created_by`** - User who created the entity
 - **`created_at`** - Creation timestamp (ISO 8601)
 - **`updated_by`** - User who last updated the entity
@@ -139,18 +155,21 @@ All API entities now include standardized audit fields:
 ### Technical Standards
 
 #### Type Safety (ADR-031)
+
 - **Mandatory explicit casting** for all query parameters
 - **UUID Parameters**: `UUID.fromString(param as String)`
 - **Integer Parameters**: `Integer.parseInt(param as String)`
 - **Null handling** checks required before casting
 
 #### Error Handling
+
 - **400 Bad Request**: Invalid parameters, type errors, missing required fields
 - **404 Not Found**: Resource not found
 - **409 Conflict**: Duplicate entries, deletion blocked by relationships
 - **500 Internal Server Error**: Database errors
 
 #### Database Access Pattern
+
 - **Repository pattern** with `DatabaseUtil.withSql`
 - **Instance IDs usage** for hierarchical filtering (pli_id, sqi_id, phi_id)
 - **Complete field selection** - include ALL fields referenced in result mapping

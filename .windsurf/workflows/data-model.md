@@ -3,6 +3,7 @@
 AI-enhanced data model workflow with schema design, validation, and synchronisation.
 
 ## Prerequisites
+
 - Database design principles, Liquibase, SQL optimization
 - Database management system, testing framework, GENDEV agents
 - Access to dev environment, migration tools, documentation repos
@@ -12,96 +13,122 @@ AI-enhanced data model workflow with schema design, validation, and synchronisat
 ### 1. AI-Enhanced Authoritative Source Analysis
 
 #### 1.1 Architecture Review
+
 ```bash
 /gd:system-architect --architecture_focus=data --design_methodology=domain-driven --scalability_target=enterprise
 ```
+
 - Review `/docs/solution-architecture.md`, `/docs/dataModel/README.md`, liquibase changelogs, ADRs
 - Automated architecture consistency validation
 
 #### 1.2 Documentation Analysis
+
 ```bash
 /gd:documentation-generator --doc_type=technical --audience_level=developer --format_style=structured
 ```
+
 - ERD analysis, schema documentation, migration history, constraint validation
 
 ### 2. AI-Enhanced Change Planning
 
 #### 2.1 Business Impact Analysis
+
 ```bash
 /gd:business-process-analyst --analysis_scope=data-model --process_complexity=enterprise
 ```
+
 - Business rationale, technical impact, performance modeling, migration risk assessment
 
 #### 2.2 ERD Design and Validation
+
 ```bash
 /gd:system-architect --architecture_focus=data --design_methodology=domain-driven
 ```
+
 - Automated ERD generation, normalization validation, relationship optimization
 
 ### 3. AI-Enhanced Schema Updates
 
 #### 3.1 Migration Strategy
+
 ```bash
 /gd:database-specialist --db_type=postgresql --optimization_focus=migration
 ```
+
 - Automated migration generation, rollback planning, performance optimization, dependency resolution
 
 #### 3.2 Security and Compliance
+
 ```bash
 /gd:security-architect --security_model=zero-trust --compliance_level=enterprise
 ```
+
 - Data privacy compliance, access control design, audit trail integration, PII identification
 
 ### 4. AI-Enhanced Documentation Management
 
 #### 4.1 Documentation Generation
+
 ```bash
 /gd:documentation-generator --doc_type=database --audience_level=technical --format_style=comprehensive
 ```
+
 - Automated ERD updates, field documentation, relationship documentation, business rules, ADR generation
 
 ### 5. AI-Powered Data Generation Synchronisation
 
 #### 5.1 Test Data Generation
+
 ```bash
 /gd:test-data-generator --data_type=realistic --volume=medium --compliance_mode=privacy-safe
 ```
+
 - Schema-aware generation, relationship consistency, performance optimization, privacy compliance
 
 #### 5.2 Generator Synchronisation
+
 ```bash
 /gd:code-generator --template_type=data-utilities --target_language=javascript
 ```
+
 - Automated generator updates, constraint validation, performance monitoring, version sync
 
 ### 6. AI-Enhanced Testing and Validation
 
 #### 6.1 Test Suite Generation
+
 ```bash
 /gd:test-suite-generator --test_types=integration,performance,security --coverage_target=95
 ```
+
 - Automated test generation, migration testing, performance testing, data integrity, security testing
 
 #### 6.2 Continuous Validation
+
 ```bash
 /gd:qa-coordinator --qa_scope=database --automation_level=high
 ```
+
 - Real-time schema validation, performance regression testing, data quality monitoring, compliance monitoring
 
 ### 7. AI-Assisted Validation and Deployment
 
 #### 7.1 Multi-Environment Validation
+
 ```bash
 /gd:environment-manager --environment_type=database --deployment_strategy=blue-green
 ```
+
 - Automated environment testing, migration simulation, performance benchmarking, data consistency validation
 
 ### 8. AI-Enhanced Documentation and Communication
 
 #### 8.1 Change Documentation
+
 ```bash
 /gd:content-creator --content_type=technical --audience_level=mixed --tone=informative
 ```
+
 - Automated changelog generation, impact communication, developer journal automation, ADR management
 
 ## Enhanced Success Metrics

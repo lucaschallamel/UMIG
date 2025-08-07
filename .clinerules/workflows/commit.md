@@ -9,6 +9,7 @@ description: Enhanced AI-assisted workflow to gather changes, analyze context, a
 ## Purpose
 
 This enhanced workflow leverages GENDEV agents to ensure:
+
 - Comprehensive change analysis with AI assistance
 - High-quality commit messages following Conventional Commits 1.0
 - Automated quality validation and security review
@@ -57,12 +58,14 @@ This workflow guides the creation of a high-quality, comprehensive commit messag
 **1.2. Enhanced Unstaged and Untracked Files Analysis:**
 
 **Agent Integration:**
+
 ```bash
 # Use QA Coordinator for completeness validation
 /gd:qa-coordinator --validation_scope=commit --quality_threshold=high
 ```
 
 **Manual Commands:**
+
 ```bash
 # Check for unstaged changes
 git diff
@@ -72,6 +75,7 @@ git ls-files --others --exclude-standard
 ```
 
 **Agent-Enhanced Assessment:**
+
 - Automated detection of related files that should be included
 - Identification of temporary files requiring cleanup
 - Validation of new files against project standards
@@ -80,12 +84,14 @@ git ls-files --others --exclude-standard
 **1.3. Intelligent Work Stream Identification:**
 
 **Agent Integration:**
+
 ```bash
 # Use Context Manager for work stream analysis
 /gd:context-manager --context_scope=session --analysis_depth=comprehensive
 ```
 
 **Enhanced Work Stream Analysis:**
+
 - **Primary work stream**: Main feature/fix with impact assessment
 - **Secondary work streams**: Related improvements with dependency mapping
 - **Incidental work streams**: Cleanup activities with quality metrics
@@ -94,6 +100,7 @@ git ls-files --others --exclude-standard
 **2. AI-Assisted Multi-Context Rationale Analysis (MANDATORY - Address tunnel vision):**
 
 **Agent Integration:**
+
 ```bash
 # Use Requirements Analyst for context understanding
 /gd:requirements-analyst --analysis_depth=comprehensive --stakeholder_scope=technical
@@ -115,6 +122,7 @@ git ls-files --others --exclude-standard
 **2.3. Comprehensive Business and Technical Context:**
 
 **Agent Benefits:**
+
 - **Business Impact:** Automated stakeholder impact assessment
 - **Technical Motivation:** Architecture compliance validation
 - **Problem-Solution Mapping:** AI-assisted decision documentation
@@ -129,6 +137,7 @@ git ls-files --others --exclude-standard
 **3. AI-Enhanced Multi-Stream Commit Message Synthesis (MANDATORY - Address tunnel vision):**
 
 **Agent Integration:**
+
 ```bash
 # Use Documentation Generator for commit message creation
 /gd:documentation-generator --doc_type=commit-message --audience_level=expert --format_style=conventional
@@ -139,6 +148,7 @@ The goal is to create a comprehensive, AI-validated message that explains all ch
 **3.1. Intelligent Type and Scope Selection:**
 
 **Agent Benefits:**
+
 - **Primary Type:** AI-assisted analysis of change significance
 - **Multi-Stream Consideration:** Automated impact weighting
 - **Scope Selection:** Intelligent component classification
@@ -152,6 +162,7 @@ The goal is to create a comprehensive, AI-validated message that explains all ch
 **3.3. Context-Rich Body Structure:**
 
 **Agent-Enhanced Structure:**
+
 - **Primary Change Description:** AI-generated motivation analysis
 - **Work Stream Breakdown:** Automated impact documentation
 - **Cross-Stream Integration:** Dependency visualization

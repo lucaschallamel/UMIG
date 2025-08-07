@@ -30,7 +30,7 @@ Implementation of the Phases API with advanced control point management that pro
 
 1. **Master Phase Template Management**
    - Create, read, update, and delete master phase templates
-   - Integration with sequence hierarchy 
+   - Integration with sequence hierarchy
    - Ordering functionality within sequences
    - Control point template configuration
 
@@ -112,6 +112,7 @@ Implementation of the Phases API with advanced control point management that pro
 ### Database Schema
 
 #### Phases Master (Canonical Templates)
+
 ```sql
 phases_master_phm:
 - phm_id (UUID, PK)
@@ -124,6 +125,7 @@ phases_master_phm:
 ```
 
 #### Phases Instance (Execution Records)
+
 ```sql
 phases_instance_phi:
 - phi_id (UUID, PK)
@@ -140,6 +142,7 @@ phases_instance_phi:
 ```
 
 #### Control Points
+
 ```sql
 controls_master_ctm:
 - ctm_id (UUID, PK)
@@ -163,6 +166,7 @@ controls_instance_cti:
 ### API Endpoints
 
 #### Master Phase Management
+
 - `GET /phases/masters` - List all master phase templates
 - `GET /phases/masters/{id}` - Get specific master phase details
 - `POST /phases/masters` - Create new master phase template
@@ -170,6 +174,7 @@ controls_instance_cti:
 - `DELETE /phases/masters/{id}` - Delete master phase (with cascade protection)
 
 #### Phase Instance Operations
+
 - `GET /phases` - List phase instances with hierarchical filtering
 - `GET /phases/{id}` - Get specific phase instance details
 - `POST /phases` - Create phase instance from master
@@ -177,18 +182,21 @@ controls_instance_cti:
 - `DELETE /phases/{id}` - Delete phase instance
 
 #### Ordering Management
+
 - `PUT /phases/masters/{sequenceId}/reorder` - Bulk reorder master phases within sequence
 - `PUT /phases/{sequenceId}/reorder` - Bulk reorder phase instances within sequence
 - `PUT /phases/masters/{id}/order` - Update single master phase order
 - `PUT /phases/{id}/order` - Update single phase instance order
 
 #### Control Point Management
+
 - `GET /phases/{id}/controls` - List control points for a phase
 - `PUT /phases/{id}/controls/{controlId}` - Update control point status
 - `POST /phases/{id}/controls/{controlId}/override` - Override control with reason
 - `GET /phases/{id}/controls/validation` - Validate all control points
 
 #### Progress and Status
+
 - `GET /phases/{id}/progress` - Calculate phase progress from steps
 - `PUT /phases/{id}/status` - Update phase status with validation
 - `GET /phases/{id}/readiness` - Check if phase ready to proceed
@@ -206,6 +214,7 @@ controls_instance_cti:
 ### Key Deliverables Completed
 
 ✅ **PhasesApi.groovy (2,076 lines)** - Comprehensive REST API implementation
+
 - Complete CRUD operations for master and instance phases
 - Advanced control point management with validation workflows
 - Ordering operations (bulk and single) with transaction support
@@ -214,6 +223,7 @@ controls_instance_cti:
 - Hierarchical filtering with type safety
 
 ✅ **PhaseRepository.groovy** - Complete data access layer
+
 - 22 repository methods covering all operations
 - DatabaseUtil.withSql pattern implementation
 - Control point validation logic
@@ -222,12 +232,14 @@ controls_instance_cti:
 - Error handling with SQL state mapping
 
 ✅ **Database Integration**
+
 - Full utilization of existing schema tables
 - Proper foreign key relationships maintained
 - Audit field population following established patterns
 - Transaction support for bulk operations
 
 ✅ **Testing Implementation (30 comprehensive tests)**
+
 - PhaseRepositoryTest.groovy with 90%+ coverage
 - PhasesApiIntegrationTest.groovy with complete endpoint coverage
 - Control point workflow validation
@@ -236,6 +248,7 @@ controls_instance_cti:
 - Error handling and edge case coverage
 
 ✅ **Documentation Complete**
+
 - API documentation (PhasesAPI.md)
 - OpenAPI specification updates
 - Postman collection regeneration
@@ -286,11 +299,11 @@ def validateControlPoints(UUID phaseId) {
             AND ctm.ctm_type IN ('MANDATORY', 'CONDITIONAL')
             ORDER BY ctm.ctm_name
         """, [phaseId: phaseId])
-        
-        def failedControls = controls.findAll { 
-            it.cti_status in ['PENDING', 'FAILED'] 
+
+        def failedControls = controls.findAll {
+            it.cti_status in ['PENDING', 'FAILED']
         }
-        
+
         return [
             isValid: failedControls.isEmpty(),
             totalControls: controls.size(),
@@ -310,17 +323,17 @@ Real-time progress calculation from child steps:
 def calculatePhaseProgress(UUID phaseId) {
     return DatabaseUtil.withSql { sql ->
         def result = sql.firstRow("""
-            SELECT 
+            SELECT
                 COUNT(*) as total_steps,
                 COUNT(CASE WHEN sti.sti_status = 'COMPLETED' THEN 1 END) as completed_steps,
                 COALESCE(ROUND(
-                    (COUNT(CASE WHEN sti.sti_status = 'COMPLETED' THEN 1 END) * 100.0) / 
+                    (COUNT(CASE WHEN sti.sti_status = 'COMPLETED' THEN 1 END) * 100.0) /
                     NULLIF(COUNT(*), 0), 2
                 ), 0.00) as progress_percentage
             FROM steps_instance_sti sti
             WHERE sti.phi_id = :phaseId
         """, [phaseId: phaseId])
-        
+
         return result
     }
 }
@@ -337,7 +350,7 @@ def reorderMasterPhases(UUID sequenceId, Map<UUID, Integer> phaseOrderMap) {
         sql.withTransaction {
             phaseOrderMap.each { phaseId, newOrder ->
                 sql.executeUpdate("""
-                    UPDATE phases_master_phm 
+                    UPDATE phases_master_phm
                     SET phm_order = :newOrder,
                         updated_by = 'system',
                         updated_at = CURRENT_TIMESTAMP
@@ -363,7 +376,7 @@ Control point override with complete audit trail:
 def overrideControl(UUID controlId, String reason, String overrideBy) {
     return DatabaseUtil.withSql { sql ->
         def updated = sql.executeUpdate("""
-            UPDATE controls_instance_cti 
+            UPDATE controls_instance_cti
             SET cti_status = 'OVERRIDDEN',
                 cti_override_reason = :reason,
                 cti_override_by = :overrideBy,
@@ -376,7 +389,7 @@ def overrideControl(UUID controlId, String reason, String overrideBy) {
             reason: reason,
             overrideBy: overrideBy
         ])
-        
+
         return updated == 1
     }
 }
@@ -391,6 +404,7 @@ The US-003 implementation includes a robust three-tier testing approach targetin
 #### Unit Tests (PhaseRepositoryTest.groovy)
 
 **Following ADR-026 specific SQL mock validation**:
+
 - All 22 repository methods tested with exact SQL query validation
 - Control point logic comprehensive testing
 - Progress calculation scenario coverage
@@ -399,6 +413,7 @@ The US-003 implementation includes a robust three-tier testing approach targetin
 - Type safety testing for all parameters
 
 **Key Test Scenarios**:
+
 - Master phase CRUD operations with enriched data validation
 - Instance phase creation from masters with override application
 - Hierarchical filtering with all combinations
@@ -409,6 +424,7 @@ The US-003 implementation includes a robust three-tier testing approach targetin
 #### Integration Tests (PhasesApiIntegrationTest.groovy)
 
 **Complete endpoint coverage (30 comprehensive tests)**:
+
 - All REST endpoints tested with live database
 - Hierarchical filtering validation across all levels
 - Control point workflows end-to-end
@@ -417,6 +433,7 @@ The US-003 implementation includes a robust three-tier testing approach targetin
 - Ordering management integration testing
 
 **Critical Test Cases**:
+
 ```groovy
 // Control Point Validation Workflow
 def "control point validation should evaluate all mandatory controls"() {
@@ -443,12 +460,14 @@ def "progress calculation should aggregate step completion accurately"() {
 #### Performance Tests
 
 **Response time validation**:
+
 - Simple queries (single phase): <50ms
-- Filtered queries (with joins): <100ms  
+- Filtered queries (with joins): <100ms
 - Complex operations (progress calc): <200ms
 - Bulk operations: <500ms
 
 **Load testing scenarios**:
+
 - 1000 concurrent GET /phases requests
 - 100 concurrent progress calculations
 - 50 phases bulk reordering simultaneously
@@ -475,7 +494,8 @@ def "progress calculation should aggregate step completion accurately"() {
 ### 1. Control Point Logic Complexity
 
 **Challenge**: Complex validation rules for multiple control types with state transitions
-**Resolution**: 
+**Resolution**:
+
 - Implemented systematic test matrix covering all control type combinations
 - Created comprehensive validation logic with clear state machine
 - Added override mechanism with complete audit trail
@@ -485,6 +505,7 @@ def "progress calculation should aggregate step completion accurately"() {
 
 **Challenge**: Aggregation queries potentially impacting performance under load
 **Resolution**:
+
 - Optimized queries with proper indexing considerations
 - Implemented efficient progress calculation avoiding N+1 queries
 - Added performance tests validating <200ms targets
@@ -494,6 +515,7 @@ def "progress calculation should aggregate step completion accurately"() {
 
 **Challenge**: Maintaining consistent ordering across master templates and instances
 **Resolution**:
+
 - Implemented transaction-based bulk reordering operations
 - Added automatic gap normalization after deletions
 - Created order preservation during instance creation
@@ -503,6 +525,7 @@ def "progress calculation should aggregate step completion accurately"() {
 
 **Challenge**: Seamless integration with Plans and Sequences APIs
 **Resolution**:
+
 - Followed established patterns from US-001 and US-002
 - Maintained consistency in error handling and response formats
 - Used proven hierarchical filtering approaches
@@ -511,6 +534,7 @@ def "progress calculation should aggregate step completion accurately"() {
 ## Quality Metrics Achieved
 
 ### Code Quality
+
 - **Lines of Code**: 2,076 lines (PhasesApi.groovy) - comprehensive implementation
 - **Method Coverage**: 22 repository methods with full testing
 - **Error Handling**: SQL state mapping (23503→400, 23505→409)
@@ -518,18 +542,21 @@ def "progress calculation should aggregate step completion accurately"() {
 - **Pattern Consistency**: Following established US-001/US-002 patterns
 
 ### Performance Metrics
+
 - **Response Times**: All endpoints <200ms (target met)
 - **Query Optimization**: Efficient joins and filtering
 - **Progress Calculation**: Real-time updates without performance degradation
 - **Bulk Operations**: Transaction support maintaining data consistency
 
 ### Test Quality
+
 - **Unit Test Coverage**: 90%+ with specific SQL mock validation
 - **Integration Coverage**: 100% endpoint coverage
 - **Performance Testing**: Load testing with regression detection
 - **Edge Case Coverage**: Comprehensive error scenario testing
 
 ### Documentation Quality
+
 - **API Documentation**: Complete with all endpoints documented
 - **OpenAPI Specification**: Updated with all new endpoints
 - **Postman Collection**: Regenerated with test scenarios
@@ -572,6 +599,7 @@ Key lessons learned and patterns established:
 ### Foundation for Future Development
 
 US-003 establishes critical infrastructure for:
+
 - **Instructions API**: Will leverage control point patterns
 - **Status Management**: Control point validation integration
 - **Progress Tracking**: Real-time calculation patterns
@@ -582,8 +610,9 @@ US-003 establishes critical infrastructure for:
 US-003 successfully delivers a comprehensive Phases API with sophisticated control point management that serves as a critical quality gate mechanism for enterprise migrations. The implementation maintains the high standards established in US-001 and US-002 while introducing advanced features that will be essential for migration execution control.
 
 **Key Success Factors**:
+
 - **Pattern Consistency**: Leveraged proven patterns from previous user stories
-- **Quality Gate Excellence**: Implemented robust control point validation system  
+- **Quality Gate Excellence**: Implemented robust control point validation system
 - **Performance Achievement**: Met all response time targets with complex logic
 - **Testing Comprehensiveness**: Achieved 90%+ coverage with sophisticated test scenarios
 - **Integration Excellence**: Seamless operation with Plans and Sequences APIs
@@ -602,13 +631,14 @@ This implementation demonstrates the maturity of the UMIG development approach, 
 ## Implementation Complete
 
 This technical architecture was successfully implemented with all planned features:
+
 - ✅ All 21 API endpoints implemented and tested
 - ✅ Control point validation with override capabilities
 - ✅ Progress aggregation from steps (70%) and controls (30%)
 - ✅ Hierarchical filtering with full type safety (ADR-031)
 - ✅ Ordering management with bulk and single operations
 - ✅ Comprehensive testing (30 integration tests, enhanced unit tests)
-- ✅ Complete documentation and Postman collection  
+- ✅ Complete documentation and Postman collection
 
 ## 1. System Architecture Overview
 
@@ -664,6 +694,7 @@ Master Plan → Master Sequence → Master Phase → Master Step → Master Inst
 ### 2.1 API Layer (PhasesApi.groovy)
 
 **Responsibilities:**
+
 - HTTP request/response handling
 - Path routing and parameter extraction
 - Input validation and type safety (ADR-031)
@@ -671,6 +702,7 @@ Master Plan → Master Sequence → Master Phase → Master Step → Master Inst
 - Security group enforcement
 
 **Key Design Patterns:**
+
 - Lazy repository instantiation to avoid class loading issues
 - Consistent error handling with standardized JSON responses
 - Type-safe parameter casting with explicit validation
@@ -679,6 +711,7 @@ Master Plan → Master Sequence → Master Phase → Master Step → Master Inst
 ### 2.2 Repository Layer (PhaseRepository.groovy)
 
 **Responsibilities:**
+
 - Database operations using DatabaseUtil.withSql pattern
 - Business logic for control point validation
 - Progress aggregation from child steps
@@ -686,6 +719,7 @@ Master Plan → Master Sequence → Master Phase → Master Step → Master Inst
 - Transaction management for complex operations
 
 **Key Design Patterns:**
+
 - Comprehensive error handling with SQL state mapping
 - Hierarchical filtering support
 - Type-safe parameter handling throughout
@@ -694,6 +728,7 @@ Master Plan → Master Sequence → Master Phase → Master Step → Master Inst
 ### 2.3 Database Layer
 
 **Existing Schema Integration:**
+
 - `phases_master_phm` - Phase templates with ordering
 - `phases_instance_phi` - Phase execution instances
 - `controls_master_ctm` - Control point templates
@@ -709,7 +744,7 @@ sequenceDiagram
     participant Repo as PhaseRepository
     participant DB as PostgreSQL
     participant Steps as StepsApi
-    
+
     API->>Repo: createPhaseInstance(masterPhaseId, sequenceId, overrides)
     Repo->>DB: SELECT master phase template
     Repo->>DB: INSERT phase instance with calculated order
@@ -727,7 +762,7 @@ sequenceDiagram
     participant API as PhasesApi
     participant Repo as PhaseRepository
     participant DB as PostgreSQL
-    
+
     API->>Repo: calculatePhaseProgress(phaseId)
     Repo->>DB: SELECT step instances for phase
     Repo->>DB: COUNT completed vs total steps
@@ -745,7 +780,7 @@ sequenceDiagram
     participant Repo as PhaseRepository
     participant DB as PostgreSQL
     participant Audit as AuditLog
-    
+
     API->>Repo: validateControlPoints(phaseId)
     Repo->>DB: SELECT control instances WHERE cti_status != 'VALIDATED'
     alt All mandatory controls validated
@@ -754,7 +789,7 @@ sequenceDiagram
     else Mandatory controls pending
         Repo-->>API: Return validation failure with details
     end
-    
+
     Note over API,Audit: Override Control Point
     API->>Repo: overrideControl(controlId, reason, actor)
     Repo->>DB: UPDATE cti_status = 'OVERRIDDEN'
@@ -768,11 +803,13 @@ sequenceDiagram
 ### 4.1 Control Types and Validation States
 
 **Control Types:**
+
 - `MANDATORY` - Must be validated before phase completion
 - `OPTIONAL` - Can be skipped without impact
 - `CONDITIONAL` - Required based on runtime conditions (future enhancement)
 
 **Validation States:**
+
 - `PENDING` - Awaiting validation
 - `VALIDATED` - Completed successfully
 - `FAILED` - Validation failed, requires attention
@@ -782,7 +819,7 @@ sequenceDiagram
 
 ```groovy
 class ControlPointValidator {
-    
+
     def validatePhaseControls(UUID phaseId) {
         DatabaseUtil.withSql { sql ->
             // Get all control instances for the phase
@@ -793,7 +830,7 @@ class ControlPointValidator {
                 WHERE cti.phi_id = :phaseId
                 ORDER BY ctm.ctm_order
             """, [phaseId: phaseId])
-            
+
             def validation = [
                 total_controls: controls.size(),
                 mandatory_pending: 0,
@@ -801,14 +838,14 @@ class ControlPointValidator {
                 failed_controls: [],
                 ready_to_proceed: true
             ]
-            
+
             controls.each { control ->
-                if (control.ctm_type == 'MANDATORY' && 
+                if (control.ctm_type == 'MANDATORY' &&
                     control.cti_status in ['PENDING', 'FAILED']) {
                     validation.mandatory_pending++
                     validation.ready_to_proceed = false
                 }
-                
+
                 if (control.cti_status == 'FAILED') {
                     validation.failed_controls << [
                         id: control.cti_id,
@@ -816,7 +853,7 @@ class ControlPointValidator {
                     ]
                 }
             }
-            
+
             return validation
         }
     }
@@ -833,7 +870,7 @@ def overrideControlPoint(UUID controlId, String reason, String overrideBy) {
         sql.withTransaction {
             // Update control status
             sql.execute("""
-                UPDATE controls_instance_cti 
+                UPDATE controls_instance_cti
                 SET cti_status = 'OVERRIDDEN',
                     cti_override_reason = :reason,
                     cti_override_by = :overrideBy,
@@ -844,11 +881,11 @@ def overrideControlPoint(UUID controlId, String reason, String overrideBy) {
                 reason: reason,
                 overrideBy: overrideBy
             ])
-            
+
             // Create audit log entry
             sql.execute("""
                 INSERT INTO audit_logs (
-                    table_name, record_id, action, 
+                    table_name, record_id, action,
                     changed_by, reason, created_at
                 ) VALUES (
                     'controls_instance_cti', :controlId, 'OVERRIDE',
@@ -871,12 +908,14 @@ def overrideControlPoint(UUID controlId, String reason, String overrideBy) {
 Building on the US-002 Sequences API ordering patterns:
 
 **Master Phase Ordering:**
+
 - `phm_order` field maintains sequence within master sequence
 - Automatic gap normalization after deletions
 - Bulk reordering with transaction safety
 - Dependency validation through `predecessor_phm_id`
 
 **Instance Phase Ordering:**
+
 - `phi_order` inherited from master during instance creation
 - Runtime order adjustments for execution flexibility
 - Maintains referential integrity with sequence hierarchy
@@ -890,18 +929,18 @@ def reorderMasterPhases(UUID sequenceId, Map<UUID, Integer> phaseOrderMap) {
             // Validate all phases belong to the sequence
             def phaseIds = phaseOrderMap.keySet().toList()
             def validPhases = sql.rows("""
-                SELECT phm_id FROM phases_master_phm 
+                SELECT phm_id FROM phases_master_phm
                 WHERE sqm_id = :sequenceId AND phm_id IN (${createInClause(phaseIds)})
             """, [sequenceId: sequenceId] + createInParams(phaseIds))
-            
+
             if (validPhases.size() != phaseIds.size()) {
                 throw new IllegalArgumentException("Some phases don't belong to the sequence")
             }
-            
+
             // Update orders
             phaseOrderMap.each { phaseId, newOrder ->
                 sql.execute("""
-                    UPDATE phases_master_phm 
+                    UPDATE phases_master_phm
                     SET phm_order = :newOrder,
                         updated_at = NOW(),
                         updated_by = :userId
@@ -912,7 +951,7 @@ def reorderMasterPhases(UUID sequenceId, Map<UUID, Integer> phaseOrderMap) {
                     userId: getCurrentUserId()
                 ])
             }
-            
+
             // Normalize gaps
             normalizePhaseOrder(sequenceId)
         }
@@ -929,7 +968,7 @@ def validatePhaseDependencies(UUID phaseId, UUID newPredecessorId) {
     // Detect circular dependencies
     def visited = [] as Set
     def current = newPredecessorId
-    
+
     while (current) {
         if (visited.contains(current)) {
             throw new IllegalStateException("Circular dependency detected")
@@ -937,11 +976,11 @@ def validatePhaseDependencies(UUID phaseId, UUID newPredecessorId) {
         if (current == phaseId) {
             throw new IllegalStateException("Phase cannot be its own predecessor")
         }
-        
+
         visited.add(current)
         current = findPredecessorId(current)
     }
-    
+
     return true
 }
 ```
@@ -951,6 +990,7 @@ def validatePhaseDependencies(UUID phaseId, UUID newPredecessorId) {
 ### 6.1 Transaction Boundaries
 
 **Phase Instance Creation:**
+
 - Master phase template retrieval
 - Instance creation with order calculation
 - Control instance creation
@@ -958,6 +998,7 @@ def validatePhaseDependencies(UUID phaseId, UUID newPredecessorId) {
 - Progress initialization
 
 **Bulk Reordering:**
+
 - Order validation and conflict detection
 - Atomic order updates across all affected phases
 - Gap normalization
@@ -972,19 +1013,19 @@ def createPhaseInstanceWithControls(UUID masterPhaseId, UUID sequenceId, Map ove
             try {
                 // 1. Create phase instance
                 def phaseInstance = createPhaseInstance(masterPhaseId, sequenceId, overrides)
-                
+
                 // 2. Create control instances
                 def controlInstances = createControlInstancesFromMaster(phaseInstance.phi_id)
-                
+
                 // 3. Initialize progress tracking
                 initializePhaseProgress(phaseInstance.phi_id)
-                
+
                 return [
                     phase: phaseInstance,
                     controls: controlInstances,
                     progress: 0
                 ]
-                
+
             } catch (Exception e) {
                 // Transaction automatically rolls back
                 throw new RuntimeException("Failed to create phase instance: ${e.message}", e)
@@ -999,6 +1040,7 @@ def createPhaseInstanceWithControls(UUID masterPhaseId, UUID sequenceId, Map ove
 ### 7.1 Query Optimization
 
 **Hierarchical Filtering Optimization:**
+
 ```sql
 -- Optimized query using CTEs for complex hierarchical filtering
 WITH filtered_sequences AS (
@@ -1022,6 +1064,7 @@ ORDER BY phi.phi_order;
 ### 7.2 Progress Calculation Optimization
 
 **Cached Progress Calculation:**
+
 ```groovy
 def calculatePhaseProgress(UUID phaseId, boolean useCache = true) {
     if (useCache) {
@@ -1030,36 +1073,36 @@ def calculatePhaseProgress(UUID phaseId, boolean useCache = true) {
             return cached.progress
         }
     }
-    
+
     DatabaseUtil.withSql { sql ->
         // Calculate step completion percentage
         def stepProgress = sql.firstRow("""
-            SELECT 
+            SELECT
                 COUNT(*) as total_steps,
                 COUNT(*) FILTER (WHERE sti.sti_status = 'COMPLETED') as completed_steps
             FROM steps_instance_sti sti
             WHERE sti.phi_id = :phaseId
         """, [phaseId: phaseId])
-        
-        // Calculate control validation percentage  
+
+        // Calculate control validation percentage
         def controlProgress = sql.firstRow("""
-            SELECT 
+            SELECT
                 COUNT(*) as total_controls,
                 COUNT(*) FILTER (WHERE cti.cti_status IN ('VALIDATED', 'OVERRIDDEN')) as validated_controls
             FROM controls_instance_cti cti
             WHERE cti.phi_id = :phaseId
         """, [phaseId: phaseId])
-        
+
         def progress = calculateWeightedProgress(stepProgress, controlProgress)
-        
+
         // Update cached progress
         sql.execute("""
-            UPDATE phases_instance_phi 
+            UPDATE phases_instance_phi
             SET phi_progress_percentage = :progress,
                 phi_progress_updated_at = NOW()
             WHERE phi_id = :phaseId
         """, [phaseId: phaseId, progress: progress])
-        
+
         cacheProgress(phaseId, progress)
         return progress
     }
@@ -1069,11 +1112,12 @@ def calculatePhaseProgress(UUID phaseId, boolean useCache = true) {
 ### 7.3 Batch Operations
 
 **Bulk Control Updates:**
+
 ```groovy
 def updateMultipleControlStatuses(List<Map> controlUpdates) {
     DatabaseUtil.withSql { sql ->
         sql.withBatch(50, """
-            UPDATE controls_instance_cti 
+            UPDATE controls_instance_cti
             SET cti_status = ?,
                 cti_validated_by = ?,
                 cti_validated_at = NOW(),
@@ -1097,25 +1141,27 @@ def updateMultipleControlStatuses(List<Map> controlUpdates) {
 ### 8.1 Sequences API Integration
 
 **Bidirectional Relationship:**
+
 - Phases belong to sequences (phi.sqi_id → sequences_instance_sqi.sqi_id)
 - Phase status changes propagate to sequence progress
 - Sequence reordering triggers phase reorder validation
 
 **Status Propagation:**
+
 ```groovy
 def updateSequenceProgressFromPhases(UUID sequenceId) {
     DatabaseUtil.withSql { sql ->
         def progress = sql.firstRow("""
-            SELECT 
+            SELECT
                 COUNT(*) as total_phases,
                 AVG(phi_progress_percentage) as avg_progress,
                 COUNT(*) FILTER (WHERE phi_status = 'COMPLETED') as completed_phases
             FROM phases_instance_phi phi
             WHERE phi.sqi_id = :sequenceId
         """, [sequenceId: sequenceId])
-        
+
         sql.execute("""
-            UPDATE sequences_instance_sqi 
+            UPDATE sequences_instance_sqi
             SET sqi_progress_percentage = :progress,
                 sqi_updated_at = NOW()
             WHERE sqi_id = :sequenceId
@@ -1127,6 +1173,7 @@ def updateSequenceProgressFromPhases(UUID sequenceId) {
 ### 8.2 Steps API Integration
 
 **Hierarchical Dependency:**
+
 - Steps belong to phases (sti.phi_id → phases_instance_phi.phi_id)
 - Step completion triggers phase progress recalculation
 - Phase status changes can trigger step status updates
@@ -1134,6 +1181,7 @@ def updateSequenceProgressFromPhases(UUID sequenceId) {
 ### 8.3 Plans API Integration
 
 **Indirect Integration Through Hierarchy:**
+
 - Plans → Sequences → Phases → Steps
 - Plan status aggregation includes phase progress
 - Plan reordering cascades to phases through sequences
@@ -1144,10 +1192,10 @@ def updateSequenceProgressFromPhases(UUID sequenceId) {
 
 ```groovy
 class PhaseApiErrorHandler {
-    
+
     static Response handleSqlException(SQLException e) {
         def errorCode = e.getSQLState()
-        
+
         switch (errorCode) {
             case '23503': // Foreign key violation
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -1156,7 +1204,7 @@ class PhaseApiErrorHandler {
                         code: "FOREIGN_KEY_VIOLATION",
                         sqlState: errorCode
                     ]).toString()).build()
-                    
+
             case '23505': // Unique violation
                 return Response.status(Response.Status.CONFLICT)
                     .entity(new JsonBuilder([
@@ -1164,7 +1212,7 @@ class PhaseApiErrorHandler {
                         code: "DUPLICATE_ENTRY",
                         sqlState: errorCode
                     ]).toString()).build()
-                    
+
             default:
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new JsonBuilder([
@@ -1185,12 +1233,12 @@ class ProgressCalculationCircuitBreaker {
     private long lastFailureTime = 0
     private final int threshold = 5
     private final long timeout = 60000 // 1 minute
-    
+
     def calculateWithCircuitBreaker(UUID phaseId, Closure calculation) {
         if (isCircuitOpen()) {
             return getCachedProgressOrDefault(phaseId)
         }
-        
+
         try {
             def result = calculation.call()
             reset()
@@ -1200,9 +1248,9 @@ class ProgressCalculationCircuitBreaker {
             throw e
         }
     }
-    
+
     private boolean isCircuitOpen() {
-        return failureCount >= threshold && 
+        return failureCount >= threshold &&
                (System.currentTimeMillis() - lastFailureTime) < timeout
     }
 }
@@ -1214,14 +1262,14 @@ class ProgressCalculationCircuitBreaker {
 def createPhaseInstanceWithRetry(UUID masterPhaseId, UUID sequenceId, Map overrides, int maxRetries = 3) {
     int attempts = 0
     Exception lastException = null
-    
+
     while (attempts < maxRetries) {
         try {
             return createPhaseInstanceWithControls(masterPhaseId, sequenceId, overrides)
         } catch (SQLException e) {
             lastException = e
             attempts++
-            
+
             if (isRetryableError(e)) {
                 Thread.sleep(Math.pow(2, attempts) * 1000) // Exponential backoff
                 continue
@@ -1230,7 +1278,7 @@ def createPhaseInstanceWithRetry(UUID masterPhaseId, UUID sequenceId, Map overri
             }
         }
     }
-    
+
     throw new RuntimeException("Failed after ${maxRetries} attempts", lastException)
 }
 ```
@@ -1263,35 +1311,35 @@ def createPhaseInstanceWithRetry(UUID masterPhaseId, UUID sequenceId, Map overri
 class PhaseProgressCache {
     private static final Map<UUID, CachedProgress> progressCache = new ConcurrentHashMap<>()
     private static final long CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-    
+
     static class CachedProgress {
         final int progress
         final long timestamp
         final List<String> dependencies
-        
+
         CachedProgress(int progress, List<String> dependencies) {
             this.progress = progress
             this.timestamp = System.currentTimeMillis()
             this.dependencies = dependencies ?: []
         }
-        
+
         boolean isValid() {
             return (System.currentTimeMillis() - timestamp) < CACHE_TTL
         }
     }
-    
+
     static int getProgress(UUID phaseId) {
         def cached = progressCache.get(phaseId)
         return cached?.isValid() ? cached.progress : -1
     }
-    
+
     static void cacheProgress(UUID phaseId, int progress, List<String> dependencies = []) {
         progressCache.put(phaseId, new CachedProgress(progress, dependencies))
     }
-    
+
     static void invalidateProgress(UUID phaseId) {
         progressCache.remove(phaseId)
-        
+
         // Invalidate dependent caches
         progressCache.entrySet().removeIf { entry ->
             entry.value.dependencies.contains(phaseId.toString())
@@ -1303,12 +1351,14 @@ class PhaseProgressCache {
 ### 10.3 Cache Invalidation Strategy
 
 **Event-Driven Invalidation:**
+
 - Step status changes → Invalidate parent phase progress
-- Control status changes → Invalidate parent phase progress  
+- Control status changes → Invalidate parent phase progress
 - Phase reordering → Invalidate parent sequence progress
 - Bulk operations → Invalidate entire hierarchy cache
 
 **Scheduled Refresh:**
+
 ```groovy
 @Scheduled(fixedRate = 300000) // Every 5 minutes
 def refreshCriticalProgresses() {
@@ -1319,7 +1369,7 @@ def refreshCriticalProgresses() {
             WHERE phi.phi_status IN ('IN_PROGRESS', 'BLOCKED')
               AND phi.phi_progress_updated_at < NOW() - INTERVAL '5 minutes'
         """)
-        
+
         criticalPhases.each { phase ->
             calculatePhaseProgress(phase.phi_id, false) // Skip cache
         }
@@ -1332,24 +1382,28 @@ def refreshCriticalProgresses() {
 ## Implementation Roadmap
 
 ### Phase 1: Core Repository Implementation (1.5 hours)
+
 1. Create PhaseRepository.groovy with all CRUD operations
 2. Implement control point management methods
 3. Add hierarchical filtering support
 4. Create progress calculation logic
 
 ### Phase 2: API Layer Implementation (2 hours)
+
 1. Create PhasesApi.groovy following established patterns
 2. Implement all REST endpoints with proper error handling
 3. Add type safety and validation
 4. Integrate with existing security framework
 
 ### Phase 3: Advanced Features (1.5 hours)
+
 1. Implement ordering management (bulk and single operations)
 2. Add control validation and override capabilities
 3. Create progress aggregation and caching
 4. Implement readiness checks and status transitions
 
 ### Phase 4: Testing & Documentation (0.5 hours)
+
 1. Write comprehensive unit and integration tests
 2. Update OpenAPI specification
 3. Create API documentation and examples

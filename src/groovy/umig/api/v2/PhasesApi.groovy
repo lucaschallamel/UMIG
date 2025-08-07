@@ -277,7 +277,7 @@ phases(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryP
             overrides['phi_description'] = requestData['phi_description'] as String
             overrides['phi_order'] = requestData['phi_order'] as Integer
             overrides['predecessor_phi_id'] = requestData['predecessor_phi_id'] ? UUID.fromString(requestData['predecessor_phi_id'] as String) : null
-            overrides['phi_status'] = requestData['phi_status'] as String ?: 'NOT_STARTED'
+            overrides['phi_status'] = requestData['phi_status'] as String ?: 'PLANNING'
             
             def phaseInstance = phaseRepository.createPhaseInstance(
                 UUID.fromString(requestData['phm_id'] as String),

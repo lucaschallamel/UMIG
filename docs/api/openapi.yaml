@@ -66,18 +66,18 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: A single iteration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Iteration'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Iteration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /migrations/{migId}/iterations/{iteId}/plan-instances:
     get:
@@ -98,20 +98,20 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: All plan instances for the given iteration
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PlanInstanceSummary'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/PlanInstanceSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /migrations/{migId}/iterations/{iteId}/sequences:
     get:
@@ -132,20 +132,20 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: All sequences for the given iteration
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SequenceSummary'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/SequenceSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /migrations/{migId}/iterations/{iteId}/phases:
     get:
@@ -166,20 +166,20 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: All phases for the given iteration
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PhaseSummary'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/PhaseSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences:
     get:
@@ -206,14 +206,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: All sequences for the given plan instance
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SequenceSummary'
+                  $ref: "#/components/schemas/SequenceSummary"
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/phases:
     get:
@@ -240,14 +240,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: All phases for the given plan instance
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PhaseSummary'
+                  $ref: "#/components/schemas/PhaseSummary"
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences/{seqId}/phases:
     get:
@@ -280,14 +280,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: All phases for the given sequence
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PhaseSummary'
+                  $ref: "#/components/schemas/PhaseSummary"
 
   /migrations:
     get:
@@ -295,16 +295,16 @@ paths:
       tags: [Migrations]
       operationId: listMigrations
       responses:
-        '200':
+        "200":
           description: A list of migrations
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MigrationSummary'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/MigrationSummary"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /migrations/{id}:
     get:
@@ -319,14 +319,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: The migration object
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Migration'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Migration"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /migrations/{migId}/iterations:
     get:
@@ -341,20 +341,20 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: All iterations for the given migration
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/IterationSummary'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/IterationSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /step-view:
     get:
@@ -364,17 +364,17 @@ paths:
       description: Retrieves all data for the step view component.
       operationId: getStepViewData
       responses:
-        '200':
+        "200":
           description: Successful operation
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/StepView'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  
+                  $ref: "#/components/schemas/StepView"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /stepViewApi/instance:
     get:
       tags:
@@ -409,30 +409,30 @@ paths:
           description: Step code in format XXX-nnn (e.g., APP-001, DBM-042)
           example: APP-001
       responses:
-        '200':
+        "200":
           description: Step instance details including instructions and metadata
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StepInstanceDetails'
-        '400':
+                $ref: "#/components/schemas/StepInstanceDetails"
+        "400":
           description: Bad request - invalid step code format
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               example:
                 error: "Missing required parameters. Expected: migrationName, iterationName, stepCode"
-        '404':
+        "404":
           description: No step instance found for the given parameters
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               example:
                 error: "No step instance found for step code: APP-001 in migration: migrationa, iteration: run1"
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /teams:
     get:
@@ -480,18 +480,18 @@ paths:
             format: uuid
           description: Filter teams by phase instance ID
       responses:
-        '200':
+        "200":
           description: A list of teams.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Team'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - Teams
@@ -503,14 +503,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TeamCreateRequest'
+              $ref: "#/components/schemas/TeamCreateRequest"
       responses:
-        '201':
+        "201":
           description: Team created successfully.
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
 
   /teams/{id}:
     get:
@@ -526,14 +526,14 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: The requested team.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Team'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: "#/components/schemas/Team"
+        "404":
+          $ref: "#/components/responses/NotFound"
     put:
       tags:
         - Teams
@@ -551,14 +551,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TeamCreateRequest'
+              $ref: "#/components/schemas/TeamCreateRequest"
       responses:
-        '204':
+        "204":
           description: Team updated successfully.
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags:
         - Teams
@@ -572,12 +572,12 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Team deleted successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
 
   /teams/{teamId}/users/{userId}:
     put:
@@ -598,10 +598,10 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: User added to team successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags:
         - Teams
@@ -620,10 +620,10 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: User removed from team successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /teams/{id}/applications:
     get:
@@ -639,18 +639,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: A list of applications associated with the team
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Application'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/Application"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /teams/{teamId}/applications/{applicationId}:
     put:
@@ -671,11 +671,11 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Application added to team successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Application is already associated with this team.
     delete:
       tags:
@@ -695,10 +695,10 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Application removed from team successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   /environments:
     get:
@@ -745,7 +745,7 @@ paths:
             enum: [asc, desc]
           description: Sort direction
       responses:
-        '200':
+        "200":
           description: A list of environments with counts
           content:
             application/json:
@@ -753,10 +753,10 @@ paths:
                 oneOf:
                   - type: array
                     items:
-                      $ref: '#/components/schemas/EnvironmentWithCounts'
-                  - $ref: '#/components/schemas/PaginatedEnvironments'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                      $ref: "#/components/schemas/EnvironmentWithCounts"
+                  - $ref: "#/components/schemas/PaginatedEnvironments"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - Environments
@@ -768,20 +768,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EnvironmentCreateRequest'
+              $ref: "#/components/schemas/EnvironmentCreateRequest"
       responses:
-        '201':
+        "201":
           description: Environment created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Environment'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Environment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /environments/roles:
     get:
@@ -791,16 +791,16 @@ paths:
       description: Retrieves a list of all available environment roles.
       operationId: getEnvironmentRoles
       responses:
-        '200':
+        "200":
           description: A list of environment roles
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/EnvironmentRole'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/EnvironmentRole"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /environments/{id}:
     get:
@@ -816,18 +816,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Environment details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EnvironmentDetails'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/EnvironmentDetails"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags:
         - Environments
@@ -845,22 +845,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EnvironmentCreateRequest'
+              $ref: "#/components/schemas/EnvironmentCreateRequest"
       responses:
-        '200':
+        "200":
           description: Environment updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EnvironmentDetails'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/EnvironmentDetails"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Environments
@@ -874,20 +874,20 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Environment deleted successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Cannot delete environment due to existing relationships
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BlockingRelationshipsError'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/BlockingRelationshipsError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /environments/{id}/iterations:
     get:
@@ -903,18 +903,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Iterations grouped by role
           content:
             application/json:
               schema:
                 type: object
                 additionalProperties:
-                  $ref: '#/components/schemas/RoleIterations'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/RoleIterations"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /environments/{id}/applications/{appId}:
     post:
@@ -935,18 +935,18 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Application associated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Environments
@@ -965,14 +965,14 @@ paths:
           schema:
             type: integer
       responses:
-        '204':
+        "204":
           description: Application disassociated successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /environments/{id}/iterations/{iteId}:
     post:
@@ -1006,18 +1006,18 @@ paths:
                   type: integer
                   description: Environment role ID
       responses:
-        '200':
+        "200":
           description: Iteration associated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Environments
@@ -1037,14 +1037,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: Iteration disassociated successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps:
     get:
@@ -1106,18 +1106,18 @@ paths:
             type: integer
           description: Filter steps by label ID (steps that have this label)
       responses:
-        '200':
+        "200":
           description: Steps grouped by sequence and phase for runsheet display
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SequenceWithSteps'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/SequenceWithSteps"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps/master:
     get:
@@ -1137,18 +1137,18 @@ paths:
             format: uuid
           description: Filter steps by migration ID
       responses:
-        '200':
+        "200":
           description: List of master steps
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MasterStep'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/MasterStep"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps/instance/{stepInstanceId}:
     get:
@@ -1167,18 +1167,18 @@ paths:
             type: string
           description: Step instance ID (UUID) or step code for backward compatibility
       responses:
-        '200':
+        "200":
           description: Step instance details with instructions
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StepInstanceDetails'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/StepInstanceDetails"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps/{stepInstanceId}/status:
     put:
@@ -1202,18 +1202,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StepStatusUpdate'
+              $ref: "#/components/schemas/StepStatusUpdate"
       responses:
-        '200':
+        "200":
           description: Step status updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StepStatusUpdateResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/StepStatusUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps/{stepInstanceId}/open:
     post:
@@ -1242,16 +1242,16 @@ paths:
                   type: integer
                   description: User ID for audit logging
       responses:
-        '200':
+        "200":
           description: Step opened successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StepActionResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/StepActionResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps/{stepInstanceId}/instructions/{instructionId}/complete:
     post:
@@ -1287,16 +1287,16 @@ paths:
                   type: integer
                   description: User ID for audit logging
       responses:
-        '200':
+        "200":
           description: Instruction completed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstructionCompleteResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/InstructionCompleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps/{stepInstanceId}/comments:
     get:
@@ -1314,18 +1314,18 @@ paths:
             format: uuid
           description: Step instance ID
       responses:
-        '200':
+        "200":
           description: List of comments for the step instance
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Comment'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - Comments
@@ -1345,18 +1345,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CommentCreate'
+              $ref: "#/components/schemas/CommentCreate"
       responses:
-        '200':
+        "200":
           description: Comment created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommentCreateResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/CommentCreateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /comments/{commentId}:
     put:
@@ -1377,20 +1377,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CommentUpdate'
+              $ref: "#/components/schemas/CommentUpdate"
       responses:
-        '200':
+        "200":
           description: Comment updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommentUpdateResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/CommentUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Comments
@@ -1405,21 +1405,21 @@ paths:
             type: integer
           description: Comment ID
       responses:
-        '200':
+        "200":
           description: Comment deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CommentDeleteResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/CommentDeleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   # ==================== INSTRUCTIONS API ====================
-  
+
   /instructions:
     get:
       tags:
@@ -1459,18 +1459,18 @@ paths:
             format: uuid
           description: Filter by phase instance ID
       responses:
-        '200':
+        "200":
           description: List of master instructions
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MasterInstruction'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/MasterInstruction"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/master:
     post:
@@ -1484,20 +1484,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MasterInstructionCreate'
+              $ref: "#/components/schemas/MasterInstructionCreate"
       responses:
-        '201':
+        "201":
           description: Master instruction created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterInstruction'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterInstruction"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/master/{instructionId}:
     get:
@@ -1515,16 +1515,16 @@ paths:
             format: uuid
           description: Master instruction ID
       responses:
-        '200':
+        "200":
           description: Master instruction details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterInstruction'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterInstruction"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags:
         - Instructions
@@ -1544,20 +1544,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MasterInstructionUpdate'
+              $ref: "#/components/schemas/MasterInstructionUpdate"
       responses:
-        '200':
+        "200":
           description: Master instruction updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterInstruction'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterInstruction"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Instructions
@@ -1575,14 +1575,14 @@ paths:
             format: uuid
           description: Master instruction ID to delete
       responses:
-        '204':
+        "204":
           description: Master instruction deleted successfully (no content)
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/master/{stepId}/reorder:
     post:
@@ -1604,20 +1604,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InstructionReorderRequest'
+              $ref: "#/components/schemas/InstructionReorderRequest"
       responses:
-        '200':
+        "200":
           description: Instructions reordered successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReorderResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ReorderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/instance/{stepInstanceId}:
     get:
@@ -1635,18 +1635,18 @@ paths:
             format: uuid
           description: Step instance ID
       responses:
-        '200':
+        "200":
           description: List of instruction instances
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InstructionInstance'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/InstructionInstance"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - Instructions
@@ -1666,22 +1666,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InstructionInstanceCreate'
+              $ref: "#/components/schemas/InstructionInstanceCreate"
       responses:
-        '201':
+        "201":
           description: Instruction instances created successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InstructionInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/InstructionInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/instance/{instructionInstanceId}:
     get:
@@ -1699,16 +1699,16 @@ paths:
             format: uuid
           description: Instruction instance ID
       responses:
-        '200':
+        "200":
           description: Instruction instance details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstructionInstance'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/InstructionInstance"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Instructions
@@ -1726,14 +1726,14 @@ paths:
             format: uuid
           description: Instruction instance ID to delete
       responses:
-        '204':
+        "204":
           description: Instruction instance deleted successfully (no content)
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/instance/{instructionInstanceId}/complete:
     post:
@@ -1755,20 +1755,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InstructionCompleteRequest'
+              $ref: "#/components/schemas/InstructionCompleteRequest"
       responses:
-        '200':
+        "200":
           description: Instruction instance completed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstructionCompleteResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/InstructionCompleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/instance/{instructionInstanceId}/uncomplete:
     post:
@@ -1786,18 +1786,18 @@ paths:
             format: uuid
           description: Instruction instance ID
       responses:
-        '200':
+        "200":
           description: Instruction instance uncompleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstructionUncompleteResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/InstructionUncompleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/bulk/complete:
     post:
@@ -1811,18 +1811,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BulkInstructionCompleteRequest'
+              $ref: "#/components/schemas/BulkInstructionCompleteRequest"
       responses:
-        '200':
+        "200":
           description: Instructions completed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BulkInstructionCompleteResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/BulkInstructionCompleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/analytics/progress:
     get:
@@ -1855,16 +1855,16 @@ paths:
             type: integer
           description: Filter by team ID
       responses:
-        '200':
+        "200":
           description: Instruction progress analytics
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstructionProgressAnalytics'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/InstructionProgressAnalytics"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/analytics/completion:
     get:
@@ -1890,16 +1890,16 @@ paths:
             type: integer
           description: Filter by team ID
       responses:
-        '200':
+        "200":
           description: Instruction completion timeline
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InstructionCompletionAnalytics'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/InstructionCompletionAnalytics"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /instructions/bulk:
     delete:
@@ -1926,7 +1926,7 @@ paths:
                     format: uuid
                   description: List of instruction instance IDs to delete
       responses:
-        '200':
+        "200":
           description: Bulk deletion result
           content:
             application/json:
@@ -1950,13 +1950,13 @@ paths:
                         reason:
                           type: string
                           description: Reason for deletion failure
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-  
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   # ==================== CONTROLS API ====================
-  
+
   /controls/master:
     get:
       tags:
@@ -1975,19 +1975,19 @@ paths:
             format: uuid
           description: Filter controls by master phase ID
       responses:
-        '200':
+        "200":
           description: List of master control templates
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MasterControl'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                  $ref: "#/components/schemas/MasterControl"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     post:
       tags:
         - Controls
@@ -1999,20 +1999,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateMasterControlRequest'
+              $ref: "#/components/schemas/CreateMasterControlRequest"
       responses:
-        '201':
+        "201":
           description: Master control created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterControl'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterControl"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/master/{controlId}:
     get:
@@ -2030,17 +2030,17 @@ paths:
             format: uuid
           description: Master control ID
       responses:
-        '200':
+        "200":
           description: Master control details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterControl'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/MasterControl"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Controls
@@ -2060,21 +2060,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateMasterControlRequest'
+              $ref: "#/components/schemas/UpdateMasterControlRequest"
       responses:
-        '200':
+        "200":
           description: Master control updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterControl'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/MasterControl"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Controls
@@ -2090,18 +2090,18 @@ paths:
             format: uuid
           description: Master control ID
       responses:
-        '204':
+        "204":
           description: Master control deleted successfully
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Cannot delete - control has existing instances
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/master/reorder:
     put:
@@ -2115,14 +2115,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReorderControlsRequest'
+              $ref: "#/components/schemas/ReorderControlsRequest"
       responses:
-        '204':
+        "204":
           description: Controls reordered successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/master/bulk:
     post:
@@ -2141,19 +2141,19 @@ paths:
                 controls:
                   type: array
                   items:
-                    $ref: '#/components/schemas/CreateMasterControlRequest'
+                    $ref: "#/components/schemas/CreateMasterControlRequest"
                   description: Array of master controls to create
       responses:
-        '201':
+        "201":
           description: Bulk creation result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BulkControlResult'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/BulkControlResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/master/{controlId}/instantiate:
     post:
@@ -2175,20 +2175,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InstantiateControlRequest'
+              $ref: "#/components/schemas/InstantiateControlRequest"
       responses:
-        '201':
+        "201":
           description: Control instance created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ControlInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/instance:
     get:
@@ -2248,19 +2248,19 @@ paths:
             type: integer
           description: Filter by status ID
       responses:
-        '200':
+        "200":
           description: List of control instances
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ControlInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                  $ref: "#/components/schemas/ControlInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     post:
       tags:
         - Controls
@@ -2272,20 +2272,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateControlInstanceRequest'
+              $ref: "#/components/schemas/CreateControlInstanceRequest"
       responses:
-        '201':
+        "201":
           description: Control instance created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ControlInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/instance/{instanceId}:
     get:
@@ -2303,17 +2303,17 @@ paths:
             format: uuid
           description: Control instance ID
       responses:
-        '200':
+        "200":
           description: Control instance details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlInstance'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/ControlInstance"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Controls
@@ -2333,21 +2333,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateControlInstanceRequest'
+              $ref: "#/components/schemas/UpdateControlInstanceRequest"
       responses:
-        '200':
+        "200":
           description: Control instance updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/ControlInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Controls
@@ -2363,12 +2363,12 @@ paths:
             format: uuid
           description: Control instance ID
       responses:
-        '204':
+        "204":
           description: Control instance deleted successfully
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/instance/{instanceId}/status:
     put:
@@ -2399,14 +2399,14 @@ paths:
                   description: New status value
                   enum: [PENDING, IN_PROGRESS, VALIDATED, FAILED, OVERRIDDEN]
       responses:
-        '204':
+        "204":
           description: Status updated successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/instance/{instanceId}/validate:
     put:
@@ -2428,20 +2428,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ValidateControlRequest'
+              $ref: "#/components/schemas/ValidateControlRequest"
       responses:
-        '200':
+        "200":
           description: Control validated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ControlInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/instance/{instanceId}/override:
     put:
@@ -2463,20 +2463,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OverrideControlRequest'
+              $ref: "#/components/schemas/OverrideControlRequest"
       responses:
-        '200':
+        "200":
           description: Control overridden successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ControlInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/instance/bulk:
     post:
@@ -2495,19 +2495,19 @@ paths:
                 instances:
                   type: array
                   items:
-                    $ref: '#/components/schemas/CreateControlInstanceRequest'
+                    $ref: "#/components/schemas/CreateControlInstanceRequest"
                   description: Array of control instances to create
       responses:
-        '201':
+        "201":
           description: Bulk creation result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BulkControlResult'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/BulkControlResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/instance/bulk/validate:
     put:
@@ -2521,9 +2521,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BulkValidateControlsRequest'
+              $ref: "#/components/schemas/BulkValidateControlsRequest"
       responses:
-        '200':
+        "200":
           description: Bulk validation result
           content:
             application/json:
@@ -2539,10 +2539,10 @@ paths:
                   total:
                     type: integer
                     description: Total controls processed
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /controls/{phaseId}/progress:
     get:
@@ -2562,16 +2562,16 @@ paths:
             format: uuid
           description: Phase instance ID
       responses:
-        '200':
+        "200":
           description: Phase control progress metrics
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlProgress'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ControlProgress"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /statuses:
     get:
@@ -2581,16 +2581,16 @@ paths:
       description: Retrieves all available statuses across all entity types.
       operationId: getAllStatuses
       responses:
-        '200':
+        "200":
           description: List of all statuses
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Status'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/Status"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /statuses/{type}:
     get:
@@ -2609,18 +2609,18 @@ paths:
             type: string
           description: Entity type (capitalized, e.g., "Step", "Migration")
       responses:
-        '200':
+        "200":
           description: List of statuses for the specified type
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Status'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/Status"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /user/context:
     get:
@@ -2639,18 +2639,18 @@ paths:
             type: string
           description: Username to get context for
       responses:
-        '200':
+        "200":
           description: User context information
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserContext'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/UserContext"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /labels:
     get:
@@ -2698,19 +2698,19 @@ paths:
             format: uuid
           description: Filter labels by phase instance ID
       responses:
-        '200':
+        "200":
           description: A list of labels.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Label'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                  $ref: "#/components/schemas/Label"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     post:
       tags:
         - Labels
@@ -2722,24 +2722,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LabelCreate'
+              $ref: "#/components/schemas/LabelCreate"
       responses:
-        '201':
+        "201":
           description: Label created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LabelDetail'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+                $ref: "#/components/schemas/LabelDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: Conflict - Label name already exists in migration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /labels/{id}:
     get:
@@ -2756,17 +2756,17 @@ paths:
             type: integer
           description: Label ID
       responses:
-        '200':
+        "200":
           description: Label details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LabelDetail'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/LabelDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Labels
@@ -2785,27 +2785,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LabelUpdate'
+              $ref: "#/components/schemas/LabelUpdate"
       responses:
-        '200':
+        "200":
           description: Label updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LabelDetail'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+                $ref: "#/components/schemas/LabelDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Conflict - Label name already exists in migration
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Labels
@@ -2820,12 +2820,12 @@ paths:
             type: integer
           description: Label ID
       responses:
-        '204':
+        "204":
           description: Label deleted successfully
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /labels/{id}/steps:
     get:
@@ -2842,7 +2842,7 @@ paths:
             type: integer
           description: Label ID
       responses:
-        '200':
+        "200":
           description: List of associated steps
           content:
             application/json:
@@ -2852,11 +2852,11 @@ paths:
                   steps:
                     type: array
                     items:
-                      $ref: '#/components/schemas/LabelStep'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                      $ref: "#/components/schemas/LabelStep"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /labels/{labelId}/applications/{applicationId}:
     post:
@@ -2879,19 +2879,19 @@ paths:
             type: integer
           description: Application ID
       responses:
-        '200':
+        "200":
           description: Application associated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Labels
@@ -2912,16 +2912,16 @@ paths:
             type: integer
           description: Application ID
       responses:
-        '200':
+        "200":
           description: Application association removed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /labels/{labelId}/steps/{stepId}:
     post:
@@ -2945,19 +2945,19 @@ paths:
             format: uuid
           description: Step Master ID
       responses:
-        '200':
+        "200":
           description: Step associated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Labels
@@ -2979,16 +2979,16 @@ paths:
             format: uuid
           description: Step Master ID
       responses:
-        '200':
+        "200":
           description: Step association removed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /plans/master:
     get:
@@ -2998,17 +2998,17 @@ paths:
       description: Retrieves a list of all master plan templates.
       operationId: getAllMasterPlans
       responses:
-        '200':
+        "200":
           description: A list of master plans
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MasterPlan'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                  $ref: "#/components/schemas/MasterPlan"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     post:
       tags:
         - Plans
@@ -3020,24 +3020,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MasterPlanInput'
+              $ref: "#/components/schemas/MasterPlanInput"
       responses:
-        '201':
+        "201":
           description: Master plan created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterPlan'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+                $ref: "#/components/schemas/MasterPlan"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: Conflict - Plan with this name already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /plans/master/{id}:
     get:
@@ -3055,23 +3055,23 @@ paths:
             format: uuid
           description: Master Plan ID
       responses:
-        '200':
+        "200":
           description: Master plan details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterPlan'
-        '400':
+                $ref: "#/components/schemas/MasterPlan"
+        "400":
           description: Invalid UUID format
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Plans
@@ -3091,27 +3091,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MasterPlanUpdate'
+              $ref: "#/components/schemas/MasterPlanUpdate"
       responses:
-        '200':
+        "200":
           description: Master plan updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterPlan'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+                $ref: "#/components/schemas/MasterPlan"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Conflict - Plan with this name already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Plans
@@ -3127,18 +3127,18 @@ paths:
             format: uuid
           description: Master Plan ID
       responses:
-        '204':
+        "204":
           description: Master plan deleted successfully
-        '400':
+        "400":
           description: Cannot delete - plan has active instances
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /plans:
     get:
@@ -3175,18 +3175,18 @@ paths:
             type: integer
           description: Filter by status ID
       responses:
-        '200':
+        "200":
           description: A list of plan instances
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PlanInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/PlanInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /plans/instance:
     post:
@@ -3200,24 +3200,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlanInstanceInput'
+              $ref: "#/components/schemas/PlanInstanceInput"
       responses:
-        '201':
+        "201":
           description: Plan instance created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlanInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
+                $ref: "#/components/schemas/PlanInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
           description: Master plan not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /plans/instance/{id}:
     get:
@@ -3235,23 +3235,23 @@ paths:
             format: uuid
           description: Plan Instance ID
       responses:
-        '200':
+        "200":
           description: Plan instance details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlanInstanceDetail'
-        '400':
+                $ref: "#/components/schemas/PlanInstanceDetail"
+        "400":
           description: Invalid UUID format
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Plans
@@ -3271,21 +3271,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlanInstanceUpdate'
+              $ref: "#/components/schemas/PlanInstanceUpdate"
       responses:
-        '200':
+        "200":
           description: Plan instance updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlanInstanceDetail'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/PlanInstanceDetail"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Plans
@@ -3301,18 +3301,18 @@ paths:
             format: uuid
           description: Plan Instance ID
       responses:
-        '204':
+        "204":
           description: Plan instance deleted successfully
-        '400':
+        "400":
           description: Invalid UUID format
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /plans/{id}/status:
     put:
@@ -3342,18 +3342,18 @@ paths:
                   type: integer
                   description: New status ID
       responses:
-        '200':
+        "200":
           description: Status updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sequences/master:
     get:
@@ -3363,17 +3363,17 @@ paths:
       description: Retrieves a list of all master sequence templates.
       operationId: getAllMasterSequences
       responses:
-        '200':
+        "200":
           description: A list of master sequences
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MasterSequence'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                  $ref: "#/components/schemas/MasterSequence"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     post:
       tags:
         - Sequences
@@ -3385,24 +3385,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSequenceRequest'
+              $ref: "#/components/schemas/CreateSequenceRequest"
       responses:
-        '201':
+        "201":
           description: Master sequence created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterSequence'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+                $ref: "#/components/schemas/MasterSequence"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: Conflict - Sequence with this name already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sequences/master/{id}:
     get:
@@ -3420,23 +3420,23 @@ paths:
             format: uuid
           description: Master Sequence ID
       responses:
-        '200':
+        "200":
           description: Master sequence details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterSequence'
-        '400':
+                $ref: "#/components/schemas/MasterSequence"
+        "400":
           description: Invalid UUID format
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Sequences
@@ -3456,27 +3456,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSequenceRequest'
+              $ref: "#/components/schemas/CreateSequenceRequest"
       responses:
-        '200':
+        "200":
           description: Master sequence updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterSequence'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+                $ref: "#/components/schemas/MasterSequence"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Conflict - Sequence with this name already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Sequences
@@ -3492,18 +3492,18 @@ paths:
             format: uuid
           description: Master Sequence ID
       responses:
-        '204':
+        "204":
           description: Master sequence deleted successfully
-        '400':
+        "400":
           description: Cannot delete - sequence has active instances
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sequences/master/{id}/order:
     put:
@@ -3525,20 +3525,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateSequenceOrderRequest'
+              $ref: "#/components/schemas/UpdateSequenceOrderRequest"
       responses:
-        '200':
+        "200":
           description: Master sequence order updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterSequence'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterSequence"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sequences:
     get:
@@ -3582,18 +3582,18 @@ paths:
             type: integer
           description: Filter by status ID
       responses:
-        '200':
+        "200":
           description: A list of sequence instances
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SequenceInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/SequenceInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sequences/instance:
     post:
@@ -3607,24 +3607,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSequenceInstanceRequest'
+              $ref: "#/components/schemas/CreateSequenceInstanceRequest"
       responses:
-        '201':
+        "201":
           description: Sequence instance created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SequenceInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
+                $ref: "#/components/schemas/SequenceInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
           description: Master sequence not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sequences/instance/{id}:
     get:
@@ -3642,23 +3642,23 @@ paths:
             format: uuid
           description: Sequence Instance ID
       responses:
-        '200':
+        "200":
           description: Sequence instance details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SequenceInstance'
-        '400':
+                $ref: "#/components/schemas/SequenceInstance"
+        "400":
           description: Invalid UUID format
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Sequences
@@ -3678,21 +3678,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateSequenceInstanceRequest'
+              $ref: "#/components/schemas/CreateSequenceInstanceRequest"
       responses:
-        '200':
+        "200":
           description: Sequence instance updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SequenceInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/SequenceInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Sequences
@@ -3708,18 +3708,18 @@ paths:
             format: uuid
           description: Sequence Instance ID
       responses:
-        '204':
+        "204":
           description: Sequence instance deleted successfully
-        '400':
+        "400":
           description: Invalid UUID format
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /sequences/instance/{id}/status:
     put:
@@ -3749,18 +3749,18 @@ paths:
                   type: integer
                   description: New status ID
       responses:
-        '200':
+        "200":
           description: Status updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   # === PHASES API ENDPOINTS ===
   /phases/master:
@@ -3779,18 +3779,18 @@ paths:
             format: uuid
           description: Filter by sequence master ID
       responses:
-        '200':
+        "200":
           description: A list of master phases
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MasterPhase'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/MasterPhase"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - Phases
@@ -3802,18 +3802,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateMasterPhaseRequest'
+              $ref: "#/components/schemas/CreateMasterPhaseRequest"
       responses:
-        '201':
+        "201":
           description: Master phase created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterPhase'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterPhase"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/master/{phm_id}:
     get:
@@ -3831,16 +3831,16 @@ paths:
             format: uuid
           description: Master Phase ID
       responses:
-        '200':
+        "200":
           description: Master phase details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterPhase'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterPhase"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags:
         - Phases
@@ -3860,20 +3860,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateMasterPhaseRequest'
+              $ref: "#/components/schemas/UpdateMasterPhaseRequest"
       responses:
-        '200':
+        "200":
           description: Master phase updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MasterPhase'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/MasterPhase"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Phases
@@ -3889,16 +3889,16 @@ paths:
             format: uuid
           description: Master Phase ID
       responses:
-        '200':
+        "200":
           description: Master phase deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/master/{phm_id}/instantiate:
     post:
@@ -3928,20 +3928,20 @@ paths:
                   format: uuid
                   description: Sequence instance ID to create phases for
       responses:
-        '201':
+        "201":
           description: Phase instances created successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PhaseInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/PhaseInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/instance:
     get:
@@ -3992,18 +3992,18 @@ paths:
             type: integer
           description: Filter by status ID
       responses:
-        '200':
+        "200":
           description: A list of phase instances
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PhaseInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/PhaseInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - Phases
@@ -4015,18 +4015,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreatePhaseInstanceRequest'
+              $ref: "#/components/schemas/CreatePhaseInstanceRequest"
       responses:
-        '201':
+        "201":
           description: Phase instance created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhaseInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/PhaseInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/instance/{phi_id}:
     get:
@@ -4044,16 +4044,16 @@ paths:
             format: uuid
           description: Phase Instance ID
       responses:
-        '200':
+        "200":
           description: Phase instance details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhaseInstance'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/PhaseInstance"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags:
         - Phases
@@ -4073,20 +4073,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdatePhaseInstanceRequest'
+              $ref: "#/components/schemas/UpdatePhaseInstanceRequest"
       responses:
-        '200':
+        "200":
           description: Phase instance updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhaseInstance'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/PhaseInstance"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Phases
@@ -4102,16 +4102,16 @@ paths:
             format: uuid
           description: Phase Instance ID
       responses:
-        '200':
+        "200":
           description: Phase instance deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/instance/{phi_id}/status:
     put:
@@ -4140,14 +4140,14 @@ paths:
                   type: integer
                   description: New status ID (foreign key to status_sts table)
       responses:
-        '204':
+        "204":
           description: Status updated successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/{phi_id}/controls:
     get:
@@ -4165,18 +4165,18 @@ paths:
             format: uuid
           description: Phase Instance ID
       responses:
-        '200':
+        "200":
           description: List of control points
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ControlPoint'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/ControlPoint"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/{phi_id}/controls/validate:
     post:
@@ -4194,16 +4194,16 @@ paths:
             format: uuid
           description: Phase Instance ID
       responses:
-        '200':
+        "200":
           description: Validation results
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ControlPointValidation'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/ControlPointValidation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/{phi_id}/controls/{cti_id}:
     put:
@@ -4232,20 +4232,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateControlPointRequest'
+              $ref: "#/components/schemas/UpdateControlPointRequest"
       responses:
-        '200':
+        "200":
           description: Control point updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/{phi_id}/controls/{cti_id}/override:
     post:
@@ -4274,20 +4274,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OverrideControlPointRequest'
+              $ref: "#/components/schemas/OverrideControlPointRequest"
       responses:
-        '200':
+        "200":
           description: Control point overridden successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/{phi_id}/progress:
     get:
@@ -4305,16 +4305,16 @@ paths:
             format: uuid
           description: Phase Instance ID
       responses:
-        '200':
+        "200":
           description: Phase progress information
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PhaseProgress'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/PhaseProgress"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/master/reorder:
     put:
@@ -4328,18 +4328,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReorderMasterPhasesRequest'
+              $ref: "#/components/schemas/ReorderMasterPhasesRequest"
       responses:
-        '200':
+        "200":
           description: Master phases reordered successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/instance/reorder:
     put:
@@ -4353,18 +4353,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReorderPhaseInstancesRequest'
+              $ref: "#/components/schemas/ReorderPhaseInstancesRequest"
       responses:
-        '200':
+        "200":
           description: Phase instances reordered successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/master/{phm_id}/move:
     post:
@@ -4386,20 +4386,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MovePhaseRequest'
+              $ref: "#/components/schemas/MovePhaseRequest"
       responses:
-        '200':
+        "200":
           description: Master phase moved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /phases/instance/{phi_id}/move:
     post:
@@ -4421,20 +4421,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MovePhaseRequest'
+              $ref: "#/components/schemas/MovePhaseRequest"
       responses:
-        '200':
+        "200":
           description: Phase instance moved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessMessage'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/SuccessMessage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /applications:
     get:
@@ -4444,16 +4444,16 @@ paths:
       description: Retrieves a list of all applications.
       operationId: getAllApplications
       responses:
-        '200':
+        "200":
           description: A list of applications
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Application'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                  $ref: "#/components/schemas/Application"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /users:
     get:
@@ -4518,7 +4518,7 @@ paths:
             type: boolean
           description: Filter users by active status (true for active, false for inactive)
       responses:
-        '200':
+        "200":
           description: A paginated list of users.
           content:
             application/json:
@@ -4528,7 +4528,7 @@ paths:
                   content:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: "#/components/schemas/User"
                   totalElements:
                     type: integer
                     description: Total number of users
@@ -4541,9 +4541,9 @@ paths:
                   pageSize:
                     type: integer
                     description: Number of items per page
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     post:
       tags:
         - Users
@@ -4555,28 +4555,28 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserInput'
+              $ref: "#/components/schemas/UserInput"
       responses:
-        '201':
+        "201":
           description: User created successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
+                $ref: "#/components/schemas/User"
+        "400":
           description: Bad request - validation errors or missing required fields.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '409':
+                $ref: "#/components/schemas/Error"
+        "409":
           description: Conflict - user with same email or code already exists.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /users/{id}:
     get:
@@ -4593,17 +4593,17 @@ paths:
             type: integer
           description: User ID
       responses:
-        '200':
+        "200":
           description: User details.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     put:
       tags:
         - Users
@@ -4622,31 +4622,31 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserInput'
+              $ref: "#/components/schemas/UserInput"
       responses:
-        '200':
+        "200":
           description: User updated successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
+                $ref: "#/components/schemas/User"
+        "400":
           description: Bad request - validation errors or missing required fields.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Conflict - email or code already exists for another user.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
     delete:
       tags:
         - Users
@@ -4661,18 +4661,18 @@ paths:
             type: integer
           description: User ID
       responses:
-        '204':
+        "204":
           description: User deleted successfully.
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
           description: Cannot delete - user is referenced by other resources.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /emailTemplates:
     get:
@@ -4692,7 +4692,7 @@ paths:
             default: false
           description: Filter to show only active templates
       responses:
-        '200':
+        "200":
           description: List of email templates
           content:
             application/json:
@@ -4702,12 +4702,12 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/EmailTemplate'
+                      $ref: "#/components/schemas/EmailTemplate"
                   total:
                     type: integer
                     description: Total number of templates
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - EmailTemplates
@@ -4719,20 +4719,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailTemplateCreate'
+              $ref: "#/components/schemas/EmailTemplateCreate"
       responses:
-        '201':
+        "201":
           description: Email template created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailTemplate'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/EmailTemplate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /emailTemplates/{id}:
     get:
@@ -4750,18 +4750,18 @@ paths:
             format: uuid
           description: Email template ID
       responses:
-        '200':
+        "200":
           description: Email template details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailTemplate'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/EmailTemplate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     put:
       tags:
         - EmailTemplates
@@ -4781,22 +4781,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailTemplateUpdate'
+              $ref: "#/components/schemas/EmailTemplateUpdate"
       responses:
-        '200':
+        "200":
           description: Email template updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EmailTemplate'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+                $ref: "#/components/schemas/EmailTemplate"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - EmailTemplates
@@ -4812,14 +4812,14 @@ paths:
             format: uuid
           description: Email template ID
       responses:
-        '204':
+        "204":
           description: Email template deleted successfully
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /webapp/{path+}:
     get:
@@ -4835,7 +4835,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: The requested asset.
           content:
             application/javascript: {}
@@ -4843,8 +4843,8 @@ paths:
             image/png: {}
             image/jpeg: {}
             image/svg+xml: {}
-        '404':
-          $ref: '#/components/responses/NotFound'
+        "404":
+          $ref: "#/components/responses/NotFound"
 
 components:
   schemas:
@@ -4961,9 +4961,9 @@ components:
           description: Description of the label
         color:
           type: string
-          pattern: '^#[0-9a-fA-F]{6}$'
+          pattern: "^#[0-9a-fA-F]{6}$"
           description: Hex color code for the label
-    
+
     LabelDetail:
       type: object
       properties:
@@ -4982,7 +4982,7 @@ components:
           description: Description of the label
         lbl_color:
           type: string
-          pattern: '^#[0-9a-fA-F]{6}$'
+          pattern: "^#[0-9a-fA-F]{6}$"
           description: Hex color code for the label
         created_at:
           type: string
@@ -5005,7 +5005,7 @@ components:
         step_count:
           type: integer
           description: Number of associated steps
-    
+
     LabelCreate:
       type: object
       required:
@@ -5021,13 +5021,13 @@ components:
           description: Description of the label
         lbl_color:
           type: string
-          pattern: '^#[0-9a-fA-F]{6}$'
+          pattern: "^#[0-9a-fA-F]{6}$"
           description: Hex color code for the label
         mig_id:
           type: string
           format: uuid
           description: Migration ID this label belongs to
-    
+
     LabelUpdate:
       type: object
       properties:
@@ -5039,13 +5039,13 @@ components:
           description: Description of the label
         lbl_color:
           type: string
-          pattern: '^#[0-9a-fA-F]{6}$'
+          pattern: "^#[0-9a-fA-F]{6}$"
           description: Hex color code for the label
         mig_id:
           type: string
           format: uuid
           description: Migration ID this label belongs to
-    
+
     LabelStep:
       type: object
       properties:
@@ -5062,7 +5062,7 @@ components:
         step_title:
           type: string
           description: Step title/name
-    
+
     MasterStep:
       type: object
       properties:
@@ -6129,8 +6129,8 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: '#/components/schemas/MasterControl'
-              - $ref: '#/components/schemas/ControlInstance'
+              - $ref: "#/components/schemas/MasterControl"
+              - $ref: "#/components/schemas/ControlInstance"
           description: Successfully created controls
         failures:
           type: array
@@ -6307,7 +6307,7 @@ components:
           description: Entity type this status applies to
         sts_color:
           type: string
-          pattern: '^#[0-9a-fA-F]{6}$'
+          pattern: "^#[0-9a-fA-F]{6}$"
           description: Hex color code for the status
         sts_sort_order:
           type: integer
@@ -6513,7 +6513,7 @@ components:
 
     PlanInstanceDetail:
       allOf:
-        - $ref: '#/components/schemas/PlanInstance'
+        - $ref: "#/components/schemas/PlanInstance"
         - type: object
           properties:
             plm_description:
@@ -6884,7 +6884,7 @@ components:
         phases:
           type: array
           items:
-            $ref: '#/components/schemas/PhaseWithSteps'
+            $ref: "#/components/schemas/PhaseWithSteps"
 
     PhaseWithSteps:
       type: object
@@ -6899,7 +6899,7 @@ components:
         steps:
           type: array
           items:
-            $ref: '#/components/schemas/StepWithLabels'
+            $ref: "#/components/schemas/StepWithLabels"
 
     StepWithLabels:
       type: object
@@ -6924,7 +6924,7 @@ components:
         labels:
           type: array
           items:
-            $ref: '#/components/schemas/Label'
+            $ref: "#/components/schemas/Label"
 
     # --- Environment Schemas ---
     Environment:
@@ -6947,7 +6947,7 @@ components:
 
     EnvironmentWithCounts:
       allOf:
-        - $ref: '#/components/schemas/Environment'
+        - $ref: "#/components/schemas/Environment"
         - type: object
           properties:
             application_count:
@@ -6977,18 +6977,18 @@ components:
 
     EnvironmentDetails:
       allOf:
-        - $ref: '#/components/schemas/EnvironmentWithCounts'
+        - $ref: "#/components/schemas/EnvironmentWithCounts"
         - type: object
           properties:
             applications:
               type: array
               items:
-                $ref: '#/components/schemas/Application'
+                $ref: "#/components/schemas/Application"
               description: List of applications associated with this environment
             iterations:
               type: array
               items:
-                $ref: '#/components/schemas/IterationWithRole'
+                $ref: "#/components/schemas/IterationWithRole"
               description: List of iterations associated with this environment
 
     Application:
@@ -7009,11 +7009,11 @@ components:
 
     IterationWithRole:
       allOf:
-        - $ref: '#/components/schemas/IterationSummary'
+        - $ref: "#/components/schemas/IterationSummary"
         - type: object
           properties:
             role:
-              $ref: '#/components/schemas/EnvironmentRole'
+              $ref: "#/components/schemas/EnvironmentRole"
 
     EnvironmentRole:
       type: object
@@ -7037,7 +7037,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/EnvironmentWithCounts'
+            $ref: "#/components/schemas/EnvironmentWithCounts"
         total:
           type: integer
           description: Total number of environments
@@ -7052,11 +7052,11 @@ components:
       type: object
       properties:
         role:
-          $ref: '#/components/schemas/EnvironmentRole'
+          $ref: "#/components/schemas/EnvironmentRole"
         iterations:
           type: array
           items:
-            $ref: '#/components/schemas/IterationSummary'
+            $ref: "#/components/schemas/IterationSummary"
 
     BlockingRelationshipsError:
       type: object
@@ -7089,7 +7089,8 @@ components:
           description: Unique identifier for the email template
         emt_type:
           type: string
-          enum: [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
+          enum:
+            [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
           description: Type of email template
         emt_name:
           type: string
@@ -7131,7 +7132,8 @@ components:
       properties:
         emt_type:
           type: string
-          enum: [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
+          enum:
+            [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
           description: Type of email template
         emt_name:
           type: string
@@ -7155,7 +7157,8 @@ components:
       properties:
         emt_type:
           type: string
-          enum: [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
+          enum:
+            [STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM]
           description: Type of email template
         emt_name:
           type: string
@@ -7556,34 +7559,34 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     Forbidden:
       description: Access to the resource is forbidden.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     NotFound:
       description: The specified resource was not found.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     BadRequest:
       description: Invalid input, object invalid.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     Conflict:
       description: The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
     InternalServerError:
       description: An unexpected internal server error occurred.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"

@@ -1,22 +1,26 @@
 # Instructions Schema Documentation
+
 ## US-004 Instructions API Database Schema
 
 **Document Type**: Production Schema Documentation  
 **Status**: ✅ PRODUCTION READY - NO CHANGES REQUIRED  
 **Created**: August 2025  
-**Schema Version**: 001_unified_baseline.sql  
+**Schema Version**: 001_unified_baseline.sql
 
 ---
 
 ## 1. Executive Summary
 
 ### 🎯 Critical Notice: DOCUMENTATION ONLY
+
 **This document describes the EXISTING production schema for the Instructions feature. The database tables are already implemented in `001_unified_baseline.sql` and are fully operational. NO database changes, migrations, or schema modifications are required.**
 
 ### Schema Purpose
+
 The Instructions schema implements the canonical master/instance pattern for managing step-level instructions within the UMIG cutover management system. Instructions represent the granular, actionable tasks that must be completed within each step of a migration sequence.
 
 ### Key Characteristics
+
 - **Pattern**: Canonical master (`instructions_master_inm`) + runtime instance (`instructions_instance_ini`)
 - **Hierarchy**: Steps → Instructions (leaf-level entities)
 - **Status Model**: Simplified boolean completion tracking (`ini_is_completed`)
@@ -28,6 +32,7 @@ The Instructions schema implements the canonical master/instance pattern for man
 ## 2. Schema Overview
 
 ### Entity Relationship Diagram
+
 ```
 Steps Master (stm) ──┐
                      │
@@ -40,10 +45,11 @@ Steps Instance (sti) ────→ Instructions Instance (ini)
 ```
 
 ### Table Summary
-| Table | Purpose | Row Estimate | Status |
-|-------|---------|--------------|--------|
-| `instructions_master_inm` | Canonical instruction definitions | ~14,430 | ✅ Production |
-| `instructions_instance_ini` | Runtime instruction instances | ~14,430 | ✅ Production |
+
+| Table                       | Purpose                           | Row Estimate | Status        |
+| --------------------------- | --------------------------------- | ------------ | ------------- |
+| `instructions_master_inm`   | Canonical instruction definitions | ~14,430      | ✅ Production |
+| `instructions_instance_ini` | Runtime instruction instances     | ~14,430      | ✅ Production |
 
 ---
 
@@ -112,6 +118,7 @@ CREATE TABLE instructions_instance_ini (
 ## 4. Indexes and Performance
 
 ### Recommended Indexes (Implementation Guidance)
+
 ```sql
 -- Primary query patterns
 CREATE INDEX idx_inm_stm_id_order ON instructions_master_inm(stm_id, inm_order);
@@ -126,6 +133,7 @@ CREATE INDEX idx_inm_ctm_id ON instructions_master_inm(ctm_id) WHERE ctm_id IS N
 ```
 
 ### Performance Characteristics
+
 - **Query Pattern**: Primarily hierarchical lookups by step
 - **Expected Load**: Read-heavy with periodic completion updates
 - **Scaling**: Linear with step count (~10 instructions per step average)
@@ -135,19 +143,21 @@ CREATE INDEX idx_inm_ctm_id ON instructions_master_inm(ctm_id) WHERE ctm_id IS N
 ## 5. Constraints and Relationships
 
 ### Foreign Key Relationships
+
 ```sql
 -- Master table relationships
 instructions_master_inm.stm_id → steps_master_stm.stm_id (REQUIRED)
 instructions_master_inm.tms_id → teams_tms.tms_id (OPTIONAL)
 instructions_master_inm.ctm_id → controls_master_ctm.ctm_id (OPTIONAL)
 
--- Instance table relationships  
+-- Instance table relationships
 instructions_instance_ini.sti_id → steps_instance_sti.sti_id (REQUIRED)
 instructions_instance_ini.inm_id → instructions_master_inm.inm_id (REQUIRED)
 instructions_instance_ini.usr_id_completed_by → users_usr.usr_id (OPTIONAL)
 ```
 
 ### Data Integrity Rules
+
 - Instructions must belong to a valid step (`stm_id` required)
 - Instances must reference both step instance and master instruction
 - Completion tracking requires timestamp consistency
@@ -158,19 +168,23 @@ instructions_instance_ini.usr_id_completed_by → users_usr.usr_id (OPTIONAL)
 ## 6. Data Types and Validation
 
 ### UUID Fields
+
 - All primary keys use UUID with `gen_random_uuid()` default
 - Consistent with UMIG UUID strategy for distributed systems
 
 ### Status Tracking
+
 - **Simplified Model**: Single boolean `ini_is_completed`
 - **Audit Fields**: Timestamp and user ID for completion tracking
 - **No State Machine**: Unlike steps/phases, instructions use binary completion
 
 ### Text Content
+
 - `inm_body`: Unlimited text for instruction details
 - Should support markdown or rich text formatting in UI layer
 
 ### Duration Estimation
+
 - `inm_duration_minutes`: Integer minutes for time planning
 - Nullable to allow instructions without time estimates
 
@@ -179,6 +193,7 @@ instructions_instance_ini.usr_id_completed_by → users_usr.usr_id (OPTIONAL)
 ## 7. Schema Integration Points
 
 ### Hierarchical Navigation
+
 ```groovy
 // Typical query pattern: Step → Instructions
 DatabaseUtil.withSql { sql ->
@@ -193,6 +208,7 @@ DatabaseUtil.withSql { sql ->
 ```
 
 ### Team Assignment Integration
+
 ```groovy
 // Instructions assigned to specific team
 DatabaseUtil.withSql { sql ->
@@ -208,6 +224,7 @@ DatabaseUtil.withSql { sql ->
 ```
 
 ### Control Point Integration
+
 ```groovy
 // Instructions with control points
 DatabaseUtil.withSql { sql ->
@@ -227,11 +244,12 @@ DatabaseUtil.withSql { sql ->
 ### 8.1 Primary Read Patterns
 
 **Get Instructions for Step Instance**:
+
 ```groovy
 def getInstructionsForStep(UUID stepInstanceId) {
     return DatabaseUtil.withSql { sql ->
         sql.rows("""
-            SELECT 
+            SELECT
                 ini.ini_id,
                 inm.inm_id,
                 inm.inm_order,
@@ -257,11 +275,12 @@ def getInstructionsForStep(UUID stepInstanceId) {
 ### 8.2 Update Patterns
 
 **Mark Instruction Complete**:
+
 ```groovy
 def completeInstruction(UUID instructionInstanceId, Integer userId) {
     return DatabaseUtil.withSql { sql ->
         sql.executeUpdate("""
-            UPDATE instructions_instance_ini 
+            UPDATE instructions_instance_ini
             SET ini_is_completed = true,
                 ini_completed_at = NOW(),
                 usr_id_completed_by = ?
@@ -274,15 +293,16 @@ def completeInstruction(UUID instructionInstanceId, Integer userId) {
 ### 8.3 Reporting Patterns
 
 **Step Completion Progress**:
+
 ```groovy
 def getStepCompletionProgress(UUID stepInstanceId) {
     return DatabaseUtil.withSql { sql ->
         sql.firstRow("""
-            SELECT 
+            SELECT
                 COUNT(*) as total_instructions,
                 COUNT(CASE WHEN ini_is_completed THEN 1 END) as completed_instructions,
                 ROUND(
-                    COUNT(CASE WHEN ini_is_completed THEN 1 END) * 100.0 / COUNT(*), 
+                    COUNT(CASE WHEN ini_is_completed THEN 1 END) * 100.0 / COUNT(*),
                     2
                 ) as completion_percentage
             FROM instructions_instance_ini
@@ -297,12 +317,13 @@ def getStepCompletionProgress(UUID stepInstanceId) {
 ## 9. Maintenance Considerations
 
 ### 9.1 Data Cleanup Patterns
+
 ```groovy
 // Clean up orphaned instances (should not occur with proper FK constraints)
 def cleanupOrphanedInstructions() {
     return DatabaseUtil.withSql { sql ->
         sql.execute("""
-            DELETE FROM instructions_instance_ini 
+            DELETE FROM instructions_instance_ini
             WHERE inm_id NOT IN (SELECT inm_id FROM instructions_master_inm)
         """)
     }
@@ -310,11 +331,13 @@ def cleanupOrphanedInstructions() {
 ```
 
 ### 9.2 Performance Monitoring
+
 - Monitor query performance on hierarchical lookups
 - Track completion update frequency during active migrations
 - Analyze team assignment query patterns
 
 ### 9.3 Data Integrity Checks
+
 ```sql
 -- Verify all instances have master references
 SELECT COUNT(*) FROM instructions_instance_ini ini
@@ -333,22 +356,26 @@ WHERE ini_is_completed = true AND ini_completed_at IS NULL;
 ### ✅ Production Readiness Verification
 
 **Table Structure**:
+
 - [x] `instructions_master_inm` table exists with all required fields
 - [x] `instructions_instance_ini` table exists with all required fields
 - [x] All foreign key constraints properly defined
 - [x] Primary keys use UUID with proper defaults
 
 **Data Integrity**:
+
 - [x] Foreign key relationships enforce referential integrity
 - [x] NOT NULL constraints on required fields
 - [x] Default values appropriate for boolean and timestamp fields
 
 **Indexing Strategy**:
+
 - [ ] Primary query indexes implemented (recommendation only)
 - [ ] Team assignment indexes for performance
 - [ ] Completion tracking indexes for reporting
 
 **Integration Points**:
+
 - [x] Proper integration with steps hierarchy
 - [x] Team assignment integration available
 - [x] Control point integration supported

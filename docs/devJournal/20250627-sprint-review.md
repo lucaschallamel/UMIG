@@ -103,6 +103,7 @@
 ## 6. Retrospective
 
 ### What Went Well
+
 - Extremely agile, iterative delivery with daily progress and rapid feedback
 - SPA + REST pattern proved robust and scalable
 - Documentation and changelogs kept fully in sync
@@ -110,17 +111,20 @@
 - Team collaboration and context-sharing worked well
 
 ### What Didn’t Go Well
+
 - Some initial friction with ScriptRunner path parameter handling
 - Minor mismatches between backend API payloads and frontend SPA expectations (quickly resolved)
 - Podman volume persistence caused occasional migration issues in dev
 
 ### What We Learned
+
 - Importance of tight alignment between frontend and backend API contracts
 - Value of robust, automated integration testing from the start
 - The power of clear documentation and changelog discipline
 - SPA + REST pattern is a strong foundation for future admin UIs
 
 ### What We’ll Try Next
+
 - Broaden SPA + REST pattern to teams, plans, and other entities
 - Continue to refine integration testing and documentation
 - Gather user feedback on STEP View and admin UI usability

@@ -19,7 +19,6 @@
         msg: "The '.env' file is missing. Please copy '.env.example' to '.env' and fill in the required values before running this playbook."
       when: not env_file.stat.exists
 
-
     - name: Build and start the containerized services
       command: podman-compose up -d --build --no-cache
       args:

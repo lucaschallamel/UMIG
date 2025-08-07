@@ -1,6 +1,7 @@
 # UMIG Project Structure
 
 ## Root Organization
+
 ```
 UMIG/
 ├── src/groovy/umig/          # Main application source (Groovy/ScriptRunner)
@@ -13,6 +14,7 @@ UMIG/
 ```
 
 ## Source Code Structure (`src/groovy/umig/`)
+
 All backend code follows the consolidated UMIG namespace:
 
 ```
@@ -51,6 +53,7 @@ src/groovy/umig/
 ```
 
 ## Development Environment (`local-dev-setup/`)
+
 Node.js orchestrated containerized development stack:
 
 ```
@@ -71,6 +74,7 @@ local-dev-setup/
 ```
 
 ## Documentation Structure (`docs/`)
+
 Comprehensive project documentation:
 
 ```
@@ -92,34 +96,40 @@ docs/
 ## File Naming Conventions
 
 ### Groovy Files
+
 - **APIs**: `{Entity}Api.groovy` (e.g., `UsersApi.groovy`)
 - **Repositories**: `{Entity}Repository.groovy` (e.g., `UserRepository.groovy`)
 - **Macros**: `{purpose}Macro.groovy` (e.g., `iterationViewMacro.groovy`)
 - **Tests**: `{target}Test.groovy` or `{target}IntegrationTest.groovy`
 
 ### JavaScript Files
+
 - **Controllers**: `{entity}-{purpose}.js` (e.g., `admin-gui.js`, `iteration-view.js`)
 - **Utilities**: `{purpose}.js` (e.g., `utils.js`)
 
 ### Database Files
+
 - **Migrations**: `{number}_{description}.sql` (e.g., `001_unified_baseline.sql`)
 - **Tables**: `{entity}_{suffix}_{abbreviation}` (e.g., `users_usr`, `plans_master_plm`)
 
 ## Package Organization Rules
 
 ### Backend (Groovy)
+
 - All code under `umig` namespace to avoid collisions
 - Version-specific subdirectories for APIs and macros (`v1/`, `v2/`)
 - Repository pattern for all database access
 - Utilities in shared `utils/` package
 
 ### Frontend (JavaScript)
+
 - Single JS file per major UI component
 - CSS files co-located with related JS
 - No external dependencies - pure vanilla JavaScript
 - Atlassian AUI components for consistency
 
 ### Testing
+
 - Unit tests co-located with source (`__tests__/` for Node.js)
 - Integration tests in dedicated directories
 - Specific SQL query mocks required (no generic matchers)
@@ -127,17 +137,20 @@ docs/
 ## Key Architectural Boundaries
 
 ### Separation of Concerns
+
 - **Macros**: UI rendering only, no business logic
 - **APIs**: Business logic and data orchestration
 - **Repositories**: Database access exclusively
 - **Frontend**: User interaction and display logic
 
 ### Data Flow
+
 1. **UI** → AJAX calls → **API endpoints**
 2. **API** → Repository methods → **Database**
 3. **Database** ← Liquibase migrations ← **Development scripts**
 
 ### Version Management
+
 - APIs versioned in subdirectories (`v1/`, `v2/`)
 - Database schema managed through Liquibase changesets
 - Frontend assets versioned alongside backend components

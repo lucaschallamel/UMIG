@@ -7,6 +7,7 @@ This document provides a comprehensive, layered, and field-level overview of the
 ## 1. Core Design Philosophy
 
 UMIG is built on:
+
 - **Separation of Canonical (Master) vs. Instance (Execution) Entities**
 - **Normalized, auditable, and extensible schema**
 - **Explicit support for many-to-many relationships via join tables**
@@ -18,6 +19,7 @@ UMIG is built on:
 **Purpose:** Models the high-level structure and actors involved in a migration program.
 
 ### 2.1. Migrations (`migrations_mig`)
+
 - **mig_id** (UUID, PK): Unique migration identifier
 - **usr_id_owner** (INT, FK → users_usr): Owner
 - **mig_name** (VARCHAR): Migration name
@@ -26,6 +28,7 @@ UMIG is built on:
 - **mig_start_date**, **mig_end_date**, **mig_business_cutover_date** (DATE): Key dates
 
 ### 2.2. Iterations (`iterations_ite`)
+
 - **ite_id** (UUID, PK)
 - **mig_id** (UUID, FK → migrations_mig)
 - **plm_id** (UUID, FK → plans_master_plm): The master plan for this iteration
@@ -35,6 +38,7 @@ UMIG is built on:
 - **ite_static_cutover_date**, **ite_dynamic_cutover_date** (TIMESTAMPTZ): Cutover dates
 
 ### 2.3. Teams (`teams_tms`)
+
 - **tms_id** (INT, PK)
 - **tms_name** (VARCHAR)
 - **tms_email** (VARCHAR, unique)
@@ -42,6 +46,7 @@ UMIG is built on:
 - **Membership:** All user-team assignments are managed via the join table `teams_tms_x_users_usr`.
 
 ### 2.4. Users (`users_usr`)
+
 - **usr_id** (INT, PK)
 - **usr_code** (VARCHAR, unique): 3-character user code
 - **usr_first_name**, **usr_last_name** (VARCHAR)
@@ -54,17 +59,20 @@ UMIG is built on:
 - **Business rule:** Each user currently belongs to exactly one team; all `ADMIN` and `PILOT` users are assigned to `IT_CUTOVER`. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for rationale.
 
 ### 2.5. Roles (`roles_rls`)
+
 - **rls_id** (INT, PK)
 - **rls_code** (VARCHAR, unique)
 - **rls_description** (TEXT)
 
 ### 2.6. Environments (`environments_env`)
+
 - **env_id** (INT, PK)
 - **env_code** (VARCHAR, unique)
 - **env_name** (VARCHAR)
 - **env_description** (TEXT)
 
 ### 2.7. Applications (`applications_app`)
+
 - **app_id** (INT, PK)
 - **app_code** (VARCHAR, unique)
 - **app_name** (VARCHAR)
@@ -77,12 +85,14 @@ UMIG is built on:
 **Purpose:** Defines the reusable playbook for migrations.
 
 ### 3.1. Plans (`plans_master_plm`)
+
 - **plm_id** (UUID, PK)
 - **tms_id** (INT, FK → teams_tms): Owning team
 - **plm_name**, **plm_description** (VARCHAR, TEXT)
 - **plm_status** (VARCHAR)
 
 ### 3.2. Sequences (`sequences_master_sqm`)
+
 - **sqm_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
 - **sqm_order** (INT)
@@ -90,6 +100,7 @@ UMIG is built on:
 - **predecessor_sqm_id** (UUID, FK → sequences_master_sqm, nullable)
 
 ### 3.3. Phases (`phases_master_phm`)
+
 - **phm_id** (UUID, PK)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
 - **phm_order** (INT)
@@ -97,6 +108,7 @@ UMIG is built on:
 - **predecessor_phm_id** (UUID, FK → phases_master_phm, nullable)
 
 ### 3.4. Steps (`steps_master_stm`)
+
 - **stm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
 - **tms_id_owner** (INT, FK → teams_tms): Owning team
@@ -109,6 +121,7 @@ UMIG is built on:
 - **enr_id** (INT, FK → environment_roles_enr, nullable): Environment role association - Added in migration 014 (replaced enr_id_target)
 
 ### 3.5. Controls (`controls_master_ctm`)
+
 - **ctm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
 - **ctm_code** (VARCHAR, unique): Unique business key (e.g., C0001, K0001) - Added in migration 007
@@ -118,6 +131,7 @@ UMIG is built on:
 - **ctm_is_critical** (BOOLEAN)
 
 ### 3.6. Instructions (`instructions_master_inm`)
+
 Master instruction templates that define procedural steps within migration phases.
 
 - **inm_id** (UUID, PK): Unique instruction identifier
@@ -133,15 +147,17 @@ Master instruction templates that define procedural steps within migration phase
 - **inm_require_validation** (BOOLEAN, default false): Requires validation flag
 - **created_at** (TIMESTAMPTZ): Creation timestamp
 - **created_by** (INT, FK → users_usr): User who created the instruction
-- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp  
+- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp
 - **updated_by** (INT, FK → users_usr, nullable): User who last updated the instruction
 
 **Relationships:**
+
 - Many instructions can belong to one step master
 - Instructions can optionally be assigned to a team
 - Instructions can optionally reference a control point for validation
 
 ### 3.7. Labels (`labels_lbl`)
+
 - **lbl_id** (INT, PK)
 - **mig_id** (UUID, FK → migrations_mig)
 - **lbl_name** (TEXT)
@@ -158,6 +174,7 @@ Master instruction templates that define procedural steps within migration phase
 **Purpose:** Tracks real-world executions of the canonical playbook.
 
 ### 4.1. Plan Instance (`plans_instance_pli`)
+
 - **pli_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
 - **ite_id** (UUID, FK → iterations_ite)
@@ -166,6 +183,7 @@ Master instruction templates that define procedural steps within migration phase
 - **usr_id_owner** (INT, FK → users_usr): Plan instance owner
 
 ### 4.2. Sequence Instance (`sequences_instance_sqi`)
+
 - **sqi_id** (UUID, PK)
 - **pli_id** (UUID, FK → plans_instance_pli)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
@@ -176,6 +194,7 @@ Master instruction templates that define procedural steps within migration phase
 - **predecessor_sqi_id** (UUID): Override predecessor sequence instance - Added in migration 010
 
 ### 4.3. Phase Instance (`phases_instance_phi`)
+
 - **phi_id** (UUID, PK)
 - **sqi_id** (UUID, FK → sequences_instance_sqi)
 - **phm_id** (UUID, FK → phases_master_phm)
@@ -186,6 +205,7 @@ Master instruction templates that define procedural steps within migration phase
 - **predecessor_phi_id** (UUID): Override predecessor phase instance - Added in migration 010
 
 ### 4.4. Step Instance (`steps_instance_sti`)
+
 - **sti_id** (UUID, PK)
 - **phi_id** (UUID, FK → phases_instance_phi)
 - **stm_id** (UUID, FK → steps_master_stm)
@@ -201,6 +221,7 @@ Master instruction templates that define procedural steps within migration phase
   - ~~enr_id_target~~ (Replaced with proper enr_id field)
 
 ### 4.5. Instruction Instance (`instructions_instance_ini`)
+
 Execution instances of instruction templates created when step instances are instantiated.
 
 - **ini_id** (UUID, PK): Unique instruction instance identifier
@@ -231,11 +252,13 @@ All master instruction attributes are copied to instances during creation to pre
 Uses boolean `ini_is_completed` instead of complex status enumeration for clear binary state management - instruction is either completed or not completed.
 
 **Relationships:**
+
 - Each instruction instance belongs to exactly one step instance
 - Each instruction instance is created from exactly one master instruction
 - Multiple instances can be created from the same master instruction
 
 ### 4.6. Control Instance (`controls_instance_cti`)
+
 - **cti_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
 - **ctm_id** (UUID, FK → controls_master_ctm)
@@ -248,6 +271,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **cti_code** (TEXT): Override code for the control instance
 
 ### 4.7. Comments (`step_instance_comments_sic`, `step_pilot_comments_spc`)
+
 - **step_instance_comments_sic**: Comments on step executions (FKs: sti_id, created_by, updated_by)
 - **step_pilot_comments_spc**: Pilot/release manager wisdom for canonical steps (FK: stm_id)
 
@@ -258,6 +282,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 **Purpose:** Implements all many-to-many and label relationships in a normalized way.
 
 ### 5.1. User-Team Membership (`teams_tms_x_users_usr`)
+
 - **tms_x_usr_id** (SERIAL, PK)
 - **tms_id** (INT, FK → teams_tms)
 - **usr_id** (INT, FK → users_usr)
@@ -268,6 +293,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Note:** All user-team relationships and audit trails are managed here. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for migration rationale and business logic.
 
 ### 5.2. Team-Application (`teams_tms_x_applications_app`)
+
 - **tms_id** (INT, FK → teams_tms)
 - **app_id** (INT, FK → applications_app)
 - **created_at** (TIMESTAMPTZ): When the application was linked to the team
@@ -275,27 +301,32 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit (created_at only)
 
 ### 5.3. Environment-Application (`environments_env_x_applications_app`)
+
 - **env_id** (INT, FK → environments_env)
 - **app_id** (INT, FK → applications_app)
 - **PK:** (env_id, app_id)
 
 ### 5.4. Environment-Iteration (`environments_env_x_iterations_ite`)
+
 - **env_id** (INT, FK → environments_env)
 - **ite_id** (UUID, FK → iterations_ite)
 - **enr_id** (INT, FK → environment_roles_enr)
 - **PK:** (env_id, ite_id)
 
 ### 5.5. Steps-Iteration Types (`steps_master_stm_x_iteration_types_itt`)
+
 - **stm_id** (UUID, FK → steps_master_stm)
 - **itt_code** (VARCHAR, FK → iteration_types_itt)
 - **PK:** (stm_id, itt_code)
 
 ### 5.6. Steps-Impacted Teams (`steps_master_stm_x_teams_tms_impacted`)
+
 - **stm_id** (UUID, FK → steps_master_stm)
 - **tms_id** (INT, FK → teams_tms)
 - **PK:** (stm_id, tms_id)
 
 ### 5.7. Labels-Steps (`labels_lbl_x_steps_master_stm`)
+
 - **lbl_x_stm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
 - **stm_id** (UUID, FK → steps_master_stm)
@@ -305,6 +336,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
 ### 5.8. Labels-Applications (`labels_lbl_x_applications_app`)
+
 - **lbl_x_app_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
 - **app_id** (INT, FK → applications_app)
@@ -314,6 +346,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
 ### 5.9. Labels-Controls (`labels_lbl_x_controls_master_ctm`)
+
 - **lbl_x_ctm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
 - **ctm_id** (UUID, FK → controls_master_ctm)
@@ -330,6 +363,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 **Purpose:** Provides controlled values and reference data for system-wide consistency.
 
 ### 6.1. Status Management (`status_sts`)
+
 - **sts_id** (SERIAL, PK)
 - **sts_name** (VARCHAR(50), NOT NULL): Status name (e.g., PENDING, IN_PROGRESS, COMPLETED)
 - **sts_color** (VARCHAR(7), NOT NULL): Hex color code format (#RRGGBB)
@@ -341,22 +375,26 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Pre-populated values:** 31 statuses across 7 entity types
 
 ### 6.2. Environment Roles (`environment_roles_enr`)
+
 - **enr_id** (INT, PK)
 - **enr_code** (VARCHAR, unique): Role code (e.g., DEV, TEST, PROD)
 - **enr_name** (VARCHAR): Display name
 - **enr_description** (TEXT): Description
 
 ### 6.3. Step Types (`step_types_stt`)
+
 - **stt_code** (VARCHAR(10), PK): Type code
 - **stt_name** (VARCHAR): Display name
 - **stt_description** (TEXT): Description
 
 ### 6.4. Iteration Types (`iteration_types_itt`)
+
 - **itt_code** (VARCHAR(10), PK): Type code (e.g., RUN, DR, CUTOVER)
 - **itt_name** (VARCHAR): Display name
 - **itt_description** (TEXT): Description
 
 ### 6.5. Email Templates (`email_templates_emt`)
+
 - **emt_id** (UUID, PK)
 - **emt_type** (VARCHAR(50)): Template type (STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM)
 - **emt_name** (VARCHAR(255)): Template name
@@ -368,6 +406,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **created_by**, **updated_by** (VARCHAR(255)): Audit users
 
 ### 6.6. Audit Log (`audit_log_aud`)
+
 - **aud_id** (UUID, PK)
 - **aud_user_id** (INT, FK → users_usr): User performing the action
 - **aud_action** (VARCHAR(100)): Action type (EMAIL_SENT, EMAIL_FAILED, STATUS_CHANGED, etc.)
@@ -709,16 +748,20 @@ erDiagram
 ## 7. Audit Fields Standardization (US-002b & US-002d)
 
 ### Standard Audit Fields Pattern
+
 All tables in the UMIG database now follow a standardized audit fields pattern (migrations 016 & 017):
 
 #### Core Audit Fields
+
 - **created_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
 - **created_at** (TIMESTAMPTZ): Timestamp when the record was created
 - **updated_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
 - **updated_at** (TIMESTAMPTZ): Timestamp when the record was last updated (auto-updated via trigger)
 
 #### Audit Field Values (US-002d)
+
 The `created_by` and `updated_by` fields store the following values:
+
 - **User trigram**: The 3-character `usr_code` from the `users_usr` table (e.g., 'JDS' for John Doe Smith)
 - **'system'**: For operations performed by the system or background processes
 - **'generator'**: For data created by data generation scripts
@@ -727,37 +770,46 @@ The `created_by` and `updated_by` fields store the following values:
 A helper function `get_user_code(user_email VARCHAR)` is available to retrieve user trigrams from email addresses.
 
 #### Tables with Audit Fields
+
 The following tables have been standardized with the audit fields pattern:
 
 **Master Tables:**
+
 - sequences_master_sqm, phases_master_phm, steps_master_stm
 - controls_master_ctm, instructions_master_inm
 
 **Instance Tables:**
+
 - sequences_instance_sqi, phases_instance_phi, steps_instance_sti
 - controls_instance_cti, instructions_instance_ini
 
 **Reference Tables:**
+
 - teams_tms, applications_app, environments_env
 - roles_rls, environment_roles_enr, step_types_stt
 - iteration_types_itt, status_sts, email_templates_emt
 
 **Special Cases:**
+
 - **users_usr**: Has created_at/updated_at from migration 012, added created_by/updated_by in migration 016
 - **labels_lbl**: Already had created_by as INTEGER (user reference), only added updated_by/updated_at
 
 #### Automatic Update Triggers
+
 All tables with audit fields have PostgreSQL triggers that automatically update the `updated_at` timestamp on any UPDATE operation using the `update_updated_at_column()` function.
 
 #### Association Tables Audit Strategy (US-002d)
+
 Association (join) tables follow a tiered audit approach based on business criticality:
 
 **Tier 1 - Critical Associations (Full Audit)**
+
 - `teams_tms_x_users_usr`: User-team assignments (created_at, created_by as VARCHAR)
 - `environment_roles_enr_x_users_usr`: User-role assignments (when created)
 - **Rationale**: These track access control and organizational structure changes
 
 **Tier 2 - Standard Associations (Minimal Audit)**
+
 - `teams_tms_x_applications_app`: Team-application links (created_at only)
 - `labels_lbl_x_steps_master_stm`: Label-step associations (created_at, created_by)
 - `labels_lbl_x_applications_app`: Label-application associations (created_at, created_by)
@@ -765,6 +817,7 @@ Association (join) tables follow a tiered audit approach based on business criti
 - **Rationale**: These provide basic tracking without over-engineering
 
 **Tier 3 - Simple Associations (No Audit)**
+
 - `environments_env_x_applications_app`: Environment-application links
 - `environments_env_x_iterations_ite`: Environment-iteration links
 - `steps_master_stm_x_iteration_types_itt`: Step-iteration type links
@@ -772,7 +825,9 @@ Association (join) tables follow a tiered audit approach based on business criti
 - **Rationale**: These are pure many-to-many relationships with minimal change tracking needs
 
 #### Performance Indexes
+
 Audit field indexes have been created for common query patterns:
+
 - Master tables: Composite index on (created_by, created_at)
 - Instance tables: Composite index on (created_by, created_at)
 - Frequently queried reference tables: Index on created_at
@@ -782,6 +837,7 @@ Audit field indexes have been created for common query patterns:
 ## 8. Recent Changes & Migration Notes
 
 ### 2025-08-04: Audit Fields Standardization (US-002b & US-002d)
+
 - **Migration 016**: Standardized audit fields across all 25+ tables
 - **Migration 017**: Standardized association table audit fields using tiered approach
 - **Key Design Decisions (US-002d)**:
@@ -790,13 +846,14 @@ Audit field indexes have been created for common query patterns:
   - Convert existing INTEGER created_by fields to VARCHAR(255) for consistency
 - **Trigger Function**: Reused `update_updated_at_column()` function from migration 012
 - **Helper Function**: Added `get_user_code(user_email)` for retrieving user trigrams
-- **Special Cases**: 
+- **Special Cases**:
   - Converted teams_tms_x_users_usr and labels_lbl_x_steps_master_stm from INTEGER to VARCHAR created_by
   - Added created_at to teams_tms_x_applications_app for Tier 2 audit tracking
 - **Performance**: Added indexes for common audit field query patterns
 - **Generator Updates**: Updated all data generators to populate audit fields with 'generator'
 
 ### 2025-07-15: Teams Association Management and Environment Search Enhancement
+
 - **Teams Association APIs**: Implemented comprehensive team-application association management:
   - Enhanced `teams_tms_x_applications_app` join table utilization for team-application relationships
   - Added application association endpoints for add/remove functionality in admin interface
@@ -814,12 +871,14 @@ Audit field indexes have been created for common query patterns:
 - **State Management**: Fixed sort field persistence bugs and confirmation dialog regressions
 
 ### 2025-07-10: Hierarchical Filtering and Labels Implementation
+
 - **Fixed Type System Issues**: Resolved Groovy static type checking errors in StepRepository
 - **Corrected Field References**: Fixed master vs instance ID filtering patterns
 - **Enhanced Labels Integration**: Added proper many-to-many label-step relationship handling
 - **Database Field Selection**: Ensured all referenced fields are included in SQL queries
 
 ### 2025-07-04: Full Attribute Replication (Migration 010)
+
 - **Instance Tables Enhancement**: Added full attribute replication to all instance tables:
   - `sequences_instance_sqi`: Added `sqi_name`, `sqi_description`, `sqi_order`, `predecessor_sqi_id`
   - `phases_instance_phi`: Added `phi_order`, `phi_name`, `phi_description`, `predecessor_phi_id`
@@ -830,6 +889,7 @@ Audit field indexes have been created for common query patterns:
 - **See**: [ADR-029](../adr/ADR-029-full-attribute-instantiation-instance-tables.md) for design rationale
 
 ### 2025-07-02: Labels and Team Membership
+
 - **Labels System**: Created `labels_lbl` table with migration-scoped labels
 - **Step-Label Association**: Added `labels_lbl_x_steps_master_stm` join table for step labeling
 - **Application Labels**: Added `labels_lbl_x_applications_app` for application labeling
@@ -838,6 +898,7 @@ Audit field indexes have been created for common query patterns:
 - **Comments System**: Added `step_pilot_comments_spc` and `step_instance_comments_sic` tables
 
 ### 2025-06-24: Controls Enhancement
+
 - **Control Codes**: Added `ctm_code` field to `controls_master_ctm` for business identifiers
 - **Label-Control Association**: Added `labels_lbl_x_controls_master_ctm` join table
 
@@ -848,6 +909,7 @@ All changes are reflected in this document and the ERD.
 ## 9. Implementation Patterns & Best Practices
 
 ### 9.1. Type Safety in Repository Methods
+
 All repository methods must use explicit type casting when handling query parameters:
 
 ```groovy
@@ -858,18 +920,19 @@ if (filters.migrationId) {
 }
 
 if (filters.teamId) {
-    query += ' AND stm.tms_id_owner = :teamId'  
+    query += ' AND stm.tms_id_owner = :teamId'
     params.teamId = Integer.parseInt(filters.teamId as String)
 }
 ```
 
 ### 9.2. Master vs Instance ID Filtering
+
 Always use instance IDs for hierarchical filtering to ensure correct step retrieval:
 
 ```groovy
 // CORRECT - filters by instance IDs
 query += ' AND pli.pli_id = :planId'     // plan instance
-query += ' AND sqi.sqi_id = :sequenceId' // sequence instance  
+query += ' AND sqi.sqi_id = :sequenceId' // sequence instance
 query += ' AND phi.phi_id = :phaseId'    // phase instance
 
 // INCORRECT - filters by master IDs (will miss steps)
@@ -877,6 +940,7 @@ query += ' AND plm.plm_id = :planId'     // plan master
 ```
 
 ### 9.3. Complete Field Selection
+
 All SQL queries must include ALL fields referenced in result mapping:
 
 ```groovy
@@ -888,6 +952,7 @@ SELECT sti.sti_id, stm.stt_code, stm.stm_number, ...
 ```
 
 ### 9.4. Many-to-Many Relationship Handling
+
 Handle optional many-to-many relationships gracefully:
 
 ```groovy
@@ -902,6 +967,7 @@ try {
 ```
 
 ### 9.5. Active User Filtering Pattern
+
 Handle active status filtering with proper validation:
 
 ```groovy
@@ -924,6 +990,7 @@ if (activeFilter != null) {
 ```
 
 ### 9.6. Audit Fields Handling Pattern
+
 Properly manage audit fields in create and update operations:
 
 ```groovy

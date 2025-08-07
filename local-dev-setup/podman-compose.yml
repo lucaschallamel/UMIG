@@ -1,5 +1,5 @@
 ---
-version: '3.8'
+version: "3.8"
 
 services:
   confluence:
@@ -20,7 +20,6 @@ services:
       - confluence_data:/var/atlassian/application-data/confluence # Persist Confluence data
       - ../src/groovy/umig:/var/atlassian/application-data/confluence/scripts/umig # Mount the umig namespace directly as a script root
 
-
     networks:
       - umig_net
 
@@ -40,13 +39,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-umig_user} -d ${POSTGRES_DB:-umig_db}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-umig_user} -d ${POSTGRES_DB:-umig_db}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - umig_net
-
 
   mailhog:
     image: mailhog/mailhog:latest

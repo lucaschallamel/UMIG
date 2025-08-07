@@ -395,6 +395,7 @@ completions, and other workflow events.
 4. **Environment Variable for Development Mode** (Optional):
    - To enable development-specific email handling in the EmailService, you can
      add the following to the `CATALINA_OPTS` in the `podman-compose.yml` file:
+
    ```yaml
    - CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluence/scripts
      -Dplugin.rest.scripts.package=umig.api.v2,umig.api.v2.web

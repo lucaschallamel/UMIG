@@ -15,6 +15,7 @@ All REST endpoints **must** be implemented using the `CustomEndpointDelegate` pa
 - Secure endpoints by default by including `groups: ["confluence-users"]`.
 
 **Example:**
+
 ```groovy
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import groovy.transform.BaseScript
@@ -67,6 +68,7 @@ def findAllTeams() {
 The Groovy static type checker in IntelliJ can be aggressive and may not always correctly infer types from the ScriptRunner environment. When you are certain of an object's type at runtime, but the IDE reports an error, use an explicit cast with the `as` keyword.
 
 **Example:**
+
 ```groovy
 // When a database query returns a generated ID (e.g., with RETURNING), the static checker
 // may infer it as Object. Cast it to the correct type (e.g., UUID, Long) before use.
@@ -82,6 +84,7 @@ if (result?.mig_id) {
 To retrieve additional path segments from a URL (e.g., the `123` in `/rest/scriptrunner/latest/custom/plans/123`), use the `getAdditionalPath` helper method provided by the delegate.
 
 **Example:**
+
 ```groovy
 def path = getAdditionalPath(request) // Returns "/123"
 if (path) {

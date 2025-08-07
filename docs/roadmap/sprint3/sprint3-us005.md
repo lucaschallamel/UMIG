@@ -141,6 +141,7 @@ Controls API - Base Path: /rest/scriptrunner/latest/custom/controls
 ### Request/Response Examples
 
 #### Create Master Control
+
 ```json
 POST /controls/master
 {
@@ -171,6 +172,7 @@ Response: 201 Created
 ```
 
 #### Validate Control Instance
+
 ```json
 PUT /controls/instance/{cti_id}/validate
 {
@@ -196,15 +198,16 @@ Response: 200 OK
 ```sql
 -- Fixed in migration 018_fix_controls_phase_relationship.sql
 ALTER TABLE controls_instance_cti RENAME COLUMN sti_id TO phi_id;
-ALTER TABLE controls_instance_cti 
-    ADD CONSTRAINT fk_cti_phi_phi_id 
-    FOREIGN KEY (phi_id) 
+ALTER TABLE controls_instance_cti
+    ADD CONSTRAINT fk_cti_phi_phi_id
+    FOREIGN KEY (phi_id)
     REFERENCES phases_instance_phi(phi_id);
 ```
 
 ### Table Structure
 
 #### controls_master_ctm
+
 - ctm_id (UUID, PK)
 - phm_id (UUID, FK → phases_master_phm)
 - ctm_order (INTEGER)
@@ -216,6 +219,7 @@ ALTER TABLE controls_instance_cti
 - created_by, created_at, updated_by, updated_at
 
 #### controls_instance_cti
+
 - cti_id (UUID, PK)
 - phi_id (UUID, FK → phases_instance_phi) -- Fixed from sti_id
 - ctm_id (UUID, FK → controls_master_ctm)
@@ -234,6 +238,7 @@ ALTER TABLE controls_instance_cti
 **File**: `src/groovy/umig/repository/ControlRepository.groovy`
 
 #### Master Control Methods (7 methods)
+
 1. `findAllMasterControls()` - List all with phase info
 2. `findMasterControlById(UUID)` - Get specific control
 3. `findMasterControlsByPhaseId(UUID)` - Filter by phase
@@ -243,6 +248,7 @@ ALTER TABLE controls_instance_cti
 7. `reorderMasterControls(UUID, Map)` - Reorder within phase
 
 #### Instance Control Methods (8 methods)
+
 8. `findControlInstances(Map filters)` - Hierarchical filtering
 9. `findControlInstanceById(UUID)` - Get specific instance
 10. `createControlInstance(UUID, UUID, Map)` - Create from master
@@ -253,6 +259,7 @@ ALTER TABLE controls_instance_cti
 15. `deleteControlInstance(UUID)` - Delete instance
 
 #### Advanced Operations (5 methods)
+
 16. `calculatePhaseControlProgress(UUID)` - Progress metrics
 17. `validateAllPhaseControls(UUID)` - Bulk validation
 18. `getControlValidationHistory(UUID)` - Audit trail
@@ -274,14 +281,18 @@ ALTER TABLE controls_instance_cti
 ### Phase 3: Testing (3 hours)
 
 #### Unit Tests
+
 **File**: `src/groovy/umig/tests/unit/ControlRepositoryTest.groovy`
+
 - Mock SQL queries with regex patterns
 - Test all 20 repository methods
 - Validate error handling
 - Test transaction rollback
 
 #### Integration Tests
+
 **File**: `src/groovy/umig/tests/integration/ControlsApiIntegrationTest.groovy`
+
 - Test all 20 endpoints
 - Validate hierarchical filtering
 - Test validation logic
@@ -299,20 +310,20 @@ ALTER TABLE controls_instance_cti
 
 ### Development Tasks
 
-| Task ID | Task Description | Effort | Status | Assignee |
-|---------|-----------------|--------|---------|----------|
-| CTR-001 | Create ControlRepository class structure | 0.5h | Pending | - |
-| CTR-002 | Implement master control methods (7) | 1.5h | Pending | - |
-| CTR-003 | Implement instance control methods (8) | 2h | Pending | - |
-| CTR-004 | Implement advanced operations (5) | 1h | Pending | - |
-| CTR-005 | Create ControlsApi class structure | 0.5h | Pending | - |
-| CTR-006 | Implement GET endpoints (8) | 1.5h | Pending | - |
-| CTR-007 | Implement POST endpoints (5) | 1h | Pending | - |
-| CTR-008 | Implement PUT endpoints (5) | 1h | Pending | - |
-| CTR-009 | Implement DELETE endpoints (2) | 0.5h | Pending | - |
-| CTR-010 | Create unit tests | 1.5h | Pending | - |
-| CTR-011 | Create integration tests | 1.5h | Pending | - |
-| CTR-012 | Update documentation | 1h | Pending | - |
+| Task ID | Task Description                         | Effort | Status  | Assignee |
+| ------- | ---------------------------------------- | ------ | ------- | -------- |
+| CTR-001 | Create ControlRepository class structure | 0.5h   | Pending | -        |
+| CTR-002 | Implement master control methods (7)     | 1.5h   | Pending | -        |
+| CTR-003 | Implement instance control methods (8)   | 2h     | Pending | -        |
+| CTR-004 | Implement advanced operations (5)        | 1h     | Pending | -        |
+| CTR-005 | Create ControlsApi class structure       | 0.5h   | Pending | -        |
+| CTR-006 | Implement GET endpoints (8)              | 1.5h   | Pending | -        |
+| CTR-007 | Implement POST endpoints (5)             | 1h     | Pending | -        |
+| CTR-008 | Implement PUT endpoints (5)              | 1h     | Pending | -        |
+| CTR-009 | Implement DELETE endpoints (2)           | 0.5h   | Pending | -        |
+| CTR-010 | Create unit tests                        | 1.5h   | Pending | -        |
+| CTR-011 | Create integration tests                 | 1.5h   | Pending | -        |
+| CTR-012 | Update documentation                     | 1h     | Pending | -        |
 
 **Total Estimated**: 12 hours
 
@@ -366,12 +377,12 @@ ALTER TABLE controls_instance_cti
 
 ### Technical Risks
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| Schema migration failure | High | Low | Already tested and applied |
-| Performance degradation with many controls | Medium | Medium | Implement pagination and caching |
-| Complex validation logic bugs | Medium | Medium | Comprehensive test coverage |
-| Integration issues with Phases API | High | Low | Follow established patterns |
+| Risk                                       | Impact | Probability | Mitigation                       |
+| ------------------------------------------ | ------ | ----------- | -------------------------------- |
+| Schema migration failure                   | High   | Low         | Already tested and applied       |
+| Performance degradation with many controls | Medium | Medium      | Implement pagination and caching |
+| Complex validation logic bugs              | Medium | Medium      | Comprehensive test coverage      |
+| Integration issues with Phases API         | High   | Low         | Follow established patterns      |
 
 ### Mitigation Strategies
 
@@ -383,11 +394,13 @@ ALTER TABLE controls_instance_cti
 ## Dependencies
 
 ### Completed Dependencies
+
 - ✅ US-003: Phases API (provides phase structure)
 - ✅ Migration 018: Schema fix (controls → phases relationship)
 - ✅ Data generators updated for new schema
 
 ### External Dependencies
+
 - DatabaseUtil class for connection management
 - AuditFieldsUtil for audit field population
 - CustomEndpointDelegate for ScriptRunner integration
@@ -416,7 +429,7 @@ ALTER TABLE controls_instance_cti
 ### Milestones
 
 - [x] Repository implementation complete (3h) ✅
-- [x] API implementation complete (2h) ✅ 
+- [x] API implementation complete (2h) ✅
 - [x] Testing complete (1h) ✅
 - [x] Documentation complete (0.5h) ✅
 - [x] Performance enhancements complete (1.5h) ✅
@@ -433,6 +446,7 @@ ALTER TABLE controls_instance_cti
 ### Implementation Results
 
 **Core Deliverables Completed**:
+
 - ✅ ControlsApi.groovy (20 comprehensive endpoints)
 - ✅ ControlRepository.groovy (20 methods with validation and override operations)
 - ✅ Phase-level quality gate architecture per ADR-016
@@ -444,6 +458,7 @@ ALTER TABLE controls_instance_cti
 - ✅ Complete OpenAPI documentation
 
 **Performance Enhancements** (Post-Review):
+
 - ✅ Added validateFilters() method for centralized filter validation (~30% improvement)
 - ✅ Implemented buildSuccessResponse() for consistent API responses
 - ✅ Enhanced test coverage with 4 edge case scenarios
@@ -452,6 +467,7 @@ ALTER TABLE controls_instance_cti
 ### Database Validation Results
 
 **Controls Instance Data**: 184 control instances successfully created and validated
+
 - **Critical Controls**: 77 instances (41.85% of total)
 - **Status Distribution**: CANCELLED: 58, TODO: 43, FAILED: 42, PASSED: 41
 - **Phase Relationships**: 100% properly linked to phase instances

@@ -1,4 +1,4 @@
-*Scope: This document outlines the specific patterns and strategies for implementing our Microservice-Oriented Architecture, based on Chris Richardson's "Microservices Patterns". It builds upon the foundational principles in `04-TwelveFactorApp.md` and provides a detailed guide for service design, decomposition, communication, and data management.*
+_Scope: This document outlines the specific patterns and strategies for implementing our Microservice-Oriented Architecture, based on Chris Richardson's "Microservices Patterns". It builds upon the foundational principles in `04-TwelveFactorApp.md` and provides a detailed guide for service design, decomposition, communication, and data management._
 
 Observe the principles set by the book "Microservices Patterns" by Chris Richardson.
 
@@ -6,7 +6,7 @@ Observe the principles set by the book "Microservices Patterns" by Chris Richard
 
 - [MON] **Monolithic Architecture:** Structures an application as a single, unified deployable unit. Good for simple applications, but becomes "monolithic hell" as complexity grows.
 - [MSA] **Microservice Architecture:** Structures an application as a collection of small, autonomous, and loosely coupled services. This is the core pattern the rest of the book builds upon.
-- [DBC] **Decompose by Business Capability:** Define services based on what a business *does* (e.g., Order Management, Inventory Management) to create stable service boundaries.
+- [DBC] **Decompose by Business Capability:** Define services based on what a business _does_ (e.g., Order Management, Inventory Management) to create stable service boundaries.
 - [DSD] **Decompose by Subdomain:** Use Domain-Driven Design (DDD) to define services around specific problem subdomains, aligning service boundaries with the business domain model.
 - [RPI] **Remote Procedure Invocation:** A client invokes a service using a synchronous, request/response protocol like REST or gRPC. Simple and familiar but creates tight coupling and can reduce availability.
 - [MSG] **Messaging:** Services communicate asynchronously by exchanging messages via a message broker. This promotes loose coupling and improves resilience.
@@ -24,7 +24,7 @@ Observe the principles set by the book "Microservices Patterns" by Chris Richard
 - [CQR] **Command Query Responsibility Segregation (CQRS):** Maintain one or more denormalised, read-optimised "view" databases kept up-to-date by subscribing to events from the services that own the data. Separates the command-side (write) from the query-side (read) model.
 - [APG] **API Gateway:** A single entry point for all external clients. Routes requests to backend services, can perform API composition, and handles cross-cutting concerns like authentication.
 - [BFF] **Backends for Frontends:** A variation of the API Gateway pattern where you have a separate, tailored API gateway for each specific client (e.g., mobile app, web app).
-- [CDC] **Consumer-Driven Contract Test:** A test written by the *consumer* of a service to verify that the *provider* meets its expectations, ensuring correct communication without slow, brittle end-to-end tests.
+- [CDC] **Consumer-Driven Contract Test:** A test written by the _consumer_ of a service to verify that the _provider_ meets its expectations, ensuring correct communication without slow, brittle end-to-end tests.
 - [SCT] **Service Component Test:** Acceptance test for a single service in isolation, using stubs for external dependencies.
 - [SVC] **Service as a Container:** Package a service as a container image (e.g., Docker) to encapsulate its technology stack.
 - [SRL] **Serverless Deployment:** Deploy services using a platform like AWS Lambda that abstracts away the underlying infrastructure.

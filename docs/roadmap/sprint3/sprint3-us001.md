@@ -129,6 +129,7 @@ Plans API - Base Path: /rest/scriptrunner/latest/custom/plans
 ### Request/Response Examples
 
 #### Create Master Plan Template
+
 ```json
 POST /plans/master
 {
@@ -154,6 +155,7 @@ Response: 201 Created
 ```
 
 #### Create Plan Instance from Master
+
 ```json
 POST /plans/instance
 {
@@ -182,6 +184,7 @@ Response: 201 Created
 ## Database Schema
 
 ### Master Table: plans_master_plm
+
 - plm_id (UUID, PK)
 - tms_id (INTEGER, FK → teams_tms)
 - plm_name (VARCHAR 255)
@@ -191,6 +194,7 @@ Response: 201 Created
 - created_by, created_at, updated_by, updated_at
 
 ### Instance Table: plans_instance_pli
+
 - pli_id (UUID, PK)
 - plm_id (UUID, FK → plans_master_plm)
 - ite_id (UUID, FK → iterations_master_itm)
@@ -205,6 +209,7 @@ Response: 201 Created
 ### Core Deliverables Completed
 
 **File**: `/src/groovy/umig/api/v2/PlansApi.groovy` (537 lines)
+
 - ✅ Consolidated API handling both master and instance operations
 - ✅ Path-based routing for `/plans/master/*` and `/plans/instance/*` operations
 - ✅ 11 REST endpoints following StepsApi pattern
@@ -213,6 +218,7 @@ Response: 201 Created
 - ✅ Hierarchical filtering support
 
 **File**: `/src/groovy/umig/repository/PlanRepository.groovy` (451 lines)
+
 - ✅ Canonical-first repository design with 13 data access methods
 - ✅ Master plan operations: findAll, findById, create, update, softDelete
 - ✅ Instance operations: findByFilters, findById, create, update, updateStatus, delete
@@ -222,11 +228,13 @@ Response: 201 Created
 ### Testing Implementation
 
 **Unit Tests**: `/src/groovy/umig/tests/apis/PlansApiUnitTestSimple.groovy`
+
 - ✅ 14 test cases covering all operations
 - ✅ 92% unit coverage with critical path validation
 - ✅ Simplified version without JAX-RS dependencies for ScriptRunner compatibility
 
 **Integration Tests**: `/src/groovy/umig/tests/integration/PlansApiIntegrationTest.groovy`
+
 - ✅ 13 comprehensive test scenarios
 - ✅ 100% integration coverage with full CRUD lifecycle testing
 - ✅ Error handling verification
@@ -235,6 +243,7 @@ Response: 201 Created
 ### Documentation Updates
 
 **OpenAPI Specification**: `/docs/api/openapi.yaml`
+
 - ✅ Plans tag definition added
 - ✅ 11 endpoint specifications with complete documentation
 - ✅ 8 schema definitions (MasterPlan, PlanInstance, etc.)
@@ -244,12 +253,14 @@ Response: 201 Created
 ### Alternative Implementations
 
 **Diagnostic Tools** (Cleaned up post-implementation):
+
 - ✅ PlansApiDirect.groovy - Direct DatabaseUtil implementation for troubleshooting
 - ✅ PlansApiDebug.groovy - Diagnostic version with detailed error reporting
 - ✅ testDatabaseConnection.groovy - Connection pool verification script
 - ✅ ScriptRunnerConnectionPoolSetup.md - Complete setup guide
 
 **Files Removed After Successful Implementation**:
+
 - PlansApiDebug.groovy - Diagnostic version
 - PlansApiDirect.groovy - Alternative implementation attempt
 - PlansApiFixed.groovy - Working prototype
@@ -258,6 +269,7 @@ Response: 201 Created
 ## Key Implementation Patterns
 
 ### Path-Based Routing (StepsApi Pattern)
+
 ```groovy
 def pathParts = getAdditionalPath(request)?.split('/')?.findAll { it } ?: []
 if (pathParts.size() >= 1 && pathParts[0] == 'master') {
@@ -275,6 +287,7 @@ if (pathParts.size() >= 1 && pathParts[0] == 'master') {
 ```
 
 ### Type-Safe Parameter Handling (ADR-031)
+
 ```groovy
 // MANDATORY explicit casting for all query parameters
 if (queryParams.getFirst('migrationId')) {
@@ -286,6 +299,7 @@ if (queryParams.getFirst('teamId')) {
 ```
 
 ### Repository Pattern Implementation
+
 ```groovy
 class PlanRepository {
     // Master Operations
@@ -301,7 +315,7 @@ class PlanRepository {
             """)
         }
     }
-    
+
     // Instance Operations with Hierarchical Joins
     List<Map> findPlanInstancesByFilters(Map filters) {
         DatabaseUtil.withSql { sql ->
@@ -315,29 +329,36 @@ class PlanRepository {
 ## Challenges Resolved
 
 ### 1. Static Type Checking Errors
+
 **Issue**: ScriptRunner reported type checking errors in PlansApi and PlanRepository  
-**Solution**: 
+**Solution**:
+
 - Added explicit type casting for all parameters
 - Built proper Map objects for overrides
 - Cast SQL COUNT results to Long
 - Implemented consistent variable declaration patterns
 
 ### 2. Database Connection Pool Configuration
+
 **Issue**: "No hstore extension installed" error when testing API  
 **Root Cause**: ScriptRunner connection pool not configured  
-**Solution**: 
+**Solution**:
+
 - Created comprehensive ScriptRunnerConnectionPoolSetup.md guide
 - Built diagnostic tools for connection verification
 - Documented proper pool configuration with Podman networking
 
 ### 3. JAX-RS Dependencies in Testing
+
 **Issue**: ScriptRunner test environment limitations with JAX-RS imports  
-**Solution**: 
+**Solution**:
+
 - Created simplified unit test version without JAX-RS dependencies
 - Built alternative testing approaches for ScriptRunner compatibility
 - Maintained full integration test coverage
 
 ### 4. Critical Discovery - ScriptRunner Class Loading
+
 **Issue**: ScriptRunner class loading conflicts with multiple endpoint files  
 **Root Cause**: "No hstore extension installed" error was misleading - actual issue was class loading  
 **Critical Insight**: ScriptRunner requires lazy-loaded repositories to avoid startup conflicts  
@@ -352,6 +373,7 @@ def getPlanRepository = {
 ```
 
 ### 5. ScriptRunner File Management Discovery
+
 **Issue**: Multiple API files with same endpoint name caused conflicts  
 **Learning**: Only one file per endpoint name allowed in ScriptRunner directory  
 **Solution**: Consolidated working solution and removed all diagnostic versions
@@ -359,16 +381,18 @@ def getPlanRepository = {
 ## Deployment Configuration
 
 ### ScriptRunner Connection Pool Setup
+
 ```yaml
 Pool Configuration:
-- Pool Name: umig_db_pool
-- JDBC URL: jdbc:postgresql://postgres:5432/umig_app_db
-- Username: umig_app_user
-- Password: 123456
-- Driver: org.postgresql.Driver
+  - Pool Name: umig_db_pool
+  - JDBC URL: jdbc:postgresql://postgres:5432/umig_app_db
+  - Username: umig_app_user
+  - Password: 123456
+  - Driver: org.postgresql.Driver
 ```
 
 ### File Deployment
+
 1. Upload PlansApi.groovy to ScriptRunner scripts directory
 2. Upload PlanRepository.groovy to repository directory
 3. Clear Groovy class cache in ScriptRunner
@@ -404,17 +428,20 @@ Pool Configuration:
 ## Implementation Metrics & Success Factors
 
 ### Development Velocity
+
 - **Planned Duration**: 8 hours
-- **Actual Duration**: 7.2 hours  
+- **Actual Duration**: 7.2 hours
 - **Efficiency**: 110% (10% faster than planned)
 
 ### Code Quality
+
 - **Repository Size**: 451 lines (13 methods)
-- **API Size**: 537 lines (8 endpoints) 
+- **API Size**: 537 lines (8 endpoints)
 - **Test Coverage**: 92% unit coverage, 100% integration coverage
 - **Error Handling**: Comprehensive SQL state mapping
 
 ### API Completeness
+
 - **Endpoints**: 8 REST endpoints covering all CRUD operations
 - **Filtering**: Multi-level hierarchical filtering (migration/iteration/team/status)
 - **Error Responses**: Complete HTTP status code mapping

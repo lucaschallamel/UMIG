@@ -53,11 +53,11 @@ describe('Instance Data Generator (99_generate_instance_data.js)', () => {
     const mockUsers = { rows: [{ usr_id: 'user-1' }] };
     const mockIterations = { rows: [{ ite_id: 'ite-1', plm_id: 'plm-1' }] };
     const mockStatuses = {
-      plan: { rows: [{ sts_id: 1, sts_name: 'NOT_STARTED' }, { sts_id: 2, sts_name: 'IN_PROGRESS' }] },
-      sequence: { rows: [{ sts_id: 3, sts_name: 'PENDING' }, { sts_id: 4, sts_name: 'ACTIVE' }] },
-      phase: { rows: [{ sts_id: 5, sts_name: 'DRAFT' }, { sts_id: 6, sts_name: 'READY' }] },
-      step: { rows: [{ sts_id: 7, sts_name: 'WAITING' }, { sts_id: 8, sts_name: 'RUNNING' }] },
-      control: { rows: [{ sts_id: 9, sts_name: 'PENDING' }, { sts_id: 10, sts_name: 'PASSED' }] }
+      plan: { rows: [{ sts_id: 1, sts_name: 'PLANNING' }, { sts_id: 2, sts_name: 'IN_PROGRESS' }] },
+      sequence: { rows: [{ sts_id: 3, sts_name: 'PLANNING' }, { sts_id: 4, sts_name: 'IN_PROGRESS' }] },
+      phase: { rows: [{ sts_id: 5, sts_name: 'PLANNING' }, { sts_id: 6, sts_name: 'IN_PROGRESS' }] },
+      step: { rows: [{ sts_id: 7, sts_name: 'PENDING' }, { sts_id: 8, sts_name: 'TODO' }] },
+      control: { rows: [{ sts_id: 9, sts_name: 'TODO' }, { sts_id: 10, sts_name: 'PASSED' }] }
     };
 
     it('should call eraseInstanceDataTables when erase option is true', async () => {

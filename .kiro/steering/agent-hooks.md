@@ -3,7 +3,9 @@
 ## Converting Cline Workflows to Kiro Agent Hooks
 
 ### Existing Workflow Files
+
 Based on the repository map, you have established workflows in `.clinerules/workflows/`:
+
 - `api-tests-specs-update.md`
 - `api-work.md`
 - `commit.md`
@@ -18,25 +20,31 @@ Based on the repository map, you have established workflows in `.clinerules/work
 ### Conversion Strategy
 
 #### Automatic Trigger Hooks
+
 Convert workflows that should run automatically on events:
 
 **File Save Triggers:**
+
 - `api-tests-specs-update.md` → Hook: When API files saved, update tests and OpenAPI specs
 - `data-model.md` → Hook: When database migration files saved, update ERD and documentation
 - `doc-update.md` → Hook: When code files saved, check if documentation needs updates
 
 **Git Event Triggers:**
+
 - `commit.md` → Hook: Before commit, run linting and ensure commit message format
 - `pull-request.md` → Hook: When creating PR, run full test suite and update changelog
 
 **Scheduled/Periodic Triggers:**
+
 - `sprint-review.md` → Hook: Weekly trigger to generate sprint review template
 - `dev-journal.md` → Hook: Daily trigger to prompt for development journal updates
 
 #### Manual Button Hooks
+
 Convert workflows that should be user-initiated:
 
 **Documentation Maintenance:**
+
 - `memory-bank-update.md` → Manual Hook: "Update Memory Bank" button
 - `api-work.md` → Manual Hook: "Generate API Boilerplate" button
 - `kick-off.md` → Manual Hook: "Project Kickoff Checklist" button
@@ -44,6 +52,7 @@ Convert workflows that should be user-initiated:
 ### Hook Implementation Examples
 
 #### Memory Bank Update Hook
+
 ```yaml
 name: "Update Memory Bank"
 trigger: manual
@@ -56,6 +65,7 @@ actions:
 ```
 
 #### API Development Hook
+
 ```yaml
 name: "API Development Workflow"
 trigger: file_save
@@ -69,6 +79,7 @@ actions:
 ```
 
 #### Documentation Sync Hook
+
 ```yaml
 name: "Documentation Sync"
 trigger: file_save
@@ -84,10 +95,12 @@ actions:
 ### Hook Configuration Access
 
 #### Via Command Palette
+
 - Search for "Open Kiro Hook UI" to create new hooks
 - Use "Kiro: Manage Hooks" to edit existing hooks
 
 #### Via Explorer View
+
 - Navigate to "Agent Hooks" section in explorer
 - View current hooks and their status
 - Create new hooks or modify existing ones
@@ -95,12 +108,14 @@ actions:
 ### Hook Best Practices
 
 #### For UMIG Project
+
 - **Database Hooks**: Trigger on Liquibase migration changes
 - **API Hooks**: Trigger on Groovy API file changes
 - **Frontend Hooks**: Trigger on JavaScript/CSS changes in `src/groovy/umig/web/`
 - **Documentation Hooks**: Trigger on significant code changes
 
 #### Hook Design Principles
+
 - **[SF] Simplicity First**: Keep hooks focused on single responsibilities
 - **[AC] Atomic Changes**: Each hook should perform discrete, reversible actions
 - **[REH] Robust Error Handling**: Hooks should gracefully handle failures
@@ -120,11 +135,13 @@ To convert your Cline workflows to Kiro Agent Hooks:
 ### Hook Maintenance
 
 #### Regular Review
+
 - Weekly review of hook effectiveness
 - Monthly cleanup of unused or problematic hooks
 - Quarterly optimization of hook performance
 
 #### Documentation
+
 - Document each hook's purpose and trigger conditions
 - Maintain hook configuration in version control where possible
 - Update team onboarding to include hook usage patterns

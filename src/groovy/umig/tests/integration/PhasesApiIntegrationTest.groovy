@@ -393,7 +393,7 @@ try {
     def updateControlResponse = client.put(
         path: "phases/${testPhaseInstanceId}/controls/${testControlId}",
         body: [
-            cti_status: 'VALIDATED',
+            cti_status: 'PASSED',
             usr_id_it_validator: testUserId.toString()
         ]
     )

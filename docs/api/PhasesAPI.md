@@ -5,6 +5,7 @@
 ---
 
 ## 1. API Overview
+
 - **API Name:** Phases API v2
 - **Purpose:** Manage migration execution phases with control point validation, ordering, progress tracking, and hierarchical filtering
 - **Owner:** UMIG Development Team
@@ -22,65 +23,69 @@ The Phases API provides critical quality gate management for migration execution
 
 ## 2. Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| **Master Phase Management** | | |
-| GET | `/phases/master` | Get all master phases with optional filtering |
-| GET | `/phases/master/{phm_id}` | Get a specific master phase by ID |
-| POST | `/phases/master` | Create a new master phase |
-| PUT | `/phases/master/{phm_id}` | Update an existing master phase |
-| DELETE | `/phases/master/{phm_id}` | Delete a master phase |
-| **Instance Phase Operations** | | |
-| GET | `/phases/instance` | Get all phase instances with hierarchical filtering |
-| GET | `/phases/instance/{phi_id}` | Get a specific phase instance by ID |
-| POST | `/phases/instance` | Create a phase instance from master phase |
-| PUT | `/phases/instance/{phi_id}` | Update an existing phase instance |
-| DELETE | `/phases/instance/{phi_id}` | Delete a phase instance |
-| **Control Points** | | |
-| GET | `/phases/{phi_id}/controls` | Get control points for a phase instance |
-| POST | `/phases/{phi_id}/controls/validate` | Validate all control points for a phase |
-| PUT | `/phases/{phi_id}/controls/{cti_id}` | Update control point status |
-| POST | `/phases/{phi_id}/controls/{cti_id}/override` | Override control point with reason |
-| **Ordering** | | |
-| PUT | `/phases/master/reorder` | Bulk reorder master phases within sequence |
-| PUT | `/phases/instance/reorder` | Bulk reorder phase instances within sequence |
-| POST | `/phases/master/{phm_id}/move` | Move master phase to new position |
-| POST | `/phases/instance/{phi_id}/move` | Move phase instance to new position |
-| **Progress** | | |
-| GET | `/phases/{phi_id}/progress` | Get progress percentage for phase instance |
+| Method                        | Path                                          | Description                                         |
+| ----------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| **Master Phase Management**   |                                               |                                                     |
+| GET                           | `/phases/master`                              | Get all master phases with optional filtering       |
+| GET                           | `/phases/master/{phm_id}`                     | Get a specific master phase by ID                   |
+| POST                          | `/phases/master`                              | Create a new master phase                           |
+| PUT                           | `/phases/master/{phm_id}`                     | Update an existing master phase                     |
+| DELETE                        | `/phases/master/{phm_id}`                     | Delete a master phase                               |
+| **Instance Phase Operations** |                                               |                                                     |
+| GET                           | `/phases/instance`                            | Get all phase instances with hierarchical filtering |
+| GET                           | `/phases/instance/{phi_id}`                   | Get a specific phase instance by ID                 |
+| POST                          | `/phases/instance`                            | Create a phase instance from master phase           |
+| PUT                           | `/phases/instance/{phi_id}`                   | Update an existing phase instance                   |
+| DELETE                        | `/phases/instance/{phi_id}`                   | Delete a phase instance                             |
+| **Control Points**            |                                               |                                                     |
+| GET                           | `/phases/{phi_id}/controls`                   | Get control points for a phase instance             |
+| POST                          | `/phases/{phi_id}/controls/validate`          | Validate all control points for a phase             |
+| PUT                           | `/phases/{phi_id}/controls/{cti_id}`          | Update control point status                         |
+| POST                          | `/phases/{phi_id}/controls/{cti_id}/override` | Override control point with reason                  |
+| **Ordering**                  |                                               |                                                     |
+| PUT                           | `/phases/master/reorder`                      | Bulk reorder master phases within sequence          |
+| PUT                           | `/phases/instance/reorder`                    | Bulk reorder phase instances within sequence        |
+| POST                          | `/phases/master/{phm_id}/move`                | Move master phase to new position                   |
+| POST                          | `/phases/instance/{phi_id}/move`              | Move phase instance to new position                 |
+| **Progress**                  |                                               |                                                     |
+| GET                           | `/phases/{phi_id}/progress`                   | Get progress percentage for phase instance          |
 
 ## 3. Request Details
 
 ### 3.1. Path Parameters
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| phm_id | UUID | Yes (for master endpoints) | Master Phase ID |
-| phi_id | UUID | Yes (for instance endpoints) | Phase Instance ID |
-| cti_id | UUID | Yes (for control endpoints) | Control Point Instance ID |
+| Name   | Type | Required                     | Description               |
+| ------ | ---- | ---------------------------- | ------------------------- |
+| phm_id | UUID | Yes (for master endpoints)   | Master Phase ID           |
+| phi_id | UUID | Yes (for instance endpoints) | Phase Instance ID         |
+| cti_id | UUID | Yes (for control endpoints)  | Control Point Instance ID |
 
 ### 3.2. Query Parameters
 
 #### GET /phases/master
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| sequenceId | UUID | No | Filter master phases by sequence master ID |
+
+| Name       | Type | Required | Description                                |
+| ---------- | ---- | -------- | ------------------------------------------ |
+| sequenceId | UUID | No       | Filter master phases by sequence master ID |
 
 #### GET /phases/instance
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| migrationId | UUID | No | Filter phase instances by migration ID |
-| iterationId | UUID | No | Filter phase instances by iteration ID |
-| planInstanceId | UUID | No | Filter phase instances by plan instance ID |
-| sequenceInstanceId | UUID | No | Filter phase instances by sequence instance ID |
-| teamId | Integer | No | Filter phase instances by team ID |
-| statusId | Integer | No | Filter phase instances by status ID |
+
+| Name               | Type    | Required | Description                                    |
+| ------------------ | ------- | -------- | ---------------------------------------------- |
+| migrationId        | UUID    | No       | Filter phase instances by migration ID         |
+| iterationId        | UUID    | No       | Filter phase instances by iteration ID         |
+| planInstanceId     | UUID    | No       | Filter phase instances by plan instance ID     |
+| sequenceInstanceId | UUID    | No       | Filter phase instances by sequence instance ID |
+| teamId             | Integer | No       | Filter phase instances by team ID              |
+| statusId           | Integer | No       | Filter phase instances by status ID            |
 
 ### 3.3. Request Body Schemas
 
 #### POST /phases/master - Create Master Phase
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "sqm_id": "UUID string (required)",
@@ -90,7 +95,9 @@ The Phases API provides critical quality gate management for migration execution
   "predecessor_phm_id": "UUID string (optional)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "sqm_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -102,8 +109,10 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### PUT /phases/master/{phm_id} - Update Master Phase
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "phm_name": "string (optional)",
@@ -111,7 +120,9 @@ The Phases API provides critical quality gate management for migration execution
   "predecessor_phm_id": "UUID string (optional)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "phm_name": "Pre-Migration Validation and Verification",
@@ -120,8 +131,10 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### POST /phases/instance - Create Phase Instance
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "phm_id": "UUID string (required)",
@@ -133,7 +146,9 @@ The Phases API provides critical quality gate management for migration execution
   "predecessor_phi_id": "UUID string (optional)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "phm_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -145,8 +160,10 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### PUT /phases/instance/{phi_id} - Update Phase Instance
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "phi_name": "string (optional)",
@@ -158,7 +175,9 @@ The Phases API provides critical quality gate management for migration execution
   "phi_end_time": "timestamp (optional)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "phi_status": 6,
@@ -167,8 +186,10 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### PUT /phases/{phi_id}/controls/{cti_id} - Update Control Point
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "cti_status": "integer (optional, FK to status_sts)",
@@ -176,7 +197,9 @@ The Phases API provides critical quality gate management for migration execution
   "usr_id_biz_validator": "integer (optional)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "cti_status": "validated",
@@ -186,15 +209,19 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### POST /phases/{phi_id}/controls/{cti_id}/override - Override Control Point
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "reason": "string (optional, default: 'Override requested')",
   "overrideBy": "string (optional, default: 'system')"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "reason": "Emergency override due to critical system requirements",
@@ -203,8 +230,10 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### PUT /phases/master/reorder - Bulk Reorder Master Phases
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "sequenceId": "UUID string (required)",
@@ -214,7 +243,9 @@ The Phases API provides critical quality gate management for migration execution
   }
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "sequenceId": "123e4567-e89b-12d3-a456-426614174000",
@@ -227,8 +258,10 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### PUT /phases/instance/reorder - Bulk Reorder Phase Instances
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "sequenceInstanceId": "UUID string (required)",
@@ -240,14 +273,18 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### POST /phases/master/{phm_id}/move - Move Master Phase
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "newOrder": "integer (required)"
 }
 ```
+
 - **Example:**
+
 ```json
 {
   "newOrder": 3
@@ -255,8 +292,10 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### POST /phases/instance/{phi_id}/move - Move Phase Instance
+
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "newOrder": "integer (required)"
@@ -268,9 +307,11 @@ The Phases API provides critical quality gate management for migration execution
 ### 4.1. Success Responses
 
 #### GET /phases/master - List Master Phases
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 [
   {
@@ -287,9 +328,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### GET /phases/master/{phm_id} - Get Master Phase Details
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "phm_id": "UUID string",
@@ -306,9 +349,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### GET /phases/instance - List Phase Instances
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 [
   {
@@ -329,9 +374,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### GET /phases/instance/{phi_id} - Get Phase Instance Details
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "phi_id": "UUID string",
@@ -352,9 +399,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### GET /phases/{phi_id}/controls - Get Control Points
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 [
   {
@@ -375,9 +424,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### POST /phases/{phi_id}/controls/validate - Validate Control Points
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "phi_id": "UUID string",
@@ -397,9 +448,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### GET /phases/{phi_id}/progress - Get Phase Progress
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "phi_id": "UUID string",
@@ -408,29 +461,35 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### POST /phases/master - Create Master Phase
+
 - **Status Code:** 201
 - **Content-Type:** application/json
 - **Schema:** Same as GET /phases/master/{phm_id}
 
 #### POST /phases/instance - Create Phase Instance
+
 - **Status Code:** 201
 - **Content-Type:** application/json
 - **Schema:** Same as GET /phases/instance/{phi_id}
 
 #### PUT /phases/master/{phm_id} - Update Master Phase
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:** Same as GET /phases/master/{phm_id}
 
 #### PUT /phases/instance/{phi_id} - Update Phase Instance
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:** Same as GET /phases/instance/{phi_id}
 
 #### DELETE /phases/master/{phm_id} - Delete Master Phase
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "success": true,
@@ -439,9 +498,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### DELETE /phases/instance/{phi_id} - Delete Phase Instance
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "success": true,
@@ -450,9 +511,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### PUT /phases/{phi_id}/controls/{cti_id} - Update Control Point
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "success": true,
@@ -461,9 +524,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### POST /phases/{phi_id}/controls/{cti_id}/override - Override Control Point
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "success": true,
@@ -472,9 +537,11 @@ The Phases API provides critical quality gate management for migration execution
 ```
 
 #### Reordering and Movement Operations
+
 - **Status Code:** 200
 - **Content-Type:** application/json
 - **Schema:**
+
 ```json
 {
   "success": true,
@@ -484,27 +551,29 @@ The Phases API provides critical quality gate management for migration execution
 
 ### 4.2. Error Responses
 
-| Status Code | Content-Type | Schema | Example | Description |
-|-------------|--------------|--------|---------|-------------|
-| 400 | application/json | {"error": "string"} | {"error": "Invalid UUID format"} | Invalid UUID format, missing required fields, or invalid data format |
-| 404 | application/json | {"error": "string"} | {"error": "Master phase not found"} | Resource not found |
-| 409 | application/json | {"error": "string"} | {"error": "Cannot delete phase with dependencies"} | Constraint violation, deletion conflicts |
-| 500 | application/json | {"error": "string"} | {"error": "Database error"} | Internal server error |
+| Status Code | Content-Type     | Schema              | Example                                            | Description                                                          |
+| ----------- | ---------------- | ------------------- | -------------------------------------------------- | -------------------------------------------------------------------- |
+| 400         | application/json | {"error": "string"} | {"error": "Invalid UUID format"}                   | Invalid UUID format, missing required fields, or invalid data format |
+| 404         | application/json | {"error": "string"} | {"error": "Master phase not found"}                | Resource not found                                                   |
+| 409         | application/json | {"error": "string"} | {"error": "Cannot delete phase with dependencies"} | Constraint violation, deletion conflicts                             |
+| 500         | application/json | {"error": "string"} | {"error": "Database error"}                        | Internal server error                                                |
 
 ## 5. Authentication & Authorization
+
 - **Required?** Yes
 - **Mechanism:** Confluence Basic Authentication
 - **Permissions:** confluence-users
 - **Groups:** confluence-users group membership required for all endpoints
 
 ## 6. Rate Limiting & Security
+
 - **Rate Limits:** None specified
 - **RLS (Row-Level Security):** No
-- **Input Validation:** 
+- **Input Validation:**
   - UUID format validation for all ID parameters
   - Type safety with explicit casting (ADR-031)
   - JSON format validation for request bodies
-- **Other Security Considerations:** 
+- **Other Security Considerations:**
   - SQL injection prevention via parameterized queries
   - Foreign key constraint validation
   - Cascade deletion protection
@@ -514,11 +583,13 @@ The Phases API provides critical quality gate management for migration execution
 The Phases API supports deep hierarchical filtering using instance IDs:
 
 ### 7.1. Filtering Strategy
+
 - **Use Instance IDs:** Always filter using `pli_id`, `sqi_id`, `phi_id` (NOT master IDs)
 - **Cascading Filters:** Each level filters down the hierarchy
 - **Complete Context:** Include ALL fields referenced in result mapping
 
 ### 7.2. Filter Combinations
+
 ```bash
 # Filter phases by migration
 GET /phases/instance?migrationId=123e4567-e89b-12d3-a456-426614174000
@@ -529,7 +600,7 @@ GET /phases/instance?migrationId=123e4567-e89b-12d3-a456-426614174000&iterationI
 # Filter phases by plan instance
 GET /phases/instance?planInstanceId=456e7890-e12c-23d4-b567-537625285111
 
-# Filter phases by sequence instance  
+# Filter phases by sequence instance
 GET /phases/instance?sequenceInstanceId=789abc12-f34e-45f6-c890-648736396222
 
 # Combined filtering with team and status
@@ -541,18 +612,21 @@ GET /phases/instance?planInstanceId=456e7890-e12c-23d4-b567-537625285111&teamId=
 Control points provide automated quality gates for phase execution:
 
 ### 8.1. Control Point States
+
 - **PENDING:** Awaiting validation
 - **VALIDATED:** Successfully validated by required validators
 - **FAILED:** Validation failed, blocking phase progress
 - **OVERRIDDEN:** Manually overridden with documented reason
 
 ### 8.2. Validation Types
+
 - **AUTOMATED:** System-validated through automated checks
 - **MANUAL_IT:** Requires IT team manual validation
 - **MANUAL_BUSINESS:** Requires business team manual validation
 - **DUAL_APPROVAL:** Requires both IT and business validation
 
 ### 8.3. Override Process
+
 1. **Attempt Validation:** POST `/phases/{phi_id}/controls/validate`
 2. **Identify Blockers:** Review failed control points in response
 3. **Request Override:** POST `/phases/{phi_id}/controls/{cti_id}/override` with detailed reason
@@ -561,6 +635,7 @@ Control points provide automated quality gates for phase execution:
 ### 8.4. Workflow Examples
 
 #### Standard Validation Flow
+
 ```bash
 # 1. Get control points for phase
 GET /phases/789abc12-f34e-45f6-c890-648736396222/controls
@@ -577,6 +652,7 @@ PUT /phases/789abc12-f34e-45f6-c890-648736396222/controls/456def78-g90h-56i7-j23
 ```
 
 #### Emergency Override Flow
+
 ```bash
 # 1. Attempt validation (fails due to blocking control)
 POST /phases/789abc12-f34e-45f6-c890-648736396222/controls/validate
@@ -592,11 +668,13 @@ POST /phases/789abc12-f34e-45f6-c890-648736396222/controls/456def78-g90h-56i7-j2
 ## 9. Integration with Sequences API
 
 ### 9.1. Relationship
+
 - **Parent-Child:** Phases belong to sequence instances via `sqi_id`
 - **Filtering Integration:** Use sequence instance IDs for hierarchical filtering
 - **Dependency Chain:** Sequences → Phases → Steps hierarchy
 
 ### 9.2. Cross-API Operations
+
 ```bash
 # 1. Get sequence instance
 GET /sequences-instance/987fcdeb-51a2-43d1-9c45-123456789abc
@@ -617,18 +695,21 @@ POST /phases/instance
 All endpoints implement explicit type casting for parameters:
 
 ### 10.1. UUID Parameters
+
 ```groovy
 def phaseId = UUID.fromString(pathParts[0] as String)
 def sequenceId = UUID.fromString(requestData.sequenceId as String)
 ```
 
 ### 10.2. Integer Parameters
+
 ```groovy
 def teamId = Integer.parseInt(filters.teamId as String)
 def newOrder = Integer.parseInt(requestData.newOrder as String)
 ```
 
 ### 10.3. String Parameters
+
 ```groovy
 def phaseName = requestData.phm_name as String
 def description = requestData.phm_description as String
@@ -639,35 +720,41 @@ def description = requestData.phm_description as String
 ### 11.1. Key Business Logic
 
 #### Master Phase Management
+
 - **Hierarchy**: Master phases belong to sequence masters (sqm_id)
 - **Ordering**: phm_order field maintains sequence within a sequence master
 - **Predecessors**: predecessor_phm_id creates dependency chains
 - **Templates**: Master phases serve as templates for instance creation
 
 #### Phase Instance Operations
+
 - **Instance Creation**: Created from master phases with optional field overrides
 - **Hierarchical Filtering**: Progressive filtering through migration → iteration → plan instance → sequence instance → phase instance hierarchy
 - **Status Management**: Instance-specific status tracking (pending, in_progress, completed, etc.)
 - **Timing**: Start/end time tracking for execution monitoring
 
 #### Control Points Management
+
 - **Validation Gates**: Control points act as validation gates for phase progression
 - **Dual Validation**: Both IT and business validator assignments
 - **Override Capability**: Emergency override with reason and audit trail
 - **Status Tracking**: Individual control point status management
 
 #### Ordering Operations
+
 - **Bulk Reordering**: Efficient reordering of multiple phases within scope
 - **Individual Moves**: Single phase repositioning with automatic order adjustment
 - **Dependency Preservation**: Ordering operations respect predecessor relationships
 - **Scope Isolation**: Ordering operations isolated to specific sequence (master or instance)
 
 #### Progress Tracking
+
 - **Calculation**: Progress based on completed steps within phase
 - **Real-time**: Dynamic calculation based on current step statuses
 - **Percentage**: Returns 0-100 percentage completion
 
 ### 11.2. Side Effects
+
 - **Database State**: All POST/PUT/DELETE operations modify database state
 - **Cascade Operations**: Deletions may trigger cascade operations on dependent entities
 - **Order Adjustment**: Move operations may adjust order of other phases
@@ -675,6 +762,7 @@ def description = requestData.phm_description as String
 - **Control Validation**: Control point updates may trigger phase status changes
 
 ### 11.3. Idempotency
+
 - **GET Operations**: Yes - safe and idempotent
 - **PUT Operations**: Yes - same data produces same result
 - **POST Operations**: No - creates new resources
@@ -684,12 +772,14 @@ def description = requestData.phm_description as String
 ## 12. Ordering and Dependencies
 
 ### 12.1. Order Management
+
 - **Phase Order:** Sequential execution within sequences (`phm_order`, `phi_order`)
 - **Predecessor Relationships:** Optional predecessor dependencies
 - **Bulk Reordering:** Efficient reordering of multiple phases
 - **Individual Moves:** Single phase repositioning
 
 ### 12.2. Dependency Rules
+
 - **Predecessor Validation:** Cannot start phase until predecessor completes
 - **Circular Dependency Prevention:** System prevents circular predecessor chains
 - **Order Consistency:** Order values maintained consistently during reordering
@@ -697,6 +787,7 @@ def description = requestData.phm_description as String
 ### 12.3. Reordering Examples
 
 #### Bulk Reorder Master Phases
+
 ```bash
 PUT /phases/master/reorder
 {
@@ -710,6 +801,7 @@ PUT /phases/master/reorder
 ```
 
 #### Move Single Phase Instance
+
 ```bash
 POST /phases/instance/789abc12-f34e-45f6-c890-648736396222/move
 {
@@ -720,12 +812,15 @@ POST /phases/instance/789abc12-f34e-45f6-c890-648736396222/move
 ## 13. Progress Tracking
 
 ### 13.1. Progress Calculation
+
 Phase progress is calculated based on:
+
 - **Control Point Status:** Percentage of validated control points
 - **Step Completion:** Percentage of completed steps within phase
 - **Time Progress:** Actual vs. planned execution time
 
 ### 13.2. Progress API Usage
+
 ```bash
 # Get current phase progress
 GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
@@ -740,11 +835,13 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 ## 14. Error Handling
 
 ### 14.1. SQL Error Mapping
+
 - **23503 (Foreign Key):** 400 Bad Request - Invalid reference
 - **23505 (Unique Violation):** 409 Conflict - Duplicate entry
 - **23514 (Check Constraint):** 400 Bad Request - Invalid data
 
 ### 14.2. Common Error Scenarios
+
 - **Invalid UUID:** 400 Bad Request with format error
 - **Missing Dependencies:** 404 Not Found for referenced entities
 - **Constraint Violations:** 409 Conflict for business rule violations
@@ -752,6 +849,7 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 ## 15. Best Practices
 
 ### 15.1. API Usage
+
 1. **Always use instance IDs** for hierarchical filtering
 2. **Validate control points** before phase progression
 3. **Document override reasons** thoroughly for audit compliance
@@ -759,12 +857,14 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 5. **Check progress regularly** during phase execution
 
 ### 15.2. Error Recovery
+
 1. **Retry transient errors** with exponential backoff
 2. **Validate prerequisites** before creating phase instances
 3. **Handle constraint violations** gracefully with user feedback
 4. **Log override actions** for compliance and troubleshooting
 
 ### 15.3. Performance Optimization
+
 1. **Use specific filters** to reduce data transfer
 2. **Batch control point updates** when possible
 3. **Cache master phase data** for repeated instance creation
@@ -773,33 +873,40 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 ## 16. Dependencies & Backing Services
 
 ### 16.1. Database Tables/Entities
+
 **Primary Tables:**
+
 - `phases_master_phm` - Master phase templates
 - `phases_instance_phi` - Phase instances
 
 **Relationship Tables:**
+
 - `sequences_master_sqm` - Parent sequence masters
 - `sequences_instance_sqi` - Parent sequence instances
 - `control_points_instance_cti` - Control points for phases
 - `steps_instance_sti` - Step instances within phases
 
 **Hierarchy Tables:**
+
 - `plans_instance_pli` - Plan instances (parent of sequence instances)
 - `plans_master_plm` - Plan masters (parent of sequence masters)
 - `iterations_ite` - Iterations (parent of plan instances)
 - `migrations_mig` - Migrations (top-level hierarchy)
 
 **Support Tables:**
+
 - `users_usr` - User validation assignments
 - `teams_tem` - Team assignments
 - `statuses` - Status definitions
 
 ### 16.2. External Services
+
 - **DatabaseUtil**: Connection management and transaction handling
 - **PhaseRepository**: Data access layer abstraction
 - **None**: No external API dependencies
 
 ## 17. Versioning & Deprecation
+
 - **API Version:** V2
 - **Backward Compatibility:** Maintains compatibility with established V2 patterns
 - **Deprecation Policy:** Follow project deprecation guidelines
@@ -808,14 +915,16 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 ## 18. Testing & Mock Data
 
 ### 18.1. Testing Strategy
+
 - **Unit Tests:** Repository layer testing with SQL mocks
 - **Integration Tests:** End-to-end API testing with test database
 - **Error Scenarios:** Comprehensive error condition testing
 - **Performance Tests:** Load testing for bulk operations
 
 ### 18.2. Mock Data
+
 - **Synthetic Data**: Data generators create realistic phase hierarchies
-- **Test Scenarios**: 
+- **Test Scenarios**:
   - 5 migrations with 30 iterations
   - 5 plan instances per iteration
   - 13 sequences per plan → 43 phases per sequence
@@ -826,16 +935,19 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 ## 19. Performance Considerations
 
 ### 19.1. Query Optimization
+
 - **Hierarchical Filtering**: Optimized query paths for filtering operations
 - **Bulk Operations**: Efficient batch processing for reordering operations
 - **Index Usage**: Proper indexing on UUID foreign keys and order fields
 
 ### 19.2. Scalability
+
 - **Pagination**: Consider implementing pagination for large phase lists
 - **Caching**: Repository-level caching for frequently accessed master phases
 - **Batch Size**: Optimal batch sizes for bulk reordering operations
 
 ### 19.3. Resource Management
+
 - **Connection Pooling**: DatabaseUtil manages connection lifecycle
 - **Transaction Scope**: Appropriate transaction boundaries for operations
 - **Memory Usage**: Efficient handling of large phase hierarchies
@@ -843,12 +955,14 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 ## 20. Integration Patterns
 
 ### 20.1. Frontend Integration
+
 - **CRUD Operations**: Standard Create, Read, Update, Delete patterns
 - **Real-time Updates**: Phase status changes trigger UI refreshes
 - **Drag-and-Drop**: Reordering operations support UI drag-and-drop
 - **Progress Visualization**: Progress endpoints support progress bars and dashboards
 
 ### 20.2. Workflow Integration
+
 - **Status Transitions**: Phase status changes trigger workflow events
 - **Control Validation**: Control point validation integrates with approval workflows
 - **Notification**: Phase completion triggers notification workflows

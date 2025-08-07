@@ -869,7 +869,7 @@ class StepRepository {
                         ID: stepCode,
                         Name: stepMaster.stm_name,
                         Description: stepMaster.stm_description,
-                        Status: 'NOT_STARTED',
+                        Status: 'PENDING',
                         AssignedTeam: ownerTeam?.tms_name ?: 'Unassigned'
                     ],
                     instructions: [],

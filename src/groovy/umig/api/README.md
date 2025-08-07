@@ -1,6 +1,7 @@
 # API Coding Patterns (UMIG)
 
 ## Instructions API Pattern (2025-08-05)
+
 - Complete instruction template and execution management system with 14 REST endpoints
 - Implements hierarchical filtering across all entity levels: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`, `?stepId=`
 - **TEMPLATE-BASED ARCHITECTURE**: Master/instance pattern supporting instruction templates with execution instances
@@ -13,6 +14,7 @@
 - **CRITICAL**: Uses instance IDs (stm_id, phi_id, sqi_id, pli_id) for hierarchical filtering, not master IDs
 
 ## Sequences API Pattern (2025-07-31)
+
 - Complete CRUD implementation with advanced ordering functionality following established patterns
 - Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?planId=` support
 - **ORDERING LOGIC**: Advanced sequence ordering with gap handling, resequencing, and circular dependency detection
@@ -23,6 +25,7 @@
 - **CRITICAL**: Uses instance IDs (pli_id, sqi_id) for filtering, not master IDs (plm_id, sqm_id)
 
 ## Plans API Pattern (2025-07-31)
+
 - Complete CRUD implementation for Plans API following established patterns
 - Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?teamId=` support
 - **TYPE SAFETY**: Mandatory explicit casting patterns `UUID.fromString(filters.migrationId as String)`
@@ -32,6 +35,7 @@
 - **CRITICAL**: Uses instance IDs (pli_id) for filtering, not master IDs (plm_id)
 
 ## Step View API Pattern (2025-07-17)
+
 - Standalone step view API for retrieving individual step instance data
 - Implements three-parameter lookup: `?migrationName=xxx&iterationName=xxx&stepCode=XXX-nnn`
 - **UNIQUE PATTERN**: Uses migration/iteration names + step code for unique identification across all migrations
@@ -40,6 +44,7 @@
 - Supports both master step data and instance execution tracking
 
 ## Applications API Pattern (2025-07-15)
+
 - Extended Applications API with label association management endpoints
 - Implemented GET /applications/{id}/labels, PUT /applications/{appId}/labels/{labelId}, DELETE /applications/{appId}/labels/{labelId}
 - Added label_count to listing responses via LEFT JOIN on labels_lbl_x_applications_app table
@@ -47,6 +52,7 @@
 - Handle duplicate key errors gracefully for association endpoints with proper 409 Conflict responses
 
 ## Environments API Pattern (2025-07-15)
+
 - Complete REST API implementation for environments with full CRUD operations
 - Association management endpoints for applications and iterations with role-based relationships
 - **IMPORTANT**: Remove @Field annotations and avoid Logger imports in ScriptRunner REST endpoints
@@ -54,6 +60,7 @@
 - Handle many-to-many associations with proper POST/DELETE endpoints
 
 ## Hierarchical Filtering and Type Safety (2025-07-10)
+
 - All hierarchical filtering endpoints support query parameters: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`
 - **MANDATORY**: Use explicit type casting for all parameter conversions: `UUID.fromString(id as String)`, `Integer.parseInt(id as String)`
 - **CRITICAL**: Use instance IDs (pli_id, sqi_id, phi_id) for filtering, NOT master IDs (plm_id, sqm_id, phm_id)
@@ -61,6 +68,7 @@
 - Handle many-to-many relationships gracefully with try-catch blocks for optional data
 
 ## Teams Membership Robustness (2025-07-02)
+
 - All membership endpoints (`PUT`/`DELETE /teams/{teamId}/users/{userId}`) enforce robust existence checks for both team and user.
 - Duplicate associations are prevented; removal is idempotent and returns 404 if the user is not a member.
 - Clear, actionable error messages and RESTful status codes are returned for all cases.
@@ -99,6 +107,7 @@ For a step-by-step guide, see the [api-work.md workflow](../../../../.clinerules
     ```
 
 ## Mandatory Structure Example
+
 ```groovy
 // src/com/umig/api/v2/UsersApi.groovy
 package com.umig.api.v2
@@ -143,5 +152,6 @@ users(httpMethod: "DELETE", groups: ["confluence-administrators"]) { Multivalued
 ```
 
 ## See Also
+
 - [ADR-023: Standardized REST API Implementation Patterns](../../../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md)
 - [Repository Pattern Guidelines](../repository/README.md)

@@ -8,8 +8,9 @@ agents: gendev-requirementsanalyst, gendev-userstorygenerator, gendev-systemarch
 AI-enhanced systematic approach to analyze, scope, and plan user story implementation with comprehensive technical design and task breakdown using 14 specialized GENDEV agents.
 
 ## Prerequisites
+
 - User story identifier (e.g., US-004)
-- High-level story description  
+- High-level story description
 - Sprint context and timeline
 - Access to existing patterns and documentation
 - GENDEV agent ecosystem activated
@@ -17,6 +18,7 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 ## UMIG-Specific Patterns
 
 ### Core Patterns
+
 - **ScriptRunner API**: `@BaseScript CustomEndpointDelegate` with lazy loading
 - **Repository**: 13-25+ methods with `DatabaseUtil.withSql` wrapper
 - **Hierarchical Filtering**: Instance IDs with UUID casting (ADR-030)
@@ -30,52 +32,64 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 ### Planning Steps
 
 **1. Requirements Analysis** (gendev-requirementsanalyst + gendev-userstorygenerator)
+
 - Analyze business requirements and constraints
 - Clarify ambiguities and define success criteria
 
 **2. User Story Elaboration** (gendev-userstorygenerator + gendev-testsuitegenerator)
+
 - Create detailed story with acceptance criteria
 - Define GIVEN/WHEN/THEN scenarios and edge cases
 
 **3. Technical Architecture** (gendev-systemarchitect + gendev-securityspecialist)
+
 - Design system architecture and component interactions
 - Security validation and performance considerations
 
 **4. API Design** (gendev-apidesigner + gendev-securityspecialist)
+
 - Design RESTful endpoints following UMIG patterns
 - Define schemas with hierarchical filtering
 
 **5. Data Architecture** (gendev-dataarchitect + gendev-databaseschemadesigner)
+
 - Design data models and relationships
 - Plan data flow and transformation requirements
 
 **6. Database Schema** (gendev-databaseschemadesigner + gendev-performanceoptimizer)
+
 - Create schema with UMIG audit fields and MASTER/INSTANCE pattern
 - Design indexes and Liquibase migration procedures
 
 **7. Dependency Analysis** (gendev-dependencymanager + gendev-systemarchitect)
+
 - Identify technical and business dependencies
 - Analyze impact and resolution strategies
 
 **8. Test Strategy** (gendev-testsuitegenerator + gendev-securityspecialist)
+
 - Design comprehensive test strategy with ADR-026 patterns
 - Plan unit, integration, security, and performance tests
 
 **9. Project Planning** (gendev-projectplanner + gendev-projectorchestrator)
+
 - Break down work and estimate effort
 - Create timeline with milestones and risk mitigation
 
 **10. Work Orchestration** (gendev-projectorchestrator + gendev-codereviewer)
+
 - Coordinate resources and implementation sequence
 - Monitor progress and facilitate collaboration
 
 **11. Documentation Planning** (gendev-documentationgenerator + gendev-apidesigner)
+
 - Plan documentation strategy and OpenAPI specifications
 - Coordinate technical and API documentation
 
 ## AI-Enhanced Integration & Quality Assurance
 
 ### Cross-Agent Validation Points
+
 **Agents**: gendev-codereviewer, gendev-securityspecialist, gendev-performanceoptimizer
 
 - **Security Review**: gendev-securityspecialist validates all API endpoints, data models, and access patterns
@@ -86,6 +100,7 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 ## Deliverables Checklist
 
 ### Technical Specifications
+
 - [ ] Requirements analysis (gendev-requirementsanalyst)
 - [ ] Detailed user story (gendev-userstorygenerator)
 - [ ] Technical architecture (gendev-systemarchitect)
@@ -95,6 +110,7 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 - [ ] Dependency analysis (gendev-dependencymanager)
 
 ### Implementation Plan
+
 - [ ] Task breakdown (gendev-projectplanner)
 - [ ] Effort estimates (gendev-requirementsanalyst)
 - [ ] Implementation sequence (gendev-projectorchestrator)
@@ -103,6 +119,7 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 - [ ] Risk mitigation (gendev-systemarchitect)
 
 ### Quality Assurance Plan
+
 - [ ] Unit test specifications (gendev-testsuitegenerator)
 - [ ] Integration scenarios (gendev-testsuitegenerator)
 - [ ] Performance criteria (gendev-performanceoptimizer)
@@ -110,6 +127,7 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 - [ ] Code review standards (gendev-codereviewer)
 
 ### Documentation Plan
+
 - [ ] API documentation (gendev-documentationgenerator)
 - [ ] Code documentation (gendev-documentationgenerator)
 - [ ] Architecture docs (gendev-systemarchitect)
@@ -126,6 +144,7 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 ## AI-Enhanced Quality Gates
 
 Before proceeding to implementation:
+
 - [ ] Technical specs validated by gendev-systemarchitect and gendev-codereviewer
 - [ ] Dependencies resolved by gendev-dependencymanager
 - [ ] Test strategy approved by gendev-testsuitegenerator

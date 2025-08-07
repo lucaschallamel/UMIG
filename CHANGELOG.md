@@ -1,6 +1,7 @@
 ### [Unreleased]
 
 #### 2025-08-06 (Documentation Synchronization: US-006b Status Field Normalization ADR-035)
+
 - **Documentation(Architecture):** Comprehensive documentation synchronization for US-006b Status Field Normalization
   - Verified ADR-035 numbering consistency across solution-architecture.md and CHANGELOG.md
   - Confirmed chronological ADR sequence: ADR-034 (Static Type Checking Patterns) → ADR-035 (Status Field Normalization, US-006b)
@@ -13,6 +14,7 @@
   - Updated sprint3-us006b.md references to reflect correct ADR-035 designation
 
 #### 2025-08-06 (US-006b Recovery: Status Field Normalization Implementation Restored)
+
 - **Recovery(US-006b):** Successfully recovered Status Field Normalization implementation from commit a4cc184
   - Recovered 8 critical API and repository files accidentally reverted in commit 7056d21
   - ControlsApi.groovy: Full INTEGER FK status implementation with validation
@@ -34,6 +36,7 @@
   - Remaining work identified: Admin GUI components and API response enhancements
 
 #### 2025-08-06 (Documentation Synchronization: Sprint Renaming and Status Updates)
+
 - **Documentation(Sprint Organization):** Comprehensive sprint renaming and documentation synchronization
   - Renamed all Sprint 0 references to Sprint 3 throughout project documentation reflecting accurate chronological history
   - Migrated complete documentation structure from `/docs/roadmap/sprint0/` to `/docs/roadmap/sprint3/`
@@ -53,6 +56,7 @@
   - Enhanced technical implementation patterns with post-review improvements and quality enhancements
 
 #### 2025-08-06 (Post-Review Improvements: Controls API Performance and Quality Enhancements)
+
 - **Enhancement(Performance):** Repository performance optimization with centralized filter validation
   - Added `validateFilters` method in ControlRepository for batch parameter casting and validation
   - Implemented intelligent type detection using pattern matching for UUID, Integer, and String fields
@@ -70,6 +74,7 @@
   - Enhanced validation testing for null validator IDs and empty control sets
 
 #### 2025-08-06 (US-005: Controls API Implementation Complete)
+
 - **Feature(Controls API):** Complete control point and quality gate management system implementation (US-005)
   - Implemented 20 comprehensive REST endpoints providing full CRUD operations for control masters and instances
   - Created ControlsApi.groovy with hierarchical filtering across all entity levels (migration→iteration→plan→sequence→phase)
@@ -97,6 +102,7 @@
   - Ensured bracket notation for Map property access throughout codebase
 
 #### 2025-08-05 (Groovy 3.0.15 Static Type Checking Compatibility Improvements)
+
 - **Enhancement(Type Safety):** Comprehensive static type checking compatibility improvements across API and repository layers
   - Fixed dynamic property access patterns in PhasesApi.groovy, LabelRepository.groovy, and StepRepository.groovy
   - Resolved method signature mismatches and undeclared variable issues in TeamsApi.groovy and UsersApi.groovy
@@ -120,6 +126,7 @@
   - Documented technical implementation patterns and benefits achieved
 
 #### 2025-08-05 (US-004: Instructions API Implementation Complete)
+
 - **Feature(Instructions API):** Complete instruction template and execution management system implementation (US-004)
   - Implemented 14 comprehensive REST endpoints providing full CRUD operations for instruction masters and instances
   - Created InstructionsApi.groovy with hierarchical filtering across all entity levels (migration→iteration→plan→sequence→phase→step)
@@ -147,6 +154,7 @@
   - Implemented comprehensive work orchestration and documentation plan for Instructions API development
 
 #### 2025-08-04 (US-003: Phases API Endpoint Consolidation Refactoring)
+
 - **Refactoring(API Architecture):** Major endpoint consolidation for consistent developer experience
   - Consolidated all Phases API endpoints under single `phases` entry point with path-based routing
   - Migrated from fragmented endpoints (`phasesmaster`, `phasesinstance`, `phases`) to unified structure
@@ -167,6 +175,7 @@
   - Maintained 100% test coverage across all refactored endpoints
 
 #### 2025-08-04 (US-003: Phases API with Control Point System Complete)
+
 - **Feature(Phases API):** Complete quality gate management system implementation (US-003)
   - Implemented 21 comprehensive REST endpoints providing full CRUD operations for master/instance phases
   - Created PhasesApi.groovy (939 lines) with hierarchical filtering (migration→iteration→plan→sequence→phase)
@@ -202,6 +211,7 @@
   - Implemented type safety compliance throughout with explicit casting patterns
 
 #### 2025-08-04 (US-002b: Database Audit Fields Standardization Complete)
+
 - **Database(Audit Fields):** Comprehensive audit fields standardization across entire system (US-002b)
   - Added standardized audit fields (created_by, created_at, updated_by, updated_at) to all 25+ database tables
   - Implemented tiered association audit strategy based on business criticality:
@@ -229,6 +239,7 @@
   - Updated solution-architecture.md with comprehensive audit compliance patterns
 
 #### 2025-07-31 (US002: Sequences API with Ordering Complete)
+
 - **Feature(Sequences API):** Complete CRUD implementation with ordering functionality (US002)
   - Implemented SequencesApi.groovy with 12 comprehensive REST endpoints
   - Added SequenceRepository.groovy with 25 methods including full CRUD and ordering operations
@@ -246,6 +257,7 @@
   - Confirmed hierarchical filtering accuracy across all relationship levels
 
 #### 2025-07-31 (US001: Plans API Foundation Complete)
+
 - **Feature(Plans API):** Completed full CRUD implementation for Plans API (US001)
   - Implemented PlansApi.groovy with all standard endpoints (GET, POST, PUT, DELETE)
   - Added comprehensive hierarchical filtering support (migrationId, iterationId, teamId)
@@ -262,6 +274,7 @@
   - Updated architectural patterns and critical development rules
 
 #### 2025-07-17 (Standalone Step View Implementation & Iteration View Enhancements)
+
 - **Feature(Step View):** Implemented standalone step view macro for displaying individual steps
   - Created new stepViewMacro.groovy that accepts URL parameters: ?mig=xxx&ite=xxx&stepid=XXX-nnn
   - Modified stepViewApi.groovy to accept migration name, iteration name, and step code for unique identification
@@ -290,6 +303,7 @@
   - Regenerated Postman collection with new endpoint
 
 #### 2025-07-17 (Environment Generation Rules & Data Quality Improvements)
+
 - **Fix(Environment Generator):** Implemented strict iteration type rules for environment assignments
   - Ensures every iteration has all 3 roles (PROD, TEST, BACKUP) assigned
   - RUN and DR iterations never use PROD environment, only EV1-EV5
@@ -316,6 +330,7 @@
   - checkEnvironmentAssociations.sql - Manual SQL queries for troubleshooting
 
 #### 2025-07-17 (Workflow-Driven Development & Documentation)
+
 - **Workflow(Development):** Executed systematic development workflows
   - Kick-off workflow: Reviewed project state and identified next priorities
   - Memory bank update: Synchronised context files with latest achievements
@@ -328,6 +343,7 @@
   - techContext.md: Enhanced proven patterns section
 
 #### 2025-07-16 (Architecture Documentation Consolidation & Code Cleanup)
+
 - **Documentation(Solution Architecture):** Major consolidation of architectural decisions
   - Consolidated 7 new ADRs (027-033) into the main solution-architecture.md document
   - Updated document to reflect all 33 architectural decisions (26 previously archived + 7 newly consolidated)
@@ -350,6 +366,7 @@
   - ADR-033 (Role-Based Access Control Implementation)
 
 #### 2025-07-16 (Enhanced Iteration View with Role-Based Access Control)
+
 - **Feat(Role-Based Access Control):** Implemented comprehensive user permission system
   - Added NORMAL (read-only), PILOT (operational), and ADMIN (full access) role definitions
   - Confluence user context integration with automatic role detection
@@ -403,6 +420,7 @@
   - Enhanced instruction row styling for completion states
 
 #### 2025-07-16 (Status Management System & UI Fixes)
+
 - **Feat(Database):** Implemented centralized status management system
   - Created status_sts table with sts_id, sts_name, sts_color, and sts_type columns
   - Pre-populated 31 status values across 7 entity types (Migration, Iteration, Plan, Sequence, Phase, Step, Control)
@@ -410,7 +428,7 @@
   - Migration 015_remove_fields_from_steps_instance_and_add_status_table.sql with proper rollback support
 - **Refactor(Steps Instance):** Cleaned up redundant fields from steps_instance_sti
   - Removed usr_id_owner field (owner is at master level only)
-  - Removed usr_id_assignee field (assignee is at master level only)  
+  - Removed usr_id_assignee field (assignee is at master level only)
   - Removed enr_id_target field (replaced with proper enr_id field)
 - **Enhancement(Data Generation):** Updated all data generators to use status_sts table
   - Modified 001_generate_core_metadata.js to populate status_sts table on initialization
@@ -424,7 +442,7 @@
   - Status counters now accurately reflect: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
 - **Fix(Iteration View):** Resolved Teams dropdown regression showing "UNNAMED" values
   - Updated TeamRepository hierarchical filtering methods to return normalized field names
-  - Changed all findTeamsBy* methods to transform database fields (tms_id→id, tms_name→name)
+  - Changed all findTeamsBy\* methods to transform database fields (tms_id→id, tms_name→name)
   - Fixed JavaScript populateFilter function compatibility with expected field names
   - Resolved teamId=undefined errors in API calls
 - **Enhancement(Testing):** Updated test suite for new status management
@@ -441,6 +459,7 @@
   - Documented email notification integration triggers for status changes
 
 #### 2025-07-16 (Environment Role Association for Steps)
+
 - **Feat(Database):** Added environment role association to steps tables
   - Added enr_id column to steps_master_stm table with foreign key to environment_roles_enr
   - Added enr_id column to steps_instance_sti table with foreign key to environment_roles_enr
@@ -457,6 +476,7 @@
   - Added comprehensive implementation status tracking and next steps
 
 #### 2025-07-16 (Email Notification System Implementation - Complete)
+
 - **Feat(Email Notifications):** Production-ready email notification system with full template management and integration
   - Successfully implemented complete email notification workflow with Confluence native mail API
   - Added comprehensive error handling for template processing and email delivery
@@ -487,6 +507,7 @@
   - Updated ADR reference list to include ADR-032 for email notification architecture
 
 #### 2025-07-16 (Email Notification System Implementation)
+
 - **Feat(Email Notifications):** Complete email notification system with template management
   - Added EmailService class with support for step opened, instruction completed, and status change notifications
   - Implemented EmailTemplateRepository for CRUD operations on email templates
@@ -526,6 +547,7 @@
   - Implemented error handling and fallback mechanisms for email delivery
 
 #### 2025-07-16 (Labels Admin GUI Implementation)
+
 - **Feat(Labels):** Complete Labels admin interface with full CRUD functionality
   - Added Labels to admin navigation with proper data source configuration
   - Implemented comprehensive LabelRepository with CRUD operations and dynamic update support
@@ -559,6 +581,7 @@
   - Added loading states and disabled states for better feedback
 
 #### 2025-07-15 (Applications Label Management)
+
 - **Feat(Applications):** Complete Labels association management in Admin GUI
   - Added label_count column to Applications listing showing association counts
   - Implemented Labels display in VIEW modal with colored tag visualization
@@ -578,6 +601,7 @@
   - Labels now properly display with their associated colors in both VIEW and EDIT modals
 
 #### 2025-07-15 (Teams Association Management and Modal Consistency)
+
 - **Feat(Teams):** Complete Teams association management in Admin GUI
   - Implemented Teams VIEW modal with user and application associations display
   - Added Teams EDIT modal with comprehensive association management capabilities
@@ -617,6 +641,7 @@
   - Resolved modal not displaying by using correct DOM insertion method
 
 #### 2025-07-15 (Custom Confirmation Dialog Pattern for Environment Management)
+
 - **Fix(UI):** Resolved critical confirmation dialog flickering issue in environment association management
   - Implemented custom Promise-based confirmation dialog system replacing native `confirm()` function
   - Fixed issue where native confirm dialogs would flicker and disappear immediately in modal contexts
@@ -633,6 +658,7 @@
   - Documented benefits including elimination of UI flickering and reliable event handling
 
 #### 2025-01-15 (API Documentation and OpenAPI Updates)
+
 - **Docs(API):** Created comprehensive UsersAPI.md specification
   - Documented all 5 endpoints with detailed request/response schemas
   - Added query parameter documentation for pagination, filtering, and sorting
@@ -653,6 +679,7 @@
   - All request bodies match the actual database schema
 
 #### 2025-07-15 (Admin GUI Bug Fixes and UX Improvements)
+
 - **Fix(UI):** Resolved multiple critical issues in Admin GUI functionality
   - Fixed View modal to display ALL user attributes instead of just ID/timestamps
   - Corrected Edit modal error messages - now shows "Update" errors instead of "Create"
@@ -690,6 +717,7 @@
   - Enhanced error handling and type safety throughout
 
 #### 2025-07-15 (Environments Management for Admin GUI - Enhanced)
+
 - **Feat(Repository):** Created comprehensive EnvironmentRepository for environment data management
   - Implemented full CRUD operations for environments with proper error handling
   - Added methods to retrieve application and iteration counts with SQL aggregation
@@ -723,6 +751,7 @@
   - Added support for many-to-many relationship management through intuitive UI
 
 #### 2025-07-14 (Admin GUI System and Enhanced Error Handling)
+
 - **Feat(UI):** Complete Admin GUI system implementation with SPA pattern
   - Created comprehensive administration interface for managing users, teams, applications, environments
   - Implemented full CRUD operations with modal forms and dynamic table rendering
@@ -751,9 +780,10 @@
   - Improved table column sorting with proper database field mapping
 
 #### 2025-07-10 (Hierarchical Filter Cascade and Labels Implementation)
+
 - **Fix(API/Repository):** Resolved critical filtering and type system issues in iteration view
   - Fixed Teams filter HTTP 400 error by correcting field reference (`sti.tms_id_owner` → `stm.tms_id_owner`) and UUID parsing for INTEGER team IDs
-  - Fixed Labels filter HTTP 400 error by correcting UUID parsing for INTEGER label IDs  
+  - Fixed Labels filter HTTP 400 error by correcting UUID parsing for INTEGER label IDs
   - Fixed StepRepository master vs instance ID filtering (plm_id→pli_id, sqm_id→sqi_id, phm_id→phi_id)
   - Added missing `stm.stm_id` field to SELECT query to resolve "No such property" errors
   - Implemented proper Groovy static type checking with explicit casting (`filters.migrationId as String`)
@@ -772,6 +802,7 @@
   - Regenerated Postman collection from updated OpenAPI spec following api-tests-specs-update workflow
 
 #### 2025-07-09 (GitHub Actions Integration and Steps Display)
+
 - **CI/CD:** Added GitHub Actions workflows for Claude Code integration
   - Created claude-code-review.yml for automated code review assistance
   - Added claude.yml for PR assistant functionality
@@ -781,6 +812,7 @@
   - Improved API error handling and data validation
 
 #### 2025-07-09 (Hierarchical Filtering for Teams and Labels)
+
 - **Feat(API/UI):** Implemented cascading hierarchical filtering for Teams and Labels in Iteration View.
   - Enhanced TeamRepository with 5 new filtering methods (by migration, iteration, plan, sequence, and phase).
   - Created LabelRepository with hierarchical filtering capabilities for all levels.
@@ -799,6 +831,7 @@
 ### [Unreleased]
 
 #### 2025-07-04 (Data Generation Pipeline Refactor)
+
 - **Fix(Data Generation):** Resolved instance data inheritance issues by refactoring the data generation pipeline.
   - Reordered generators: renamed `101_generate_instructions.js` to `098_generate_instructions.js` to ensure master data exists before instance creation.
   - Fixed schema type mismatch in `instructions_instance_ini.tms_id` (changed from UUID to INTEGER).
@@ -808,6 +841,7 @@
 - **Docs(ADR):** Documented the architectural decision for full attribute instantiation in instance tables.
 
 #### 2025-07-04 (Iteration View Macro/API Dynamic Data)
+
 - **Feat(Macro/API):** Iteration View macro now dynamically loads migrations from the new REST API, using a robust repository pattern and ScriptRunner-compatible DB access.
   - Created `MigrationRepository.groovy` for encapsulated migration data access.
   - Refactored `migrationApi.groovy` to call the repository and return JSON, with robust error handling.
@@ -815,4 +849,3 @@
   - Updated `iteration-view.js` to fetch migrations from `/rest/scriptrunner/latest/custom/migrations` and handle loading, error, and empty states gracefully.
 - **Docs(API):** Added/updated API specifications for migrations in `docs/api/migrationApi.md`.
 - **Pattern:** Established a reusable pattern for all future macros: UI selectors are populated via REST API and JS, not hardcoded in Groovy.
-

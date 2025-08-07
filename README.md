@@ -214,17 +214,20 @@ UMIG/
 ### Environment Setup
 
 1. **Initial Setup**:
+
    ```bash
    cd local-dev-setup
    npm install
    ```
 
 2. **Start Development Environment**:
+
    ```bash
    npm start
    ```
 
 3. **Generate Test Data**:
+
    ```bash
    npm run generate-data
    ```
@@ -247,6 +250,7 @@ When the development environment is running:
 After starting Confluence for the first time:
 
 #### 1. Database Connection (ScriptRunner)
+
 1. Navigate to **Confluence Administration** → **ScriptRunner** → **Resources**
 2. Add a new **Database Connection Pool**:
    - **Pool Name**: `umig_db_pool`
@@ -256,6 +260,7 @@ After starting Confluence for the first time:
    - **Password**: `123456`
 
 #### 2. Mail Server (Email Notifications)
+
 1. Navigate to **⚙️ Settings** → **General Configuration** → **Mail Servers**
 2. Add SMTP Mail Server:
    - **Name**: `MailHog Local Development`
@@ -367,6 +372,7 @@ UMIG employs a **Canonical vs Instance** pattern:
 All admin interfaces follow a standardized pattern:
 
 **Backend (Groovy)**:
+
 ```groovy
 @BaseScript CustomEndpointDelegate delegate
 
@@ -377,6 +383,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 ```
 
 **Frontend (Vanilla JS)**:
+
 - Single JS file per entity
 - Dynamic rendering of list/detail/edit views
 - No page reloads, seamless navigation
@@ -399,6 +406,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Migration API**: Core functionality with proper error handling
 
 ### ✅ Recently Completed (August 2025)
+
 - **Controls API Implementation**: Complete control point and quality gate management system (August 6, 2025)
   - **20 REST Endpoints**: Full CRUD operations for control masters and instances following phase-level architecture (ADR-016)
   - **ControlsApi.groovy**: Comprehensive API implementation with hierarchical filtering across all entity levels
@@ -446,6 +454,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
   - Achieved 100% test coverage (74 tests passing) with full audit field compliance
 
 ### ✅ Recently Completed (July 2025)
+
 - **Plans API Implementation**: Complete CRUD operations with hierarchical filtering (July 31, 2025)
   - Full REST API endpoints for plans management
   - Type-safe parameter handling with explicit casting (ADR-031)
@@ -502,6 +511,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
   - Real-time step dropdown filtering based on selected migration
 
 #### Admin GUI System (July 15-16, 2025)
+
 - **Complete Admin Interface**: Full SPA-based administration system for managing users, teams, applications, environments, and labels
 - **Enhanced Association Management**: Complete many-to-many relationship management for all entities
 - **Labels Management**: Full CRUD with color-coded tags, migration-scoped filtering, and dynamic step associations
@@ -511,6 +521,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Active User Filtering**: Support for filtering active/inactive users in team member dropdowns
 
 #### Iteration View Enhancements (July 10, 2025)
+
 - **Hierarchical Filter Cascade**: Complete parent-child reset logic across Migration → Iteration → Plan → Sequence → Phase → Teams + Labels
 - **Labels Column Integration**: Colored label tags displayed in runsheet between Team and Status
 - **Groovy Type Safety**: Comprehensive patterns for static type checking and error prevention
@@ -534,6 +545,7 @@ The **Step View** is a standalone macro for embedding individual step interfaces
 - **API Backend**: `src/groovy/umig/api/v2/stepViewApi.groovy`
 
 **Key Features (2025-07-17)**:
+
 - **Three-Parameter URL Support**: `?mig=migrationName&ite=iterationName&stepid=XXX-nnn`
 - **Feature Parity**: All iteration view step panel capabilities
 - **Role-Based Controls**: NORMAL (read-only), PILOT (operational), ADMIN (full access)
@@ -542,6 +554,7 @@ The **Step View** is a standalone macro for embedding individual step interfaces
 - **Email Notifications**: Automatic notifications on status changes
 
 **Example Usage**:
+
 ```
 http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001
 ```
@@ -556,6 +569,7 @@ The **Iteration View** is the primary runsheet interface for cutover events:
 - **Current Pattern**: Iteration View macro dynamically loads migration data from `/migrations` API
 
 **Dynamic Data Pattern (2025-07-04)**:
+
 - The Iteration View macro loads migration selector data dynamically via REST API
 - No hardcoded options - all data loaded via REST and JavaScript
 - Strict separation of concerns for maintainability and testability

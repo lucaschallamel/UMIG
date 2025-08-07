@@ -28,23 +28,27 @@ Leverages GENDEV agents for AI-enhanced pull requests with comprehensive validat
 ### 1. AI-Enhanced Pre-Pull Request Preparation
 
 #### 1.1 Code Quality Analysis
+
 ```bash
 # Use Code Reviewer for comprehensive analysis
 /gd:code-reviewer --review_depth=comprehensive --severity_threshold=medium --compliance_framework=enterprise
 ```
 
 **Quality Checks:**
+
 ```bash
 npm run lint && npm run format && npm test && npm audit
 ```
 
 #### 1.2 Documentation Enhancement
+
 ```bash
 # Use Documentation Generator for comprehensive docs
 /gd:documentation-generator --doc_type=comprehensive --audience_level=developer --format_style=markdown
 ```
 
 #### 1.3 Security Validation
+
 ```bash
 # Use Security Architect for security review
 /gd:security-architect --architecture_focus=application --security_model=zero-trust --compliance_level=enterprise
@@ -58,12 +62,14 @@ npm run lint && npm run format && npm test && npm audit
 ### 2. AI-Enhanced Pull Request Creation
 
 #### 2.1 PR Description Generation
+
 ```bash
 # Use Content Creator for PR description generation
 /gd:content-creator --content_type=technical --audience_level=developer --tone=professional
 ```
 
 #### 2.2 Testing Validation
+
 ```bash
 # Use Test Suite Generator for comprehensive testing
 /gd:test-suite-generator --test_types=unit,integration,e2e --coverage_target=95
@@ -72,12 +78,14 @@ npm run lint && npm run format && npm test && npm audit
 ### 3. AI-Assisted Review Process
 
 #### 3.1 Review Assignment
+
 ```bash
 # Use Team Coordinator for optimal reviewer assignment
 /gd:team-coordinator --coordination_scope=review --team_size=medium
 ```
 
 #### 3.2 Review Assistance
+
 ```bash
 # Use QA Coordinator for review quality assurance
 /gd:qa-coordinator --qa_scope=comprehensive --automation_level=high
@@ -94,9 +102,11 @@ npm run lint && npm run format && npm test && npm audit
 
 ```markdown
 ## Summary
+
 [AI-generated description]
 
 ## Changes
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Breaking change
@@ -105,6 +115,7 @@ npm run lint && npm run format && npm test && npm audit
 - [ ] Security
 
 ## Checklist
+
 - [ ] Code style validated
 - [ ] Tests added/updated
 - [ ] Documentation updated
@@ -113,12 +124,14 @@ npm run lint && npm run format && npm test && npm audit
 ```
 
 ## Success Metrics
+
 - 70% faster reviews
 - 80% fewer bugs
 - 95% security detection
 - 99% documentation completeness
 
 ## Tips
+
 1. Use AI agents early
 2. Comprehensive testing
 3. Security first
@@ -139,30 +152,36 @@ npm run lint && npm run format && npm test && npm audit
 ## Scope Analysis
 
 **Branch Analysis:**
+
 - Run `git log <base_branch>..HEAD --stat --oneline`
 - Categorize commits by type (feat, fix, docs, etc.)
 
 **File Impact:**
+
 - Run `git diff <base_branch>..HEAD --name-status`
 - Group by functional area (API, UI, docs, tests, config)
 
 **Work Streams:**
+
 - Identify primary and secondary work streams
 - Note dependencies between changes
 
 ## Narrative Synthesis
 
 **Context Analysis:**
+
 - Review dev journal entries and tickets
 - Articulate problem/solution for each work stream
 - Explain business impact and scope evolution
 
 **Technical Implementation:**
+
 - Describe overall approach and architectural decisions
 - Detail changes by work stream (API, UI, docs, DB, config, tests)
 - Explain technical decisions and patterns
 
 **Integration:**
+
 - Note how work streams integrate
 - Document breaking changes and migration paths
 - Identify future implications
@@ -170,18 +189,21 @@ npm run lint && npm run format && npm test && npm audit
 ## Review Instructions
 
 **Testing by Work Stream:**
+
 - **API**: Provide curl commands, examples, edge cases
 - **UI**: Step-by-step flows, screenshots, scenarios
 - **Database**: Migration steps, verification queries
 - **Config**: Setup verification, environment variables
 
 **Focus Areas:**
+
 - Code quality and complex logic
 - Security considerations
 - Performance impacts
 - Compatibility concerns
 
 **Verification:**
+
 - Functional testing requirements
 - Integration testing steps
 - Edge case scenarios

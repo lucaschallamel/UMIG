@@ -7,6 +7,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 ### Step 1: Intelligent Change Analysis
 
 **Use `gendev-documentation-generator` for comprehensive change assessment:**
+
 ```bash
 /gd:documentationgenerator --analysis_type=change_impact --scope=project_wide --focus=documentation_requirements
 ```
@@ -18,6 +19,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 ### Step 2: Architecture Documentation Management
 
 **Use `gendev-system-architect` for architecture updates:**
+
 ```bash
 /gd:systemarchitect --documentation_type=architecture --scope=solution_design --focus=primary_reference
 ```
@@ -29,6 +31,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 ### Step 3: ADR Management with AI
 
 **Use `gendev-business-process-analyst` for ADR assessment:**
+
 ```bash
 /gd:businessprocessanalyst --analysis_type=decision_requirements --scope=architectural_decisions --focus=adr_necessity
 ```
@@ -40,6 +43,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 ### Step 4: Comprehensive Documentation Updates
 
 **Use `gendev-documentation-generator` for systematic updates:**
+
 ```bash
 /gd:documentationgenerator --update_type=comprehensive --scope=all_documentation --focus=consistency
 ```
@@ -52,6 +56,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 ### Step 5: Quality Assurance and Validation
 
 **Use `gendev-qa-coordinator` for comprehensive validation:**
+
 ```bash
 /gd:qacoordinator --validation_type=documentation_quality --scope=comprehensive --focus=accuracy_consistency
 ```

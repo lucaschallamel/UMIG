@@ -74,7 +74,7 @@ class ControlsApiUnitTest {
         def mockSql = [
             rows: { query, params -> 
                 return [
-                    [cti_id: UUID.randomUUID(), cti_status: 'VALIDATED', cti_is_critical: true],
+                    [cti_id: UUID.randomUUID(), cti_status: 'PASSED', cti_is_critical: true],
                     [cti_id: UUID.randomUUID(), cti_status: 'PASSED', cti_is_critical: false],
                     [cti_id: UUID.randomUUID(), cti_status: 'FAILED', cti_is_critical: true],
                     [cti_id: UUID.randomUUID(), cti_status: 'PENDING', cti_is_critical: false]
@@ -90,12 +90,11 @@ class ControlsApiUnitTest {
         def progress = repository.calculatePhaseControlProgress(phaseId)
         
         assert progress['totalControls'] == 4
-        assert progress['validatedControls'] == 1
-        assert progress['passedControls'] == 1
+        assert progress['passedControls'] == 2
         assert progress['failedControls'] == 1
         assert progress['pendingControls'] == 1
         assert progress['criticalControls'] == 2
-        assert progress['progressPercentage'] == 50.0 // (1 validated + 1 passed) / 4 total
+        assert progress['progressPercentage'] == 50.0 // 2 passed / 4 total
         println "✅ calculatePhaseControlProgress() test passed"
     }
     
@@ -111,7 +110,7 @@ class ControlsApiUnitTest {
             },
             executeUpdate: { query, params ->
                 updateCalled = true
-                assert params.cti_status == 'VALIDATED'
+                assert params.cti_status == 'PASSED'
                 assert params.usr_id_it_validator == 1
                 assert params.cti_id == controlId
                 return 1
@@ -124,7 +123,7 @@ class ControlsApiUnitTest {
         
         def repository = new ControlRepository()
         def validationData = [
-            cti_status: 'VALIDATED',
+            cti_status: 'PASSED',
             usr_id_it_validator: 1,
             usr_id_biz_validator: 2
         ]
@@ -234,7 +233,7 @@ class ControlsApiUnitTest {
         def mockSql = [
             rows: { query, params -> 
                 return [
-                    [cti_id: UUID.randomUUID(), cti_status: 'VALIDATED', cti_is_critical: true],
+                    [cti_id: UUID.randomUUID(), cti_status: 'PASSED', cti_is_critical: true],
                     [cti_id: UUID.randomUUID(), cti_status: 'PASSED', cti_is_critical: true],
                     [cti_id: UUID.randomUUID(), cti_status: 'FAILED', cti_is_critical: false],
                     [cti_id: UUID.randomUUID(), cti_status: 'PENDING', cti_is_critical: false],
@@ -275,7 +274,7 @@ class ControlsApiUnitTest {
             executeUpdate: { query, params ->
                 updateCalled = true
                 // Verify null values are handled properly
-                assert params.cti_status == 'VALIDATED'
+                assert params.cti_status == 'PASSED'
                 assert params.usr_id_it_validator == null // null validator
                 assert params.usr_id_biz_validator == null // null validator
                 return 1
@@ -288,7 +287,7 @@ class ControlsApiUnitTest {
         
         def repository = new ControlRepository()
         def validationData = [
-            cti_status: 'VALIDATED',
+            cti_status: 'PASSED',
             usr_id_it_validator: null,
             usr_id_biz_validator: null
         ]
