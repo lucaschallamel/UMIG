@@ -52,7 +52,7 @@
 
 ## Checkpoint Validation Criteria
 
-### Every 2-Hour Checkpoint Must Validate:
+### Every 2-Hour Checkpoint Must Validate
 
 #### 1. Code Quality Gates ✅
 
