@@ -2,7 +2,7 @@
 
 **Sprint**: Sprint 4 - API Modernization & Dashboard Sprint  
 **Duration**: August 7-13, 2025 (5 working days)  
-**Total Story Points**: 30 points (5 completed, 25 planned)  
+**Total Story Points**: 33 points (5 completed, 28 planned)  
 **Sprint Goal**: Modernize critical APIs and deliver Main Dashboard with UI enhancements
 
 **✅ Sprint 4 Progress**: 
@@ -10,13 +10,72 @@
 - Critical data model consistency issue resolved
 - All integration tests passing with normalized status implementation
 
-**📋 Sprint 4 Committed Scope** (25 points remaining):
+**📋 Sprint 4 Committed Scope** (28 points remaining):
+- US-032: Confluence Upgrade v9.2.7 & ScriptRunner 9.21.0 (3 points) - Day 2 🚨 URGENT
 - US-024: StepsAPI Refactoring (5 points) - Days 2-3
 - US-025: MigrationsAPI Refactoring (3 points) - Days 2-3  
 - US-031: Admin GUI Complete Integration (8 points) - Days 3-4
 - US-028: Enhanced IterationView (3 points) - Day 4
 - US-022: Integration Test Suite Expansion (3 points) - Day 5
 - US-030: API Documentation Completion (3 points) - Day 5
+
+---
+
+## Epic 6: Infrastructure & Platform Stability
+
+### US-032: Confluence Upgrade to v9.2.7 & ScriptRunner 9.21.0 🚨 URGENT
+
+**As a** system administrator  
+**I want** to upgrade our Confluence environment to v9.2.7 and ScriptRunner to 9.21.0  
+**So that** UMIG continues to function properly on the updated platform with security patches and compatibility
+
+**Acceptance Criteria:**
+
+- [ ] **Pre-Upgrade Assessment Complete**
+  - [ ] Document current Confluence and ScriptRunner versions
+  - [ ] Complete system backup of UMIG configuration and data
+  - [ ] Review ScriptRunner 9.21.0 release notes and compatibility
+  - [ ] Identify potential breaking changes affecting UMIG
+  - [ ] Establish baseline functionality test results
+
+- [ ] **Development Environment Upgraded Successfully**
+  - [ ] Update local-dev-setup Confluence container to v9.2.7
+  - [ ] Install ScriptRunner 9.21.0 in development environment
+  - [ ] Verify all UMIG API endpoints function correctly (25+ endpoints)
+  - [ ] Validate database connections and Liquibase migrations
+  - [ ] Confirm Admin GUI functionality across all modules
+
+- [ ] **Code Compatibility Validated**
+  - [ ] Verify Groovy 3.0.15 compatibility with ScriptRunner 9.21.0
+  - [ ] Test REST API endpoint patterns using CustomEndpointDelegate
+  - [ ] Validate DatabaseUtil.withSql connection patterns
+  - [ ] Confirm macro implementations work correctly
+  - [ ] Test EmailService functionality and SMTP integration
+  - [ ] Verify security group configurations ("confluence-users")
+
+- [ ] **Comprehensive Testing Completed**
+  - [ ] All integration tests passing (25+ test files)
+  - [ ] Manual testing of critical user workflows
+  - [ ] Performance validation - no regression from upgrade
+  - [ ] Data integrity verification - no data loss or corruption
+  - [ ] Security configuration validation
+
+- [ ] **Documentation Updated**
+  - [ ] Update local-dev-setup README with new version requirements
+  - [ ] Document any configuration changes discovered
+  - [ ] Update deployment and installation instructions
+  - [ ] Create upgrade troubleshooting guide
+  - [ ] Note any breaking changes for future reference
+
+**Technical Notes:**
+
+- **Critical Path**: This upgrade must be completed successfully before other Sprint 4 development can proceed safely
+- **Risk Level**: HIGH - Platform changes can affect core UMIG functionality
+- **Rollback Plan**: Complete system backup allows rollback if upgrade fails
+- **Dependencies**: All subsequent Sprint 4 work depends on stable upgraded platform
+
+**Story Points:** 3 (Medium complexity, high criticality)  
+**Status:** 🚨 URGENT - Day 2 Priority
 
 ---
 
@@ -523,11 +582,12 @@
 
 ## Story Point Estimation
 
-### Sprint 4 Committed Stories (30 points total)
+### Sprint 4 Committed Stories (33 points total)
 
 | Story  | Description | Complexity | Points | Status | Day |
 | ------ | ----------- | ---------- | ------ | ------ | --- |
 | US-017 | Status Field Normalization | High | 5 | ✅ COMPLETED | Day 1 |
+| US-032 | Confluence Upgrade v9.2.7 & ScriptRunner 9.21.0 | Medium | 3 | 🚨 URGENT | Day 2 |
 | US-024 | StepsAPI Refactoring | High | 5 | 📋 COMMITTED | Days 2-3 |
 | US-025 | MigrationsAPI Refactoring | Medium | 3 | 📋 COMMITTED | Days 2-3 |
 | US-031 | Admin GUI Complete Integration | High | 8 | 📋 COMMITTED | Days 3-4 |
@@ -535,7 +595,7 @@
 | US-022 | Integration Test Suite | Medium | 3 | 📋 COMMITTED | Day 5 |
 | US-030 | API Documentation | Low | 3 | 📋 COMMITTED | Day 5 |
 
-**Sprint 4 Total:** 30 points (5 completed + 25 committed)
+**Sprint 4 Total:** 33 points (5 completed + 28 committed)
 
 ### Deferred to Sprint 5
 
