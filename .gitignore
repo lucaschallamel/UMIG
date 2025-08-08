@@ -162,3 +162,7 @@ tmp/lint/
 
 # Crush AI assistant
 .crush/
+
+# Backup files (prevent accidental commit of large backup archives)
+**/local-dev-setup_confluence_data.tar.gz
+**/local-dev-setup_postgres_data.tar.gz

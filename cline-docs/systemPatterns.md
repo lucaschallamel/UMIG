@@ -48,6 +48,18 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 - **Dev Environment Orchestration:** Node.js-based orchestration (ADR-025) replaces shell scripts for the local development environment.
 - **Modular Frontend Architecture:** JavaScript applications are built with modular architecture (8-module pattern) replacing monolithic approaches.
 - **Documentation Standards:** Comprehensive API documentation with OpenAPI specifications and generated Postman collections ensure consistency.
+- **Infrastructure Consolidation Pattern (US-032):** Function-based organization over tool-based organization established
+  - **Centralized Structure:** All infrastructure tools consolidated under `local-dev-setup/infrastructure/`
+  - **Function-Based Organization:** backup/, upgrade/, maintenance/ directories organized by operational purpose
+  - **Enterprise Backup System:** 7-script comprehensive system with SHA256 verification preventing silent failures
+  - **Testing Framework Integration:** 5-dimensional validation (Database, API, UI, Data Integrity, Permissions)
+  - **Zero-Downtime Upgrade:** Proven Stream A methodology for platform upgrades with comprehensive validation
+- **Enterprise Operational Patterns:** Production-ready operational excellence established
+  - **Silent Failure Detection:** Proactive validation and verification of critical operational systems
+  - **Backup Verification Layer:** SHA256 checksums for all backup artifacts with integrity validation
+  - **Risk-First Approach:** Enterprise backup system created before executing critical platform changes
+  - **Comprehensive Testing:** Multi-dimensional test framework embedded in operational workflows
+  - **Documentation Synchronization:** All documentation updated to prevent knowledge drift and operational confusion
 - **Architecture Documentation:** All 33 ADRs consolidated into solution-architecture.md as single source of truth.
 - **Instructions API Pattern:** Template-based instruction management (US-004, 5 August 2025)
   - **Template Architecture:** Master/instance pattern supporting instruction templates with execution instances

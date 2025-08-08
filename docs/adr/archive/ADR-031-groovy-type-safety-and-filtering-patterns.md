@@ -85,6 +85,7 @@ During the implementation of hierarchical filtering and labels integration in th
 ### Error Handling Patterns
 
 1. **Graceful Label Fetching**: Handle label fetching errors without breaking API responses
+
    ```groovy
    try {
        def stmId = step.stmId instanceof UUID ? step.stmId : UUID.fromString(step.stmId.toString())

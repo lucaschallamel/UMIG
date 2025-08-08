@@ -7,7 +7,7 @@
 **Priority:** HIGH (Days 3-4)  
 **Points:** 8 (Complex)  
 **Status:** Not Started  
-**Created:** August 8, 2025  
+**Created:** August 8, 2025
 
 ---
 
@@ -22,19 +22,23 @@ So that **I can efficiently manage migrations, plans, steps, labels, application
 ## Background and Current State Analysis
 
 ### Current Implementation Status
+
 The UMIG Admin GUI has been established as a Single Page Application (SPA) using vanilla JavaScript and AUI components. The foundation is solid with a modular architecture already in place.
 
 **✅ Completed Entities (Fully Operational):**
+
 - **Users Management:** Complete CRUD operations with role-based access
 - **Teams Management:** Full functionality with member/application counts
 - **Environments Management:** Complete with association tracking
 - **Plans Master/Instance:** Configured with full lifecycle management
 
 **🔄 Partially Configured Entities:**
+
 - **Sequences Master/Instance:** Basic configuration exists but needs completion
 - **Phases Master/Instance:** Basic configuration exists but needs completion
 
 **❌ Missing Entities (High Priority):**
+
 - **Applications:** Critical for team-application associations
 - **Labels:** Essential for step/application/control categorization
 - **Migrations:** Core entity for cutover event management
@@ -44,7 +48,9 @@ The UMIG Admin GUI has been established as a Single Page Application (SPA) using
 - **Audit Logs:** System activity tracking (view-only)
 
 ### Architecture Foundation
+
 The existing SPA architecture provides:
+
 - **Entity Configuration Pattern:** Standardized field definitions, table columns, and sort mappings
 - **API Integration Layer:** RESTful client with error handling and authentication
 - **Role-Based Security:** SUPERADMIN, ADMIN, PILOT permission levels
@@ -52,6 +58,7 @@ The existing SPA architecture provides:
 - **State Management:** Centralized application state with real-time updates
 
 ### Technical Context
+
 - **Sprint 3 API Modernization:** Plans, Sequences, Phases, Instructions, and Controls APIs have been modernized
 - **Sprint 4 Refactoring:** Steps and Migrations APIs are being refactored for consistency
 - **Database Schema:** All entities follow standardized audit field patterns (ADR-034)
@@ -62,6 +69,7 @@ The existing SPA architecture provides:
 ## Detailed Acceptance Criteria
 
 ### AC-1: Applications Entity Integration
+
 **Given** I am a System Administrator with SUPERADMIN privileges,  
 **When** I navigate to the Applications section in the Admin GUI,  
 **Then** I should be able to:
@@ -74,12 +82,14 @@ The existing SPA architecture provides:
 - **Bulk Operations** for multiple application management
 
 **Technical Requirements:**
+
 - Integrate with `/applications` API endpoint
 - Support team-application many-to-many relationships
 - Implement environment association management
 - Include computed fields (team_count, environment_count)
 
 ### AC-2: Labels Entity Integration
+
 **Given** I am a System Administrator,  
 **When** I access the Labels management section,  
 **Then** I should be able to:
@@ -91,12 +101,14 @@ The existing SPA architecture provides:
 - **Search and Filter:** Find labels by name, type, or association
 
 **Technical Requirements:**
+
 - Integrate with `/labels` API endpoint
 - Support hierarchical label relationships
 - Implement many-to-many association management
 - Include visual color picker for label styling
 
 ### AC-3: Migrations Entity Integration
+
 **Given** I am a System Administrator,  
 **When** I manage migration events,  
 **Then** I should be able to:
@@ -108,12 +120,14 @@ The existing SPA architecture provides:
 - **Archive/Restore:** Handle completed or cancelled migrations
 
 **Technical Requirements:**
+
 - Integrate with `/migrations` API endpoint (Sprint 4 refactored)
 - Support team-migration associations
 - Implement status workflow management
 - Include iteration relationship tracking
 
 ### AC-4: Steps Entity Integration
+
 **Given** I am a System Administrator,  
 **When** I access the Steps management interface,  
 **Then** I should be able to:
@@ -125,12 +139,14 @@ The existing SPA architecture provides:
 - **Status Monitoring:** Track step execution status across instances
 
 **Technical Requirements:**
+
 - Integrate with `/steps` API endpoint (Sprint 4 refactored)
 - Support master-instance relationship pattern
 - Implement bulk update capabilities
 - Include comprehensive relationship management
 
 ### AC-5: Instructions Entity Integration
+
 **Given** I am a System Administrator,  
 **When** I manage execution instructions,  
 **Then** I should be able to:
@@ -142,12 +158,14 @@ The existing SPA architecture provides:
 - **Bulk Operations:** Apply instructions to multiple phases
 
 **Technical Requirements:**
+
 - Integrate with `/instructions` API endpoint (Sprint 3 modernized)
 - Support rich-text content editing
 - Implement phase association management
 - Include instruction versioning support
 
 ### AC-6: Controls Entity Integration
+
 **Given** I am a System Administrator,  
 **When** I configure quality controls,  
 **Then** I should be able to:
@@ -159,12 +177,14 @@ The existing SPA architecture provides:
 - **Validation Rules:** Configure control validation criteria
 
 **Technical Requirements:**
+
 - Integrate with `/controls` API endpoint (Sprint 3 modernized)
 - Support phase-control associations
 - Implement label-control many-to-many relationships
 - Include CTM code validation
 
 ### AC-7: Audit Logs Integration (View-Only)
+
 **Given** I am a System Administrator,  
 **When** I need to review system activity,  
 **Then** I should be able to:
@@ -176,12 +196,14 @@ The existing SPA architecture provides:
 - **Export Capabilities:** Export audit data for compliance reporting
 
 **Technical Requirements:**
+
 - Integrate with audit logging system
 - Implement read-only interface (no modifications)
 - Support comprehensive filtering and search
 - Include export functionality for compliance
 
 ### AC-8: Navigation and User Experience
+
 **Given** I am using the Admin GUI,  
 **When** I navigate between different entity sections,  
 **Then** I should experience:
@@ -193,12 +215,14 @@ The existing SPA architecture provides:
 - **Error Handling:** Clear feedback for errors and validation issues
 
 **Technical Requirements:**
+
 - Maintain SPA navigation pattern
 - Implement consistent state management
 - Ensure sub-100ms interface response times
 - Include comprehensive error handling
 
 ### AC-9: Security and Role-Based Access
+
 **Given** I have specific role-based permissions,  
 **When** I access different Admin GUI sections,  
 **Then** I should see:
@@ -210,6 +234,7 @@ The existing SPA architecture provides:
 - **Audit Logging:** All administrative actions logged appropriately
 
 **Technical Requirements:**
+
 - Implement role-based UI element visibility
 - Validate permissions at API integration points
 - Include comprehensive security logging
@@ -222,6 +247,7 @@ The existing SPA architecture provides:
 ### Phase 1: Core Entity Configuration (Applications, Labels, Migrations)
 
 #### Applications Entity Configuration
+
 ```javascript
 applications: {
     name: 'Applications',
@@ -243,7 +269,7 @@ applications: {
     tableColumns: ['app_id', 'app_code', 'app_name', 'app_technical_owner', 'team_count', 'environment_count'],
     sortMapping: {
         'app_id': 'app_id',
-        'app_code': 'app_code', 
+        'app_code': 'app_code',
         'app_name': 'app_name',
         'app_technical_owner': 'app_technical_owner',
         'team_count': 'team_count',
@@ -266,6 +292,7 @@ applications: {
 ```
 
 #### Labels Entity Configuration
+
 ```javascript
 labels: {
     name: 'Labels',
@@ -297,6 +324,7 @@ labels: {
 ```
 
 #### Migrations Entity Configuration
+
 ```javascript
 migrations: {
     name: 'Migrations',
@@ -335,6 +363,7 @@ migrations: {
 ### Phase 2: Operational Entities (Steps, Instructions, Controls)
 
 #### Steps Entity Configuration
+
 ```javascript
 steps: {
     name: 'Steps',
@@ -359,7 +388,7 @@ steps: {
     tableColumns: ['stp_id', 'stp_name', 'stp_type_name', 'stp_duration_minutes', 'label_count', 'instruction_count'],
     sortMapping: {
         'stp_id': 'stp_id',
-        'stp_name': 'stp_name', 
+        'stp_name': 'stp_name',
         'stp_type_name': 'stp_type',
         'stp_duration_minutes': 'stp_duration_minutes',
         'label_count': 'label_count',
@@ -391,6 +420,7 @@ steps: {
 ```
 
 #### Instructions Entity Configuration
+
 ```javascript
 instructions: {
     name: 'Instructions',
@@ -440,6 +470,7 @@ instructions: {
 ```
 
 #### Controls Entity Configuration
+
 ```javascript
 controls: {
     name: 'Controls',
@@ -501,6 +532,7 @@ controls: {
 ### Phase 3: Audit and System Monitoring
 
 #### Audit Logs Configuration
+
 ```javascript
 auditlogs: {
     name: 'Audit Logs',
@@ -567,6 +599,7 @@ auditlogs: {
 ## UI/UX Specifications and Patterns
 
 ### Interface Layout Standards
+
 - **Header Navigation:** Consistent entity tabs with active state indicators
 - **Action Bar:** Create, bulk operations, and export functionality
 - **Filter Panel:** Collapsible sidebar with smart filter combinations
@@ -574,6 +607,7 @@ auditlogs: {
 - **Modal Forms:** Standardized create/edit dialogs with validation feedback
 
 ### Visual Design Patterns
+
 - **AUI Component Library:** Leverage existing Confluence visual language
 - **Color Coding System:** Consistent status indicators across entities
 - **Typography Hierarchy:** Clear information architecture with proper contrast
@@ -581,15 +615,17 @@ auditlogs: {
 - **Loading States:** Progressive enhancement with skeleton screens
 
 ### Interaction Patterns
+
 - **Keyboard Navigation:** Full accessibility support with logical tab order
-- **Bulk Selection:** Multi-select with clear selection state indicators  
+- **Bulk Selection:** Multi-select with clear selection state indicators
 - **Context Menus:** Right-click operations for power users
 - **Drag and Drop:** Intuitive reordering where applicable
 - **Real-time Updates:** Optimistic UI with conflict resolution
 
 ### Performance Requirements
+
 - **Initial Load:** <2 seconds for entity listing pages
-- **Navigation:** <100ms transitions between sections  
+- **Navigation:** <100ms transitions between sections
 - **Search/Filter:** <300ms response time with debouncing
 - **Bulk Operations:** Progress indicators for operations >1 second
 - **Data Refresh:** Background updates without interface disruption
@@ -600,23 +636,24 @@ auditlogs: {
 
 ### Permission Matrix
 
-| Entity | SUPERADMIN | ADMIN | PILOT |
-|--------|------------|-------|-------|
-| Users | Full CRUD | Read Only | No Access |
-| Teams | Full CRUD | Team-scoped CRUD | Read Only |
-| Applications | Full CRUD | Team-scoped CRUD | Read Only |
-| Environments | Full CRUD | Read Only | Read Only |
-| Migrations | Full CRUD | Assigned CRUD | Read Only |
-| Plans | Full CRUD | Template CRUD | Read Only |
-| Sequences | Full CRUD | Template CRUD | Read Only |
-| Phases | Full CRUD | Template CRUD | Read Only |
-| Steps | Full CRUD | Template CRUD | Read Only |
-| Instructions | Full CRUD | Template CRUD | Read Only |
-| Controls | Full CRUD | Template CRUD | Read Only |
-| Labels | Full CRUD | Full CRUD | Read Only |
-| Audit Logs | Full Access | No Access | No Access |
+| Entity       | SUPERADMIN  | ADMIN            | PILOT     |
+| ------------ | ----------- | ---------------- | --------- |
+| Users        | Full CRUD   | Read Only        | No Access |
+| Teams        | Full CRUD   | Team-scoped CRUD | Read Only |
+| Applications | Full CRUD   | Team-scoped CRUD | Read Only |
+| Environments | Full CRUD   | Read Only        | Read Only |
+| Migrations   | Full CRUD   | Assigned CRUD    | Read Only |
+| Plans        | Full CRUD   | Template CRUD    | Read Only |
+| Sequences    | Full CRUD   | Template CRUD    | Read Only |
+| Phases       | Full CRUD   | Template CRUD    | Read Only |
+| Steps        | Full CRUD   | Template CRUD    | Read Only |
+| Instructions | Full CRUD   | Template CRUD    | Read Only |
+| Controls     | Full CRUD   | Template CRUD    | Read Only |
+| Labels       | Full CRUD   | Full CRUD        | Read Only |
+| Audit Logs   | Full Access | No Access        | No Access |
 
 ### Security Implementation Requirements
+
 - **Authentication Integration:** Leverage existing Confluence user sessions
 - **Authorization Validation:** API-level permission checking with UI enforcement
 - **Data Scope Filtering:** Automatic filtering based on user organizational access
@@ -624,8 +661,9 @@ auditlogs: {
 - **Session Management:** Automatic timeout with activity monitoring
 
 ### Data Protection Standards
+
 - **Input Validation:** Client and server-side validation for all forms
-- **XSS Prevention:** Proper encoding of all user-generated content  
+- **XSS Prevention:** Proper encoding of all user-generated content
 - **CSRF Protection:** Token-based protection for all state-changing operations
 - **SQL Injection Prevention:** Parameterized queries for all database operations
 - **Sensitive Data Handling:** Appropriate masking of sensitive information in logs
@@ -635,6 +673,7 @@ auditlogs: {
 ## Testing Strategy for UI Functionality
 
 ### Unit Testing Approach
+
 - **Component Testing:** Individual entity configuration validation
 - **State Management Testing:** Application state transitions and persistence
 - **API Integration Testing:** Mock API responses with error scenario coverage
@@ -642,6 +681,7 @@ auditlogs: {
 - **Form Validation Testing:** Input validation and error message accuracy
 
 ### Integration Testing Requirements
+
 - **End-to-End Workflows:** Complete CRUD operations for each entity
 - **Cross-Entity Operations:** Relationship management and cascade operations
 - **Bulk Operation Testing:** Multi-entity operations with proper error handling
@@ -649,6 +689,7 @@ auditlogs: {
 - **Performance Testing:** Load testing with realistic data volumes
 
 ### User Acceptance Testing Criteria
+
 - **Role-Based Testing:** Validation by users with different permission levels
 - **Workflow Testing:** Real migration scenarios with actual system administrators
 - **Accessibility Testing:** Screen reader compatibility and keyboard navigation
@@ -656,6 +697,7 @@ auditlogs: {
 - **Mobile Responsiveness:** Tablet and mobile device interface validation
 
 ### Test Data Requirements
+
 - **Comprehensive Entity Coverage:** Test data for all entities and relationships
 - **Edge Case Scenarios:** Empty states, maximum data volumes, and error conditions
 - **Permission Scenarios:** Test users with different role combinations
@@ -667,50 +709,60 @@ auditlogs: {
 ## Integration Points with Modernized APIs
 
 ### Sprint 3 API Integration (Completed APIs)
+
 **Plans API (/plans):**
+
 - Master and instance endpoints fully modernized
 - Advanced filtering by migration, iteration, and status
 - Bulk operations support for plan management
 - Comprehensive audit trail integration
 
 **Sequences API (/sequences):**
-- Hierarchical filtering with parent-child relationships  
+
+- Hierarchical filtering with parent-child relationships
 - Plan association management with cascade operations
 - Status workflow support with validation rules
 - Performance optimizations for large dataset handling
 
 **Phases API (/phases):**
+
 - Sequence association management with proper validation
 - Step relationship handling with integrity constraints
 - Control point integration for quality gates
 - Instruction association for detailed execution guidance
 
 **Instructions API (/instructions):**
+
 - Rich content management with versioning support
 - Phase association with proper relationship constraints
 - Type-based categorization and filtering
 - Bulk operations for instruction template management
 
 **Controls API (/controls):**
+
 - Quality gate management with mandatory/optional flags
 - CTM code integration for change management alignment
 - Label association for categorization and filtering
 - Phase relationship management with validation rules
 
 ### Sprint 4 API Integration (Refactored APIs)
+
 **Steps API (/steps) - Refactored:**
+
 - Unified master-instance pattern implementation
 - Enhanced label association management
 - Improved environment role handling
 - Performance optimizations for bulk operations
 
 **Migrations API (/migrations) - Refactored:**
+
 - Standardized team association patterns
-- Enhanced status workflow management  
+- Enhanced status workflow management
 - Iteration relationship optimization
 - Comprehensive audit field support
 
 ### API Integration Patterns
+
 - **Consistent Error Handling:** Standardized error response processing
 - **Pagination Support:** Uniform pagination across all entity listings
 - **Search Integration:** Advanced search capabilities with proper encoding
@@ -718,8 +770,9 @@ auditlogs: {
 - **Real-time Updates:** WebSocket or polling-based real-time data updates
 
 ### Performance Optimization Strategies
+
 - **Caching Layer:** Client-side caching for frequently accessed reference data
-- **Lazy Loading:** Progressive data loading for large entity collections  
+- **Lazy Loading:** Progressive data loading for large entity collections
 - **Request Optimization:** Batched API requests where applicable
 - **Response Compression:** Efficient data transfer with proper compression
 - **Background Processing:** Non-blocking operations for better user experience
@@ -729,6 +782,7 @@ auditlogs: {
 ## Performance and Usability Considerations
 
 ### Performance Targets
+
 - **Initial Page Load:** <2 seconds for complete interface initialization
 - **Entity Navigation:** <100ms transition between entity sections
 - **Search Operations:** <300ms response time with 500ms debouncing
@@ -736,13 +790,15 @@ auditlogs: {
 - **Bulk Operations:** Progress indicators for operations >2 seconds
 
 ### Scalability Requirements
+
 - **Data Volume Support:** Handle 10,000+ records per entity with pagination
-- **Concurrent User Support:** 50+ simultaneous administrators without performance degradation  
+- **Concurrent User Support:** 50+ simultaneous administrators without performance degradation
 - **Memory Management:** Efficient client-side memory usage with garbage collection
 - **Network Optimization:** Minimize API calls through intelligent batching
 - **Database Performance:** Optimized queries with proper indexing utilization
 
 ### Usability Enhancement Features
+
 - **Smart Defaults:** Contextual default values based on user patterns
 - **Auto-Save:** Draft saving for complex form operations
 - **Keyboard Shortcuts:** Power user keyboard navigation support
@@ -750,13 +806,15 @@ auditlogs: {
 - **Recent Items:** Quick access to recently modified entities
 
 ### Accessibility Compliance
+
 - **WCAG 2.1 AA Compliance:** Full accessibility standard adherence
 - **Screen Reader Support:** Proper ARIA labels and semantic markup
 - **Keyboard Navigation:** Complete interface navigation without mouse
-- **Color Contrast:** Sufficient contrast ratios for all visual elements  
+- **Color Contrast:** Sufficient contrast ratios for all visual elements
 - **Focus Management:** Clear focus indicators and logical tab sequences
 
 ### Error Recovery and Resilience
+
 - **Network Failure Handling:** Graceful degradation with offline indication
 - **API Error Recovery:** Automatic retry with exponential backoff
 - **Data Validation:** Real-time validation with clear error messaging
@@ -768,6 +826,7 @@ auditlogs: {
 ## Definition of Done
 
 ### Technical Completion Criteria
+
 - ✅ All 7 missing entities fully configured with complete field definitions
 - ✅ All entity configurations include proper permissions, sorting, and filtering
 - ✅ Complete integration with all Sprint 3 and Sprint 4 APIs
@@ -776,7 +835,8 @@ auditlogs: {
 - ✅ Performance targets met for all operations
 - ✅ Security requirements implemented including audit logging
 
-### Quality Assurance Criteria  
+### Quality Assurance Criteria
+
 - ✅ Unit tests written and passing for all new entity configurations
 - ✅ Integration tests validated for all API integrations
 - ✅ User acceptance testing completed by system administrators
@@ -785,6 +845,7 @@ auditlogs: {
 - ✅ Performance testing completed with satisfactory results
 
 ### Documentation and Handover Criteria
+
 - ✅ Entity configuration patterns documented for future reference
 - ✅ API integration patterns documented for maintenance
 - ✅ User guide updated with new administrative capabilities
@@ -793,9 +854,10 @@ auditlogs: {
 - ✅ Deployment and configuration instructions provided
 
 ### Acceptance Validation
+
 - ✅ System Administrator user acceptance testing completed
 - ✅ All acceptance criteria validated and signed off
-- ✅ Performance benchmarks documented and approved  
+- ✅ Performance benchmarks documented and approved
 - ✅ Security review completed with no critical findings
 - ✅ Integration testing with dependent systems completed
 - ✅ Production readiness checklist completed and approved
@@ -805,6 +867,7 @@ auditlogs: {
 ## Dependencies and Risks
 
 ### Technical Dependencies
+
 - **Sprint 3 API Completion:** Plans, Sequences, Phases, Instructions, Controls APIs must be fully stable
 - **Sprint 4 API Refactoring:** Steps and Migrations API refactoring must be completed
 - **Database Schema Stability:** All entity schemas must be finalized
@@ -812,6 +875,7 @@ auditlogs: {
 - **AUI Library Compatibility:** Atlassian User Interface components must be available
 
 ### External Dependencies
+
 - **System Administrator Availability:** UAT testing requires dedicated administrator time
 - **Test Data Preparation:** Comprehensive test datasets must be prepared
 - **Security Review Process:** Security team review and approval required
@@ -821,26 +885,31 @@ auditlogs: {
 ### Risk Assessment and Mitigation
 
 **High Risk - API Integration Complexity (Probability: 60%, Impact: High)**
-- *Risk:* Complex API integrations may reveal unexpected compatibility issues
-- *Mitigation:* Thorough API testing in Sprint 3/4, staged integration approach
-- *Contingency:* Fallback to basic functionality with limited features if needed
+
+- _Risk:_ Complex API integrations may reveal unexpected compatibility issues
+- _Mitigation:_ Thorough API testing in Sprint 3/4, staged integration approach
+- _Contingency:_ Fallback to basic functionality with limited features if needed
 
 **Medium Risk - Performance Requirements (Probability: 40%, Impact: Medium)**
-- *Risk:* Large datasets may cause performance degradation
-- *Mitigation:* Performance testing with realistic data volumes, optimization strategies
-- *Contingency:* Enhanced pagination and lazy loading implementation
+
+- _Risk:_ Large datasets may cause performance degradation
+- _Mitigation:_ Performance testing with realistic data volumes, optimization strategies
+- _Contingency:_ Enhanced pagination and lazy loading implementation
 
 **Medium Risk - User Acceptance (Probability: 30%, Impact: Medium)**
-- *Risk:* System administrators may find interface complex or unintuitive
-- *Mitigation:* Early UAT involvement, iterative feedback incorporation
-- *Contingency:* Additional UI simplification and training materials
+
+- _Risk:_ System administrators may find interface complex or unintuitive
+- _Mitigation:_ Early UAT involvement, iterative feedback incorporation
+- _Contingency:_ Additional UI simplification and training materials
 
 **Low Risk - Security Compliance (Probability: 20%, Impact: High)**
-- *Risk:* Security requirements may be more complex than anticipated
-- *Mitigation:* Early security review, adherence to established patterns
-- *Contingency:* Additional security hardening with extended timeline
+
+- _Risk:_ Security requirements may be more complex than anticipated
+- _Mitigation:_ Early security review, adherence to established patterns
+- _Contingency:_ Additional security hardening with extended timeline
 
 ### Success Criteria and Metrics
+
 - **Functionality:** 100% of acceptance criteria met and validated
 - **Performance:** All performance targets achieved in production environment
 - **Security:** Security review passed with no critical or high severity findings

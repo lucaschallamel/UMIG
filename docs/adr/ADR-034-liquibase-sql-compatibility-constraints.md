@@ -16,7 +16,7 @@ The error occurs because Liquibase's SQL parser has difficulty handling PostgreS
 
 We will **avoid using dollar-quoted PL/pgSQL blocks** in all Liquibase migration files and instead use simpler, standard SQL statements that Liquibase can reliably parse.
 
-### Specific Guidelines:
+### Specific Guidelines
 
 1. **No DO blocks**: Replace `DO $$ BEGIN ... END $$;` with standard SQL
 2. **Simple validation queries**: Use SELECT statements for pre/post-migration validation

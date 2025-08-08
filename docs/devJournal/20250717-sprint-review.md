@@ -148,14 +148,14 @@
 ### Key Features to Demo
 
 1. **Iteration View:**
-   - Navigate to: http://localhost:8090/display/UMIG/UMIG+-+Iteration+View
+   - Navigate to: <http://localhost:8090/display/UMIG/UMIG+-+Iteration+View>
    - Select Migration → Iteration → Plan → Sequence → Phase
    - Observe hierarchical filtering and dynamic updates
    - Test instruction completion, comments, and status changes
    - Verify role-based controls (login as different user types)
 
 2. **Standalone Step View:**
-   - Navigate to: http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001
+   - Navigate to: <http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001>
    - Test all features in focused view
    - Embed in any Confluence page
 
@@ -166,7 +166,7 @@
    - Test label color picker and filtering
 
 4. **Email Notifications:**
-   - Check MailHog at http://localhost:8025
+   - Check MailHog at <http://localhost:8025>
    - Trigger notifications through status changes
    - Review audit logs in database
 

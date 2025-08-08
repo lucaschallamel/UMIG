@@ -211,21 +211,21 @@ The Labels Admin GUI is now fully functional with:
 
 ## Files Modified
 
-### Backend (Groovy):
+### Backend (Groovy)
 
 - `src/groovy/umig/repository/LabelRepository.groovy` - Added full CRUD operations
 - `src/groovy/umig/api/v2/LabelsApi.groovy` - Added POST, PUT, DELETE, and association endpoints
 - `src/groovy/umig/repository/StepRepository.groovy` - Added migration-based filtering
 - `src/groovy/umig/api/v2/StepsApi.groovy` - Added master steps endpoint with filtering
 
-### Frontend (JavaScript):
+### Frontend (JavaScript)
 
 - `src/groovy/umig/web/js/EntityConfig.js` - Added Labels configuration
 - `src/groovy/umig/web/js/ModalManager.js` - Added Label-specific modals and migration change handler
 - `src/groovy/umig/web/js/ApiClient.js` - Added labels and steps methods
 - `src/groovy/umig/web/css/admin-gui.css` - Added association section styling
 
-### Documentation:
+### Documentation
 
 - `CHANGELOG.md` - Added comprehensive entry
 - `src/groovy/umig/web/README.md` - Updated with Labels info

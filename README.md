@@ -1,9 +1,11 @@
 # UMIG - Unified Migration Implementation Guide
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Development Status](https://img.shields.io/badge/Status-Sprint%203%20Near%20Complete-brightgreen.svg)]()
-[![ScriptRunner](https://img.shields.io/badge/ScriptRunner-Confluence-green.svg)]()
+[![Development Status](https://img.shields.io/badge/Status-Sprint%204%20In%20Progress-yellow.svg)]()
+[![Platform](https://img.shields.io/badge/Confluence-9.2.7-blue.svg)]()
+[![ScriptRunner](https://img.shields.io/badge/ScriptRunner-9.21.0-green.svg)]()
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-blue.svg)]()
+[![Infrastructure](https://img.shields.io/badge/Infrastructure-Enterprise%20Ready-brightgreen.svg)]()
 
 ## Project Overview
 
@@ -91,6 +93,12 @@ UMIG/
 │           │   ├── integration/      # Integration tests
 │           │   │   ├── SequencesApiIntegrationTest.groovy
 │           │   │   └── stepViewApiIntegrationTest.groovy
+│           │   ├── upgrade/          # Upgrade validation tests (US-032)
+│           │   │   ├── run-all-tests.sh          # Master test orchestration
+│           │   │   ├── test-container-health.sh  # Container validation
+│           │   │   ├── test-database-connectivity.sh # Database tests
+│           │   │   ├── test-api-endpoints.sh     # REST API validation
+│           │   │   └── test-scriptrunner.sh      # ScriptRunner tests
 │           │   ├── grab-postgres-jdbc.groovy
 │           │   └── run-integration-tests.sh
 │           ├── utils/                # Utility classes
@@ -179,6 +187,19 @@ UMIG/
 │   │   └── README.md                 # Container documentation
 │   ├── postgres/                     # Database initialization
 │   │   └── init-db.sh               # Database initialization script
+│   ├── infrastructure/              # Infrastructure management (US-032)
+│   │   ├── backup/                  # Enterprise backup/restore scripts
+│   │   │   ├── backup-all.sh         # Master backup orchestration
+│   │   │   ├── backup-volumes.sh     # Podman volume backups
+│   │   │   ├── backup-databases.sh   # PostgreSQL backups
+│   │   │   ├── restore-all.sh        # Complete restoration
+│   │   │   ├── restore-volumes.sh    # Volume restoration
+│   │   │   ├── restore-databases.sh  # Database restoration
+│   │   │   └── verify-backup.sh      # Backup integrity verification
+│   │   ├── upgrade/                 # Upgrade automation tools
+│   │   │   └── upgrade-confluence.sh # Automated Confluence upgrade
+│   │   └── monitoring/              # System validation and health
+│   │       └── validate-system.sh    # Comprehensive health check
 │   ├── jest.config.js                # Jest test configuration
 │   ├── jest.global-setup.cjs         # Jest global setup
 │   ├── jest.global-teardown.cjs      # Jest global teardown
@@ -233,6 +254,7 @@ UMIG/
    ```
 
 4. **Run Tests**:
+
    ```bash
    npm test
    ```

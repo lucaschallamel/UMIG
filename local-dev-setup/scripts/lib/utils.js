@@ -1,21 +1,21 @@
-import { faker } from '@faker-js/faker';
+import { faker } from "@faker-js/faker";
 
 const SEQUENCE_NAMES = [
-  'PRE-MIGRATION',
-  'CSD MIGRATION',
-  'INTERIM WEEK',
-  'P&C MIGRATION',
-  'POST-MIGRATION'
+  "PRE-MIGRATION",
+  "CSD MIGRATION",
+  "INTERIM WEEK",
+  "P&C MIGRATION",
+  "POST-MIGRATION",
 ];
-const ITERATION_TYPES = ['RUN', 'DR', 'CUTOVER'];
+const ITERATION_TYPES = ["RUN", "DR", "CUTOVER"];
 const ITERATION_WINDOW_DAYS = 13;
 const ENVIRONMENTS = [
-  { name: 'PROD' },
-  { name: 'EV1' },
-  { name: 'EV2' },
-  { name: 'EV3' },
-  { name: 'EV4' },
-  { name: 'EV5' }
+  { name: "PROD" },
+  { name: "EV1" },
+  { name: "EV2" },
+  { name: "EV3" },
+  { name: "EV4" },
+  { name: "EV5" },
 ];
 
 function randomDateInRange(startStr, endStr) {
@@ -29,24 +29,32 @@ function getSequenceWindows(iterStart, iterEnd) {
   const d = new Date(iterStart);
   // PRE-MIGRATION: Thursday 00:00 → Friday 12:00
   const preMigStart = new Date(d);
-  const preMigEnd = new Date(d); preMigEnd.setDate(d.getDate() + 1); preMigEnd.setHours(12,0,0,0);
-  seqWindows.push({start: preMigStart, end: preMigEnd});
+  const preMigEnd = new Date(d);
+  preMigEnd.setDate(d.getDate() + 1);
+  preMigEnd.setHours(12, 0, 0, 0);
+  seqWindows.push({ start: preMigStart, end: preMigEnd });
   // CSD MIGRATION: Friday 12:00 → Monday 06:00
   const csdMigStart = new Date(preMigEnd);
-  const csdMigEnd = new Date(d); csdMigEnd.setDate(d.getDate() + ((8 - d.getDay()) % 7 + 4)); csdMigEnd.setHours(6,0,0,0); // Monday after Thursday
-  seqWindows.push({start: csdMigStart, end: csdMigEnd});
+  const csdMigEnd = new Date(d);
+  csdMigEnd.setDate(d.getDate() + (((8 - d.getDay()) % 7) + 4));
+  csdMigEnd.setHours(6, 0, 0, 0); // Monday after Thursday
+  seqWindows.push({ start: csdMigStart, end: csdMigEnd });
   // INTERIM WEEK: Monday 06:00 → next Friday 12:00
   const interimStart = new Date(csdMigEnd);
-  const interimEnd = new Date(d); interimEnd.setDate(d.getDate() + 8); interimEnd.setHours(12,0,0,0); // Friday next week
-  seqWindows.push({start: interimStart, end: interimEnd});
+  const interimEnd = new Date(d);
+  interimEnd.setDate(d.getDate() + 8);
+  interimEnd.setHours(12, 0, 0, 0); // Friday next week
+  seqWindows.push({ start: interimStart, end: interimEnd });
   // P&C MIGRATION: next Friday 12:00 → next Monday 06:00
   const pcmigStart = new Date(interimEnd);
-  const pcmigEnd = new Date(d); pcmigEnd.setDate(d.getDate() + 11); pcmigEnd.setHours(6,0,0,0); // Monday next week
-  seqWindows.push({start: pcmigStart, end: pcmigEnd});
+  const pcmigEnd = new Date(d);
+  pcmigEnd.setDate(d.getDate() + 11);
+  pcmigEnd.setHours(6, 0, 0, 0); // Monday next week
+  seqWindows.push({ start: pcmigStart, end: pcmigEnd });
   // POST-MIGRATION: next Monday 06:00 → next Tuesday (iteration end)
   const postMigStart = new Date(pcmigEnd);
   const postMigEnd = new Date(iterEnd);
-  seqWindows.push({start: postMigStart, end: postMigEnd});
+  seqWindows.push({ start: postMigStart, end: postMigEnd });
   return seqWindows;
 }
 
@@ -64,8 +72,10 @@ function makeTeamEmail(teamName, domain) {
   return (
     teamName
       .toLowerCase()
-      .replace(/\s+/g, '_')
-      .replace(/[^a-z0-9_]/g, '') + '@' + domain
+      .replace(/\s+/g, "_")
+      .replace(/[^a-z0-9_]/g, "") +
+    "@" +
+    domain
   );
 }
 
@@ -78,5 +88,5 @@ export {
   randomDateInRange,
   getSequenceWindows,
   nextThursday,
-  makeTeamEmail
+  makeTeamEmail,
 };
