@@ -79,6 +79,14 @@
   - **Method Signature Standards:** Clear parameter and return types across APIs and repositories
   - **IDE Enhancement:** Improved code completion, navigation, and error detection
   - **Error Prevention:** Compile-time validation preventing ClassCastException and NoSuchMethodException
+- **Infrastructure Modernization Patterns:** Enterprise operational excellence (US-032, 8 August 2025)
+  - **Platform Upgrade:** Zero-downtime Confluence 8.5.6 → 9.2.7 with ScriptRunner 9.21.0 compatibility
+  - **Infrastructure Consolidation:** Function-based organization under `local-dev-setup/infrastructure/` structure
+  - **Enterprise Backup System:** 7-script comprehensive backup/restore with SHA256 verification preventing silent failures
+  - **Testing Framework Integration:** 5-dimensional validation embedded in operational workflows (Database, API, UI, Data Integrity, Permissions)
+  - **Silent Failure Detection:** Proactive validation patterns for critical operational systems
+  - **Risk-First Methodology:** Enterprise backup system created before executing critical platform changes
+  - **Documentation Synchronization:** Complete project documentation updated to prevent knowledge drift
 
 ## 5. Strategic Knowledge
 
