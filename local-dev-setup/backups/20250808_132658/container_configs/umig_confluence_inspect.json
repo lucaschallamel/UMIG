@@ -1,0 +1,401 @@
+[
+     {
+          "Id": "84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a",
+          "Created": "2025-08-07T13:47:38.402939992+02:00",
+          "Path": "/usr/bin/tini",
+          "Args": [
+               "--",
+               "/entrypoint.py"
+          ],
+          "State": {
+               "OciVersion": "1.2.1",
+               "Status": "running",
+               "Running": true,
+               "Paused": false,
+               "Restarting": false,
+               "OOMKilled": false,
+               "Dead": false,
+               "Pid": 2227,
+               "ConmonPid": 2225,
+               "ExitCode": 0,
+               "Error": "",
+               "StartedAt": "2025-08-08T09:47:22.0781997+02:00",
+               "FinishedAt": "2025-08-07T18:07:56.80394345+02:00",
+               "CgroupPath": "/machine.slice/machine-libpod_pod_bffc04d652bfc6c11ea320e9b90aed7a3e1f1dc7d610c72ce57b9ffabe522ffe.slice/libpod-84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a.scope",
+               "CheckpointedAt": "0001-01-01T00:00:00Z",
+               "RestoredAt": "0001-01-01T00:00:00Z"
+          },
+          "Image": "b2a0747c08f9f4024142ef718a7b616a7681a9cf5d178655ed32a4f4182e6d4b",
+          "ImageDigest": "sha256:e952083393f645ab9efc0d3f5d61e2c7fba578b986f66e8eb351cde81b1c18e8",
+          "ImageName": "localhost/umig/confluence-custom:8.5.6",
+          "Rootfs": "",
+          "Pod": "bffc04d652bfc6c11ea320e9b90aed7a3e1f1dc7d610c72ce57b9ffabe522ffe",
+          "ResolvConfPath": "/run/containers/storage/overlay-containers/84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a/userdata/resolv.conf",
+          "HostnamePath": "/run/containers/storage/overlay-containers/84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a/userdata/hostname",
+          "HostsPath": "/run/containers/storage/overlay-containers/84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a/userdata/hosts",
+          "StaticDir": "/var/lib/containers/storage/overlay-containers/84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a/userdata",
+          "OCIConfigPath": "/var/lib/containers/storage/overlay-containers/84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a/userdata/config.json",
+          "OCIRuntime": "crun",
+          "ConmonPidFile": "/run/containers/storage/overlay-containers/84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a/userdata/conmon.pid",
+          "PidFile": "/run/containers/storage/overlay-containers/84beaef9a5a01265a416385907bc3011767659ea8ad02e4e29cd751ad39a5b2a/userdata/pidfile",
+          "Name": "umig_confluence",
+          "RestartCount": 0,
+          "Driver": "overlay",
+          "MountLabel": "system_u:object_r:container_file_t:s0:c503,c986",
+          "ProcessLabel": "system_u:system_r:container_t:s0:c503,c986",
+          "AppArmorProfile": "",
+          "EffectiveCaps": [
+               "CAP_CHOWN",
+               "CAP_DAC_OVERRIDE",
+               "CAP_FOWNER",
+               "CAP_FSETID",
+               "CAP_KILL",
+               "CAP_NET_BIND_SERVICE",
+               "CAP_SETFCAP",
+               "CAP_SETGID",
+               "CAP_SETPCAP",
+               "CAP_SETUID",
+               "CAP_SYS_CHROOT"
+          ],
+          "BoundingCaps": [
+               "CAP_CHOWN",
+               "CAP_DAC_OVERRIDE",
+               "CAP_FOWNER",
+               "CAP_FSETID",
+               "CAP_KILL",
+               "CAP_NET_BIND_SERVICE",
+               "CAP_SETFCAP",
+               "CAP_SETGID",
+               "CAP_SETPCAP",
+               "CAP_SETUID",
+               "CAP_SYS_CHROOT"
+          ],
+          "ExecIDs": [],
+          "GraphDriver": {
+               "Name": "overlay",
+               "Data": {
+                    "LowerDir": "/var/lib/containers/storage/overlay/90911cf4d1ea673942c22d333fbc4ff1969d354610b5fe3f226c90c50ba88235/diff:/var/lib/containers/storage/overlay/9695d0a696a8ed0c0a9f11c4ca86055166202be34facc8d198258a53f39e8993/diff:/var/lib/containers/storage/overlay/64b06f2108b7bc416dce78defc9915954ebcc9e09dc4ac53a46af494d3daee24/diff:/var/lib/containers/storage/overlay/1efb31f4894e884b5a59fa1417795828f8408a4b7045b30b9ac85b04e4e483b7/diff:/var/lib/containers/storage/overlay/c41d8ee6a470a9773d78bf4fe4ecf8124582e0409781579f6bc81c681865c41e/diff:/var/lib/containers/storage/overlay/7d6a4d2eddaa942cb8a169ae80548e972ee64fd63d4a02899124217da0bd9838/diff:/var/lib/containers/storage/overlay/dfdb4c68a7a3c25ea6f0dc751ae6467d9d1288b6864d3b4d09f12712e366e154/diff:/var/lib/containers/storage/overlay/f3c15b50003ee7beaf3865ca73627fc98235be3005e1bc6ae1f28ba7773897e3/diff:/var/lib/containers/storage/overlay/f55598b0421159a60339f0b5ffb8c054869ed02e02265fa7c9355d2a7b773da6/diff:/var/lib/containers/storage/overlay/402718e0360a3091f9371c94abd6e7bb71d69a392685dae7bd37d19573fa5232/diff:/var/lib/containers/storage/overlay/ab3fc5e795af4d6e4b31a0030db4be42f37614b189d5f38b9c3ecd086f9b5adb/diff:/var/lib/containers/storage/overlay/0c4e9fdb6e15acf5406dacde8563603676e0682e74e7256bb5961c36b50a4e92/diff:/var/lib/containers/storage/overlay/1a102d1cac2bdae8a0160ac4365d4f8653e9d6da56c793a665d556ae07fb7f82/diff",
+                    "MergedDir": "/var/lib/containers/storage/overlay/e264c1cdbad239c02aae91c62c4f5e11a8e568f8312dec27785e7a4e462377e3/merged",
+                    "UpperDir": "/var/lib/containers/storage/overlay/e264c1cdbad239c02aae91c62c4f5e11a8e568f8312dec27785e7a4e462377e3/diff",
+                    "WorkDir": "/var/lib/containers/storage/overlay/e264c1cdbad239c02aae91c62c4f5e11a8e568f8312dec27785e7a4e462377e3/work"
+               }
+          },
+          "Mounts": [
+               {
+                    "Type": "volume",
+                    "Name": "local-dev-setup_confluence_data",
+                    "Source": "/var/lib/containers/storage/volumes/local-dev-setup_confluence_data/_data",
+                    "Destination": "/var/atlassian/application-data/confluence",
+                    "Driver": "local",
+                    "Mode": "",
+                    "Options": [
+                         "nosuid",
+                         "nodev",
+                         "rbind"
+                    ],
+                    "RW": true,
+                    "Propagation": "rprivate"
+               },
+               {
+                    "Type": "bind",
+                    "Source": "/Users/lucaschallamel/Documents/GitHub/UMIG/src/groovy/umig",
+                    "Destination": "/var/atlassian/application-data/confluence/scripts/umig",
+                    "Driver": "",
+                    "Mode": "",
+                    "Options": [
+                         "rbind"
+                    ],
+                    "RW": true,
+                    "Propagation": "rprivate"
+               }
+          ],
+          "Dependencies": [],
+          "NetworkSettings": {
+               "EndpointID": "",
+               "Gateway": "",
+               "IPAddress": "",
+               "IPPrefixLen": 0,
+               "IPv6Gateway": "",
+               "GlobalIPv6Address": "",
+               "GlobalIPv6PrefixLen": 0,
+               "MacAddress": "",
+               "Bridge": "",
+               "SandboxID": "",
+               "HairpinMode": false,
+               "LinkLocalIPv6Address": "",
+               "LinkLocalIPv6PrefixLen": 0,
+               "Ports": {
+                    "8090/tcp": [
+                         {
+                              "HostIp": "0.0.0.0",
+                              "HostPort": "8090"
+                         }
+                    ],
+                    "8091/tcp": null
+               },
+               "SandboxKey": "/run/netns/netns-81d70e0c-808c-d82d-e0f6-05ae6d37268d",
+               "Networks": {
+                    "local-dev-setup_umig_net": {
+                         "EndpointID": "",
+                         "Gateway": "10.89.1.1",
+                         "IPAddress": "10.89.1.3",
+                         "IPPrefixLen": 24,
+                         "IPv6Gateway": "",
+                         "GlobalIPv6Address": "",
+                         "GlobalIPv6PrefixLen": 0,
+                         "MacAddress": "e2:b0:04:55:54:b6",
+                         "NetworkID": "7b8d39101223e8ae23b8ef956a43a08c7b1a9ee2711255bd8f5b6588e979f87d",
+                         "DriverOpts": null,
+                         "IPAMConfig": null,
+                         "Links": null,
+                         "Aliases": [
+                              "confluence",
+                              "84beaef9a5a0"
+                         ]
+                    }
+               }
+          },
+          "Namespace": "",
+          "IsInfra": false,
+          "IsService": false,
+          "KubeExitCodePropagation": "invalid",
+          "lockNumber": 36,
+          "Config": {
+               "Hostname": "84beaef9a5a0",
+               "Domainname": "",
+               "User": "",
+               "AttachStdin": false,
+               "AttachStdout": false,
+               "AttachStderr": false,
+               "Tty": false,
+               "OpenStdin": false,
+               "StdinOnce": false,
+               "Env": [
+                    "container=podman",
+                    "CONFLUENCE_VERSION=8.5.6",
+                    "CONFLUENCE_INSTALL_DIR=/opt/atlassian/confluence",
+                    "JVM_MINIMUM_MEMORY=1024m",
+                    "JVM_MAXIMUM_MEMORY=6144m",
+                    "LANGUAGE=en_US:en",
+                    "JAVA_HOME=/opt/java/openjdk",
+                    "RUN_GID=2002",
+                    "RUN_GROUP=confluence",
+                    "APP_NAME=confluence",
+                    "RUN_USER=confluence",
+                    "CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluence/scripts -Dplugin.rest.scripts.package=umig.api.v2,umig.api.v2.web",
+                    "JAVA_VERSION=jdk-17.0.10+7",
+                    "RUN_UID=2002",
+                    "NO_PROXY=local,169.254/16",
+                    "LANG=en_US.UTF-8",
+                    "LC_ALL=en_US.UTF-8",
+                    "CONFLUENCE_HOME=/var/atlassian/application-data/confluence",
+                    "ATL_LICENSE_KEY=AAABlA0ODAoPeNp9Ul1v2jAUffeviLSXTlOYk/CRIVla6mSUKiFtQ8eQeDHZpZg5AeyYj/36GUzVbhJ79D3n3nvOuf4wgZ/OvRZOgB3c7reDfid0aDx2fOx3EJXAGr6uY9YAOVVc3HMDjGJQpeSbE0Toul4IDXUJzo3hMYdC3YD8OOs7yY4JfR6AMsZNtWaGlhw2XB7fjQxd/wtKeQm1ugIKC34HqU4rfVTo+ZuCRmpApZHRGulqDjJfPCvDJK6H3hRYVi5fWM2VrQhdMtUql0wIVoH4+lIxLlrlurLDWNnwHdg+Y7Ix78TYEP/pu+i8Y2pJMrqn3yg8P00/b2uZH1a/5W7Q8+gnXeSDwYpHy8d0mk30vBmPq87Uy3G2VT/u9t3oKCbRjMyIlXEJZnzcwMisIzTPsuSJDqPU4kXDpMmbLJhQ8BrjMCbpMC6SkZv6Hg7b3a6HCpA7kAa5jduhW4Q4cIfh5NaNgnhgR53OZ69nXf+C42vkXhfjHg6DwEMPWhrvCv79FJeMziKvR2Q0kb91/QGRLdWCMC0CFEzc8USOtZ9e14XSR83GjwVNF23EAhUAicy3brdOTB1FzMGQt3tz+CS3+Ug=X02jj",
+                    "PATH=/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                    "CONFLUENCE_LOG_STDOUT=false",
+                    "HOME=/root",
+                    "HOSTNAME=84beaef9a5a0"
+               ],
+               "Cmd": [
+                    "/entrypoint.py"
+               ],
+               "Image": "localhost/umig/confluence-custom:8.5.6",
+               "Volumes": null,
+               "WorkingDir": "/var/atlassian/application-data/confluence",
+               "Entrypoint": [
+                    "/usr/bin/tini",
+                    "--"
+               ],
+               "OnBuild": null,
+               "Labels": {
+                    "PODMAN_SYSTEMD_UNIT": "podman-compose@local-dev-setup.service",
+                    "com.docker.compose.container-number": "1",
+                    "com.docker.compose.project": "local-dev-setup",
+                    "com.docker.compose.project.config_files": "podman-compose.yml",
+                    "com.docker.compose.project.working_dir": "/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup",
+                    "com.docker.compose.service": "confluence",
+                    "io.podman.compose.config-hash": "ff84838ee367dbd122e8b6dbe3457c4acac481df0e927755e91ac6e8b50b8b8c",
+                    "io.podman.compose.project": "local-dev-setup",
+                    "io.podman.compose.service": "confluence",
+                    "io.podman.compose.version": "1.5.0",
+                    "maintainer": "dc-deployments@atlassian.com",
+                    "org.opencontainers.image.ref.name": "ubuntu",
+                    "org.opencontainers.image.version": "22.04",
+                    "securitytxt": "https://www.atlassian.com/.well-known/security.txt"
+               },
+               "Annotations": {
+                    "io.container.manager": "libpod",
+                    "io.kubernetes.cri-o.SandboxID": "bffc04d652bfc6c11ea320e9b90aed7a3e1f1dc7d610c72ce57b9ffabe522ffe",
+                    "org.opencontainers.image.stopSignal": "15",
+                    "org.systemd.property.KillSignal": "15",
+                    "org.systemd.property.TimeoutStopUSec": "uint64 10000000"
+               },
+               "StopSignal": "SIGTERM",
+               "HealthcheckOnFailureAction": "none",
+               "HealthLogDestination": "local",
+               "HealthcheckMaxLogCount": 5,
+               "HealthcheckMaxLogSize": 500,
+               "CreateCommand": [
+                    "podman",
+                    "create",
+                    "--name=umig_confluence",
+                    "--pod=pod_local-dev-setup",
+                    "--label",
+                    "io.podman.compose.config-hash=ff84838ee367dbd122e8b6dbe3457c4acac481df0e927755e91ac6e8b50b8b8c",
+                    "--label",
+                    "io.podman.compose.project=local-dev-setup",
+                    "--label",
+                    "io.podman.compose.version=1.5.0",
+                    "--label",
+                    "PODMAN_SYSTEMD_UNIT=podman-compose@local-dev-setup.service",
+                    "--label",
+                    "com.docker.compose.project=local-dev-setup",
+                    "--label",
+                    "com.docker.compose.project.working_dir=/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup",
+                    "--label",
+                    "com.docker.compose.project.config_files=podman-compose.yml",
+                    "--label",
+                    "com.docker.compose.container-number=1",
+                    "--label",
+                    "io.podman.compose.service=confluence",
+                    "--label",
+                    "com.docker.compose.service=confluence",
+                    "-e",
+                    "JVM_MINIMUM_MEMORY=1024m",
+                    "-e",
+                    "JVM_MAXIMUM_MEMORY=6144m",
+                    "-e",
+                    "ATL_LICENSE_KEY=AAABlA0ODAoPeNp9Ul1v2jAUffeviLSXTlOYk/CRIVla6mSUKiFtQ8eQeDHZpZg5AeyYj/36GUzVbhJ79D3n3nvOuf4wgZ/OvRZOgB3c7reDfid0aDx2fOx3EJXAGr6uY9YAOVVc3HMDjGJQpeSbE0Toul4IDXUJzo3hMYdC3YD8OOs7yY4JfR6AMsZNtWaGlhw2XB7fjQxd/wtKeQm1ugIKC34HqU4rfVTo+ZuCRmpApZHRGulqDjJfPCvDJK6H3hRYVi5fWM2VrQhdMtUql0wIVoH4+lIxLlrlurLDWNnwHdg+Y7Ix78TYEP/pu+i8Y2pJMrqn3yg8P00/b2uZH1a/5W7Q8+gnXeSDwYpHy8d0mk30vBmPq87Uy3G2VT/u9t3oKCbRjMyIlXEJZnzcwMisIzTPsuSJDqPU4kXDpMmbLJhQ8BrjMCbpMC6SkZv6Hg7b3a6HCpA7kAa5jduhW4Q4cIfh5NaNgnhgR53OZ69nXf+C42vkXhfjHg6DwEMPWhrvCv79FJeMziKvR2Q0kb91/QGRLdWCMC0CFEzc8USOtZ9e14XSR83GjwVNF23EAhUAicy3brdOTB1FzMGQt3tz+CS3+Ug=X02jj",
+                    "-e",
+                    "CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluence/scripts -Dplugin.rest.scripts.package=umig.api.v2,umig.api.v2.web",
+                    "-v",
+                    "local-dev-setup_confluence_data:/var/atlassian/application-data/confluence",
+                    "-v",
+                    "/Users/lucaschallamel/Documents/GitHub/UMIG/src/groovy/umig:/var/atlassian/application-data/confluence/scripts/umig",
+                    "--network=local-dev-setup_umig_net:alias=confluence",
+                    "-p",
+                    "8090:8090",
+                    "umig/confluence-custom:8.5.6"
+               ],
+               "Umask": "0022",
+               "Timeout": 0,
+               "StopTimeout": 10,
+               "Passwd": true,
+               "sdNotifyMode": "container",
+               "ExposedPorts": {
+                    "8090/tcp": {},
+                    "8091/tcp": {}
+               }
+          },
+          "HostConfig": {
+               "Binds": [
+                    "local-dev-setup_confluence_data:/var/atlassian/application-data/confluence:rw,rprivate,nosuid,nodev,rbind",
+                    "/Users/lucaschallamel/Documents/GitHub/UMIG/src/groovy/umig:/var/atlassian/application-data/confluence/scripts/umig:rw,rprivate,rbind"
+               ],
+               "CgroupManager": "systemd",
+               "CgroupMode": "private",
+               "ContainerIDFile": "",
+               "LogConfig": {
+                    "Type": "journald",
+                    "Config": null,
+                    "Path": "",
+                    "Tag": "",
+                    "Size": "0B"
+               },
+               "NetworkMode": "bridge",
+               "PortBindings": {
+                    "8090/tcp": [
+                         {
+                              "HostIp": "0.0.0.0",
+                              "HostPort": "8090"
+                         }
+                    ]
+               },
+               "RestartPolicy": {
+                    "Name": "no",
+                    "MaximumRetryCount": 0
+               },
+               "AutoRemove": false,
+               "AutoRemoveImage": false,
+               "Annotations": {
+                    "io.container.manager": "libpod",
+                    "io.kubernetes.cri-o.SandboxID": "bffc04d652bfc6c11ea320e9b90aed7a3e1f1dc7d610c72ce57b9ffabe522ffe",
+                    "org.opencontainers.image.stopSignal": "15",
+                    "org.systemd.property.KillSignal": "15",
+                    "org.systemd.property.TimeoutStopUSec": "uint64 10000000"
+               },
+               "VolumeDriver": "",
+               "VolumesFrom": null,
+               "CapAdd": [],
+               "CapDrop": [],
+               "Dns": [],
+               "DnsOptions": [],
+               "DnsSearch": [],
+               "ExtraHosts": [],
+               "HostsFile": "",
+               "GroupAdd": [],
+               "IpcMode": "shareable",
+               "Cgroup": "",
+               "Cgroups": "default",
+               "Links": null,
+               "OomScoreAdj": 0,
+               "PidMode": "private",
+               "Privileged": false,
+               "PublishAllPorts": false,
+               "ReadonlyRootfs": false,
+               "SecurityOpt": [],
+               "Tmpfs": {},
+               "UTSMode": "private",
+               "UsernsMode": "",
+               "ShmSize": 65536000,
+               "Runtime": "oci",
+               "ConsoleSize": [
+                    0,
+                    0
+               ],
+               "Isolation": "",
+               "CpuShares": 0,
+               "Memory": 0,
+               "NanoCpus": 0,
+               "CgroupParent": "machine.slice/machine-libpod_pod_bffc04d652bfc6c11ea320e9b90aed7a3e1f1dc7d610c72ce57b9ffabe522ffe.slice",
+               "BlkioWeight": 0,
+               "BlkioWeightDevice": null,
+               "BlkioDeviceReadBps": null,
+               "BlkioDeviceWriteBps": null,
+               "BlkioDeviceReadIOps": null,
+               "BlkioDeviceWriteIOps": null,
+               "CpuPeriod": 0,
+               "CpuQuota": 0,
+               "CpuRealtimePeriod": 0,
+               "CpuRealtimeRuntime": 0,
+               "CpusetCpus": "",
+               "CpusetMems": "",
+               "Devices": [],
+               "DiskQuota": 0,
+               "KernelMemory": 0,
+               "MemoryReservation": 0,
+               "MemorySwap": 0,
+               "MemorySwappiness": 0,
+               "OomKillDisable": false,
+               "PidsLimit": 2048,
+               "Ulimits": [
+                    {
+                         "Name": "RLIMIT_NOFILE",
+                         "Soft": 1048576,
+                         "Hard": 1048576
+                    },
+                    {
+                         "Name": "RLIMIT_NPROC",
+                         "Soft": 1048576,
+                         "Hard": 1048576
+                    }
+               ],
+               "CpuCount": 0,
+               "CpuPercent": 0,
+               "IOMaximumIOps": 0,
+               "IOMaximumBandwidth": 0,
+               "CgroupConf": null
+          },
+          "UseImageHosts": false,
+          "UseImageHostname": false
+     }
+]

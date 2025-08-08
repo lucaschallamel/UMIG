@@ -2,8 +2,8 @@
 
 This directory contains the `Containerfile` used to build the custom Atlassian
 Confluence image for the UMIG local development environment. This image is based
-on the official Confluence version specified within the `Containerfile` (e.g.,
-`8.5.6`).
+on the official Confluence version specified within the `Containerfile` (currently
+`9.2.7`).
 
 ## Purpose
 

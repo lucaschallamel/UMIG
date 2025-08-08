@@ -3,7 +3,7 @@ version: "3.8"
 
 services:
   confluence:
-    image: umig/confluence-custom:8.5.6
+    image: umig/confluence-custom:9.2.7
     build:
       context: ./confluence
     container_name: umig_confluence
