@@ -1,4 +1,5 @@
 # UMIG Project Reorganization Guide
+
 ## US-032 Infrastructure Consolidation
 
 ### Overview
@@ -8,32 +9,36 @@ As part of US-032 (Confluence upgrade to 9.2.7), UMIG underwent a comprehensive 
 ### Key Changes
 
 #### 1. Infrastructure Consolidation
+
 - **Previous**: Infrastructure scripts scattered across multiple locations
 - **Current**: All infrastructure tools consolidated under `local-dev-setup/infrastructure/`
 - **Impact**: Centralized operations, easier maintenance
 
 #### 2. Test Organization
+
 - **Previous**: Tests scattered with inconsistent organization
 - **Current**: Structured test hierarchy under `src/groovy/umig/tests/`
 - **New**: Dedicated `upgrade/` directory for US-032 validation tests
 
 #### 3. Documentation Archival
+
 - **New**: `docs/archived/us-032-confluence-upgrade/` for upgrade documentation
 - **Purpose**: Historical record of upgrade process and outcomes
 
 ### Directory Mapping
 
-| Old Location | New Location | Purpose |
-|-------------|--------------|---------|
-| `infrastructure/backup/` | `local-dev-setup/infrastructure/backup/` | Enterprise backup system |
-| `infrastructure/upgrade/` | `local-dev-setup/infrastructure/upgrade/` | Upgrade automation |
-| `scripts/maintenance/` | `local-dev-setup/infrastructure/` | Maintenance operations |
-| `scripts/backup/` | `local-dev-setup/infrastructure/backup/` | Backup operations |
-| `src/groovy/umig/tests/system/upgrade-validation/` | `src/groovy/umig/tests/upgrade/` | Upgrade-specific tests |
+| Old Location                                       | New Location                              | Purpose                  |
+| -------------------------------------------------- | ----------------------------------------- | ------------------------ |
+| `infrastructure/backup/`                           | `local-dev-setup/infrastructure/backup/`  | Enterprise backup system |
+| `infrastructure/upgrade/`                          | `local-dev-setup/infrastructure/upgrade/` | Upgrade automation       |
+| `scripts/maintenance/`                             | `local-dev-setup/infrastructure/`         | Maintenance operations   |
+| `scripts/backup/`                                  | `local-dev-setup/infrastructure/backup/`  | Backup operations        |
+| `src/groovy/umig/tests/system/upgrade-validation/` | `src/groovy/umig/tests/upgrade/`          | Upgrade-specific tests   |
 
 ### Command Updates
 
 #### Infrastructure Operations
+
 ```bash
 # OLD (no longer valid)
 ./scripts/maintenance/validate-system.sh
@@ -47,6 +52,7 @@ As part of US-032 (Confluence upgrade to 9.2.7), UMIG underwent a comprehensive 
 ```
 
 #### Test Execution
+
 ```bash
 # OLD (scattered locations)
 ./src/groovy/umig/tests/system/upgrade-validation/run-all-tests.sh
@@ -108,6 +114,7 @@ cd src/groovy/umig/tests/
 ### Support
 
 For questions about the reorganization or assistance with migration:
+
 1. Review this guide and related documentation
 2. Check the updated CLAUDE.md for correct command paths
 3. Refer to infrastructure README files for detailed operations

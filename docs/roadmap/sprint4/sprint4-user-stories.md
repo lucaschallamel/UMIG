@@ -5,15 +5,17 @@
 **Total Story Points**: 33 points (5 completed, 28 planned)  
 **Sprint Goal**: Modernize critical APIs and deliver Main Dashboard with UI enhancements
 
-**✅ Sprint 4 Progress**: 
+**✅ Sprint 4 Progress**:
+
 - US-017 Status Field Normalization (5 points) - COMPLETED ✅ (Day 1)
 - Critical data model consistency issue resolved
 - All integration tests passing with normalized status implementation
 
 **📋 Sprint 4 Committed Scope** (28 points remaining):
+
 - US-032: Confluence Upgrade v9.2.7 & ScriptRunner 9.21.0 (3 points) - Day 2 🚨 URGENT
 - US-024: StepsAPI Refactoring (5 points) - Days 2-3
-- US-025: MigrationsAPI Refactoring (3 points) - Days 2-3  
+- US-025: MigrationsAPI Refactoring (3 points) - Days 2-3
 - US-031: Admin GUI Complete Integration (8 points) - Days 3-4
 - US-028: Enhanced IterationView (3 points) - Day 4
 - US-022: Integration Test Suite Expansion (3 points) - Day 5
@@ -90,7 +92,7 @@
 **Acceptance Criteria:**
 
 - [ ] Implement master/instance separation patterns from Sprint 3
-- [ ] Add hierarchical filtering capabilities  
+- [ ] Add hierarchical filtering capabilities
 - [ ] Implement bulk operations support
 - [ ] Add advanced query parameters (sorting, pagination, filtering)
 - [ ] Ensure status field normalization compliance
@@ -443,10 +445,10 @@
 
 - [x] ✅ **Critical Discrepancy Resolution**: Identified and resolved discrepancy between ADR-035 and solution architecture section 6.6 regarding status values
 - [x] ✅ **Source of Truth Established**: Confirmed solution architecture as authoritative with correct status values:
-  - Migration/Iteration/Plan/Sequence/Phase: PLANNING, IN_PROGRESS, COMPLETED, CANCELLED (4 each)  
+  - Migration/Iteration/Plan/Sequence/Phase: PLANNING, IN_PROGRESS, COMPLETED, CANCELLED (4 each)
   - Step: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED (7 total)
   - Control: TODO, PASSED, FAILED, CANCELLED (4 total)
-- [x] ✅ **ADR-035 Correction**: Updated ADR-035 to remove incorrect status values (NOT_STARTED, ON_HOLD, VALIDATED) 
+- [x] ✅ **ADR-035 Correction**: Updated ADR-035 to remove incorrect status values (NOT_STARTED, ON_HOLD, VALIDATED)
 - [x] ✅ **Repository Layer Updates**: Systematically updated all repository files with correct status values
 - [x] ✅ **API Layer Updates**: Updated all API files (PlansApi, SequencesApi, StepsApi, ControlsApi, migrationApi) with consistent status handling
 - [x] ✅ **Test Infrastructure Updates**: Updated all integration test files to use correct status values and prevent FK constraint violations
@@ -458,14 +460,15 @@
 **Technical Implementation Details:**
 
 **Status Value Standardization:**
+
 - **Migration/Iteration/Plan/Sequence/Phase Entities**: 4 status values each
-  - PLANNING (Orange #FFA500) 
+  - PLANNING (Orange #FFA500)
   - IN_PROGRESS (Blue #0066CC)
   - COMPLETED (Green #00AA00)
   - CANCELLED (Red #CC0000)
 - **Step Entity**: 7 status values total
   - PENDING (Light Grey #DDDDDD)
-  - TODO (Yellow #FFFF00) 
+  - TODO (Yellow #FFFF00)
   - IN_PROGRESS (Blue #0066CC)
   - COMPLETED (Green #00AA00)
   - FAILED (Red #FF0000)
@@ -473,23 +476,26 @@
   - CANCELLED (Dark Red #CC0000)
 - **Control Entity**: 4 status values total
   - TODO (Yellow #FFFF00)
-  - PASSED (Green #00AA00) 
+  - PASSED (Green #00AA00)
   - FAILED (Red #FF0000)
   - CANCELLED (Dark Red #CC0000)
 
 **Files Updated:**
-- Repository Layer: `ControlRepository.groovy`, `InstructionRepository.groovy`  
+
+- Repository Layer: `ControlRepository.groovy`, `InstructionRepository.groovy`
 - API Layer: `PlansApi.groovy`, `SequencesApi.groovy`, `StepsApi.groovy`, `ControlsApi.groovy`, `migrationApi.groovy`, `InstructionsApi.groovy`
 - Testing Layer: All integration test files updated with correct status values
 - Documentation: ADR-035, solution architecture section 6.6 consistency achieved
 
 **Architecture Patterns:**
+
 - Foreign key constraints maintain referential integrity to `status_sts` table
-- API accepts both integer IDs and string names for backward compatibility  
+- API accepts both integer IDs and string names for backward compatibility
 - Instructions use boolean completion pattern (no FK to status table by design)
 - Hybrid approach balances normalization with pragmatic simplicity
 
 **Quality Assurance:**
+
 - All 25+ integration tests updated and passing
 - FK constraint violations eliminated from test cleanup
 - Type safety maintained with explicit casting per ADR-031
@@ -584,33 +590,33 @@
 
 ### Sprint 4 Committed Stories (33 points total)
 
-| Story  | Description | Complexity | Points | Status | Day |
-| ------ | ----------- | ---------- | ------ | ------ | --- |
-| US-017 | Status Field Normalization | High | 5 | ✅ COMPLETED | Day 1 |
-| US-032 | Confluence Upgrade v9.2.7 & ScriptRunner 9.21.0 | Medium | 3 | 🚨 URGENT | Day 2 |
-| US-024 | StepsAPI Refactoring | High | 5 | 📋 COMMITTED | Days 2-3 |
-| US-025 | MigrationsAPI Refactoring | Medium | 3 | 📋 COMMITTED | Days 2-3 |
-| US-031 | Admin GUI Complete Integration | High | 8 | 📋 COMMITTED | Days 3-4 |
-| US-028 | Enhanced IterationView | Medium | 3 | 📋 COMMITTED | Day 4 |
-| US-022 | Integration Test Suite | Medium | 3 | 📋 COMMITTED | Day 5 |
-| US-030 | API Documentation | Low | 3 | 📋 COMMITTED | Day 5 |
+| Story  | Description                                     | Complexity | Points | Status       | Day      |
+| ------ | ----------------------------------------------- | ---------- | ------ | ------------ | -------- |
+| US-017 | Status Field Normalization                      | High       | 5      | ✅ COMPLETED | Day 1    |
+| US-032 | Confluence Upgrade v9.2.7 & ScriptRunner 9.21.0 | Medium     | 3      | 🚨 URGENT    | Day 2    |
+| US-024 | StepsAPI Refactoring                            | High       | 5      | 📋 COMMITTED | Days 2-3 |
+| US-025 | MigrationsAPI Refactoring                       | Medium     | 3      | 📋 COMMITTED | Days 2-3 |
+| US-031 | Admin GUI Complete Integration                  | High       | 8      | 📋 COMMITTED | Days 3-4 |
+| US-028 | Enhanced IterationView                          | Medium     | 3      | 📋 COMMITTED | Day 4    |
+| US-022 | Integration Test Suite                          | Medium     | 3      | 📋 COMMITTED | Day 5    |
+| US-030 | API Documentation                               | Low        | 3      | 📋 COMMITTED | Day 5    |
 
 **Sprint 4 Total:** 33 points (5 completed + 28 committed)
 
 ### Deferred to Sprint 5
 
-| Story  | Description | Points | Reason |
-| ------ | ----------- | ------ | ------ |
-| US-018 | Main Dashboard Development | 5 | Admin GUI more foundational |
-| US-029 | Enhanced StepView | 3 | Lower priority than Admin GUI |
-| US-008 | Dashboard Analytics Widgets | 5 | Complex charts, needs more time |
-| US-009 | HTML Report Generation | 3 | Not critical path |
-| US-010 | Planning Template Management | 3 | Depends on planning feature |
-| US-011 | Confluence JSON Import | 5 | High complexity, needs focus |
-| US-012 | CSV Bulk Import | 3 | Can use existing import |
-| US-013 | Audit Trail Implementation | 5 | Infrastructure change |
-| US-014 | Event Notification System | 3 | Enhancement |
-| US-016 | Test Infrastructure Fixes | 2 | Not blocking |
+| Story  | Description                  | Points | Reason                          |
+| ------ | ---------------------------- | ------ | ------------------------------- |
+| US-018 | Main Dashboard Development   | 5      | Admin GUI more foundational     |
+| US-029 | Enhanced StepView            | 3      | Lower priority than Admin GUI   |
+| US-008 | Dashboard Analytics Widgets  | 5      | Complex charts, needs more time |
+| US-009 | HTML Report Generation       | 3      | Not critical path               |
+| US-010 | Planning Template Management | 3      | Depends on planning feature     |
+| US-011 | Confluence JSON Import       | 5      | High complexity, needs focus    |
+| US-012 | CSV Bulk Import              | 3      | Can use existing import         |
+| US-013 | Audit Trail Implementation   | 5      | Infrastructure change           |
+| US-014 | Event Notification System    | 3      | Enhancement                     |
+| US-016 | Test Infrastructure Fixes    | 2      | Not blocking                    |
 
 **Deferred Total:** 29 points
 

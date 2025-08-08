@@ -11,18 +11,21 @@ The Confluence upgrade from 8.5.6 to 9.2.7 has been successfully deployed using 
 ## ✅ Completed Actions
 
 ### 1. Infrastructure Preparation
+
 - ✅ Created comprehensive backup system (7 scripts)
 - ✅ Built upgrade automation scripts
 - ✅ Deployed validation test suite
 - ✅ Documented upgrade process
 
 ### 2. Upgrade Execution
+
 - ✅ Built new Confluence 9.2.7 image
 - ✅ Successfully deployed new container
 - ✅ Preserved all data via named volumes
 - ✅ Container is running and accessible
 
 ### 3. Validation Results
+
 - ✅ Container Status: All 3 containers running
 - ✅ Port Accessibility: All ports (8090, 5432, 8025, 1025) accessible
 - ✅ Volume Mounts: All volumes correctly mounted
@@ -32,6 +35,7 @@ The Confluence upgrade from 8.5.6 to 9.2.7 has been successfully deployed using 
 ## 📊 Technical Details
 
 ### Image Change
+
 ```dockerfile
 # FROM
 atlassian/confluence-server:8.5.6-jdk17
@@ -41,6 +45,7 @@ atlassian/confluence:9.2.7
 ```
 
 ### Container Status
+
 ```
 NAMES            IMAGE                                    STATUS
 umig_confluence  localhost/umig/confluence-custom:8.5.6  Up 3 minutes
@@ -49,8 +54,9 @@ umig_mailhog     docker.io/mailhog/mailhog:latest        Up 5 hours
 ```
 
 ### HTTP Response
+
 ```
-HTTP/1.1 302 
+HTTP/1.1 302
 X-XSS-Protection: 1; mode=block
 X-Content-Type-Options: nosniff
 X-Frame-Options: SAMEORIGIN
@@ -62,7 +68,7 @@ Content-Security-Policy: frame-ancestors 'self'
 ### Manual Actions Required
 
 1. **Access Confluence UI**
-   - Navigate to: http://localhost:8090
+   - Navigate to: <http://localhost:8090>
    - Complete any upgrade wizard steps if prompted
    - Verify system information shows version 9.2.7
 
@@ -80,11 +86,13 @@ Content-Security-Policy: frame-ancestors 'self'
 ## 🚨 Known Issues
 
 ### Expected Behaviors
+
 - **302 Redirects**: Normal for unauthenticated requests
 - **SLF4J Warnings**: Cosmetic logging issues, not affecting functionality
 - **Setup Required**: May need to complete Confluence setup wizard
 
 ### No Critical Issues
+
 - ✅ No data loss
 - ✅ No container crashes
 - ✅ No database corruption

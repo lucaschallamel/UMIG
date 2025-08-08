@@ -263,6 +263,7 @@ Endpoints support query parameters that filter resources based on their position
    ```
 
 3. **API Endpoint Pattern:**
+
    ```groovy
    if (queryParams.containsKey('migrationId')) {
        def migrationId = UUID.fromString(queryParams.getFirst('migrationId') as String)

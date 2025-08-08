@@ -1,4 +1,5 @@
 # US-032: Confluence Upgrade Action Plan
+
 ## Confluence 8.5.6 → 9.2.7 & ScriptRunner → 9.21.0
 
 **Created**: August 8, 2025  
@@ -19,6 +20,7 @@ This action plan consolidates the analysis and planning from multiple GENDEV spe
 ## 1. Current State Assessment
 
 ### Infrastructure
+
 - **Confluence**: v8.5.6 (JDK17 container)
 - **ScriptRunner**: Unknown version (manually installed)
 - **PostgreSQL**: v14-alpine with named volumes
@@ -26,24 +28,28 @@ This action plan consolidates the analysis and planning from multiple GENDEV spe
 - **UMIG Components**: 25+ REST APIs, Admin GUI, 1,443+ step instances
 
 ### Critical Security Vulnerabilities
-| CVE | CVSS Score | Impact | UMIG Risk |
-|-----|------------|---------|-----------|
-| CVE-2024-21683 | 9.6 Critical | Authentication Bypass | ALL APIs vulnerable |
+
+| CVE            | CVSS Score    | Impact                | UMIG Risk           |
+| -------------- | ------------- | --------------------- | ------------------- |
+| CVE-2024-21683 | 9.6 Critical  | Authentication Bypass | ALL APIs vulnerable |
 | CVE-2023-22527 | 10.0 Critical | Remote Code Execution | Complete compromise |
-| CVE-2024-1597 | 8.5 High | SQL Injection | Database exposure |
+| CVE-2024-1597  | 8.5 High      | SQL Injection         | Database exposure   |
 
 ---
 
 ## 2. Implementation Strategy: Stream A
 
 ### Approach
+
 Container image replacement with preserved named volumes:
+
 - ✅ **Data Preservation**: 100% guaranteed via named volumes
 - ✅ **Rollback Time**: <5 minutes
 - ✅ **Testing**: Full validation before commitment
 - ✅ **Risk**: Minimal with proper backup
 
 ### Technical Implementation
+
 ```dockerfile
 # Update Containerfile
 FROM atlassian/confluence-server:9.2.7-jdk17
@@ -58,17 +64,20 @@ ENV CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluen
 ## 3. Pre-Upgrade Checklist
 
 ### Day 1 Preparation (4 hours)
+
 - [ ] **System Backup**
+
   ```bash
   # Full volume backup
   podman volume export confluence_data > confluence_data_backup.tar
   podman volume export postgres_data > postgres_data_backup.tar
-  
+
   # Encrypted database backup
   pg_dump umig_app_db | gpg --symmetric > umig_backup_encrypted.sql.gpg
   ```
 
 - [ ] **Baseline Documentation**
+
   ```bash
   # Run baseline generator
   ./src/groovy/umig/tests/upgrade/pre-upgrade-baseline-generator.groovy
@@ -80,6 +89,7 @@ ENV CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluen
   - Catalog API tokens
 
 - [ ] **Test Environment Validation**
+
   ```bash
   # Run current state tests
   ./src/groovy/umig/tests/run-integration-tests.sh
@@ -92,6 +102,7 @@ ENV CATALINA_OPTS=-Dplugin.script.roots=/var/atlassian/application-data/confluen
 ### Day 2 Morning: Infrastructure Upgrade (2 hours)
 
 #### Phase 1: Container Preparation (30 min)
+
 ```bash
 # 1. Update Containerfile
 vim local-dev-setup/confluence/Containerfile
@@ -107,6 +118,7 @@ podman tag umig/confluence-custom:8.5.6 umig/confluence-custom:8.5.6-backup
 ```
 
 #### Phase 2: Container Deployment (45 min)
+
 ```bash
 # 1. Graceful shutdown
 podman-compose stop confluence
@@ -123,7 +135,8 @@ podman logs -f confluence
 ```
 
 #### Phase 3: ScriptRunner Upgrade (45 min)
-1. Access Confluence UI: http://localhost:8090
+
+1. Access Confluence UI: <http://localhost:8090>
 2. Navigate to: Administration → Manage Apps
 3. Upload ScriptRunner 9.21.0 JAR
 4. Verify installation and licensing
@@ -132,16 +145,19 @@ podman logs -f confluence
 ### Day 2 Afternoon: Validation (3 hours)
 
 #### Smoke Tests (30 min)
+
 ```bash
 ./src/groovy/umig/tests/upgrade/smoke-test-suite.sh
 ```
 
 #### Integration Tests (90 min)
+
 ```bash
 ./src/groovy/umig/tests/run-integration-tests.sh
 ```
 
 #### Security Validation (60 min)
+
 ```bash
 groovy src/groovy/umig/tests/upgrade/security-validation-test.groovy
 ```
@@ -151,17 +167,19 @@ groovy src/groovy/umig/tests/upgrade/security-validation-test.groovy
 ## 5. Test Validation Matrix
 
 ### Critical Path Testing
-| Component | Test Type | Success Criteria | Rollback Trigger |
-|-----------|-----------|------------------|------------------|
-| Confluence Platform | Smoke | Startup < 2 min | Startup failure |
-| ScriptRunner | Functional | Console accessible | Script execution fails |
-| Database | Connectivity | All connections succeed | Connection pool errors |
-| REST APIs (25+) | Integration | All endpoints respond | >10% failure rate |
-| Admin GUI | UI | All modules load | JavaScript errors |
-| Performance | Benchmark | <200ms response | >50% degradation |
-| Security | Vulnerability | No critical issues | Any HIGH/CRITICAL |
+
+| Component           | Test Type     | Success Criteria        | Rollback Trigger       |
+| ------------------- | ------------- | ----------------------- | ---------------------- |
+| Confluence Platform | Smoke         | Startup < 2 min         | Startup failure        |
+| ScriptRunner        | Functional    | Console accessible      | Script execution fails |
+| Database            | Connectivity  | All connections succeed | Connection pool errors |
+| REST APIs (25+)     | Integration   | All endpoints respond   | >10% failure rate      |
+| Admin GUI           | UI            | All modules load        | JavaScript errors      |
+| Performance         | Benchmark     | <200ms response         | >50% degradation       |
+| Security            | Vulnerability | No critical issues      | Any HIGH/CRITICAL      |
 
 ### Automated Test Execution
+
 ```bash
 # Master test orchestration
 ./src/groovy/umig/tests/upgrade/master-test-orchestration.sh
@@ -175,6 +193,7 @@ ls -la test-reports/$(date +%Y%m%d-%H%M%S)/
 ## 6. Rollback Procedures
 
 ### Immediate Rollback (<5 minutes)
+
 ```bash
 # 1. Stop upgraded container
 podman-compose stop confluence
@@ -190,6 +209,7 @@ podman-compose up -d confluence
 ```
 
 ### Data Recovery (if needed)
+
 ```bash
 # Restore volumes
 podman volume import confluence_data < confluence_data_backup.tar
@@ -204,6 +224,7 @@ gpg --decrypt umig_backup_encrypted.sql.gpg | psql umig_app_db
 ## 7. Success Criteria
 
 ### Functional Requirements
+
 - ✅ Confluence 9.2.7 running successfully
 - ✅ ScriptRunner 9.21.0 operational
 - ✅ All 25+ REST APIs functional
@@ -211,12 +232,14 @@ gpg --decrypt umig_backup_encrypted.sql.gpg | psql umig_app_db
 - ✅ Database connectivity maintained
 
 ### Performance Requirements
+
 - ✅ API response times <200ms
 - ✅ No performance degradation
 - ✅ Memory usage <6GB
 - ✅ CPU usage <70%
 
 ### Security Requirements
+
 - ✅ All critical vulnerabilities patched
 - ✅ Authentication working correctly
 - ✅ No data exposure issues
@@ -227,14 +250,16 @@ gpg --decrypt umig_backup_encrypted.sql.gpg | psql umig_app_db
 ## 8. Risk Mitigation
 
 ### High Priority Risks
-| Risk | Probability | Impact | Mitigation |
-|------|------------|---------|------------|
-| API Incompatibility | Medium | High | Comprehensive testing, gradual rollout |
-| Performance Degradation | Low | Medium | Baseline comparison, optimization ready |
-| Data Corruption | Very Low | Critical | Volume backups, transaction logs |
-| Security Breach | Low | Critical | Immediate patching, monitoring |
+
+| Risk                    | Probability | Impact   | Mitigation                              |
+| ----------------------- | ----------- | -------- | --------------------------------------- |
+| API Incompatibility     | Medium      | High     | Comprehensive testing, gradual rollout  |
+| Performance Degradation | Low         | Medium   | Baseline comparison, optimization ready |
+| Data Corruption         | Very Low    | Critical | Volume backups, transaction logs        |
+| Security Breach         | Low         | Critical | Immediate patching, monitoring          |
 
 ### Contingency Plans
+
 1. **Partial Failure**: Feature flags for gradual enablement
 2. **Performance Issues**: Query optimization scripts ready
 3. **Integration Problems**: API compatibility layer prepared
@@ -245,14 +270,16 @@ gpg --decrypt umig_backup_encrypted.sql.gpg | psql umig_app_db
 ## 9. Communication Plan
 
 ### Stakeholder Notifications
-| Time | Audience | Message |
-|------|----------|---------|
-| Day 1 PM | All Users | Upgrade announcement, expected downtime |
-| Day 2 AM | Tech Team | Upgrade starting, monitoring required |
-| Day 2 PM | Management | Upgrade status, test results |
-| Day 3 AM | All Users | Upgrade complete, new features available |
+
+| Time     | Audience   | Message                                  |
+| -------- | ---------- | ---------------------------------------- |
+| Day 1 PM | All Users  | Upgrade announcement, expected downtime  |
+| Day 2 AM | Tech Team  | Upgrade starting, monitoring required    |
+| Day 2 PM | Management | Upgrade status, test results             |
+| Day 3 AM | All Users  | Upgrade complete, new features available |
 
 ### Escalation Path
+
 1. **Level 1**: DevOps Team Lead (0-15 min)
 2. **Level 2**: Engineering Manager (15-30 min)
 3. **Level 3**: CTO/Security Officer (30+ min)
@@ -262,18 +289,21 @@ gpg --decrypt umig_backup_encrypted.sql.gpg | psql umig_app_db
 ## 10. Post-Upgrade Activities
 
 ### Day 3: Stabilization
+
 - [ ] Monitor system performance (48 hours)
 - [ ] Review security scan results
 - [ ] Document any issues encountered
 - [ ] Update runbooks and procedures
 
 ### Week 1: Optimization
+
 - [ ] Implement enhanced RBAC
 - [ ] Deploy API rate limiting
 - [ ] Configure advanced monitoring
 - [ ] Complete security hardening
 
 ### Documentation Updates
+
 - [ ] Update system requirements
 - [ ] Revise deployment procedures
 - [ ] Document new features
@@ -284,11 +314,13 @@ gpg --decrypt umig_backup_encrypted.sql.gpg | psql umig_app_db
 ## Appendix A: File Locations
 
 ### Configuration Files
+
 - `local-dev-setup/confluence/Containerfile`
 - `local-dev-setup/podman-compose.yml`
 - `local-dev-setup/scripts/provision-confluence.sh`
 
 ### Test Scripts
+
 - `src/groovy/umig/tests/upgrade/pre-upgrade-baseline-generator.groovy`
 - `src/groovy/umig/tests/upgrade/smoke-test-suite.sh`
 - `src/groovy/umig/tests/upgrade/security-validation-test.groovy`
@@ -296,6 +328,7 @@ gpg --decrypt umig_backup_encrypted.sql.gpg | psql umig_app_db
 - `src/groovy/umig/tests/upgrade/master-test-orchestration.sh`
 
 ### Documentation
+
 - `docs/roadmap/sprint4/sprint4-US032.md` (User Story)
 - `docs/deployment/US032-upgrade-deployment-plan.md` (Deployment Plan)
 - `docs/roadmap/sprint4/US-032-action-plan.md` (This Document)

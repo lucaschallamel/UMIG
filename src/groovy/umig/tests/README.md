@@ -21,6 +21,7 @@ This folder contains all Groovy-based tests for the UMIG project.
 - **Required Version**: `2.3-groovy-3.0`
 - **Forbidden**: `2.3-groovy-4.0` or any groovy-4.0 variants
 - **Template**:
+
   ```groovy
   @Grab('org.spockframework:spock-core:2.3-groovy-3.0')
   ```

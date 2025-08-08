@@ -9,6 +9,7 @@ Comprehensive backup and restore solution for the US-032 Confluence upgrade proj
 ### Why Verification is Essential
 
 During the Confluence upgrade, backup creation failed silently due to:
+
 1. Podman remote mode limitations (`podman volume export` not supported)
 2. Incorrect volume names (missing `local-dev-setup_` prefix)
 3. Missing directory creation in backup scripts
@@ -17,6 +18,7 @@ During the Confluence upgrade, backup creation failed silently due to:
 **Result**: Empty backup files (0 bytes) left us without pre-upgrade protection.
 
 ### Critical Lessons Learned
+
 - **Never trust exit codes alone** - always verify file sizes
 - **Test backup scripts manually** before critical operations
 - **Volume names include prefixes** - verify with `podman volume ls`
@@ -29,6 +31,7 @@ During the Confluence upgrade, backup creation failed silently due to:
 Follow this verification checklist to prevent backup failures:
 
 1. **Test Backup Scripts Manually**
+
    ```bash
    cd /path/to/local-dev-setup/infrastructure/backup
    ./backup-volumes.sh
@@ -37,21 +40,23 @@ Follow this verification checklist to prevent backup failures:
    ```
 
 2. **Verify Volume Names**
+
    ```bash
    # List actual volume names
    podman volume ls | grep -E "confluence|postgres"
-   
+
    # Should show:
    # local-dev-setup_confluence_data
    # local-dev-setup_postgres_data
    ```
 
 3. **Check Backup Sizes**
+
    ```bash
    # After backup, verify non-empty files
    LATEST_BACKUP=$(ls -t ../../local-dev-setup/backups/ | head -1)
    du -sh ../../local-dev-setup/backups/$LATEST_BACKUP/*
-   
+
    # Expected sizes (approximate):
    # - confluence_data.tar.gz: 500-600MB
    # - postgres_data.tar.gz: 300-400MB
@@ -94,9 +99,11 @@ echo "✅ Backup verification passed"
 ### Known Issues and Solutions
 
 #### Issue 1: Podman Volume Export Fails
+
 **Error**: `cannot use command 'podman volume export' with the remote podman client`
 
 **Solution**: Use container-based backup approach (already implemented):
+
 ```bash
 podman run --rm \
   --volume "volume_name:/data:ro" \
@@ -106,27 +113,33 @@ podman run --rm \
 ```
 
 #### Issue 2: Empty Backup Files
+
 **Symptom**: Backup files are 0 bytes
 
 **Causes**:
+
 - Volume names incorrect
 - Backup directory not created
 - Podman command failed silently
 
 **Prevention**:
+
 - Always verify backup file sizes
 - Use the verification script above
 
 #### Issue 3: Wrong Volume Names
+
 **Error**: `Volume 'confluence_data' does not exist`
 
 **Solution**: Use correct prefixed names:
+
 - ❌ `confluence_data`
 - ✅ `local-dev-setup_confluence_data`
 
 ## Overview
 
 This backup system provides enterprise-grade data protection for:
+
 - **Podman Volumes**: `local-dev-setup_confluence_data` and `local-dev-setup_postgres_data`
 - **PostgreSQL Databases**: `confluence` and `umig_app_db`
 - **Container Configurations**: Complete system state preservation
@@ -135,6 +148,7 @@ This backup system provides enterprise-grade data protection for:
 ## Quick Start
 
 ### Create Complete Backup
+
 ```bash
 # Navigate to backup directory
 cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/infrastructure/backup/
@@ -146,6 +160,7 @@ cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/infrastructure/ba
 ```
 
 ### Verify Backup
+
 ```bash
 # Verify backup integrity (replace with your timestamp)
 ./verify-backup.sh 20250808_143022
@@ -155,6 +170,7 @@ cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/infrastructure/ba
 ```
 
 ### Restore from Backup
+
 ```bash
 # Complete system restore
 ./restore-all.sh 20250808_143022
@@ -170,11 +186,13 @@ cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/infrastructure/ba
 ## Script Reference
 
 ### 1. backup-all.sh (Master Script)
+
 **Purpose**: Orchestrates complete system backup
 
 **Usage**: `./backup-all.sh`
 
 **Features**:
+
 - ✅ Complete system backup in one command
 - ✅ Automatic container stopping/starting
 - ✅ Comprehensive verification and logging
@@ -182,6 +200,7 @@ cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/infrastructure/ba
 - ✅ Detailed backup summary and metrics
 
 **Output Structure**:
+
 ```
 backups/YYYYMMDD_HHMMSS/
 ├── volumes/                    # Volume archives
@@ -195,22 +214,26 @@ backups/YYYYMMDD_HHMMSS/
 ```
 
 ### 2. backup-volumes.sh
+
 **Purpose**: Backup Podman named volumes
 
 **Usage**: `./backup-volumes.sh`
 
 **Features**:
+
 - ✅ Tar.gz compression for optimal storage
 - ✅ Preserves file permissions and ownership
 - ✅ Volume metadata export
 - ✅ Integrity verification with checksums
 
 ### 3. backup-databases.sh
+
 **Purpose**: Backup PostgreSQL databases
 
 **Usage**: `./backup-databases.sh`
 
 **Features**:
+
 - ✅ Multiple backup formats (custom + SQL)
 - ✅ Global settings backup (users, roles)
 - ✅ Schema-only backups for reference
@@ -218,46 +241,55 @@ backups/YYYYMMDD_HHMMSS/
 - ✅ Connection validation before backup
 
 ### 4. restore-volumes.sh
+
 **Purpose**: Restore Podman volumes from backup
 
 **Usage**: `./restore-volumes.sh <timestamp> [options]`
 
 **Options**:
+
 - `--dry-run`: Preview restore actions
 - `--force`: Overwrite existing volumes
 
 **Safety Features**:
+
 - ✅ Automatic container stopping
 - ✅ Backup integrity verification
 - ✅ Volume conflict detection
 - ✅ Automatic container restart
 
 ### 5. restore-databases.sh
+
 **Purpose**: Restore PostgreSQL databases from backup
 
 **Usage**: `./restore-databases.sh <timestamp> [options]`
 
 **Options**:
+
 - `--dry-run`: Preview restore actions
 - `--force`: Overwrite existing databases
 - `--format custom|sql`: Choose restore format
 
 **Advanced Features**:
+
 - ✅ Connection termination handling
 - ✅ Multiple restore format support
 - ✅ Application stopping/starting
 - ✅ Post-restore statistics
 
 ### 6. verify-backup.sh
+
 **Purpose**: Comprehensive backup verification
 
 **Usage**: `./verify-backup.sh <timestamp> [options]`
 
 **Options**:
+
 - `--verbose`: Detailed verification output
 - `--quick`: Fast verification (structure only)
 
 **Verification Checks**:
+
 - ✅ Directory structure validation
 - ✅ File existence and size checks
 - ✅ SHA256 integrity verification
@@ -296,6 +328,7 @@ echo "Backup created: $LATEST"
 ```
 
 ### During Upgrade Issues
+
 ```bash
 # Quick rollback if upgrade fails
 ./restore-all.sh YYYYMMDD_HHMMSS --force
@@ -305,6 +338,7 @@ echo "Backup created: $LATEST"
 ```
 
 ### After Successful Upgrade
+
 ```bash
 # Verify new system and create post-upgrade backup
 ./backup-all.sh
@@ -349,6 +383,7 @@ podman volume inspect test_confluence_data
 ## Storage Requirements
 
 ### Estimated Backup Sizes
+
 - **Confluence Data**: ~2-5GB (depends on content)
 - **PostgreSQL Data**: ~500MB-2GB
 - **UMIG App Database**: ~50-200MB
@@ -356,6 +391,7 @@ podman volume inspect test_confluence_data
 - **Total**: ~3-7GB per backup
 
 ### Disk Space Planning
+
 - Maintain at least 3x backup size as free space
 - Consider compression ratios (30-50% reduction)
 - Plan for multiple backup retention
@@ -363,11 +399,13 @@ podman volume inspect test_confluence_data
 ## Security Considerations
 
 ### Access Control
+
 - Scripts require filesystem read/write access
 - Podman container management permissions needed
 - Database credentials embedded (review security)
 
 ### Backup Protection
+
 - Backups contain sensitive data
 - Store in secure, access-controlled location
 - Consider encryption for off-site storage
@@ -378,6 +416,7 @@ podman volume inspect test_confluence_data
 ### Common Issues
 
 #### "Container not running"
+
 ```bash
 # Start containers first
 cd ../../
@@ -389,6 +428,7 @@ cd local-dev-setup/infrastructure/backup/
 ```
 
 #### "Volume does not exist"
+
 ```bash
 # Check volume status
 podman volume ls
@@ -398,6 +438,7 @@ podman ps --format "table {{.Names}}"
 ```
 
 #### "Insufficient disk space"
+
 ```bash
 # Check available space
 df -h .
@@ -408,6 +449,7 @@ rm -rf ../../backups/OLD_TIMESTAMP
 ```
 
 #### "Backup integrity failed"
+
 ```bash
 # Re-run verification with verbose output
 ./verify-backup.sh TIMESTAMP --verbose
@@ -419,6 +461,7 @@ cat ../../backups/TIMESTAMP/*.log
 ### Recovery Procedures
 
 #### Partial Restore Failure
+
 ```bash
 # Restore individual components
 ./restore-volumes.sh TIMESTAMP --force
@@ -426,6 +469,7 @@ cat ../../backups/TIMESTAMP/*.log
 ```
 
 #### Corrupted Backup
+
 ```bash
 # Try alternative backup format
 ./restore-databases.sh TIMESTAMP --format sql
@@ -437,13 +481,16 @@ cat ../../backups/TIMESTAMP/schemas/*.sql
 ## Monitoring and Maintenance
 
 ### Regular Tasks
+
 1. **Weekly**: Verify latest backup integrity
 2. **Monthly**: Test complete restore process
 3. **Quarterly**: Review and clean old backups
 4. **Before upgrades**: Always create fresh backup
 
 ### Automation Integration
+
 Scripts support integration with:
+
 - Cron jobs for scheduled backups
 - CI/CD pipelines for deployment protection
 - Monitoring systems for backup verification
@@ -472,6 +519,7 @@ UMIG/
 ## Support and Updates
 
 ### Version Information
+
 - **Script Version**: 2.0
 - **Created**: 2025-08-08
 - **Author**: gendev-deployment-ops-manager
@@ -479,6 +527,7 @@ UMIG/
 - **Tested**: Confluence 8.5.6 → 9.2.7 upgrade, PostgreSQL 14-alpine, Podman 5.x
 
 ### Getting Help
+
 1. Check log files in backup directory
 2. Run verification with `--verbose` flag
 3. Test with `--dry-run` before actual operations

@@ -83,6 +83,7 @@ For a step-by-step guide, see the [api-work.md workflow](../../../../.clinerules
 
 - **DELETE /users/{id}:**
   - If deletion is blocked by any referencing records (teams, plans, steps, comments, etc.), the API returns:
+
     ```json
     {
       "error": "Cannot delete user with ID 3 as they are still referenced by other resources.",
@@ -93,11 +94,13 @@ For a step-by-step guide, see the [api-work.md workflow](../../../../.clinerules
       }
     }
     ```
+
   - No associations are deleted unless the user is deleted.
 
 - **POST /users:**
   - Required fields: `usr_first_name`, `usr_last_name`, `usr_email`, `usr_is_admin`, `usr_code`, `rls_id`.
   - Returns clear errors for missing/unknown fields, type errors, and constraint violations. Example:
+
     ```json
     { "error": "Missing required fields: usr_code, rls_id" }
     { "error": "Unknown fields: usr_confluence_id" }

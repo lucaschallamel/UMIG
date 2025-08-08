@@ -1,1 +1,13 @@
-{"step_name":"TRT-11717","step_type":"TRT","step_number":11717,"step_title":"SECLI GVA CLIENTS SECRET and CONFIDENTIAL DATA LOADING IN PRE-STAGING TABLE","step_predecessor":"TRT-14226","step_successor":"DUM-14660","step_assigned_team":"SECLI","step_impacted_teams":"","step_macro_time_sequence":"C - WEEK-END 1 - CSD","step_time_sequence":"CE - DATA LOADING IN PRE-STAGING","step_instructions":[]}
+{
+  "step_name": "TRT-11717",
+  "step_type": "TRT",
+  "step_number": 11717,
+  "step_title": "SECLI GVA CLIENTS SECRET and CONFIDENTIAL DATA LOADING IN PRE-STAGING TABLE",
+  "step_predecessor": "TRT-14226",
+  "step_successor": "DUM-14660",
+  "step_assigned_team": "SECLI",
+  "step_impacted_teams": "",
+  "step_macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "step_time_sequence": "CE - DATA LOADING IN PRE-STAGING",
+  "step_instructions": []
+}

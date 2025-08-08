@@ -7,12 +7,15 @@ All preparatory work has been completed. The upgrade infrastructure is in place 
 ## ✅ Completed Preparations
 
 ### 1. Infrastructure Analysis
+
 - Analyzed current setup: Confluence 8.5.6, PostgreSQL 14, Podman containers
 - Identified upgrade path: Stream A (Container image replacement)
 - Confirmed data preservation strategy via named volumes
 
 ### 2. Backup System Created
+
 **Location**: `/local-dev-setup/scripts/backup/`
+
 - `backup-all.sh` - Master backup orchestration
 - `backup-volumes.sh` - Podman volume backups
 - `backup-databases.sh` - PostgreSQL backups
@@ -21,13 +24,17 @@ All preparatory work has been completed. The upgrade infrastructure is in place 
 - Full SHA256 checksums and error handling
 
 ### 3. Upgrade Infrastructure
+
 **Location**: `/local-dev-setup/`
+
 - Updated `confluence/Containerfile` to Confluence 9.2.7
 - Created `scripts/upgrade-confluence.sh` - Automated upgrade script
 - Added `confluence/UPGRADE-NOTES-9.2.7.md` - Migration documentation
 
 ### 4. Test Suite Deployed
+
 **Location**: `/local-dev-setup/tests/upgrade-validation/`
+
 - `test-container-health.sh` - Container validation
 - `test-database-connectivity.sh` - Database testing
 - `test-api-endpoints.sh` - API validation
@@ -82,7 +89,7 @@ cd tests/upgrade-validation
 
 ## 📋 Post-Upgrade Checklist
 
-- [ ] Confluence accessible at http://localhost:8090
+- [ ] Confluence accessible at <http://localhost:8090>
 - [ ] Container health check passing
 - [ ] Database connections working
 - [ ] ScriptRunner upgraded to 9.21.0

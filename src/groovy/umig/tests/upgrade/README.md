@@ -9,8 +9,10 @@ This test suite validates that all critical components are functioning correctly
 ## Test Files
 
 ### 1. `test-container-health.sh`
+
 **Purpose:** Verify container status and health  
 **Coverage:**
+
 - Container running status
 - Health check validation
 - Network connectivity between containers
@@ -19,8 +21,10 @@ This test suite validates that all critical components are functioning correctly
 - Resource usage monitoring
 
 ### 2. `test-database-connectivity.sh`
+
 **Purpose:** Test PostgreSQL connections  
 **Coverage:**
+
 - PostgreSQL server connectivity
 - Confluence database connection and schema
 - UMIG application database connection and tables
@@ -29,8 +33,10 @@ This test suite validates that all critical components are functioning correctly
 - Liquibase schema version validation
 
 ### 3. `test-api-endpoints.sh`
+
 **Purpose:** Validate REST API endpoints  
 **Coverage:**
+
 - Confluence base connectivity
 - Confluence REST API v1 endpoints
 - ScriptRunner custom endpoint base
@@ -40,8 +46,10 @@ This test suite validates that all critical components are functioning correctly
 - Confluence 9.2.7 specific features
 
 ### 4. `test-scriptrunner.sh`
+
 **Purpose:** Check ScriptRunner installation and functionality  
 **Coverage:**
+
 - ScriptRunner plugin installation
 - Version compatibility with Confluence 9.2.7
 - Custom script roots configuration
@@ -51,8 +59,10 @@ This test suite validates that all critical components are functioning correctly
 - Security context validation
 
 ### 5. `run-all-tests.sh`
+
 **Purpose:** Master test runner with comprehensive reporting  
 **Features:**
+
 - Executes all tests in optimal order
 - Pre-flight environment checks
 - Detailed logging and reporting
@@ -63,12 +73,14 @@ This test suite validates that all critical components are functioning correctly
 ## Usage
 
 ### Run All Tests
+
 ```bash
 cd src/groovy/umig/tests/upgrade/
 ./run-all-tests.sh
 ```
 
 ### Run Specific Test
+
 ```bash
 ./run-all-tests.sh --test container-health
 ./run-all-tests.sh --test database-connectivity
@@ -77,11 +89,13 @@ cd src/groovy/umig/tests/upgrade/
 ```
 
 ### List Available Tests
+
 ```bash
 ./run-all-tests.sh --list
 ```
 
 ### Get Help
+
 ```bash
 ./run-all-tests.sh --help
 ```
@@ -89,19 +103,22 @@ cd src/groovy/umig/tests/upgrade/
 ## Test Environment Requirements
 
 ### Running Containers
+
 - `umig_confluence` - Confluence application
 - `umig_postgres` - PostgreSQL database
 - `umig_mailhog` - Mail server
 
 ### Network Accessibility
+
 - Port 8090: Confluence HTTP
 - Port 5432: PostgreSQL
 - Port 8025: MailHog Web UI
 - Port 1025: MailHog SMTP
 
 ### Expected Services
-- Confluence at http://localhost:8090
-- UMIG APIs at http://localhost:8090/confluence/rest/scriptrunner/latest/custom
+
+- Confluence at <http://localhost:8090>
+- UMIG APIs at <http://localhost:8090/confluence/rest/scriptrunner/latest/custom>
 - PostgreSQL databases: `confluence`, `umig_app_db`
 
 ## Pre-Upgrade Validation
@@ -109,6 +126,7 @@ cd src/groovy/umig/tests/upgrade/
 Before upgrading to Confluence 9.2.7:
 
 1. **Start Environment:**
+
    ```bash
    cd local-dev-setup/
    npm start
@@ -117,6 +135,7 @@ Before upgrading to Confluence 9.2.7:
 2. **Wait for Startup** (2-3 minutes for full initialization)
 
 3. **Run Validation:**
+
    ```bash
    cd src/groovy/umig/tests/upgrade/
    ./run-all-tests.sh
@@ -131,6 +150,7 @@ After upgrading to Confluence 9.2.7:
 1. **Wait for Startup** (upgrade may take 5-10 minutes)
 
 2. **Run Validation Again:**
+
    ```bash
    ./run-all-tests.sh
    ```
@@ -142,18 +162,22 @@ After upgrading to Confluence 9.2.7:
 ## Test Output
 
 ### Console Output
+
 - ✅ **Green checkmarks** for passing tests
 - ❌ **Red X marks** for failing tests
 - ⚠️ **Yellow warnings** for non-critical issues
 - ℹ️ **Blue info** for status information
 
 ### Log Files
+
 All test runs generate logs in `logs/` directory:
+
 - `upgrade_validation_TIMESTAMP.log` - Full test suite log
 - `test-NAME_TIMESTAMP.log` - Individual test logs
 - `upgrade_validation_report_TIMESTAMP.md` - Detailed markdown report
 
 ### Exit Codes
+
 - **0** - All tests passed
 - **1** - One or more tests failed
 
@@ -162,12 +186,14 @@ All test runs generate logs in `logs/` directory:
 ### Common Issues
 
 **Container Not Running:**
+
 ```bash
 podman ps --all
 npm start  # Start environment
 ```
 
 **Database Connection Failed:**
+
 ```bash
 # Check PostgreSQL container
 podman logs umig_postgres
@@ -176,6 +202,7 @@ podman exec umig_postgres env | grep POSTGRES
 ```
 
 **API Endpoints Not Responding:**
+
 ```bash
 # Check Confluence logs
 podman logs umig_confluence --tail 50
@@ -184,6 +211,7 @@ curl -s http://localhost:8090/confluence/plugins/servlet/scriptrunner/admin
 ```
 
 **ScriptRunner Issues:**
+
 ```bash
 # Check UMIG scripts mount
 podman exec umig_confluence ls -la /var/atlassian/application-data/confluence/scripts/umig
@@ -194,6 +222,7 @@ podman exec umig_confluence printenv CATALINA_OPTS
 ### Test-Specific Debugging
 
 **For detailed debugging of specific failures:**
+
 ```bash
 # Run single test with verbose output
 bash -x ./test-container-health.sh
@@ -214,6 +243,7 @@ This test suite integrates with the broader upgrade process:
 ## Test Criteria
 
 ### Pass Criteria
+
 - All containers running and healthy
 - All databases accessible with expected schema
 - All UMIG API endpoints registered and responding
@@ -222,6 +252,7 @@ This test suite integrates with the broader upgrade process:
 - Performance within acceptable thresholds
 
 ### Fail Criteria
+
 - Any container not running or unhealthy
 - Database connectivity issues
 - UMIG API endpoints returning 404 or connection errors
@@ -231,12 +262,14 @@ This test suite integrates with the broader upgrade process:
 ## Maintenance
 
 ### Adding New Tests
+
 1. Create test script following naming convention: `test-NAME.sh`
 2. Update `TESTS` array in `run-all-tests.sh`
 3. Add to `TEST_ORDER` array for execution sequence
 4. Update this README
 
 ### Updating for Future Upgrades
+
 1. Update version references in test scripts
 2. Add version-specific feature tests
 3. Update compatibility checks

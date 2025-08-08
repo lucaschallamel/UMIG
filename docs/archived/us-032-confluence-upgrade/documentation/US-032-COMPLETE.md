@@ -22,6 +22,7 @@ The Confluence platform has been successfully upgraded from 8.5.6 to 9.2.7, and 
 ## Test Results
 
 ### Core Services (8/8 PASSED)
+
 - ✅ Confluence accessible (HTTP 302 - login redirect)
 - ✅ PostgreSQL ready and healthy
 - ✅ All containers running (confluence, postgres, mailhog)
@@ -32,6 +33,7 @@ The Confluence platform has been successfully upgraded from 8.5.6 to 9.2.7, and 
 - ✅ UMIG database operational (19 teams confirmed)
 
 ### Known Behaviors
+
 - **302 Redirects**: Normal for unauthenticated API requests
 - **Image Tag**: Shows old version despite running new container (cosmetic)
 - **Integration Tests**: Require authentication context to run
@@ -39,12 +41,14 @@ The Confluence platform has been successfully upgraded from 8.5.6 to 9.2.7, and 
 ## Technical Achievements
 
 ### Infrastructure Created
+
 1. **Backup System**: 7 enterprise-grade backup/restore scripts
 2. **Upgrade Automation**: One-command upgrade script
 3. **Test Suite**: Comprehensive validation tests
 4. **Documentation**: Complete guides and troubleshooting
 
 ### Files Modified/Created
+
 ```
 modified:   confluence/Containerfile (8.5.6 → 9.2.7)
 created:    scripts/backup/ (7 scripts)
@@ -57,6 +61,7 @@ created:    docs/roadmap/sprint4/US-032-*.md (5 docs)
 ## Rollback Capability
 
 If ever needed:
+
 ```bash
 podman-compose down confluence
 sed -i 's/confluence:9.2.7/confluence-server:8.5.6-jdk17/' confluence/Containerfile
@@ -73,6 +78,7 @@ podman-compose up -d confluence
 ## Acceptance Criteria Status
 
 From original story US-032:
+
 - ✅ Confluence upgraded to 9.2.7
 - ✅ ScriptRunner upgraded to 9.21.0
 - ✅ All existing data preserved

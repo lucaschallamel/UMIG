@@ -32,13 +32,17 @@ To update the collection after making changes to the OpenAPI specification:
 ### Method 1: Using npm script (Recommended)
 
 1. **Navigate to the local-dev-setup directory** in your terminal:
+
    ```bash
    cd local-dev-setup
    ```
+
 2. **Run the enhanced generation script**:
+
    ```bash
    npm run generate:postman:enhanced
    ```
+
    This script will:
    - Generate the collection from the OpenAPI spec
    - Add authentication configuration
