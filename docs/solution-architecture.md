@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-08-06 (Updated for US-006b Documentation Sync)  
+**Version:** 2025-08-08 (Updated for US-032 Confluence Upgrade and Infrastructure Reorganization)  
 **Maintainers:** UMIG Project Team  
 **Source ADRs:** This document consolidates 35 architectural decisions (26 archived + 9 newly consolidated: ADR-027 through ADR-035). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** Status field normalization implementation (US-006b, August 2025 - recovered from commit a4cc184), Sprint 3 completion milestone (5 of 6 user stories delivered, August 2025), Controls API performance optimizations with enhanced test coverage (August 2025), Groovy 3.0.15 static type checking compatibility improvements (August 2025), Instructions API implementation (US-004, August 2025), Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
+**Latest Updates:** US-032 Confluence upgrade to 9.2.7 + ScriptRunner 9.21.0 with infrastructure reorganization (August 8, 2025), Status field normalization implementation (US-006b, August 2025 - recovered from commit a4cc184), Sprint 3 completion milestone (5 of 6 user stories delivered, August 2025), Controls API performance optimizations with enhanced test coverage (August 2025), Groovy 3.0.15 static type checking compatibility improvements (August 2025), Instructions API implementation (US-004, August 2025), Phases API endpoint consolidation refactoring (US-003, August 2025), Phases API implementation (US-003), Audit fields standardization (US-002b), N-tier architecture adoption, data import strategy, full attribute instantiation, hierarchical filtering patterns, type safety implementation, email notification architecture, role-based access control, static type checking patterns
 
 ## Consolidated ADR Reference
 
@@ -180,8 +180,19 @@ src/
 
 ### 4.1. Technology Stack ([ADR-002])
 
-- **Platform:** Atlassian ScriptRunner for Confluence.
-- **Language:** Groovy.
+- **Platform:** Atlassian Confluence 9.2.7 + ScriptRunner 9.21.0 (US-032 upgraded August 2025).
+- **Language:** Groovy 3.0.15 (static type checking compatible).
+- **Container Runtime:** Podman with podman-compose orchestration.
+- **Database:** PostgreSQL 14 with Liquibase migrations.
+- **Security:** Patched critical CVEs (CVE-2024-21683, CVE-2023-22527, CVE-2024-1597).
+
+#### Platform Compatibility Notes (US-032)
+
+- **Confluence Version:** Requires Confluence 9.2.7 or later for security compliance and modern feature support.
+- **ScriptRunner Version:** Requires ScriptRunner 9.21.0 for full compatibility with Confluence 9.2.7.
+- **Container Image:** Uses consolidated atlassian/confluence:9.2.7 image (removed "server" designation).
+- **JDK Runtime:** JDK 17 maintained as default runtime environment.
+- **Upgrade Path:** Zero-downtime upgrade capability with enterprise backup/restore systems.
 
 ### 4.2. REST API Implementation ([ADR-011], [ADR-023])
 

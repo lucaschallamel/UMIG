@@ -1,0 +1,23 @@
+UMIG Confluence Upgrade - Master Backup
+=======================================
+Backup Date: Fri Aug  8 13:27:03 CEST 2025
+Backup Timestamp: 20250808_132658
+Script Version: 1.0
+Hostname: Lucass-MacBook-Air.local
+System: Darwin Lucass-MacBook-Air.local 25.0.0 Darwin Kernel Version 25.0.0: Fri Jul 25 23:19:21 PDT 2025; root:xnu-12377.0.187.0.2~21/RELEASE_ARM64_T8103 arm64
+
+Environment Information:
+- Podman Version: podman version 5.5.2
+- Available Space: 183Gi
+
+Backup Components:
+- Podman Volumes (confluence_data, postgres_data)
+- PostgreSQL Databases (confluence, umig_app_db)
+- Container Configurations
+- System Metadata
+
+Backup Location: /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/scripts/backup/../../backups/20250808_132658
+Log File: /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/scripts/backup/../../backups/20250808_132658/master_backup.log
+
+Status: IN PROGRESS
+Started: Fri Aug  8 13:27:03 CEST 2025

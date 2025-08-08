@@ -5,6 +5,7 @@
 UMIG (Unified Migration Implementation Guide) - Pure ScriptRunner application for Atlassian Confluence managing complex IT cutover events.
 
 **Stack**: Groovy/ScriptRunner backend, Vanilla JS/AUI frontend, PostgreSQL/Liquibase, Podman containers, RESTful v2 APIs
+**Platform**: Confluence 9.2.7 + ScriptRunner 9.21.0 (Upgraded August 8, 2025)
 
 ## GENDEV Development Agents
 
@@ -78,17 +79,27 @@ UMIG/
 │   ├── api/v2/              # REST endpoints
 │   ├── macros/              # UI macros
 │   ├── repository/          # Data access
-│   ├── tests/               # Testing
+│   ├── tests/               # Testing framework
+│   │   ├── upgrade/         # Upgrade validation tests (US-032)
+│   │   ├── integration/     # Integration tests
+│   │   ├── unit/           # Unit tests
+│   │   └── apis/           # API-specific tests
 │   ├── utils/               # Utilities
 │   └── web/js/              # Frontend (admin-gui/* modular)
-├── local-dev-setup/         # Dev environment
+├── local-dev-setup/         # Development environment
+│   ├── infrastructure/      # Infrastructure management (CONSOLIDATED)
+│   │   ├── backup/         # Enterprise backup/restore system
+│   │   ├── upgrade/        # Upgrade automation (US-032)
+│   │   └── verify-provisioning.sh  # System validation
 │   ├── scripts/generators/  # Data generation (001-100)
-│   ├── liquibase/           # DB migrations
-│   └── podman-compose.yml   # Container orchestration
+│   ├── liquibase/          # DB migrations
+│   └── podman-compose.yml  # Container orchestration
 ├── docs/                    # Documentation
 │   ├── solution-architecture.md  # PRIMARY REFERENCE (33 ADRs consolidated)
-│   ├── api/openapi.yaml     # API spec
-│   └── roadmap/             # UI/UX specs
+│   ├── api/openapi.yaml     # API specification
+│   ├── archived/           # Historical documentation
+│   │   └── us-032-confluence-upgrade/  # US-032 upgrade archive
+│   └── roadmap/            # Sprint planning and UI/UX specs
 └── mock/                    # Zero-dependency prototypes
 ```
 
@@ -103,7 +114,16 @@ npm run generate-data:erase  # Generate fake data
 
 # Testing
 npm test                     # Node.js tests
-./src/groovy/umig/tests/run-integration-tests.sh  # Groovy tests
+./src/groovy/umig/tests/run-integration-tests.sh        # Groovy integration tests
+./src/groovy/umig/tests/run-unit-tests.sh              # Groovy unit tests
+
+# Infrastructure Operations (US-032 reorganized)
+./local-dev-setup/infrastructure/verify-provisioning.sh    # System health check
+./local-dev-setup/infrastructure/backup/backup-all.sh      # Enterprise backup system
+./local-dev-setup/infrastructure/upgrade/upgrade-confluence.sh  # Confluence upgrade
+
+# Upgrade Validation (US-032)
+./src/groovy/umig/tests/upgrade/run-all-tests.sh          # Complete upgrade validation
 ```
 
 ## Data Model
@@ -177,6 +197,9 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 - Admin GUI modularization (8 components)
 - Groovy 3.0.15 static type checking compatibility
 - All core REST APIs with advanced features (control points, audit fields, bulk operations)
+- Infrastructure modernization (Confluence 9.2.7 + ScriptRunner 9.21.0 upgrade)
+- Enterprise backup/restore system with automated validation
+- System-level testing and validation framework
 
 ### 🚧 MVP Remaining
 
@@ -188,10 +211,12 @@ params.teamId = Integer.parseInt(filters.teamId as String)
 ## Key References
 
 - **PRIMARY**: `docs/solution-architecture.md` (ALWAYS REVIEW FIRST)
+- **OPERATIONS**: `docs/operations/README.md` (System operations and maintenance)
 - **API**: `docs/api/openapi.yaml`, individual API docs
 - **Data Model**: `docs/dataModel/README.md`
 - **Dev Journal**: `docs/devJournal/`
 - **Roadmap**: `docs/roadmap/`
+- **Archived**: `docs/archived/` (Historical documentation and upgrade records)
 
 ## Workflows
 

@@ -91,6 +91,12 @@ UMIG/
 │           │   ├── integration/      # Integration tests
 │           │   │   ├── SequencesApiIntegrationTest.groovy
 │           │   │   └── stepViewApiIntegrationTest.groovy
+│           │   ├── upgrade/          # Upgrade validation tests (US-032)
+│           │   │   ├── run-all-tests.sh          # Master test orchestration
+│           │   │   ├── test-container-health.sh  # Container validation
+│           │   │   ├── test-database-connectivity.sh # Database tests
+│           │   │   ├── test-api-endpoints.sh     # REST API validation
+│           │   │   └── test-scriptrunner.sh      # ScriptRunner tests
 │           │   ├── grab-postgres-jdbc.groovy
 │           │   └── run-integration-tests.sh
 │           ├── utils/                # Utility classes
@@ -179,6 +185,19 @@ UMIG/
 │   │   └── README.md                 # Container documentation
 │   ├── postgres/                     # Database initialization
 │   │   └── init-db.sh               # Database initialization script
+│   ├── infrastructure/              # Infrastructure management (US-032)
+│   │   ├── backup/                  # Enterprise backup/restore scripts
+│   │   │   ├── backup-all.sh         # Master backup orchestration
+│   │   │   ├── backup-volumes.sh     # Podman volume backups
+│   │   │   ├── backup-databases.sh   # PostgreSQL backups
+│   │   │   ├── restore-all.sh        # Complete restoration
+│   │   │   ├── restore-volumes.sh    # Volume restoration
+│   │   │   ├── restore-databases.sh  # Database restoration
+│   │   │   └── verify-backup.sh      # Backup integrity verification
+│   │   ├── upgrade/                 # Upgrade automation tools
+│   │   │   └── upgrade-confluence.sh # Automated Confluence upgrade
+│   │   └── monitoring/              # System validation and health
+│   │       └── validate-system.sh    # Comprehensive health check
 │   ├── jest.config.js                # Jest test configuration
 │   ├── jest.global-setup.cjs         # Jest global setup
 │   ├── jest.global-teardown.cjs      # Jest global teardown

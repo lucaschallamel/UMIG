@@ -1,5 +1,5 @@
 # Use the specified Confluence version
-FROM atlassian/confluence-server:8.5.6-jdk17
+FROM atlassian/confluence:9.2.7
 
 
 # Existing comments from your file:
