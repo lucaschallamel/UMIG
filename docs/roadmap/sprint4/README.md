@@ -1,153 +1,79 @@
-# Sprint 4: API Modernization & Dashboard Sprint
+# Sprint 4 - MVP Completion Sprint
 
-**Sprint Name**: API Modernization & Dashboard Sprint  
-**Sprint Dates**: August 7-13, 2025 (5 working days)  
-**Sprint Goal**: Infrastructure modernization and API development  
-**Status**: 🔄 IN PROGRESS (Day 2 of 5)  
-**Progress**: Infrastructure upgraded (US-032 complete), ready for API development  
-**Team**: Lucas Challamel (Solo Developer with AI Augmentation)
+**Duration**: August 8 - September 1, 2025 (4 weeks)  
+**Progress**: 38% Complete (8/21 story points)  
+**Status**: 🟢 On Track - Foundation Complete  
+**Team**: UMIG Development Team
 
----
+## 🎯 Sprint Goals
 
-## Sprint Overview
+Complete UMIG MVP with core dashboard, planning export, data import, and audit logging capabilities. Sprint 4 successfully established enterprise-grade infrastructure foundation (US-032) and focuses on delivering end-user value.
 
-Sprint 4 has been updated to focus on infrastructure modernization first, followed by API development. With US-032 (Confluence Upgrade) successfully completed on Day 1, the platform is now ready for continued development with enhanced security and operational capabilities.
+## ✅ Completed Foundation Work (8 points)
 
-### Strategic Context
+- **US-017**: Status Field Normalization (5 points) - COMPLETED August 7, 2025
+- **US-032**: Infrastructure Modernization (3 points) - COMPLETED August 8, 2025
+  - Confluence 8.5.6 → 9.2.7 + ScriptRunner 9.21.0 upgrade
+  - Enterprise backup/restore system with comprehensive validation
+  - Production-ready operational infrastructure
 
-- **Sprint 3 Success**: Delivered 26 points with proven patterns
-- **Epic 3 Discovery**: Repository layer already complete, freeing capacity
-- **Focus Shift**: API modernization before UI work for better performance
-- **Aggressive Timeline**: 30 points in 5 days (6 points/day target)
+## 📋 Remaining MVP Scope (13 points)
 
-### Sprint Objectives
+- **US-033**: Main Dashboard UI (5 points) - Core migration monitoring interface 🎯
+- **US-034**: Planning Feature HTML Export (3 points) - Stakeholder communication
+- **US-035**: Data Import Strategy (3 points) - Migration data population  
+- **US-036**: Event Logging Backend (2 points) - Comprehensive audit trail
 
-1. ✅ **US-032: Confluence Upgrade** - COMPLETED Day 1 (August 8, 2025)
-   - Confluence 9.2.7 + ScriptRunner 9.21.0 upgrade
-   - Enterprise backup/restore system
-   - Infrastructure reorganization
-   - Zero downtime, zero data loss
-2. **Remaining Sprint 4 Stories** - Ready for development:
-   - US-022: Dashboard View (Admin GUI)
-   - US-023: API GET Iteration View
-   - US-024: CSV Import Feature
-   - US-025: Planning Feature (Read-Only HTML)
-   - US-026: Iteration View Navigation
-   - US-027: Status Toggle (Active/Inactive)
+## 📚 Primary Documentation
 
----
+**👉 MASTER REFERENCE**: [`sprint4-story-breakdown.md`](sprint4-story-breakdown.md)
 
-## Sprint Structure
+This is the **single source of truth** for Sprint 4 scope, timeline, and progress. All other Sprint 4 documentation has been consolidated into this master document.
 
-### Day 1 (Aug 8) - COMPLETED ✅
+## ⚠️ Documentation Notice
 
-- US-032: Confluence Upgrade and Infrastructure Reorganization
-- Platform modernized to Confluence 9.2.7 + ScriptRunner 9.21.0
-- Enterprise backup and validation systems implemented
-- All documentation updated and organized
+**Critical Issue Resolved**: Multiple conflicting Sprint 4 documents were discovered with incorrect user story numbering (US-022, US-024, etc.) that could have derailed execution.
 
-### Days 2-3 (Aug 8-9) - API Refactoring
+**Resolution Applied**:
 
-- US-024: StepsAPI Refactoring to Modern Patterns (5 points) ⭐ HIGH PRIORITY
-- US-025: MigrationsAPI Refactoring (3 points)
+- ✅ **Conflicting files archived**: See `/archived/` directory  
+- ✅ **Single master document**: `sprint4-story-breakdown.md` established  
+- ✅ **Correct scope confirmed**: US-017, US-032, US-033, US-034, US-035, US-036
+- ✅ **Progress clarified**: 8/21 points complete (38%)
 
-### Days 3-4 (Aug 9-12) - Admin GUI & UI
+## 📁 Directory Structure
 
-- US-031: Admin GUI Complete Integration (8 points)
-- US-028: Enhanced IterationView with New APIs (3 points)
+```text
+sprint4/
+├── sprint4-story-breakdown.md          # 👈 MASTER DOCUMENT
+├── sprint4-US032.md                    # Individual US-032 details  
+├── US032-Execution-Plan-Report.md      # Infrastructure upgrade details
+├── US032-Reorganization-Summary.md     # Infrastructure reorganization
+├── archived/                           # Conflicted/superseded files
+│   ├── README.md                       # Archive explanation
+│   ├── sprint4-*-ARCHIVED.md           # Original conflicted documents
+│   └── sprint4-US*-CONFLICTED.md       # Individual story conflicts
+└── README.md                           # This overview (current file)
+```
 
-### Day 5 (Aug 13) - Quality & Documentation
+## 🚀 Sprint Health Status
 
-- US-022: Integration Test Suite Expansion (3 points)
-- US-030: API Documentation Completion (3 points)
+| Metric | Status | Notes |
+|--------|--------|-------|
+| **Infrastructure** | 🟢 **Excellent** | Confluence 9.2.7 + ScriptRunner 9.21.0 operational |
+| **Foundation Work** | ✅ **Complete** | 8/8 points delivered on schedule |
+| **Remaining Scope** | 🎯 **Focused** | 4 clear MVP features, 13 points |
+| **Timeline** | 🟢 **Adequate** | 3 weeks for 13 points = 4.3 points/week |
+| **Risk Level** | 🟢 **Low** | Strong foundation, proven patterns |
 
----
+## 📞 Quick References
 
-## Success Criteria
-
-- [x] Infrastructure modernization (Confluence 9.2.7 + ScriptRunner 9.21.0)
-- [x] Enterprise backup/restore system implemented
-- [x] Project reorganization completed
-- [x] Security vulnerabilities patched (3 critical CVEs)
-- [ ] StepsAPI refactored with modern patterns from Sprint 3
-- [ ] MigrationsAPI using consistent CRUD patterns
-- [ ] Admin GUI fully integrated with all APIs
-- [ ] IterationView enhanced with new API features
-- [ ] Integration tests achieving >90% coverage
-- [ ] All APIs fully documented
-- [ ] Response times improved by 30%+
+- **Sprint Progress**: See master document executive summary
+- **Technical Details**: Check individual US-032 documentation
+- **Archive Information**: Review `/archived/README.md` for conflict resolution history
+- **Next Steps**: Week 2 focus on US-033 Main Dashboard UI (HIGH PRIORITY)
 
 ---
 
-## Technical Patterns
-
-Building on Sprint 3's established patterns:
-
-- Repository pattern for data access
-- ADR-031 type safety compliance
-- Hierarchical filtering (ADR-030)
-- SPA pattern for UI components
-- Comprehensive error handling
-
----
-
-## Risk Management
-
-| Risk                            | Mitigation                                        |
-| ------------------------------- | ------------------------------------------------- |
-| Aggressive velocity (6 pts/day) | Leverage Sprint 3 patterns, Epic 3 already done   |
-| API refactoring complexity      | Use proven patterns from PlansApi, SequencesApi   |
-| Admin GUI integration time      | Build on existing configuration (9 entities done) |
-| Integration issues              | Daily testing, incremental integration            |
-| Documentation lag               | Generate from code where possible                 |
-
----
-
-## Resources & References
-
-- [Sprint 4 User Stories](./sprint4-user-stories.md) - Complete story specifications
-- [Sprint 4 Scope Brainstorm](./sprint4-scope-brainstorm.md) - Detailed analysis and options
-- [Solution Architecture](../../solution-architecture.md) - Technical reference
-- [Sprint 3 Review](../sprint3/sprint3-review.md) - Patterns and lessons learned
-- [Unified Roadmap](../unified-roadmap.md) - Overall project timeline
-
----
-
-## Daily Progress Tracking
-
-### Day 1 (Aug 7) ✅
-
-- US-017: Status Field Normalization - COMPLETED
-- Sprint scope finalized and documented
-- 5/30 points completed (16.7%)
-
-### Day 2 (Aug 9) 📋
-
-- Continue with remaining Sprint 4 stories on modernized platform
-- Dashboard development and API enhancements
-
-### Day 3 (Aug 9) 📋
-
-- US-024: Complete StepsAPI
-- US-025: MigrationsAPI Refactoring
-- US-031: Begin Admin GUI Integration
-
-### Day 4 (Aug 12) 📋
-
-- US-031: Complete Admin GUI Integration
-- US-028: Enhanced IterationView
-
-### Day 5 (Aug 13) 📋
-
-- US-022: Integration Tests
-- US-030: Documentation
-- Sprint wrap-up
-
----
-
-## Sprint Metrics
-
-- **Velocity Target**: 30 points (6 points/day)
-- **Current Velocity**: 5 points/day (Day 1)
-- **Burndown**: 25 points remaining
-- **Risk Level**: Medium (aggressive but achievable)
+**Last Updated**: August 8, 2025 - Documentation remediation completed  
+**Next Review**: Sprint 4 completion (September 1, 2025)

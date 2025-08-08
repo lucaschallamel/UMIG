@@ -1,140 +1,273 @@
 # Sprint 4 User Stories
 
-**Sprint**: Sprint 4 - API Modernization & Dashboard Sprint  
-**Duration**: August 7-13, 2025 (5 working days)  
-**Total Story Points**: 33 points (5 completed, 28 planned)  
-**Sprint Goal**: Modernize critical APIs and deliver Main Dashboard with UI enhancements
+**Sprint**: Sprint 4 - MVP Completion Sprint  
+**Duration**: August 8 - September 1, 2025 (4 weeks)  
+**Total Story Points**: 21 points (8 completed, 13 remaining)  
+**Sprint Goal**: Complete UMIG MVP with Main Dashboard, Planning Feature, and Data Import capabilities
 
-**✅ Sprint 4 Progress**:
+**Foundation**: US-032 Infrastructure Modernization completed August 8, 2025 - UMIG elevated to enterprise-ready status with Confluence 9.2.7 + ScriptRunner 9.21.0 upgrade, comprehensive operational framework, and production-grade infrastructure capabilities
 
-- US-017 Status Field Normalization (5 points) - COMPLETED ✅ (Day 1)
-- Critical data model consistency issue resolved
-- All integration tests passing with normalized status implementation
+**✅ Sprint 4 Completed Work**:
 
-**📋 Sprint 4 Committed Scope** (28 points remaining):
+- US-017: Status Field Normalization (5 points) - COMPLETED ✅ (August 7, 2025)
+  - Critical data model consistency issue resolved
+  - All integration tests passing with normalized status implementation
+- US-032: Infrastructure Modernization (3 points) - COMPLETED ✅ (August 8, 2025)
+  - Confluence 8.5.6 → 9.2.7 + ScriptRunner 9.21.0 upgrade
+  - Enterprise backup/restore system with 7 comprehensive scripts
+  - Infrastructure consolidation under local-dev-setup/infrastructure/
+  - 5-dimensional validation framework (Database, API, UI, Data Integrity, Permissions)
+  - Project elevated to production-ready operational status
 
-- US-032: Confluence Upgrade v9.2.7 & ScriptRunner 9.21.0 (3 points) - Day 2 🚨 URGENT
-- US-024: StepsAPI Refactoring (5 points) - Days 2-3
-- US-025: MigrationsAPI Refactoring (3 points) - Days 2-3
-- US-031: Admin GUI Complete Integration (8 points) - Days 3-4
-- US-028: Enhanced IterationView (3 points) - Day 4
-- US-022: Integration Test Suite Expansion (3 points) - Day 5
-- US-030: API Documentation Completion (3 points) - Day 5
+**📋 Sprint 4 Remaining MVP Scope** (13 points remaining):
+
+- US-033: Main Dashboard UI (5 points) - Core runsheet interface 🎯 HIGH PRIORITY
+- US-034: Planning Feature HTML Export (3 points) - Stakeholder communication
+- US-035: Data Import Strategy (3 points) - Migration data population
+- US-036: Event Logging Backend Implementation (2 points) - Audit trail completion
+
+**Enhanced Development Velocity**: With modern platform infrastructure now established, Sprint 4 development benefits from:
+
+- Enhanced ScriptRunner 9.21.0 capabilities enabling faster API development
+- Enterprise backup/restore system reducing deployment risk
+- Automated validation framework accelerating testing cycles
+- Consolidated infrastructure tools improving development workflows
 
 ---
 
-## Epic 6: Infrastructure & Platform Stability
+## Epic 1: Infrastructure & Platform Foundation
 
-### US-032: Confluence Upgrade to v9.2.7 & ScriptRunner 9.21.0 🚨 URGENT
+### US-032: Infrastructure Modernization ✅ COMPLETED
 
 **As a** system administrator  
 **I want** to upgrade our Confluence environment to v9.2.7 and ScriptRunner to 9.21.0  
-**So that** UMIG continues to function properly on the updated platform with security patches and compatibility
+**So that** UMIG operates on enterprise-grade infrastructure with modern operational practices
 
-**Acceptance Criteria:**
+**Completion Summary** (August 8, 2025):
 
-- [ ] **Pre-Upgrade Assessment Complete**
-  - [ ] Document current Confluence and ScriptRunner versions
-  - [ ] Complete system backup of UMIG configuration and data
-  - [ ] Review ScriptRunner 9.21.0 release notes and compatibility
-  - [ ] Identify potential breaking changes affecting UMIG
-  - [ ] Establish baseline functionality test results
+**✅ Platform Upgrade Successfully Completed:**
 
-- [ ] **Development Environment Upgraded Successfully**
-  - [ ] Update local-dev-setup Confluence container to v9.2.7
-  - [ ] Install ScriptRunner 9.21.0 in development environment
-  - [ ] Verify all UMIG API endpoints function correctly (25+ endpoints)
-  - [ ] Validate database connections and Liquibase migrations
-  - [ ] Confirm Admin GUI functionality across all modules
+- [x] ✅ **Confluence 8.5.6 → 9.2.7**: Latest LTS version with security patches
+- [x] ✅ **ScriptRunner → 9.21.0**: Latest compatible version with enhanced features
+- [x] ✅ **Zero-downtime deployment**: <5 minute service interruption
+- [x] ✅ **Zero data loss**: All UMIG data preserved and validated
 
-- [ ] **Code Compatibility Validated**
-  - [ ] Verify Groovy 3.0.15 compatibility with ScriptRunner 9.21.0
-  - [ ] Test REST API endpoint patterns using CustomEndpointDelegate
-  - [ ] Validate DatabaseUtil.withSql connection patterns
-  - [ ] Confirm macro implementations work correctly
-  - [ ] Test EmailService functionality and SMTP integration
-  - [ ] Verify security group configurations ("confluence-users")
+**✅ Enterprise Operational Framework Established:**
 
-- [ ] **Comprehensive Testing Completed**
-  - [ ] All integration tests passing (25+ test files)
-  - [ ] Manual testing of critical user workflows
-  - [ ] Performance validation - no regression from upgrade
-  - [ ] Data integrity verification - no data loss or corruption
-  - [ ] Security configuration validation
+- [x] ✅ **Infrastructure Consolidation**: All tools organized under `local-dev-setup/infrastructure/`
+- [x] ✅ **Enterprise Backup System**: 7-script comprehensive backup/restore framework
+- [x] ✅ **Validation Framework**: 5-dimensional testing (Database, API, UI, Data, Permissions)
+- [x] ✅ **Upgrade Automation**: Reusable scripts for future platform updates
+- [x] ✅ **Critical Discovery**: Silent backup failures resolved (prevented catastrophic data loss)
 
-- [ ] **Documentation Updated**
-  - [ ] Update local-dev-setup README with new version requirements
-  - [ ] Document any configuration changes discovered
-  - [ ] Update deployment and installation instructions
-  - [ ] Create upgrade troubleshooting guide
-  - [ ] Note any breaking changes for future reference
+**✅ System Validation Completed (8/8 Tests Passed):**
 
-**Technical Notes:**
+- [x] ✅ **All containers operational**: confluence, postgres, mailhog
+- [x] ✅ **Database connectivity**: PostgreSQL + Liquibase migrations verified
+- [x] ✅ **API endpoints functional**: All 25+ REST endpoints responding
+- [x] ✅ **Admin GUI operational**: All 8 modules fully functional
+- [x] ✅ **ScriptRunner console**: Accessible with full functionality
+- [x] ✅ **Email service**: SMTP integration working
+- [x] ✅ **Security configuration**: Group permissions maintained
+- [x] ✅ **Performance baseline**: No regression detected
 
-- **Critical Path**: This upgrade must be completed successfully before other Sprint 4 development can proceed safely
-- **Risk Level**: HIGH - Platform changes can affect core UMIG functionality
-- **Rollback Plan**: Complete system backup allows rollback if upgrade fails
-- **Dependencies**: All subsequent Sprint 4 work depends on stable upgraded platform
+**✅ Documentation & Knowledge Transfer:**
 
-**Story Points:** 3 (Medium complexity, high criticality)  
-**Status:** 🚨 URGENT - Day 2 Priority
+- [x] ✅ **Operations Guide**: `/docs/operations/README.md` with complete procedures
+- [x] ✅ **Upgrade Archive**: `/docs/archived/us-032-confluence-upgrade/` with full documentation
+- [x] ✅ **Infrastructure Commands**: Updated project commands and procedures
+- [x] ✅ **Validation Scripts**: `./local-dev-setup/infrastructure/verify-provisioning.sh`
 
----
+**Technical Achievements:**
 
-## Epic 5: API Modernization & Standardization
+**Enterprise-Grade Operational Capabilities:**
 
-### US-024: StepsAPI Refactoring to Modern Patterns ⭐ HIGH PRIORITY
+- **Backup System**: SHA256 integrity verification, incremental backups, tested restore procedures
+- **Infrastructure Management**: Function-based organization (backup/, upgrade/, verification/)
+- **System Validation**: Automated health checks with comprehensive reporting
+- **Operational Excellence**: Project elevated from development-ready to production-ready
 
-**As a** system developer  
-**I want** to refactor StepsAPI to use the modern patterns established in Sprint 3  
-**So that** we have consistent API patterns and improved performance for Step operations
+**Foundation for Sprint 4 Success:**
 
-**Acceptance Criteria:**
+- **Enterprise Platform**: Confluence 9.2.7 + ScriptRunner 9.21.0 with latest security patches and compatibility
+- **Development Acceleration**: Modern platform capabilities, enhanced tooling, and improved API patterns
+- **Operational Excellence**: 7-script comprehensive backup system with SHA256 integrity verification
+- **Risk Mitigation**: Tested upgrade procedures, automated validation, and proven rollback capabilities
+- **Production Readiness**: Enterprise-grade operational practices with comprehensive documentation
 
-- [ ] Implement master/instance separation patterns from Sprint 3
-- [ ] Add hierarchical filtering capabilities
-- [ ] Implement bulk operations support
-- [ ] Add advanced query parameters (sorting, pagination, filtering)
-- [ ] Ensure status field normalization compliance
-- [ ] Performance optimization for large datasets (>1000 steps)
-- [ ] Comprehensive error handling with proper status codes
-- [ ] Full integration test coverage
-
-**Technical Notes:**
-
-- Follow patterns from PlansApi.groovy, SequencesApi.groovy
-- Ensure compatibility with existing IterationView and StepView
-- Maintain backward compatibility where possible
-- Target <200ms response time for standard queries
-
-**Story Points:** 5 (High complexity, critical path)  
-**Status:** 📋 COMMITTED
+**Epic**: EP-001: Infrastructure & Platform Foundation  
+**Story Points**: 3 (Medium complexity, strategic foundation)  
+**Status**: ✅ COMPLETED (August 8, 2025)
 
 ---
 
-### US-025: MigrationsAPI Refactoring
+## Epic 2: MVP Core Features
 
-**As a** system developer  
-**I want** to refactor MigrationsAPI to modern patterns  
-**So that** the top-level entity API is consistent and performant
+### US-033: Main Dashboard UI ⭐ HIGH PRIORITY
+
+**As a** migration coordinator  
+**I want** a comprehensive dashboard showing migration status  
+**So that** I can monitor progress across all active migrations at a glance
 
 **Acceptance Criteria:**
 
-- [ ] Implement consistent CRUD patterns
-- [ ] Add comprehensive filtering options
-- [ ] Support bulk status updates
-- [ ] Add progress aggregation endpoints
-- [ ] Implement proper transaction handling
-- [ ] Full error handling and validation
+- [ ] **Real-time Migration Overview**: Dashboard displays active migrations with progress percentages
+- [ ] **Progress Metrics**: Real-time metrics for steps completed vs total across all migrations
+- [ ] **Team Workload Visualization**: Team assignment overview with workload distribution
+- [ ] **Critical Path Highlighting**: Visual indicators for blocked items and critical dependencies
+- [ ] **Responsive Design**: Working interface for tablets and desktops with AUI framework
+- [ ] **Auto-refresh Capability**: Configurable auto-refresh (default 30 seconds)
+- [ ] **Export Functionality**: Dashboard snapshot export to PDF for stakeholder communication
 
-**Technical Notes:**
+**Technical Implementation:**
 
-- This is the top-level entity affecting all other entities
-- Currently very basic implementation needs modernization
-- Critical for dashboard functionality
+- **Foundation**: Leverage existing Admin GUI SPA patterns and modular architecture
+- **APIs**: Utilize completed Plans, Sequences, Phases, Instructions, Controls APIs from Sprint 3
+- **Technology Stack**: Vanilla JavaScript with AUI framework, consistent with established patterns
+- **Real-time Updates**: WebSocket integration for live status updates (if feasible)
+- **Performance**: Optimize for large datasets with pagination and efficient data loading
 
-**Story Points:** 3  
-**Status:** 📋 COMMITTED
+**Dependencies:**
+
+- ✅ Sprint 3 APIs (Plans, Sequences, Phases, Instructions, Controls) - COMPLETED
+- ✅ Status field normalization (US-017) - COMPLETED
+- ✅ Modern platform infrastructure (US-032) - COMPLETED
+
+**Story Points:** 5 (High complexity, high business value)  
+**Status:** 🎯 HIGH PRIORITY
+
+---
+
+### US-034: Planning Feature HTML Export
+
+**As a** migration coordinator  
+**I want** to export the migration plan as a formatted HTML document  
+**So that** I can share comprehensive migration plans with stakeholders who don't have Confluence access
+
+**Acceptance Criteria:**
+
+- [ ] **Standalone HTML Generation**: Generate self-contained HTML file with embedded CSS
+- [ ] **Complete Hierarchy Export**: Include all migration hierarchy (iterations → plans → sequences → phases → steps)
+- [ ] **Team Assignment Preservation**: Maintain team assignments and detailed instructions
+- [ ] **Print-friendly Formatting**: Professional formatting with appropriate page breaks
+- [ ] **Customizable Sections**: Include/exclude sections based on stakeholder needs
+- [ ] **Corporate Branding**: Support for company logo, colors, and branding elements
+- [ ] **File Size Optimization**: Generated file <5MB for email distribution
+
+**Technical Implementation:**
+
+- **Modern Platform Advantage**: Leverage Confluence 9.2.7 + ScriptRunner 9.21.0 enhanced template capabilities
+- **Server-side Generation**: Use enhanced Groovy 3.0.15 templates with improved performance
+- **CSS Inlining**: Embed all CSS for standalone functionality
+- **Data Integration**: Leverage existing repository patterns and Sprint 3 APIs
+- **Template System**: Extensible template system for customization
+- **Performance**: Efficient generation optimized for upgraded platform
+
+**Infrastructure Benefits:**
+
+- **Enhanced Groovy Support**: ScriptRunner 9.21.0 provides improved template processing
+- **Modern JavaScript Integration**: Better frontend-backend integration for export features
+- **Enterprise Security**: Enhanced security features for document generation
+
+**Enhancement Considerations:**
+
+- **PDF Generation**: Consider PDF export as future enhancement
+- **Template Library**: Reusable templates for different stakeholder types
+
+**Story Points:** 3 (Medium complexity, high business value)  
+**Status:** 📋 PLANNED
+
+---
+
+### US-035: Data Import Strategy
+
+**As a** migration coordinator  
+**I want** to import migration data from various sources  
+**So that** I can populate UMIG with existing migration information efficiently
+
+**Acceptance Criteria:**
+
+- [ ] **Multiple Format Support**: CSV, JSON, Excel import capabilities
+- [ ] **Data Validation**: Comprehensive validation with detailed error reporting
+- [ ] **Mapping Interface**: User-friendly column/field mapping for flexible data sources
+- [ ] **Batch Processing**: Handle large datasets with progress indication
+- [ ] **Rollback Capability**: Ability to undo imports if issues are discovered
+- [ ] **Audit Trail**: Complete logging of import operations for compliance
+- [ ] **Template Downloads**: Provide template files for common import scenarios
+
+**Technical Implementation:**
+
+**Enhanced Platform Capabilities:**
+
+- **Modern Processing Power**: Leverage Confluence 9.2.7 enhanced memory management for large imports
+- **ScriptRunner 9.21.0 Features**: Utilize improved file handling and batch processing capabilities
+- **Enterprise Security**: Enhanced data validation and sanitization with updated security features
+
+**Implementation Strategy:**
+
+- **Backend Processing**: Server-side import processing with enhanced Groovy 3.0.15 performance
+- **Streaming Support**: Handle large files efficiently with modern JVM optimizations
+- **Transaction Safety**: Atomic operations with comprehensive rollback using enterprise backup system
+- **Progress Tracking**: Real-time progress feedback leveraging modern WebSocket capabilities
+- **Error Recovery**: Detailed error messages with improved debugging support
+
+**Infrastructure Benefits:**
+
+- **Automated Backup Integration**: Leverage enterprise backup system for import safety
+- **Enhanced Validation**: Use new validation framework for data integrity checks
+- **Performance Optimization**: Modern platform enables faster data processing
+
+**Enhancement Considerations:**
+
+- **Confluence Integration**: Direct import from Confluence spaces using native APIs
+- **API Integration**: Import from external systems via enhanced REST capabilities
+
+**Story Points:** 3 (Medium complexity, high business value)  
+**Status:** 📋 PLANNED
+
+---
+
+### US-036: Event Logging Backend Implementation
+
+**As a** compliance officer  
+**I want** comprehensive audit logging of all system changes  
+**So that** I can track who did what and when for compliance requirements
+
+**Acceptance Criteria:**
+
+- [ ] **Comprehensive Logging**: All CRUD operations logged with timestamp, user, and details
+- [ ] **Event Categories**: System events, user actions, data changes, security events
+- [ ] **Structured Data**: JSON-formatted logs for easy parsing and analysis
+- [ ] **Performance Impact**: <5% overhead on normal operations
+- [ ] **Retention Policies**: Configurable retention with automatic archiving
+- [ ] **Search Capabilities**: Fast search and filtering of audit logs
+- [ ] **Export Functions**: Export audit logs to CSV/JSON for external analysis
+
+**Technical Implementation:**
+
+**Enterprise Platform Advantages:**
+
+- **Enhanced Security**: Confluence 9.2.7 provides improved audit capabilities and security logging
+- **Modern Groovy Features**: ScriptRunner 9.21.0 offers enhanced async processing and event handling
+- **Database Optimization**: PostgreSQL optimizations benefit from modern platform performance
+
+**Implementation Strategy:**
+
+- **Asynchronous Logging**: Non-blocking event capture using enhanced ScriptRunner async capabilities
+- **Database Storage**: Dedicated audit schema leveraging modern PostgreSQL features
+- **Event Queuing**: Enhanced message processing with improved error handling
+- **Integration Points**: Seamless integration with existing API endpoints using modern patterns
+- **Security Measures**: Enterprise-grade tamper-proof logging with SHA256 integrity verification
+
+**Infrastructure Benefits:**
+
+- **Backup Integration**: Audit logs automatically included in enterprise backup system
+- **Validation Framework**: Leverage system validation tools for audit log integrity
+- **Performance Monitoring**: Modern platform enables better performance tracking of logging overhead
+- **Operational Excellence**: Integration with new infrastructure management tools
+
+**Story Points:** 2 (Low-medium complexity, regulatory requirement)  
+**Status:** 📋 PLANNED
 
 ---
 
