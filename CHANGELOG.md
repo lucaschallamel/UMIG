@@ -334,7 +334,7 @@
     - Impacted teams listing
   - Added user context and Confluence authentication integration
   - Supports embedding in any Confluence page for focused step execution
-  - Example URL: http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001
+  - Example URL: <http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001>
 - **Enhancement(Iteration View):** Fixed comment functionality bugs
   - Fixed multiple clicks on edit button inserting spaces/tabs
   - Fixed cancel button not restoring original text

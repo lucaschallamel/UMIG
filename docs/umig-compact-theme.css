@@ -1,27 +1,27 @@
 /* UMIG Compact Executive Presentation Theme */
 /* Optimized for content-dense slides with professional styling */
 
-@import 'default';
+@import "default";
 
 :root {
   /* Color palette */
-  --primary-blue: #4FC3F7;
-  --secondary-green: #81C784;
-  --accent-orange: #FFB74D;
+  --primary-blue: #4fc3f7;
+  --secondary-green: #81c784;
+  --accent-orange: #ffb74d;
   --background-dark: #1e1e1e;
   --surface-dark: #263238;
-  --surface-darker: #37474F;
-  --border-light: #546E7A;
+  --surface-darker: #37474f;
+  --border-light: #546e7a;
   --text-primary: #ffffff;
-  --text-secondary: #ECEFF1;
-  
+  --text-secondary: #eceff1;
+
   /* Typography scale - readable compact */
   --font-size-base: 0.8rem;
   --font-size-small: 0.7rem;
   --font-size-large: 0.95rem;
   --font-size-xl: 1.2rem;
   --font-size-xxl: 1.6rem;
-  
+
   /* Spacing scale - compact but reasonable */
   --spacing-xs: 0.2rem;
   --spacing-sm: 0.4rem;
@@ -32,11 +32,16 @@
 
 /* Base section styling - extreme compact */
 section {
-  font-family: 'Segoe UI', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Segoe UI",
+    "SF Pro Display",
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-color: var(--background-dark);
   color: var(--text-primary);
   font-size: var(--font-size-base);
-  line-height: 1.0;
+  line-height: 1;
   padding: var(--spacing-sm) var(--spacing-md);
   display: flex;
   flex-direction: column;
@@ -85,7 +90,7 @@ section h4 {
 /* Paragraph and text elements - extreme compact */
 section p {
   margin: 0.02rem 0;
-  line-height: 1.0;
+  line-height: 1;
 }
 
 section strong {
@@ -94,14 +99,15 @@ section strong {
 }
 
 /* Lists - micro spacing */
-section ul, section ol {
+section ul,
+section ol {
   margin: 0.02rem 0;
   padding-left: var(--spacing-sm);
 }
 
 section li {
   margin: 0;
-  line-height: 1.0;
+  line-height: 1;
   padding: 0.01rem 0;
 }
 
@@ -150,7 +156,7 @@ section code {
   padding: 2px 4px;
   border-radius: 3px;
   font-size: var(--font-size-small);
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
 }
 
 /* Blockquotes - emphasis without taking too much space */
@@ -165,7 +171,11 @@ section blockquote {
 
 /* Custom metric boxes - ultra-compact */
 .metric-box {
-  background: linear-gradient(135deg, var(--surface-dark) 0%, var(--surface-darker) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--surface-dark) 0%,
+    var(--surface-darker) 100%
+  );
   border: 1px solid var(--primary-blue);
   border-radius: 4px;
   padding: var(--spacing-xs) var(--spacing-sm);
@@ -218,10 +228,18 @@ section blockquote {
 }
 
 /* Status indicators */
-.status-green { color: #4CAF50; }
-.status-yellow { color: #FFC107; }
-.status-red { color: #F44336; }
-.status-blue { color: var(--primary-blue); }
+.status-green {
+  color: #4caf50;
+}
+.status-yellow {
+  color: #ffc107;
+}
+.status-red {
+  color: #f44336;
+}
+.status-blue {
+  color: var(--primary-blue);
+}
 
 /* Emoji and icons - slightly smaller */
 .emoji {
@@ -229,7 +247,8 @@ section blockquote {
 }
 
 /* Header and footer styling */
-header, footer {
+header,
+footer {
   font-size: var(--font-size-small);
   color: var(--text-secondary);
 }
@@ -276,22 +295,22 @@ section::after {
 }
 
 /* Utility classes for fine-tuning */
-.compact { 
-  font-size: var(--font-size-small); 
-  line-height: 1.2; 
+.compact {
+  font-size: var(--font-size-small);
+  line-height: 1.2;
 }
 
-.micro { 
-  font-size: 0.7rem; 
-  line-height: 1.2; 
+.micro {
+  font-size: 0.7rem;
+  line-height: 1.2;
 }
 
-.tight { 
-  margin: var(--spacing-xs) 0; 
+.tight {
+  margin: var(--spacing-xs) 0;
 }
 
-.spacious { 
-  margin: var(--spacing-lg) 0; 
+.spacious {
+  margin: var(--spacing-lg) 0;
 }
 
 /* Print and export optimizations */
@@ -300,11 +319,11 @@ section::after {
     font-size: 0.8rem;
     padding: var(--spacing-md);
   }
-  
+
   .metric-box {
     break-inside: avoid;
   }
-  
+
   table {
     break-inside: avoid;
   }
@@ -317,15 +336,45 @@ section::after {
   margin: 0.05rem 0 !important;
 }
 
-.ultra-compact h1 { font-size: 0.9rem !important; margin: 0.1rem 0 !important; line-height: 1 !important; }
-.ultra-compact h2 { font-size: 0.7rem !important; margin: 0.08rem 0 !important; line-height: 1 !important; }
-.ultra-compact h3 { font-size: 0.6rem !important; margin: 0.05rem 0 !important; line-height: 1 !important; }
-.ultra-compact p, .ultra-compact li { margin: 0.02rem 0 !important; line-height: 1 !important; }
-.ultra-compact table { font-size: 0.4rem !important; }
-.ultra-compact th, .ultra-compact td { padding: 0.05rem 0.1rem !important; line-height: 1 !important; }
-.ultra-compact .metric-box { padding: 0.1rem 0.15rem !important; margin: 0.05rem !important; }
-.ultra-compact strong { font-size: inherit !important; }
-.ultra-compact code { font-size: 0.4rem !important; padding: 1px 2px !important; }
+.ultra-compact h1 {
+  font-size: 0.9rem !important;
+  margin: 0.1rem 0 !important;
+  line-height: 1 !important;
+}
+.ultra-compact h2 {
+  font-size: 0.7rem !important;
+  margin: 0.08rem 0 !important;
+  line-height: 1 !important;
+}
+.ultra-compact h3 {
+  font-size: 0.6rem !important;
+  margin: 0.05rem 0 !important;
+  line-height: 1 !important;
+}
+.ultra-compact p,
+.ultra-compact li {
+  margin: 0.02rem 0 !important;
+  line-height: 1 !important;
+}
+.ultra-compact table {
+  font-size: 0.4rem !important;
+}
+.ultra-compact th,
+.ultra-compact td {
+  padding: 0.05rem 0.1rem !important;
+  line-height: 1 !important;
+}
+.ultra-compact .metric-box {
+  padding: 0.1rem 0.15rem !important;
+  margin: 0.05rem !important;
+}
+.ultra-compact strong {
+  font-size: inherit !important;
+}
+.ultra-compact code {
+  font-size: 0.4rem !important;
+  padding: 1px 2px !important;
+}
 
 /* Prevent any overflow */
 .no-overflow {
@@ -344,23 +393,24 @@ section * {
 section h1 {
   margin-top: 0 !important;
   margin-bottom: 0.4rem !important;
-  line-height: 1.0 !important;
+  line-height: 1 !important;
 }
 
 section h2 {
   margin-top: 0.4rem !important;
   margin-bottom: 0.3rem !important;
-  line-height: 1.0 !important;
+  line-height: 1 !important;
 }
 
 section h3 {
   margin-top: 0.3rem !important;
   margin-bottom: 0.2rem !important;
-  line-height: 1.0 !important;
+  line-height: 1 !important;
 }
 
 /* Compact but readable list spacing */
-section ul, section ol {
+section ul,
+section ol {
   margin: 0.2rem 0 !important;
   padding-left: 1.2rem !important;
   line-height: 1.1 !important;
@@ -392,7 +442,7 @@ section p {
     --font-size-xl: 0.9rem;
     --font-size-xxl: 1.2rem;
   }
-  
+
   section {
     padding: var(--spacing-sm);
   }

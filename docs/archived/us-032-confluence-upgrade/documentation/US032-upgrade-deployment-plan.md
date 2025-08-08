@@ -218,7 +218,7 @@ npm start | tee -a upgrade-deployment.log
 # Monitor startup process
 echo "=== Monitoring startup process ===" | tee -a upgrade-deployment.log
 timeout 300s bash -c '
-    while ! curl -f -s http://localhost:8090/status > /dev/null; do 
+    while ! curl -f -s http://localhost:8090/status > /dev/null; do
         echo "$(date): Waiting for Confluence startup..."
         sleep 10
     done
@@ -331,7 +331,7 @@ podman exec -i umig_postgres psql -U umig_user -d postgres < "$BACKUP_DIR/postgr
 # Restore Confluence home
 echo "Restoring Confluence home..." | tee -a recovery.log
 podman run --rm -v confluence_data:/target -v "$BACKUP_DIR":/backup alpine sh -c "
-    cd /target && rm -rf ./* && 
+    cd /target && rm -rf ./* &&
     tar xzf /backup/confluence_home_backup.tar.gz
 "
 
@@ -369,7 +369,7 @@ curl -f http://localhost:8090/rest/api/space | jq '.size' | tee -a health-check.
 # UMIG API endpoints health
 echo "3. UMIG API Health Check:" | tee -a health-check.log
 declare -a endpoints=(
-    "users" "teams" "environments" "applications" "labels" 
+    "users" "teams" "environments" "applications" "labels"
     "steps" "migrations" "plans" "sequences" "phases" "instructions"
 )
 
@@ -420,11 +420,11 @@ done
 # Database query performance
 echo "3. Database Query Performance:" | tee -a performance-check.log
 podman exec umig_postgres psql -U umig_user -d umig_db -c "
-    EXPLAIN ANALYZE 
-    SELECT pli.*, pm.migration_name 
+    EXPLAIN ANALYZE
+    SELECT pli.*, pm.migration_name
     FROM umig_plan_instance pli
     JOIN umig_migration_master pm ON pli.migration_id = pm.migration_id
-    WHERE pli.status = 'active' 
+    WHERE pli.status = 'active'
     LIMIT 10;
 " | tee -a performance-check.log
 ```
@@ -499,7 +499,7 @@ fi
 # Check 3: Critical API endpoints
 critical_apis=(
     "users/health"
-    "teams/health" 
+    "teams/health"
     "migrations"
 )
 
@@ -601,7 +601,7 @@ npm start | tee -a "$ROLLBACK_LOG"
 # Wait for services to be ready
 echo "Waiting for services to restart..." | tee -a "$ROLLBACK_LOG"
 timeout 300s bash -c '
-    while ! curl -f -s http://localhost:8090/status > /dev/null; do 
+    while ! curl -f -s http://localhost:8090/status > /dev/null; do
         echo "$(date): Waiting for Confluence..."
         sleep 10
     done
@@ -619,7 +619,7 @@ if ! podman exec umig_postgres psql -U umig_user -d umig_db -c "SELECT 'OK';" > 
     rollback_success=false
 fi
 
-# API test  
+# API test
 if ! curl -f -s http://localhost:8090/rest/scriptrunner/latest/custom/umig/api/v2/users/health > /dev/null; then
     echo "❌ API test failed" | tee -a "$ROLLBACK_LOG"
     rollback_success=false
@@ -674,7 +674,7 @@ else
     echo "❌ Confluence version rollback verification failed"
 fi
 
-# Functional verification  
+# Functional verification
 echo ""
 echo "2. Functional Verification:"
 
@@ -719,37 +719,40 @@ chmod +x rollback-validate.sh
 
 ### 7.1 Detailed Timeline
 
-| Phase | Duration | Activity | Dependency | Risk Level |
-|-------|----------|----------|------------|------------|
-| **Pre-Deploy** | 65 min | Complete preparation | None | Low |
-| └─ Documentation | 30 min | Environment assessment | - | Low |
-| └─ Backup | 20 min | Data & volume backup | - | Low |
-| └─ Testing | 15 min | Integration test baseline | - | Medium |
-| **Deploy** | 55 min | Container image replacement | Pre-deploy complete | Medium |
-| └─ Shutdown | 5 min | Graceful service stop | - | Low |
-| └─ Image Update | 25 min | Build & verify new image | Shutdown | Medium |
-| └─ Startup | 10 min | Container orchestration | Image ready | Medium |
-| └─ Plugin Upgrade | 15 min | ScriptRunner via UI | Confluence ready | High |
-| **Validation** | 45 min | Health checks & testing | Deploy complete | Medium |
-| └─ Health Checks | 10 min | Automated monitoring | - | Low |
-| └─ Performance | 15 min | Baseline comparison | - | Medium |
-| └─ Integration Tests | 20 min | Complete test suite | - | High |
-| **Total** | **2h 45m** | **Complete upgrade** | - | **Medium** |
+| Phase                | Duration   | Activity                    | Dependency          | Risk Level |
+| -------------------- | ---------- | --------------------------- | ------------------- | ---------- |
+| **Pre-Deploy**       | 65 min     | Complete preparation        | None                | Low        |
+| └─ Documentation     | 30 min     | Environment assessment      | -                   | Low        |
+| └─ Backup            | 20 min     | Data & volume backup        | -                   | Low        |
+| └─ Testing           | 15 min     | Integration test baseline   | -                   | Medium     |
+| **Deploy**           | 55 min     | Container image replacement | Pre-deploy complete | Medium     |
+| └─ Shutdown          | 5 min      | Graceful service stop       | -                   | Low        |
+| └─ Image Update      | 25 min     | Build & verify new image    | Shutdown            | Medium     |
+| └─ Startup           | 10 min     | Container orchestration     | Image ready         | Medium     |
+| └─ Plugin Upgrade    | 15 min     | ScriptRunner via UI         | Confluence ready    | High       |
+| **Validation**       | 45 min     | Health checks & testing     | Deploy complete     | Medium     |
+| └─ Health Checks     | 10 min     | Automated monitoring        | -                   | Low        |
+| └─ Performance       | 15 min     | Baseline comparison         | -                   | Medium     |
+| └─ Integration Tests | 20 min     | Complete test suite         | -                   | High       |
+| **Total**            | **2h 45m** | **Complete upgrade**        | -                   | **Medium** |
 
 ### 7.2 Resource Requirements
 
 #### Human Resources
+
 - **DevOps Engineer**: Primary responsible (100% time)
 - **Development Team Lead**: Available for consultation (25% time)
 - **Database Administrator**: On-call for data issues (standby)
 
 #### System Resources
+
 - **CPU**: 4+ cores recommended during image build
 - **RAM**: 8GB+ available for containers
 - **Disk Space**: 10GB free space for image builds and backups
 - **Network**: Stable internet for image downloads
 
 #### Infrastructure Dependencies
+
 - **Podman/Docker**: Container runtime operational
 - **PostgreSQL**: Version compatibility with Confluence 9.2.7
 - **Java JDK**: Version 17 (handled by container)
@@ -757,12 +760,12 @@ chmod +x rollback-validate.sh
 
 ### 7.3 Rollback Window
 
-| Scenario | Detection Time | Rollback Duration | Total Impact |
-|----------|---------------|-------------------|--------------|
-| **Immediate Failure** | < 5 min | 15 min | 20 min |
-| **Post-Deploy Issues** | 5-30 min | 15 min | 45 min |
-| **Integration Test Failure** | 30-60 min | 15 min | 75 min |
-| **Performance Degradation** | 1-4 hours | 15 min | Variable |
+| Scenario                     | Detection Time | Rollback Duration | Total Impact |
+| ---------------------------- | -------------- | ----------------- | ------------ |
+| **Immediate Failure**        | < 5 min        | 15 min            | 20 min       |
+| **Post-Deploy Issues**       | 5-30 min       | 15 min            | 45 min       |
+| **Integration Test Failure** | 30-60 min      | 15 min            | 75 min       |
+| **Performance Degradation**  | 1-4 hours      | 15 min            | Variable     |
 
 ---
 
@@ -771,25 +774,27 @@ chmod +x rollback-validate.sh
 ### 8.1 Primary Success Metrics
 
 #### Zero Data Loss ✅
+
 ```bash
 # Validation commands
 podman exec umig_postgres psql -U umig_user -d umig_db -c "
-    SELECT 
-        'migrations' as table_name, COUNT(*) as record_count 
+    SELECT
+        'migrations' as table_name, COUNT(*) as record_count
     FROM umig_migration_master
     UNION ALL
-    SELECT 
-        'step_instances', COUNT(*) 
+    SELECT
+        'step_instances', COUNT(*)
     FROM umig_step_instance;
 "
 ```
 
 #### Full API Compatibility ✅
+
 ```bash
 # Complete API validation
 declare -A expected_endpoints=(
     ["users"]="GET,POST,PUT,DELETE"
-    ["teams"]="GET,POST,PUT,DELETE" 
+    ["teams"]="GET,POST,PUT,DELETE"
     ["environments"]="GET,POST,PUT,DELETE"
     ["applications"]="GET,POST,PUT,DELETE"
     ["labels"]="GET,POST,PUT,DELETE"
@@ -812,6 +817,7 @@ done
 ```
 
 #### Performance Maintenance ✅
+
 ```bash
 # Performance validation
 echo "API Response Time Validation:"
@@ -824,7 +830,7 @@ declare -A performance_thresholds=(
 for endpoint in "${!performance_thresholds[@]}"; do
     response_time=$(curl -o /dev/null -s -w "%{time_total}" "http://localhost:8090/rest/scriptrunner/latest/custom/umig/api/v2/${endpoint}")
     threshold=${performance_thresholds[$endpoint]}
-    
+
     if (( $(echo "$response_time <= $threshold" | bc -l) )); then
         echo "✅ ${endpoint}: ${response_time}s (≤ ${threshold}s)"
     else
@@ -850,7 +856,7 @@ else
     exit 1
 fi
 
-# Groovy integration tests  
+# Groovy integration tests
 echo "2. Running Groovy integration tests..."
 cd ../src/groovy/umig/tests
 if ./run-integration-tests.sh; then
@@ -913,6 +919,7 @@ echo "✅ Security validation complete"
 ### 9.1 Stakeholder Notification Templates
 
 #### Pre-Deployment Notification
+
 ```
 Subject: UMIG Infrastructure Upgrade - Confluence v9.2.7 & ScriptRunner 9.21.0
 
@@ -935,7 +942,7 @@ What to Expect:
 
 Timeline:
 - Pre-deployment: 65 minutes
-- Deployment: 55 minutes  
+- Deployment: 55 minutes
 - Validation: 45 minutes
 - Buffer: 30 minutes
 
@@ -946,6 +953,7 @@ UMIG Development Team
 ```
 
 #### Post-Deployment Success Notification
+
 ```
 Subject: ✅ UMIG Infrastructure Upgrade Complete - All Systems Operational
 
@@ -955,7 +963,7 @@ The UMIG infrastructure upgrade has been completed successfully.
 
 Upgrade Results:
 ✅ Confluence v9.2.7: Operational
-✅ ScriptRunner v9.21.0: Operational  
+✅ ScriptRunner v9.21.0: Operational
 ✅ All 25+ API endpoints: Functional
 ✅ Admin GUI: Fully operational
 ✅ Database: Zero data loss
@@ -999,11 +1007,11 @@ sed -i "s/ScriptRunner [0-9.]\+/ScriptRunner 9.21.0/g" "$DOCS_DIR/solution-archi
 cat >> "$DOCS_DIR/deployment/upgrade-log.md" << UPGRADE_LOG
 
 ## Upgrade: Confluence v9.2.7 & ScriptRunner 9.21.0
-**Date**: $DATE  
-**Strategy**: Stream A (Container Image Replacement)  
-**Duration**: [ACTUAL_DURATION]  
-**Status**: SUCCESS  
-**Issues**: None  
+**Date**: $DATE
+**Strategy**: Stream A (Container Image Replacement)
+**Duration**: [ACTUAL_DURATION]
+**Status**: SUCCESS
+**Issues**: None
 
 ### Changes:
 - Confluence: 8.5.6 → 9.2.7
@@ -1012,7 +1020,7 @@ cat >> "$DOCS_DIR/deployment/upgrade-log.md" << UPGRADE_LOG
 
 ### Validation Results:
 - All API endpoints: ✅ Functional
-- Database integrity: ✅ Verified  
+- Database integrity: ✅ Verified
 - Performance: ✅ Within baseline
 - Security: ✅ All checks passed
 
@@ -1051,31 +1059,31 @@ echo "Start time: $(date)" | tee -a "$MONITOR_LOG"
 while true; do
     timestamp=$(date)
     echo "[$timestamp] Health check..." >> "$MONITOR_LOG"
-    
+
     # System resources
     cpu_usage=$(podman stats --no-stream --format "{{.CPUPerc}}" umig_confluence | tr -d '%')
     mem_usage=$(podman stats --no-stream --format "{{.MemPerc}}" umig_confluence | tr -d '%')
-    
+
     # Alert on high resource usage
     if (( $(echo "$cpu_usage > $ALERT_THRESHOLD_CPU" | bc -l) )); then
         echo "[$timestamp] ALERT: High CPU usage: ${cpu_usage}%" | tee -a "$MONITOR_LOG"
     fi
-    
+
     if (( $(echo "$mem_usage > $ALERT_THRESHOLD_MEM" | bc -l) )); then
         echo "[$timestamp] ALERT: High memory usage: ${mem_usage}%" | tee -a "$MONITOR_LOG"
     fi
-    
+
     # API response time monitoring
     response_time=$(curl -o /dev/null -s -w "%{time_total}" "http://localhost:8090/rest/scriptrunner/latest/custom/umig/api/v2/users/health")
     if (( $(echo "$response_time > $ALERT_THRESHOLD_RESPONSE" | bc -l) )); then
         echo "[$timestamp] ALERT: Slow API response: ${response_time}s" | tee -a "$MONITOR_LOG"
     fi
-    
+
     # Database connectivity
     if ! podman exec umig_postgres pg_isready -U umig_user -d umig_db > /dev/null 2>&1; then
         echo "[$timestamp] ALERT: Database connectivity failed" | tee -a "$MONITOR_LOG"
     fi
-    
+
     # Wait 5 minutes between checks
     sleep 300
 done
@@ -1108,7 +1116,7 @@ collect_metrics() {
     mem_usage=$(podman stats --no-stream --format "{{.MemPerc}}" umig_confluence | tr -d '%')
     api_response=$(curl -o /dev/null -s -w "%{time_total}" "http://localhost:8090/rest/scriptrunner/latest/custom/umig/api/v2/users/health")
     db_connections=$(podman exec umig_postgres psql -U umig_user -d umig_db -t -c "SELECT count(*) FROM pg_stat_activity;" | tr -d ' ')
-    
+
     echo "$timestamp,$cpu_usage,$mem_usage,$api_response,$db_connections" >> "$TREND_LOG"
 }
 
@@ -1129,19 +1137,22 @@ chmod +x performance-trending.sh
 This deployment plan provides comprehensive operational procedures for upgrading UMIG's Confluence platform to v9.2.7 and ScriptRunner to v9.21.0 using the Container Image Replacement Strategy (Stream A). The approach ensures:
 
 ### Key Strengths
+
 - **Zero-Downtime Design**: Named volume preservation eliminates data migration overhead
 - **Automated Rollback**: 15-minute rollback capability with full automation
-- **Comprehensive Monitoring**: Real-time health checks and performance validation  
+- **Comprehensive Monitoring**: Real-time health checks and performance validation
 - **Risk Mitigation**: Extensive backup procedures and validation checkpoints
 - **Operational Excellence**: Detailed scripts, monitoring, and documentation
 
 ### Risk Mitigation Summary
+
 - **Data Loss**: Eliminated through named volume strategy
 - **Extended Downtime**: Minimized to <3 hours with 15-minute rollback
 - **API Compatibility**: Comprehensive endpoint testing and validation
 - **Performance Degradation**: Baseline comparison and automated alerting
 
 ### Post-Deployment Benefits
+
 - Enhanced platform security and stability
 - Continued vendor support coverage
 - Improved performance with latest optimizations

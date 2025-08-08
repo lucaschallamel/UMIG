@@ -1,1 +1,29 @@
-{"step_name":"DUM-12119","step_type":"DUM","step_number":12119,"step_title":"BACKUP &amp; RESTORE all application from PRODUCTION to PROD-LIKE and TEST","step_predecessor":"PRE-63","step_successor":"PRE-63","step_assigned_team":"EXPLOITATION","step_impacted_teams":"","step_macro_time_sequence":"A - PREMIGRATION","step_time_sequence":"AA - PRE-MIGRATION - PREPARATION","step_instructions":[{"id":"DUM-12119-1","text":"On the CUTOVER DATE proceed with the following BACKUP and RESTORE activities.On PRODUCTION: BACKUP all applications related to migration based on EOW/EOM data","assignee":"EXPLOITATION"},{"id":"DUM-12119-2","text":"On PROD LIKE: RESTORE all applications based on  PRODUCTION backup made on step 1","assignee":"EXPLOITATION"},{"id":"DUM-12119-3","text":"On TEST: RESTORE SECLI and ATLAS based on PRODUCTION Backup made on step 1","assignee":"EXPLOITATION"}]}
+{
+  "step_name": "DUM-12119",
+  "step_type": "DUM",
+  "step_number": 12119,
+  "step_title": "BACKUP &amp; RESTORE all application from PRODUCTION to PROD-LIKE and TEST",
+  "step_predecessor": "PRE-63",
+  "step_successor": "PRE-63",
+  "step_assigned_team": "EXPLOITATION",
+  "step_impacted_teams": "",
+  "step_macro_time_sequence": "A - PREMIGRATION",
+  "step_time_sequence": "AA - PRE-MIGRATION - PREPARATION",
+  "step_instructions": [
+    {
+      "id": "DUM-12119-1",
+      "text": "On the CUTOVER DATE proceed with the following BACKUP and RESTORE activities.On PRODUCTION: BACKUP all applications related to migration based on EOW/EOM data",
+      "assignee": "EXPLOITATION"
+    },
+    {
+      "id": "DUM-12119-2",
+      "text": "On PROD LIKE: RESTORE all applications based on  PRODUCTION backup made on step 1",
+      "assignee": "EXPLOITATION"
+    },
+    {
+      "id": "DUM-12119-3",
+      "text": "On TEST: RESTORE SECLI and ATLAS based on PRODUCTION Backup made on step 1",
+      "assignee": "EXPLOITATION"
+    }
+  ]
+}

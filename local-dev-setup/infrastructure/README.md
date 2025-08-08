@@ -55,6 +55,7 @@ podman-compose up -d
 **MANDATORY before ANY upgrade**: The backup system was enhanced after silent failures during Confluence 8.5.6 → 9.2.7 upgrade left us with 0-byte backup files.
 
 **Quick Verification Commands**:
+
 ```bash
 # 1. Test backup creation
 ./backup/backup-all.sh
@@ -84,18 +85,21 @@ Enterprise-grade backup system with SHA256 integrity verification, automated sch
 ### Backup Components
 
 #### 1. Database Backup (`backup-databases.sh`)
+
 - PostgreSQL dumps with compression
 - Transactional consistency guaranteed
 - Separate backups for each database
 - Point-in-time recovery support
 
 #### 2. Volume Backup (`backup-volumes.sh`)
+
 - Confluence data volume preservation
 - File system snapshots
 - Metadata preservation
 - Permission retention
 
 #### 3. Verification System (`verify-backup.sh`)
+
 - SHA256 checksum validation
 - Backup completeness verification
 - Restoration readiness assessment
@@ -103,16 +107,17 @@ Enterprise-grade backup system with SHA256 integrity verification, automated sch
 
 ### Backup Schedule Recommendations
 
-| Component | Frequency | Retention | Priority |
-|-----------|-----------|-----------|----------|
-| Database | Daily | 30 days | Critical |
-| Volumes | Weekly | 4 weeks | High |
-| Full System | Weekly | 2 months | Critical |
-| Archives | Monthly | 1 year | Medium |
+| Component   | Frequency | Retention | Priority |
+| ----------- | --------- | --------- | -------- |
+| Database    | Daily     | 30 days   | Critical |
+| Volumes     | Weekly    | 4 weeks   | High     |
+| Full System | Weekly    | 2 months  | Critical |
+| Archives    | Monthly   | 1 year    | Medium   |
 
 ### Restoration Process
 
 #### Quick Restore
+
 ```bash
 # Restore latest backup
 ./backup/restore-databases.sh latest
@@ -120,6 +125,7 @@ Enterprise-grade backup system with SHA256 integrity verification, automated sch
 ```
 
 #### Point-in-Time Recovery
+
 ```bash
 # Restore from specific backup
 ./backup/restore-databases.sh 2025-08-08_10-30
@@ -184,16 +190,17 @@ podman-compose up -d
 
 ### Recovery Time Objectives (RTO)
 
-| Scenario | Target RTO | Actual RTO | Recovery Method |
-|----------|------------|------------|-----------------|
-| Service Crash | 5 min | 2 min | Automatic restart |
-| Data Corruption | 30 min | 15 min | Volume restore |
-| Complete Failure | 2 hours | 1 hour | Full restore |
-| Platform Upgrade Failure | 1 hour | 30 min | Rollback procedure |
+| Scenario                 | Target RTO | Actual RTO | Recovery Method    |
+| ------------------------ | ---------- | ---------- | ------------------ |
+| Service Crash            | 5 min      | 2 min      | Automatic restart  |
+| Data Corruption          | 30 min     | 15 min     | Volume restore     |
+| Complete Failure         | 2 hours    | 1 hour     | Full restore       |
+| Platform Upgrade Failure | 1 hour     | 30 min     | Rollback procedure |
 
 ### Recovery Procedures
 
 #### Level 1: Service Recovery
+
 ```bash
 # Quick service restart
 podman-compose restart confluence
@@ -204,6 +211,7 @@ curl -f http://localhost:8090/status || echo "Service not responding"
 ```
 
 #### Level 2: Data Recovery
+
 ```bash
 # Stop services
 npm stop
@@ -216,6 +224,7 @@ npm start
 ```
 
 #### Level 3: Complete Recovery
+
 ```bash
 # Full system restore
 ./backup/restore-databases.sh latest
@@ -226,6 +235,7 @@ npm start
 ## Monitoring and Health Checks
 
 ### Daily Health Checks
+
 ```bash
 # Service status
 podman ps -a | grep -E "confluence|postgres|mailhog"
@@ -241,6 +251,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8090/status
 ```
 
 ### Performance Monitoring
+
 ```bash
 # Resource usage
 podman stats --no-stream
@@ -257,11 +268,13 @@ PGPASSWORD=123456 psql -h localhost -U umig_app_user -d umig_app_db -c "
 ## Security Considerations
 
 ### Access Control
+
 - All scripts require appropriate file system permissions
 - Database operations use environment variables for credentials
 - Backup encryption recommended for sensitive data
 
 ### Credential Management
+
 ```bash
 # Never commit credentials
 # Use environment variables
@@ -270,6 +283,7 @@ export CONFLUENCE_LICENSE_KEY="your_license_key"
 ```
 
 ### Backup Security
+
 - Store backups in secure location
 - Implement encryption for sensitive backups
 - Regular verification of backup integrity
@@ -280,6 +294,7 @@ export CONFLUENCE_LICENSE_KEY="your_license_key"
 ### Common Issues
 
 #### Backup Failures
+
 ```bash
 # Check disk space
 df -h /path/to/backups
@@ -292,6 +307,7 @@ PGPASSWORD=$POSTGRES_PASSWORD psql -h localhost -U umig_user -d umig_db -c "SELE
 ```
 
 #### Restoration Issues
+
 ```bash
 # Verify backup integrity
 ./backup/verify-backup.sh 2025-08-08_10-30
@@ -305,6 +321,7 @@ podman logs umig_postgres
 ```
 
 #### Upgrade Problems
+
 ```bash
 # Check current version
 podman images | grep confluence
@@ -329,11 +346,13 @@ tail -f /tmp/confluence-upgrade-*.log
 ## Support and Resources
 
 ### Internal Resources
+
 - Main documentation: `/docs/solution-architecture.md`
 - API documentation: `/docs/api/openapi.yaml`
 - Development setup: `/local-dev-setup/README.md`
 
 ### External Resources
+
 - [Confluence Administration](https://confluence.atlassian.com/doc/)
 - [ScriptRunner Documentation](https://docs.adaptavist.com/sr4conf/)
 - [PostgreSQL Backup Guide](https://www.postgresql.org/docs/14/backup.html)
@@ -345,7 +364,6 @@ tail -f /tmp/confluence-upgrade-*.log
   - Enhanced backup system with SHA256 verification
   - Automated upgrade procedures
   - Comprehensive disaster recovery
-  
 - **v1.0** (2025-08-01): Initial infrastructure setup
   - Basic backup scripts
   - Manual procedures
@@ -353,12 +371,13 @@ tail -f /tmp/confluence-upgrade-*.log
 ## Contact
 
 For infrastructure issues or questions:
+
 - Check runbooks in this directory first
 - Review logs in `/tmp/` and container logs
 - Escalate to infrastructure team if needed
 
 ---
 
-*Last Updated: August 8, 2025*  
-*Confluence Version: 9.2.7*  
-*ScriptRunner Version: 9.21.0*
+_Last Updated: August 8, 2025_  
+_Confluence Version: 9.2.7_  
+_ScriptRunner Version: 9.21.0_

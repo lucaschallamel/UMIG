@@ -2,17 +2,17 @@
 
 ## Story Header
 
-| Field | Value |
-|-------|--------|
-| **Story ID** | US-025 |
-| **Epic** | API Modernization & Standardization |
-| **Title** | MigrationsAPI Refactoring to Modern Patterns with Dashboard Support |
-| **Priority** | HIGH |
-| **Complexity** | 3 points |
-| **Sprint** | Sprint 4 |
-| **Timeline** | Days 2-3 |
-| **Assignee** | Backend Developer |
-| **Status** | Ready for Development |
+| Field          | Value                                                               |
+| -------------- | ------------------------------------------------------------------- |
+| **Story ID**   | US-025                                                              |
+| **Epic**       | API Modernization & Standardization                                 |
+| **Title**      | MigrationsAPI Refactoring to Modern Patterns with Dashboard Support |
+| **Priority**   | HIGH                                                                |
+| **Complexity** | 3 points                                                            |
+| **Sprint**     | Sprint 4                                                            |
+| **Timeline**   | Days 2-3                                                            |
+| **Assignee**   | Backend Developer                                                   |
+| **Status**     | Ready for Development                                               |
 
 ## User Story
 
@@ -23,6 +23,7 @@
 ## Background and Current State Analysis
 
 ### Current State
+
 The existing MigrationAPI (`src/groovy/umig/api/v2/migrationApi.groovy`) serves primarily as a hierarchical navigation endpoint with basic CRUD operations. As the root entity in UMIG's hierarchy, migrations are critical for:
 
 - Dashboard foundation and top-level progress aggregation
@@ -32,13 +33,16 @@ The existing MigrationAPI (`src/groovy/umig/api/v2/migrationApi.groovy`) serves 
 - Executive-level visibility into cutover operations
 
 ### Current API Capabilities
+
 - ✅ Basic migration CRUD operations
 - ✅ Hierarchical navigation (/migrations/{id}/iterations/{id}/...)
 - ✅ Iteration management under migrations
 - ❌ Missing modern Sprint 3 patterns and features
 
 ### Technical Debt
+
 Current MigrationsAPI limitations:
+
 - No comprehensive filtering or advanced query parameters
 - No bulk operations support
 - Missing status field normalization (ADR-035)
@@ -48,7 +52,9 @@ Current MigrationsAPI limitations:
 - No performance optimization for complex rollup calculations
 
 ### Sprint 3 Modernization Reference
+
 Sprint 3 successfully established consistent patterns across:
+
 - **PlansApi** (US-001): Comprehensive filtering, pagination, hierarchical queries
 - **SequencesApi** (US-002): Bulk operations, advanced filtering
 - **PhasesApi** (US-003): Master/instance separation, performance optimization
@@ -57,6 +63,7 @@ Sprint 3 successfully established consistent patterns across:
 ## Detailed Acceptance Criteria
 
 ### AC1: Core API Modernization
+
 **Given** the existing MigrationAPI structure  
 **When** implementing modern Sprint 3 patterns  
 **Then** the API must include:
@@ -68,12 +75,13 @@ Sprint 3 successfully established consistent patterns across:
 - ✅ Comprehensive CRUD operations with validation
 
 **Technical Specifications:**
+
 ```groovy
 // Enhanced migration endpoint structure
 migrations(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
     def params = [:]
     def filters = extractQueryFilters(request)
-    
+
     // Type safety compliance (ADR-031)
     if (filters.ownerId) {
         params.ownerId = UUID.fromString(filters.ownerId as String)
@@ -81,12 +89,12 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
     if (filters.year) {
         params.year = Integer.parseInt(filters.year as String)
     }
-    
+
     // Status normalization (ADR-035)
     if (filters.status) {
         params.statusId = StatusRepository.resolveStatusId(filters.status as String)
     }
-    
+
     // Date range filtering
     if (filters.startDateFrom || filters.startDateTo) {
         params.startDateRange = parseDateRange(filters.startDateFrom, filters.startDateTo)
@@ -95,6 +103,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 ```
 
 ### AC2: Advanced Query Parameters and Filtering
+
 **Given** the need for comprehensive migration management  
 **When** querying migrations with various criteria  
 **Then** the system must support:
@@ -108,6 +117,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - ✅ Sorting by multiple fields with ASC/DESC direction
 
 **Query Parameter Matrix:**
+
 ```yaml
 Filtering Parameters:
   - ownerId: UUID (filter by migration owner)
@@ -129,6 +139,7 @@ Sorting Parameters:
 ```
 
 ### AC3: Progress Aggregation Endpoints
+
 **Given** the requirement for dashboard functionality  
 **When** requesting migration progress summaries  
 **Then** the system must provide:
@@ -140,6 +151,7 @@ Sorting Parameters:
 - ✅ Team workload distribution summaries
 
 **Progress Aggregation Endpoints:**
+
 ```yaml
 GET /migrations/{id}/progress:
   Returns:
@@ -164,6 +176,7 @@ GET /migrations/portfolio-summary:
 ```
 
 ### AC4: Bulk Operations Support
+
 **Given** the need for efficient migration management  
 **When** performing operations on multiple migrations  
 **Then** the system must support:
@@ -174,6 +187,7 @@ GET /migrations/portfolio-summary:
 - ✅ Transaction-based operations with rollback capability
 
 **Bulk Operations Structure:**
+
 ```groovy
 // POST /migrations/bulk
 {
@@ -188,6 +202,7 @@ GET /migrations/portfolio-summary:
 ```
 
 ### AC5: Enhanced Error Handling and Validation
+
 **Given** the critical nature of migration operations  
 **When** API errors occur  
 **Then** the system must provide:
@@ -198,6 +213,7 @@ GET /migrations/portfolio-summary:
 - ✅ Structured error responses with actionable guidance
 
 **Error Response Structure:**
+
 ```json
 {
   "error": "Validation failed",
@@ -217,6 +233,7 @@ GET /migrations/portfolio-summary:
 ## Technical Implementation Plan
 
 ### Phase 1: Core API Modernization (Day 1)
+
 1. **Repository Enhancement**
    - Add comprehensive filtering methods to MigrationRepository
    - Implement pagination support with offset/limit
@@ -235,6 +252,7 @@ GET /migrations/portfolio-summary:
    - Provide backward compatibility for existing consumers
 
 ### Phase 2: Progress Aggregation Implementation (Day 2)
+
 1. **Progress Calculation Logic**
    - Implement hierarchical progress rollup algorithms
    - Create cached progress calculations for performance
@@ -253,6 +271,7 @@ GET /migrations/portfolio-summary:
    - Optimize complex JOIN operations for hierarchy traversal
 
 ### Phase 3: Bulk Operations and Advanced Features (Day 3)
+
 1. **Bulk Operations Implementation**
    - Create POST /migrations/bulk endpoint
    - Implement transaction-based bulk updates
@@ -274,6 +293,7 @@ GET /migrations/portfolio-summary:
 ## Progress Calculation and Rollup Logic
 
 ### Hierarchical Progress Calculation
+
 ```groovy
 /**
  * Calculates migration progress based on child entity completion
@@ -283,7 +303,7 @@ def calculateMigrationProgress(UUID migrationId) {
     return DatabaseUtil.withSql { sql ->
         def result = sql.firstRow('''
             WITH step_progress AS (
-                SELECT 
+                SELECT
                     m.mig_id,
                     COUNT(si.sti_id) as total_steps,
                     COUNT(CASE WHEN st.sts_name = 'Completed' THEN 1 END) as completed_steps,
@@ -299,19 +319,19 @@ def calculateMigrationProgress(UUID migrationId) {
                 WHERE m.mig_id = ?
                 GROUP BY m.mig_id
             )
-            SELECT 
+            SELECT
                 mig_id,
                 total_steps,
                 completed_steps,
                 active_steps,
                 pending_steps,
-                CASE 
+                CASE
                     WHEN total_steps = 0 THEN 0
                     ELSE ROUND((completed_steps * 100.0 / total_steps), 2)
                 END as completion_percentage
             FROM step_progress
         ''', [migrationId])
-        
+
         return [
             migrationId: migrationId,
             totalSteps: result.total_steps ?: 0,
@@ -326,11 +346,12 @@ def calculateMigrationProgress(UUID migrationId) {
 ```
 
 ### Status Distribution Analytics
+
 ```groovy
 def getMigrationStatusDistribution(UUID migrationId) {
     return DatabaseUtil.withSql { sql ->
         return sql.rows('''
-            SELECT 
+            SELECT
                 st.sts_name as status_name,
                 st.sts_color as status_color,
                 COUNT(si.sti_id) as step_count,
@@ -363,6 +384,7 @@ def getMigrationStatusDistribution(UUID migrationId) {
 ## Testing Strategy for Complex Scenarios
 
 ### Unit Testing Approach
+
 ```groovy
 // Test progress calculation accuracy
 @Test
@@ -370,16 +392,16 @@ void testMigrationProgressCalculation() {
     def migrationId = createTestMigration()
     def iterationId = createTestIteration(migrationId)
     def planId = createTestPlan(iterationId)
-    
+
     // Create test steps with known statuses
     createTestSteps(planId, [
         [status: 'Completed', count: 70],
         [status: 'In Progress', count: 20],
         [status: 'Not Started', count: 10]
     ])
-    
+
     def progress = migrationRepository.calculateMigrationProgress(migrationId)
-    
+
     assert progress.totalSteps == 100
     assert progress.completedSteps == 70
     assert progress.completionPercentage == 70.0
@@ -387,21 +409,22 @@ void testMigrationProgressCalculation() {
 ```
 
 ### Integration Testing Scenarios
+
 ```groovy
 // Test bulk operations with rollback
 @Test
 void testBulkUpdateWithRollback() {
     def migrationIds = createMultipleTestMigrations(5)
-    
+
     // Attempt bulk update with one invalid migration
     def bulkRequest = [
         operation: 'updateStatus',
         migrationIds: migrationIds + [UUID.randomUUID()], // Invalid ID
         data: [statusId: 3]
     ]
-    
+
     def response = post('/migrations/bulk', bulkRequest)
-    
+
     assert response.status == 400
     // Verify no migrations were updated due to rollback
     migrationIds.each { migId ->
@@ -412,6 +435,7 @@ void testBulkUpdateWithRollback() {
 ```
 
 ### Performance Testing Requirements
+
 ```yaml
 Performance Benchmarks:
   - GET /migrations (paginated): < 200ms for 1000 migrations
@@ -424,6 +448,7 @@ Performance Benchmarks:
 ## Success Criteria and Performance Targets
 
 ### Functional Success Metrics
+
 - ✅ All Sprint 3 patterns implemented consistently
 - ✅ Progress aggregation accuracy verified across hierarchy levels
 - ✅ Bulk operations support with transaction integrity
@@ -431,6 +456,7 @@ Performance Benchmarks:
 - ✅ Comprehensive error handling with actionable messages
 
 ### Performance Targets
+
 ```yaml
 Response Time Targets:
   - Simple migrations list: < 200ms
@@ -446,6 +472,7 @@ Scalability Targets:
 ```
 
 ### Quality Assurance Criteria
+
 - ✅ 95%+ test coverage for new functionality
 - ✅ Zero breaking changes for existing API consumers
 - ✅ Complete ADR-035 status normalization compliance
@@ -455,6 +482,7 @@ Scalability Targets:
 ## Dependencies on Other Entities
 
 ### Direct Dependencies
+
 1. **Status Normalization (ADR-035)**
    - Requires status table JOIN operations
    - Depends on normalized status field implementation
@@ -471,6 +499,7 @@ Scalability Targets:
    - Audit trail integration with user context
 
 ### Indirect Dependencies
+
 1. **Database Performance**
    - Complex hierarchical queries require optimized indexes
    - Progress calculation caching mechanisms
@@ -484,6 +513,7 @@ Scalability Targets:
 ## Dashboard Preparation Considerations
 
 ### Data Structure Optimization
+
 ```json
 // Optimized dashboard response structure
 {
@@ -502,35 +532,37 @@ Scalability Targets:
     "riskLevel": "Medium"
   },
   "statusDistribution": [
-    {"status": "Completed", "count": 841, "percentage": 67.5},
-    {"status": "In Progress", "count": 234, "percentage": 18.8},
-    {"status": "Not Started", "count": 172, "percentage": 13.8}
+    { "status": "Completed", "count": 841, "percentage": 67.5 },
+    { "status": "In Progress", "count": 234, "percentage": 18.8 },
+    { "status": "Not Started", "count": 172, "percentage": 13.8 }
   ],
   "teamWorkload": [
-    {"teamName": "Infrastructure", "activeSteps": 45, "utilization": "High"},
-    {"teamName": "Application", "activeSteps": 23, "utilization": "Medium"}
+    { "teamName": "Infrastructure", "activeSteps": 45, "utilization": "High" },
+    { "teamName": "Application", "activeSteps": 23, "utilization": "Medium" }
   ]
 }
 ```
 
 ### Real-time Update Mechanisms
+
 ```groovy
 // Progress cache invalidation strategy
 def invalidateProgressCache(UUID migrationId) {
     // Invalidate migration-level cache
     cacheManager.evict("migration-progress", migrationId)
-    
+
     // Invalidate portfolio-level cache if needed
     if (isPortfolioMigration(migrationId)) {
         cacheManager.evict("portfolio-summary")
     }
-    
+
     // Trigger dashboard refresh event
     eventPublisher.publishProgressUpdate(migrationId)
 }
 ```
 
 ### Frontend Integration Preparation
+
 ```yaml
 Dashboard API Requirements:
   - Real-time progress updates via AJAX polling
@@ -543,6 +575,7 @@ Dashboard API Requirements:
 ## Implementation Notes
 
 ### Database Migration Requirements
+
 ```sql
 -- Add indexes for migration filtering and sorting
 CREATE INDEX idx_migrations_owner_status ON migrations_mig(usr_id_owner, sts_id);
@@ -560,6 +593,7 @@ CREATE TABLE migration_progress_cache (
 ```
 
 ### Configuration Requirements
+
 ```yaml
 # Performance tuning configuration
 migration_api:

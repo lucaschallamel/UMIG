@@ -166,9 +166,9 @@
 
 ### ✅ Fully Operational
 
-- **Confluence**: http://localhost:8090 (admin/admin)
+- **Confluence**: <http://localhost:8090> (admin/admin)
 - **PostgreSQL**: localhost:5432 with umig_app_db configured
-- **MailHog**: http://localhost:8025 for email testing
+- **MailHog**: <http://localhost:8025> for email testing
 - **Podman Environment**: Stable with comprehensive data generation
 
 ### Tools & Automation

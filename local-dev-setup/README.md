@@ -45,7 +45,7 @@ Install Ansible. **\*macOS Specific**: \* **Recommended (Homebrew)**:
 
 Install Podman and `podman-compose`. **\*macOS Specific**: \* **Recommended
 (Homebrew)**:
-`bash             brew install podman             brew install podman-compose             `
+`bash             brew install podman             brew install podman-compose`
 **\*Linux Specific**: \* Follow the official installation instructions for your
 distribution. **\*Windows Specific**: \* Follow the official installation
 instructions.
@@ -76,6 +76,7 @@ npm install
   ```
 
 - **Restart Environment:**
+
   ```bash
   npm run restart
   ```
@@ -99,6 +100,7 @@ target specific volumes.
   ```
 
 - **Stop and Erase Everything:**
+
   ```bash
   npm run stop:erase
   ```
@@ -118,6 +120,7 @@ target specific volumes.
   ```
 
 - **Generate Single Generator:**
+
   ```bash
   npm run generate -- --script=<generator-number>
   # Example: Run only the instance data generator
@@ -175,6 +178,7 @@ UMIG follows a canonical-instance pattern for data:
   ```
 
 - **Run CSV Importer:**
+
   ```bash
   npm run import-csv -- --file path/to/your/file.csv
   ```
@@ -182,6 +186,7 @@ UMIG follows a canonical-instance pattern for data:
 ### Testing
 
 - **Run All Tests:**
+
   ```bash
   npm test
   ```

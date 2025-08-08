@@ -20,6 +20,7 @@ Sprint-based development planning with detailed user stories, technical specific
 - **[sprint4/sprint4-scope-brainstorm.md](./sprint4/sprint4-scope-brainstorm.md)** - Detailed scope analysis and planning
 
 **Sprint 4 Stories in Progress**:
+
 - US-017: Status Field Normalization (✅ COMPLETED Day 1)
 - US-024: StepsAPI Refactoring (5 points) - Days 2-3
 - US-025: MigrationsAPI Refactoring (3 points) - Days 2-3
@@ -73,10 +74,12 @@ High-level strategic planning and comprehensive roadmap documentation.
 **Sprint 4 Progress**: 5/30 points completed (16.7%)
 
 **Today's Focus (Aug 7)**:
+
 - ✅ US-017: Status Field Normalization - COMPLETED
 - ✅ Sprint scope finalized and documented
 
 **Tomorrow (Aug 8)**:
+
 - 🎯 US-024: Begin StepsAPI Refactoring (highest priority)
 
 ### ✅ Sprint 3 Completed (July 30 - Aug 6, 2025)
@@ -101,6 +104,7 @@ High-level strategic planning and comprehensive roadmap documentation.
 ### 📋 Product Backlog (Deferred to Sprint 5+)
 
 **Deferred from Sprint 4 (29 points)**:
+
 - US-008: Dashboard Analytics Widgets (5 points)
 - US-009: HTML Report Generation (3 points)
 - US-010: Planning Template Management (3 points)
@@ -111,6 +115,7 @@ High-level strategic planning and comprehensive roadmap documentation.
 - US-016: Test Infrastructure Fixes (2 points)
 
 **Epic 2: Database Schema Evolution (8 points)**:
+
 - US-007: Assignment Schema Migration (3 points)
 - Distribution Tracking Migration (2 points)
 - Migration Rollback Scripts (3 points)

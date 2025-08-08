@@ -2,17 +2,17 @@
 
 ## Story Header
 
-| Field | Value |
-|-------|--------|
-| **Story ID** | US-030 |
-| **Epic** | Technical Debt & Improvements |
-| **Title** | API Documentation Completion |
-| **Priority** | HIGH |
-| **Complexity** | 3 points |
-| **Sprint** | Sprint 4 |
-| **Timeline** | Day 5 |
-| **Assignee** | Technical Writer / Backend Developer |
-| **Status** | Ready for Development |
+| Field          | Value                                |
+| -------------- | ------------------------------------ |
+| **Story ID**   | US-030                               |
+| **Epic**       | Technical Debt & Improvements        |
+| **Title**      | API Documentation Completion         |
+| **Priority**   | HIGH                                 |
+| **Complexity** | 3 points                             |
+| **Sprint**     | Sprint 4                             |
+| **Timeline**   | Day 5                                |
+| **Assignee**   | Technical Writer / Backend Developer |
+| **Status**     | Ready for Development                |
 
 ## User Story
 
@@ -27,6 +27,7 @@
 The UMIG API documentation ecosystem currently includes:
 
 **✅ Existing Assets:**
+
 - OpenAPI 3.0 specification at `docs/api/openapi.yaml` (v2.0.0)
 - Individual API documentation files in `docs/api/` for 14+ endpoints
 - Postman collection with automatic generation workflow
@@ -34,8 +35,9 @@ The UMIG API documentation ecosystem currently includes:
 - API specification template for consistency
 
 **⚠️ Sprint 4 Gaps:**
+
 - OpenAPI spec missing StepsAPI modern patterns (US-024)
-- OpenAPI spec missing MigrationsAPI modern patterns (US-025)  
+- OpenAPI spec missing MigrationsAPI modern patterns (US-025)
 - No comprehensive migration guide for v3→v4 API changes
 - Performance tuning guides missing for large datasets
 - Code examples limited and may be outdated
@@ -44,6 +46,7 @@ The UMIG API documentation ecosystem currently includes:
 - Integration patterns documentation sparse
 
 **🎯 Documentation Audience:**
+
 - **Primary**: UMIG backend/frontend developers, system integrators
 - **Secondary**: Operations teams, third-party developers, future maintainers
 - **Tertiary**: Technical decision makers, security reviewers
@@ -53,6 +56,7 @@ The UMIG API documentation ecosystem currently includes:
 Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 
 **StepsAPI (US-024) Enhancements:**
+
 - Advanced hierarchical filtering with `parentType` and `parentId`
 - Bulk operations (`/bulk-update`, `/bulk-delete`)
 - Control point validation endpoints
@@ -60,6 +64,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 - Status management with audit trails
 
 **MigrationsAPI (US-025) Enhancements:**
+
 - Dashboard-ready progress aggregation endpoints
 - Multi-migration portfolio management
 - System-wide status monitoring
@@ -67,6 +72,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 - Performance optimizations for dashboard consumption
 
 **Cross-API Modern Patterns:**
+
 - Standardized error handling (ADR-023)
 - Type safety patterns (ADR-031)
 - Hierarchical filtering (ADR-030)
@@ -92,7 +98,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
   - Performance optimization query parameters
 
 - **MigrationsAPI Documentation:**
-  - All new endpoints from US-025 implementation  
+  - All new endpoints from US-025 implementation
   - Dashboard aggregation endpoints with progress schemas
   - Multi-migration filtering and search parameters
   - Portfolio management operation patterns
@@ -111,6 +117,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
   - Tags properly organized by functional domain
 
 **Validation Criteria:**
+
 - OpenAPI spec validates against 3.0 schema
 - redoc-static.html generates without errors
 - All example values are realistic and consistent
@@ -125,6 +132,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 **Then** a comprehensive migration guide must provide:
 
 **Migration Guide Structure:**
+
 ```
 # UMIG API v2.1 Migration Guide
 
@@ -135,7 +143,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 
 ## StepsAPI v2.1 Changes
 - New endpoints and deprecations
-- Parameter changes and additions  
+- Parameter changes and additions
 - Response format modifications
 - Performance optimizations available
 
@@ -162,12 +170,14 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 ```
 
 **Before/After Code Examples:**
+
 - Minimum 5 realistic scenarios per modernized API
 - cURL, JavaScript, and Groovy examples
 - Error handling pattern changes
 - Performance optimization demonstrations
 
 **Validation Criteria:**
+
 - Migration guide tested by independent developer
 - All code examples execute successfully
 - Breaking changes clearly identified and documented
@@ -182,6 +192,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 **Then** it must include:
 
 **Collection Enhancements:**
+
 - All new Sprint 4 endpoints with working examples
 - Environment variables for local development setup
 - Authentication configuration (Basic Auth patterns)
@@ -189,18 +200,21 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 - Folder organization by API domain and operation type
 
 **Request Examples:**
+
 - Realistic data values matching UMIG domain model
 - Variable substitution for dynamic testing
 - Pre-request scripts for data setup when needed
 - Response validation assertions
 
 **Documentation Integration:**
+
 - Request descriptions linking to OpenAPI spec
 - Parameter explanations with business context
 - Response examples with success and error scenarios
 - Usage notes for complex operations
 
 **Validation Criteria:**
+
 - Collection imports successfully in Postman
 - All requests execute against local development environment
 - Environment variables properly configured
@@ -216,12 +230,13 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 **Then** a performance tuning guide must provide:
 
 **Performance Guide Contents:**
+
 ```
 # UMIG API Performance Tuning Guide
 
 ## Query Optimization Patterns
 - Hierarchical filtering best practices
-- Pagination strategies for large datasets  
+- Pagination strategies for large datasets
 - Field selection for reduced payload sizes
 - Caching recommendations
 
@@ -231,7 +246,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 - Control point validation optimization
 - Status queries performance tips
 
-## MigrationsAPI Performance  
+## MigrationsAPI Performance
 - Dashboard aggregation optimization
 - Multi-migration querying strategies
 - Progress calculation efficiency
@@ -251,6 +266,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 ```
 
 **Benchmark Data:**
+
 - Response time baselines for common operations
 - Throughput measurements under load
 - Memory usage patterns
@@ -258,6 +274,7 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 - Before/after optimization comparisons
 
 **Validation Criteria:**
+
 - Performance claims validated with test data
 - Recommendations tested in realistic scenarios
 - Benchmarks reproducible in development environment
@@ -272,12 +289,14 @@ Based on US-024 and US-025, Sprint 4 introduces significant API modernization:
 **Then** a comprehensive code example library must provide:
 
 **Multi-Language Examples:**
-- **cURL**: Command-line testing and automation scripts  
+
+- **cURL**: Command-line testing and automation scripts
 - **JavaScript**: Frontend integration patterns using fetch/axios
 - **Groovy**: ScriptRunner integration examples
 - **Python**: System integration and automation scripts (bonus)
 
 **Example Categories:**
+
 ```
 examples/
 ├── authentication/
@@ -305,6 +324,7 @@ examples/
 ```
 
 **Example Quality Standards:**
+
 - Realistic data that matches UMIG domain model
 - Error handling and edge case coverage
 - Performance considerations documented
@@ -312,6 +332,7 @@ examples/
 - Comments explaining business logic
 
 **Validation Criteria:**
+
 - All examples execute successfully against development API
 - Code follows language-specific best practices
 - Examples cover common integration scenarios
@@ -326,6 +347,7 @@ examples/
 **Then** a comprehensive troubleshooting guide must provide:
 
 **Troubleshooting Guide Structure:**
+
 ```
 # UMIG API Troubleshooting Guide
 
@@ -362,18 +384,21 @@ examples/
 ```
 
 **Error Examples:**
+
 - Complete error responses with explanations
 - SQL state code to HTTP status mappings
 - Common validation failure patterns
 - Performance bottleneck identification
 
 **Resolution Procedures:**
+
 - Step-by-step troubleshooting workflows
 - Diagnostic command examples
 - Configuration verification steps
 - Escalation procedures for complex issues
 
 **Validation Criteria:**
+
 - Error scenarios reproducible in development
 - Resolution procedures tested and verified
 - Diagnostic tools accessible and documented
@@ -384,12 +409,14 @@ examples/
 ### Version and Metadata Updates
 
 **Version Management:**
+
 - Bump from 2.0.0 to 2.1.0 indicating Sprint 4 feature additions
 - Update description to reflect Sprint 4 modernization
 - Add changelog section documenting major improvements
 - Include deprecation timeline for any removed features
 
 **Server Configuration:**
+
 - Maintain existing ScriptRunner endpoint configuration
 - Add development server examples with authentication notes
 - Document CORS considerations for cross-origin requests
@@ -397,18 +424,21 @@ examples/
 ### Schema Enhancements
 
 **Request/Response Schemas:**
+
 - Complete schemas for all new Sprint 4 endpoints
 - Reusable components for common patterns (audit fields, error responses)
 - Type definitions following ADR-031 type safety patterns
 - Validation constraints with realistic examples
 
 **Error Response Standardization:**
+
 - Common error response schema following ADR-023
 - HTTP status code mapping documentation
 - SQL state code to business error translations
 - Consistent error message formats
 
 **Security Schemas:**
+
 - Authentication scheme documentation
 - Authorization requirement specifications
 - RBAC pattern documentation where applicable
@@ -416,12 +446,14 @@ examples/
 ### Endpoint Documentation Standards
 
 **Operation Documentation:**
+
 - Comprehensive descriptions (100+ words minimum)
 - Business context and use case explanations
 - Parameter descriptions with constraints and examples
 - Response examples for success and error scenarios
 
 **Tag Organization:**
+
 - Logical grouping by functional domain
 - Consistent naming conventions
 - Cross-reference capabilities for related operations
@@ -431,18 +463,21 @@ examples/
 ### Generation Workflows
 
 **Automated Documentation Generation:**
+
 - OpenAPI to Postman collection conversion
 - redoc-static.html generation from OpenAPI spec
 - API changelog generation from OpenAPI diff
 - Code example validation and testing
 
 **Quality Assurance Automation:**
+
 - OpenAPI specification validation
 - Documentation link checking
 - Code example execution testing
 - Performance benchmark validation
 
 **Integration with Development Workflow:**
+
 - Documentation updates as part of API development process
 - Automated testing of documentation examples
 - Version control integration for documentation assets
@@ -451,12 +486,14 @@ examples/
 ### Documentation Maintenance Strategy
 
 **Versioning Strategy:**
+
 - Semantic versioning for API documentation
 - Backward compatibility documentation
 - Deprecation timeline management
 - Migration guide maintenance
 
 **Quality Control:**
+
 - Regular documentation review cycles
 - User feedback collection and incorporation
 - Accuracy validation against implementation
@@ -467,12 +504,14 @@ examples/
 ### Internal Review Process
 
 **Technical Review:**
+
 - API implementation team validation
 - Performance team benchmark verification
 - Security team pattern approval
 - QA team example testing validation
 
 **Documentation Review:**
+
 - Technical writing standards compliance
 - Audience appropriateness assessment
 - Completeness and accuracy verification
@@ -481,12 +520,14 @@ examples/
 ### External Validation
 
 **User Acceptance:**
+
 - Integration testing by independent developer
 - Postman collection validation by operations team
 - Performance guide validation through testing
 - Error scenario reproduction and resolution
 
 **Stakeholder Approval:**
+
 - Product owner acceptance of deliverables
 - Architecture team pattern approval
 - Operations team troubleshooting guide validation
@@ -494,12 +535,14 @@ examples/
 ### Success Criteria
 
 **Quantitative Metrics:**
+
 - 100% of Sprint 4 endpoints documented in OpenAPI spec
 - All code examples execute successfully
 - Performance claims validated with test data
 - Zero broken links or references
 
 **Qualitative Assessment:**
+
 - Documentation enables independent integration
 - Troubleshooting guide resolves common issues
 - Migration guide successfully guides upgrades
@@ -508,42 +551,49 @@ examples/
 ## Definition of Done
 
 **AC-030.1: OpenAPI Updates ✅**
+
 - OpenAPI spec updated with all Sprint 4 changes
 - Version bumped to 2.1.0
 - redoc-static.html regenerates successfully
 - All schemas validate against OpenAPI 3.0
 
 **AC-030.2: Migration Guide ✅**
+
 - Complete migration guide created
 - Before/after examples tested
 - Breaking changes clearly documented
 - Independent developer validation successful
 
 **AC-030.3: Postman Collection ✅**
+
 - Collection updated with automated generation
 - All endpoints tested in development environment
 - Environment variables properly configured
 - Test scripts pass validation
 
 **AC-030.4: Performance Guide ✅**
+
 - Performance tuning guide created
 - Benchmark data validated and documented
 - Optimization recommendations tested
 - Monitoring approaches documented
 
 **AC-030.5: Code Examples ✅**
+
 - Multi-language examples created and tested
 - Examples cover common integration scenarios
 - Security best practices demonstrated
 - Documentation integrated with examples
 
 **AC-030.6: Troubleshooting Guide ✅**
+
 - Comprehensive troubleshooting guide created
 - Error scenarios tested and documented
 - Resolution procedures validated
 - Diagnostic tools documented and accessible
 
 **Quality Gates:**
+
 - All documentation links functional
 - Code examples execute against development API
 - Performance claims verified with data
@@ -552,12 +602,14 @@ examples/
 ## Dependencies and Risks
 
 ### Dependencies
+
 - **US-024 Completion**: StepsAPI modernization must be complete
-- **US-025 Completion**: MigrationsAPI modernization must be complete  
+- **US-025 Completion**: MigrationsAPI modernization must be complete
 - Development environment availability for testing examples
 - Access to performance benchmarking tools and data
 
 ### Risks and Mitigation
+
 - **Risk**: Documentation becomes outdated quickly
   - **Mitigation**: Automated generation workflows and validation
 - **Risk**: Code examples fail due to API changes
@@ -570,18 +622,21 @@ examples/
 ## Success Metrics
 
 **Developer Experience Metrics:**
+
 - Time to successful first API call < 15 minutes with documentation
 - Common integration issues resolved through troubleshooting guide
 - Migration from v2.0 to v2.1 completed in < 2 hours using guide
 - Performance optimizations deliver measurable improvements (>20%)
 
 **Documentation Quality Metrics:**
+
 - Zero broken links or invalid references
 - 100% of code examples execute successfully
 - All performance claims verified with benchmark data
 - Independent developer successfully integrates using only documentation
 
 **Business Impact Metrics:**
+
 - Reduced support requests for API integration issues
 - Faster adoption of Sprint 4 API improvements
 - Improved developer satisfaction with UMIG integration experience
