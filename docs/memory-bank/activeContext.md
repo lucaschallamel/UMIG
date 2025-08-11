@@ -1,9 +1,35 @@
 # Active Context - UMIG Project
 
-**Last Updated**: 8 August 2025, 12:00 GMT  
-**Current Status**: US-032 Infrastructure Modernization COMPLETED - Enterprise-Ready Operations Achieved  
+**Last Updated**: 11 August 2025, 15:00 GMT  
+**Current Status**: Sprint 4 In Progress - US-025 MigrationsAPI COMPLETED, US-032 Infrastructure Modernization COMPLETED  
 **Next Phase**: Sprint 4 MVP Completion - Main Dashboard UI, Planning Features & Data Import Strategy  
 **Sprint History**: Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug), Sprint 4 (8 Aug-1 Sep) - Current
+
+## Sprint 4 Current Progress
+
+### US-025 MigrationsAPI: COMPLETED (11 August 2025)
+
+**Phase 4 Complete**: Integration testing with critical bug fixes delivering 100% functionality
+
+#### Key Achievements
+
+- **17 Total Endpoints**: Complete CRUD + 4 dashboard endpoints + 2 bulk operations + 11 hierarchical endpoints
+- **Dashboard Integration**: Summary, progress, and metrics endpoints for real-time migration visibility
+- **Bulk Operations**: Export functionality with JSON/CSV formats and configurable iteration inclusion
+- **Advanced Filtering**: Pagination, search, sorting, and multi-criteria filtering with status metadata enrichment
+- **Critical Bug Fixes**: Resolved mig_type Integer→String casting issue and GString serialization overflow
+- **ADR-036**: Pure Groovy integration testing framework with zero external dependencies
+- **100% Success Rate**: All 9 integration tests passing with complete API coverage
+- **Dynamic Configuration**: Environment-based credential loading with .env file support
+- **Authentication Validation**: HTTP Basic Auth integration with proper security validation
+- **Error Handling Coverage**: Complete SQL state to HTTP status mapping verification
+- **Performance**: <200ms average response time achieved (target met)
+
+#### Breaking Changes (Commit 8d7da3a)
+
+- Changed mig_type from Integer to String to prevent type casting errors
+- Updated all references and test data to use String values
+- Modified data generators to use String type for mig_type field
 
 ## US-032 Infrastructure Modernization: COMPLETED (8 August 2025)
 

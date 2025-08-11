@@ -26,12 +26,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 1.1 Intelligent Memory and Context Review
 
-**Agent Integration:**
+Please engage our GENDEV context manager to conduct comprehensive session analysis and intelligent memory review, focusing on session context reconstruction, knowledge gap identification, priority context mapping, and cross-session continuity validation.
 
-```bash
-# Use Context Manager for comprehensive session analysis
-/gd:context-manager
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read session context analysis reports and knowledge gap identification documentation
+- [ ] Verify session context reconstruction and priority mapping are comprehensive and accurate
+- [ ] Check cross-session continuity validation and context accuracy assessment are thorough
+- [ ] Report actual context analysis completeness and memory review effectiveness
 
 **Enhanced Context Analysis:**
 
@@ -41,12 +43,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 1.2 AI-Powered Architecture Documentation Review
 
-**Agent Integration:**
+Please collaborate with our GENDEV system architect to perform comprehensive architectural state analysis using strict validation standards, focusing on solution architecture analysis, consistency validation, design pattern compliance assessment, and scalability evaluation.
 
-```bash
-# Use System Architect for architectural state analysis
-/gd:system-architect --validation_level=strict
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read architectural state analysis reports and solution architecture documentation
+- [ ] Verify strict validation standards are applied to architecture documentation review
+- [ ] Check design pattern compliance and technical debt assessment are comprehensive
+- [ ] Report actual architectural analysis completeness and scalability evaluation effectiveness
 
 **Enhanced Architecture Analysis:**
 
@@ -58,12 +62,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 2.1 Comprehensive Documentation Analysis
 
-**Agent Integration:**
+Please work with our GENDEV documentation generator to conduct comprehensive documentation ecosystem analysis using enterprise-level validation standards, focusing on project-analysis-type documentation review, memory bank analysis, documentation structure validation, and comprehensive ecosystem assessment.
 
-```bash
-# Use Documentation Generator for documentation ecosystem analysis
-/gd:documentation-generator --doc_type=project-analysis --validation_level=enterprise
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read documentation ecosystem analysis reports and project analysis documentation
+- [ ] Verify enterprise-level validation standards are applied to all documentation analysis
+- [ ] Check memory bank analysis, ADR consistency, and README completeness are comprehensive
+- [ ] Report actual documentation ecosystem analysis effectiveness and structure validation results
 
 **Enhanced Documentation Review:**
 
@@ -76,12 +82,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 2.2 Intelligent Developer Journal Analysis
 
-**Agent Integration:**
+Next, collaborate with our GENDEV documentation generator to perform comprehensive developer journal pattern analysis using standard validation standards, focusing on development trend analysis, blocker pattern recognition, velocity assessment, and knowledge extraction from journal entries.
 
-```bash
-# Use Content Analyst for journal pattern analysis
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read developer journal analysis reports and pattern recognition documentation
+- [ ] Verify standard validation standards are applied to journal pattern analysis
+- [ ] Check development trend analysis, velocity insights, and knowledge extraction are comprehensive
+- [ ] Report actual journal analysis effectiveness and pattern recognition completeness
 
 **Enhanced Journal Review (`docs/devJournal/`):**
 
@@ -94,12 +102,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 2.3 AI-Assisted ADR and Decision Analysis
 
-**Agent Integration:**
+Next, engage our GENDEV business process analyst to conduct comprehensive ADR (Architecture Decision Record) and decision analysis, focusing on decision impact analysis, decision consistency validation, implementation status tracking, and future decision guidance development.
 
-```bash
-# Use Decision Analyst for ADR comprehensive review
-/gd:business-process-analyst
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read ADR analysis reports and decision impact assessment documentation
+- [ ] Verify decision consistency validation and implementation status tracking are comprehensive
+- [ ] Check decision outcome analysis and future guidance recommendations are accurate and actionable
+- [ ] Report actual ADR analysis effectiveness and decision validation completeness
 
 **Enhanced ADR Review:**
 
@@ -113,12 +123,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 3.1 Comprehensive Requirements Understanding
 
-**Agent Integration:**
+Please collaborate with our GENDEV requirements analyst to perform comprehensive requirement state analysis using comprehensive validation standards, working within normal timeline constraints and handling medium domain complexity considerations, focusing on requirement completeness assessment, traceability validation, and stakeholder alignment verification.
 
-```bash
-# Use Requirements Analyst for requirement state analysis
-/gd:requirements-analyst --validation_level=comprehensive --timeline_constraint=normal --domain_complexity=medium
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read requirement state analysis reports and completeness assessment documentation
+- [ ] Verify comprehensive validation standards are applied with appropriate timeline and complexity considerations
+- [ ] Check requirement traceability, scope validation, and stakeholder alignment are thorough and accurate
+- [ ] Report actual requirements analysis effectiveness and stakeholder alignment status
 
 **Enhanced Requirements Analysis:**
 
@@ -128,12 +140,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 3.2 Development State Validation
 
-**Agent Integration:**
+Next, work with our GENDEV project planner to conduct comprehensive development state assessment using standard validation standards, working within normal timeline constraints, focusing on feature completion analysis, code quality metrics evaluation, and comprehensive development progress validation.
 
-```bash
-# Use Project Manager for development state assessment
-/gd:project-planner --validation_level=standard --timeline_constraint=normal
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read development state assessment reports and feature completion analysis documentation
+- [ ] Verify standard validation standards are applied with appropriate timeline considerations
+- [ ] Check code quality metrics, test coverage assessment, and security posture review are comprehensive
+- [ ] Report actual development state validation effectiveness and progress assessment accuracy
 
 **Enhanced Development Assessment:**
 
@@ -145,12 +159,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 4.1 Intelligent Inconsistency Identification
 
-**Agent Integration:**
+Please engage our GENDEV QA coordinator to establish comprehensive inconsistency identification processes using standard validation standards, focusing on cross-document inconsistency detection, code-documentation alignment validation, and process compliance gap identification.
 
-```bash
-# Use Quality Analyst for inconsistency detection
-/gd:qa-coordinator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read inconsistency detection reports and cross-document analysis documentation
+- [ ] Verify standard validation standards are applied to all inconsistency identification activities
+- [ ] Check code-documentation alignment, version synchronization, and compliance gap detection are comprehensive
+- [ ] Report actual inconsistency identification effectiveness and detection accuracy
 
 **Enhanced Inconsistency Detection:**
 
@@ -160,12 +176,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 4.2 AI-Assisted Resolution Recommendations
 
-**Agent Integration:**
+Next, collaborate with our GENDEV risk manager to develop comprehensive resolution strategy recommendations using standard validation standards, focusing on prioritized resolution planning, impact assessment evaluation, and prevention strategy development.
 
-```bash
-# Use Problem Solver for resolution strategy
-/gd:risk-manager --validation_level=standard
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read resolution strategy reports and prioritized planning documentation
+- [ ] Verify standard validation standards are applied to resolution recommendation development
+- [ ] Check impact assessment, effort estimation, and prevention strategies are comprehensive and actionable
+- [ ] Report actual resolution recommendation effectiveness and strategy development quality
 
 **Enhanced Resolution Strategy:**
 
@@ -177,12 +195,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 5.1 Intelligent Task Prioritisation
 
-**Agent Integration:**
+Please work with our GENDEV project planner to perform comprehensive strategic next steps analysis using standard validation standards, working within normal timeline constraints, focusing on intelligent task prioritization, value-impact analysis, and resource optimization planning.
 
-```bash
-# Use Strategic Planner for next steps analysis
-/gd:project-planner --validation_level=standard --timeline_constraint=normal
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read strategic planning reports and task prioritization analysis documentation
+- [ ] Verify standard validation standards are applied with appropriate timeline considerations
+- [ ] Check value-impact analysis, dependency analysis, and resource optimization are comprehensive
+- [ ] Report actual strategic planning effectiveness and task prioritization accuracy
 
 **Enhanced Strategic Planning:**
 
@@ -192,12 +212,14 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ### 5.2 Context-Aware Recommendation Engine
 
-**Agent Integration:**
+Finally, collaborate with our GENDEV AI integration specialist to develop comprehensive personalized recommendation systems, focusing on context-aware recommendation development, learning-based suggestions, adaptive planning optimization, and continuous improvement strategies.
 
-```bash
-# Use Recommendation Engine for personalised suggestions
-/gd:ai-integration-specialist
-```
+## MANDATORY VERIFICATION
+
+- [ ] Read recommendation engine reports and personalized suggestion documentation
+- [ ] Verify context-aware recommendations and learning-based suggestions are comprehensive and actionable
+- [ ] Check adaptive planning and multi-dimensional optimization strategies are thorough and effective
+- [ ] Report actual recommendation engine effectiveness and personalized suggestion quality
 
 **Enhanced Recommendations:**
 
