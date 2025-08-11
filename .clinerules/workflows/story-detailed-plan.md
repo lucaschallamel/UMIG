@@ -1,6 +1,6 @@
 ---
 description: AI-enhanced workflow for detailed user story scoping, planning, and task breakdown using GENDEV agents
-agents: gendev-requirementsanalyst, gendev-userstorygenerator, gendev-systemarchitect, gendev-apidesigner, gendev-dataarchitect, gendev-databaseschemadesigner, gendev-dependencymanager, gendev-testsuitegenerator, gendev-projectplanner, gendev-projectorchestrator, gendev-documentationgenerator, gendev-codereviewer, gendev-securityspecialist, gendev-performanceoptimizer
+agents: requirements-analyst, user-story-generator, system-architect, api-designer, data-architect, database-schema-designer, dependency-manager, test-suite-generator, project-planner, project-orchestrator, documentation-generator, code-reviewer, security-specialist, performance-optimizer
 ---
 
 # Story Detailed Planning Workflow
@@ -31,130 +31,203 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 
 ### Planning Steps
 
-**1. Requirements Analysis** (gendev-requirementsanalyst + gendev-userstorygenerator)
+**1. Requirements Analysis**
 
-- Analyze business requirements and constraints
-- Clarify ambiguities and define success criteria
+Please engage our GENDEV requirements analyst together with our user story generator to conduct comprehensive requirements analysis, focusing on business requirements evaluation, constraint identification, ambiguity clarification, and success criteria definition.
 
-**2. User Story Elaboration** (gendev-userstorygenerator + gendev-testsuitegenerator)
+## MANDATORY VERIFICATION
 
-- Create detailed story with acceptance criteria
-- Define GIVEN/WHEN/THEN scenarios and edge cases
+- [ ] Read requirements analysis reports and business constraint documentation
+- [ ] Verify ambiguity clarification and success criteria are comprehensive and clear
+- [ ] Check business requirements evaluation and constraint identification are thorough
+- [ ] Report actual requirements analysis effectiveness and success criteria completeness
 
-**3. Technical Architecture** (gendev-systemarchitect + gendev-securityspecialist)
+**2. User Story Elaboration**
 
-- Design system architecture and component interactions
-- Security validation and performance considerations
+Please collaborate with our GENDEV user story generator together with our test suite generator to perform comprehensive user story elaboration, focusing on detailed story creation with acceptance criteria, GIVEN/WHEN/THEN scenario definition, and edge case identification.
 
-**4. API Design** (gendev-apidesigner + gendev-securityspecialist)
+## MANDATORY VERIFICATION
 
-- Design RESTful endpoints following UMIG patterns
-- Define schemas with hierarchical filtering
+- [ ] Read user story documentation and acceptance criteria specifications
+- [ ] Verify GIVEN/WHEN/THEN scenarios and edge cases are comprehensive
+- [ ] Check detailed story creation and acceptance criteria are thorough
+- [ ] Report actual user story elaboration effectiveness and scenario completeness
 
-**5. Data Architecture** (gendev-dataarchitect + gendev-databaseschemadesigner)
+**3. Technical Architecture**
 
-- Design data models and relationships
-- Plan data flow and transformation requirements
+Please work with our GENDEV system architect together with our security specialist to design comprehensive technical architecture, focusing on system architecture design, component interaction planning, security validation, and performance considerations.
 
-**6. Database Schema** (gendev-databaseschemadesigner + gendev-performanceoptimizer)
+## MANDATORY VERIFICATION
 
-- Create schema with UMIG audit fields and MASTER/INSTANCE pattern
-- Design indexes and Liquibase migration procedures
+- [ ] Read technical architecture documentation and component interaction designs
+- [ ] Verify security validation and performance considerations are comprehensive
+- [ ] Check system architecture design and component planning are thorough
+- [ ] Report actual technical architecture effectiveness and security validation completeness
 
-**7. Dependency Analysis** (gendev-dependencymanager + gendev-systemarchitect)
+**4. API Design**
 
-- Identify technical and business dependencies
-- Analyze impact and resolution strategies
+Please engage our GENDEV API designer together with our security specialist to create comprehensive API design, focusing on RESTful endpoint design following UMIG patterns, schema definition with hierarchical filtering, and security integration.
 
-**8. Test Strategy** (gendev-testsuitegenerator + gendev-securityspecialist)
+## MANDATORY VERIFICATION
 
-- Design comprehensive test strategy with ADR-026 patterns
-- Plan unit, integration, security, and performance tests
+- [ ] Read API design documentation and endpoint specifications
+- [ ] Verify UMIG pattern compliance and hierarchical filtering implementation
+- [ ] Check RESTful endpoint design and schema definitions are comprehensive
+- [ ] Report actual API design effectiveness and security integration completeness
 
-**9. Project Planning** (gendev-projectplanner + gendev-projectorchestrator)
+**5. Data Architecture**
 
-- Break down work and estimate effort
-- Create timeline with milestones and risk mitigation
+Please collaborate with our GENDEV data architect together with our database schema designer to establish comprehensive data architecture, focusing on data model design, relationship mapping, data flow planning, and transformation requirement specification.
 
-**10. Work Orchestration** (gendev-projectorchestrator + gendev-codereviewer)
+## MANDATORY VERIFICATION
 
-- Coordinate resources and implementation sequence
-- Monitor progress and facilitate collaboration
+- [ ] Read data architecture documentation and model designs
+- [ ] Verify relationship mapping and data flow planning are comprehensive
+- [ ] Check data models and transformation requirements are thorough
+- [ ] Report actual data architecture effectiveness and design completeness
 
-**11. Documentation Planning** (gendev-documentationgenerator + gendev-apidesigner)
+**6. Database Schema**
 
-- Plan documentation strategy and OpenAPI specifications
-- Coordinate technical and API documentation
+Please work with our GENDEV database schema designer together with our performance optimizer to create comprehensive database schema, focusing on UMIG audit field implementation, MASTER/INSTANCE pattern design, index optimization, and Liquibase migration procedure development.
+
+## MANDATORY VERIFICATION
+
+- [ ] Read database schema documentation and migration procedures
+- [ ] Verify UMIG audit fields and MASTER/INSTANCE pattern implementation
+- [ ] Check index design and Liquibase migrations are comprehensive
+- [ ] Report actual schema design effectiveness and performance optimization completeness
+
+**7. Dependency Analysis**
+
+Please engage our GENDEV dependency manager together with our system architect to conduct comprehensive dependency analysis, focusing on technical dependency identification, business dependency mapping, impact assessment, and resolution strategy development.
+
+## MANDATORY VERIFICATION
+
+- [ ] Read dependency analysis reports and impact assessments
+- [ ] Verify technical and business dependencies are comprehensively identified
+- [ ] Check impact analysis and resolution strategies are thorough
+- [ ] Report actual dependency analysis effectiveness and resolution planning completeness
+
+**8. Test Strategy**
+
+Please collaborate with our GENDEV test suite generator together with our security specialist to develop comprehensive test strategy, focusing on ADR-026 pattern implementation, unit test planning, integration test design, security test specification, and performance test development.
+
+## MANDATORY VERIFICATION
+
+- [ ] Read test strategy documentation and ADR-026 pattern implementation
+- [ ] Verify unit, integration, security, and performance tests are comprehensive
+- [ ] Check test planning and specification are thorough
+- [ ] Report actual test strategy effectiveness and coverage completeness
+
+**9. Project Planning**
+
+Please work with our GENDEV project planner together with our project orchestrator to establish comprehensive project planning, focusing on work breakdown structure creation, effort estimation, timeline development with milestones, and risk mitigation planning.
+
+## MANDATORY VERIFICATION
+
+- [ ] Read project planning documentation and work breakdown structures
+- [ ] Verify effort estimates and timeline milestones are comprehensive
+- [ ] Check risk mitigation planning and resource allocation are thorough
+- [ ] Report actual project planning effectiveness and timeline accuracy
+
+**10. Work Orchestration**
+
+Please engage our GENDEV project orchestrator together with our code reviewer to coordinate comprehensive work orchestration, focusing on resource coordination, implementation sequence planning, progress monitoring, and collaboration facilitation.
+
+## MANDATORY VERIFICATION
+
+- [ ] Read work orchestration plans and resource allocation documentation
+- [ ] Verify implementation sequence and progress monitoring are comprehensive
+- [ ] Check resource coordination and collaboration plans are thorough
+- [ ] Report actual orchestration effectiveness and coordination completeness
+
+**11. Documentation Planning**
+
+Please collaborate with our GENDEV documentation generator together with our API designer to develop comprehensive documentation planning, focusing on documentation strategy development, OpenAPI specification creation, technical documentation coordination, and API documentation alignment.
+
+## MANDATORY VERIFICATION
+
+- [ ] Read documentation planning strategies and OpenAPI specifications
+- [ ] Verify technical and API documentation coordination is comprehensive
+- [ ] Check documentation strategy and specification creation are thorough
+- [ ] Report actual documentation planning effectiveness and alignment completeness
 
 ## AI-Enhanced Integration & Quality Assurance
 
 ### Cross-Agent Validation Points
 
-**Agents**: gendev-codereviewer, gendev-securityspecialist, gendev-performanceoptimizer
+Please coordinate with our GENDEV code reviewer, security specialist, and performance optimizer for comprehensive cross-validation:
 
-- **Security Review**: gendev-securityspecialist validates all API endpoints, data models, and access patterns
-- **Performance Analysis**: gendev-performanceoptimizer reviews database schema, query patterns, and response times
-- **Code Quality**: gendev-codereviewer ensures adherence to UMIG patterns and coding standards
-- **Integration Testing**: gendev-testsuitegenerator coordinates with all agents for comprehensive test coverage
+- **Security Review**: Request our security specialist to validate all API endpoints, data models, and access patterns
+- **Performance Analysis**: Engage our performance optimizer to review database schema, query patterns, and response times
+- **Code Quality**: Work with our code reviewer to ensure adherence to UMIG patterns and coding standards
+- **Integration Testing**: Collaborate with our test suite generator to coordinate comprehensive test coverage
+
+## MANDATORY VERIFICATION
+
+- [ ] Read security validation reports for API endpoints and access patterns
+- [ ] Verify performance analysis of database schema and query patterns
+- [ ] Check code quality review and UMIG pattern adherence documentation
+- [ ] Report actual cross-validation effectiveness and test coverage completeness
 
 ## Deliverables Checklist
 
 ### Technical Specifications
 
-- [ ] Requirements analysis (gendev-requirementsanalyst)
-- [ ] Detailed user story (gendev-userstorygenerator)
-- [ ] Technical architecture (gendev-systemarchitect)
-- [ ] API specification (gendev-apidesigner)
-- [ ] Data flow diagrams (gendev-dataarchitect)
-- [ ] Database schema (gendev-databaseschemadesigner)
-- [ ] Dependency analysis (gendev-dependencymanager)
+- [ ] Requirements analysis (completed by requirements analyst)
+- [ ] Detailed user story (completed by user story generator)
+- [ ] Technical architecture (completed by system architect)
+- [ ] API specification (completed by API designer)
+- [ ] Data flow diagrams (completed by data architect)
+- [ ] Database schema (completed by database schema designer)
+- [ ] Dependency analysis (completed by dependency manager)
 
 ### Implementation Plan
 
-- [ ] Task breakdown (gendev-projectplanner)
-- [ ] Effort estimates (gendev-requirementsanalyst)
-- [ ] Implementation sequence (gendev-projectorchestrator)
-- [ ] Resource assignments (gendev-projectorchestrator)
-- [ ] Timeline with milestones (gendev-projectplanner)
-- [ ] Risk mitigation (gendev-systemarchitect)
+- [ ] Task breakdown (completed by project planner)
+- [ ] Effort estimates (completed by requirements analyst)
+- [ ] Implementation sequence (completed by project orchestrator)
+- [ ] Resource assignments (completed by project orchestrator)
+- [ ] Timeline with milestones (completed by project planner)
+- [ ] Risk mitigation (completed by system architect)
 
 ### Quality Assurance Plan
 
-- [ ] Unit test specifications (gendev-testsuitegenerator)
-- [ ] Integration scenarios (gendev-testsuitegenerator)
-- [ ] Performance criteria (gendev-performanceoptimizer)
-- [ ] Security validation (gendev-securityspecialist)
-- [ ] Code review standards (gendev-codereviewer)
+- [ ] Unit test specifications (completed by test suite generator)
+- [ ] Integration scenarios (completed by test suite generator)
+- [ ] Performance criteria (completed by performance optimizer)
+- [ ] Security validation (completed by security specialist)
+- [ ] Code review standards (completed by code reviewer)
 
 ### Documentation Plan
 
-- [ ] API documentation (gendev-documentationgenerator)
-- [ ] Code documentation (gendev-documentationgenerator)
-- [ ] Architecture documentation in `docs/memory-bank/systemPatterns.md` (gendev-systemarchitect)
-- [ ] Memory Bank updates for 6 core files per Rule 07 (gendev-documentationgenerator)
-- [ ] README.md files for affected work folders per Rule 03 (gendev-documentationgenerator)
-- [ ] Dev Journal planning entry in `docs/devJournal/` (gendev-documentationgenerator)
-- [ ] ADR creation in `docs/adr/` if architectural (gendev-systemarchitect)
-- [ ] Knowledge transfer (gendev-documentationgenerator)
+- [ ] API documentation (completed by documentation generator)
+- [ ] Code documentation (completed by documentation generator)
+- [ ] Architecture documentation in `docs/memory-bank/systemPatterns.md` (completed by system architect)
+- [ ] Memory Bank updates for 6 core files per Rule 07 (completed by documentation generator)
+- [ ] README.md files for affected work folders per Rule 03 (completed by documentation generator)
+- [ ] Dev Journal planning entry in `docs/devJournal/` (completed by documentation generator)
+- [ ] ADR creation in `docs/adr/` if architectural (completed by system architect)
+- [ ] Knowledge transfer (completed by documentation generator)
 
 ## AI-Enhanced Execution Notes
 
-1. **Agent Orchestration**: gendev-projectorchestrator coordinates all agent interactions
-2. **Pattern Reuse**: Leverage existing patterns with gendev-systemarchitect guidance
-3. **Continuous Validation**: gendev-codereviewer and gendev-securityspecialist provide ongoing validation
-4. **Performance Monitoring**: gendev-performanceoptimizer ensures optimal design decisions
+1. **Agent Orchestration**: Our project orchestrator coordinates all agent interactions
+2. **Pattern Reuse**: Leverage existing patterns with system architect guidance
+3. **Continuous Validation**: Our code reviewer and security specialist provide ongoing validation
+4. **Performance Monitoring**: Our performance optimizer ensures optimal design decisions
 5. **Quality Gates**: Multiple agent validation at each checkpoint
 
 ## AI-Enhanced Quality Gates
 
 Before proceeding to implementation:
 
-- [ ] Technical specs validated by gendev-systemarchitect and gendev-codereviewer
-- [ ] Dependencies resolved by gendev-dependencymanager
-- [ ] Test strategy approved by gendev-testsuitegenerator
-- [ ] Security validated by gendev-securityspecialist
-- [ ] Performance approved by gendev-performanceoptimizer
-- [ ] Timeline confirmed by gendev-projectplanner
+- [ ] Technical specs validated by system architect and code reviewer
+- [ ] Dependencies resolved by dependency manager
+- [ ] Test strategy approved by test suite generator
+- [ ] Security validated by security specialist
+- [ ] Performance approved by performance optimizer
+- [ ] Timeline confirmed by project planner
 
 ## Post-Planning Actions
 
@@ -171,4 +244,4 @@ Before proceeding to implementation:
 
 **AI-Enhanced Usage**: Execute steps with coordinated GENDEV agent collaboration. Each agent builds upon previous outputs while maintaining cross-validation. The workflow ensures comprehensive AI-powered planning before implementation begins.
 
-**Agent Coordination**: gendev-projectorchestrator manages the entire workflow, ensuring optimal agent utilization and seamless handoffs between planning phases.
+**Agent Coordination**: Our project orchestrator manages the entire workflow, ensuring optimal agent utilization and seamless handoffs between planning phases.

@@ -429,6 +429,19 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ### ✅ Recently Completed (August 2025)
 
+- **✅ US-025 Phase 4 Complete - Migrations API Refactoring**: Comprehensive migrations API enhancement with integration testing framework (August 11, 2025)
+  - **17 Total Endpoints**: Complete CRUD + 4 dashboard endpoints + 2 bulk operations + 11 hierarchical endpoints
+  - **Dashboard Integration**: Summary, progress, and metrics endpoints for real-time migration visibility
+  - **Bulk Operations**: Export functionality with JSON/CSV formats and configurable iteration inclusion
+  - **Advanced Filtering**: Pagination, search, sorting, and multi-criteria filtering with status metadata enrichment
+  - **Critical Bug Fixes**: Resolved mig_type Integer→String casting issue and GString serialization overflow
+  - **ADR-036**: Pure Groovy integration testing framework with zero external dependencies
+  - **100% Success Rate**: All 9 integration tests passing with complete API coverage
+  - **Dynamic Configuration**: Environment-based credential loading with .env file support
+  - **Authentication Validation**: HTTP Basic Auth integration with proper security validation
+  - **Error Handling Coverage**: Complete SQL state to HTTP status mapping verification (23503→409, 23505→409, 23502→400)
+  - **Comprehensive Documentation**: Updated migrationApi.md, openapi.yaml, and solution-architecture.md with full implementation details
+  - **Reusable Patterns**: Established testing standards for all future API endpoint validation
 - **Controls API Implementation**: Complete control point and quality gate management system (August 6, 2025)
   - **20 REST Endpoints**: Full CRUD operations for control masters and instances following phase-level architecture (ADR-016)
   - **ControlsApi.groovy**: Comprehensive API implementation with hierarchical filtering across all entity levels
