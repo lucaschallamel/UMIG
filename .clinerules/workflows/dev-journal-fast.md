@@ -2,9 +2,11 @@
 description: Fast variant for rapid development journal creation with essential documentation and knowledge capture
 ---
 
-# Development Journal - Fast Track
+# Development Journal - Fast Track (Zero Tunnel Vision Edition)
 
-**Rapid session documentation with context analysis, evidence gathering, and knowledge preservation**
+**Rapid COMPREHENSIVE documentation covering ALL development since last journal entry**
+
+⚡ **KEY ENHANCEMENT**: This workflow now analyzes the ENTIRE git history since your last dev journal, not just the current session. Prevents tunnel vision through mandatory git history analysis.
 
 ## MANDATORY UNIVERSAL VERIFICATION PROTOCOL
 
@@ -57,49 +59,121 @@ description: Fast variant for rapid development journal creation with essential 
 - Understanding of work scope
 - Access to project documentation structure
 
-## Phase 1: Session Analysis & Context
+## Phase 1: Git History Analysis & Context (CRITICAL - Prevents Tunnel Vision)
 
-Deploy context manager.
+### Quick Git History Gather (2 minutes)
+
+```bash
+# Find last journal and get ALL work since then
+last_journal=$(ls docs/devJournal/202*.md 2>/dev/null | grep -v "$(date +%Y%m%d)" | tail -1)
+last_date="${last_journal:19:4}-${last_journal:23:2}-${last_journal:25:2}"
+
+# Get comprehensive history in one command
+git log --oneline --since="${last_date:-1970-01-01}" --author="$(git config user.name)"
+
+# Get user stories and commit types
+git log --since="${last_date:-1970-01-01}" --grep="US-\|feat\|fix\|docs\|test" --oneline
+
+# Get file change summary
+git diff --stat $(git merge-base HEAD main)..HEAD
+```
+
+### Work Stream Categorization (1 minute)
+Quickly identify ALL work (not just current session):
+- **Features/Stories**: All US- items
+- **Bug Fixes**: All fix commits
+- **Refactoring**: Code improvements
+- **Documentation**: Docs updates
+- **Testing**: Test additions
+- **Infrastructure**: Config/tooling
+
+Deploy context manager with FULL git history.
 Execute project planner: standard validation, normal timeline.
-**Output**: Session timeline, work streams, technical decisions, problem-solutions, documentation structure validation
+**Output**: Complete timeline since last journal, ALL work streams, technical decisions, problem-solutions
 
-## Phase 2: Evidence Gathering
+## Phase 2: Evidence Gathering (History-Based)
 
-Direct code reviewer.
-Engage business process analyst.
-**Output**: Code changes analysis, work stream relationships, cross-dependencies, scope documentation
+Direct code reviewer with ALL commits from Phase 1.
+Engage business process analyst for complete period.
+**Focus**: Analyze cumulative changes, not just current session
+**Output**: ALL code changes since last journal, complete work stream relationships, cross-session dependencies
 
-## Phase 3: Narrative Generation
+## Phase 3: Narrative Generation (Complete Timeline)
 
-Execute documentation generator: standard validation.
-Deploy system architect: standard validation.
-**Output**: Journal entry (YYYYMMDD-nn.md), narrative synthesis, architectural cross-references, README updates
+Execute documentation generator with FULL history.
+Deploy system architect for period analysis.
 
-## Phase 4: Quality Verification
+### Fast Journal Template
 
-Direct QA coordinator: standard validation.
-**Output**: Completeness validation, evidence coverage verification, quality assurance, final review
+```markdown
+# Developer Journal — YYYYMMDD-nn
+
+## Development Period
+- **Since Last Entry:** [Date from Phase 1]
+- **Total Commits:** [Count from git log]
+- **User Stories/Features:** [All US- items]
+
+## Work Completed
+
+### Features & Stories
+[List ALL features/stories with commits]
+
+### Bug Fixes & Improvements
+[List ALL fixes and refactoring]
+
+### Technical Decisions
+[Key decisions with commit refs]
+
+## Current State
+- Working: [What's functional]
+- Issues: [What needs attention]
+
+## Next Steps
+[Immediate priorities based on complete history]
+```
+
+**Output**: Complete journal entry covering ALL work since last entry, not just current session
+
+## Phase 4: Fast Anti-Tunnel Vision Verification
+
+Direct QA coordinator with comprehensive checklist.
+
+### Quick Verification (2 minutes)
+- [ ] **Timeline Complete**: ALL commits since last journal included
+- [ ] **User Stories**: Every US- item documented
+- [ ] **Bug Fixes**: All fixes listed with commits
+- [ ] **Parallel Work**: Multiple branches identified
+- [ ] **Documentation**: Docs changes captured
+- [ ] **Testing**: Test work included
+- [ ] **Refactoring**: Code improvements noted
+- [ ] **Commit Coverage**: Count matches git log
+- [ ] **No Tunnel Vision**: Work from ALL sessions included
+
+**Output**: Verified complete coverage of entire development period
 
 ## Quality Gates
 
-- **Coverage**: All work streams documented
+- **Git Coverage**: 100% commits since last journal documented
+- **Timeline**: Complete period from last journal to present
 - **Format**: YYYYMMDD-nn.md in docs/devJournal/
-- **Evidence**: Technical decisions justified
-- **Completeness**: Future developers informed
+- **Evidence**: All technical decisions traced to commits
+- **Completeness**: No development work missing
 
 ## Success Criteria
 
-- Session comprehensively documented
-- Work streams identified
-- Technical decisions explained
-- Next steps defined
-- READMEs updated
+- **Complete Timeline**: Entire period since last journal documented
+- **All Work Streams**: Every feature, fix, and improvement captured
+- **Commit Traceability**: All work linked to specific commits
+- **Cross-Session**: Work from multiple days properly integrated
+- **Zero Tunnel Vision**: Comprehensive view of all development
 
 ## Quick Troubleshooting
 
-- **Missing context**: Review conversation timeline, check work artifacts
-- **Incomplete coverage**: Verify against code changes, documentation updates
-- **Format issues**: Follow YYYYMMDD-nn.md naming, ensure proper structure
+- **Missing commits**: Check git log date range, verify author filter
+- **Incomplete coverage**: Compare journal to `git log --oneline` count
+- **Tunnel vision detected**: Re-run Phase 1 git history commands
+- **Format issues**: Follow YYYYMMDD-nn.md naming, use template
+- **Missing work streams**: Check `git grep "US-"` and commit types
 
 ## Integration
 
