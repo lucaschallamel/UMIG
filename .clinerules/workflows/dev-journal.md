@@ -32,10 +32,13 @@ This workflow orchestrates GENDEV agents to create comprehensive developer journ
 
 #### 1.1 Comprehensive Session Context Establishment
 
-```bash
-# Use Context Manager for session analysis
-/gd:context-manager
-```
+Please engage our GENDEV context manager to conduct comprehensive session context analysis, focusing on session timeline establishment, major milestone identification, work stream categorization, and technical decision documentation.
+
+## MANDATORY VERIFICATION
+- [ ] Read session context analysis reports and milestone identification documentation
+- [ ] Verify session timeline and work stream categorization are comprehensive and accurate
+- [ ] Check technical decision documentation includes rationale and alternatives considered
+- [ ] Report actual session context analysis completeness and milestone mapping effectiveness
 
 **Context Analysis:**
 
@@ -46,10 +49,13 @@ This workflow orchestrates GENDEV agents to create comprehensive developer journ
 
 #### 1.2 Documentation Structure Validation
 
-```bash
-# Use Project Planner for documentation compliance
-/gd:project-planner --validation_level=standard --timeline_constraint=normal
-```
+Please collaborate with our GENDEV project planner to establish comprehensive documentation structure validation using standard validation standards, working within normal timeline constraints, focusing on project compliance assessment, documentation format verification, and structural consistency evaluation.
+
+## MANDATORY VERIFICATION
+- [ ] Read documentation structure validation reports and compliance assessment files
+- [ ] Verify standard validation standards are applied to all project documentation analysis
+- [ ] Check documentation format verification and structural consistency are comprehensive
+- [ ] Report actual documentation structure compliance status and format validation results
 
 **Documentation Structure Requirements:**
 
@@ -60,69 +66,89 @@ This workflow orchestrates GENDEV agents to create comprehensive developer journ
 
 ### 2. AI-Enhanced Evidence Gathering and Analysis
 
-**Use `gendev-code-reviewer`:**
+Please engage our GENDEV code reviewer to conduct comprehensive code analysis and evidence gathering, focusing on code change evaluation, quality assessment, and technical impact analysis for session documentation purposes.
 
-```bash
-/gd:code-reviewer
-```
+## MANDATORY VERIFICATION
+- [ ] Read code analysis reports and quality assessment documentation
+- [ ] Verify code change evaluation and technical impact analysis are comprehensive
+- [ ] Check quality assessment findings are accurate and well-documented
+- [ ] Report actual code analysis completeness and evidence gathering effectiveness
 
-**Use `gendev-documentation-generator`:**
+Next, collaborate with our GENDEV documentation generator to perform comprehensive documentation analysis and evidence compilation using standard validation standards, focusing on documentation pattern identification, content structure evaluation, and narrative element preparation.
 
-```bash
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read documentation analysis reports and content structure evaluation files
+- [ ] Verify standard validation standards are applied to documentation pattern analysis
+- [ ] Check narrative element preparation and content organization are comprehensive
+- [ ] Report actual documentation analysis quality and evidence compilation effectiveness
 
-**Use `gendev-system-architect`:**
+Next, work with our GENDEV system architect to conduct comprehensive system architecture analysis using standard validation standards, focusing on architectural decision documentation, system design evaluation, and technical pattern identification for development session analysis.
 
-```bash
-/gd:system-architect --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read system architecture analysis reports and design evaluation documentation
+- [ ] Verify standard validation standards are applied to architectural analysis
+- [ ] Check architectural decisions and technical patterns are properly documented
+- [ ] Report actual system architecture analysis completeness and design evaluation effectiveness
 
-**Use `gendev-business-process-analyst`:**
+Next, collaborate with our GENDEV business process analyst to perform comprehensive workflow analysis and process documentation, focusing on development workflow evaluation, process improvement identification, and business impact assessment for session documentation.
 
-```bash
-/gd:business-process-analyst
-```
+## MANDATORY VERIFICATION
+- [ ] Read workflow analysis reports and process documentation files
+- [ ] Verify development workflow evaluation and process improvement identification are comprehensive
+- [ ] Check business impact assessment and workflow analysis are accurate and detailed
+- [ ] Report actual workflow analysis completeness and process documentation effectiveness
 
-**Use `gendev-qa-coordinator`:**
+Finally, engage our GENDEV QA coordinator to establish comprehensive quality assurance analysis using enterprise-level validation standards, focusing on session quality assessment, evidence validation, and documentation quality verification for comprehensive session analysis.
 
-```bash
-/gd:qa-coordinator --validation_level=enterprise
-```
+## MANDATORY VERIFICATION
+- [ ] Read quality assurance analysis reports and evidence validation documentation
+- [ ] Verify enterprise-level validation standards are applied to session quality assessment
+- [ ] Check evidence validation and documentation quality verification are thorough and accurate
+- [ ] Report actual QA analysis completeness and session quality assessment effectiveness
 
 ### 3. AI-Enhanced Narrative Synthesis and Generation
 
-**Use `gendev-documentation-generator`:**
+Please engage our GENDEV documentation generator to create comprehensive narrative synthesis and journal content generation using enterprise-level validation standards, focusing on evidence integration, story construction, and comprehensive session documentation development.
 
-```bash
-/gd:documentation-generator --validation_level=enterprise
-```
+## MANDATORY VERIFICATION
+- [ ] Read narrative synthesis reports and journal content generation files
+- [ ] Verify enterprise-level validation standards are applied to documentation development
+- [ ] Check evidence integration and story construction are comprehensive and coherent
+- [ ] Report actual narrative synthesis quality and journal content generation effectiveness
 
-**Use `gendev-documentation-generator`:**
+Next, work with our GENDEV documentation generator to perform comprehensive content refinement and format optimization using standard validation standards, focusing on content polishing, format standardization, and readability enhancement for journal documentation.
 
-```bash
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read content refinement reports and format optimization documentation
+- [ ] Verify standard validation standards are applied to content polishing activities
+- [ ] Check format standardization and readability enhancement are comprehensive
+- [ ] Report actual content refinement quality and format optimization effectiveness
 
-**Use `gendev-code-reviewer`:**
+Next, collaborate with our GENDEV code reviewer to conduct comprehensive technical validation and accuracy verification, focusing on technical accuracy assessment, code reference validation, and consistency verification for journal content quality.
 
-```bash
-/gd:code-reviewer
-```
+## MANDATORY VERIFICATION
+- [ ] Read technical validation reports and accuracy verification documentation
+- [ ] Verify technical accuracy assessment and code reference validation are thorough
+- [ ] Check consistency verification and technical content quality are comprehensive
+- [ ] Report actual technical validation effectiveness and accuracy verification results
 
-**Use `gendev-qa-coordinator`:**
+Finally, engage our GENDEV QA coordinator to establish comprehensive quality validation and final review processes using enterprise-level validation standards, focusing on content quality assessment, documentation completeness verification, and final approval coordination.
 
-```bash
-/gd:qa-coordinator --validation_level=enterprise
-```
+## MANDATORY VERIFICATION
+- [ ] Read quality validation reports and completeness verification documentation
+- [ ] Verify enterprise-level validation standards are applied to content quality assessment
+- [ ] Check documentation completeness verification and final approval coordination are thorough
+- [ ] Report actual quality validation effectiveness and final review process completeness
 
 ### 4. AI-Enhanced Anti-Tunnel Vision Verification
 
-**Use `gendev-qa-coordinator`:**
+Please collaborate with our GENDEV QA coordinator to conduct comprehensive anti-tunnel vision verification using enterprise-level validation standards, focusing on comprehensive scope validation, work stream identification, and holistic completeness assessment to prevent documentation gaps.
 
-```bash
-/gd:qa-coordinator --validation_level=enterprise
-```
+## MANDATORY VERIFICATION
+- [ ] Read anti-tunnel vision verification reports and scope validation documentation
+- [ ] Verify enterprise-level validation standards are applied to completeness assessment
+- [ ] Check work stream identification and holistic analysis are comprehensive and accurate
+- [ ] Report actual anti-tunnel vision verification effectiveness and scope completeness results
 
 - [ ] **Work Stream Identification:** AI-identified and explained multiple work streams
 - [ ] **Work Relationship Analysis:** AI-distinguished parallel vs sequential work
@@ -144,11 +170,13 @@ This workflow orchestrates GENDEV agents to create comprehensive developer journ
 
 ### 5. AI-Enhanced Final Review and Confirmation
 
-**Use `gendev-documentation-generator`:**
+Please engage our GENDEV documentation generator to perform comprehensive final review and confirmation using standard validation standards, focusing on final documentation preparation, quality metrics calculation, and comprehensive session summary generation for development journal completion.
 
-```bash
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read final documentation files and session summary reports
+- [ ] Verify standard validation standards are applied to final review activities
+- [ ] Check quality metrics calculation and session summary generation are comprehensive
+- [ ] Report actual final documentation quality and session summary completeness
 
 - **AI-Generated Summary:** Present AI-enhanced journal entry with comprehensive analysis
 - **Quality Metrics:** Provide AI-calculated quality and completeness scores

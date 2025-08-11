@@ -66,6 +66,38 @@ For EVERY delegation, Claude must create a tailored verification checklist based
 - Provide measurable metrics (file sizes, line counts, etc.)
 - Document any discrepancies or partial completions
 
+#### 5. Mandatory Error and Failure Reporting
+
+**CRITICAL REQUIREMENT**: Subagents must explicitly and comprehensively report ALL errors, failures, and issues encountered during task execution. Silent failures are PROHIBITED.
+
+**Error Reporting Framework**:
+
+1. **Explicit Error Documentation**
+   - All tool call failures must be reported with specific error messages
+   - File operation errors (permission denied, file not found, etc.)
+   - Syntax errors, compilation failures, or validation issues
+   - Network connectivity or external service failures
+   - Resource constraints (memory, disk space, timeouts)
+
+2. **Failure Classification**
+   - **Critical Failures**: Task cannot be completed (must escalate immediately)
+   - **Partial Failures**: Some components completed, others failed (detailed breakdown required)
+   - **Warning Conditions**: Task completed but with suboptimal results or potential issues
+   - **Dependency Failures**: External dependencies unavailable or malfunctioning
+
+3. **Comprehensive Failure Surface Protocol**
+   - **No Silent Failures**: Every error must be explicitly communicated
+   - **Root Cause Analysis**: Explain why the failure occurred
+   - **Impact Assessment**: Describe what functionality is affected
+   - **Recovery Options**: Suggest alternative approaches or manual interventions
+   - **Escalation Path**: Clear indication when human intervention is required
+
+4. **Error Propagation Requirements**
+   - Subagent errors must be immediately surfaced to main Claude orchestrator
+   - Main orchestrator must relay all subagent errors to the user
+   - Error context must be preserved through the delegation chain
+   - No error filtering or suppression allowed at any level
+
 ### Implementation Guidelines
 
 #### Verification Workflow Pattern
@@ -90,6 +122,20 @@ For EVERY delegation, Claude must create a tailored verification checklist based
 - If verification reveals incomplete work: Re-delegate with specific corrections
 - If verification reveals errors: Document issues and implement fixes
 - If verification is impossible: Report limitation and request user guidance
+- **If subagent reports errors**: Immediately surface to user with full context and recovery options
+- **If silent failures detected**: Escalate as critical protocol violation requiring immediate attention
+
+#### Error Transparency Protocol
+
+**MANDATORY ERROR SURFACING**: Every error, failure, or issue encountered by subagents must be:
+
+1. **Immediately Reported**: No delays or batching of error reports
+2. **Fully Contextualized**: Include task context, attempted actions, and failure points
+3. **Actionably Detailed**: Provide enough information for user to understand and respond
+4. **Escalation-Ready**: Clear indication of severity and required intervention level
+5. **Audit-Traceable**: Maintain complete error history for debugging and improvement
+
+**Zero Tolerance for Silent Failures**: Any subagent that fails to report errors or attempts to hide failures violates this protocol and must be immediately flagged for remediation.
 
 ### Critical Success Factors
 
@@ -99,6 +145,7 @@ For EVERY delegation, Claude must create a tailored verification checklist based
 4. **Zero False Positives**: Never report completion without verified evidence
 
 **This protocol is NON-NEGOTIABLE and must be followed for ALL agent delegations without exception.**
+
 
 
 ## Overview
