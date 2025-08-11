@@ -1,7 +1,7 @@
 # UMIG Roadmap Directory
 
-**Last Updated**: August 8, 2025  
-**Project Status**: Sprint 4 - 🔄 IN PROGRESS (Week 1 of 4, 8/21 points completed, 38%)
+**Last Updated**: August 11, 2025  
+**Project Status**: Sprint 4 - 🔄 IN PROGRESS (Week 1 of 4, 11/33 points completed, 33.3%)
 
 This directory contains the comprehensive development roadmap, sprint planning, and UI/UX specifications for the UMIG project, organized into focused subfolders for scalable project management.
 
@@ -21,17 +21,22 @@ Sprint-based development planning with detailed user stories, technical specific
 
 **Sprint 4 Stories**:
 
-**✅ Foundation Work COMPLETED (8 points):**
+**✅ Foundation Work COMPLETED (11 points):**
 
 - US-017: Status Field Normalization (5 points) ✅ COMPLETED August 7, 2025
 - US-032: Infrastructure Modernization (3 points) ✅ COMPLETED August 8, 2025
+- US-025: MigrationsAPI Integration Testing (3 points) ✅ COMPLETED August 11, 2025
 
-**📋 Remaining MVP Features (13 points):**
+**🔄 In Progress Features (5 points):**
 
-- US-033: Main Dashboard UI (5 points) 🎯 HIGH PRIORITY
-- US-034: Planning Feature HTML Export (3 points)
-- US-035: Data Import Strategy (3 points)
-- US-036: Event Logging Backend Implementation (2 points)
+- US-024: StepsAPI Refactoring to Modern Patterns (5 points) 🔄 IN PROGRESS
+
+**📋 Remaining MVP Features (17 points):**
+
+- US-031: Admin GUI Complete Integration (8 points) 🎯 HIGH PRIORITY
+- US-028: Enhanced IterationView with New APIs (3 points)
+- US-022: Integration Test Suite Expansion (3 points)
+- US-030: API Documentation Completion (3 points)
 
 **Previous Sprint**: Sprint 3 - API Foundation (July 30-Aug 6, 2025) ✅ COMPLETED
 
@@ -74,20 +79,22 @@ High-level strategic planning and comprehensive roadmap documentation.
 
 ### 🔄 Sprint 4 In Progress (Week 1 of 4)
 
-**Sprint 4 Progress**: 8/21 points completed (38%)
+**Sprint 4 Progress**: 11/33 points completed (33.3%)
 
-**Foundation Work Completed (Aug 7-8)**:
+**Foundation Work Completed (Aug 7-11)**:
 
 - ✅ US-017: Status Field Normalization - COMPLETED
 - ✅ US-032: Infrastructure Modernization - COMPLETED
   - Confluence 8.5.6 → 9.2.7 + ScriptRunner 9.21.0 upgrade
   - Enterprise backup/restore system established
   - Production-ready operational framework
+- ✅ US-025: MigrationsAPI Integration Testing - COMPLETED
 
 **Current Focus (Week 2+)**:
 
-- 🎯 US-033: Main Dashboard UI (highest priority, 5 points)
-- Planning Feature, Data Import, and Event Logging features
+- 🔄 US-024: StepsAPI Refactoring to Modern Patterns (in progress, 5 points)
+- 🎯 US-031: Admin GUI Complete Integration (highest priority, 8 points)
+- Enhanced IterationView, Testing, and Documentation features
 
 ### ✅ Sprint 3 Completed (July 30 - Aug 6, 2025)
 
@@ -208,26 +215,27 @@ High-level strategic planning and comprehensive roadmap documentation.
 
 ### Sprint 4 Progress (Week 1 of 4)
 
-- **Target**: 21 story points over 4 weeks (5.25 points/week average)
-- **Completed**: 8 points (US-017: Status Field Normalization + US-032: Infrastructure Modernization)
-- **Remaining**: 13 points over 3 weeks (4.3 points/week required)
-- **Current Progress**: 38% complete (8/21 points)
+- **Target**: 33 story points over 4 weeks (8.25 points/week average)
+- **Completed**: 11 points (US-017, US-032, US-025)
+- **In Progress**: 5 points (US-024)
+- **Remaining**: 17 points over 3 weeks (5.67 points/week required)
+- **Current Progress**: 33.3% complete (11/33 points)
 - **Risk Level**: Low - solid foundation with modern platform capabilities
 
 ### Sprint 4 Timeline
 
-- **Week 1 (Aug 7-8)**: ✅ Foundation work completed (US-017, US-032)
-- **Week 2 (Aug 15-19)**: Main Dashboard UI development (US-033)
-- **Week 3 (Aug 22-26)**: Planning Feature HTML Export (US-034) + Data Import Strategy (US-035)
-- **Week 4 (Aug 29 - Sep 1)**: Event Logging Backend (US-036) + Final testing and MVP completion
+- **Week 1 (Aug 7-11)**: ✅ Foundation work completed (US-017, US-032, US-025) + US-024 started
+- **Week 2 (Aug 12-16)**: Complete US-024 + Start Admin GUI integration (US-031)
+- **Week 3 (Aug 19-23)**: Complete US-031 + Enhanced IterationView (US-028)
+- **Week 4 (Aug 26-30)**: Integration testing (US-022) + API documentation (US-030) + Final sprint completion
 
 ### Key Success Factors
 
 - **Modern Platform Foundation**: Confluence 9.2.7 + ScriptRunner 9.21.0 provides enhanced capabilities
 - **Enterprise Infrastructure**: Comprehensive backup/restore system and validation framework
 - **Pattern Reuse**: Leveraging Sprint 3's proven API patterns and Admin GUI architecture
-- **MVP Focus**: Clear scope with Dashboard, Planning, Import, and Logging features
-- **Foundation Complete**: 38% of sprint completed with critical infrastructure modernization
+- **API Modernization Focus**: Clear scope with StepsAPI, Admin GUI, IterationView, and Testing features
+- **Foundation Complete**: 33.3% of sprint completed with critical infrastructure modernization and API improvements
 
 ---
 
