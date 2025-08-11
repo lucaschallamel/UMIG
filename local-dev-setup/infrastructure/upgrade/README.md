@@ -106,11 +106,11 @@ If issues occur during upgrade:
    ```bash
    # Stop current containers
    podman-compose down
-   
+
    # Restore from backup
    ../backup/restore-volumes.sh
    ../backup/restore-databases.sh
-   
+
    # Start with previous versions
    podman-compose up -d
    ```
@@ -124,7 +124,7 @@ Managed in `podman-compose.yml`:
 ```yaml
 confluence:
   image: atlassian/confluence:9.2.7
-  
+
 postgres:
   image: postgres:14-alpine
 ```

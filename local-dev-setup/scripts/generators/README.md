@@ -16,7 +16,7 @@ Scripts are numbered 001-100 based on dependency order and functional grouping:
 
 ```
 001-020: Foundation (Users, Teams, Environments, Applications)
-021-040: Migration Hierarchy (Migrations, Iterations, Plans)  
+021-040: Migration Hierarchy (Migrations, Iterations, Plans)
 041-060: Execution Hierarchy (Sequences, Phases, Steps)
 061-080: Details (Instructions, Controls, Labels)
 081-100: Advanced/Bulk Operations
@@ -45,50 +45,50 @@ generators/
 
 ### Foundation Entities (001-020)
 
-| Script | Entity | Description | Dependencies |
-|--------|--------|-------------|--------------|
-| 001 | Confluence Users | Creates test users in Confluence | None |
-| 005 | Environments | Development, QA, Production environments | None |
-| 010 | Applications | Application catalog | None |
-| 015 | Labels | Categorization labels | None |
-| 020 | Teams | Team structures with users | Users |
+| Script | Entity           | Description                              | Dependencies |
+| ------ | ---------------- | ---------------------------------------- | ------------ |
+| 001    | Confluence Users | Creates test users in Confluence         | None         |
+| 005    | Environments     | Development, QA, Production environments | None         |
+| 010    | Applications     | Application catalog                      | None         |
+| 015    | Labels           | Categorization labels                    | None         |
+| 020    | Teams            | Team structures with users               | Users        |
 
 ### Migration Hierarchy (021-040)
 
-| Script | Entity | Description | Dependencies |
-|--------|--------|-------------|--------------|
-| 025 | Migrations | Top-level migration containers | Teams |
-| 030 | Iterations | Time-bound execution windows | Migrations |
-| 035 | Plans (Master) | Reusable plan templates | None |
-| 040 | Plans (Instance) | Plan instances linked to iterations | Iterations, Plans Master |
+| Script | Entity           | Description                         | Dependencies             |
+| ------ | ---------------- | ----------------------------------- | ------------------------ |
+| 025    | Migrations       | Top-level migration containers      | Teams                    |
+| 030    | Iterations       | Time-bound execution windows        | Migrations               |
+| 035    | Plans (Master)   | Reusable plan templates             | None                     |
+| 040    | Plans (Instance) | Plan instances linked to iterations | Iterations, Plans Master |
 
 ### Execution Hierarchy (041-060)
 
-| Script | Entity | Description | Dependencies |
-|--------|--------|-------------|--------------|
-| 045 | Sequences (Master) | Sequence templates | Plans Master |
-| 050 | Sequences (Instance) | Sequence instances | Plans Instance |
-| 055 | Phases | Execution phases | Sequences |
-| 060 | Steps | Detailed execution steps | Phases, Teams |
+| Script | Entity               | Description              | Dependencies   |
+| ------ | -------------------- | ------------------------ | -------------- |
+| 045    | Sequences (Master)   | Sequence templates       | Plans Master   |
+| 050    | Sequences (Instance) | Sequence instances       | Plans Instance |
+| 055    | Phases               | Execution phases         | Sequences      |
+| 060    | Steps                | Detailed execution steps | Phases, Teams  |
 
 ### Detail Entities (061-080)
 
-| Script | Entity | Description | Dependencies |
-|--------|--------|-------------|--------------|
-| 065 | Instructions | Step-level instructions | Steps |
-| 070 | Controls | Validation checkpoints | Phases |
-| 075 | Assignments | Team/user assignments | Steps, Teams |
-| 080 | Relationships | Cross-entity relationships | Multiple |
+| Script | Entity        | Description                | Dependencies |
+| ------ | ------------- | -------------------------- | ------------ |
+| 065    | Instructions  | Step-level instructions    | Steps        |
+| 070    | Controls      | Validation checkpoints     | Phases       |
+| 075    | Assignments   | Team/user assignments      | Steps, Teams |
+| 080    | Relationships | Cross-entity relationships | Multiple     |
 
 ### Advanced Operations (081-100)
 
-| Script | Entity | Description | Dependencies |
-|--------|--------|-------------|--------------|
-| 085 | Bulk Steps | Mass step generation | All hierarchies |
-| 090 | Performance Data | Large-scale test data | All entities |
-| 095 | Scenario Setup | Complete migration scenarios | All entities |
-| 099 | Data Validation | Integrity verification | All entities |
-| 100 | Cleanup | Remove all test data | None |
+| Script | Entity           | Description                  | Dependencies    |
+| ------ | ---------------- | ---------------------------- | --------------- |
+| 085    | Bulk Steps       | Mass step generation         | All hierarchies |
+| 090    | Performance Data | Large-scale test data        | All entities    |
+| 095    | Scenario Setup   | Complete migration scenarios | All entities    |
+| 099    | Data Validation  | Integrity verification       | All entities    |
+| 100    | Cleanup          | Remove all test data         | None            |
 
 ## Usage Guidelines
 
