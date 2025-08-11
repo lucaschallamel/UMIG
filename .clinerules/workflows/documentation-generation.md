@@ -32,6 +32,7 @@ Orchestrate GENDEV agents to create comprehensive, maintainable documentation ac
 Please engage our GENDEV documentation generator to conduct comprehensive documentation planning using enterprise-level validation standards, focusing on multi-format content strategy development, audience analysis, and documentation architecture design.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read documentation planning reports and content strategy documentation
 - [ ] Verify enterprise-level validation standards are applied to documentation planning
 - [ ] Check multi-format content strategy and audience analysis are comprehensive
@@ -40,6 +41,7 @@ Please engage our GENDEV documentation generator to conduct comprehensive docume
 Next, work with our GENDEV documentation generator to establish documentation architecture and success metrics using enterprise-level validation standards, focusing on navigation design, content organization, and measurable success criteria.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read documentation architecture files and success metrics framework
 - [ ] Verify enterprise-level validation standards are applied to architecture design
 - [ ] Check navigation design and content organization support user goals effectively
@@ -52,6 +54,7 @@ Next, work with our GENDEV documentation generator to establish documentation ar
 Please collaborate with our GENDEV documentation generator to create comprehensive API documentation using standard validation processes, focusing on OpenAPI specification development, interactive API documentation, and technical integration guides.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read generated API documentation and OpenAPI specification files
 - [ ] Verify standard validation processes are applied to API documentation creation
 - [ ] Check interactive API documentation and integration guides are comprehensive and functional
@@ -60,6 +63,7 @@ Please collaborate with our GENDEV documentation generator to create comprehensi
 Next, work with our GENDEV documentation generator to develop architecture documentation using standard validation processes, focusing on system architecture diagrams, component documentation, and technical decision records (ADRs).
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read architecture documentation and system diagram files
 - [ ] Verify standard validation processes are applied to architecture documentation
 - [ ] Check architecture diagrams and ADRs accurately represent system design decisions
@@ -68,6 +72,7 @@ Next, work with our GENDEV documentation generator to develop architecture docum
 Finally, engage our GENDEV documentation generator to create comprehensive code documentation using enterprise-level validation standards, focusing on inline code documentation, technical specifications, and developer reference materials.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read code documentation files and technical specification documents
 - [ ] Verify enterprise-level validation standards are applied to code documentation
 - [ ] Check inline documentation and developer reference materials are comprehensive and accurate
@@ -80,6 +85,7 @@ Finally, engage our GENDEV documentation generator to create comprehensive code 
 Please work with our GENDEV documentation generator to create comprehensive user guides and tutorials using enterprise-level validation standards, focusing on tutorial-style format development, getting started guides, and step-by-step instructional content.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read user guide files and tutorial documentation
 - [ ] Verify enterprise-level validation standards are applied to user documentation creation
 - [ ] Check tutorial format and step-by-step instructions are clear and actionable
@@ -88,6 +94,7 @@ Please work with our GENDEV documentation generator to create comprehensive user
 Next, collaborate with our GENDEV documentation generator to develop installation and troubleshooting documentation using standard validation processes, focusing on setup procedures, configuration guides, and problem resolution resources.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read installation documentation and troubleshooting guides
 - [ ] Verify standard validation processes are applied to setup documentation creation
 - [ ] Check installation procedures and troubleshooting resources are comprehensive and accurate
@@ -100,6 +107,7 @@ Next, collaborate with our GENDEV documentation generator to develop installatio
 Please engage our GENDEV documentation generator to create comprehensive development process documentation using standard validation processes, focusing on development workflows, coding standards, and team collaboration procedures.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read development process documentation and workflow procedure files
 - [ ] Verify standard validation processes are applied to process documentation creation
 - [ ] Check development workflows and coding standards are comprehensive and practical
@@ -108,6 +116,7 @@ Please engage our GENDEV documentation generator to create comprehensive develop
 Next, work with our GENDEV documentation generator to develop operational procedures documentation using standard validation processes, focusing on operational workflows, maintenance procedures, and incident response guides.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read operational documentation and incident response guide files
 - [ ] Verify standard validation processes are applied to operational documentation creation
 - [ ] Check operational procedures and incident response guides are comprehensive and actionable
@@ -120,6 +129,7 @@ Next, work with our GENDEV documentation generator to develop operational proced
 Please collaborate with our GENDEV training and change manager to develop comprehensive training materials using enterprise-level validation standards, focusing on educational content development, training module creation, and knowledge transfer optimization.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read training materials and educational content documentation
 - [ ] Verify enterprise-level validation standards are applied to training content development
 - [ ] Check training modules and educational materials are comprehensive and engaging
@@ -128,6 +138,7 @@ Please collaborate with our GENDEV training and change manager to develop compre
 Next, work with our GENDEV documentation generator to create searchable knowledge base using standard validation processes, focusing on knowledge management system development, best practices documentation, and content organization for searchability.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read knowledge base content and search system documentation
 - [ ] Verify standard validation processes are applied to knowledge base development
 - [ ] Check searchable functionality and best practices documentation are comprehensive
@@ -140,6 +151,7 @@ Next, work with our GENDEV documentation generator to create searchable knowledg
 Please engage our GENDEV code reviewer to conduct comprehensive documentation content review, focusing on technical accuracy validation, consistency verification, and quality assurance of all documentation deliverables.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read documentation review reports and technical validation results
 - [ ] Verify all technical content has been validated for accuracy and consistency
 - [ ] Check documentation quality meets established standards and guidelines
@@ -148,6 +160,7 @@ Please engage our GENDEV code reviewer to conduct comprehensive documentation co
 Next, collaborate with our GENDEV test suite generator to create documentation validation testing using standard validation processes, focusing on accessibility compliance testing, usability validation, and completeness verification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read documentation test results and accessibility compliance reports
 - [ ] Verify standard validation processes are applied to documentation testing
 - [ ] Check WCAG 2.1 AA compliance and usability testing results meet requirements
@@ -165,6 +178,7 @@ Next, collaborate with our GENDEV test suite generator to create documentation v
 Please work with our GENDEV documentation generator to implement multi-format publishing using standard validation processes, focusing on HTML/PDF/mobile format generation, documentation portal development, and cross-platform content delivery.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read published documentation in multiple formats and portal configuration files
 - [ ] Verify standard validation processes are applied to multi-format publishing
 - [ ] Check HTML, PDF, and mobile formats render correctly and maintain quality
@@ -173,6 +187,7 @@ Please work with our GENDEV documentation generator to implement multi-format pu
 Next, collaborate with our GENDEV documentation generator to establish documentation integration systems using standard validation processes, focusing on in-app help integration, API documentation embedding, and seamless user experience delivery.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read integration system documentation and in-app help implementation files
 - [ ] Verify standard validation processes are applied to documentation integration
 - [ ] Check in-app help and API integration provide seamless user experience
@@ -185,6 +200,7 @@ Next, collaborate with our GENDEV documentation generator to establish documenta
 Please engage our GENDEV documentation generator to establish automated documentation maintenance systems using standard validation processes, focusing on automated content updates, version control integration, and documentation lifecycle management.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read automated maintenance system documentation and version control configuration
 - [ ] Verify standard validation processes are applied to automation system setup
 - [ ] Check automated updates and version control integration are functional and reliable
@@ -193,6 +209,7 @@ Please engage our GENDEV documentation generator to establish automated document
 Finally, work with our GENDEV documentation generator to implement continuous improvement processes using standard validation processes, focusing on user feedback integration, documentation analytics, and iterative optimization workflows.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read continuous improvement process documentation and user feedback systems
 - [ ] Verify standard validation processes are applied to improvement workflow development
 - [ ] Check user feedback integration and analytics systems provide actionable insights

@@ -34,6 +34,7 @@ Orchestrate GENDEV agents for safe, automated production deployments with valida
 Please work with our GENDEV deployment operations manager to conduct comprehensive pre-deployment preparation using enterprise-level validation standards, focusing on deployment readiness assessment and infrastructure verification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read deployment readiness reports and infrastructure assessment documentation
 - [ ] Verify enterprise-level validation standards are applied throughout preparation
 - [ ] Check deployment environment status and resource availability confirmation
@@ -42,6 +43,7 @@ Please work with our GENDEV deployment operations manager to conduct comprehensi
 Next, collaborate with our GENDEV risk manager to perform systematic deployment risk assessment using standard validation processes, including dependency analysis and backup strategy validation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read risk assessment reports and deployment risk analysis documentation
 - [ ] Verify standard validation processes are applied to risk evaluation
 - [ ] Check dependency validation results and backup strategy completeness
@@ -54,6 +56,7 @@ Next, collaborate with our GENDEV risk manager to perform systematic deployment 
 Please engage our GENDEV project planner to create comprehensive release planning with standard validation processes, working within normal timeline constraints and focusing on deployment scheduling and coordination.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the release plan documentation and deployment schedule files
 - [ ] Verify standard validation processes are applied to timeline and resource planning
 - [ ] Check timeline constraints are realistic and properly documented
@@ -62,6 +65,7 @@ Please engage our GENDEV project planner to create comprehensive release plannin
 Next, work with our GENDEV stakeholder communicator to coordinate stakeholder notifications and change management using standard validation protocols for communication effectiveness.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read stakeholder communication plans and notification documentation
 - [ ] Verify standard validation protocols are applied to communication strategies
 - [ ] Check approval gates and change windows are properly established
@@ -74,6 +78,7 @@ Next, work with our GENDEV stakeholder communicator to coordinate stakeholder no
 Please collaborate with our GENDEV CI/CD builder to establish comprehensive build and packaging automation, focusing on artifact generation, version management, and deployment pipeline optimization.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read CI/CD pipeline configuration files and build artifact documentation
 - [ ] Verify build automation processes are properly configured and functional
 - [ ] Check build artifacts are generated correctly with proper versioning
@@ -82,6 +87,7 @@ Please collaborate with our GENDEV CI/CD builder to establish comprehensive buil
 Next, work with our GENDEV dependency manager to conduct standard validation of dependencies, including security scanning and package management verification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read dependency analysis reports and security scan results
 - [ ] Verify standard validation processes are applied to dependency management
 - [ ] Check security scanning results show no critical vulnerabilities
@@ -94,6 +100,7 @@ Next, work with our GENDEV dependency manager to conduct standard validation of 
 Please work with our GENDEV Infrastructure as Code automation engineer to establish comprehensive infrastructure provisioning and configuration management with automated deployment environment setup.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read infrastructure configuration files and provisioning scripts
 - [ ] Verify IaC automation processes are properly configured and executable
 - [ ] Check infrastructure deployment status and resource provisioning completion
@@ -102,6 +109,7 @@ Please work with our GENDEV Infrastructure as Code automation engineer to establ
 Next, collaborate with our GENDEV security architect to implement security hardening and compliance validation using standard validation processes for deployment environment security.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read security hardening reports and compliance validation documentation
 - [ ] Verify standard validation processes are applied to security configuration
 - [ ] Check compliance validation results and security hardening implementation
@@ -114,6 +122,7 @@ Next, collaborate with our GENDEV security architect to implement security harde
 Please engage our GENDEV deployment operations manager to execute blue-green deployment strategy with standard validation processes, focusing on zero-downtime deployment and progressive rollout management.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read blue-green deployment execution logs and status reports
 - [ ] Verify standard validation processes are applied throughout deployment execution
 - [ ] Check deployment health checks and validation gates are passing
@@ -122,6 +131,7 @@ Please engage our GENDEV deployment operations manager to execute blue-green dep
 Next, work with our GENDEV resource monitor to establish comprehensive monitoring and alerting for the deployment, tracking system performance and resource utilization.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read monitoring configuration and alert setup documentation
 - [ ] Verify resource monitoring systems are active and collecting metrics
 - [ ] Check alert thresholds and notification systems are properly configured
@@ -134,6 +144,7 @@ Next, work with our GENDEV resource monitor to establish comprehensive monitorin
 Please collaborate with our GENDEV test suite generator to create comprehensive smoke testing focused on critical functionality validation using standard validation processes for post-deployment verification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read smoke test suite files and test execution results
 - [ ] Verify standard validation processes are applied to smoke test generation
 - [ ] Check smoke tests cover critical functionality and pass successfully
@@ -142,6 +153,7 @@ Please collaborate with our GENDEV test suite generator to create comprehensive 
 Next, work with our GENDEV QA coordinator to orchestrate comprehensive quality assurance validation using standard processes, including integration validation and user acceptance testing.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read QA validation reports and user acceptance test results
 - [ ] Verify standard validation processes are applied throughout QA coordination
 - [ ] Check integration validation and performance benchmarks meet requirements
@@ -154,6 +166,7 @@ Next, work with our GENDEV QA coordinator to orchestrate comprehensive quality a
 Please engage our GENDEV resource monitor to establish comprehensive real-time monitoring systems and performance dashboards for continuous observability of the deployed system.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read monitoring dashboard configurations and real-time metric collection setup
 - [ ] Verify monitoring systems are actively collecting and displaying performance data
 - [ ] Check anomaly detection and SLA tracking systems are operational
@@ -162,6 +175,7 @@ Please engage our GENDEV resource monitor to establish comprehensive real-time m
 Next, work with our GENDEV performance optimizer to conduct post-deployment performance analysis using standard validation processes, including performance tuning and optimization recommendations.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read performance analysis reports and optimization recommendations
 - [ ] Verify standard validation processes are applied to performance assessment
 - [ ] Check performance metrics meet SLA requirements and optimization targets
@@ -174,6 +188,7 @@ Next, work with our GENDEV performance optimizer to conduct post-deployment perf
 Please collaborate with our GENDEV documentation generator to create comprehensive release notes targeting mixed audiences with standard validation processes, focusing on deployment outcomes and feature documentation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read generated release notes and deployment documentation files
 - [ ] Verify standard validation processes are applied to documentation creation
 - [ ] Check release notes effectively communicate changes to mixed audiences
@@ -182,6 +197,7 @@ Please collaborate with our GENDEV documentation generator to create comprehensi
 Finally, work with our GENDEV training and change manager to develop training materials for new features using standard validation processes, including knowledge base updates and user education resources.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read training materials and knowledge base update documentation
 - [ ] Verify standard validation processes are applied to training content development
 - [ ] Check new feature training scope is comprehensive and user-focused

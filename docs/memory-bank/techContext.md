@@ -124,14 +124,16 @@
 ### API Development Velocity Evolution
 
 **Sprint 3 (30 Jul - 6 Aug 2025)**:
-- **US-001 (Plans API)**: 6 hours planned, 6 hours actual (baseline with ScriptRunner integration challenges)  
-- **US-002 (Sequences API)**: 6 hours planned, 5.1 hours actual (46% velocity improvement)  
-- **US-003 (Phases API)**: 4-5 hours planned, 5 hours actual (complex control point logic)  
-- **US-004 (Instructions API)**: Template-based instruction management with complete lifecycle support  
-- **US-005 (Controls API)**: Quality gate management system with comprehensive control validation  
+
+- **US-001 (Plans API)**: 6 hours planned, 6 hours actual (baseline with ScriptRunner integration challenges)
+- **US-002 (Sequences API)**: 6 hours planned, 5.1 hours actual (46% velocity improvement)
+- **US-003 (Phases API)**: 4-5 hours planned, 5 hours actual (complex control point logic)
+- **US-004 (Instructions API)**: Template-based instruction management with complete lifecycle support
+- **US-005 (Controls API)**: Quality gate management system with comprehensive control validation
 - **US-006b (Status Field Normalization)**: Core database and API implementation complete, Admin GUI pending
 
 **Sprint 4 (8 Aug - 1 Sep 2025)**:
+
 - **US-032 (Infrastructure Modernization)**: Zero-downtime platform upgrade with enterprise backup system (8 Aug 2025)
 - **US-025 (Migrations API)**: 6 days implementation (5-11 Aug 2025) with 4-phase systematic delivery
 

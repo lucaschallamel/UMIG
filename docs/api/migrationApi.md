@@ -15,6 +15,7 @@
 - **US-025 Phase 4:** All endpoints validated with comprehensive integration testing framework
 
 ### Recent Fixes (US-025 Phase 4)
+
 - ✅ **mig_type Parameter**: Fixed Integer→String casting issue in query processing
 - ✅ **GString Serialization**: Resolved JSON payload serialization overflow issues
 - ✅ **HTTP Basic Auth**: Validated Confluence user credential integration
@@ -24,41 +25,41 @@
 
 ### 2.1 Core CRUD Endpoints
 
-| Method | Path                                                                                                    | Description                                                                                                             |
-| ------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| GET    | /rest/scriptrunner/latest/custom/migrations                                                             | List all migrations with advanced filtering, pagination, and search                                                     |
-| POST   | /rest/scriptrunner/latest/custom/migrations                                                             | Create a new migration                                                                                                  |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}                                                        | Get migration by ID with status metadata enrichment                                                                     |
-| PUT    | /rest/scriptrunner/latest/custom/migrations/{id}                                                        | Update migration by ID                                                                                                  |
-| DELETE | /rest/scriptrunner/latest/custom/migrations/{id}                                                        | Delete migration by ID with referential integrity checks                                                               |
+| Method | Path                                             | Description                                                         |
+| ------ | ------------------------------------------------ | ------------------------------------------------------------------- |
+| GET    | /rest/scriptrunner/latest/custom/migrations      | List all migrations with advanced filtering, pagination, and search |
+| POST   | /rest/scriptrunner/latest/custom/migrations      | Create a new migration                                              |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id} | Get migration by ID with status metadata enrichment                 |
+| PUT    | /rest/scriptrunner/latest/custom/migrations/{id} | Update migration by ID                                              |
+| DELETE | /rest/scriptrunner/latest/custom/migrations/{id} | Delete migration by ID with referential integrity checks            |
 
 ### 2.2 Dashboard Endpoints (New)
 
-| Method | Path                                                | Description                                                    |
-| ------ | --------------------------------------------------- | -------------------------------------------------------------- |
-| GET    | /rest/scriptrunner/latest/custom/migrations/dashboard/summary  | Get dashboard summary with totals and status distribution     |
-| GET    | /rest/scriptrunner/latest/custom/migrations/dashboard/progress | Get progress aggregation data with optional filtering         |
-| GET    | /rest/scriptrunner/latest/custom/migrations/dashboard/metrics  | Get performance metrics (placeholder - not yet implemented)   |
+| Method | Path                                                           | Description                                                 |
+| ------ | -------------------------------------------------------------- | ----------------------------------------------------------- |
+| GET    | /rest/scriptrunner/latest/custom/migrations/dashboard/summary  | Get dashboard summary with totals and status distribution   |
+| GET    | /rest/scriptrunner/latest/custom/migrations/dashboard/progress | Get progress aggregation data with optional filtering       |
+| GET    | /rest/scriptrunner/latest/custom/migrations/dashboard/metrics  | Get performance metrics (placeholder - not yet implemented) |
 
 ### 2.3 Bulk Operations (New)
 
-| Method | Path                                                | Description                                                    |
-| ------ | --------------------------------------------------- | -------------------------------------------------------------- |
-| PUT    | /rest/scriptrunner/latest/custom/migrations/bulk/status     | Bulk update migration status (placeholder - not yet implemented) |
-| POST   | /rest/scriptrunner/latest/custom/migrations/bulk/export     | Bulk export migrations to JSON/CSV format                     |
+| Method | Path                                                    | Description                                                      |
+| ------ | ------------------------------------------------------- | ---------------------------------------------------------------- |
+| PUT    | /rest/scriptrunner/latest/custom/migrations/bulk/status | Bulk update migration status (placeholder - not yet implemented) |
+| POST   | /rest/scriptrunner/latest/custom/migrations/bulk/export | Bulk export migrations to JSON/CSV format                        |
 
 ### 2.4 Hierarchical Endpoints
 
-| Method | Path                                                                                                    | Description                                                                                                             |
-| ------ | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations                                             | List iterations for a migration (fields: staticCutoverDate, dynamicCutoverDate; see data model in Liquibase changelogs) |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}                               | Get specific iteration by ID                                                                                            |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances                | List plan instances for an iteration                                                                                    |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences                     | List sequences for an iteration                                                                                         |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/phases                        | List phases for an iteration                                                                                            |
+| Method | Path                                                                                                       | Description                                                                                                             |
+| ------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations                                                | List iterations for a migration (fields: staticCutoverDate, dynamicCutoverDate; see data model in Liquibase changelogs) |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}                                  | Get specific iteration by ID                                                                                            |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances                   | List plan instances for an iteration                                                                                    |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences                        | List sequences for an iteration                                                                                         |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/phases                           | List phases for an iteration                                                                                            |
 | GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances/{pliId}/sequences | List sequences for a plan instance                                                                                      |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances/{pliId}/phases | List phases for a plan instance                                                                                         |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences/{seqId}/phases      | List phases for a sequence                                                                                              |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances/{pliId}/phases    | List phases for a plan instance                                                                                         |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences/{seqId}/phases         | List phases for a sequence                                                                                              |
 
 ## 3. Request Details
 
@@ -74,33 +75,33 @@
 
 #### 3.2.1 List Migrations (/migrations)
 
-| Name | Type | Required | Description | Default | Constraints |
-| ---- | ---- | -------- | ----------- | ------- | ----------- |
-| page | integer | No | Page number for pagination | 1 | ≥ 1 |
-| size | integer | No | Number of items per page | 50 | 1-100 |
-| search | string | No | Search term for name/description | - | Max 100 chars |
-| sort | string | No | Sort field | - | mig_name, mig_status, created_at, updated_at, mig_start_date, mig_end_date |
-| direction | string | No | Sort direction | asc | asc, desc |
-| status | string | No | Filter by status (comma-separated) | - | Valid status values |
-| dateFrom | string | No | Start date filter | - | YYYY-MM-DD format |
-| dateTo | string | No | End date filter | - | YYYY-MM-DD format |
-| teamId | integer | No | Filter by team ID | - | Valid team ID |
-| ownerId | integer | No | Filter by owner user ID | - | Valid user ID |
+| Name      | Type    | Required | Description                        | Default | Constraints                                                                |
+| --------- | ------- | -------- | ---------------------------------- | ------- | -------------------------------------------------------------------------- |
+| page      | integer | No       | Page number for pagination         | 1       | ≥ 1                                                                        |
+| size      | integer | No       | Number of items per page           | 50      | 1-100                                                                      |
+| search    | string  | No       | Search term for name/description   | -       | Max 100 chars                                                              |
+| sort      | string  | No       | Sort field                         | -       | mig_name, mig_status, created_at, updated_at, mig_start_date, mig_end_date |
+| direction | string  | No       | Sort direction                     | asc     | asc, desc                                                                  |
+| status    | string  | No       | Filter by status (comma-separated) | -       | Valid status values                                                        |
+| dateFrom  | string  | No       | Start date filter                  | -       | YYYY-MM-DD format                                                          |
+| dateTo    | string  | No       | End date filter                    | -       | YYYY-MM-DD format                                                          |
+| teamId    | integer | No       | Filter by team ID                  | -       | Valid team ID                                                              |
+| ownerId   | integer | No       | Filter by owner user ID            | -       | Valid user ID                                                              |
 
 #### 3.2.2 Dashboard Progress (/migrations/dashboard/progress)
 
-| Name | Type | Required | Description | Default | Constraints |
-| ---- | ---- | -------- | ----------- | ------- | ----------- |
-| migrationId | UUID | No | Specific migration filter | - | Valid UUID |
-| dateFrom | string | No | Start date filter | - | YYYY-MM-DD format |
-| dateTo | string | No | End date filter | - | YYYY-MM-DD format |
+| Name        | Type   | Required | Description               | Default | Constraints       |
+| ----------- | ------ | -------- | ------------------------- | ------- | ----------------- |
+| migrationId | UUID   | No       | Specific migration filter | -       | Valid UUID        |
+| dateFrom    | string | No       | Start date filter         | -       | YYYY-MM-DD format |
+| dateTo      | string | No       | End date filter           | -       | YYYY-MM-DD format |
 
 #### 3.2.3 Dashboard Metrics (/migrations/dashboard/metrics)
 
-| Name | Type | Required | Description | Default | Constraints |
-| ---- | ---- | -------- | ----------- | ------- | ----------- |
-| period | string | No | Metrics period | month | day, week, month, quarter |
-| migrationId | UUID | No | Specific migration filter | - | Valid UUID |
+| Name        | Type   | Required | Description               | Default | Constraints               |
+| ----------- | ------ | -------- | ------------------------- | ------- | ------------------------- |
+| period      | string | No       | Metrics period            | month   | day, week, month, quarter |
+| migrationId | UUID   | No       | Specific migration filter | -       | Valid UUID                |
 
 ### 3.3. Request Body
 
@@ -152,7 +153,10 @@
 
 ```json
 {
-  "migrationIds": ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"],
+  "migrationIds": [
+    "123e4567-e89b-12d3-a456-426614174000",
+    "123e4567-e89b-12d3-a456-426614174001"
+  ],
   "newStatus": "In Progress",
   "reason": "Starting implementation phase"
 }
@@ -175,7 +179,10 @@
 
 ```json
 {
-  "migrationIds": ["123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174001"],
+  "migrationIds": [
+    "123e4567-e89b-12d3-a456-426614174000",
+    "123e4567-e89b-12d3-a456-426614174001"
+  ],
   "format": "csv",
   "includeIterations": true
 }
@@ -362,22 +369,22 @@
 
 #### 4.6.2. Common Error Responses
 
-| Status Code | Description | Example Scenarios |
-| ----------- | ----------- | ----------------- |
-| 400 | Bad Request | Invalid UUID format, invalid pagination parameters, invalid date format, search term too long |
-| 401 | Unauthorized | Missing authentication |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Migration not found, unknown endpoint |
-| 409 | Conflict | Foreign key violations, unique constraint violations (name already exists) |
-| 500 | Internal Server Error | Database errors, unexpected server errors |
+| Status Code | Description           | Example Scenarios                                                                             |
+| ----------- | --------------------- | --------------------------------------------------------------------------------------------- |
+| 400         | Bad Request           | Invalid UUID format, invalid pagination parameters, invalid date format, search term too long |
+| 401         | Unauthorized          | Missing authentication                                                                        |
+| 403         | Forbidden             | Insufficient permissions                                                                      |
+| 404         | Not Found             | Migration not found, unknown endpoint                                                         |
+| 409         | Conflict              | Foreign key violations, unique constraint violations (name already exists)                    |
+| 500         | Internal Server Error | Database errors, unexpected server errors                                                     |
 
 #### 4.6.3. SQL Exception Mappings
 
-| SQL State | HTTP Status | Description | Example Message |
-| --------- | ----------- | ----------- | --------------- |
-| 23503 | 409 (Conflict) | Foreign key violation | "Invalid owner user ID - user does not exist" |
-| 23505 | 409 (Conflict) | Unique constraint violation | "A migration with this name already exists" |
-| 23502 | 400 (Bad Request) | Not null violation | "Required field is missing" |
+| SQL State | HTTP Status       | Description                 | Example Message                               |
+| --------- | ----------------- | --------------------------- | --------------------------------------------- |
+| 23503     | 409 (Conflict)    | Foreign key violation       | "Invalid owner user ID - user does not exist" |
+| 23505     | 409 (Conflict)    | Unique constraint violation | "A migration with this name already exists"   |
+| 23502     | 400 (Bad Request) | Not null violation          | "Required field is missing"                   |
 
 #### 4.6.4. Validation Error Examples
 
@@ -471,18 +478,21 @@
 ### 11.2. Placeholder Endpoints ⚠️
 
 **Dashboard Metrics** (`GET /migrations/dashboard/metrics`):
+
 - Status: Placeholder implementation returns static data
 - Repository method: Not yet implemented
 - Returns: Mock response with performance metrics structure
 
 **Bulk Status Update** (`PUT /migrations/bulk/status`):
+
 - Status: Placeholder implementation returns mock response
-- Repository method: Not yet implemented  
+- Repository method: Not yet implemented
 - Returns: Failed status for all IDs with explanatory message
 
 ### 11.3. Repository Integration
 
 **Fully Connected Methods**:
+
 - `findMigrationsWithFilters()`: Advanced filtering with pagination ✅
 - `getDashboardSummary()`: Real dashboard data aggregation ✅
 - `getProgressAggregation()`: Progress data with date filtering ✅
@@ -490,12 +500,14 @@
 - `getStatusMetadata()`: Status enrichment ✅
 
 **Pending Implementation**:
+
 - `bulkUpdateStatus()`: Bulk status update method
 - `getMetrics()`: Performance metrics aggregation method
 
 ## 12. Changelog
 
 **Version 2.0** - August 11, 2025
+
 - **Major Update**: Complete overhaul to reflect US-025 implementation
 - **Added**: Dashboard endpoints (summary, progress, metrics)
 - **Added**: Bulk operations (export implemented, status update placeholder)
@@ -507,6 +519,7 @@
 - **Author**: GENDEV Documentation Generator via Claude Code
 
 **Version 1.0** - Previous
+
 - **Initial**: Basic CRUD operations and hierarchical endpoints
 - **Status**: Outdated (replaced by v2.0)
 

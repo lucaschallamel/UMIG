@@ -11,6 +11,7 @@
 ### Mandatory Verification Framework
 
 #### 1. Pre-Delegation Documentation
+
 - Document current state (file contents, timestamps, directory structure)
 - Define specific success criteria and measurable outcomes
 - Identify all files/artifacts that should be created or modified
@@ -21,6 +22,7 @@
 For EVERY delegation, Claude must create a tailored verification checklist based on:
 
 **Task Type Adaptations**:
+
 - **Documentation Tasks**: Verify file existence, content accuracy, formatting, completeness
 - **Code Generation**: Verify syntax, functionality, test coverage, security compliance
 - **Architecture Design**: Verify diagram creation, documentation completeness, decision rationale
@@ -28,6 +30,7 @@ For EVERY delegation, Claude must create a tailored verification checklist based
 - **Configuration Tasks**: Verify file modifications, setting accuracy, functionality
 
 **Context-Specific Adaptations**:
+
 - **File Operations**: Check file existence, size changes, modification timestamps
 - **Content Creation**: Validate content quality, completeness, format compliance
 - **Multi-file Tasks**: Verify all expected files, cross-reference consistency
@@ -145,8 +148,6 @@ For EVERY delegation, Claude must create a tailored verification checklist based
 4. **Zero False Positives**: Never report completion without verified evidence
 
 **This protocol is NON-NEGOTIABLE and must be followed for ALL agent delegations without exception.**
-
-
 
 ## Overview
 

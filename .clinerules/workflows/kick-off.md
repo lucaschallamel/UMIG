@@ -29,6 +29,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 Please engage our GENDEV context manager to conduct comprehensive session analysis and intelligent memory review, focusing on session context reconstruction, knowledge gap identification, priority context mapping, and cross-session continuity validation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read session context analysis reports and knowledge gap identification documentation
 - [ ] Verify session context reconstruction and priority mapping are comprehensive and accurate
 - [ ] Check cross-session continuity validation and context accuracy assessment are thorough
@@ -45,6 +46,7 @@ Please engage our GENDEV context manager to conduct comprehensive session analys
 Please collaborate with our GENDEV system architect to perform comprehensive architectural state analysis using strict validation standards, focusing on solution architecture analysis, consistency validation, design pattern compliance assessment, and scalability evaluation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read architectural state analysis reports and solution architecture documentation
 - [ ] Verify strict validation standards are applied to architecture documentation review
 - [ ] Check design pattern compliance and technical debt assessment are comprehensive
@@ -63,6 +65,7 @@ Please collaborate with our GENDEV system architect to perform comprehensive arc
 Please work with our GENDEV documentation generator to conduct comprehensive documentation ecosystem analysis using enterprise-level validation standards, focusing on project-analysis-type documentation review, memory bank analysis, documentation structure validation, and comprehensive ecosystem assessment.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read documentation ecosystem analysis reports and project analysis documentation
 - [ ] Verify enterprise-level validation standards are applied to all documentation analysis
 - [ ] Check memory bank analysis, ADR consistency, and README completeness are comprehensive
@@ -82,6 +85,7 @@ Please work with our GENDEV documentation generator to conduct comprehensive doc
 Next, collaborate with our GENDEV documentation generator to perform comprehensive developer journal pattern analysis using standard validation standards, focusing on development trend analysis, blocker pattern recognition, velocity assessment, and knowledge extraction from journal entries.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read developer journal analysis reports and pattern recognition documentation
 - [ ] Verify standard validation standards are applied to journal pattern analysis
 - [ ] Check development trend analysis, velocity insights, and knowledge extraction are comprehensive
@@ -101,6 +105,7 @@ Next, collaborate with our GENDEV documentation generator to perform comprehensi
 Next, engage our GENDEV business process analyst to conduct comprehensive ADR (Architecture Decision Record) and decision analysis, focusing on decision impact analysis, decision consistency validation, implementation status tracking, and future decision guidance development.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read ADR analysis reports and decision impact assessment documentation
 - [ ] Verify decision consistency validation and implementation status tracking are comprehensive
 - [ ] Check decision outcome analysis and future guidance recommendations are accurate and actionable
@@ -121,6 +126,7 @@ Next, engage our GENDEV business process analyst to conduct comprehensive ADR (A
 Please collaborate with our GENDEV requirements analyst to perform comprehensive requirement state analysis using comprehensive validation standards, working within normal timeline constraints and handling medium domain complexity considerations, focusing on requirement completeness assessment, traceability validation, and stakeholder alignment verification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read requirement state analysis reports and completeness assessment documentation
 - [ ] Verify comprehensive validation standards are applied with appropriate timeline and complexity considerations
 - [ ] Check requirement traceability, scope validation, and stakeholder alignment are thorough and accurate
@@ -137,6 +143,7 @@ Please collaborate with our GENDEV requirements analyst to perform comprehensive
 Next, work with our GENDEV project planner to conduct comprehensive development state assessment using standard validation standards, working within normal timeline constraints, focusing on feature completion analysis, code quality metrics evaluation, and comprehensive development progress validation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read development state assessment reports and feature completion analysis documentation
 - [ ] Verify standard validation standards are applied with appropriate timeline considerations
 - [ ] Check code quality metrics, test coverage assessment, and security posture review are comprehensive
@@ -155,6 +162,7 @@ Next, work with our GENDEV project planner to conduct comprehensive development 
 Please engage our GENDEV QA coordinator to establish comprehensive inconsistency identification processes using standard validation standards, focusing on cross-document inconsistency detection, code-documentation alignment validation, and process compliance gap identification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read inconsistency detection reports and cross-document analysis documentation
 - [ ] Verify standard validation standards are applied to all inconsistency identification activities
 - [ ] Check code-documentation alignment, version synchronization, and compliance gap detection are comprehensive
@@ -171,6 +179,7 @@ Please engage our GENDEV QA coordinator to establish comprehensive inconsistency
 Next, collaborate with our GENDEV risk manager to develop comprehensive resolution strategy recommendations using standard validation standards, focusing on prioritized resolution planning, impact assessment evaluation, and prevention strategy development.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read resolution strategy reports and prioritized planning documentation
 - [ ] Verify standard validation standards are applied to resolution recommendation development
 - [ ] Check impact assessment, effort estimation, and prevention strategies are comprehensive and actionable
@@ -189,6 +198,7 @@ Next, collaborate with our GENDEV risk manager to develop comprehensive resoluti
 Please work with our GENDEV project planner to perform comprehensive strategic next steps analysis using standard validation standards, working within normal timeline constraints, focusing on intelligent task prioritization, value-impact analysis, and resource optimization planning.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read strategic planning reports and task prioritization analysis documentation
 - [ ] Verify standard validation standards are applied with appropriate timeline considerations
 - [ ] Check value-impact analysis, dependency analysis, and resource optimization are comprehensive
@@ -205,6 +215,7 @@ Please work with our GENDEV project planner to perform comprehensive strategic n
 Finally, collaborate with our GENDEV AI integration specialist to develop comprehensive personalized recommendation systems, focusing on context-aware recommendation development, learning-based suggestions, adaptive planning optimization, and continuous improvement strategies.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read recommendation engine reports and personalized suggestion documentation
 - [ ] Verify context-aware recommendations and learning-based suggestions are comprehensive and actionable
 - [ ] Check adaptive planning and multi-dimensional optimization strategies are thorough and effective

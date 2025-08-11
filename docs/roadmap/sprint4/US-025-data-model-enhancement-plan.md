@@ -3,9 +3,11 @@
 ## Repository Layer Enhancements
 
 ### Current State Analysis
+
 The existing MigrationRepository has basic CRUD operations but lacks:
+
 - Advanced filtering and pagination
-- Dashboard aggregation capabilities  
+- Dashboard aggregation capabilities
 - Bulk operation support
 - Transaction handling
 - Performance optimization for large datasets
@@ -32,7 +34,7 @@ def bulkExportMigrations(List<UUID> migrationIds, String format, boolean include
 // Dashboard summary with status counts
 def getDashboardSummary()
 
-// Progress aggregation for specific migration or date range  
+// Progress aggregation for specific migration or date range
 def getProgressAggregation(UUID migrationId = null, Date dateFrom = null, Date dateTo = null)
 
 // Performance metrics over time periods
@@ -66,10 +68,11 @@ def findMigrationsWithFilters(Map filterCriteria, int page, int size, String sor
 
 ### ⚠️ ScriptRunner Database Constraints
 
-**IMPORTANT**: All database access MUST use ScriptRunner's Database resource through `DatabaseUtil.withSql { }`. 
+**IMPORTANT**: All database access MUST use ScriptRunner's Database resource through `DatabaseUtil.withSql { }`.
 
 **NO DIRECT SQL IS AUTHORIZED**:
-- No direct index creation (managed by ScriptRunner/Confluence)  
+
+- No direct index creation (managed by ScriptRunner/Confluence)
 - No view creation (use repository methods instead)
 - No schema modifications outside Liquibase migrations
 - All queries must go through DatabaseUtil pattern
@@ -77,18 +80,21 @@ def findMigrationsWithFilters(Map filterCriteria, int page, int size, String sor
 ### Performance Optimization Within ScriptRunner Constraints
 
 #### 1. Query Optimization Strategies
+
 - Use efficient SQL queries within `DatabaseUtil.withSql { sql -> }`
 - Leverage existing database indexes (cannot create new ones)
 - Optimize JOIN patterns and WHERE clauses for performance
 - Use parameterized queries for security and performance
 
 #### 2. Repository-Level Optimizations
+
 - Implement query result caching at repository level
 - Use efficient pagination patterns with LIMIT/OFFSET
 - Minimize N+1 query problems with batch loading
 - Implement smart filtering to reduce dataset sizes
 
 #### 3. Dashboard Aggregation Through Repository Methods
+
 Instead of database views, implement aggregation logic in repository methods:
 
 ```groovy
@@ -103,7 +109,7 @@ def getDashboardSummary() {
             WHERE s.sts_type = 'migration'
             GROUP BY s.sts_id, s.sts_name, s.sts_color
         """)
-        
+
         // Process results in Groovy code
         return processStatusCounts(statusCounts)
     }
@@ -114,7 +120,7 @@ def getProgressAggregation(UUID migrationId) {
     return DatabaseUtil.withSql { sql ->
         // Step completion query with joins
         def stepData = sql.rows("""
-            SELECT 
+            SELECT
                 m.mig_id, m.mig_name,
                 COUNT(st.sti_id) as total_steps,
                 COUNT(CASE WHEN st_status.sts_name = 'Completed' THEN 1 END) as completed_steps
@@ -128,7 +134,7 @@ def getProgressAggregation(UUID migrationId) {
             WHERE m.mig_id = :migrationId
             GROUP BY m.mig_id, m.mig_name
         """, [migrationId: migrationId])
-        
+
         // Calculate percentages in Groovy
         return calculateProgressPercentages(stepData)
     }
@@ -144,7 +150,7 @@ def buildPaginatedQuery(String baseQuery, int page, int size, String sort, Strin
     def offset = (page - 1) * size
     def sortField = validateAndNormalizeSortField(sort)
     def sortDir = (direction?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
-    
+
     return """
         ${baseQuery}
         ORDER BY ${sortField} ${sortDir}
@@ -167,27 +173,27 @@ def buildCountQuery(String baseQuery) {
 def buildFilterCriteria(Map filters) {
     def criteria = []
     def params = [:]
-    
+
     if (filters.status) {
         criteria << "m.mig_status IN (SELECT sts_id FROM status_sts WHERE sts_name IN (:statusNames))"
         params.statusNames = filters.status instanceof List ? filters.status : [filters.status]
     }
-    
+
     if (filters.dateFrom) {
         criteria << "m.created_at >= :dateFrom"
         params.dateFrom = filters.dateFrom
     }
-    
+
     if (filters.dateTo) {
         criteria << "m.created_at <= :dateTo"
         params.dateTo = filters.dateTo
     }
-    
+
     if (filters.search) {
         criteria << "(m.mig_name ILIKE :search OR m.mig_description ILIKE :search)"
         params.search = "%${filters.search}%"
     }
-    
+
     if (filters.teamId) {
         criteria << """EXISTS (
             SELECT 1 FROM steps_instance_sti st
@@ -199,7 +205,7 @@ def buildFilterCriteria(Map filters) {
         )"""
         params.teamId = filters.teamId
     }
-    
+
     return [
         whereClause: criteria.isEmpty() ? "" : "WHERE " + criteria.join(" AND "),
         parameters: params
@@ -214,7 +220,7 @@ def buildFilterCriteria(Map filters) {
 def getDashboardSummary() {
     return DatabaseUtil.withSql { sql ->
         def summary = sql.firstRow("""
-            SELECT 
+            SELECT
                 COUNT(*) as total_migrations,
                 COUNT(CASE WHEN s.sts_name = 'Planning' THEN 1 END) as planning_count,
                 COUNT(CASE WHEN s.sts_name = 'Active' THEN 1 END) as active_count,
@@ -223,23 +229,23 @@ def getDashboardSummary() {
             FROM migrations_mig m
             JOIN status_sts s ON m.mig_status = s.sts_id
         """)
-        
+
         def upcomingDeadlines = sql.rows("""
             SELECT mig_id, mig_name, mig_end_date
-            FROM migrations_mig 
-            WHERE mig_end_date > CURRENT_DATE 
+            FROM migrations_mig
+            WHERE mig_end_date > CURRENT_DATE
             AND mig_end_date <= CURRENT_DATE + INTERVAL '30 days'
             ORDER BY mig_end_date ASC
             LIMIT 5
         """)
-        
+
         def recentUpdates = sql.rows("""
             SELECT mig_id, mig_name, updated_at, updated_by
             FROM migrations_mig
             ORDER BY updated_at DESC
             LIMIT 5
         """)
-        
+
         return [
             totalMigrations: summary.total_migrations,
             byStatus: [
@@ -262,19 +268,19 @@ def getDashboardSummary() {
 ```groovy
 def bulkUpdateMigrationStatus(List<UUID> migrationIds, String newStatus, String reason) {
     return DatabaseUtil.withSql { sql ->
-        sql.withTransaction { 
+        sql.withTransaction {
             def results = [updated: [], failed: []]
-            
+
             // Validate status exists
             def statusRow = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = :status", [status: newStatus])
             if (!statusRow) {
                 throw new IllegalArgumentException("Invalid status: ${newStatus}")
             }
-            
+
             migrationIds.each { migrationId ->
                 try {
                     def rowsUpdated = sql.executeUpdate("""
-                        UPDATE migrations_mig 
+                        UPDATE migrations_mig
                         SET mig_status = :statusId, updated_at = CURRENT_TIMESTAMP, updated_by = :updatedBy
                         WHERE mig_id = :migrationId
                     """, [
@@ -282,11 +288,11 @@ def bulkUpdateMigrationStatus(List<UUID> migrationIds, String newStatus, String 
                         migrationId: migrationId,
                         updatedBy: 'bulk-operation'
                     ])
-                    
+
                     if (rowsUpdated > 0) {
                         results.updated << migrationId
-                        
-                        // Note: Audit logging would need to be implemented through 
+
+                        // Note: Audit logging would need to be implemented through
                         // application-level logging since we cannot create audit tables
                         // without Liquibase migrations
                     } else {
@@ -296,7 +302,7 @@ def bulkUpdateMigrationStatus(List<UUID> migrationIds, String newStatus, String 
                     results.failed << [migrationId: migrationId, error: e.message]
                 }
             }
-            
+
             return [
                 updated: results.updated,
                 failed: results.failed,
@@ -314,22 +320,26 @@ def bulkUpdateMigrationStatus(List<UUID> migrationIds, String newStatus, String 
 ## Performance Considerations
 
 ### 1. Connection Pooling
+
 - Use efficient connection pooling in DatabaseUtil
 - Set appropriate timeout values for long-running dashboard queries
 - Monitor connection usage during bulk operations
 
 ### 2. Query Optimization Within ScriptRunner
+
 - Profile queries using ScriptRunner logging and monitoring
 - Implement application-level caching for frequently accessed dashboard data
 - Use efficient SQL patterns within DatabaseUtil.withSql constraints
 - Implement query timeout handling for user-facing operations
 
 ### 3. Memory Management
+
 - Stream large result sets instead of loading all into memory
 - Use pagination for all list operations
 - Implement result set limits for safety
 
 ### 4. Monitoring
+
 - Add performance logging for slow queries
 - Monitor dashboard query execution times
 - Track bulk operation performance and success rates

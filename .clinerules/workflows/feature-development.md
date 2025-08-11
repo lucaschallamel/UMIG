@@ -33,6 +33,7 @@ Orchestrate GENDEV agents to deliver high-quality features from requirements thr
 Please engage our GENDEV requirements analyst to perform enterprise-level requirements analysis for this feature development, considering input from approximately 12 stakeholders, working within normal timeline constraints, and handling medium-complexity domain considerations.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the requirements analysis document to confirm all stakeholder needs are captured
 - [ ] Verify enterprise-level validation standards are applied
 - [ ] Check domain complexity assessment and timeline feasibility
@@ -40,6 +41,7 @@ Please engage our GENDEV requirements analyst to perform enterprise-level requir
 Next, work with our GENDEV user story generator to create comprehensive user stories using Gherkin format with clear acceptance criteria and validation scenarios.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read generated user stories to confirm Gherkin format compliance
 - [ ] Verify acceptance criteria are specific and testable
 - [ ] Check story coverage matches requirements analysis
@@ -47,6 +49,7 @@ Next, work with our GENDEV user story generator to create comprehensive user sto
 Then collaborate with our GENDEV project planner to create an agile development plan with sprint organization, timeline management, and delivery milestones.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the project plan and sprint breakdown
 - [ ] Verify agile methodology is properly applied
 - [ ] Check timeline alignment with constraints and capacity
@@ -58,6 +61,7 @@ Then collaborate with our GENDEV project planner to create an agile development 
 Please work with our GENDEV system architect to design comprehensive feature architecture including component relationships, integration patterns, and technical specifications.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read architecture documentation and component diagrams
 - [ ] Verify architectural decisions align with system standards
 - [ ] Check integration patterns are properly defined
@@ -65,6 +69,7 @@ Please work with our GENDEV system architect to design comprehensive feature arc
 Next, collaborate with our GENDEV API designer to create detailed API specifications, endpoint definitions, and integration contracts for the feature.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read API specifications and endpoint documentation
 - [ ] Verify API design follows RESTful principles
 - [ ] Check integration contracts are complete and consistent
@@ -72,6 +77,7 @@ Next, collaborate with our GENDEV API designer to create detailed API specificat
 Then engage our GENDEV database schema designer to create optimized relational database schema supporting the feature requirements with proper normalization and indexing.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read database schema files and migration scripts
 - [ ] Verify relational design supports feature requirements
 - [ ] Check schema optimization and indexing strategies
@@ -83,6 +89,7 @@ Then engage our GENDEV database schema designer to create optimized relational d
 Please work with our GENDEV deployment operations manager to establish and configure the development environment with proper setup, dependencies, and deployment processes.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read environment configuration and setup documentation
 - [ ] Verify development environment is properly configured
 - [ ] Check deployment processes are functional and documented
@@ -90,6 +97,7 @@ Please work with our GENDEV deployment operations manager to establish and confi
 Next, collaborate with our GENDEV code refactoring specialist to implement clean, maintainable business logic and API endpoints following established patterns and best practices.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read implemented code to confirm clean architecture
 - [ ] Verify code follows established patterns and standards
 - [ ] Check business logic implementation meets requirements
@@ -97,6 +105,7 @@ Next, collaborate with our GENDEV code refactoring specialist to implement clean
 Then engage our GENDEV interface designer to create responsive UI components and user interface elements with proper accessibility and design consistency.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read UI component code and design specifications
 - [ ] Verify responsive design and accessibility compliance
 - [ ] Check interface consistency with design standards
@@ -108,6 +117,7 @@ Then engage our GENDEV interface designer to create responsive UI components and
 Please engage our GENDEV test suite generator to create comprehensive testing coverage including unit tests, integration tests, and end-to-end tests with a target of 90% code coverage.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read test files and coverage reports
 - [ ] Verify 90% coverage target is achieved across all test types
 - [ ] Check unit, integration, and e2e tests are comprehensive
@@ -115,6 +125,7 @@ Please engage our GENDEV test suite generator to create comprehensive testing co
 Next, work with our GENDEV code reviewer to conduct thorough comprehensive code review focusing on quality, maintainability, performance, and adherence to standards.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read code review reports and findings
 - [ ] Verify comprehensive review covers quality, performance, and standards
 - [ ] Check all review recommendations are addressed
@@ -122,6 +133,7 @@ Next, work with our GENDEV code reviewer to conduct thorough comprehensive code 
 Then collaborate with our GENDEV security analyzer to perform thorough security assessment, vulnerability scanning, and security best practices validation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read security analysis report and vulnerability assessment
 - [ ] Verify all security issues are identified and addressed
 - [ ] Check security best practices are properly implemented
@@ -133,6 +145,7 @@ Then collaborate with our GENDEV security analyzer to perform thorough security 
 Please work with our GENDEV CI/CD builder to create automated build, test, and deployment pipelines ensuring reliable feature integration and delivery processes.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read CI/CD pipeline configuration and build scripts
 - [ ] Verify automated build and test processes are functional
 - [ ] Check deployment pipelines handle feature integration properly
@@ -140,6 +153,7 @@ Please work with our GENDEV CI/CD builder to create automated build, test, and d
 Next, engage our GENDEV performance optimizer to validate feature performance, identify bottlenecks, and implement optimization strategies meeting response time requirements.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read performance test results and optimization reports
 - [ ] Verify response times meet sub-2s requirements
 - [ ] Check performance optimizations are effective
@@ -147,6 +161,7 @@ Next, engage our GENDEV performance optimizer to validate feature performance, i
 Then collaborate with our GENDEV documentation generator to create comprehensive feature documentation targeting mixed audiences including developers, users, and stakeholders.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read feature documentation for completeness and clarity
 - [ ] Verify documentation serves mixed audience needs effectively
 - [ ] Check documentation covers all feature aspects and usage scenarios
@@ -158,6 +173,7 @@ Then collaborate with our GENDEV documentation generator to create comprehensive
 Please work with our GENDEV deployment operations manager to execute production deployment, configure monitoring systems, and establish post-deployment validation processes.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read deployment logs and production configuration
 - [ ] Verify production deployment completed successfully
 - [ ] Check monitoring and alerting systems are functional
@@ -165,6 +181,7 @@ Please work with our GENDEV deployment operations manager to execute production 
 Finally, collaborate with our GENDEV QA coordinator to coordinate post-release validation, user acceptance testing, and adoption metrics tracking to ensure feature success.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read QA validation reports and user acceptance test results
 - [ ] Verify post-release validation confirms feature functionality
 - [ ] Check adoption metrics and user feedback are being tracked

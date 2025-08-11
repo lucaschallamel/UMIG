@@ -13,22 +13,27 @@ description: Fast variant for rapid development journal creation with essential 
 **GENDEV AGENT DELEGATION ENCOURAGED**: Leverage specialized GENDEV agents whenever asked for complex tasks while maintaining strict verification protocols.
 
 ### ZERO TRUST VERIFICATION REQUIREMENTS
+
 **CRITICAL**: Every agent delegation requires evidence-based verification through direct tool calls.
+
 - **NEVER** trust completion reports or assume task success
 - **ALWAYS** verify actual outputs exist through file reads and directory checks
 - **VALIDATE** content quality, completeness, and format compliance
 - **CONFIRM** all deliverables before phase progression
 
 ### MANDATORY ERROR REPORTING PROTOCOL
+
 **NO SILENT FAILURES**: All errors, failures, and issues must be explicitly reported.
 
 **Error Classification & Response**:
+
 - **CRITICAL FAILURES**: Task cannot be completed → Escalate immediately with full context
 - **PARTIAL FAILURES**: Some components completed → Detailed breakdown of what succeeded/failed
 - **WARNING CONDITIONS**: Task completed with issues → Document suboptimal results and risks
 - **DEPENDENCY FAILURES**: External services unavailable → Report impact and alternative approaches
 
 **Comprehensive Error Surface Requirements**:
+
 - **IMMEDIATE REPORTING**: No delays or batching of error notifications
 - **ROOT CAUSE ANALYSIS**: Explain why failures occurred
 - **IMPACT ASSESSMENT**: Describe affected functionality and consequences
@@ -36,17 +41,21 @@ description: Fast variant for rapid development journal creation with essential 
 - **ESCALATION PATH**: Clear indication when human intervention is required
 
 ### VERIFICATION CHECKLIST (ADAPTIVE)
+
 **File System Verification**:
+
 - Use `view_files` to read all target files and validate content
 - Use `list_dir` to verify directory structure changes
 - Check file timestamps, sizes, and modification indicators
 
 **Quality Validation**:
+
 - Verify content matches requirements and success criteria
 - Check formatting, structure, and completeness
 - Validate cross-references and consistency across related files
 
 **Error Transparency**:
+
 - Surface all subagent errors to user with full context
 - Maintain complete error history for debugging
 - Flag any attempts to hide or suppress failures as protocol violations
@@ -79,7 +88,9 @@ git diff --stat $(git merge-base HEAD main)..HEAD
 ```
 
 ### Work Stream Categorization (1 minute)
+
 Quickly identify ALL work (not just current session):
+
 - **Features/Stories**: All US- items
 - **Bug Fixes**: All fix commits
 - **Refactoring**: Code improvements
@@ -109,6 +120,7 @@ Deploy system architect for period analysis.
 # Developer Journal — YYYYMMDD-nn
 
 ## Development Period
+
 - **Since Last Entry:** [Date from Phase 1]
 - **Total Commits:** [Count from git log]
 - **User Stories/Features:** [All US- items]
@@ -116,19 +128,24 @@ Deploy system architect for period analysis.
 ## Work Completed
 
 ### Features & Stories
+
 [List ALL features/stories with commits]
 
 ### Bug Fixes & Improvements
+
 [List ALL fixes and refactoring]
 
 ### Technical Decisions
+
 [Key decisions with commit refs]
 
 ## Current State
+
 - Working: [What's functional]
 - Issues: [What needs attention]
 
 ## Next Steps
+
 [Immediate priorities based on complete history]
 ```
 
@@ -139,6 +156,7 @@ Deploy system architect for period analysis.
 Direct QA coordinator with comprehensive checklist.
 
 ### Quick Verification (2 minutes)
+
 - [ ] **Timeline Complete**: ALL commits since last journal included
 - [ ] **User Stories**: Every US- item documented
 - [ ] **Bug Fixes**: All fixes listed with commits
