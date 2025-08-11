@@ -28,6 +28,7 @@ This story modernizes the MigrationsAPI to be consistent with Sprint 3 patterns 
 ## Acceptance Criteria
 
 ### AC1: Consistent CRUD Patterns
+
 **Given** the need for API consistency  
 **When** using migrations endpoints  
 **Then** implement comprehensive CRUD operations following Sprint 3 patterns  
@@ -36,6 +37,7 @@ This story modernizes the MigrationsAPI to be consistent with Sprint 3 patterns 
 **And** maintain backward compatibility
 
 ### AC2: Comprehensive Filtering Options
+
 **Given** the need for sophisticated migration queries  
 **When** filtering migrations  
 **Then** support filtering by status, created_date, updated_date, assigned teams  
@@ -44,6 +46,7 @@ This story modernizes the MigrationsAPI to be consistent with Sprint 3 patterns 
 **And** optimize query performance for large datasets
 
 ### AC3: Bulk Status Updates
+
 **Given** the need for efficient migration management  
 **When** updating multiple migrations  
 **Then** support bulk status transitions  
@@ -52,6 +55,7 @@ This story modernizes the MigrationsAPI to be consistent with Sprint 3 patterns 
 **And** maintain audit trail for bulk operations
 
 ### AC4: Progress Aggregation Endpoints
+
 **Given** dashboard requirements for progress visualization  
 **When** requesting migration progress data  
 **Then** provide aggregated progress metrics by migration  
@@ -60,6 +64,7 @@ This story modernizes the MigrationsAPI to be consistent with Sprint 3 patterns 
 **And** support real-time progress updates
 
 ### AC5: Transaction Handling
+
 **Given** the critical nature of migration data  
 **When** performing migration operations  
 **Then** implement proper transaction boundaries  
@@ -68,6 +73,7 @@ This story modernizes the MigrationsAPI to be consistent with Sprint 3 patterns 
 **And** maintain referential integrity
 
 ### AC6: Error Handling and Validation
+
 **Given** the importance of data integrity  
 **When** encountering errors or invalid data  
 **Then** provide comprehensive error messages  
@@ -82,6 +88,7 @@ This story modernizes the MigrationsAPI to be consistent with Sprint 3 patterns 
 ### Current State Analysis
 
 **File**: `src/groovy/umig/api/v2/MigrationsApi.groovy`
+
 - Top-level entity affecting all others
 - Currently very basic implementation
 - Missing advanced filtering and aggregation

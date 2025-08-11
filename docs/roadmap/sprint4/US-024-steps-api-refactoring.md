@@ -28,6 +28,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 ## Acceptance Criteria
 
 ### AC1: Advanced Query Parameters Implementation
+
 **Given** the need for sophisticated step filtering  
 **When** calling steps endpoints  
 **Then** support comprehensive filtering by migration_id, iteration_id, plan_id, sequence_id, phase_id, team_id, status, and assigned_to  
@@ -35,6 +36,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 **And** provide pagination with limit/offset pattern and enforcement
 
 ### AC2: Master/Instance Separation
+
 **Given** the master-instance pattern used throughout UMIG  
 **When** managing step templates and instances  
 **Then** implement master step template support  
@@ -43,6 +45,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 **And** provide bulk instance creation
 
 ### AC3: Bulk Operations Support
+
 **Given** the need for efficient multi-step operations  
 **When** performing bulk actions  
 **Then** support bulk status updates  
@@ -51,6 +54,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 **And** support bulk reordering capabilities
 
 ### AC4: Hierarchical Filtering (ADR-030)
+
 **Given** the need for instance-based filtering  
 **When** filtering across the hierarchy  
 **Then** accept instance IDs for filtering  
@@ -58,6 +62,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 **And** optimize performance for large datasets
 
 ### AC5: Status Field Normalization (ADR-035)
+
 **Given** the completed status normalization work  
 **When** handling step status  
 **Then** ensure FK compliance to status_sts table  
@@ -65,6 +70,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 **And** provide proper status validation
 
 ### AC6: Performance Optimization
+
 **Given** the need for responsive API performance  
 **When** processing step queries  
 **Then** implement query optimization  
@@ -73,6 +79,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 **And** achieve target response time <200ms
 
 ### AC7: Error Handling Enhancement
+
 **Given** the need for robust error management  
 **When** encountering errors  
 **Then** provide comprehensive error messages  
@@ -81,6 +88,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 **And** provide validation feedback
 
 ### AC8: Comprehensive Testing
+
 **Given** the critical nature of step operations  
 **When** validating the refactored API  
 **Then** achieve 90%+ test coverage  
@@ -95,6 +103,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 ### Current State Analysis
 
 **File**: `src/groovy/umig/api/v2/StepsApi.groovy`
+
 - Basic CRUD operations implemented
 - Missing advanced features from Sprint 3 patterns
 - No hierarchical filtering
@@ -104,6 +113,7 @@ This story ensures consistency across all UMIG APIs by applying the modern patte
 ### Target State (Sprint 3 Pattern)
 
 Based on successful patterns from:
+
 - `PlansApi.groovy` (US-001)
 - `SequencesApi.groovy` (US-002)
 - `PhasesApi.groovy` (US-003)
@@ -112,18 +122,21 @@ Based on successful patterns from:
 ### Implementation Phases
 
 #### Phase 1: Repository Layer Enhancement
+
 1. Extend `StepRepository.groovy`
 2. Add advanced query methods
 3. Implement bulk operations
 4. Add performance optimizations
 
 #### Phase 2: API Layer Refactoring
+
 1. Refactor `StepsApi.groovy`
 2. Implement new endpoints
 3. Add parameter validation
 4. Enhance error handling
 
 #### Phase 3: Testing & Documentation
+
 1. Write comprehensive tests
 2. Update API documentation
 3. Performance benchmarking
@@ -132,6 +145,7 @@ Based on successful patterns from:
 ### Code Patterns to Follow
 
 From `PlansApi.groovy`:
+
 ```groovy
 // Advanced filtering pattern
 def filters = [:]
@@ -149,6 +163,7 @@ def result = DatabaseUtil.withSql { sql ->
 ```
 
 From `SequencesApi.groovy`:
+
 ```groovy
 // Bulk operation pattern
 def bulkUpdate = { request, binding ->
@@ -165,6 +180,7 @@ def bulkUpdate = { request, binding ->
 ## Dependencies and References
 
 ### Technical Dependencies
+
 - StepRepository.groovy (needs enhancement)
 - DatabaseUtil (existing)
 - Status normalization (US-017) ✅ COMPLETED
@@ -172,9 +188,11 @@ def bulkUpdate = { request, binding ->
 - ADR-031 (Type Safety)
 
 ### Blocking Dependencies
+
 - None (can begin immediately)
 
 ### Success Dependencies
+
 - US-028 (Enhanced IterationView) depends on US-024 completion
 
 ---
