@@ -176,22 +176,54 @@ Please work with our GENDEV CI/CD builder to establish comprehensive deployment 
 - **gendev-cicd-builder**: Deployment automation
 - **gendev-team-coordinator**: Review coordination
 
-## Scope Analysis
+## Scope Analysis (CRITICAL - Prevents Tunnel Vision)
+
+### Comprehensive Branch History Analysis
+
+**MANDATORY: Capture ALL commits from branch divergence point**
+
+```bash
+# 1. Identify exact divergence point from base branch
+base_branch="main"  # or master, develop, etc.
+diverge_point=$(git merge-base HEAD $base_branch)
+echo "Branch diverged at: $diverge_point"
+
+# 2. Get COMPLETE commit history since divergence
+git log $base_branch..HEAD --oneline --graph
+echo "Total commits in PR: $(git rev-list --count $base_branch..HEAD)"
+
+# 3. Analyze ALL commits with detailed messages
+git log $base_branch..HEAD --pretty=format:"%h %ad %s%n%b" --date=short
+
+# 4. Categorize ALL commits by type (not just recent)
+git log $base_branch..HEAD --oneline | grep -E "^[a-f0-9]+ (feat|fix|docs|test|refactor|style|chore):"
+
+# 5. Track ALL user stories in branch
+git log $base_branch..HEAD --grep="US-" --oneline
+
+# 6. Get complete file change summary
+git diff --stat $base_branch..HEAD
+git diff --name-status $base_branch..HEAD | cut -f2 | sort -u | wc -l
+echo "Total files modified: $(git diff --name-status $base_branch..HEAD | wc -l)"
+```
 
 **Branch Analysis:**
 
-- Run `git log <base_branch>..HEAD --stat --oneline`
-- Categorize commits by type (feat, fix, docs, etc.)
+- Run `git log $base_branch..HEAD --stat --oneline` for ALL commits
+- Categorize EVERY commit by type (feat, fix, docs, refactor, test, etc.)
+- Track commit timeline to identify work patterns
 
 **File Impact:**
 
-- Run `git diff <base_branch>..HEAD --name-status`
+- Run `git diff $base_branch..HEAD --name-status` for complete diff
 - Group by functional area (API, UI, docs, tests, config)
+- Identify files with multiple changes across commits
 
 **Work Streams:**
 
-- Identify primary and secondary work streams
-- Note dependencies between changes
+- Identify ALL work streams (primary, secondary, tertiary)
+- Note dependencies and relationships between ALL changes
+- Document parallel development efforts
 
 ## Narrative Synthesis
 
@@ -379,10 +411,18 @@ Use a structured template that accommodates multiple work streams and comprehens
 
 Before presenting the PR description, verify you have addressed ALL of the following:
 
+**Complete Branch Coverage (CRITICAL):**
+
+- [ ] **Divergence Point**: Identified exact commit where branch diverged from base
+- [ ] **Commit Count**: Verified total commits matches `git rev-list --count $base..HEAD`
+- [ ] **Commit Coverage**: EVERY single commit from divergence is documented
+- [ ] **Timeline Integrity**: Full chronological progression preserved
+- [ ] **No Missing Commits**: Cross-checked with `git log --oneline $base..HEAD`
+
 **Content Coverage:**
 
-- [ ] All commits in the PR are explained
-- [ ] All modified files are accounted for
+- [ ] All commits in the PR are explained (100% coverage required)
+- [ ] All modified files are accounted for (match `git diff --name-status`)
 - [ ] All functional areas touched are documented
 - [ ] All work streams are identified and described
 - [ ] Cross-functional impacts are noted

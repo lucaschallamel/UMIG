@@ -63,11 +63,22 @@ Deploy code reviewer.
 Execute security architect: standard validation.
 **Output**: Code quality analysis, security validation, compliance check, performance assessment
 
-## Phase 2: Scope Analysis & Documentation
+## Phase 2: Scope Analysis & Documentation (Zero Tunnel Vision)
+
+### Quick Branch History Capture (2 minutes)
+
+```bash
+# Get ALL commits from branch divergence (not just recent)
+base="main"  # or master/develop
+diverge=$(git merge-base HEAD $base)
+echo "Total commits: $(git rev-list --count $base..HEAD)"
+git log $base..HEAD --oneline --graph
+git diff --stat $base..HEAD | tail -1  # Summary line
+```
 
 Direct documentation generator: standard validation.
-Run: `git log main..HEAD --stat --oneline && git diff main..HEAD --name-status`
-**Output**: PR scope analysis, work stream identification, file impact assessment, commit categorization
+Analyze COMPLETE branch history: `git log $base..HEAD --stat --oneline && git diff $base..HEAD --name-status`
+**Output**: COMPLETE PR scope (100% commits), ALL work streams, total file impact, comprehensive categorization
 
 ## Phase 3: Testing & Integration
 
@@ -90,16 +101,18 @@ Direct documentation generator: standard validation.
 ## Success Criteria
 
 - Quality validation passed
+- **100% commit coverage** verified
 - Multi-stream PR documented
 - Testing instructions clear
 - Review readiness verified
-- Anti-tunnel vision validated
+- **Zero tunnel vision** - ALL commits from divergence documented
 
 ## Quick Troubleshooting
 
 - **Quality issues**: Run lint/format/test, address violations
-- **Missing context**: Review commits, analyze file changes comprehensively
-- **Incomplete coverage**: Identify missing work streams, expand testing
+- **Missing context**: Check ALL commits with `git log $base..HEAD`, not just recent
+- **Incomplete coverage**: Verify commit count matches, identify missing work streams
+- **Tunnel vision detected**: Re-run `git merge-base` and analyze from divergence point
 
 ## Integration
 
