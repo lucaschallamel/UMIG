@@ -28,6 +28,7 @@ This story ensures comprehensive documentation of all refactored APIs, providing
 ## Acceptance Criteria
 
 ### AC1: OpenAPI Specification Update
+
 **Given** the refactored APIs  
 **When** updating documentation  
 **Then** update the complete OpenAPI specification  
@@ -36,6 +37,7 @@ This story ensures comprehensive documentation of all refactored APIs, providing
 **And** provide comprehensive examples
 
 ### AC2: Document All Refactored Endpoints
+
 **Given** the modernized StepsAPI and MigrationsAPI  
 **When** documenting endpoints  
 **Then** document all CRUD operations  
@@ -44,6 +46,7 @@ This story ensures comprehensive documentation of all refactored APIs, providing
 **And** include dashboard-specific endpoints
 
 ### AC3: Create Migration Guide
+
 **Given** changes from API refactoring  
 **When** upgrading from previous versions  
 **Then** provide clear migration guide  
@@ -52,6 +55,7 @@ This story ensures comprehensive documentation of all refactored APIs, providing
 **And** provide troubleshooting guidance
 
 ### AC4: Update Postman Collections
+
 **Given** the need for API testing tools  
 **When** working with APIs  
 **Then** update Postman collections with new endpoints  
@@ -60,6 +64,7 @@ This story ensures comprehensive documentation of all refactored APIs, providing
 **And** organize collections by functional area
 
 ### AC5: Generate API Changelog
+
 **Given** the evolution of the API  
 **When** tracking changes  
 **Then** maintain comprehensive changelog  
@@ -72,24 +77,28 @@ This story ensures comprehensive documentation of all refactored APIs, providing
 ## Implementation Checklist
 
 ### OpenAPI Specification
+
 - [ ] Update `/docs/api/openapi.yaml` with all new endpoints
 - [ ] Document request/response schemas
 - [ ] Add comprehensive examples
 - [ ] Validate specification syntax
 
 ### Individual API Documentation
+
 - [ ] Complete StepsAPI documentation
 - [ ] Complete MigrationsAPI documentation
 - [ ] Document dashboard endpoints
 - [ ] Include performance characteristics
 
 ### Migration and Upgrade Guides
+
 - [ ] Create API migration guide
 - [ ] Document breaking changes
 - [ ] Provide code examples
 - [ ] Include troubleshooting section
 
 ### Tools and Resources
+
 - [ ] Update Postman collections
 - [ ] Generate API changelog
 - [ ] Create developer quick-start guide
@@ -100,6 +109,7 @@ This story ensures comprehensive documentation of all refactored APIs, providing
 ## Documentation Structure
 
 ### OpenAPI Specification Enhancement
+
 ```yaml
 # Enhanced structure for refactored APIs
 paths:
@@ -117,10 +127,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StepsResponse'
+                $ref: "#/components/schemas/StepsResponse"
 ```
 
 ### Migration Guide Content
+
 - Breaking changes summary
 - Endpoint mapping (old → new)
 - Parameter changes
@@ -129,6 +140,7 @@ paths:
 - Testing recommendations
 
 ### Postman Collection Organization
+
 - Authentication setup
 - Environment configuration
 - CRUD operations by entity

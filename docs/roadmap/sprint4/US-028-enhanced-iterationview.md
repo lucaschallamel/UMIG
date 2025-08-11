@@ -28,6 +28,7 @@ This story enhances the existing IterationView to leverage the modernized StepsA
 ## Acceptance Criteria
 
 ### AC1: StepsAPI Integration
+
 **Given** the refactored StepsAPI from US-024  
 **When** using the IterationView  
 **Then** integrate with the new StepsAPI endpoints  
@@ -36,6 +37,7 @@ This story enhances the existing IterationView to leverage the modernized StepsA
 **And** maintain backward compatibility during transition
 
 ### AC2: Real-time Status Updates
+
 **Given** the need for current step status  
 **When** viewing step information  
 **Then** implement real-time status updates  
@@ -43,6 +45,7 @@ This story enhances the existing IterationView to leverage the modernized StepsA
 **And** maintain user context during updates
 
 ### AC3: Bulk Operations UI
+
 **Given** the new bulk operation capabilities  
 **When** managing multiple steps  
 **Then** provide bulk status update interface  
@@ -50,6 +53,7 @@ This story enhances the existing IterationView to leverage the modernized StepsA
 **And** include safety confirmations for bulk operations
 
 ### AC4: Performance Improvements
+
 **Given** the optimized StepsAPI  
 **When** loading and filtering steps  
 **Then** achieve faster page load times  
@@ -57,6 +61,7 @@ This story enhances the existing IterationView to leverage the modernized StepsA
 **And** optimize rendering for large datasets
 
 ### AC5: Enhanced Filtering
+
 **Given** the expanded filtering capabilities  
 **When** filtering steps  
 **Then** support hierarchical filtering by migration, iteration, plan, sequence, phase  
@@ -68,9 +73,11 @@ This story enhances the existing IterationView to leverage the modernized StepsA
 ## Implementation Dependencies
 
 ### Blocking Dependency: US-024
+
 This story cannot begin implementation until US-024 (StepsAPI Refactoring) is completed, as it requires the new API endpoints and capabilities.
 
 ### Preparatory Work (Can Begin)
+
 - [ ] UI wireframes for enhanced features
 - [ ] Performance baseline measurement
 - [ ] User experience flow documentation
@@ -81,18 +88,21 @@ This story cannot begin implementation until US-024 (StepsAPI Refactoring) is co
 ## Implementation Checklist
 
 ### API Integration
+
 - [ ] Integrate with refactored StepsAPI
 - [ ] Implement advanced filtering
 - [ ] Add bulk operation support
 - [ ] Optimize API calls for performance
 
 ### UI Enhancement
+
 - [ ] Real-time status update interface
 - [ ] Bulk operations user interface
 - [ ] Enhanced filtering controls
 - [ ] Performance optimizations
 
 ### Testing & Validation
+
 - [ ] Performance testing
 - [ ] User acceptance testing
 - [ ] Regression testing
