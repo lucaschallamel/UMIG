@@ -7,7 +7,7 @@ info:
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
-    
+
     **US-025 Phase 4 Complete:** 100% integration test success rate achieved.
     **Recent Fixes:** mig_type parameter casting (Integer→String), GString serialization issues resolved.
     **Validation:** HTTP Basic Auth, SQL state mappings (23503→400, 23505→409) confirmed.
@@ -325,7 +325,15 @@ paths:
           description: Sort field
           schema:
             type: string
-            enum: [mig_name, mig_status, created_at, updated_at, mig_start_date, mig_end_date]
+            enum:
+              [
+                mig_name,
+                mig_status,
+                created_at,
+                updated_at,
+                mig_start_date,
+                mig_end_date,
+              ]
         - name: direction
           in: query
           description: Sort direction

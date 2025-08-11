@@ -32,6 +32,7 @@ Leverages GENDEV agents for AI-enhanced pull requests with comprehensive validat
 Please engage our GENDEV code reviewer to conduct comprehensive code quality analysis using comprehensive review depth, medium severity threshold, and enterprise compliance framework, focusing on code standards validation, quality metrics assessment, and compliance verification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read code quality analysis reports and standards validation documentation
 - [ ] Verify comprehensive review depth and enterprise compliance framework are applied
 - [ ] Check quality metrics assessment and compliance verification are thorough
@@ -48,6 +49,7 @@ npm run lint && npm run format && npm test && npm audit
 Please collaborate with our GENDEV documentation generator to create comprehensive documentation enhancement using comprehensive documentation type, developer-level audience targeting, markdown format styling, and standard validation standards, focusing on developer documentation creation, format optimization, and comprehensive content generation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read documentation enhancement reports and developer documentation files
 - [ ] Verify comprehensive documentation type and markdown format styling are applied with standard validation
 - [ ] Check developer-level audience targeting and format optimization are effective
@@ -58,6 +60,7 @@ Please collaborate with our GENDEV documentation generator to create comprehensi
 Please work with our GENDEV security architect to perform comprehensive security validation using enterprise-level validation standards, focusing on security architecture review, vulnerability assessment, and enterprise compliance verification for thorough security analysis.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read security validation reports and vulnerability assessment documentation
 - [ ] Verify enterprise-level validation standards are applied to security review activities
 - [ ] Check security architecture review and enterprise compliance verification are comprehensive
@@ -66,6 +69,7 @@ Please work with our GENDEV security architect to perform comprehensive security
 Next, engage our GENDEV performance optimizer to conduct comprehensive scalability assessment with sub-second performance targets using standard validation standards, focusing on performance analysis, scalability evaluation, and optimization recommendations.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read performance analysis reports and scalability assessment documentation
 - [ ] Verify sub-second performance targets and standard validation standards are applied
 - [ ] Check scalability evaluation and optimization recommendations are comprehensive
@@ -78,6 +82,7 @@ Next, engage our GENDEV performance optimizer to conduct comprehensive scalabili
 Please collaborate with our GENDEV documentation generator to create comprehensive PR description generation using developer-level audience targeting and standard validation standards, focusing on pull request content creation, developer communication optimization, and description quality assurance.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read PR description generation reports and developer communication documentation
 - [ ] Verify developer-level audience targeting and standard validation standards are applied
 - [ ] Check pull request content creation and description quality assurance are comprehensive
@@ -88,6 +93,7 @@ Please collaborate with our GENDEV documentation generator to create comprehensi
 Please work with our GENDEV test suite generator to establish comprehensive testing validation using unit, integration, and e2e test types with 95% coverage target and standard validation standards, focusing on comprehensive test coverage, test strategy development, and validation quality assurance.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read testing validation reports and comprehensive test coverage documentation
 - [ ] Verify unit, integration, and e2e test types are implemented with 95% coverage target
 - [ ] Check test strategy development and validation quality assurance are thorough
@@ -100,6 +106,7 @@ Please work with our GENDEV test suite generator to establish comprehensive test
 Please engage our GENDEV project orchestrator to perform comprehensive reviewer assignment coordination using standard validation standards, focusing on optimal reviewer assignment, team coordination, and review process optimization for effective pull request management.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read reviewer assignment reports and team coordination documentation
 - [ ] Verify standard validation standards are applied to reviewer assignment processes
 - [ ] Check optimal reviewer assignment and review process optimization are effective
@@ -110,6 +117,7 @@ Please engage our GENDEV project orchestrator to perform comprehensive reviewer 
 Please collaborate with our GENDEV QA coordinator to establish comprehensive review quality assurance using enterprise-level validation standards, focusing on review process coordination, quality assurance validation, and comprehensive review oversight for thorough pull request quality management.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read review quality assurance reports and coordination documentation
 - [ ] Verify enterprise-level validation standards are applied to review assistance activities
 - [ ] Check review process coordination and quality assurance validation are comprehensive
@@ -120,6 +128,7 @@ Please collaborate with our GENDEV QA coordinator to establish comprehensive rev
 Please work with our GENDEV CI/CD builder to establish comprehensive deployment preparation and validation, focusing on deployment pipeline optimization, continuous integration coordination, and deployment validation processes for reliable pull request deployment readiness.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read deployment preparation reports and pipeline optimization documentation
 - [ ] Verify deployment pipeline optimization and continuous integration coordination are comprehensive
 - [ ] Check deployment validation processes and deployment readiness assessment are thorough

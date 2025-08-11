@@ -63,6 +63,7 @@ This workflow guides the creation of a high-quality, comprehensive commit messag
 Please consult with our GENDEV quality assurance coordinator to validate the completeness of our staged changes analysis. Focus on ensuring all related files are properly included and follow project standards.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read any generated completeness reports or validation outputs
 - [ ] Verify QA recommendations are properly documented
 - [ ] Check that file analysis covers all staged changes
@@ -92,6 +93,7 @@ git ls-files --others --exclude-standard
 Please work with our GENDEV context manager to perform intelligent analysis of work streams with high quality standards (90%+ threshold). Identify primary, secondary, and incidental work streams with proper dependency mapping.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the context analysis report to confirm work streams are identified
 - [ ] Verify quality threshold (90%+) is met for the analysis
 - [ ] Check that dependencies between streams are properly mapped
@@ -111,6 +113,7 @@ Please work with our GENDEV context manager to perform intelligent analysis of w
 Please engage our GENDEV requirements analyst to perform enterprise-level context analysis for our commit. This involves analyzing the impact on multiple stakeholders (approximately 5), working within normal timeline constraints, and handling medium-complexity domain considerations.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the requirements analysis report to confirm stakeholder impact assessment
 - [ ] Verify enterprise-level validation standards are applied
 - [ ] Check that domain complexity considerations are documented
@@ -154,6 +157,7 @@ Please engage our GENDEV requirements analyst to perform enterprise-level contex
 Please work with our GENDEV documentation generator to create a comprehensive commit message following the Conventional Commits format. Target expert-level developers as the audience with precise technical language and ensure adherence to conventional commit standards.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the generated commit message to confirm it follows Conventional Commits 1.0
 - [ ] Verify the message targets expert-level developers with appropriate technical depth
 - [ ] Check that all staged changes are properly reflected in the message

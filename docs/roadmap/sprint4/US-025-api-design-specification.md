@@ -7,6 +7,7 @@ Based on Sprint 3 patterns analysis, this specification defines the modernized M
 ## Core Endpoint Structure
 
 ### GET /migrations - List migrations with filtering
+
 ```
 Query Parameters:
 - page: Page number (default: 1, min: 1)
@@ -22,12 +23,14 @@ Query Parameters:
 ```
 
 ### GET /migrations/{id} - Single migration
+
 ```
 Path: /migrations/{migrationId}
 Response: Full migration details with statusMetadata
 ```
 
 ### POST /migrations - Create migration
+
 ```
 Body: Migration creation data
 Response: 201 Created with full migration object
@@ -35,6 +38,7 @@ Error handling: 400 for validation, 409 for conflicts
 ```
 
 ### PUT /migrations/{id} - Update migration
+
 ```
 Path: /migrations/{migrationId}
 Body: Migration update data
@@ -43,6 +47,7 @@ Error handling: 400, 404, 409
 ```
 
 ### DELETE /migrations/{id} - Delete migration
+
 ```
 Path: /migrations/{migrationId}
 Response: 204 No Content
@@ -52,6 +57,7 @@ Error handling: 404, 409 for referential integrity
 ## Dashboard Endpoints
 
 ### GET /migrations/dashboard/summary - Dashboard summary
+
 ```
 Response: {
   totalMigrations: number,
@@ -62,6 +68,7 @@ Response: {
 ```
 
 ### GET /migrations/dashboard/progress - Progress aggregation
+
 ```
 Query Parameters:
 - migrationId: Specific migration (optional)
@@ -78,6 +85,7 @@ Response: {
 ```
 
 ### GET /migrations/dashboard/metrics - Performance metrics
+
 ```
 Query Parameters:
 - period: day/week/month/quarter
@@ -95,6 +103,7 @@ Response: {
 ## Bulk Operations
 
 ### PUT /migrations/bulk/status - Bulk status update
+
 ```
 Body: {
   migrationIds: [UUID],
@@ -109,6 +118,7 @@ Response: {
 ```
 
 ### POST /migrations/bulk/export - Bulk export
+
 ```
 Body: {
   migrationIds: [UUID],
@@ -131,6 +141,7 @@ Following TeamsApi patterns:
 ```
 
 HTTP Status Codes:
+
 - 200: Success
 - 201: Created
 - 204: No Content (delete)
@@ -144,6 +155,7 @@ HTTP Status Codes:
 ## Response Format Standards
 
 ### Migration Object
+
 ```json
 {
   "id": "UUID",
@@ -169,6 +181,7 @@ HTTP Status Codes:
 ```
 
 ### Paginated Response
+
 ```json
 {
   "data": [migration],
@@ -195,7 +208,7 @@ Maintain existing hierarchical endpoints but optimize:
 
 ```
 GET /migrations/{id}/iterations
-GET /migrations/{id}/iterations/{iteId}/plan-instances  
+GET /migrations/{id}/iterations/{iteId}/plan-instances
 GET /migrations/{id}/iterations/{iteId}/sequences
 GET /migrations/{id}/iterations/{iteId}/phases
 ```

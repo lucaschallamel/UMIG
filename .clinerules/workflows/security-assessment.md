@@ -33,6 +33,7 @@ Orchestrate GENDEV agents for thorough security assessments through threat model
 Please work with our GENDEV security architect to establish comprehensive security assessment planning with enterprise-level validation standards and ensure alignment with ISO27001 and NIST compliance frameworks.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the security assessment plan and compliance mapping documents
 - [ ] Verify enterprise validation standards are properly defined
 - [ ] Check ISO27001 and NIST framework alignment is documented
@@ -41,6 +42,7 @@ Please work with our GENDEV security architect to establish comprehensive securi
 Next, collaborate with our GENDEV resource monitor to analyze system resources, identify critical assets, and establish baseline security metrics for the assessment scope.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read resource analysis reports and asset inventory documentation
 - [ ] Verify critical assets are properly identified and categorized
 - [ ] Check baseline security metrics are established and measured
@@ -53,6 +55,7 @@ Next, collaborate with our GENDEV resource monitor to analyze system resources, 
 Please engage our GENDEV security architect to conduct comprehensive threat modeling using standard validation processes, focusing on attack surface analysis, threat scenario development, and security architecture validation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read threat modeling documentation and attack surface analysis reports
 - [ ] Verify STRIDE analysis is complete and accurate
 - [ ] Check threat scenarios are realistic and properly documented
@@ -61,6 +64,7 @@ Please engage our GENDEV security architect to conduct comprehensive threat mode
 Next, work with our GENDEV risk manager to perform systematic risk analysis using standard validation methodologies, including risk quantification, impact assessment, and mitigation strategy development.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read risk analysis reports and risk matrix documentation
 - [ ] Verify risk quantification methods are properly applied
 - [ ] Check mitigation strategies are practical and prioritized
@@ -73,6 +77,7 @@ Next, work with our GENDEV risk manager to perform systematic risk analysis usin
 Please collaborate with our GENDEV security analyzer to conduct comprehensive network and system vulnerability scanning using enterprise-level validation standards, focusing on infrastructure vulnerabilities and network security assessment.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read vulnerability scan reports and network security assessments
 - [ ] Verify enterprise validation standards are applied throughout scanning
 - [ ] Check infrastructure vulnerabilities are properly identified and classified
@@ -81,6 +86,7 @@ Please collaborate with our GENDEV security analyzer to conduct comprehensive ne
 Next, work with our GENDEV security analyzer again to perform application security testing with strict validation protocols, including OWASP Top 10 assessment, static analysis (SAST), and dynamic analysis (DAST).
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read application security test results and OWASP Top 10 assessment
 - [ ] Verify strict validation protocols are followed for all testing
 - [ ] Check SAST and DAST results are comprehensive and accurate
@@ -89,6 +95,7 @@ Next, work with our GENDEV security analyzer again to perform application securi
 Then engage our GENDEV security analyzer once more to validate API security with enterprise-level assessment standards, focusing on authentication, authorization, data validation, and API-specific attack vectors.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read API security assessment reports and vulnerability documentation
 - [ ] Verify API-specific security tests are comprehensive and follow enterprise standards
 - [ ] Check authentication, authorization, and data validation vulnerabilities are identified
@@ -101,6 +108,7 @@ Then engage our GENDEV security analyzer once more to validate API security with
 Please work with our GENDEV security analyzer to conduct network and web application penetration testing using standard validation methodologies, simulating real-world attack scenarios and advanced persistent threats (APT).
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read penetration test reports and attack simulation documentation
 - [ ] Verify standard validation methods are applied to all testing scenarios
 - [ ] Check APT simulation results and attack pathway documentation
@@ -109,6 +117,7 @@ Please work with our GENDEV security analyzer to conduct network and web applica
 Next, collaborate with our GENDEV security analyzer to perform comprehensive privilege escalation testing and incident response validation using enterprise-level assessment standards.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read privilege escalation test results and response validation reports
 - [ ] Verify enterprise-level testing standards are maintained throughout assessment
 - [ ] Check incident response procedures are properly tested and validated
@@ -121,6 +130,7 @@ Next, collaborate with our GENDEV security analyzer to perform comprehensive pri
 Please engage our GENDEV security analyzer to conduct comprehensive regulatory compliance validation using enterprise-level assessment standards, focusing on control effectiveness and regulatory requirement mapping.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read compliance validation reports and regulatory requirement assessments
 - [ ] Verify enterprise-level standards are applied to all compliance testing
 - [ ] Check control effectiveness measurements and compliance gap identification
@@ -129,6 +139,7 @@ Please engage our GENDEV security analyzer to conduct comprehensive regulatory c
 Next, work with our GENDEV security analyzer to perform detailed compliance gap analysis and evidence collection using standard validation processes to support audit requirements.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read gap analysis reports and collected compliance evidence documentation
 - [ ] Verify standard validation processes are followed for evidence collection
 - [ ] Check compliance gaps are properly documented with remediation recommendations
@@ -141,6 +152,7 @@ Next, work with our GENDEV security analyzer to perform detailed compliance gap 
 Please collaborate with our GENDEV security architect to conduct comprehensive security architecture validation using standard assessment processes, focusing on architectural security patterns and design review.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read security architecture review documentation and design assessments
 - [ ] Verify standard validation processes are applied to architectural analysis
 - [ ] Check security design patterns and architectural controls are properly evaluated
@@ -149,6 +161,7 @@ Please collaborate with our GENDEV security architect to conduct comprehensive s
 Next, work with our GENDEV security architect to perform enterprise-level defense-in-depth assessment and infrastructure hardening analysis with comprehensive security control evaluation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read defense-in-depth analysis and infrastructure hardening reports
 - [ ] Verify enterprise-level assessment standards are maintained throughout review
 - [ ] Check access controls and security layers are comprehensively evaluated
@@ -161,6 +174,7 @@ Next, work with our GENDEV security architect to perform enterprise-level defens
 Please engage our GENDEV test suite generator to create comprehensive security test suites using enterprise-level validation standards, focusing on security-specific test cases and vulnerability validation testing.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read generated security test suites and test case documentation
 - [ ] Verify enterprise-level validation standards are applied to all security tests
 - [ ] Check security test coverage includes vulnerability validation and penetration scenarios
@@ -169,6 +183,7 @@ Please engage our GENDEV test suite generator to create comprehensive security t
 Next, work with our GENDEV risk manager to conduct enterprise-level incident response validation, disaster recovery testing, and forensics capability assessment.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read incident response validation reports and disaster recovery test results
 - [ ] Verify enterprise-level risk management standards are applied to all validations
 - [ ] Check forensics capabilities and incident response procedures are properly tested
@@ -181,6 +196,7 @@ Next, work with our GENDEV risk manager to conduct enterprise-level incident res
 Please collaborate with our GENDEV security analyzer to generate comprehensive executive and technical security assessment reports using standard validation processes, focusing on findings synthesis and stakeholder communication.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read generated executive and technical security reports
 - [ ] Verify standard validation processes are followed in report compilation
 - [ ] Check reports effectively communicate security findings to appropriate stakeholders
@@ -189,6 +205,7 @@ Please collaborate with our GENDEV security analyzer to generate comprehensive e
 Finally, work with our GENDEV risk manager to develop enterprise-level risk prioritization, remediation roadmaps, and progress tracking systems for comprehensive security improvement planning.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read risk prioritization matrices and remediation roadmap documentation
 - [ ] Verify enterprise-level risk management standards are applied to remediation planning
 - [ ] Check progress tracking systems are comprehensive and actionable

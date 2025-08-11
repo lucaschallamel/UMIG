@@ -11,6 +11,7 @@ description: Mandatory verification template for all subagent delegated work
 Before delegating work to subagents:
 
 1. **Capture Current State:**
+
    ```bash
    # Record current file timestamps and sizes
    ls -la [target_files]
@@ -93,9 +94,11 @@ Copy this verification section into every workflow that uses subagents:
 
 ```markdown
 ## VERIFICATION REQUIRED
+
 After subagent execution:
+
 1. Read all modified files to confirm changes
-2. Check timestamps to verify writes occurred  
+2. Check timestamps to verify writes occurred
 3. Validate content matches expectations
 4. Report specific discrepancies if found
 5. Never claim success without file verification

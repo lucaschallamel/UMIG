@@ -9,6 +9,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 Please engage our GENDEV documentation generator to conduct comprehensive change assessment using standard validation standards, focusing on AI-assisted change analysis, intelligent summarization, and documentation impact evaluation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read change assessment reports and impact evaluation documentation
 - [ ] Verify standard validation standards are applied to change analysis activities
 - [ ] Check AI-assisted review and intelligent summarization are comprehensive and accurate
@@ -23,6 +24,7 @@ Please engage our GENDEV documentation generator to conduct comprehensive change
 Please collaborate with our GENDEV system architect to perform comprehensive architecture documentation management using standard validation standards, focusing on architecture update assessment, automated analysis of architectural impacts, and consistency verification for documentation authority.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read architecture documentation analysis reports and system pattern updates
 - [ ] Verify standard validation standards are applied to architecture documentation management
 - [ ] Check architectural impact detection and consistency verification are comprehensive
@@ -37,6 +39,7 @@ Please collaborate with our GENDEV system architect to perform comprehensive arc
 Please work with our GENDEV business process analyst to conduct comprehensive ADR (Architecture Decision Record) management and assessment, focusing on AI-assisted ADR evaluation, archive management optimization, and decision tracking coordination.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read ADR assessment reports and decision tracking documentation
 - [ ] Verify ADR evaluation and archive management processes are comprehensive and accurate
 - [ ] Check decision tracking and system pattern integration are properly coordinated
@@ -51,6 +54,7 @@ Please work with our GENDEV business process analyst to conduct comprehensive AD
 Please engage our GENDEV documentation generator to perform comprehensive systematic documentation updates using enterprise-level validation standards, focusing on CHANGELOG management, README enhancement, memory bank updates, and cross-reference validation coordination.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read comprehensive documentation update reports and CHANGELOG files
 - [ ] Verify enterprise-level validation standards are applied to all documentation updates
 - [ ] Check README enhancements, memory bank updates, and cross-reference validation are complete
@@ -69,6 +73,7 @@ Please engage our GENDEV documentation generator to perform comprehensive system
 Please collaborate with our GENDEV QA coordinator to establish comprehensive quality assurance and validation processes using enterprise-level validation standards, focusing on accuracy verification, consistency checking, completeness assessment, and integration validation coordination.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read quality assurance reports and validation assessment documentation
 - [ ] Verify enterprise-level validation standards are applied to all QA activities
 - [ ] Check accuracy verification, consistency checking, and completeness assessment are thorough

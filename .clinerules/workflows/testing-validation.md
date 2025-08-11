@@ -33,6 +33,7 @@ Orchestrate GENDEV agents for comprehensive testing strategies covering unit, in
 Please engage our GENDEV QA coordinator to develop comprehensive test strategy using enterprise-level validation standards, focusing on risk-based testing approach and quality metrics establishment.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read test strategy documentation and quality metrics framework files
 - [ ] Verify enterprise-level validation standards are applied to test planning
 - [ ] Check risk-based testing approach is comprehensive and well-documented
@@ -41,6 +42,7 @@ Please engage our GENDEV QA coordinator to develop comprehensive test strategy u
 Next, work with our GENDEV test suite generator to create multi-tiered test framework covering unit, integration, E2E, and performance testing with 90% coverage target using standard validation processes.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read test suite framework files and coverage configuration documentation
 - [ ] Verify standard validation processes are applied to test suite generation
 - [ ] Check all test types (unit, integration, E2E, performance) are properly configured
@@ -53,6 +55,7 @@ Next, work with our GENDEV test suite generator to create multi-tiered test fram
 Please collaborate with our GENDEV test suite generator to create comprehensive unit tests with focused validation on individual components, targeting 95% coverage using standard validation processes.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read unit test files and coverage reports to confirm 95% target achievement
 - [ ] Verify standard validation processes are applied to unit test generation
 - [ ] Check edge case testing and mock implementation are comprehensive
@@ -61,6 +64,7 @@ Please collaborate with our GENDEV test suite generator to create comprehensive 
 Next, engage our GENDEV code reviewer to conduct thorough review of unit test quality, implementation patterns, and maintainability standards.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read code review reports and test quality assessments
 - [ ] Verify unit test code follows established patterns and standards
 - [ ] Check test maintainability and implementation quality
@@ -73,6 +77,7 @@ Next, engage our GENDEV code reviewer to conduct thorough review of unit test qu
 Please work with our GENDEV test suite generator to develop comprehensive integration tests focused on component interactions using standard validation processes for system integration verification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read integration test files and component interaction test results
 - [ ] Verify standard validation processes are applied to integration test creation
 - [ ] Check component integration tests cover critical system interactions
@@ -81,6 +86,7 @@ Please work with our GENDEV test suite generator to develop comprehensive integr
 Next, collaborate with our GENDEV API designer to validate API contracts and service dependencies, ensuring proper integration testing coverage for all endpoints and interfaces.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read API contract validation results and service dependency test documentation
 - [ ] Verify API endpoints and interfaces are comprehensively tested
 - [ ] Check service dependency testing covers all critical integration points
@@ -93,6 +99,7 @@ Next, collaborate with our GENDEV API designer to validate API contracts and ser
 Please engage our GENDEV user story generator to create comprehensive user journey scenarios using standard validation processes, focusing on critical user paths and business workflows.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read user story files and user journey scenario documentation
 - [ ] Verify standard validation processes are applied to user story generation
 - [ ] Check user journeys cover critical business workflows comprehensively
@@ -101,6 +108,7 @@ Please engage our GENDEV user story generator to create comprehensive user journ
 Next, work with our GENDEV test suite generator to implement end-to-end testing using standard validation processes, including cross-browser validation and accessibility compliance testing.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read E2E test files and cross-browser validation results
 - [ ] Verify standard validation processes are applied to E2E test generation
 - [ ] Check accessibility compliance testing and CI/CD integration are functional
@@ -113,6 +121,7 @@ Next, work with our GENDEV test suite generator to implement end-to-end testing 
 Please collaborate with our GENDEV performance optimizer to conduct comprehensive load and stress testing using enterprise-level validation standards, focusing on system scalability and performance benchmarking.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read load and stress test results and performance benchmark reports
 - [ ] Verify enterprise-level validation standards are applied to performance testing
 - [ ] Check scalability validation and system performance under load
@@ -121,6 +130,7 @@ Please collaborate with our GENDEV performance optimizer to conduct comprehensiv
 Next, work with our GENDEV performance optimizer again to perform standard validation of resource monitoring and performance optimization recommendations.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read resource monitoring reports and performance optimization recommendations
 - [ ] Verify standard validation processes are applied to performance analysis
 - [ ] Check resource utilization metrics and optimization suggestions are comprehensive
@@ -133,6 +143,7 @@ Next, work with our GENDEV performance optimizer again to perform standard valid
 Please engage our GENDEV security analyzer to conduct comprehensive vulnerability assessment and penetration testing using enterprise-level validation standards for critical security validation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read vulnerability assessment reports and penetration test results
 - [ ] Verify enterprise-level validation standards are applied to security testing
 - [ ] Check critical vulnerabilities are identified and properly prioritized
@@ -141,6 +152,7 @@ Please engage our GENDEV security analyzer to conduct comprehensive vulnerabilit
 Next, work with our GENDEV security analyzer again to perform compliance validation and risk prioritization using standard validation processes for comprehensive security coverage.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read compliance validation reports and risk prioritization documentation
 - [ ] Verify standard validation processes are applied to compliance testing
 - [ ] Check risk prioritization aligns with security standards and requirements
@@ -153,6 +165,7 @@ Next, work with our GENDEV security analyzer again to perform compliance validat
 Please collaborate with our GENDEV CI/CD builder to establish comprehensive test automation pipeline integration, focusing on quality gates and automated testing workflows.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read CI/CD pipeline configuration files and test automation setup documentation
 - [ ] Verify test automation is properly integrated with CI/CD workflows
 - [ ] Check quality gates and automated testing triggers are functional
@@ -161,6 +174,7 @@ Please collaborate with our GENDEV CI/CD builder to establish comprehensive test
 Next, work with our GENDEV deployment operations manager to configure testing environments using standard validation processes, focusing on test data management and environment consistency.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read testing environment configuration and deployment setup documentation
 - [ ] Verify standard validation processes are applied to testing environment management
 - [ ] Check test data management and environment consistency are properly established
@@ -173,6 +187,7 @@ Next, work with our GENDEV deployment operations manager to configure testing en
 Please engage our GENDEV QA coordinator to perform comprehensive test analysis and quality metrics collection using standard validation processes, focusing on coverage analysis and quality dashboard generation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read test analysis reports and quality metrics documentation
 - [ ] Verify standard validation processes are applied to test result analysis
 - [ ] Check coverage metrics and quality dashboards are comprehensive and accurate
@@ -181,6 +196,7 @@ Please engage our GENDEV QA coordinator to perform comprehensive test analysis a
 Finally, work with our GENDEV documentation generator to create executive test reports targeting executive audiences using standard validation processes, including risk assessments and trend analysis.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read executive test reports and trend analysis documentation
 - [ ] Verify standard validation processes are applied to test reporting
 - [ ] Check executive reports effectively communicate testing outcomes and risks

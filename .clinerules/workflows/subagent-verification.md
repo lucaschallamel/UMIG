@@ -44,6 +44,7 @@ Execute subagent work as planned:
 **NEVER skip this step - Always verify actual changes:**
 
 1. **File System Check:**
+
    ```bash
    # Check if target files were modified
    ls -la [target_files]
@@ -52,6 +53,7 @@ Execute subagent work as planned:
    ```
 
 2. **Content Verification:**
+
    ```bash
    # Read each file that should have been modified
    cat [file1]
@@ -71,12 +73,14 @@ Execute subagent work as planned:
 **Only report success if verification passes:**
 
 ✅ **Success Criteria:**
+
 - All target files show updated timestamps
 - File content contains expected changes
 - No placeholder or incomplete content
 - Changes are consistent and meaningful
 
 ❌ **Failure Response:**
+
 - Document specific gaps between expected and actual
 - Use direct file tools to complete missing work
 - Report accurate status to user
@@ -102,18 +106,22 @@ After each subagent call:
 ## Common Verification Failures
 
 ### 1. Timestamp Unchanged
+
 - **Issue:** File shows same modification time
 - **Action:** Re-execute with direct file tools
 
 ### 2. Placeholder Content
+
 - **Issue:** File contains generic or incomplete content
 - **Action:** Generate specific content using direct tools
 
 ### 3. Missing Files
+
 - **Issue:** Expected new files were not created
 - **Action:** Create files directly with proper content
 
 ### 4. Partial Updates
+
 - **Issue:** Only some requested changes were made
 - **Action:** Complete remaining changes manually
 

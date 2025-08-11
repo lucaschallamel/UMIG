@@ -36,6 +36,7 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 Please engage our GENDEV requirements analyst together with our user story generator to conduct comprehensive requirements analysis, focusing on business requirements evaluation, constraint identification, ambiguity clarification, and success criteria definition.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read requirements analysis reports and business constraint documentation
 - [ ] Verify ambiguity clarification and success criteria are comprehensive and clear
 - [ ] Check business requirements evaluation and constraint identification are thorough
@@ -46,6 +47,7 @@ Please engage our GENDEV requirements analyst together with our user story gener
 Please collaborate with our GENDEV user story generator together with our test suite generator to perform comprehensive user story elaboration, focusing on detailed story creation with acceptance criteria, GIVEN/WHEN/THEN scenario definition, and edge case identification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read user story documentation and acceptance criteria specifications
 - [ ] Verify GIVEN/WHEN/THEN scenarios and edge cases are comprehensive
 - [ ] Check detailed story creation and acceptance criteria are thorough
@@ -56,6 +58,7 @@ Please collaborate with our GENDEV user story generator together with our test s
 Please work with our GENDEV system architect together with our security specialist to design comprehensive technical architecture, focusing on system architecture design, component interaction planning, security validation, and performance considerations.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read technical architecture documentation and component interaction designs
 - [ ] Verify security validation and performance considerations are comprehensive
 - [ ] Check system architecture design and component planning are thorough
@@ -66,6 +69,7 @@ Please work with our GENDEV system architect together with our security speciali
 Please engage our GENDEV API designer together with our security specialist to create comprehensive API design, focusing on RESTful endpoint design following UMIG patterns, schema definition with hierarchical filtering, and security integration.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read API design documentation and endpoint specifications
 - [ ] Verify UMIG pattern compliance and hierarchical filtering implementation
 - [ ] Check RESTful endpoint design and schema definitions are comprehensive
@@ -76,6 +80,7 @@ Please engage our GENDEV API designer together with our security specialist to c
 Please collaborate with our GENDEV data architect together with our database schema designer to establish comprehensive data architecture, focusing on data model design, relationship mapping, data flow planning, and transformation requirement specification.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read data architecture documentation and model designs
 - [ ] Verify relationship mapping and data flow planning are comprehensive
 - [ ] Check data models and transformation requirements are thorough
@@ -86,6 +91,7 @@ Please collaborate with our GENDEV data architect together with our database sch
 Please work with our GENDEV database schema designer together with our performance optimizer to create comprehensive database schema, focusing on UMIG audit field implementation, MASTER/INSTANCE pattern design, index optimization, and Liquibase migration procedure development.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read database schema documentation and migration procedures
 - [ ] Verify UMIG audit fields and MASTER/INSTANCE pattern implementation
 - [ ] Check index design and Liquibase migrations are comprehensive
@@ -96,6 +102,7 @@ Please work with our GENDEV database schema designer together with our performan
 Please engage our GENDEV dependency manager together with our system architect to conduct comprehensive dependency analysis, focusing on technical dependency identification, business dependency mapping, impact assessment, and resolution strategy development.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read dependency analysis reports and impact assessments
 - [ ] Verify technical and business dependencies are comprehensively identified
 - [ ] Check impact analysis and resolution strategies are thorough
@@ -106,6 +113,7 @@ Please engage our GENDEV dependency manager together with our system architect t
 Please collaborate with our GENDEV test suite generator together with our security specialist to develop comprehensive test strategy, focusing on ADR-026 pattern implementation, unit test planning, integration test design, security test specification, and performance test development.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read test strategy documentation and ADR-026 pattern implementation
 - [ ] Verify unit, integration, security, and performance tests are comprehensive
 - [ ] Check test planning and specification are thorough
@@ -116,6 +124,7 @@ Please collaborate with our GENDEV test suite generator together with our securi
 Please work with our GENDEV project planner together with our project orchestrator to establish comprehensive project planning, focusing on work breakdown structure creation, effort estimation, timeline development with milestones, and risk mitigation planning.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read project planning documentation and work breakdown structures
 - [ ] Verify effort estimates and timeline milestones are comprehensive
 - [ ] Check risk mitigation planning and resource allocation are thorough
@@ -126,6 +135,7 @@ Please work with our GENDEV project planner together with our project orchestrat
 Please engage our GENDEV project orchestrator together with our code reviewer to coordinate comprehensive work orchestration, focusing on resource coordination, implementation sequence planning, progress monitoring, and collaboration facilitation.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read work orchestration plans and resource allocation documentation
 - [ ] Verify implementation sequence and progress monitoring are comprehensive
 - [ ] Check resource coordination and collaboration plans are thorough
@@ -136,6 +146,7 @@ Please engage our GENDEV project orchestrator together with our code reviewer to
 Please collaborate with our GENDEV documentation generator together with our API designer to develop comprehensive documentation planning, focusing on documentation strategy development, OpenAPI specification creation, technical documentation coordination, and API documentation alignment.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read documentation planning strategies and OpenAPI specifications
 - [ ] Verify technical and API documentation coordination is comprehensive
 - [ ] Check documentation strategy and specification creation are thorough
@@ -148,11 +159,12 @@ Please collaborate with our GENDEV documentation generator together with our API
 Please coordinate with our GENDEV code reviewer, security specialist, and performance optimizer for comprehensive cross-validation:
 
 - **Security Review**: Request our security specialist to validate all API endpoints, data models, and access patterns
-- **Performance Analysis**: Engage our performance optimizer to review database schema, query patterns, and response times  
+- **Performance Analysis**: Engage our performance optimizer to review database schema, query patterns, and response times
 - **Code Quality**: Work with our code reviewer to ensure adherence to UMIG patterns and coding standards
 - **Integration Testing**: Collaborate with our test suite generator to coordinate comprehensive test coverage
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read security validation reports for API endpoints and access patterns
 - [ ] Verify performance analysis of database schema and query patterns
 - [ ] Check code quality review and UMIG pattern adherence documentation

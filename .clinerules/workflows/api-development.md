@@ -33,6 +33,7 @@ Orchestrate GENDEV agents to deliver high-quality APIs through systematic design
 Please engage our GENDEV requirements analyst to analyze API requirements with medium domain complexity, working within normal timeline constraints and considering approximately 5 key stakeholders.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the requirements analysis document to confirm stakeholder needs are captured
 - [ ] Verify domain complexity assessment is complete
 - [ ] Check timeline constraints and deliverables are realistic
@@ -40,6 +41,7 @@ Please engage our GENDEV requirements analyst to analyze API requirements with m
 Next, work with our GENDEV API designer to create comprehensive API specifications including RESTful design patterns, OpenAPI documentation, and integration guidelines.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the generated API specification files
 - [ ] Verify RESTful design principles are properly applied
 - [ ] Check OpenAPI specs are complete and valid
@@ -47,6 +49,7 @@ Next, work with our GENDEV API designer to create comprehensive API specificatio
 Finally, collaborate with our GENDEV documentation generator to create comprehensive API documentation targeting developer audiences with clear integration examples and interactive elements.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the generated API documentation
 - [ ] Verify developer-focused content with working examples
 - [ ] Check documentation completeness against API specifications
@@ -58,6 +61,7 @@ Finally, collaborate with our GENDEV documentation generator to create comprehen
 Please work with our GENDEV deployment operations manager to establish the API development and deployment environment with standard validation processes.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read deployment configuration files and setup documentation
 - [ ] Verify development environment is properly configured
 - [ ] Check deployment pipelines are functional
@@ -65,6 +69,7 @@ Please work with our GENDEV deployment operations manager to establish the API d
 Next, collaborate with our GENDEV code refactoring specialist to implement clean, maintainable API endpoints following established patterns and best practices.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the implemented API code to confirm clean architecture
 - [ ] Verify code follows established patterns and standards
 - [ ] Check refactoring improves code maintainability
@@ -72,6 +77,7 @@ Next, collaborate with our GENDEV code refactoring specialist to implement clean
 Then engage our GENDEV database schema designer to create optimized data layer designs with standard validation for API data persistence.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read database schema files and migration scripts
 - [ ] Verify data models support API requirements
 - [ ] Check schema design follows optimization best practices
@@ -83,6 +89,7 @@ Then engage our GENDEV database schema designer to create optimized data layer d
 Please consult with our GENDEV security architect to design comprehensive API security measures with specific focus on API-level threats including authentication, authorization, and data protection.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read security architecture documentation and implementation plans
 - [ ] Verify API-specific security measures are properly designed
 - [ ] Check authentication and authorization mechanisms are comprehensive
@@ -90,6 +97,7 @@ Please consult with our GENDEV security architect to design comprehensive API se
 Next, work with our GENDEV security analyzer to perform thorough security assessment of the API implementation, identifying vulnerabilities and providing remediation guidance.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read security analysis report and vulnerability assessment
 - [ ] Verify all critical and high-severity issues are identified
 - [ ] Check remediation recommendations are actionable and complete
@@ -101,6 +109,7 @@ Next, work with our GENDEV security analyzer to perform thorough security assess
 Please engage our GENDEV test suite generator to create comprehensive unit tests specifically focused on API functionality with a target of 95% code coverage.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read unit test files and coverage reports
 - [ ] Verify 95% coverage target is achieved
 - [ ] Check unit tests cover all API endpoints and edge cases
@@ -108,6 +117,7 @@ Please engage our GENDEV test suite generator to create comprehensive unit tests
 Next, work with our GENDEV test suite generator again to create integration tests focusing on API interactions, data flow, and system integration points.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read integration test files and execution results
 - [ ] Verify API integration points are thoroughly tested
 - [ ] Check test coverage includes authentication and error scenarios
@@ -115,6 +125,7 @@ Next, work with our GENDEV test suite generator again to create integration test
 Then collaborate with our GENDEV API designer to validate API contracts and ensure endpoint behavior matches specifications.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read API contract validation results and specification compliance
 - [ ] Verify endpoint behavior matches documented specifications
 - [ ] Check API contracts are properly validated against implementation
@@ -126,6 +137,7 @@ Then collaborate with our GENDEV API designer to validate API contracts and ensu
 Please work with our GENDEV performance optimizer to conduct comprehensive API performance testing including load testing, response time analysis, and scalability assessment.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read performance test results and benchmarking reports
 - [ ] Verify response times meet <200ms requirements
 - [ ] Check load testing validates scalability requirements
@@ -133,6 +145,7 @@ Please work with our GENDEV performance optimizer to conduct comprehensive API p
 Then engage our GENDEV performance optimizer again to implement optimization recommendations and validate performance improvements across all API endpoints.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read optimization implementation details and performance improvements
 - [ ] Verify optimizations are properly implemented
 - [ ] Check performance metrics show measurable improvements
@@ -144,6 +157,7 @@ Then engage our GENDEV performance optimizer again to implement optimization rec
 Please collaborate with our GENDEV API designer to configure API gateway settings, rate limiting policies, and traffic management for production readiness.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read API gateway configuration files and policies
 - [ ] Verify rate limiting and traffic management are properly configured
 - [ ] Check gateway settings align with production requirements
@@ -151,6 +165,7 @@ Please collaborate with our GENDEV API designer to configure API gateway setting
 Next, work with our GENDEV resource monitor to establish comprehensive monitoring, analytics, and SLA tracking for API performance and availability.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read monitoring configuration and dashboard setup
 - [ ] Verify resource monitoring covers all critical API metrics
 - [ ] Check SLA tracking and alerting mechanisms are functional
@@ -162,6 +177,7 @@ Next, work with our GENDEV resource monitor to establish comprehensive monitorin
 Please work with our GENDEV documentation generator to create comprehensive interactive API documentation including developer portal, multi-language examples, and sandbox environment.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read the comprehensive API documentation and interactive portal
 - [ ] Verify interactive elements and sandbox environment are functional
 - [ ] Check multi-language examples are complete and working
@@ -169,6 +185,7 @@ Please work with our GENDEV documentation generator to create comprehensive inte
 Then collaborate with our GENDEV API designer to finalize SDK generation and ensure optimal developer experience with clear onboarding materials.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read SDK documentation and generated client libraries
 - [ ] Verify developer onboarding materials are comprehensive
 - [ ] Check SDK examples and tutorials are functional
@@ -180,6 +197,7 @@ Then collaborate with our GENDEV API designer to finalize SDK generation and ens
 Please engage our GENDEV API designer to establish semantic versioning strategy, backward compatibility policies, and migration tools for API lifecycle management.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read versioning strategy documentation and compatibility policies
 - [ ] Verify semantic versioning is properly implemented
 - [ ] Check migration tools and backward compatibility measures are functional
@@ -187,6 +205,7 @@ Please engage our GENDEV API designer to establish semantic versioning strategy,
 Finally, work with our GENDEV API designer to implement comprehensive API governance including deprecation policies, lifecycle management, and version transition planning.
 
 ## MANDATORY VERIFICATION
+
 - [ ] Read API governance documentation and lifecycle management plans
 - [ ] Verify deprecation policies and transition planning are comprehensive
 - [ ] Check governance processes support long-term API evolution
