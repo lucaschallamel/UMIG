@@ -30,11 +30,13 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 ### AI-Enhanced Prerequisites
 
-**Use `gendev-documentation-generator` for content analysis:**
+Please engage our GENDEV documentation generator to conduct comprehensive content analysis using standard validation standards, focusing on automated source detection, content classification, priority assessment, and scope analysis for memory bank preparation.
 
-```bash
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read content analysis reports and source detection documentation
+- [ ] Verify standard validation standards are applied to content classification activities
+- [ ] Check priority assessment and scope analysis are comprehensive and accurate
+- [ ] Report actual content analysis effectiveness and source preparation completeness
 
 **Benefits:** Automated source detection, content classification, priority assessment, scope analysis.
 
@@ -44,41 +46,49 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 ### 1.1 Developer Journal Analysis
 
-**Use `gendev-documentation-generator` for journal processing:**
+Please engage our GENDEV documentation generator to conduct comprehensive developer journal analysis using standard validation standards, focusing on content extraction, pattern recognition, knowledge synthesis, and temporal analysis for memory bank preparation.
 
-```bash
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read developer journal analysis reports and pattern recognition documentation
+- [ ] Verify standard validation standards are applied to content extraction activities
+- [ ] Check knowledge synthesis and temporal analysis are comprehensive and accurate
+- [ ] Report actual developer journal analysis effectiveness and pattern recognition completeness
 
 **Processing:** Content extraction, pattern recognition, knowledge synthesis, temporal analysis.
 
 ### 1.2 CHANGELOG Analysis
 
-**Use `gendev-business-process-analyst` for changelog processing:**
+Please collaborate with our GENDEV business process analyst to perform comprehensive CHANGELOG analysis and processing, focusing on change categorization, impact assessment, memory relevance evaluation, and evolution tracking for systematic memory bank updates.
 
-```bash
-/gd:business-process-analyst
-```
+## MANDATORY VERIFICATION
+- [ ] Read CHANGELOG analysis reports and change categorization documentation
+- [ ] Verify change categorization and impact assessment are comprehensive and accurate
+- [ ] Check memory relevance evaluation and evolution tracking are thorough
+- [ ] Report actual CHANGELOG analysis effectiveness and processing completeness
 
 **Processing:** Change categorization, impact assessment, memory relevance, evolution tracking.
 
 ### 1.3 README Analysis
 
-**Use `gendev-system-architect` for README processing:**
+Please work with our GENDEV system architect to conduct comprehensive README analysis using standard validation standards, focusing on architecture extraction, feature documentation, setup knowledge compilation, and cross-reference analysis for complete project understanding.
 
-```bash
-/gd:system-architect --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read README analysis reports and architecture extraction documentation
+- [ ] Verify standard validation standards are applied to README processing activities
+- [ ] Check feature documentation and setup knowledge compilation are comprehensive
+- [ ] Report actual README analysis effectiveness and cross-reference analysis completeness
 
 **Processing:** Architecture extraction, feature documentation, setup knowledge, cross-reference analysis.
 
 ### 1.4 ADR Analysis
 
-**Use `gendev-business-process-analyst` for ADR processing:**
+Please engage our GENDEV business process analyst to perform comprehensive ADR (Architecture Decision Record) analysis and processing, focusing on decision extraction, context analysis, impact assessment, and knowledge integration for architectural memory preservation.
 
-```bash
-/gd:business-process-analyst
-```
+## MANDATORY VERIFICATION
+- [ ] Read ADR analysis reports and decision extraction documentation
+- [ ] Verify context analysis and impact assessment are comprehensive and accurate
+- [ ] Check knowledge integration and architectural decision processing are thorough
+- [ ] Report actual ADR analysis effectiveness and decision processing completeness
 
 **Processing:** Decision extraction, context analysis, impact assessment, knowledge integration.
 
@@ -90,10 +100,13 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 #### 1.1 Core Files Verification
 
-```bash
-# Use Requirements Analyst for memory bank compliance
-/gd:requirements-analyst --validation_level=enterprise --stakeholder_count=12 --timeline_constraint=normal --domain_complexity=medium
-```
+Please engage our GENDEV requirements analyst to conduct comprehensive memory bank compliance verification using enterprise-level validation standards, working with 12 stakeholder considerations within normal timeline constraints while handling medium domain complexity, focusing on core file structure validation and Rule 07 compliance assessment.
+
+## MANDATORY VERIFICATION
+- [ ] Read memory bank compliance reports and core file verification documentation
+- [ ] Verify enterprise-level validation standards are applied with appropriate stakeholder and timeline considerations
+- [ ] Check Rule 07 compliance and core file structure validation are comprehensive
+- [ ] Report actual memory bank compliance status and core file verification results
 
 **Core Memory Bank Files (Rule 07 - Required):**
 
@@ -106,10 +119,13 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 #### 1.2 Documentation Folder Structure Validation
 
-```bash
-# Use Project Planner for folder structure compliance
-/gd:project-planner --validation_level=standard --timeline_constraint=normal
-```
+Please collaborate with our GENDEV project planner to establish comprehensive folder structure compliance validation using standard validation standards within normal timeline constraints, focusing on documentation structure assessment, compliance verification, and organizational standards validation.
+
+## MANDATORY VERIFICATION
+- [ ] Read folder structure compliance reports and documentation structure assessment files
+- [ ] Verify standard validation standards are applied with appropriate timeline considerations
+- [ ] Check documentation structure compliance and organizational standards are comprehensive
+- [ ] Report actual folder structure validation results and compliance status
 
 **Required Documentation Structure:**
 
@@ -123,10 +139,13 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 #### 2.1 Development Journal Analysis
 
-```bash
-# Use Documentation Generator for journal processing
-/gd:documentation-generator --validation_level=standard
-```
+Please work with our GENDEV documentation generator to conduct comprehensive development journal analysis using standard validation standards, focusing on chronological pattern analysis, technical decision extraction, problem-solution mapping, and cross-reference validation for comprehensive journal processing.
+
+## MANDATORY VERIFICATION
+- [ ] Read development journal analysis reports and pattern analysis documentation
+- [ ] Verify standard validation standards are applied to journal processing activities
+- [ ] Check technical decision extraction and problem-solution mapping are comprehensive
+- [ ] Report actual development journal analysis effectiveness and cross-reference validation results
 
 **Processing Activities:**
 
@@ -137,10 +156,13 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 #### 2.2 Architecture Decision Records Analysis
 
-```bash
-# Use System Architect for ADR processing
-/gd:system-architect --validation_level=standard
-```
+Please engage our GENDEV system architect to perform comprehensive ADR processing using standard validation standards, focusing on decision context extraction, architectural impact assessment, pattern recognition, and consistency verification for systematic ADR analysis.
+
+## MANDATORY VERIFICATION
+- [ ] Read ADR processing reports and architectural impact assessment documentation
+- [ ] Verify standard validation standards are applied to ADR processing activities
+- [ ] Check decision context extraction and pattern recognition are comprehensive
+- [ ] Report actual ADR processing effectiveness and consistency verification results
 
 **ADR Processing:**
 
@@ -151,10 +173,13 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 #### 2.3 Project Documentation Analysis
 
-```bash
-# Use Business Process Analyst for comprehensive documentation review
-/gd:business-process-analyst
-```
+Please collaborate with our GENDEV business process analyst to conduct comprehensive project documentation review and analysis, focusing on documentation source analysis, evolution tracking, sprint documentation evaluation, and configuration documentation assessment for complete project understanding.
+
+## MANDATORY VERIFICATION
+- [ ] Read project documentation analysis reports and source analysis documentation
+- [ ] Verify documentation review covers all specified sources comprehensively
+- [ ] Check evolution tracking and sprint documentation evaluation are thorough
+- [ ] Report actual project documentation analysis effectiveness and configuration assessment results
 
 **Documentation Sources:**
 
@@ -169,30 +194,25 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 
 ### 3.1 Memory Entry Creation
 
-**Use `gendev-documentation-generator` for memory content creation:**
+Please work with our GENDEV documentation generator to create comprehensive memory content using enterprise-level validation standards, focusing on concise summarization, accuracy verification, British English compliance, and consistency maintenance for high-quality memory entry generation.
 
-```bash
-/gd:documentation-generator --validation_level=enterprise
-```
-
-**CRITICAL VERIFICATION STEP:**
-After subagent execution, ALWAYS:
-
-1. Read each memory bank file to verify actual content changes
-2. Compare file timestamps to confirm writes occurred
-3. Validate content matches expected updates
-4. Report specific discrepancies if found
-5. Never claim success without file verification
+## MANDATORY VERIFICATION
+- [ ] Read memory content creation reports and summarization documentation
+- [ ] Verify enterprise-level validation standards are applied to content creation activities
+- [ ] Check British English compliance and consistency maintenance are comprehensive
+- [ ] Report actual memory entry creation effectiveness and content quality assessment
 
 **Benefits:** Concise summarization, accuracy verification, British English compliance, consistency maintenance.
 
 ### 3.2 Quality Assurance
 
-**Use `gendev-qa-coordinator` for memory quality validation:**
+Please engage our GENDEV QA coordinator to establish comprehensive memory quality validation using enterprise-level validation standards, focusing on content validation, consistency checking, completeness assessment, and language compliance for thorough memory quality assurance.
 
-```bash
-/gd:qa-coordinator --validation_level=enterprise
-```
+## MANDATORY VERIFICATION
+- [ ] Read memory quality validation reports and content validation documentation
+- [ ] Verify enterprise-level validation standards are applied to quality assurance activities
+- [ ] Check consistency checking and completeness assessment are comprehensive
+- [ ] Report actual memory quality validation effectiveness and language compliance status
 
 **Benefits:** Content validation, consistency checking, completeness assessment, language compliance.
 
@@ -202,21 +222,25 @@ After subagent execution, ALWAYS:
 
 ### 4.1 Memory Bank Integration
 
-**Use `gendev-documentation-generator` for memory integration:**
+Please collaborate with our GENDEV documentation generator to perform comprehensive memory integration using standard validation standards, focusing on seamless merging, conflict resolution, version management, and access optimization for effective memory bank integration.
 
-```bash
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read memory integration reports and merging process documentation
+- [ ] Verify standard validation standards are applied to integration activities
+- [ ] Check conflict resolution and version management are comprehensive
+- [ ] Report actual memory integration effectiveness and access optimization results
 
 **Benefits:** Seamless merging, conflict resolution, version management, access optimization.
 
 ### 4.2 Validation and Testing
 
-**Use `gendev-qa-coordinator` for comprehensive validation:**
+Please work with our GENDEV QA coordinator to establish comprehensive validation and testing processes using enterprise-level validation standards, focusing on functionality testing, accuracy verification, performance assessment, and integration testing for thorough memory bank validation.
 
-```bash
-/gd:qa-coordinator --validation_level=enterprise
-```
+## MANDATORY VERIFICATION
+- [ ] Read validation and testing reports and functionality testing documentation
+- [ ] Verify enterprise-level validation standards are applied to testing activities
+- [ ] Check accuracy verification and performance assessment are comprehensive
+- [ ] Report actual validation testing effectiveness and integration testing results
 
 **Benefits:** Functionality testing, accuracy verification, performance assessment, integration testing.
 
@@ -226,11 +250,13 @@ After subagent execution, ALWAYS:
 
 ### Memory Management
 
-**Use `gendev-documentation-generator` for best practices enforcement:**
+Please engage our GENDEV documentation generator to establish comprehensive best practices enforcement using standard validation standards, focusing on concise communication, accuracy maintenance, consistency enforcement, and British English standards for effective memory management.
 
-```bash
-/gd:documentation-generator --validation_level=standard
-```
+## MANDATORY VERIFICATION
+- [ ] Read best practices enforcement reports and communication standards documentation
+- [ ] Verify standard validation standards are applied to memory management activities
+- [ ] Check accuracy maintenance and consistency enforcement are comprehensive
+- [ ] Report actual best practices enforcement effectiveness and British English standards compliance
 
 **Benefits:** Concise communication, accuracy maintenance, consistency enforcement, British English standards.
 
