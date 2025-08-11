@@ -36,7 +36,7 @@ Individual API specifications are available for detailed documentation:
 - **[Environments API](EnvironmentsAPI.md)** - Environment management with application and iteration associations
 - **[Instructions API](InstructionsApi.md)** - Instruction management with team assignments and completion tracking
 - **[Labels API](LabelsAPI.md)** - Label management with hierarchical filtering
-- **[Migrations API](migrationApi.md)** - Migration and iteration management with comprehensive filtering
+- **[Migrations API](migrationApi.md)** - ✅ **US-025 Phase 4 Complete** - Migration management with dashboard, bulk operations, and advanced filtering (17 endpoints, 100% integration test success)
 - **[Phases API](PhasesAPI.md)** - Phase management with control point validation and progress tracking
 - **[Plans API](PlansAPI.md)** - Plan management with master templates and instances
 - **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support

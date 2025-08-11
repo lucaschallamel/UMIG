@@ -1,5 +1,27 @@
 ### [Unreleased]
 
+#### 2025-08-11 (US-025 Phase 4: MigrationsAPI Integration Testing Framework - COMPLETE)
+
+- **Testing(Integration Framework):** Comprehensive MigrationsAPI integration testing implementation (ADR-036)
+  - **Pure Groovy Architecture**: Zero-dependency integration testing framework using RESTClient and native HTTP capabilities
+  - **Dynamic Credential Management**: Environment-based configuration with .env file loading and secure authentication
+  - **Comprehensive Coverage**: 9 integration tests covering all CRUD operations, dashboard endpoints, and error scenarios
+  - **Success Rate**: 100% test pass rate achieved with complete API validation
+  - **Critical Bug Fixes**: Fixed mig_type casting issue (Integer→String) and GString serialization overflow
+  - **Authentication Integration**: HTTP Basic Auth validation with proper security header handling
+  - **Error Handling Validation**: Complete SQL state to HTTP status code mapping verification (23503→400, 23505→409)
+  - **Test Results**: All dashboard endpoints (summary, progress, metrics) validated with proper data integrity
+- **Documentation(Architecture):** ADR-036 Integration Testing Framework architecture documentation
+  - **Framework Documentation**: Complete integration testing patterns and best practices documented
+  - **API Testing Standards**: Established reusable patterns for all future API endpoint testing
+  - **Environment Configuration**: Dynamic credential loading and multi-environment support documented
+  - **Quality Standards**: 100% endpoint coverage requirements and success criteria established
+- **Development(Quality Assurance):** Enhanced development workflow with automated validation
+  - **Integration Testing Execution**: Streamlined testing process with single-command execution
+  - **Type Safety Validation**: ADR-031 compliance verified through integration test patterns
+  - **Database Integrity**: Complete database transaction and constraint validation
+  - **Real Environment Testing**: End-to-end validation against actual Confluence/ScriptRunner environment
+
 #### 2025-08-08 (US-032: Confluence Upgrade and Infrastructure Reorganization - COMPLETE)
 
 - **Infrastructure(US-032):** Complete Confluence upgrade and infrastructure modernization

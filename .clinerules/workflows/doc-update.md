@@ -48,6 +48,13 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 /gd:documentation-generator --validation_level=enterprise
 ```
 
+**MANDATORY VERIFICATION AFTER EACH UPDATE:**
+1. Read modified files to confirm changes were applied
+2. Check file modification timestamps
+3. Validate content accuracy against intended changes
+4. Report actual vs expected outcomes
+5. Never proceed without confirming file changes
+
 - **CHANGELOG Updates:** AI-assisted updates to CHANGELOG with intelligent categorization and formatting
 - **Main README Enhancement:** Intelligent updates to main README file ensuring accuracy and completeness
 - **Subfolder README Management:** AI-powered updates to README files in all work folders per Rule 03 scaffolding requirements
