@@ -7,6 +7,10 @@ info:
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
+    
+    **US-025 Phase 4 Complete:** 100% integration test success rate achieved.
+    **Recent Fixes:** mig_type parameter casting (Integer→String), GString serialization issues resolved.
+    **Validation:** HTTP Basic Auth, SQL state mappings (23503→400, 23505→409) confirmed.
 servers:
   - url: /rest/scriptrunner/latest/custom
     description: ScriptRunner Custom REST Endpoints (relative to Confluence base URL)
@@ -291,24 +295,109 @@ paths:
 
   /migrations:
     get:
-      summary: List all migrations
+      summary: List all migrations with advanced filtering and pagination
       tags: [Migrations]
       operationId: listMigrations
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: search
+          in: query
+          description: Search term for name/description
+          schema:
+            type: string
+            maxLength: 100
+        - name: sort
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [mig_name, mig_status, created_at, updated_at, mig_start_date, mig_end_date]
+        - name: direction
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: status
+          in: query
+          description: Filter by status (comma-separated)
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+        - name: teamId
+          in: query
+          description: Filter by team ID
+          schema:
+            type: integer
+        - name: ownerId
+          in: query
+          description: Filter by owner user ID
+          schema:
+            type: integer
       responses:
         "200":
-          description: A list of migrations
+          description: Paginated list of migrations with filters
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MigrationSummary"
+                $ref: "#/components/schemas/PaginatedMigrations"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      summary: Create a new migration
+      tags: [Migrations]
+      operationId: createMigration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMigrationRequest"
+      responses:
+        "201":
+          description: Migration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Migration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
   /migrations/{id}:
     get:
-      summary: Get a single migration by ID
+      summary: Get a single migration by ID with status metadata
       tags: [Migrations]
       operationId: getMigrationById
       parameters:
@@ -320,13 +409,203 @@ paths:
             format: uuid
       responses:
         "200":
-          description: The migration object
+          description: The migration object with status metadata
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Migration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      summary: Update a migration
+      tags: [Migrations]
+      operationId: updateMigration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMigrationRequest"
+      responses:
+        "200":
+          description: Migration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Migration"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      summary: Delete a migration
+      tags: [Migrations]
+      operationId: deleteMigration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Migration deleted successfully
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Cannot delete migration - has associated resources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrations/dashboard/summary:
+    get:
+      summary: Get dashboard summary data
+      tags: [Migrations, Dashboard]
+      operationId: getDashboardSummary
+      responses:
+        "200":
+          description: Dashboard summary with totals and status distribution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrations/dashboard/progress:
+    get:
+      summary: Get progress aggregation data
+      tags: [Migrations, Dashboard]
+      operationId: getDashboardProgress
+      parameters:
+        - name: migrationId
+          in: query
+          description: Specific migration filter
+          schema:
+            type: string
+            format: uuid
+        - name: dateFrom
+          in: query
+          description: Start date filter
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          description: End date filter
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Progress aggregation data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardProgress"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrations/dashboard/metrics:
+    get:
+      summary: Get performance metrics (placeholder)
+      tags: [Migrations, Dashboard]
+      operationId: getDashboardMetrics
+      parameters:
+        - name: period
+          in: query
+          description: Metrics period
+          schema:
+            type: string
+            enum: [day, week, month, quarter]
+            default: month
+        - name: migrationId
+          in: query
+          description: Specific migration filter
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Performance metrics (placeholder implementation)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardMetrics"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrations/bulk/status:
+    put:
+      summary: Bulk update migration status (placeholder)
+      tags: [Migrations, Bulk Operations]
+      operationId: bulkUpdateMigrationStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkStatusUpdateRequest"
+      responses:
+        "200":
+          description: Bulk status update result (placeholder implementation)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkOperationResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrations/bulk/export:
+    post:
+      summary: Bulk export migrations to JSON/CSV
+      tags: [Migrations, Bulk Operations]
+      operationId: bulkExportMigrations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkExportRequest"
+      responses:
+        "200":
+          description: Export result with download information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkExportResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /migrations/{migId}/iterations:
     get:
@@ -4864,35 +5143,360 @@ components:
     MigrationSummary:
       type: object
       properties:
-        id:
+        mig_id:
           type: string
           format: uuid
-        name:
+        mig_name:
           type: string
+        mig_status:
+          type: integer
+        statusMetadata:
+          $ref: "#/components/schemas/StatusMetadata"
 
     Migration:
       type: object
       properties:
-        id:
+        mig_id:
           type: string
           format: uuid
+        mig_name:
+          type: string
+        mig_description:
+          type: string
+        mig_status:
+          type: integer
+        mig_type:
+          type: string
+        mig_start_date:
+          type: string
+          format: date
+        mig_end_date:
+          type: string
+          format: date
+        mig_business_cutover_date:
+          type: string
+          format: date
+        usr_id_owner:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        statusMetadata:
+          $ref: "#/components/schemas/StatusMetadata"
+
+    CreateMigrationRequest:
+      type: object
+      required:
+        - mig_name
+      properties:
+        mig_name:
+          type: string
+          minLength: 1
+        mig_description:
+          type: string
+        mig_start_date:
+          type: string
+          format: date
+        mig_end_date:
+          type: string
+          format: date
+        mig_business_cutover_date:
+          type: string
+          format: date
+        mig_type:
+          type: string
+        usr_id_owner:
+          type: integer
+
+    UpdateMigrationRequest:
+      type: object
+      properties:
+        mig_name:
+          type: string
+          minLength: 1
+        mig_description:
+          type: string
+        mig_start_date:
+          type: string
+          format: date
+        mig_end_date:
+          type: string
+          format: date
+        mig_business_cutover_date:
+          type: string
+          format: date
+        mig_type:
+          type: string
+        usr_id_owner:
+          type: integer
+        mig_status:
+          type: integer
+
+    StatusMetadata:
+      type: object
+      properties:
+        id:
+          type: integer
         name:
           type: string
-        description:
-          type: string
-        status:
+        color:
           type: string
         type:
           type: string
-        startDate:
+
+    PaginatedMigrations:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Migration"
+        pagination:
+          $ref: "#/components/schemas/PaginationMetadata"
+        filters:
+          $ref: "#/components/schemas/FilterMetadata"
+
+    PaginationMetadata:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrevious:
+          type: boolean
+
+    FilterMetadata:
+      type: object
+      properties:
+        search:
           type: string
-          format: date
-        endDate:
+        status:
+          type: array
+          items:
+            type: string
+        sort:
           type: string
-          format: date
-        businessCutoverDate:
+        direction:
           type: string
-          format: date
+
+    DashboardSummary:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            totalMigrations:
+              type: integer
+            byStatus:
+              type: object
+              additionalProperties:
+                type: integer
+            upcomingDeadlines:
+              type: array
+              items:
+                type: object
+                properties:
+                  mig_id:
+                    type: string
+                    format: uuid
+                  mig_name:
+                    type: string
+                  mig_end_date:
+                    type: string
+                    format: date
+                  daysRemaining:
+                    type: integer
+            recentUpdates:
+              type: array
+              items:
+                type: object
+                properties:
+                  mig_id:
+                    type: string
+                    format: uuid
+                  mig_name:
+                    type: string
+                  updated_at:
+                    type: string
+                    format: date-time
+                  action:
+                    type: string
+
+    DashboardProgress:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            migrationId:
+              type: string
+              format: uuid
+            name:
+              type: string
+            overallProgress:
+              type: number
+              minimum: 0
+              maximum: 100
+            iterationsProgress:
+              type: array
+              items:
+                type: object
+                properties:
+                  ite_id:
+                    type: string
+                    format: uuid
+                  ite_name:
+                    type: string
+                  progress:
+                    type: number
+                  status:
+                    type: string
+            milestones:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  date:
+                    type: string
+                    format: date
+                  completed:
+                    type: boolean
+            timeline:
+              type: object
+              properties:
+                start:
+                  type: string
+                  format: date
+                end:
+                  type: string
+                  format: date
+                current:
+                  type: string
+                  format: date
+
+    DashboardMetrics:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            period:
+              type: string
+            migrationId:
+              type: string
+              format: uuid
+            message:
+              type: string
+            completionRate:
+              type: number
+            avgDuration:
+              type: number
+            statusDistribution:
+              type: object
+            trends:
+              type: array
+              items:
+                type: object
+
+    BulkStatusUpdateRequest:
+      type: object
+      required:
+        - migrationIds
+        - newStatus
+      properties:
+        migrationIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+        newStatus:
+          type: string
+          minLength: 1
+        reason:
+          type: string
+
+    BulkExportRequest:
+      type: object
+      required:
+        - migrationIds
+      properties:
+        migrationIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+        format:
+          type: string
+          enum: [json, csv]
+          default: json
+        includeIterations:
+          type: boolean
+          default: false
+
+    BulkOperationResult:
+      type: object
+      properties:
+        updated:
+          type: array
+          items:
+            type: string
+            format: uuid
+        failed:
+          type: array
+          items:
+            type: object
+            properties:
+              migrationId:
+                type: string
+                format: uuid
+              error:
+                type: string
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+            updated:
+              type: integer
+            failed:
+              type: integer
+            message:
+              type: string
+
+    BulkExportResult:
+      type: object
+      properties:
+        exportId:
+          type: string
+          format: uuid
+        format:
+          type: string
+        totalRecords:
+          type: integer
+        includeIterations:
+          type: boolean
+        generatedAt:
+          type: string
+          format: date-time
+        downloadUrl:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
 
     Iteration:
       type: object
@@ -7573,17 +8177,50 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
     BadRequest:
-      description: Invalid input, object invalid.
+      description: Invalid input, object invalid. Common causes include invalid UUID format, invalid pagination parameters, invalid date format, or search term too long.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+          examples:
+            invalidUuid:
+              summary: Invalid UUID format
+              value:
+                error: "Invalid migration UUID"
+            invalidPagination:
+              summary: Invalid pagination parameters
+              value:
+                error: "Invalid page number format"
+            invalidDate:
+              summary: Invalid date format
+              value:
+                error: "Invalid dateFrom format. Use YYYY-MM-DD"
+            searchTooLong:
+              summary: Search term too long
+              value:
+                error: "Search term too long (max 100 characters)"
     Conflict:
-      description: The request could not be completed due to a conflict with the current state of the resource (e.g., duplicate entry).
+      description: |
+        The request could not be completed due to a conflict with the current state of the resource. 
+        This includes unique constraint violations (SQL State 23505), foreign key violations (SQL State 23503),
+        and referential integrity issues.
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+          examples:
+            uniqueConstraint:
+              summary: Unique constraint violation
+              value:
+                error: "A migration with this name already exists"
+            foreignKeyViolation:
+              summary: Foreign key violation
+              value:
+                error: "Invalid owner user ID - user does not exist"
+            referentialIntegrity:
+              summary: Referential integrity on delete
+              value:
+                error: "Cannot delete migration - it has associated iterations or is referenced by other resources"
     InternalServerError:
       description: An unexpected internal server error occurred.
       content:

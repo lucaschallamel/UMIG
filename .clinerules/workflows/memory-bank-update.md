@@ -175,6 +175,15 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 /gd:documentation-generator --validation_level=enterprise
 ```
 
+**CRITICAL VERIFICATION STEP:**
+After subagent execution, ALWAYS:
+
+1. Read each memory bank file to verify actual content changes
+2. Compare file timestamps to confirm writes occurred
+3. Validate content matches expected updates
+4. Report specific discrepancies if found
+5. Never claim success without file verification
+
 **Benefits:** Concise summarization, accuracy verification, British English compliance, consistency maintenance.
 
 ### 3.2 Quality Assurance

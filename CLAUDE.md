@@ -1,5 +1,106 @@
 # UMIG Project - Claude AI Assistant Guide
 
+## MANDATORY AGENT DELEGATION VERIFICATION PROTOCOL
+
+**CRITICAL ENFORCEMENT**: Every time Claude delegates work to any agent (GENDEV or Quad, or any other ad hoc agent), Claude MUST implement a comprehensive verification and validation protocol before reporting task completion.
+
+### Core Verification Principle
+
+**ZERO TRUST DELEGATION**: Claude must NEVER trust subagent reports or assume task completion. All delegation outcomes must be independently verified through direct tool calls and evidence gathering.
+
+### Mandatory Verification Framework
+
+#### 1. Pre-Delegation Documentation
+- Document current state (file contents, timestamps, directory structure)
+- Define specific success criteria and measurable outcomes
+- Identify all files/artifacts that should be created or modified
+- Establish verification checkpoints
+
+#### 2. Adaptive Verification Checklist Creation
+
+For EVERY delegation, Claude must create a tailored verification checklist based on:
+
+**Task Type Adaptations**:
+- **Documentation Tasks**: Verify file existence, content accuracy, formatting, completeness
+- **Code Generation**: Verify syntax, functionality, test coverage, security compliance
+- **Architecture Design**: Verify diagram creation, documentation completeness, decision rationale
+- **Analysis Tasks**: Verify report generation, data accuracy, conclusion validity
+- **Configuration Tasks**: Verify file modifications, setting accuracy, functionality
+
+**Context-Specific Adaptations**:
+- **File Operations**: Check file existence, size changes, modification timestamps
+- **Content Creation**: Validate content quality, completeness, format compliance
+- **Multi-file Tasks**: Verify all expected files, cross-reference consistency
+- **Integration Tasks**: Test functionality, validate connections, verify compatibility
+
+#### 3. Mandatory Verification Steps (Universal)
+
+**EVERY delegation must include these verification actions**:
+
+1. **File System Verification**
+   - Use `view_files` to read all target files
+   - Use `list_dir` to verify directory structure changes
+   - Check file timestamps and sizes
+
+2. **Content Quality Verification**
+   - Validate content matches requirements
+   - Check formatting and structure
+   - Verify completeness against success criteria
+
+3. **Functional Verification** (when applicable)
+   - Test generated code functionality
+   - Validate configuration changes
+   - Verify integration points
+
+4. **Cross-Reference Verification**
+   - Compare multiple verification points
+   - Validate consistency across related files
+   - Check for unintended side effects
+
+#### 4. Evidence-Based Reporting
+
+**Claude must ONLY report task completion after providing concrete evidence**:
+
+- Quote specific file contents that prove completion
+- Show before/after comparisons
+- Provide measurable metrics (file sizes, line counts, etc.)
+- Document any discrepancies or partial completions
+
+### Implementation Guidelines
+
+#### Verification Workflow Pattern
+
+```
+1. DELEGATE: "I need [agent] to [specific task]"
+2. EXECUTE: Call agent with clear parameters
+3. VERIFY: Implement adaptive verification checklist
+4. VALIDATE: Gather concrete evidence through tool calls
+5. REPORT: Provide fact-based completion status with evidence
+```
+
+#### Quality Gates
+
+- **Never assume**: Always verify through direct observation
+- **Never trust**: Subagent reports are claims, not facts
+- **Always evidence**: Every completion claim must have proof
+- **Always adapt**: Verification must match task complexity and context
+
+#### Failure Handling
+
+- If verification reveals incomplete work: Re-delegate with specific corrections
+- If verification reveals errors: Document issues and implement fixes
+- If verification is impossible: Report limitation and request user guidance
+
+### Critical Success Factors
+
+1. **Verification Completeness**: Every aspect of delegated work must be verified
+2. **Evidence Quality**: Verification evidence must be concrete and measurable
+3. **Adaptive Precision**: Verification approach must match task requirements
+4. **Zero False Positives**: Never report completion without verified evidence
+
+**This protocol is NON-NEGOTIABLE and must be followed for ALL agent delegations without exception.**
+
+
 ## Overview
 
 UMIG (Unified Migration Implementation Guide) - Pure ScriptRunner application for Atlassian Confluence managing complex IT cutover events.
