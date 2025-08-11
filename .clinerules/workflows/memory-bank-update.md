@@ -1,26 +1,39 @@
 ---
-description: Enhanced memory bank update workflow with GENDEV agent integration for intelligent knowledge extraction and automated memory organization.
+description: Comprehensive memory bank update workflow with GENDEV agent orchestration for intelligent knowledge extraction and automated memory organization following Rule 07 standards
 ---
 
-# Enhanced Memory Bank Update Workflow with GENDEV Integration
+# Memory Bank Update Workflow
 
-Systematically updates the memory bank of cline in the `cline-docs` folder using AI-powered analysis and intelligent knowledge extraction.
+**Systematic memory bank maintenance with AI-enhanced knowledge extraction and organization following Rule 07 - Memory Bank standards**
+
+## Purpose
+
+This workflow orchestrates GENDEV agents to maintain the 6 core memory bank files in `docs/memory-bank/` folder, ensuring comprehensive project knowledge preservation across sessions with intelligent analysis and automated organization.
+
+## When to Use
+
+- After significant project developments or architectural changes
+- When user requests "update memory bank" (triggers comprehensive review)
+- Following major feature implementations or system modifications
+- During project phase transitions or milestone completions
+- When context needs clarification for future sessions
 
 ## Prerequisites
 
-### Traditional Prerequisites
+### Required Project Documentation
 
-- Developer Journal entries in `DevJournal` folder
-- Current `CHANGELOG.md` file
-- Various `README.md` files across the project
-- Architectural Decision Records in `Docs/adrs` folder
+- Developer Journal entries in `docs/devJournal/` folder (YYYYMMDD-nn.md format)
+- Current `CHANGELOG.md` file with project evolution
+- README.md files across work folders and project root
+- Architectural Decision Records in `docs/adr/` folder
+- Sprint and roadmap documentation in `docs/roadmap/` folder
 
 ### AI-Enhanced Prerequisites
 
 **Use `gendev-documentation-generator` for content analysis:**
 
 ```bash
-/gd:documentationgenerator --analysis_type=content_discovery --scope=memory_sources --focus=knowledge_extraction
+/gd:documentation-generator --validation_level=standard
 ```
 
 **Benefits:** Automated source detection, content classification, priority assessment, scope analysis.
@@ -34,7 +47,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-documentation-generator` for journal processing:**
 
 ```bash
-/gd:documentationgenerator --analysis_type=journal_extraction --scope=devjournal_folder --focus=key_insights
+/gd:documentation-generator --validation_level=standard
 ```
 
 **Processing:** Content extraction, pattern recognition, knowledge synthesis, temporal analysis.
@@ -44,7 +57,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-business-process-analyst` for changelog processing:**
 
 ```bash
-/gd:businessprocessanalyst --analysis_type=changelog_analysis --scope=project_evolution --focus=significant_changes
+/gd:business-process-analyst
 ```
 
 **Processing:** Change categorization, impact assessment, memory relevance, evolution tracking.
@@ -54,7 +67,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-system-architect` for README processing:**
 
 ```bash
-/gd:systemarchitect --analysis_type=readme_analysis --scope=project_wide --focus=architectural_insights
+/gd:system-architect --validation_level=standard
 ```
 
 **Processing:** Architecture extraction, feature documentation, setup knowledge, cross-reference analysis.
@@ -64,39 +77,91 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-business-process-analyst` for ADR processing:**
 
 ```bash
-/gd:businessprocessanalyst --analysis_type=adr_analysis --scope=architectural_decisions --focus=decision_context
+/gd:business-process-analyst
 ```
 
 **Processing:** Decision extraction, context analysis, impact assessment, knowledge integration.
 
 ---
 
-## Step 2: AI-Enhanced Memory Organization
+## Workflow Steps
 
-### 2.1 Intelligent Knowledge Synthesis
+### Phase 1: Memory Bank Structure Validation
 
-**Use `gendev-documentation-generator` for knowledge synthesis:**
-
-```bash
-/gd:documentationgenerator --synthesis_type=memory_organization --scope=comprehensive --focus=knowledge_structure
-```
-
-**AI-Enhanced Synthesis Process:**
-
-- **Content Integration:** AI-powered integration of insights from all sources
-- **Knowledge Structuring:** Intelligent organization of information into memory-appropriate structure
-- **Redundancy Elimination:** AI-assisted removal of duplicate or redundant information
-- **Relationship Mapping:** Automated mapping of relationships between different knowledge areas
-
-### 2.2 AI-Assisted Memory Bank Structure
-
-**Use `gendev-system-architect` for memory architecture:**
+#### 1.1 Core Files Verification
 
 ```bash
-/gd:systemarchitect --architecture_type=memory_structure --scope=knowledge_organization --focus=accessibility
+# Use Requirements Analyst for memory bank compliance
+/gd:requirements-analyst --validation_level=enterprise --stakeholder_count=12 --timeline_constraint=normal --domain_complexity=medium
 ```
 
-**Benefits:** Hierarchical organization, cross-reference system, search optimization, update tracking.
+**Core Memory Bank Files (Rule 07 - Required):**
+
+1. **`projectbrief.md`**: Foundation document defining scope and requirements
+2. **`productContext.md`**: Business context, problems solved, user experience goals
+3. **`activeContext.md`**: Current work focus, recent changes, next steps
+4. **`systemPatterns.md`**: Architecture, technical decisions, design patterns
+5. **`techContext.md`**: Technologies, setup, constraints, dependencies
+6. **`progress.md`**: Current status, what works, what's left, known issues
+
+#### 1.2 Documentation Folder Structure Validation
+
+```bash
+# Use Project Planner for folder structure compliance
+/gd:project-planner --validation_level=standard --timeline_constraint=normal
+```
+
+**Required Documentation Structure:**
+
+- `docs/memory-bank/` - Core memory bank files
+- `docs/devJournal/` - Development journals (YYYYMMDD-nn.md)
+- `docs/adr/` - Architectural Decision Records
+- `docs/roadmap/` - Project roadmap and features
+- `docs/roadmap/sprint/` - Sprint-specific documentation
+
+### Phase 2: Source Analysis and Knowledge Extraction
+
+#### 2.1 Development Journal Analysis
+
+```bash
+# Use Documentation Generator for journal processing
+/gd:documentation-generator --validation_level=standard
+```
+
+**Processing Activities:**
+
+- Chronological pattern analysis and trend identification
+- Technical decision extraction and impact assessment
+- Problem-solution mapping and lessons learned
+- Cross-reference validation with existing memory bank
+
+#### 2.2 Architecture Decision Records Analysis
+
+```bash
+# Use System Architect for ADR processing
+/gd:system-architect --validation_level=standard
+```
+
+**ADR Processing:**
+
+- Decision context and rationale extraction
+- Architectural impact assessment and validation
+- Pattern recognition and consistency verification
+- Cross-reference with system patterns documentation
+
+#### 2.3 Project Documentation Analysis
+
+```bash
+# Use Business Process Analyst for comprehensive documentation review
+/gd:business-process-analyst
+```
+
+**Documentation Sources:**
+
+- README.md files across all work folders
+- CHANGELOG.md for project evolution tracking
+- Sprint documentation in `docs/roadmap/sprint/`
+- Configuration and setup documentation
 
 ---
 
@@ -107,7 +172,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-documentation-generator` for memory content creation:**
 
 ```bash
-/gd:documentationgenerator --content_type=memory_entries --scope=comprehensive --focus=british_english
+/gd:documentation-generator --validation_level=enterprise
 ```
 
 **Benefits:** Concise summarization, accuracy verification, British English compliance, consistency maintenance.
@@ -117,7 +182,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-qa-coordinator` for memory quality validation:**
 
 ```bash
-/gd:qacoordinator --validation_type=memory_quality --scope=comprehensive --focus=consistency_accuracy
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 **Benefits:** Content validation, consistency checking, completeness assessment, language compliance.
@@ -131,7 +196,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-documentation-generator` for memory integration:**
 
 ```bash
-/gd:documentationgenerator --integration_type=memory_bank --scope=cline_docs --focus=seamless_integration
+/gd:documentation-generator --validation_level=standard
 ```
 
 **Benefits:** Seamless merging, conflict resolution, version management, access optimization.
@@ -141,7 +206,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-qa-coordinator` for comprehensive validation:**
 
 ```bash
-/gd:qacoordinator --testing_type=memory_validation --scope=comprehensive --focus=functionality_accuracy
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 **Benefits:** Functionality testing, accuracy verification, performance assessment, integration testing.
@@ -155,7 +220,7 @@ Systematically updates the memory bank of cline in the `cline-docs` folder using
 **Use `gendev-documentation-generator` for best practices enforcement:**
 
 ```bash
-/gd:documentationgenerator --practices_type=memory_management --scope=best_practices --focus=optimization
+/gd:documentation-generator --validation_level=standard
 ```
 
 **Benefits:** Concise communication, accuracy maintenance, consistency enforcement, British English standards.

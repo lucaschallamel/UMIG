@@ -44,19 +44,19 @@ npm run lint && npm run format && npm test && npm audit
 
 ```bash
 # Use Documentation Generator for comprehensive docs
-/gd:documentation-generator --doc_type=comprehensive --audience_level=developer --format_style=markdown
+/gd:documentation-generator --doc_type=comprehensive --audience_level=developer --format_style=markdown --validation_level=standard
 ```
 
 #### 1.3 Security Validation
 
 ```bash
 # Use Security Architect for security review
-/gd:security-architect --architecture_focus=application --security_model=zero-trust --compliance_level=enterprise
+/gd:security-architect --validation_level=enterprise
 ```
 
 ```bash
 # Use Performance Optimizer for scalability assessment
-/gd:performance-optimizer --optimization_scope=application --performance_target=sub-second
+/gd:performance-optimizer --performance_target=sub-second --validation_level=standard
 ```
 
 ### 2. AI-Enhanced Pull Request Creation
@@ -65,14 +65,14 @@ npm run lint && npm run format && npm test && npm audit
 
 ```bash
 # Use Content Creator for PR description generation
-/gd:content-creator --content_type=technical --audience_level=developer --tone=professional
+/gd:documentation-generator --audience_level=developer --validation_level=standard
 ```
 
 #### 2.2 Testing Validation
 
 ```bash
 # Use Test Suite Generator for comprehensive testing
-/gd:test-suite-generator --test_types=unit,integration,e2e --coverage_target=95
+/gd:test-suite-generator --test_types=unit,integration,e2e --coverage_target=95 --validation_level=standard
 ```
 
 ### 3. AI-Assisted Review Process
@@ -81,21 +81,21 @@ npm run lint && npm run format && npm test && npm audit
 
 ```bash
 # Use Team Coordinator for optimal reviewer assignment
-/gd:team-coordinator --coordination_scope=review --team_size=medium
+/gd:project-orchestrator --validation_level=standard
 ```
 
 #### 3.2 Review Assistance
 
 ```bash
 # Use QA Coordinator for review quality assurance
-/gd:qa-coordinator --qa_scope=comprehensive --automation_level=high
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 ### 4. AI-Enhanced Deployment Preparation
 
 ```bash
 # Use CI/CD Builder for deployment validation
-/gd:cicd-builder --deployment_strategy=blue-green --environment_target=production
+/gd:cicd-builder
 ```
 
 ## PR Template
@@ -268,9 +268,11 @@ Use a structured template that accommodates multiple work streams and comprehens
 ### Documentation Updates
 
 - API documentation:
-- User documentation:
-- Developer documentation:
-- Configuration documentation:
+- Memory Bank updates (`docs/memory-bank/` files per Rule 07):
+- Dev Journal entries (`docs/devJournal/` YYYYMMDD-nn.md format):
+- ADR documentation (`docs/adr/` for architectural decisions):
+- README.md files (all work folders per Rule 03):
+- Roadmap documentation (`docs/roadmap/` and `docs/roadmap/sprint/`):
 
 ## Testing Instructions
 
@@ -314,6 +316,7 @@ Use a structured template that accommodates multiple work streams and comprehens
 - [ ] **Security:** [Security considerations]
 - [ ] **Performance:** [Performance impacts]
 - [ ] **Compatibility:** [Breaking changes or compatibility concerns]
+- [ ] **Documentation Structure:** Compliance with Rule 03 scaffolding and Rule 07 memory bank
 
 ## Deployment Notes
 
@@ -332,7 +335,10 @@ Use a structured template that accommodates multiple work streams and comprehens
 
 - [ ] All work streams are documented above
 - [ ] Testing instructions cover all functional areas
-- [ ] Documentation is updated for all changes
+- [ ] Memory Bank files updated in `docs/memory-bank/` per Rule 07
+- [ ] README.md files updated in all affected work folders
+- [ ] Dev Journal entry created in `docs/devJournal/` (YYYYMMDD-nn.md)
+- [ ] ADR created/updated in `docs/adr/` if architectural changes
 - [ ] Database migrations are tested
 - [ ] API changes are documented
 - [ ] UI changes are demonstrated with screenshots
