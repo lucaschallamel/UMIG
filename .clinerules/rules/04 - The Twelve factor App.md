@@ -1,4 +1,9 @@
-_Scope: This document provides the definitive, consolidated set of rules based on the Twelve-Factor App methodology. These principles are mandatory for ensuring our applications are built as scalable, resilient, and maintainable cloud-native services._
+Title: 04 - The Twelve Factor App
+Scope: This rules apply when we are involved in a software programming project and acting on a code base. For any other types of projects, ignore.
+
+# 04 - Twelve Factor App
+
+This document provides the definitive, consolidated set of rules based on the Twelve-Factor App methodology. These principles are mandatory for ensuring our applications are built as scalable, resilient, and maintainable cloud-native services.
 
 # The Consolidated Twelve-Factor App Rules for an AI Agent
 

@@ -9,7 +9,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 **Use `gendev-documentation-generator` for comprehensive change assessment:**
 
 ```bash
-/gd:documentationgenerator --analysis_type=change_impact --scope=project_wide --focus=documentation_requirements
+/gd:documentation-generator --validation_level=standard
 ```
 
 - **AI-Assisted Review:** Use AI to analyze and summarize latest changes from cascade conversation and git status
@@ -21,10 +21,10 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 **Use `gendev-system-architect` for architecture updates:**
 
 ```bash
-/gd:systemarchitect --documentation_type=architecture --scope=solution_design --focus=primary_reference
+/gd:system-architect --validation_level=standard
 ```
 
-- **CRITICAL**: If changes affect architecture, use AI to intelligently update `/docs/solution-architecture.md` as the primary reference
+- **CRITICAL**: If changes affect architecture, use AI to intelligently update `docs/memory-bank/systemPatterns.md` as the primary reference per Rule 07
 - **Automated Analysis:** AI-powered detection of architectural impacts requiring documentation updates
 - **Consistency Verification:** Ensure architecture documentation remains the authoritative source
 
@@ -33,11 +33,11 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 **Use `gendev-business-process-analyst` for ADR assessment:**
 
 ```bash
-/gd:businessprocessanalyst --analysis_type=decision_requirements --scope=architectural_decisions --focus=adr_necessity
+/gd:business-process-analyst
 ```
 
-- **AI-Assisted ADR Evaluation:** Intelligent assessment of whether changes require new ADR in `/docs/adr/`
-- **Archive Management:** Ensure archived ADRs in `/docs/adr/archive/` are properly consolidated in solution-architecture.md
+- **AI-Assisted ADR Evaluation:** Intelligent assessment of whether changes require new ADR in `docs/adr/`
+- **Archive Management:** Ensure archived ADRs in `docs/adr/archive/` are properly consolidated in `docs/memory-bank/systemPatterns.md`
 - **Decision Tracking:** AI-powered tracking of architectural decisions and their documentation needs
 
 ### Step 4: Comprehensive Documentation Updates
@@ -45,12 +45,15 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 **Use `gendev-documentation-generator` for systematic updates:**
 
 ```bash
-/gd:documentationgenerator --update_type=comprehensive --scope=all_documentation --focus=consistency
+/gd:documentation-generator --validation_level=enterprise
 ```
 
 - **CHANGELOG Updates:** AI-assisted updates to CHANGELOG with intelligent categorization and formatting
 - **Main README Enhancement:** Intelligent updates to main README file ensuring accuracy and completeness
-- **Subfolder README Management:** AI-powered updates to README files in subfolders maintaining consistency
+- **Subfolder README Management:** AI-powered updates to README files in all work folders per Rule 03 scaffolding requirements
+- **Memory Bank Updates:** Ensure `docs/memory-bank/` 6 core files reflect current project state per Rule 07
+- **Sprint Documentation:** Update `docs/roadmap/` and `docs/roadmap/sprint/` documentation as needed
+- **Dev Journal Integration:** Reference relevant entries in `docs/devJournal/` (YYYYMMDD-nn.md format)
 - **Cross-Reference Validation:** Automated verification of documentation cross-references and links
 
 ### Step 5: Quality Assurance and Validation
@@ -58,7 +61,7 @@ description: Enhanced documentation update workflow with GENDEV agent integratio
 **Use `gendev-qa-coordinator` for comprehensive validation:**
 
 ```bash
-/gd:qacoordinator --validation_type=documentation_quality --scope=comprehensive --focus=accuracy_consistency
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 - **Accuracy Verification:** AI-powered verification of all documentation updates

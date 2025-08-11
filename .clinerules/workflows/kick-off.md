@@ -30,7 +30,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Context Manager for comprehensive session analysis
-/gd:context-manager --analysis_scope=project-state --context_depth=comprehensive
+/gd:context-manager
 ```
 
 **Enhanced Context Analysis:**
@@ -45,7 +45,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use System Architect for architectural state analysis
-/gd:system-architect --architecture_focus=current-state --analysis_depth=comprehensive
+/gd:system-architect --validation_level=strict
 ```
 
 **Enhanced Architecture Analysis:**
@@ -62,16 +62,17 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Documentation Generator for documentation ecosystem analysis
-/gd:documentation-generator --doc_type=project-analysis --analysis_scope=comprehensive
+/gd:documentation-generator --doc_type=project-analysis --validation_level=enterprise
 ```
 
 **Enhanced Documentation Review:**
 
-- **Documentation Completeness Analysis**: AI-powered gap analysis across all documentation
-- **Consistency Validation**: Cross-document consistency and accuracy verification
-- **Currency Assessment**: Documentation freshness and relevance evaluation
-- **Quality Metrics**: Automated documentation quality scoring and improvement recommendations
-- **Accessibility Review**: Documentation accessibility and usability assessment
+- **Memory Bank Analysis**: AI-powered analysis of `docs/memory-bank/` 6 core files per Rule 07
+- **Documentation Structure Validation**: Verify compliance with Rule 03 scaffolding requirements
+- **Dev Journal Assessment**: Review `docs/devJournal/` entries (YYYYMMDD-nn.md format)
+- **ADR Consistency**: Cross-reference `docs/adr/` architectural decisions
+- **README Completeness**: Validate README.md files in all work folders
+- **Roadmap Currency**: Review `docs/roadmap/` and `docs/roadmap/sprint/` documentation
 
 ### 2.2 Intelligent Developer Journal Analysis
 
@@ -79,16 +80,17 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Content Analyst for journal pattern analysis
-/gd:content-analyst --content_type=developer-journal --analysis_focus=trends
+/gd:documentation-generator --validation_level=standard
 ```
 
-**Enhanced Journal Review:**
+**Enhanced Journal Review (`docs/devJournal/`):**
 
-- **Development Trend Analysis**: AI-identified patterns and trends in development progress
+- **Development Trend Analysis**: AI-identified patterns from YYYYMMDD-nn.md entries
 - **Blocker Pattern Recognition**: Automated identification of recurring development blockers
 - **Velocity Analysis**: Development velocity trends and productivity insights
 - **Knowledge Extraction**: Key insights and learnings extraction from journal entries
 - **Decision Trail Analysis**: Decision-making pattern analysis and validation
+- **Memory Bank Integration**: Cross-reference with `docs/memory-bank/` files
 
 ### 2.3 AI-Assisted ADR and Decision Analysis
 
@@ -96,7 +98,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Decision Analyst for ADR comprehensive review
-/gd:decision-analyst --analysis_scope=architectural --decision_impact=high
+/gd:business-process-analyst
 ```
 
 **Enhanced ADR Review:**
@@ -115,7 +117,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Requirements Analyst for requirement state analysis
-/gd:requirements-analyst --analysis_scope=current-state --validation_level=comprehensive
+/gd:requirements-analyst --validation_level=comprehensive --timeline_constraint=normal --domain_complexity=medium
 ```
 
 **Enhanced Requirements Analysis:**
@@ -130,7 +132,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Project Manager for development state assessment
-/gd:project-manager --assessment_scope=current-state --planning_horizon=sprint
+/gd:project-planner --validation_level=standard --timeline_constraint=normal
 ```
 
 **Enhanced Development Assessment:**
@@ -147,7 +149,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Quality Analyst for inconsistency detection
-/gd:quality-analyst --analysis_scope=documentation --inconsistency_detection=comprehensive
+/gd:qa-coordinator --validation_level=standard
 ```
 
 **Enhanced Inconsistency Detection:**
@@ -162,7 +164,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Problem Solver for resolution strategy
-/gd:problem-solver --problem_scope=documentation --solution_approach=systematic
+/gd:risk-manager --validation_level=standard
 ```
 
 **Enhanced Resolution Strategy:**
@@ -179,7 +181,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Strategic Planner for next steps analysis
-/gd:strategic-planner --planning_scope=immediate --priority_framework=value-impact
+/gd:project-planner --validation_level=standard --timeline_constraint=normal
 ```
 
 **Enhanced Strategic Planning:**
@@ -194,7 +196,7 @@ AI-powered project kick-off workflow leveraging GENDEV agents for intelligent co
 
 ```bash
 # Use Recommendation Engine for personalised suggestions
-/gd:recommendation-engine --context_scope=project-state --recommendation_type=actionable
+/gd:ai-integration-specialist
 ```
 
 **Enhanced Recommendations:**

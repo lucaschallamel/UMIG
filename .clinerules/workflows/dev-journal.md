@@ -1,57 +1,93 @@
 ---
-description: Enhanced development journal workflow with GENDEV agent integration.
+description: Comprehensive development journal workflow with GENDEV agent orchestration for systematic session documentation and knowledge preservation
 ---
 
-# Enhanced Developer Journal Workflow with GENDEV Integration
+# Development Journal Workflow
 
-Generate a new Developer Journal entry in `docs/devJournal` folder using naming convention `yyyymmdd-nn.md`.
+**Systematic development session documentation with AI-enhanced analysis and comprehensive knowledge capture following project documentation standards**
 
-## Enhanced Content Generation with AI Integration
+## Purpose
 
-### 1. AI-Enhanced Context Establishment
+This workflow orchestrates GENDEV agents to create comprehensive developer journal entries in `docs/devJournal/` folder, ensuring systematic session documentation, knowledge preservation, and README maintenance across all work folders.
 
-**Use `gendev-context-manager`:**
+## When to Use
+
+- End of each development session or significant work milestone
+- After completing major features, bug fixes, or architectural changes
+- Before significant context switches or extended breaks
+- When documenting complex problem-solving sessions
+- As part of regular development workflow discipline
+
+## Prerequisites
+
+- GENDEV agents available in Claude Code environment
+- Active development session with substantial work completed
+- Understanding of session scope and work streams
+- Access to project documentation structure (`docs/` folders)
+- Current project state and next steps identified
+
+## Workflow Steps
+
+### Phase 1: Session Context Analysis
+
+#### 1.1 Comprehensive Session Context Establishment
 
 ```bash
-/gd:contextmanager --analysis_type=session_context --scope=comprehensive --project_state=active
+# Use Context Manager for session analysis
+/gd:context-manager
 ```
 
-**Use `gendev-documentation-generator`:**
+**Context Analysis:**
+
+- Session timeline and major milestones identification
+- Work stream categorization and relationship mapping
+- Technical decision documentation and rationale
+- Problem-solution documentation with alternatives considered
+
+#### 1.2 Documentation Structure Validation
 
 ```bash
-/gd:documentationgenerator --analysis_type=project_history --scope=recent_sessions --format=context_summary
+# Use Project Planner for documentation compliance
+/gd:project-planner --validation_level=standard --timeline_constraint=normal
 ```
+
+**Documentation Structure Requirements:**
+
+- Journal entry in `docs/devJournal/` with YYYYMMDD-nn.md format
+- README.md files maintained in relevant work folders
+- Cross-references to `docs/adr/` for architectural decisions
+- Integration with `docs/memory-bank/` for knowledge preservation
 
 ### 2. AI-Enhanced Evidence Gathering and Analysis
 
 **Use `gendev-code-reviewer`:**
 
 ```bash
-/gd:codereviewer --review_type=session_analysis --scope=comprehensive --focus=evidence_gathering
+/gd:code-reviewer
 ```
 
 **Use `gendev-documentation-generator`:**
 
 ```bash
-/gd:documentationgenerator --analysis_type=documentation_changes --scope=session --format=comprehensive
+/gd:documentation-generator --validation_level=standard
 ```
 
 **Use `gendev-system-architect`:**
 
 ```bash
-/gd:systemarchitect --analysis_type=development_patterns --scope=session --focus=cross_reference
+/gd:system-architect --validation_level=standard
 ```
 
 **Use `gendev-business-process-analyst`:**
 
 ```bash
-/gd:businessprocessanalyst --analysis_type=work_streams --scope=session --focus=identification
+/gd:business-process-analyst
 ```
 
 **Use `gendev-qa-coordinator`:**
 
 ```bash
-/gd:qacoordinator --verification_type=session_completeness --scope=comprehensive --focus=quality_assurance
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 ### 3. AI-Enhanced Narrative Synthesis and Generation
@@ -59,25 +95,25 @@ Generate a new Developer Journal entry in `docs/devJournal` folder using naming 
 **Use `gendev-documentation-generator`:**
 
 ```bash
-/gd:documentationgenerator --synthesis_type=session_narrative --scope=comprehensive --format=developer_journal
+/gd:documentation-generator --validation_level=enterprise
 ```
 
 **Use `gendev-documentation-generator`:**
 
 ```bash
-/gd:documentationgenerator --template_type=dev_journal --enhancement=ai_assisted --consistency=high
+/gd:documentation-generator --validation_level=standard
 ```
 
 **Use `gendev-code-reviewer`:**
 
 ```bash
-/gd:codereviewer --analysis_type=technical_depth --scope=session --focus=comprehensive_capture
+/gd:code-reviewer
 ```
 
 **Use `gendev-qa-coordinator`:**
 
 ```bash
-/gd:qacoordinator --verification_type=journal_quality --scope=comprehensive --standards=developer_journal
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 ### 4. AI-Enhanced Anti-Tunnel Vision Verification
@@ -85,7 +121,7 @@ Generate a new Developer Journal entry in `docs/devJournal` folder using naming 
 **Use `gendev-qa-coordinator`:**
 
 ```bash
-/gd:qacoordinator --checklist_type=anti_tunnel_vision --scope=comprehensive --verification=mandatory
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 - [ ] **Work Stream Identification:** AI-identified and explained multiple work streams
@@ -111,7 +147,7 @@ Generate a new Developer Journal entry in `docs/devJournal` folder using naming 
 **Use `gendev-documentation-generator`:**
 
 ```bash
-/gd:documentationgenerator --final_review=true --quality_check=comprehensive --format=developer_journal
+/gd:documentation-generator --validation_level=standard
 ```
 
 - **AI-Generated Summary:** Present AI-enhanced journal entry with comprehensive analysis

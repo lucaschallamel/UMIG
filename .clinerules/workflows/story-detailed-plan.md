@@ -130,7 +130,11 @@ AI-enhanced systematic approach to analyze, scope, and plan user story implement
 
 - [ ] API documentation (gendev-documentationgenerator)
 - [ ] Code documentation (gendev-documentationgenerator)
-- [ ] Architecture docs (gendev-systemarchitect)
+- [ ] Architecture documentation in `docs/memory-bank/systemPatterns.md` (gendev-systemarchitect)
+- [ ] Memory Bank updates for 6 core files per Rule 07 (gendev-documentationgenerator)
+- [ ] README.md files for affected work folders per Rule 03 (gendev-documentationgenerator)
+- [ ] Dev Journal planning entry in `docs/devJournal/` (gendev-documentationgenerator)
+- [ ] ADR creation in `docs/adr/` if architectural (gendev-systemarchitect)
 - [ ] Knowledge transfer (gendev-documentationgenerator)
 
 ## AI-Enhanced Execution Notes
@@ -158,7 +162,10 @@ Before proceeding to implementation:
 2. Set up development environment if needed
 3. Prepare test data and environments
 4. Schedule review checkpoints
-5. Communicate plan to stakeholders
+5. Update Memory Bank files in `docs/memory-bank/` per Rule 07
+6. Create planning dev journal entry in `docs/devJournal/` (YYYYMMDD-nn.md)
+7. Update relevant README.md files per Rule 03
+8. Communicate plan to stakeholders
 
 ---
 

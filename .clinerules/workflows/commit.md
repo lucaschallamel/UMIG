@@ -41,12 +41,13 @@ This workflow guides the creation of a high-quality, comprehensive commit messag
 - **Detailed Diff Review:** Run `git diff --staged --stat` to get both summary and detailed view of all staged changes.
 - **File-by-File Analysis:** Run `git diff --staged --name-status` to see the operation type (Modified, Added, Deleted) for each file.
 - **Functional Area Classification:** Group staged files by functional area:
-  - **API Changes:** `src/groovy/umig/api/`, `src/groovy/umig/repository/`
-  - **UI Changes:** `src/groovy/umig/web/js/`, `src/groovy/umig/web/css/`, `src/groovy/umig/macros/`
-  - **Documentation:** `docs/`, `README.md`, `CHANGELOG.md`, `*.md` files
-  - **Tests:** `src/groovy/umig/tests/`, `local-dev-setup/__tests__/`
-  - **Configuration:** `local-dev-setup/liquibase/`, `*.json`, `*.yml`, `*.properties`
-  - **Database:** Migration files, schema changes
+  - **API Changes:** `src/api/`, backend service components
+  - **UI Changes:** `src/app/`, frontend components and styling
+  - **Documentation:** `docs/memory-bank/`, `docs/devJournal/`, `docs/adr/`, `docs/roadmap/`, README.md files
+  - **Tests:** `src/tests/`, `src/tests/e2e/`, `src/tests/postman/`
+  - **Configuration:** `local-dev-setup/`, `*.json`, `*.yml`, `*.properties`
+  - **Database:** `db/liquibase/`, migration files, schema changes
+  - **Utilities:** `src/utils/`, shared components
 - **Change Type Analysis:** For each file, determine the type of change:
   - New functionality added
   - Existing functionality modified
@@ -61,7 +62,7 @@ This workflow guides the creation of a high-quality, comprehensive commit messag
 
 ```bash
 # Use QA Coordinator for completeness validation
-/gd:qa-coordinator --validation_scope=commit --quality_threshold=high
+/gd:qa-coordinator --validation_level=standard
 ```
 
 **Manual Commands:**
@@ -87,7 +88,7 @@ git ls-files --others --exclude-standard
 
 ```bash
 # Use Context Manager for work stream analysis
-/gd:context-manager --context_scope=session --analysis_depth=comprehensive
+/gd:context-manager --context_operation=analyze --quality_threshold=0.9
 ```
 
 **Enhanced Work Stream Analysis:**
@@ -103,7 +104,7 @@ git ls-files --others --exclude-standard
 
 ```bash
 # Use Requirements Analyst for context understanding
-/gd:requirements-analyst --analysis_depth=comprehensive --stakeholder_scope=technical
+/gd:requirements-analyst --validation_level=enterprise --stakeholder_count=5 --timeline_constraint=normal --domain_complexity=medium
 ```
 
 **2.1. Enhanced Session Context Review:**
@@ -115,7 +116,10 @@ git ls-files --others --exclude-standard
 
 **2.2. AI-Enhanced Development Context:**
 
-- **Dev Journal Review:** Automated narrative extraction and summarization
+- **Dev Journal Review:** Automated narrative extraction from `docs/devJournal/`
+- **Memory Bank Integration:** Cross-reference with `docs/memory-bank/` files
+- **ADR References:** Integration with `docs/adr/` for architectural decisions
+- **README Maintenance:** Validation of README.md files in affected work folders
 - **Related Work:** Cross-commit dependency analysis
 - **Previous Commits:** Pattern recognition and consistency checking
 
@@ -140,7 +144,7 @@ git ls-files --others --exclude-standard
 
 ```bash
 # Use Documentation Generator for commit message creation
-/gd:documentation-generator --doc_type=commit-message --audience_level=expert --format_style=conventional
+/gd:documentation-generator --doc_type=commit-message --audience_level=expert --format_style=conventional --validation_level=standard
 ```
 
 The goal is to create a comprehensive, AI-validated message that explains all changes and their context.

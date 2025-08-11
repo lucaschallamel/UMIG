@@ -4,20 +4,20 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 
 # Enhanced Sprint Review & Retrospective Workflow with GENDEV Integration
 
-> **Filename convention:** `{yyyymmdd}-sprint-review.md`. Place in `/docs/devJournal/`.
+> **Filename convention:** `{yyyymmdd}-sprint-review.md`. Place in `docs/devJournal/` per Rule 03 scaffolding.
 
 ## AI-Enhanced Sprint Context Gathering
 
 **Sprint Analysis:**
 
 ```bash
-/gd:businessprocessanalyst --analysis_type=sprint_analysis --scope=comprehensive --focus=performance_insights
+/gd:business-process-analyst
 ```
 
 **Metrics Collection:**
 
 ```bash
-/gd:qacoordinator --metrics_type=sprint_performance --scope=comprehensive --focus=quantitative_analysis
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 **Traditional Commands:**
@@ -29,7 +29,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 **Insight Generation:**
 
 ```bash
-/gd:documentationgenerator --analysis_type=sprint_insights --scope=comprehensive --focus=learning_extraction
+/gd:documentation-generator --validation_level=enterprise
 ```
 
 ## AI-Enhanced Sprint Review Document
@@ -37,13 +37,13 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 **Document Generation:**
 
 ```bash
-/gd:documentationgenerator --document_type=sprint_review --scope=comprehensive --focus=structured_analysis
+/gd:documentation-generator --validation_level=enterprise
 ```
 
 ### 1. Sprint Overview
 
 ```bash
-/gd:businessprocessanalyst --overview_type=sprint_summary --scope=comprehensive --focus=strategic_alignment
+/gd:business-process-analyst
 ```
 
 - Sprint Dates, Goal, Participants, Branch/Release, Strategic Alignment
@@ -53,7 +53,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 ### 2. Achievements & Deliverables
 
 ```bash
-/gd:codereviewer --analysis_type=sprint_achievements --scope=comprehensive --focus=deliverable_assessment
+/gd:code-reviewer
 ```
 
 - Major Features, Technical Milestones, Documentation Updates, Testing & Quality, Code Quality Metrics
@@ -61,7 +61,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 ### 3. Sprint Metrics
 
 ```bash
-/gd:qacoordinator --metrics_type=sprint_performance --scope=comprehensive --focus=trend_analysis
+/gd:qa-coordinator --validation_level=enterprise
 ```
 
 - Commits, PRs Merged, Issues Closed, Branches Created, Performance Trends, Quality Metrics
@@ -69,7 +69,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 ### 4. Review of Sprint Goals
 
 ```bash
-/gd:businessprocessanalyst --analysis_type=goal_achievement --scope=sprint_objectives --focus=completion_assessment
+/gd:business-process-analyst
 ```
 
 - What was planned, What was achieved, What was not completed, Achievement Rate, Goal Alignment
@@ -77,7 +77,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 ### 5. Demo & Walkthrough
 
 ```bash
-/gd:documentationgenerator --content_type=demo_materials --scope=sprint_deliverables --focus=user_experience
+/gd:documentation-generator --validation_level=standard
 ```
 
 - Visual Documentation, Demo Scripts, Reviewer Instructions, Feature Highlights, User Impact
@@ -85,7 +85,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 ### 6. Retrospective
 
 ```bash
-/gd:businessprocessanalyst --analysis_type=retrospective --scope=comprehensive --focus=continuous_improvement
+/gd:business-process-analyst
 ```
 
 #### What Went Well
@@ -109,7 +109,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 ### 7. Action Items & Next Steps
 
 ```bash
-/gd:businessprocessanalyst --planning_type=action_items --scope=next_sprint --focus=strategic_priorities
+/gd:business-process-analyst
 ```
 
 - Priority-Ranked Actions, Owner Assignment, Deadlines, Success Metrics, Risk Assessment
@@ -117,10 +117,15 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 ### 8. References
 
 ```bash
-/gd:documentationgenerator --reference_type=sprint_documentation --scope=comprehensive --focus=cross_linking
+/gd:documentation-generator --validation_level=enterprise
 ```
 
-- Dev Journal Entries, ADRs, Changelog/Docs, Cross-References, Knowledge Base
+- Dev Journal Entries (`docs/devJournal/` YYYYMMDD-nn.md format)
+- ADRs (`docs/adr/` architectural decisions)
+- Memory Bank files (`docs/memory-bank/` 6 core files per Rule 07)
+- README.md files (all work folders per Rule 03)
+- Roadmap documentation (`docs/roadmap/` and `docs/roadmap/sprint/`)
+- Cross-References and Knowledge Base
 
 ---
 
@@ -160,7 +165,7 @@ description: Enhanced Sprint Review & Retrospective workflow with GENDEV agent i
 
 ## Traditional Sprint Review Template
 
-> **Filename convention:** `{yyyymmdd}-sprint-review.md`. Place in `/docs/devJournal/`.
+> **Filename convention:** `{yyyymmdd}-sprint-review.md`. Place in `docs/devJournal/` per Rule 03 scaffolding.
 
 ### 1. Sprint Overview
 
