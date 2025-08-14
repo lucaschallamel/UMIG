@@ -2,88 +2,95 @@
 
 ## Core Technologies
 
-- **Runtime Platform**: Atlassian Confluence + ScriptRunner for Confluence
-- **Backend Language**: Groovy (ScriptRunner-compatible)
-- **Database**: PostgreSQL 14+ with Liquibase migrations
-- **Frontend**: Vanilla JavaScript with Atlassian AUI styling
-- **Development Environment**: Node.js orchestrated Podman containers
+- **Platform**: Atlassian Confluence 9.2.7 + ScriptRunner 9.21.0
+- **Backend**: Groovy 3.0.15 with static type checking
+- **Frontend**: Vanilla JavaScript + Atlassian AUI components
+- **Database**: PostgreSQL 14 with Liquibase migrations
+- **Development**: Node.js orchestrated Podman containers
 
 ## Architecture Patterns
 
-- **Pure ScriptRunner Application**: No external frameworks or complex build toolchains
-- **Repository Pattern**: Centralized data access with connection pooling via `DatabaseUtil.withSql`
-- **SPA + REST Pattern**: Single-page applications with RESTful backend APIs
-- **Canonical vs Instance Pattern**: Reusable master templates with time-bound execution instances
+- **API Pattern**: CustomEndpointDelegate with versioned endpoints (v2)
+- **Data Access**: Repository pattern with DatabaseUtil.withSql
+- **Frontend**: SPA + REST pattern with modular JavaScript
+- **Data Model**: Canonical vs Instance pattern (master templates + execution records)
 
-## API Standards
+## Development Environment
 
-- **Endpoint Pattern**: Must use `CustomEndpointDelegate` exclusively
-- **Security**: All endpoints require `groups: ["confluence-users"]`
-- **Error Handling**: Specific SQL state mappings (23503→400, 23505→409)
-- **Response Standards**: DELETE returns 204, PUT/DELETE are idempotent
+### Prerequisites
+- Node.js v18+
+- Podman and podman-compose
+- PostgreSQL client tools
 
-## Database Requirements
+### Common Commands
 
-- **Schema Management**: Liquibase only - manual schema changes forbidden
-- **Connection Pattern**: Use ScriptRunner's Database Resource Pool (`umig_db_pool`)
-- **Naming Convention**: Strict `snake_case` for all database objects
-- **Type Safety**: Explicit casting required (`as String`, `as UUID`)
-
-## Frontend Requirements
-
-- **Zero External Dependencies**: Pure vanilla JavaScript only
-- **UI Framework**: Atlassian AUI components for consistency
-- **Real-time Updates**: AJAX polling pattern (no WebSockets)
-- **Custom Confirmation**: Promise-based dialogs to prevent UI flickering
-
-## Development Commands
-
-### Environment Management
-
+#### Environment Management
 ```bash
-cd local-dev-setup
-npm install
+# From local-dev-setup directory
 npm start                    # Start complete development stack
 npm stop                     # Stop all services
 npm run restart              # Restart with data preservation
 npm run restart:erase        # Restart and erase all data
+npm run restart:erase:umig   # Restart and erase only UMIG database
 ```
 
-### Data Operations
-
+#### Data Operations
 ```bash
 npm run generate-data        # Generate synthetic data
-npm run generate-data:erase  # Generate with database reset
-npm run import-csv           # Import CSV data
-npm test                     # Run Jest tests
+npm run generate-data:erase  # Generate data with reset
+npm run import-csv -- --file path/to/file.csv  # Import CSV data
 ```
 
-### Database Operations
-
+#### Testing
 ```bash
+npm test                     # Run Node.js tests
+# From project root:
+./src/groovy/umig/tests/run-integration-tests.sh  # Integration tests
+./src/groovy/umig/tests/run-unit-tests.sh         # Unit tests
+```
+
+#### Database Management
+```bash
+# From local-dev-setup directory
 liquibase --defaults-file=liquibase/liquibase.properties update
 ```
 
-### Testing
-
-```bash
-# Node.js tests
-npm test
-
-# Groovy integration tests (from project root)
-./src/groovy/umig/tests/run-integration-tests.sh
-```
-
-## Build System
-
-- **No Build Process**: Direct file deployment to ScriptRunner
-- **Asset Management**: JS/CSS files served directly from `src/groovy/umig/web/`
-- **Version Control**: Git-based with conventional commits
-- **Quality Assurance**: MegaLinter for code quality, Jest for Node.js testing
-
 ## Service URLs (Development)
-
 - **Confluence**: http://localhost:8090
 - **PostgreSQL**: localhost:5432
 - **MailHog**: http://localhost:8025
-- **API Base**: `/rest/scriptrunner/latest/custom/`
+
+## Code Standards
+
+### Groovy Backend
+- Use `@BaseScript CustomEndpointDelegate` for all APIs
+- Explicit type casting required: `UUID.fromString(param as String)`
+- Repository pattern mandatory: `DatabaseUtil.withSql { sql -> ... }`
+- Error mapping: SQL state 23503→400, 23505→409
+
+### JavaScript Frontend
+- Vanilla JS only - no external frameworks
+- Modular IIFE patterns for organization
+- Atlassian AUI components for styling
+- Promise-based async patterns
+
+### Database
+- All schema changes via Liquibase only
+- snake_case naming convention
+- Audit fields: created_by, created_at, updated_by, updated_at
+- Master/instance table pattern with suffixes
+
+## Key Configuration
+
+### ScriptRunner Setup
+- Database pool: `umig_db_pool`
+- Script roots: `/var/atlassian/application-data/confluence/scripts`
+- Package scanning: `umig.api.v2,umig.api.v2.web`
+
+### Required Environment Variables
+```bash
+POSTGRES_DB=umig_db
+UMIG_DB_NAME=umig_app_db
+UMIG_DB_USER=umig_app_user
+CONFLUENCE_LICENSE_KEY=<your-license>
+```
