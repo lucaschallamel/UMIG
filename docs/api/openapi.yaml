@@ -1,15 +1,16 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.0.0
+  version: 2.1.1
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
 
-    **US-025 Phase 4 Complete:** 100% integration test success rate achieved.
-    **Recent Fixes:** mig_type parameter casting (Integer→String), GString serialization issues resolved.
+    **US-024 Complete:** Enhanced StepsAPI with improved comments endpoint error handling.
+    **Latest:** Comments endpoints now return helpful error messages with usage guidance instead of generic responses.
+    **Features:** RESTful sub-resource pattern for comments with clear documentation and practical examples.
     **Validation:** HTTP Basic Auth, SQL state mappings (23503→400, 23505→409) confirmed.
 servers:
   - url: /rest/scriptrunner/latest/custom
@@ -1590,7 +1591,10 @@ paths:
       tags:
         - Comments
       summary: Get comments for a step instance
-      description: Retrieves all comments associated with a specific step instance.
+      description: |
+        Retrieves all comments associated with a specific step instance using the RESTful sub-resource pattern.
+        This endpoint follows the pattern `/steps/{stepInstanceId}/comments` for accessing comments as a sub-resource of steps.
+        If you use an incorrect endpoint pattern, the API will provide helpful error messages with usage guidance.
       operationId: getStepInstanceComments
       parameters:
         - name: stepInstanceId
@@ -1611,13 +1615,29 @@ paths:
                   $ref: "#/components/schemas/Comment"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Comments endpoint not found - enhanced error response with usage guidance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedError"
+              examples:
+                incorrectEndpoint:
+                  summary: Incorrect comments endpoint usage
+                  value:
+                    error: "Invalid comments endpoint usage"
+                    message: "To access comments, use: /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments"
+                    example: "/rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments"
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
       tags:
         - Comments
       summary: Create a new comment for a step instance
-      description: Creates a new comment for the specified step instance.
+      description: |
+        Creates a new comment for the specified step instance using the RESTful sub-resource pattern.
+        This endpoint follows the pattern `POST /steps/{stepInstanceId}/comments` for creating comments as a sub-resource of steps.
+        If you use an incorrect endpoint pattern, the API will provide helpful error messages with usage guidance and examples.
       operationId: createStepInstanceComment
       parameters:
         - name: stepInstanceId
@@ -1642,6 +1662,19 @@ paths:
                 $ref: "#/components/schemas/CommentCreateResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "404":
+          description: Comments endpoint not found - enhanced error response with usage guidance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedError"
+              examples:
+                incorrectEndpoint:
+                  summary: Incorrect comments endpoint for creating comments
+                  value:
+                    error: "Invalid comments endpoint usage"
+                    message: "To create a comment, use: POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments"
+                    example: "POST /rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments with comment data in the request body"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -1650,7 +1683,10 @@ paths:
       tags:
         - Comments
       summary: Update a comment
-      description: Updates the body of an existing comment.
+      description: |
+        Updates the body of an existing comment using direct comment access for efficiency.
+        This endpoint follows the pattern `PUT /comments/{commentId}` for direct comment operations.
+        If you use an incorrect endpoint pattern, the API will provide helpful error messages with usage guidance and examples.
       operationId: updateComment
       parameters:
         - name: commentId
@@ -1675,14 +1711,32 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
-          $ref: "#/components/responses/NotFound"
+          description: Comment not found or incorrect endpoint - enhanced error response with usage guidance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedError"
+              examples:
+                incorrectEndpoint:
+                  summary: Incorrect comments endpoint for updating comments
+                  value:
+                    error: "Invalid comments endpoint usage"
+                    message: "To update a comment, use: PUT /rest/scriptrunner/latest/custom/comments/{commentId}"
+                    example: "PUT /rest/scriptrunner/latest/custom/comments/123 with updated comment data in the request body"
+                commentNotFound:
+                  summary: Comment not found
+                  value:
+                    error: "Comment not found"
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
       tags:
         - Comments
       summary: Delete a comment
-      description: Deletes an existing comment.
+      description: |
+        Deletes an existing comment using direct comment access for efficiency.
+        This endpoint follows the pattern `DELETE /comments/{commentId}` for direct comment operations.
+        If you use an incorrect endpoint pattern, the API will provide helpful error messages with usage guidance and examples.
       operationId: deleteComment
       parameters:
         - name: commentId
@@ -1701,7 +1755,22 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
         "404":
-          $ref: "#/components/responses/NotFound"
+          description: Comment not found or incorrect endpoint - enhanced error response with usage guidance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedError"
+              examples:
+                incorrectEndpoint:
+                  summary: Incorrect comments endpoint for deleting comments
+                  value:
+                    error: "Invalid comments endpoint usage"
+                    message: "To delete a comment, use: DELETE /rest/scriptrunner/latest/custom/comments/{commentId}"
+                    example: "DELETE /rest/scriptrunner/latest/custom/comments/123"
+                commentNotFound:
+                  summary: Comment not found
+                  value:
+                    error: "Comment not found"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -7796,6 +7865,23 @@ components:
           type: string
         message:
           type: string
+    
+    EnhancedError:
+      type: object
+      description: Enhanced error response with usage guidance (introduced in US-024)
+      properties:
+        error:
+          type: string
+          description: Error description
+          example: "Invalid comments endpoint usage"
+        message:
+          type: string
+          description: Helpful guidance message
+          example: "To access comments, use: /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments"
+        example:
+          type: string
+          description: Concrete usage example
+          example: "/rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments"
 
     # === PHASES API SCHEMAS ===
     MasterPhase:

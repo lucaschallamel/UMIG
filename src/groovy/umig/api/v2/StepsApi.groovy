@@ -13,11 +13,12 @@ import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 import java.util.UUID
 
+/**
+ * Steps API - repositories instantiated within methods to avoid class loading issues
+ */
 @BaseScript CustomEndpointDelegate delegate
 
-final StepRepository stepRepository = new StepRepository()
-final StatusRepository statusRepository = new StatusRepository()
-final UserRepository userRepository = new UserRepository()
+// Import repositories at compile time but instantiate lazily
 
 /**
  * Handles GET requests for Steps with hierarchical filtering for the runsheet.
@@ -38,6 +39,178 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getStepRepository = { ->
+        return new StepRepository()
+    }
+    def getStatusRepository = { ->
+        return new StatusRepository()
+    }
+    def getUserRepository = { ->
+        return new UserRepository()
+    }
+    
+    // Parse and validate query parameters for filtering with type safety (ADR-031) - inline
+    def parseAndValidateFilters = { MultivaluedMap qParams ->
+        def filters = [:]
+        
+        // UUID parameters with explicit casting and validation
+        if (qParams.getFirst("migrationId")) {
+            try {
+                filters.migrationId = UUID.fromString(qParams.getFirst("migrationId") as String)
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid migrationId format: must be a valid UUID")
+            }
+        }
+        
+        if (qParams.getFirst("iterationId")) {
+            try {
+                filters.iterationId = UUID.fromString(qParams.getFirst("iterationId") as String)
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid iterationId format: must be a valid UUID")
+            }
+        }
+        
+        if (qParams.getFirst("planId")) {
+            try {
+                filters.planId = UUID.fromString(qParams.getFirst("planId") as String)
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid planId format: must be a valid UUID")
+            }
+        }
+        
+        if (qParams.getFirst("sequenceId")) {
+            try {
+                filters.sequenceId = UUID.fromString(qParams.getFirst("sequenceId") as String)
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid sequenceId format: must be a valid UUID")
+            }
+        }
+        
+        if (qParams.getFirst("phaseId")) {
+            try {
+                filters.phaseId = UUID.fromString(qParams.getFirst("phaseId") as String)
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid phaseId format: must be a valid UUID")
+            }
+        }
+        
+        if (qParams.getFirst("labelId")) {
+            try {
+                filters.labelId = UUID.fromString(qParams.getFirst("labelId") as String)
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid labelId format: must be a valid UUID")
+            }
+        }
+        
+        // Integer parameters with explicit casting and validation
+        if (qParams.getFirst("teamId")) {
+            try {
+                filters.teamId = Integer.parseInt(qParams.getFirst("teamId") as String)
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid teamId format: must be a valid integer")
+            }
+        }
+        
+        if (qParams.getFirst("statusId")) {
+            try {
+                filters.statusId = Integer.parseInt(qParams.getFirst("statusId") as String)
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid statusId format: must be a valid integer")
+            }
+        }
+        
+        // String parameters with validation
+        if (qParams.getFirst("status")) {
+            def status = qParams.getFirst("status") as String
+            if (status.trim().isEmpty()) {
+                throw new IllegalArgumentException("Status parameter cannot be empty")
+            }
+            filters.status = status.toUpperCase()
+        }
+        
+        return filters
+    }
+    
+    // Validate pagination parameters with type safety and limits - inline
+    def validatePaginationParams = { MultivaluedMap qParams ->
+        def limit = 100  // default limit
+        def offset = 0   // default offset
+        
+        if (qParams.getFirst("limit")) {
+            try {
+                def requestedLimit = Integer.parseInt(qParams.getFirst("limit") as String)
+                if (requestedLimit <= 0) {
+                    throw new IllegalArgumentException("Limit must be greater than 0")
+                }
+                if (requestedLimit > 1000) {
+                    throw new IllegalArgumentException("Limit cannot exceed 1000")
+                }
+                limit = requestedLimit
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid limit format: must be a valid integer")
+            }
+        }
+        
+        if (qParams.getFirst("offset")) {
+            try {
+                def requestedOffset = Integer.parseInt(qParams.getFirst("offset") as String)
+                if (requestedOffset < 0) {
+                    throw new IllegalArgumentException("Offset cannot be negative")
+                }
+                offset = requestedOffset
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid offset format: must be a valid integer")
+            }
+        }
+        
+        return [limit: limit, offset: offset]
+    }
+    
+    // Enhanced error handling with SQL state mapping and context - inline
+    def handleError = { Exception e, String context ->
+        if (e instanceof IllegalArgumentException) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: e.message,
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        // SQL state mappings (ADR-031)
+        def errorMessage = e.message?.toLowerCase() ?: ""
+        if (errorMessage.contains("23503") || errorMessage.contains("foreign key")) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Invalid reference: related entity not found",
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        if (errorMessage.contains("23505") || errorMessage.contains("unique constraint")) {
+            return Response.status(Response.Status.CONFLICT)
+                .entity(new JsonBuilder([
+                    error: "Duplicate entry: resource already exists",
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        // Default internal server error
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                error: "Internal server error: ${e.message}",
+                context: context,
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            ]).toString())
+            .build()
+    }
+    
     // GET /steps/instance/{stepInstanceId} - return step instance details with instructions
     if (pathParts.size() == 2 && pathParts[0] == 'instance') {
         def stepInstanceId = pathParts[1]
@@ -45,6 +218,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         try {
             // Try to parse as UUID first
             UUID stepInstanceUuid = UUID.fromString(stepInstanceId)
+            StepRepository stepRepository = getStepRepository()
             def stepDetails = stepRepository.findStepInstanceDetailsById(stepInstanceUuid)
             
             if (!stepDetails) {
@@ -58,6 +232,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         } catch (IllegalArgumentException e) {
             // If not a valid UUID, try to parse as step code for backward compatibility
             try {
+                StepRepository stepRepository = getStepRepository()
                 def stepDetails = stepRepository.findStepInstanceDetailsByCode(stepInstanceId)
                 
                 if (!stepDetails) {
@@ -80,9 +255,30 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         }
     }
     
+    // GET /steps/{stepInstanceId}/comments - return comments for a step instance
+    if (pathParts.size() == 2 && pathParts[1] == 'comments') {
+        try {
+            def stepInstanceId = pathParts[0]
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId)
+            StepRepository stepRepository = getStepRepository()
+            def comments = stepRepository.findCommentsByStepInstanceId(stepInstanceUuid)
+            
+            return Response.ok(new JsonBuilder(comments).toString()).build()
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to fetch comments: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
     // GET /steps/master - return all master steps for dropdowns
     if (pathParts.size() == 1 && pathParts[0] == 'master') {
         try {
+            StepRepository stepRepository = getStepRepository()
             def masterSteps
             
             // Check if migrationId is provided as query parameter
@@ -124,42 +320,147 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         }
     }
     
-    // GET /steps with query parameters for hierarchical filtering
+    // GET /steps/summary - return dashboard summary metrics
+    if (pathParts.size() == 1 && pathParts[0] == 'summary') {
+        try {
+            def migrationId = queryParams.getFirst("migrationId")
+            if (!migrationId) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "migrationId parameter is required for summary"]).toString())
+                    .build()
+            }
+            
+            def migrationUuid = UUID.fromString(migrationId as String)
+            StepRepository stepRepository = getStepRepository()
+            def summary = stepRepository.getStepsSummary(migrationUuid)
+            
+            return Response.ok(new JsonBuilder(summary).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return handleError(e, "GET /steps/summary")
+        } catch (Exception e) {
+            return handleError(e, "GET /steps/summary")
+        }
+    }
+    
+    // GET /steps/progress - return progress tracking data  
+    if (pathParts.size() == 1 && pathParts[0] == 'progress') {
+        try {
+            def migrationId = queryParams.getFirst("migrationId")
+            if (!migrationId) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "migrationId parameter is required for progress tracking"]).toString())
+                    .build()
+            }
+            
+            def migrationUuid = UUID.fromString(migrationId as String)
+            StepRepository stepRepository = getStepRepository()
+            def progress = stepRepository.getStepsProgress(migrationUuid)
+            
+            return Response.ok(new JsonBuilder(progress).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return handleError(e, "GET /steps/progress")
+        } catch (Exception e) {
+            return handleError(e, "GET /steps/progress")
+        }
+    }
+    
+    // GET /steps/export - return steps data for export (JSON/CSV)
+    if (pathParts.size() == 1 && pathParts[0] == 'export') {
+        try {
+            def filters = parseAndValidateFilters(queryParams)
+            def format = (queryParams.getFirst("format") ?: "json") as String
+            
+            if (!["json", "csv"].contains(format.toLowerCase())) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Format must be 'json' or 'csv'"]).toString())
+                    .build()
+            }
+            
+            // Use enhanced repository method for export
+            StepRepository stepRepository = getStepRepository()
+            def exportData = stepRepository.findStepsWithFilters(filters, 10000, 0, "export")
+            
+            if (format.toLowerCase() == "csv") {
+                // Generate CSV format - inline method
+                def steps = exportData.data as List
+                def csvContent
+                if (!steps || steps.isEmpty()) {
+                    csvContent = "No data available"
+                } else {
+                    def headers = [
+                        "Step ID", "Step Code", "Step Name", "Status", "Team", 
+                        "Sequence", "Phase", "Duration (min)", "Created At", "Updated At"
+                    ]
+                    
+                    def csvLines = [headers.join(",")]
+                    
+                    steps.each { step ->
+                        def stepMap = step as Map
+                        def line = [
+                            "\"${stepMap.id ?: ''}\"",
+                            "\"${stepMap.code ?: ''}\"", 
+                            "\"${stepMap.name ?: ''}\"",
+                            "\"${stepMap.status ?: ''}\"",
+                            "\"${stepMap.teamName ?: 'Unassigned'}\"",
+                            "\"${stepMap.sequenceName ?: ''}\"",
+                            "\"${stepMap.phaseName ?: ''}\"",
+                            stepMap.durationMinutes ?: 0,
+                            "\"${stepMap.createdAt ?: ''}\"",
+                            "\"${stepMap.updatedAt ?: ''}\""
+                        ].join(",")
+                        csvLines.add(line)
+                    }
+                    
+                    csvContent = csvLines.join("\n")
+                }
+                
+                return Response.ok(csvContent)
+                    .header("Content-Type", "text/csv")
+                    .header("Content-Disposition", "attachment; filename=steps_export.csv")
+                    .build()
+            } else {
+                // Default JSON format
+                return Response.ok(new JsonBuilder(exportData).toString())
+                    .header("Content-Type", "application/json")
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return handleError(e, "GET /steps/export")
+        } catch (Exception e) {
+            return handleError(e, "GET /steps/export")
+        }
+    }
+    
+    // GET /steps with query parameters for hierarchical filtering (MODERNIZED)
     if (pathParts.empty) {
         try {
-            def filters = [:]
+            // Parse and validate parameters with type safety
+            def filters = parseAndValidateFilters(queryParams)
+            def pagination = validatePaginationParams(queryParams)
             
-            // Extract query parameters
-            if (queryParams.getFirst("migrationId")) {
-                filters.migrationId = queryParams.getFirst("migrationId")
-            }
+            // Check if this is a simple list request or enhanced filtering
+            def useEnhancedMethod = queryParams.getFirst("enhanced") == "true" || 
+                                   queryParams.getFirst("limit") || 
+                                   queryParams.getFirst("offset")
             
-            if (queryParams.getFirst("iterationId")) {
-                filters.iterationId = queryParams.getFirst("iterationId")
-            }
+            StepRepository stepRepository = getStepRepository()
             
-            if (queryParams.getFirst("planId")) {
-                filters.planId = queryParams.getFirst("planId")
-            }
-            
-            if (queryParams.getFirst("sequenceId")) {
-                filters.sequenceId = queryParams.getFirst("sequenceId")
-            }
-            
-            if (queryParams.getFirst("phaseId")) {
-                filters.phaseId = queryParams.getFirst("phaseId")
-            }
-            
-            if (queryParams.getFirst("teamId")) {
-                filters.teamId = queryParams.getFirst("teamId")
-            }
-            
-            if (queryParams.getFirst("labelId")) {
-                filters.labelId = queryParams.getFirst("labelId")
-            }
-            
-            // Fetch filtered steps
-            def steps = stepRepository.findFilteredStepInstances(filters)
+            if (useEnhancedMethod) {
+                // Use enhanced repository method with pagination
+                def result = stepRepository.findStepsWithFilters(
+                    filters, 
+                    pagination.limit as Integer, 
+                    pagination.offset as Integer,
+                    "list"
+                )
+                
+                return Response.ok(new JsonBuilder(result).toString()).build()
+            } else {
+                // Backward compatibility: use original grouping logic
+                def steps = stepRepository.findFilteredStepInstances(filters)
             
             // Group steps by sequence and phase for frontend consumption
             def groupedSteps = [:]
@@ -245,6 +546,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             result.sort { sequenceItem -> (sequenceItem as Map).number }
             
             return Response.ok(new JsonBuilder(result).toString()).build()
+            }
             
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -263,38 +565,275 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         .build()
 }
 
+
 /**
- * Handles PUT requests for updating step instance status.
- * - PUT /steps/{stepInstanceId}/status -> updates step status and sends notifications
- * 
- * Request body should contain:
- * {
- *   "status": "PENDING|TODO|IN_PROGRESS|COMPLETED|BLOCKED|FAILED|CANCELLED",
- *   "userId": 123 (optional, for audit logging)
- * }
+ * Handles PUT requests for bulk step operations.
+ * - PUT /steps/bulk/status -> bulk status updates
+ * - PUT /steps/bulk/assign -> bulk team assignments  
+ * - PUT /steps/bulk/reorder -> bulk step reordering
  */
 steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
-    // PUT /steps/{stepInstanceId}/status
+    // Lazy load repositories to avoid class loading issues
+    def getStepRepository = { ->
+        return new StepRepository()
+    }
+    
+    // Enhanced error handling with SQL state mapping and context - inline
+    def handleError = { Exception e, String context ->
+        if (e instanceof IllegalArgumentException) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: e.message,
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        // SQL state mappings (ADR-031)
+        def errorMessage = e.message?.toLowerCase() ?: ""
+        if (errorMessage.contains("23503") || errorMessage.contains("foreign key")) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Invalid reference: related entity not found",
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        if (errorMessage.contains("23505") || errorMessage.contains("unique constraint")) {
+            return Response.status(Response.Status.CONFLICT)
+                .entity(new JsonBuilder([
+                    error: "Duplicate entry: resource already exists",
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        // Default internal server error
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                error: "Internal server error: ${e.message}",
+                context: context,
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            ]).toString())
+            .build()
+    }
+    
+    // PUT /steps/bulk/status - bulk status updates
+    if (pathParts.size() == 2 && pathParts[0] == 'bulk' && pathParts[1] == 'status') {
+        try {
+            if (!body) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            // Parse request body
+            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            def stepIds = requestData.stepIds as List<String>
+            def statusId = requestData.statusId as Integer
+            def userId = requestData.userId as Integer
+            
+            // Validation
+            if (!stepIds || stepIds.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "stepIds array is required"]).toString())
+                    .build()
+            }
+            
+            if (!statusId) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "statusId is required"]).toString())
+                    .build()
+            }
+            
+            // Convert string IDs to UUIDs with validation
+            List<UUID> stepUuids = []
+            for (def stepId : stepIds) {
+                try {
+                    stepUuids.add(UUID.fromString(stepId as String))
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid step ID format: ${stepId}"]).toString())
+                        .build()
+                }
+            }
+            
+            // Perform bulk update using enhanced repository method
+            StepRepository stepRepository = getStepRepository()
+            def repositoryResult = stepRepository.bulkUpdateStepStatus(stepUuids, statusId, userId)
+            def result = repositoryResult as Map
+            if ((result.success as Boolean)) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Bulk status update completed",
+                    updatedCount: (result.updatedCount ?: 0) as Integer,
+                    failedCount: (result.failedCount ?: 0) as Integer,
+                    failures: (result.failures ?: []) as List
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: (result.error ?: "Bulk update failed") as String]).toString())
+                    .build()
+            }
+            
+        } catch (Exception e) {
+            return handleError(e, "PUT /steps/bulk/status")
+        }
+    }
+    
+    // PUT /steps/bulk/assign - bulk team assignments
+    if (pathParts.size() == 2 && pathParts[0] == 'bulk' && pathParts[1] == 'assign') {
+        try {
+            if (!body) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            // Parse request body
+            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            def stepIds = requestData.stepIds as List<String>
+            def teamId = requestData.teamId as Integer
+            def userId = requestData.userId as Integer
+            
+            // Validation
+            if (!stepIds || stepIds.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "stepIds array is required"]).toString())
+                    .build()
+            }
+            
+            if (!teamId) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "teamId is required"]).toString())
+                    .build()
+            }
+            
+            // Convert string IDs to UUIDs with validation
+            List<UUID> stepUuids = []
+            for (def stepId : stepIds) {
+                try {
+                    stepUuids.add(UUID.fromString(stepId as String))
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid step ID format: ${stepId}"]).toString())
+                        .build()
+                }
+            }
+            
+            // Perform bulk assignment using enhanced repository method
+            StepRepository stepRepository = getStepRepository()
+            def repositoryResult = stepRepository.bulkAssignSteps(stepUuids, teamId, userId)
+            def result = repositoryResult as Map
+            if ((result.success as Boolean)) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Bulk team assignment completed",
+                    assignedCount: (result.assignedCount ?: 0) as Integer,
+                    failedCount: (result.failedCount ?: 0) as Integer,
+                    failures: (result.failures ?: []) as List
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: (result.error ?: "Bulk assignment failed") as String]).toString())
+                    .build()
+            }
+            
+        } catch (Exception e) {
+            return handleError(e, "PUT /steps/bulk/assign")
+        }
+    }
+    
+    // PUT /steps/bulk/reorder - bulk step reordering
+    if (pathParts.size() == 2 && pathParts[0] == 'bulk' && pathParts[1] == 'reorder') {
+        try {
+            if (!body) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
+            }
+            
+            // Parse request body
+            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            def reorderData = requestData.steps as List<Map>
+            
+            // Validation
+            if (!reorderData || reorderData.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "steps array is required with id and newOrder fields"]).toString())
+                    .build()
+            }
+            
+            // Validate reorder data structure
+            for (def step : reorderData) {
+                if (!step.id || step.newOrder == null) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Each step must have 'id' and 'newOrder' fields"]).toString())
+                        .build()
+                }
+                
+                try {
+                    UUID.fromString(step.id as String)
+                    Integer.parseInt(step.newOrder.toString())
+                } catch (Exception e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid id or newOrder format in step data"]).toString())
+                        .build()
+                }
+            }
+            
+            // Perform bulk reordering using enhanced repository method
+            StepRepository stepRepository = getStepRepository()
+            def repositoryResult = stepRepository.bulkReorderSteps(reorderData)
+            def result = repositoryResult as Map
+            
+            if ((result.success as Boolean)) {
+                return Response.ok(new JsonBuilder([
+                    success: true,
+                    message: "Bulk reordering completed",
+                    reorderedCount: (result.reorderedCount ?: 0) as Integer,
+                    failedCount: (result.failedCount ?: 0) as Integer,
+                    failures: (result.failures ?: []) as List
+                ]).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: (result.error ?: "Bulk reordering failed") as String]).toString())
+                    .build()
+            }
+            
+        } catch (Exception e) {
+            return handleError(e, "PUT /steps/bulk/reorder")
+        }
+    }
+    
+    // PUT /steps/{stepInstanceId}/status - individual step status update
     if (pathParts.size() == 2 && pathParts[1] == 'status') {
         try {
             def stepInstanceId = pathParts[0]
-            def stepInstanceUuid = UUID.fromString(stepInstanceId)
+            def stepInstanceUuid = UUID.fromString(stepInstanceId as String)
             
-            // Parse request body
-            def requestData = [:] as Map
-            if (body) {
-                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+            // Validate request body
+            if (!body) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
+                    .build()
             }
             
+            // Parse request body with type safety
+            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def newStatus = requestData.status as String
             def userId = requestData.userId as Integer
             
-            if (!newStatus) {
+            if (!newStatus || newStatus.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Missing required field: status"]).toString())
+                    .entity(new JsonBuilder([error: "Missing or empty required field: status"]).toString())
                     .build()
             }
             
@@ -307,30 +846,28 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Update step status and send notifications
-            def result = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, newStatus, userId)
+            StepRepository stepRepository = getStepRepository()
+            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, newStatus, userId)
+            def result = repositoryResult as Map
             
-            if (result.success) {
+            if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
                     message: "Step status updated successfully",
                     stepInstanceId: stepInstanceId,
                     newStatus: newStatus,
-                    emailsSent: result.emailsSent
+                    emailsSent: result.emailsSent ?: 0
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new JsonBuilder([error: result.error ?: "Failed to update step status"]).toString())
+                    .entity(new JsonBuilder([error: (result.error ?: "Failed to update step status") as String]).toString())
                     .build()
             }
             
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
-                .build()
+            return handleError(e, "PUT /steps/{stepInstanceId}/status")
         } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(new JsonBuilder([error: "Failed to update step status: ${e.message}"]).toString())
-                .build()
+            return handleError(e, "PUT /steps/{stepInstanceId}/status")
         }
     }
     
@@ -354,6 +891,55 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getStepRepository = { ->
+        return new StepRepository()
+    }
+    
+    // Enhanced error handling with SQL state mapping and context - inline
+    def handleError = { Exception e, String context ->
+        if (e instanceof IllegalArgumentException) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: e.message,
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        // SQL state mappings (ADR-031)
+        def errorMessage = e.message?.toLowerCase() ?: ""
+        if (errorMessage.contains("23503") || errorMessage.contains("foreign key")) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Invalid reference: related entity not found",
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        if (errorMessage.contains("23505") || errorMessage.contains("unique constraint")) {
+            return Response.status(Response.Status.CONFLICT)
+                .entity(new JsonBuilder([
+                    error: "Duplicate entry: resource already exists",
+                    context: context,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                ]).toString())
+                .build()
+        }
+        
+        // Default internal server error
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                error: "Internal server error: ${e.message}",
+                context: context,
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            ]).toString())
+            .build()
+    }
+    
     // POST /steps/{stepInstanceId}/open
     if (pathParts.size() == 2 && pathParts[1] == 'open') {
         try {
@@ -369,29 +955,27 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             def userId = requestData.userId as Integer
             
             // Mark step as opened and send notifications
-            def result = stepRepository.openStepInstanceWithNotification(stepInstanceUuid, userId)
+            StepRepository stepRepository = getStepRepository()
+            def repositoryResult = stepRepository.openStepInstanceWithNotification(stepInstanceUuid, userId)
+            def result = repositoryResult as Map
             
-            if (result.success) {
+            if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
                     message: "Step opened successfully",
                     stepInstanceId: stepInstanceId,
-                    emailsSent: result.emailsSent
+                    emailsSent: result.emailsSent ?: 0
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new JsonBuilder([error: result.error ?: "Failed to open step"]).toString())
+                    .entity(new JsonBuilder([error: (result.error ?: "Failed to open step") as String]).toString())
                     .build()
             }
             
         } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
-                .build()
+            return handleError(e, "POST /steps/{stepInstanceId}/open")
         } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(new JsonBuilder([error: "Failed to open step: ${e.message}"]).toString())
-                .build()
+            return handleError(e, "POST /steps/{stepInstanceId}/open")
         }
     }
     
@@ -412,19 +996,21 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             def userId = requestData.userId as Integer
             
             // Complete instruction and send notifications
-            def result = stepRepository.completeInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
+            StepRepository stepRepository = getStepRepository()
+            def repositoryResult = stepRepository.completeInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
+            def result = repositoryResult as Map
             
-            if (result.success) {
+            if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
                     message: "Instruction completed successfully",
                     instructionId: instructionId,
                     stepInstanceId: stepInstanceId,
-                    emailsSent: result.emailsSent
+                    emailsSent: result.emailsSent ?: 0
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new JsonBuilder([error: result.error ?: "Failed to complete instruction"]).toString())
+                    .entity(new JsonBuilder([error: (result.error ?: "Failed to complete instruction") as String]).toString())
                     .build()
             }
             
@@ -456,17 +1042,19 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             def userId = requestData.userId as Integer
             
             // Mark instruction as incomplete and send notifications
-            def result = stepRepository.uncompleteInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
+            StepRepository stepRepository = getStepRepository()
+            def repositoryResult = stepRepository.uncompleteInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
+            def result = repositoryResult as Map
             
-            if (result.success) {
+            if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
                     message: "Instruction marked as incomplete",
-                    emailsSent: result.emailsSent
+                    emailsSent: result.emailsSent ?: 0
                 ]).toString()).build()
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new JsonBuilder([error: result.error ?: "Failed to mark instruction as incomplete"]).toString())
+                    .entity(new JsonBuilder([error: (result.error ?: "Failed to mark instruction as incomplete") as String]).toString())
                     .build()
             }
             
@@ -498,9 +1086,15 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getStatusRepository = { ->
+        return new StatusRepository()
+    }
+    
     // GET /statuses/step - return all step statuses
     if (pathParts.size() == 1 && pathParts[0] == 'step') {
         try {
+            StatusRepository statusRepository = getStatusRepository()
             def statuses = statusRepository.findStatusesByType('Step')
             
             return Response.ok(new JsonBuilder(statuses).toString()).build()
@@ -519,6 +1113,7 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
         entityType = entityType.substring(0, 1).toUpperCase() + entityType.substring(1).toLowerCase()
         
         try {
+            StatusRepository statusRepository = getStatusRepository()
             def statuses = statusRepository.findStatusesByType(entityType)
             
             if (!statuses || (statuses as List).size() == 0) {
@@ -539,6 +1134,7 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     // GET /statuses - return all statuses
     if (pathParts.isEmpty()) {
         try {
+            StatusRepository statusRepository = getStatusRepository()
             def statuses = statusRepository.findAllStatuses()
             
             return Response.ok(new JsonBuilder(statuses).toString()).build()
@@ -563,10 +1159,16 @@ comments(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getStepRepository = { ->
+        return new StepRepository()
+    }
+    
     // GET /steps/{stepInstanceId}/comments
     if (pathParts.size() == 2 && pathParts[1] == 'comments') {
         try {
             def stepInstanceId = UUID.fromString(pathParts[0])
+            StepRepository stepRepository = getStepRepository()
             def comments = stepRepository.findCommentsByStepInstanceId(stepInstanceId)
             
             return Response.ok(new JsonBuilder(comments).toString()).build()
@@ -582,7 +1184,11 @@ comments(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     }
     
     return Response.status(Response.Status.NOT_FOUND)
-        .entity(new JsonBuilder([error: "Invalid comments endpoint"]).toString())
+        .entity(new JsonBuilder([
+            error: "Invalid comments endpoint usage",
+            message: "To access comments, use: /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments",
+            example: "/rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments"
+        ]).toString())
         .build()
 }
 
@@ -600,6 +1206,11 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getStepRepository = { ->
+        return new StepRepository()
+    }
+    
     // POST /steps/{stepInstanceId}/comments
     if (pathParts.size() == 2 && pathParts[1] == 'comments') {
         try {
@@ -616,6 +1227,7 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                     .build()
             }
             
+            StepRepository stepRepository = getStepRepository()
             def result = stepRepository.createComment(stepInstanceId, commentBody, userId)
             
             return Response.ok(new JsonBuilder([
@@ -636,7 +1248,11 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
     }
     
     return Response.status(Response.Status.NOT_FOUND)
-        .entity(new JsonBuilder([error: "Invalid comments endpoint"]).toString())
+        .entity(new JsonBuilder([
+            error: "Invalid comments endpoint usage",
+            message: "To create a comment, use: POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments",
+            example: "POST /rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments with comment data in the request body"
+        ]).toString())
         .build()
 }
 
@@ -654,6 +1270,11 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getStepRepository = { ->
+        return new StepRepository()
+    }
+    
     // PUT /comments/{commentId}
     if (pathParts.size() == 1) {
         try {
@@ -670,6 +1291,7 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
                     .build()
             }
             
+            StepRepository stepRepository = getStepRepository()
             def success = stepRepository.updateComment(commentId, commentBody, userId)
             
             if (success) {
@@ -695,7 +1317,11 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
     }
     
     return Response.status(Response.Status.NOT_FOUND)
-        .entity(new JsonBuilder([error: "Invalid comments endpoint"]).toString())
+        .entity(new JsonBuilder([
+            error: "Invalid comments endpoint usage", 
+            message: "To update a comment, use: PUT /rest/scriptrunner/latest/custom/comments/{commentId}",
+            example: "PUT /rest/scriptrunner/latest/custom/comments/123 with updated comment data in the request body"
+        ]).toString())
         .build()
 }
 
@@ -707,12 +1333,18 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
+    // Lazy load repositories to avoid class loading issues
+    def getStepRepository = { ->
+        return new StepRepository()
+    }
+    
     // DELETE /comments/{commentId}
     if (pathParts.size() == 1) {
         try {
             def commentId = Integer.parseInt(pathParts[0])
             def userId = 1 // Default to user 1 for now
             
+            StepRepository stepRepository = getStepRepository()
             def success = stepRepository.deleteComment(commentId, userId)
             
             if (success) {
@@ -738,7 +1370,11 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
     }
     
     return Response.status(Response.Status.NOT_FOUND)
-        .entity(new JsonBuilder([error: "Invalid comments endpoint"]).toString())
+        .entity(new JsonBuilder([
+            error: "Invalid comments endpoint usage",
+            message: "To delete a comment, use: DELETE /rest/scriptrunner/latest/custom/comments/{commentId}",
+            example: "DELETE /rest/scriptrunner/latest/custom/comments/123"
+        ]).toString())
         .build()
 }
 

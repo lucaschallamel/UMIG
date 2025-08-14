@@ -6,9 +6,80 @@ Ansible.
 
 ## Prerequisites
 
-You must have **Node.js (v18+), npm, Podman, and Ansible** installed on your
+You must have **Node.js (v18+), npm, Podman, Ansible, and Groovy 3.0.15** installed on your
 local machine. Liquibase CLI is no longer a direct prerequisite as it is managed
 by the orchestration layer.
+
+### Groovy 3.0.15 Installation
+
+Install Groovy version 3.0.15 for command-line testing and development. This specific version is required for compatibility with ScriptRunner 9.21.0 and ensures consistency with the containerized ScriptRunner environment.
+
+**Why Groovy 3.0.15 Specifically:**
+- **ScriptRunner Compatibility**: Matches the exact Groovy version used in ScriptRunner 9.21.0
+- **Type Safety Patterns**: Ensures compatibility with ADR-031 static type checking patterns
+- **Testing Consistency**: Allows local testing of repository methods and API patterns that behave identically to the containerized environment
+- **Development Workflow**: Enables command-line testing of database operations and Groovy scripts before deployment
+
+**Recommended Installation (SDKMAN):**
+
+1. **Install SDKMAN** (if not already installed):
+   ```bash
+   curl -s "https://get.sdkman.io" | bash
+   source "$HOME/.sdkman/bin/sdkman-init.sh"
+   ```
+
+2. **Install Groovy 3.0.15**:
+   ```bash
+   sdk install groovy 3.0.15
+   ```
+
+3. **Set as Default Version**:
+   ```bash
+   sdk default groovy 3.0.15
+   ```
+
+4. **Verify Installation**:
+   ```bash
+   groovy --version
+   # Should output: Groovy Version: 3.0.15 JVM: [your Java version]
+   ```
+
+**Alternative Installation Methods:**
+- **macOS (Homebrew)**: `brew install groovy` (may install latest version, use SDKMAN for version control)
+- **Manual Installation**: Download from [Apache Groovy releases](https://groovy.apache.org/download.html) and configure PATH
+
+**Testing PostgreSQL Integration:**
+
+Once Groovy is installed, you can test database connectivity and repository patterns from the command line:
+
+```groovy
+// Example: test_db_connection.groovy
+@Grab('org.postgresql:postgresql:42.7.3')
+
+import groovy.sql.Sql
+import java.sql.DriverManager
+
+def url = "jdbc:postgresql://localhost:5432/umig_app_db"
+def user = "umig_app_user"  
+def password = "123456"
+def driver = "org.postgresql.Driver"
+
+try {
+    def sql = Sql.newInstance(url, user, password, driver)
+    def result = sql.rows("SELECT COUNT(*) as count FROM migrations_instance_mgi")
+    println "Database connection successful! Migration count: ${result[0].count}"
+    sql.close()
+} catch (Exception e) {
+    println "Database connection failed: ${e.message}"
+}
+```
+
+Run the test:
+```bash
+groovy test_db_connection.groovy
+```
+
+This enables testing UMIG repository methods, API patterns, and database operations locally before deploying to ScriptRunner.
 
 ### Liquibase CLI Installation
 
