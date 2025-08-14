@@ -10,7 +10,8 @@
  */
 class StepsAPIv2Client {
   constructor() {
-    this.baseUrl = '/rest/scriptrunner/latest/custom/steps';
+    this.baseUrl = '/rest/scriptrunner/latest/custom';
+    this.endpoint = '/steps';
     this.cache = new Map();
     this.cacheTimeout = 30000; // 30 seconds
     this.requestQueue = new Map();
@@ -65,7 +66,7 @@ class StepsAPIv2Client {
     if (options.size) queryParams.append('size', options.size);
     if (options.sort) queryParams.append('sort', options.sort);
 
-    const url = `${this.baseUrl}?${queryParams.toString()}`;
+    const url = `${this.baseUrl}${this.endpoint}?${queryParams.toString()}`;
     console.log('StepsAPIv2: Fetching', url);
 
     const data = await this._retryRequest(url);
@@ -83,7 +84,7 @@ class StepsAPIv2Client {
    * Update step status with optimistic updates
    */
   async updateStepStatus(stepId, status, userRole = 'NORMAL') {
-    const url = `${this.baseUrl}/${stepId}/status`;
+    const url = `${this.baseUrl}${this.endpoint}/${stepId}/status`;
     
     try {
       const response = await fetch(url, {
@@ -116,7 +117,7 @@ class StepsAPIv2Client {
    * Bulk update multiple steps
    */
   async bulkUpdateSteps(stepIds, updates) {
-    const url = `${this.baseUrl}/bulk`;
+    const url = `${this.baseUrl}${this.endpoint}/bulk`;
     
     const response = await fetch(url, {
       method: 'PUT',
@@ -151,7 +152,7 @@ class StepsAPIv2Client {
       if (value) queryParams.append(key, value);
     });
 
-    const url = `${this.baseUrl}/updates?${queryParams.toString()}`;
+    const url = `${this.baseUrl}${this.endpoint}/updates?${queryParams.toString()}`;
     
     try {
       const response = await fetch(url);
@@ -448,10 +449,10 @@ class IterationView {
       blockedSteps: false
     };
 
+    // Don't start async initialization in constructor
+    // This will be called after the object is assigned to window.iterationView
+    this.initialized = false;
     this.initUserContext();
-    this.init().catch(error => {
-      console.error('Failed to initialize IterationView:', error);
-    });
   }
 
   async initUserContext() {
@@ -1767,7 +1768,7 @@ class IterationView {
                 <div class="error-message">
                     <p>❌ Error loading steps: ${error.message}</p>
                     <p>Please try again or contact support.</p>
-                    <button onclick="window.iterationView.retryLoadSteps()" class="btn btn-primary">Retry</button>
+                    <button onclick="window.safeCallIterationView('retryLoadSteps')" class="btn btn-primary">Retry</button>
                 </div>
             `;
       this.updateStepCounts(0, 0, 0, 0, 0);
@@ -2960,95 +2961,137 @@ class IterationView {
 
 // Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  const iterationView = new IterationView();
-
-  // Make iterationView globally accessible for inline event handlers
-  window.iterationView = iterationView;
-
-  // Add expand/collapse all functionality
-  const expandAllBtn = document.getElementById("expand-all-btn");
-  const collapseAllBtn = document.getElementById("collapse-all-btn");
-
-  if (expandAllBtn) {
-    expandAllBtn.addEventListener("click", () => {
-      // Expand all sequences and phases
-      document
-        .querySelectorAll(".sequence-header .expand-icon")
-        .forEach((icon) => {
-          icon.classList.remove("collapsed");
-        });
-      document
-        .querySelectorAll(".phase-header .expand-icon")
-        .forEach((icon) => {
-          icon.classList.remove("collapsed");
-        });
-      document.querySelectorAll(".phase-section").forEach((phase) => {
-        phase.style.display = "block";
-      });
-      document.querySelectorAll(".runsheet-table").forEach((table) => {
-        table.style.display = "table";
-      });
-    });
+  console.log('IterationView: DOM Content Loaded - Starting initialization');
+  
+  // Verify the IterationView class is available
+  if (typeof IterationView === 'undefined') {
+    console.error('IterationView: Class not found! JavaScript parsing may have failed.');
+    const runsheetContent = document.getElementById('runsheet-content');
+    if (runsheetContent) {
+      runsheetContent.innerHTML = `
+        <div class="error-message">
+          <p>❌ JavaScript Error: IterationView class not found</p>
+          <p>Please check the browser console for details and contact support.</p>
+        </div>
+      `;
+    }
+    return;
   }
+  
+  try {
+    console.log('IterationView: Creating new instance...');
+    const iterationView = new IterationView();
 
-  if (collapseAllBtn) {
-    collapseAllBtn.addEventListener("click", () => {
-      // Collapse all sequences and phases
-      document
-        .querySelectorAll(".sequence-header .expand-icon")
-        .forEach((icon) => {
-          icon.classList.add("collapsed");
+    // Make iterationView globally accessible for inline event handlers
+    window.iterationView = iterationView;
+    console.log('IterationView: Instance created successfully and assigned to window.iterationView');
+
+    // Verify the global assignment worked
+    if (window.iterationView) {
+      console.log('IterationView: Global window.iterationView is available');
+      
+      // Now start async initialization
+      if (!iterationView.initialized) {
+        console.log('IterationView: Starting async initialization...');
+        iterationView.init().then(() => {
+          iterationView.initialized = true;
+          console.log('IterationView: Async initialization completed');
+        }).catch(error => {
+          console.error('IterationView: Async initialization failed:', error);
         });
-      document
-        .querySelectorAll(".phase-header .expand-icon")
-        .forEach((icon) => {
-          icon.classList.add("collapsed");
+      }
+    } else {
+      console.error('IterationView: Failed to assign to window.iterationView');
+    }
+
+    // Add expand/collapse all functionality
+    const expandAllBtn = document.getElementById("expand-all-btn");
+    const collapseAllBtn = document.getElementById("collapse-all-btn");
+
+    if (expandAllBtn) {
+      expandAllBtn.addEventListener("click", () => {
+        console.log('IterationView: Expand all clicked');
+        // Expand all sequences and phases
+        document
+          .querySelectorAll(".sequence-header .expand-icon")
+          .forEach((icon) => {
+            icon.classList.remove("collapsed");
+          });
+        document
+          .querySelectorAll(".phase-header .expand-icon")
+          .forEach((icon) => {
+            icon.classList.remove("collapsed");
+          });
+        document.querySelectorAll(".phase-section").forEach((phase) => {
+          phase.style.display = "block";
         });
-      document.querySelectorAll(".phase-section").forEach((phase) => {
-        phase.style.display = "none";
+        document.querySelectorAll(".runsheet-table").forEach((table) => {
+          table.style.display = "table";
+        });
       });
-      document.querySelectorAll(".runsheet-table").forEach((table) => {
-        table.style.display = "none";
+      console.log('IterationView: Expand all button listener attached');
+    } else {
+      console.warn('IterationView: Expand all button not found');
+    }
+
+    if (collapseAllBtn) {
+      collapseAllBtn.addEventListener("click", () => {
+        console.log('IterationView: Collapse all clicked');
+        // Collapse all sequences and phases
+        document
+          .querySelectorAll(".sequence-header .expand-icon")
+          .forEach((icon) => {
+            icon.classList.add("collapsed");
+          });
+        document
+          .querySelectorAll(".phase-header .expand-icon")
+          .forEach((icon) => {
+            icon.classList.add("collapsed");
+          });
+        document.querySelectorAll(".phase-section").forEach((phase) => {
+          phase.style.display = "none";
+        });
+        document.querySelectorAll(".runsheet-table").forEach((table) => {
+          table.style.display = "none";
+        });
       });
-    });
+      console.log('IterationView: Collapse all button listener attached');
+    } else {
+      console.warn('IterationView: Collapse all button not found');
+    }
+
+    console.log('IterationView: Initialization completed successfully');
+
+  } catch (error) {
+    console.error('IterationView: Failed to initialize:', error);
+    console.error('IterationView: Stack trace:', error.stack);
+    
+    // Show user-friendly error message
+    const runsheetContent = document.getElementById('runsheet-content');
+    if (runsheetContent) {
+      runsheetContent.innerHTML = `
+        <div class="error-message">
+          <p>❌ Failed to initialize Iteration View</p>
+          <p><strong>Error:</strong> ${error.message}</p>
+          <p>Please check the browser console for details and refresh the page.</p>
+          <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 10px;">Refresh Page</button>
+        </div>
+      `;
+    }
   }
 });
 
-IterationView.prototype.populateMigrationSelector = function () {
-  const select = document.getElementById("migration-select");
-  if (!select) return;
-
-  // Show loading state
-  select.innerHTML = '<option value="">Loading migrations...</option>';
-
-  fetch("/rest/scriptrunner/latest/custom/migrations")
-    .then((response) => {
-      if (!response.ok) throw new Error("Network response was not ok");
-      return response.json();
-    })
-    .then((responseData) => {
-      // Handle API response format with data property
-      const migrations = responseData.data || responseData;
-      
-      // Always start with the default option
-      select.innerHTML = '<option value="">SELECT A MIGRATION</option>';
-
-      if (Array.isArray(migrations) && migrations.length > 0) {
-        migrations.forEach((migration) => {
-          const option = document.createElement("option");
-          option.value = migration.mig_id || migration.id || "";
-          option.textContent =
-            migration.mig_name || migration.name || "(Unnamed Migration)";
-          select.appendChild(option);
-        });
-      } else {
-        select.innerHTML = '<option value="">No migrations found</option>';
-      }
-    })
-    .catch((error) => {
-      console.error("Error loading migrations:", error);
-      select.innerHTML = '<option value="">Failed to load migrations</option>';
-    });
+// Global safety functions for inline onclick handlers
+window.safeCallIterationView = function(methodName, ...args) {
+  if (window.iterationView && typeof window.iterationView[methodName] === 'function') {
+    console.log(`IterationView: Calling ${methodName}`, args);
+    return window.iterationView[methodName](...args);
+  } else {
+    console.warn(`IterationView: ${methodName} not available yet, window.iterationView:`, window.iterationView);
+    // Show user-friendly message
+    alert('Please wait for the page to fully load before trying this action.');
+    return null;
+  }
 };
 
 // Export for potential module use

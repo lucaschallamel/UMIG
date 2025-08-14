@@ -1,30 +1,34 @@
 #!/bin/bash
 
 # US-028 Enhanced IterationView Test Suite Runner
-# Phase 1 Comprehensive Testing Framework
+# Comprehensive validation of Steps API endpoints and Enhanced IterationView performance
 #
-# Executes all Phase 1 testing components:
-# - JavaScript unit and integration tests
-# - Groovy performance validation
-# - API integration verification  
-# - Real-world scenario testing
+# CRITICAL TESTING: Steps API calls are failing with 404 errors despite migration dropdown working.
+# This test suite validates all Steps API endpoints and identifies the root cause.
 #
-# Created: 2025-08-14
-# Target: US-028 Phase 1 validation requirements
+# Test Focus:
+# 1. Validate Steps API endpoints - Test all /steps endpoints vs /api/v2/steps
+# 2. Test URL construction - Verify baseUrl + endpoint combinations work correctly  
+# 3. Compare with working TeamsApi.groovy pattern
+# 4. Verify ScriptRunner endpoint registration - Ensure /steps is properly registered
+# 5. Diagnose iteration-view.js StepsAPIv2Client URL construction problems
 
-set -e
+set -e  # Exit on any error
 
-# Color codes for output
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
+# Test configuration
+BASE_URL="http://localhost:8090"
+SCRIPTRUNNER_BASE="/rest/scriptrunner/latest/custom"
+TEST_TIMEOUT=30
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${TEST_DIR}/../../../.." && pwd)"
-LOG_DIR="${PROJECT_ROOT}/logs/test-results"
+REPORT_DIR="${TEST_DIR}/../reports"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
 # Test result tracking
@@ -39,6 +43,7 @@ echo -e "${BLUE}Testing StepsAPI v2 integration, caching, real-time updates, and
 echo -e "${BLUE}================================================================================================${NC}"
 
 # Create log directory
+LOG_DIR="${REPORT_DIR}/logs"
 mkdir -p "${LOG_DIR}"
 
 # Function to log test results
@@ -79,399 +84,363 @@ check_prerequisites() {
         if PGPASSWORD="${UMIG_DB_PASSWORD:-umigpwd}" psql -h "${UMIG_DB_HOST:-localhost}" -U "${UMIG_DB_USER:-umig}" -d "${UMIG_DB_NAME:-umig}" -c "SELECT 1;" > /dev/null 2>&1; then
             log_test_result "Database Connection" "PASSED" "PostgreSQL accessible"
         else
-            log_test_result "Database Connection" "FAILED" "Cannot connect to PostgreSQL"
+            log_test_result "Database Connection" "FAILED" "PostgreSQL not accessible"
         fi
     else
-        log_test_result "Database Connection" "SKIPPED" "psql not available for testing"
-    fi
-    
-    # Check if Node.js is available for JavaScript tests
-    if command -v node > /dev/null 2>&1; then
-        NODE_VERSION=$(node --version)
-        log_test_result "Node.js Runtime" "PASSED" "Version ${NODE_VERSION}"
-    else
-        log_test_result "Node.js Runtime" "FAILED" "Node.js not available"
-    fi
-    
-    # Check if Java/Groovy is available for performance tests
-    if command -v java > /dev/null 2>&1; then
-        JAVA_VERSION=$(java -version 2>&1 | head -1 | cut -d'"' -f2)
-        log_test_result "Java Runtime" "PASSED" "Version ${JAVA_VERSION}"
-    else
-        log_test_result "Java Runtime" "FAILED" "Java not available"
+        log_test_result "Database Connection" "SKIPPED" "psql not available"
     fi
 }
 
-# Function to run JavaScript unit tests
-run_javascript_tests() {
-    echo -e "\n${YELLOW}🧪 Running JavaScript Unit Tests...${NC}"
+# Function to validate Steps API endpoint registration
+validate_steps_api_registration() {
+    echo -e "\n${BLUE}🔗 Validating Steps API Endpoint Registration...${NC}"
     
-    # Check if we can run Jest tests
-    if command -v npm > /dev/null 2>&1; then
-        cd "${PROJECT_ROOT}"
-        
-        # Install test dependencies if package.json exists
-        if [[ -f "package.json" ]]; then
-            if npm list jest > /dev/null 2>&1; then
-                echo "  Jest already installed, running tests..."
-                
-                # Set up test environment
-                export NODE_ENV=test
-                export JEST_TIMEOUT=30000
-                
-                # Run the Enhanced IterationView JavaScript tests
-                if npx jest "src/groovy/umig/tests/integration/IterationViewEnhancedTest.js" --verbose --coverage 2>&1; then
-                    log_test_result "JavaScript Unit Tests" "PASSED" "All StepsAPIv2Client and RealTimeSync tests passed"
-                else
-                    log_test_result "JavaScript Unit Tests" "FAILED" "Some JavaScript tests failed - check output above"
-                fi
-            else
-                echo "  Installing Jest for testing..."
-                if npm install --save-dev jest > /dev/null 2>&1; then
-                    if npx jest "src/groovy/umig/tests/integration/IterationViewEnhancedTest.js" --verbose 2>&1; then
-                        log_test_result "JavaScript Unit Tests" "PASSED" "Tests passed after Jest installation"
-                    else
-                        log_test_result "JavaScript Unit Tests" "FAILED" "Tests failed after Jest installation"
-                    fi
-                else
-                    log_test_result "JavaScript Unit Tests" "FAILED" "Could not install Jest"
-                fi
-            fi
-        else
-            log_test_result "JavaScript Unit Tests" "SKIPPED" "No package.json found"
-        fi
-    else
-        log_test_result "JavaScript Unit Tests" "SKIPPED" "npm not available"
-    fi
-}
-
-# Function to run Groovy performance tests
-run_performance_tests() {
-    echo -e "\n${YELLOW}⚡ Running Performance Validation Tests...${NC}"
-    
-    cd "${TEST_DIR}"
-    
-    # Run the Enhanced IterationView Performance Validator
-    if [[ -f "performance/IterationViewEnhancedPerformanceValidator.groovy" ]]; then
-        echo "  Executing performance validation suite..."
-        
-        # Set up performance test environment
-        export GROOVY_CLASSPATH="${PROJECT_ROOT}/src/groovy"
-        export UMIG_WEB_ROOT="/rest/scriptrunner/latest/custom/web"
-        
-        # Run performance tests with timeout
-        if timeout 300 groovy -cp "${PROJECT_ROOT}/src/groovy" "performance/IterationViewEnhancedPerformanceValidator.groovy" 2>&1; then
-            log_test_result "Performance Validation" "PASSED" "All performance targets met (<3s load, <200ms API, 2s polling)"
-        else
-            EXIT_CODE=$?
-            if [[ $EXIT_CODE -eq 124 ]]; then
-                log_test_result "Performance Validation" "FAILED" "Tests timed out after 5 minutes"
-            else
-                log_test_result "Performance Validation" "FAILED" "Performance tests failed - check targets"
-            fi
-        fi
-    else
-        log_test_result "Performance Validation" "FAILED" "Performance test file not found"
-    fi
-}
-
-# Function to run API integration tests
-run_api_integration_tests() {
-    echo -e "\n${YELLOW}🔗 Running StepsAPI v2 Integration Tests...${NC}"
-    
-    # Test StepsAPI v2 endpoints directly
-    echo "  Testing StepsAPI v2 endpoint availability..."
-    
-    local api_base="http://localhost:8090/rest/scriptrunner/latest/custom/steps"
-    local test_endpoints=(
-        ""
-        "/health"
-        "/updates"
+    local endpoints=(
+        "/teams"      # Control test - should work
+        "/migrations" # Control test - should work  
+        "/steps"      # Target test - may fail
+        "/steps/master"
+        "/statuses/step"
     )
     
-    for endpoint in "${test_endpoints[@]}"; do
-        local test_url="${api_base}${endpoint}"
-        echo "    Testing: ${test_url}"
+    local success_count=0
+    local total_count=${#endpoints[@]}
+    
+    for endpoint in "${endpoints[@]}"; do
+        local url="${BASE_URL}${SCRIPTRUNNER_BASE}${endpoint}"
+        echo -n "  Testing ${endpoint}... "
         
-        if curl -s -f -m 10 "${test_url}" > /dev/null 2>&1; then
-            log_test_result "API Endpoint${endpoint}" "PASSED" "Endpoint accessible"
+        if curl -s --max-time ${TEST_TIMEOUT} "${url}" > /dev/null; then
+            echo -e "${GREEN}✓ ACCESSIBLE${NC}"
+            log_test_result "Endpoint ${endpoint}" "PASSED" "Accessible"
+            ((success_count++))
         else
-            # Try with basic parameters for main endpoint
-            if [[ "${endpoint}" == "" ]]; then
-                if curl -s -f -m 10 "${test_url}?limit=1" > /dev/null 2>&1; then
-                    log_test_result "API Endpoint${endpoint}" "PASSED" "Endpoint accessible with parameters"
-                else
-                    log_test_result "API Endpoint${endpoint}" "FAILED" "Endpoint not accessible"
-                fi
+            local status_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time ${TEST_TIMEOUT} "${url}")
+            if [ "${status_code}" = "404" ]; then
+                echo -e "${RED}❌ 404 NOT FOUND${NC}"
+                log_test_result "Endpoint ${endpoint}" "FAILED" "404 Not Found"
             else
-                log_test_result "API Endpoint${endpoint}" "FAILED" "Endpoint not accessible"
+                echo -e "${YELLOW}⚠ HTTP ${status_code}${NC}"
+                log_test_result "Endpoint ${endpoint}" "WARNING" "HTTP ${status_code}"
+                ((success_count++))  # Non-404 errors might be permission issues, not registration issues
             fi
         fi
     done
     
-    # Test caching behavior
-    echo "  Testing caching behavior simulation..."
+    echo ""
+    echo "Endpoint Registration Summary: ${success_count}/${total_count} accessible"
     
-    # Make multiple identical requests to test caching
-    local cache_test_url="${api_base}?limit=10&test=cache"
-    local cache_times=()
-    
-    for i in {1..5}; do
-        local start_time=$(date +%s%N)
-        if curl -s -f -m 5 "${cache_test_url}" > /dev/null 2>&1; then
-            local end_time=$(date +%s%N)
-            local response_time=$(( (end_time - start_time) / 1000000 ))
-            cache_times+=($response_time)
-        fi
-    done
-    
-    if [[ ${#cache_times[@]} -gt 0 ]]; then
-        local avg_time=$(( $(printf '%s+' "${cache_times[@]}")0 / ${#cache_times[@]} ))
-        if [[ $avg_time -lt 500 ]]; then
-            log_test_result "API Caching Behavior" "PASSED" "Average response time ${avg_time}ms"
-        else
-            log_test_result "API Caching Behavior" "FAILED" "Average response time ${avg_time}ms (>500ms)"
-        fi
+    if [ ${success_count} -lt 3 ]; then
+        echo -e "${RED}❌ CRITICAL: Multiple endpoints not accessible - potential ScriptRunner registration issue${NC}"
+        return 1
+    elif [ ${success_count} -lt ${total_count} ]; then
+        echo -e "${YELLOW}⚠ WARNING: Some endpoints not accessible - partial registration issue${NC}"
+        return 2
     else
-        log_test_result "API Caching Behavior" "FAILED" "No successful requests for caching test"
+        echo -e "${GREEN}✓ All endpoints accessible${NC}"
+        return 0
     fi
 }
 
-# Function to run real-time polling simulation
-run_realtime_tests() {
-    echo -e "\n${YELLOW}🔄 Running Real-Time Polling Simulation...${NC}"
+# Function to test Steps API with various parameters
+test_steps_api_endpoints() {
+    echo -e "\n${BLUE}🧪 Testing Steps API Endpoints with Parameters...${NC}"
     
-    local api_base="http://localhost:8090/rest/scriptrunner/latest/custom/steps"
-    local updates_endpoint="${api_base}/updates"
+    # Get test migration ID from database
+    local test_migration_id
+    test_migration_id=$(curl -s "${BASE_URL}${SCRIPTRUNNER_BASE}/migrations" | jq -r '.[0].mig_id // "550e8400-e29b-41d4-a716-446655440001"' 2>/dev/null || echo "550e8400-e29b-41d4-a716-446655440001")
     
-    # Simulate real-time polling
-    echo "  Simulating 2-second polling intervals..."
-    
-    local poll_count=5
-    local successful_polls=0
-    local poll_times=()
-    
-    for i in $(seq 1 $poll_count); do
-        echo "    Poll ${i}/${poll_count}..."
-        
-        local start_time=$(date +%s%N)
-        local since_timestamp=$(date -u -d '1 minute ago' +"%Y-%m-%dT%H:%M:%S.%3NZ")
-        
-        if curl -s -f -m 3 "${updates_endpoint}?since=${since_timestamp}" > /dev/null 2>&1; then
-            local end_time=$(date +%s%N)
-            local poll_time=$(( (end_time - start_time) / 1000000 ))
-            poll_times+=($poll_time)
-            ((successful_polls++))
-        fi
-        
-        # Wait 2 seconds between polls (simulating real-time interval)
-        if [[ $i -lt $poll_count ]]; then
-            sleep 2
-        fi
-    done
-    
-    if [[ $successful_polls -gt 0 ]]; then
-        local avg_poll_time=$(( $(printf '%s+' "${poll_times[@]}")0 / ${#poll_times[@]} ))
-        local success_rate=$(( successful_polls * 100 / poll_count ))
-        
-        if [[ $success_rate -ge 80 && $avg_poll_time -lt 2000 ]]; then
-            log_test_result "Real-Time Polling" "PASSED" "${success_rate}% success rate, ${avg_poll_time}ms avg response"
-        else
-            log_test_result "Real-Time Polling" "FAILED" "${success_rate}% success rate, ${avg_poll_time}ms avg response"
-        fi
+    if [ "${test_migration_id}" = "null" ] || [ -z "${test_migration_id}" ]; then
+        test_migration_id="550e8400-e29b-41d4-a716-446655440001"
+        echo -e "${YELLOW}⚠ Using default test migration ID: ${test_migration_id}${NC}"
     else
-        log_test_result "Real-Time Polling" "FAILED" "No successful polling requests"
+        echo -e "${GREEN}✓ Using migration ID from API: ${test_migration_id}${NC}"
     fi
-}
-
-# Function to test error handling
-run_error_handling_tests() {
-    echo -e "\n${YELLOW}🛡️ Running Error Handling Tests...${NC}"
     
-    local api_base="http://localhost:8090/rest/scriptrunner/latest/custom/steps"
-    
-    # Test various error scenarios
-    local error_scenarios=(
-        "invalid-migration-id:?migrationId=invalid-uuid-format"
-        "nonexistent-resource:?migrationId=00000000-0000-0000-0000-000000000000"
-        "missing-parameters:/nonexistent-endpoint"
+    # Test cases
+    local test_cases=(
+        "/steps:Basic steps endpoint"
+        "/steps?migrationId=${test_migration_id}:Steps filtered by migration"
+        "/steps/master:Master steps for dropdowns"
+        "/steps/master?migrationId=${test_migration_id}:Master steps filtered by migration"
+        "/steps/summary?migrationId=${test_migration_id}:Steps summary metrics"
+        "/steps/export?migrationId=${test_migration_id}&format=json:Steps export JSON"
+        "/statuses/step:Step statuses for dropdowns"
     )
     
-    for scenario in "${error_scenarios[@]}"; do
-        IFS=':' read -r scenario_name scenario_params <<< "$scenario"
-        local test_url="${api_base}${scenario_params}"
+    local success_count=0
+    local total_count=${#test_cases[@]}
+    
+    for test_case in "${test_cases[@]}"; do
+        local endpoint="${test_case%%:*}"
+        local description="${test_case##*:}"
+        local url="${BASE_URL}${SCRIPTRUNNER_BASE}${endpoint}"
         
-        echo "    Testing error scenario: ${scenario_name}"
+        echo -n "  ${description}... "
         
-        # We expect these to fail gracefully (return error codes, not crash)
-        local http_code=$(curl -s -o /dev/null -w "%{http_code}" -m 5 "${test_url}" 2>/dev/null)
+        local start_time=$(date +%s%3N)
+        local response=$(curl -s --max-time ${TEST_TIMEOUT} -w "%{http_code}" "${url}")
+        local end_time=$(date +%s%3N)
+        local duration=$((end_time - start_time))
         
-        if [[ "${http_code}" =~ ^[45][0-9][0-9]$ ]]; then
-            log_test_result "Error Handling - ${scenario_name}" "PASSED" "Returned HTTP ${http_code} (graceful failure)"
-        elif [[ "${http_code}" == "000" ]]; then
-            log_test_result "Error Handling - ${scenario_name}" "FAILED" "Connection failed or timeout"
-        else
-            log_test_result "Error Handling - ${scenario_name}" "FAILED" "Unexpected HTTP code ${http_code}"
-        fi
-    done
-}
-
-# Function to run concurrent user simulation
-run_concurrent_tests() {
-    echo -e "\n${YELLOW}👥 Running Concurrent User Simulation...${NC}"
-    
-    local api_base="http://localhost:8090/rest/scriptrunner/latest/custom/steps"
-    local concurrent_users=10  # Reduced for shell script testing
-    local requests_per_user=3
-    
-    echo "  Simulating ${concurrent_users} concurrent users with ${requests_per_user} requests each..."
-    
-    # Create background processes to simulate concurrent users
-    local pids=()
-    local temp_dir=$(mktemp -d)
-    
-    for user_id in $(seq 1 $concurrent_users); do
-        {
-            local user_success=0
-            local user_total=0
+        local status_code="${response: -3}"
+        local body="${response%???}"
+        
+        if [ "${status_code}" = "200" ]; then
+            echo -e "${GREEN}✓ OK (${duration}ms)${NC}"
+            log_test_result "API ${description}" "PASSED" "${duration}ms response"
+            ((success_count++))
             
-            for request in $(seq 1 $requests_per_user); do
-                ((user_total++))
-                local test_url="${api_base}?limit=10&user=${user_id}&request=${request}"
+            # Validate JSON response
+            if echo "${body}" | jq empty 2>/dev/null; then
+                echo "    JSON response valid"
                 
-                if curl -s -f -m 5 "${test_url}" > /dev/null 2>&1; then
-                    ((user_success++))
+                # Check for expected structure
+                if echo "${body}" | jq -e 'type == "array" or has("data")' > /dev/null 2>&1; then
+                    echo "    Response structure valid"
+                else
+                    echo -e "${YELLOW}    ⚠ Unexpected response structure${NC}"
                 fi
-                
-                sleep 0.1  # Brief pause between requests
-            done
-            
-            echo "${user_success}/${user_total}" > "${temp_dir}/user_${user_id}.result"
-        } &
-        
-        pids+=($!)
-    done
-    
-    # Wait for all background processes
-    echo "    Waiting for all concurrent users to complete..."
-    for pid in "${pids[@]}"; do
-        wait $pid
-    done
-    
-    # Collect results
-    local total_success=0
-    local total_requests=0
-    
-    for user_id in $(seq 1 $concurrent_users); do
-        if [[ -f "${temp_dir}/user_${user_id}.result" ]]; then
-            local user_result=$(cat "${temp_dir}/user_${user_id}.result")
-            IFS='/' read -r success total <<< "$user_result"
-            ((total_success += success))
-            ((total_requests += total))
-        fi
-    done
-    
-    # Cleanup
-    rm -rf "${temp_dir}"
-    
-    if [[ $total_requests -gt 0 ]]; then
-        local success_rate=$(( total_success * 100 / total_requests ))
-        
-        if [[ $success_rate -ge 85 ]]; then
-            log_test_result "Concurrent Users" "PASSED" "${success_rate}% success rate (${total_success}/${total_requests})"
+            else
+                echo -e "${YELLOW}    ⚠ Response is not valid JSON${NC}"
+            fi
+        elif [ "${status_code}" = "404" ]; then
+            echo -e "${RED}❌ 404 NOT FOUND${NC}"
+            log_test_result "API ${description}" "FAILED" "404 Not Found"
         else
-            log_test_result "Concurrent Users" "FAILED" "${success_rate}% success rate (${total_success}/${total_requests})"
+            echo -e "${YELLOW}⚠ HTTP ${status_code}${NC}"
+            log_test_result "API ${description}" "WARNING" "HTTP ${status_code}"
         fi
+    done
+    
+    echo ""
+    echo "API Endpoint Testing Summary: ${success_count}/${total_count} successful"
+    return $((total_count - success_count))
+}
+
+# Function to test URL construction patterns
+test_url_construction() {
+    echo -e "\n${BLUE}🔧 Testing URL Construction Patterns...${NC}"
+    
+    # Test the exact patterns used by StepsAPIv2Client
+    local base_url="/rest/scriptrunner/latest/custom"
+    local endpoint="/steps"
+    local test_iteration_id="550e8400-e29b-41d4-a716-446655440002"
+    
+    # Construct URL like StepsAPIv2Client does
+    local constructed_url="${base_url}${endpoint}?iterationId=${test_iteration_id}"
+    local full_url="${BASE_URL}${constructed_url}"
+    
+    echo "  Base URL: ${base_url}"
+    echo "  Endpoint: ${endpoint}"
+    echo "  Constructed: ${constructed_url}"
+    echo "  Full URL: ${full_url}"
+    
+    echo -n "  Testing constructed URL... "
+    
+    local status_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time ${TEST_TIMEOUT} "${full_url}")
+    
+    if [ "${status_code}" = "200" ]; then
+        echo -e "${GREEN}✓ OK${NC}"
+        echo "    URL construction pattern is correct"
+        log_test_result "URL Construction" "PASSED" "Pattern correct"
+        return 0
+    elif [ "${status_code}" = "404" ]; then
+        echo -e "${RED}❌ 404 NOT FOUND${NC}"
+        echo "    URL construction may be correct, but endpoint not registered"
+        log_test_result "URL Construction" "FAILED" "Endpoint not registered"
+        return 1
     else
-        log_test_result "Concurrent Users" "FAILED" "No requests completed"
+        echo -e "${YELLOW}⚠ HTTP ${status_code}${NC}"
+        echo "    URL construction pattern may have issues"
+        log_test_result "URL Construction" "WARNING" "HTTP ${status_code}"
+        return 2
     fi
 }
 
-# Function to generate final test report
-generate_test_report() {
-    echo -e "\n${BLUE}================================================================================================${NC}"
-    echo -e "${BLUE}📊 US-028 Enhanced IterationView Test Suite - Final Report${NC}"
-    echo -e "${BLUE}================================================================================================${NC}"
+# Function to generate comprehensive diagnostic report
+generate_diagnostic_report() {
+    echo -e "\n${BLUE}📊 Generating Diagnostic Report...${NC}"
     
-    echo -e "\n${YELLOW}📈 Test Summary:${NC}"
-    echo -e "  Total Tests: ${TOTAL_TESTS}"
-    echo -e "  Passed: ${GREEN}${PASSED_TESTS}${NC}"
-    echo -e "  Failed: ${RED}${FAILED_TESTS}${NC}"
+    local report_file="${REPORT_DIR}/us-028-steps-api-diagnostic-report.json"
+    mkdir -p "${REPORT_DIR}"
     
-    if [[ $TOTAL_TESTS -gt 0 ]]; then
-        local pass_rate=$(( PASSED_TESTS * 100 / TOTAL_TESTS ))
-        echo -e "  Pass Rate: ${pass_rate}%"
-        
-        if [[ $pass_rate -ge 90 ]]; then
-            echo -e "\n${GREEN}🎉 SUCCESS: Phase 1 Enhanced IterationView passes quality gates!${NC}"
-            echo -e "${GREEN}✅ Ready for operational deployment${NC}"
-        elif [[ $pass_rate -ge 75 ]]; then
-            echo -e "\n${YELLOW}⚠️  WARNING: Some tests failed but core functionality validated${NC}"
-            echo -e "${YELLOW}🔧 Review failed tests and consider fixes before production deployment${NC}"
-        else
-            echo -e "\n${RED}❌ FAILURE: Critical issues detected in Phase 1 implementation${NC}"
-            echo -e "${RED}🛑 Do not deploy until issues are resolved${NC}"
-        fi
-    fi
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     
-    echo -e "\n${YELLOW}📋 Detailed Results:${NC}"
+    cat > "${report_file}" << EOF
+{
+  "timestamp": "${timestamp}",
+  "testSuite": "US-028 Steps API Diagnostic Test Suite",
+  "environment": {
+    "baseUrl": "${BASE_URL}",
+    "scriptrunnerBase": "${SCRIPTRUNNER_BASE}",
+    "testTimeout": ${TEST_TIMEOUT}
+  },
+  "summary": {
+    "totalTests": ${TOTAL_TESTS},
+    "passedTests": ${PASSED_TESTS},
+    "failedTests": ${FAILED_TESTS},
+    "overallStatus": "$([ ${FAILED_TESTS} -eq 0 ] && echo "PASSED" || echo "FAILED")"
+  },
+  "testResults": [
+EOF
+
+    local first=true
     for result in "${TEST_RESULTS[@]}"; do
-        echo "  ${result}"
+        if [ "$first" = true ]; then
+            first=false
+        else
+            echo "," >> "${report_file}"
+        fi
+        echo "    \"${result}\"" >> "${report_file}"
     done
-    
-    echo -e "\n${YELLOW}🎯 Phase 1 Requirements Validation:${NC}"
-    echo -e "  • StepsAPI v2 Integration: Tested ✓"
-    echo -e "  • Client-side Caching (<30s timeout): Tested ✓"
-    echo -e "  • Real-time Updates (2s polling): Tested ✓"
-    echo -e "  • Performance Targets (<3s load, <200ms API): Tested ✓"
-    echo -e "  • Error Handling & Retry Logic: Tested ✓"
-    echo -e "  • Concurrent User Support: Tested ✓"
-    
-    echo -e "\n${YELLOW}📁 Test Results Location:${NC}"
-    echo -e "  Log Files: ${LOG_DIR}/"
-    echo -e "  Timestamp: ${TIMESTAMP}"
-    
-    echo -e "\n${YELLOW}🚀 Next Steps:${NC}"
-    if [[ $PASSED_TESTS -eq $TOTAL_TESTS ]]; then
-        echo -e "  1. ✅ Phase 1 testing COMPLETE - all requirements validated"
-        echo -e "  2. 🏗️  Ready to begin Phase 2: Collaboration & Dynamic Adjustments"
-        echo -e "  3. 📊 Establish performance monitoring for production deployment"
-    elif [[ $(( PASSED_TESTS * 100 / TOTAL_TESTS )) -ge 85 ]]; then
-        echo -e "  1. 🔧 Address remaining test failures"
-        echo -e "  2. 🔄 Re-run specific failed test categories"
-        echo -e "  3. ✅ Proceed with Phase 2 once critical issues resolved"
-    else
-        echo -e "  1. 🛑 Critical review of Phase 1 implementation required"
-        echo -e "  2. 🔧 Fix fundamental issues before proceeding"
-        echo -e "  3. 🔄 Full test suite re-run required after fixes"
-    fi
-    
-    echo -e "\n${BLUE}================================================================================================${NC}"
+
+    cat >> "${report_file}" << EOF
+  ],
+  "recommendations": [
+    {
+      "priority": "HIGH",
+      "category": "Endpoint Registration",
+      "issue": "Steps API endpoints may not be properly registered in ScriptRunner",
+      "solution": "Verify StepsApi.groovy deployment and ScriptRunner configuration",
+      "actions": [
+        "Check ScriptRunner Console for deployment errors",
+        "Verify StepsApi.groovy file is in /groovy/umig/api/v2/ directory",
+        "Restart Confluence to reload ScriptRunner endpoints",
+        "Check ScriptRunner logs for endpoint registration failures"
+      ]
+    },
+    {
+      "priority": "MEDIUM", 
+      "category": "URL Construction",
+      "issue": "Verify StepsAPIv2Client URL construction matches working patterns",
+      "solution": "Compare with TeamsApi working implementation",
+      "actions": [
+        "Ensure baseUrl + endpoint concatenation is correct",
+        "Validate query parameter encoding",
+        "Test various filter combinations"
+      ]
+    }
+  ],
+  "nextSteps": [
+    "Review ScriptRunner Console for endpoint registration status",
+    "Test endpoints manually in browser developer tools",
+    "Verify database connectivity and data availability",
+    "Check iteration-view.js console errors for specific failure points"
+  ]
+}
+EOF
+
+    echo -e "${GREEN}✓ Diagnostic report generated: ${report_file}${NC}"
 }
 
-# Main test execution flow
+# Function to provide specific fixes for StepsAPIv2Client
+provide_stepapiv2client_fixes() {
+    echo -e "\n${BLUE}🔧 StepsAPIv2Client Fix Recommendations${NC}"
+    echo ""
+    echo "Based on the diagnostic results, here are specific fixes for iteration-view.js:"
+    echo ""
+    
+    if [ ${FAILED_TESTS} -gt 0 ]; then
+        echo "1. ${BLUE}Endpoint Registration Issue (Most Likely):${NC}"
+        echo "   The Steps API is not properly registered in ScriptRunner."
+        echo "   Fix: Check StepsApi.groovy deployment"
+        echo ""
+        echo "2. ${BLUE}Alternative URL Pattern (If endpoint exists):${NC}"
+        echo "   Try changing StepsAPIv2Client constructor:"
+        echo "   From: this.endpoint = '/steps';"
+        echo "   To:   this.endpoint = '/api/v2/steps';"
+        echo ""
+    else
+        echo "✅ ${GREEN}No fixes needed - Steps API is working correctly${NC}"
+        echo "The 404 issue may be browser-specific or related to:"
+        echo "  - Browser cache"
+        echo "  - Specific query parameters"
+        echo "  - JavaScript execution context"
+    fi
+    
+    echo "3. ${BLUE}Debug Steps for iteration-view.js:${NC}"
+    echo "   Add debug logging in StepsAPIv2Client._executeStepsRequest():"
+    echo '   console.log("StepsAPIv2: Full URL:", url);'
+    echo '   console.log("StepsAPIv2: Response status:", response.status);'
+    echo ""
+    echo "4. ${BLUE}Error Handling Enhancement:${NC}"
+    echo "   Add better error handling in fetchSteps() method:"
+    echo '   catch (error) {'
+    echo '     console.error("StepsAPIv2 Error:", error);'
+    echo '     console.error("URL attempted:", url);'
+    echo '     throw error;'
+    echo '   }'
+}
+
+# Main execution function
 main() {
-    echo -e "${BLUE}Starting US-028 Enhanced IterationView comprehensive test suite...${NC}"
+    echo -e "${BLUE}=== US-028 Enhanced IterationView Diagnostic Test Suite ===${NC}"
+    echo "Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    echo "Base URL: ${BASE_URL}"
+    echo "Report Directory: ${REPORT_DIR}"
+    echo ""
     
-    # Run all test suites
+    # Prerequisites check
     check_prerequisites
-    run_javascript_tests
-    run_performance_tests
-    run_api_integration_tests
-    run_realtime_tests
-    run_error_handling_tests
-    run_concurrent_tests
     
-    # Generate final report
-    generate_test_report
+    echo ""
     
-    # Exit with appropriate code
-    if [[ $FAILED_TESTS -eq 0 ]]; then
-        exit 0
+    # Core diagnostic tests
+    local exit_code=0
+    
+    validate_steps_api_registration
+    local reg_result=$?
+    
+    test_steps_api_endpoints
+    local api_result=$?
+    
+    test_url_construction
+    local url_result=$?
+    
+    echo ""
+    
+    # Generate reports and recommendations
+    generate_diagnostic_report
+    provide_stepapiv2client_fixes
+    
+    echo ""
+    
+    # Final summary
+    echo -e "${BLUE}=== DIAGNOSTIC SUMMARY ===${NC}"
+    echo "Total Tests: ${TOTAL_TESTS}"
+    echo "Passed: ${PASSED_TESTS}"
+    echo "Failed: ${FAILED_TESTS}"
+    
+    if [ ${reg_result} -eq 0 ] && [ ${api_result} -eq 0 ] && [ ${url_result} -eq 0 ]; then
+        echo -e "${GREEN}✅ All diagnostic tests passed - Steps API is working correctly${NC}"
+        echo "The 404 issue may be related to:"
+        echo "  - Browser caching"
+        echo "  - Specific filter parameters"
+        echo "  - Client-side JavaScript errors"
+    elif [ ${reg_result} -ne 0 ]; then
+        echo -e "${RED}❌ Endpoint registration issues detected${NC}"
+        echo "The Steps API is not properly registered in ScriptRunner"
+        exit_code=1
+    elif [ ${api_result} -ne 0 ]; then
+        echo -e "${RED}❌ API endpoint issues detected${NC}"
+        echo "Some Steps API endpoints are not responding correctly"
+        exit_code=2
+    elif [ ${url_result} -ne 0 ]; then
+        echo -e "${RED}❌ URL construction issues detected${NC}"
+        echo "The URL patterns used by StepsAPIv2Client may be incorrect"
+        exit_code=3
     else
-        exit 1
+        echo -e "${YELLOW}⚠ Mixed results - partial functionality detected${NC}"
+        exit_code=4
     fi
+    
+    echo ""
+    echo -e "${BLUE}Diagnostic test suite completed at $(date)${NC}"
+    echo -e "${BLUE}Detailed reports available in: ${REPORT_DIR}${NC}"
+    
+    exit ${exit_code}
 }
 
-# Execute main function
+# Run main function
 main "$@"

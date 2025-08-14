@@ -14,8 +14,28 @@ String confluenceEmail = currentUser?.getEmail() ?: ""
 def webRoot = System.getenv('UMIG_WEB_ROOT') ?: '/rest/scriptrunner/latest/custom/web'
 
 return """
-<!-- Canonical CSS and JS for Iteration View (static mock fidelity) -->
+<!-- Canonical CSS for Iteration View -->
 <link rel=\"stylesheet\" href=\"${webRoot}/css/iteration-view.css\">
+
+<!-- Confluence User Context for JavaScript - Load BEFORE main script -->
+<script type="text/javascript">
+    window.UMIG_ITERATION_CONFIG = {
+        confluence: {
+            username: "${confluenceUsername}",
+            fullName: "${confluenceFullName}",
+            email: "${confluenceEmail}"
+        },
+        api: {
+            baseUrl: "/rest/scriptrunner/latest/custom"
+        },
+        ui: {
+            roleBasedControls: true
+        }
+    };
+    console.log('IterationView: Configuration loaded', window.UMIG_ITERATION_CONFIG);
+</script>
+
+<!-- Main JavaScript file - Load AFTER configuration -->
 <script src=\"${webRoot}/js/iteration-view.js\"></script>
 
 <div class=\"iteration-view\">
@@ -116,21 +136,4 @@ return """
         </aside>
     </main>
 </div>
-
-<!-- Confluence User Context for JavaScript -->
-<script type="text/javascript">
-    window.UMIG_ITERATION_CONFIG = {
-        confluence: {
-            username: "${confluenceUsername}",
-            fullName: "${confluenceFullName}",
-            email: "${confluenceEmail}"
-        },
-        api: {
-            baseUrl: "/rest/scriptrunner/latest/custom"
-        },
-        ui: {
-            roleBasedControls: true
-        }
-    };
-</script>
 """
