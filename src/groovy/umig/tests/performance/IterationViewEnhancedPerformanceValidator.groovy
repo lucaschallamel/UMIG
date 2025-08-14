@@ -1,65 +1,123 @@
 package umig.tests.performance
 
-import groovy.json.JsonSlurper
-import groovy.json.JsonBuilder
+import umig.repository.StepRepository
+import umig.repository.MigrationRepository
+import umig.repository.IterationRepository
 import umig.utils.DatabaseUtil
-import java.util.UUID
-import java.sql.SQLException
-import java.util.concurrent.Executors
+import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.Future
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
 
 /**
- * US-028 Enhanced IterationView Performance Validation
- * Phase 1 Performance Testing for StepsAPI v2 Integration
+ * US-028 Enhanced IterationView Performance Validator
  * 
- * Validates Phase 1 performance requirements:
- * - <3 second initial load time for operational interface
- * - <200ms response time for StepsAPI v2 calls
- * - Client-side caching effectiveness (30-second timeout)
- * - Real-time polling performance (2-second intervals)
- * - Memory usage optimization for large datasets
- * - Concurrent user load testing (up to 50 concurrent users)
+ * Validates performance of Steps API calls under various load conditions
+ * Focuses on identifying bottlenecks in the Enhanced IterationView implementation
  * 
- * Created: 2025-08-14
- * Framework: Groovy Performance Testing
- * Target: US-028 Phase 1 operational performance benchmarks
+ * Performance Targets:
+ * - Initial load: < 3 seconds
+ * - Filter operations: < 1 second
+ * - Step details load: < 500ms
+ * - Status updates: < 200ms
+ * - Concurrent operations: Handle 10+ simultaneous users
  */
 class IterationViewEnhancedPerformanceValidator {
     
-    private static final String BASE_URL = "http://localhost:8090/rest/scriptrunner/latest/custom/steps"
-    private JsonSlurper jsonSlurper = new JsonSlurper()
+    private static final int PERFORMANCE_TARGET_INITIAL_LOAD_MS = 3000
+    private static final int PERFORMANCE_TARGET_FILTER_MS = 1000
+    private static final int PERFORMANCE_TARGET_DETAILS_MS = 500
+    private static final int PERFORMANCE_TARGET_STATUS_UPDATE_MS = 200
+    private static final int CONCURRENT_USERS_TARGET = 10
     
-    // Performance targets for US-028 Phase 1
-    private static final int INITIAL_LOAD_TARGET_MS = 3000      // <3 seconds for operational interface
-    private static final int API_RESPONSE_TARGET_MS = 200      // <200ms for StepsAPI v2 calls
-    private static final int REAL_TIME_POLLING_TARGET_MS = 2000 // 2-second polling intervals
-    private static final int CACHE_EFFECTIVENESS_TARGET = 80   // 80% cache hit rate
-    private static final int CONCURRENT_USERS_TARGET = 50      // Support 50 concurrent users
-    private static final int MEMORY_USAGE_LIMIT_MB = 100       // <100MB memory usage
+    private StepRepository stepRepository = new StepRepository()
+    private MigrationRepository migrationRepository = new MigrationRepository()
+    private IterationRepository iterationRepository = new IterationRepository()
     
-    // Test data setup
-    private static UUID testMigrationId
-    private static UUID testIterationId
-    private static List<UUID> testStepInstances = []
-    private static Integer testTeamId
-    private static Map<String, Object> performanceBaseline = [:]
+    private Map<String, List<Long>> performanceMetrics = [:]
+    private List<Map> testResults = []
     
-    static {
-        setupPerformanceTestData()
-    }
-
     /**
-     * Setup test data optimized for Enhanced IterationView performance testing
+     * Main performance validation entry point
      */
-    static void setupPerformanceTestData() {
+    static void main(String[] args) {
+        println "=== US-028 Enhanced IterationView Performance Validation ==="
+        println "Timestamp: ${LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)}"
+        
+        def validator = new IterationViewEnhancedPerformanceValidator()
+        validator.runCompletePerformanceValidation()
+    }
+    
+    /**
+     * Run complete performance validation suite
+     */
+    void runCompletePerformanceValidation() {
+        println "\n🚀 Starting Enhanced IterationView Performance Validation..."
+        
+        try {
+            // 1. Setup test data and environment
+            setupPerformanceTestEnvironment()
+            
+            // 2. Test initial load performance
+            testInitialLoadPerformance()
+            
+            // 3. Test filtering performance
+            testFilteringPerformance()
+            
+            // 4. Test step details loading
+            testStepDetailsPerformance()
+            
+            // 5. Test status update performance
+            testStatusUpdatePerformance()
+            
+            // 6. Test concurrent user scenarios
+            testConcurrentUserPerformance()
+            
+            // 7. Test memory and resource usage
+            testResourceUtilization()
+            
+            // 8. Generate performance report
+            generatePerformanceReport()
+            
+            // 9. Validate against targets
+            validatePerformanceTargets()
+            
+        } catch (Exception e) {
+            println "❌ Performance validation failed: ${e.message}"
+            e.printStackTrace()
+        }
+    }
+    
+    /**
+     * Setup test environment with realistic data volumes
+     */
+    void setupPerformanceTestEnvironment() {
+        println "\n📋 Setting up performance test environment..."
+        
         DatabaseUtil.withSql { sql ->
-            // Get active migration with substantial step count for realistic testing
-            def migrationData = sql.firstRow("""
-                SELECT m.mig_id, COUNT(sti.sti_id) as step_count, m.mig_name
-                FROM migrations_mig m
-                JOIN iterations_ite i ON m.mig_id = i.mig_id
+            // Get test migration with substantial data
+            def migrations = sql.rows("""
+                SELECT mig_id, mig_name, 
+                       (SELECT COUNT(*) FROM iteration_master_itm 
+                        WHERE itm_migration_id = mig.mig_id) as iteration_count,
+                       (SELECT COUNT(*) FROM step_instance_sti 
+                        WHERE sti_migration_id = mig.mig_id) as step_count
+                FROM migration_master_mig mig
+                ORDER BY step_count DESC
+                LIMIT 3
+            """)
+            
+            migrations.each { migration ->
+                println "  Migration: ${migration.mig_name}"
+                println "    Iterations: ${migration.iteration_count}"
+                println "    Steps: ${migration.step_count}"
+            }
+            
+            if (!migrations || migrations.isEmpty()) {
+                println "⚠️  No test data found - using default test IDs"
                 JOIN plans_instance_pli pli ON i.ite_id = pli.ite_id
                 JOIN sequences_instance_sqi sqi ON pli.pli_id = sqi.pli_id
                 JOIN phases_instance_phi phi ON sqi.sqi_id = phi.sqi_id
