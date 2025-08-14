@@ -1,11 +1,11 @@
-# US-030: Data Import Strategy & Implementation
+# US-034: Data Import Strategy & Implementation
 
 ## Overview
 
 **Epic**: Production Readiness  
 **Priority**: HIGH  
-**Sprint**: 4  
-**Status**: 📋 Ready for Development  
+**Sprint**: 5  
+**Status**: 📋 Backlog  
 **Effort**: 5 story points  
 **Dependencies**: None  
 **Risk**: MODERATE (data quality, validation complexity)
