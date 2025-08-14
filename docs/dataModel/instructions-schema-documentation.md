@@ -76,15 +76,19 @@ CREATE TABLE instructions_master_inm (
 
 **Field Specifications**:
 
-| Field                  | Type    | Constraints                            | Purpose                              |
-| ---------------------- | ------- | -------------------------------------- | ------------------------------------ |
-| `inm_id`               | UUID    | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique instruction master identifier |
-| `stm_id`               | UUID    | NOT NULL, FK → steps_master_stm        | Parent step reference                |
-| `tms_id`               | INTEGER | NULLABLE, FK → teams_tms               | Optional assigned team               |
-| `ctm_id`               | UUID    | NULLABLE, FK → controls_master_ctm     | Optional control point               |
-| `inm_order`            | INTEGER | NOT NULL                               | Display/execution order within step  |
-| `inm_body`             | TEXT    | NULLABLE                               | Instruction content/description      |
-| `inm_duration_minutes` | INTEGER | NULLABLE                               | Estimated completion time            |
+| Field                  | Type         | Constraints                            | Purpose                              |
+| ---------------------- | ------------ | -------------------------------------- | ------------------------------------ |
+| `inm_id`               | UUID         | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique instruction master identifier |
+| `stm_id`               | UUID         | NOT NULL, FK → steps_master_stm        | Parent step reference                |
+| `tms_id`               | INTEGER      | NULLABLE, FK → teams_tms               | Optional assigned team               |
+| `ctm_id`               | UUID         | NULLABLE, FK → controls_master_ctm     | Optional control point               |
+| `inm_order`            | INTEGER      | NOT NULL                               | Display/execution order within step  |
+| `inm_body`             | TEXT         | NULLABLE                               | Instruction content/description      |
+| `inm_duration_minutes` | INTEGER      | NULLABLE                               | Estimated completion time            |
+| `created_at`           | TIMESTAMPTZ  | DEFAULT CURRENT_TIMESTAMP              | Creation timestamp - Added migration 016 |
+| `created_by`           | VARCHAR(255) | DEFAULT 'system'                       | User trigram or system - Added migration 016 |
+| `updated_at`           | TIMESTAMPTZ  | DEFAULT CURRENT_TIMESTAMP              | Last update timestamp - Added migration 016 |
+| `updated_by`           | VARCHAR(255) | DEFAULT 'system'                       | User trigram who updated - Added migration 016 |
 
 ### 3.2 Instructions Instance (`instructions_instance_ini`)
 
@@ -106,14 +110,23 @@ CREATE TABLE instructions_instance_ini (
 
 **Field Specifications**:
 
-| Field                 | Type        | Constraints                            | Purpose                                |
-| --------------------- | ----------- | -------------------------------------- | -------------------------------------- |
-| `ini_id`              | UUID        | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique instruction instance identifier |
-| `sti_id`              | UUID        | NOT NULL, FK → steps_instance_sti      | Parent step instance                   |
-| `inm_id`              | UUID        | NOT NULL, FK → instructions_master_inm | Master instruction reference           |
-| `ini_is_completed`    | BOOLEAN     | DEFAULT FALSE                          | Simple completion flag                 |
-| `ini_completed_at`    | TIMESTAMPTZ | NULLABLE                               | Completion timestamp                   |
-| `usr_id_completed_by` | INTEGER     | NULLABLE, FK → users_usr               | Completing user                        |
+| Field                 | Type         | Constraints                            | Purpose                                |
+| --------------------- | ------------ | -------------------------------------- | -------------------------------------- |
+| `ini_id`              | UUID         | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique instruction instance identifier |
+| `sti_id`              | UUID         | NOT NULL, FK → steps_instance_sti      | Parent step instance                   |
+| `inm_id`              | UUID         | NOT NULL, FK → instructions_master_inm | Master instruction reference           |
+| `tms_id`              | INTEGER      | NULLABLE                               | Assigned team (from master) - Added migration 010 |
+| `cti_id`              | UUID         | NULLABLE                               | Associated control instance - Added migration 010 |
+| `ini_order`           | INTEGER      | NULLABLE                               | Instance order (from master) - Added migration 010 |
+| `ini_body`            | TEXT         | NULLABLE                               | Instance content (from master) - Added migration 010 |
+| `ini_duration_minutes`| INTEGER      | NULLABLE                               | Instance duration (from master) - Added migration 010 |
+| `ini_is_completed`    | BOOLEAN      | DEFAULT FALSE                          | Simple completion flag                 |
+| `ini_completed_at`    | TIMESTAMPTZ  | NULLABLE                               | Completion timestamp                   |
+| `usr_id_completed_by` | INTEGER      | NULLABLE, FK → users_usr               | Completing user                        |
+| `created_at`          | TIMESTAMPTZ  | DEFAULT CURRENT_TIMESTAMP              | Creation timestamp - Added migration 016 |
+| `created_by`          | VARCHAR(255) | DEFAULT 'system'                       | User trigram who created - Added migration 016 |
+| `updated_at`          | TIMESTAMPTZ  | DEFAULT CURRENT_TIMESTAMP              | Last update timestamp - Added migration 016 |
+| `updated_by`          | VARCHAR(255) | DEFAULT 'system'                       | User trigram who updated - Added migration 016 |
 
 ---
 

@@ -1100,4 +1100,656 @@ class StepRepository {
             statusMetadata: statusMetadata
         ] as Map
     }
+
+    // ==================== MODERN SPRINT 3 PATTERNS ====================
+    
+    /**
+     * Advanced query method with comprehensive filtering, sorting, and pagination.
+     * Following Sprint 3 patterns from SequenceRepository.groovy.
+     * @param filters Map containing optional filters
+     * @param limit Maximum number of results (max 1000, default 100)
+     * @param offset Number of results to skip (default 0)
+     * @param sortBy Field to sort by (default: stm_number)
+     * @param sortOrder Sort direction ('ASC' or 'DESC', default 'ASC')
+     * @return Map containing steps data and pagination metadata
+     */
+    Map findStepsWithFilters(Map filters, Integer limit = 100, Integer offset = 0, 
+                            String sortBy = 'stm_number', String sortOrder = 'ASC') {
+        DatabaseUtil.withSql { sql ->
+            // Validate and sanitize parameters (ADR-031 type safety)
+            limit = Math.min(limit ?: 100, 1000) as Integer
+            offset = Math.max(offset ?: 0, 0) as Integer
+            sortBy = sanitizeSortField(sortBy)
+            sortOrder = (sortOrder?.toUpperCase() in ['ASC', 'DESC']) ? sortOrder.toUpperCase() : 'ASC'
+            
+            def baseQuery = '''
+                SELECT 
+                    -- Step instance data
+                    sti.sti_id, stm.stt_code, stm.stm_number, sti.sti_name, sti.sti_status, 
+                    sti.sti_duration_minutes, stm.tms_id_owner, sti.sti_start_time, sti.sti_end_time,
+                    -- Master step data
+                    stm.stm_id, stm.stm_name as master_name, stm.stm_description,
+                    -- Sequence and phase hierarchy
+                    sqm.sqm_id, sqm.sqm_name, sqm.sqm_order,
+                    phm.phm_id, phm.phm_name, phm.phm_order,
+                    -- Plan hierarchy
+                    plm.plm_id, plm.plm_name,
+                    -- Instance hierarchy
+                    pli.pli_id, sqi.sqi_id, phi.phi_id,
+                    -- Team owner information
+                    tms.tms_name as owner_team_name,
+                    -- Iteration and migration context
+                    ite.ite_id, ite.ite_name,
+                    mig.mig_id, mig.mig_name,
+                    -- Status metadata
+                    sts.sts_name as status_name, sts.sts_color, sts.sts_type,
+                    -- Count for pagination
+                    COUNT(*) OVER() as total_count
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                WHERE 1=1
+            '''
+            
+            def params = [:]
+            
+            // Add hierarchical filters (ADR-030 compliance - use instance IDs)
+            if (filters.migrationId) {
+                baseQuery += ' AND mig.mig_id = :migrationId'
+                params.migrationId = UUID.fromString(filters.migrationId as String)
+            }
+            
+            if (filters.iterationId) {
+                baseQuery += ' AND ite.ite_id = :iterationId'
+                params.iterationId = UUID.fromString(filters.iterationId as String)
+            }
+            
+            if (filters.planInstanceId) {
+                baseQuery += ' AND pli.pli_id = :planInstanceId'
+                params.planInstanceId = UUID.fromString(filters.planInstanceId as String)
+            }
+            
+            if (filters.sequenceInstanceId) {
+                baseQuery += ' AND sqi.sqi_id = :sequenceInstanceId'
+                params.sequenceInstanceId = UUID.fromString(filters.sequenceInstanceId as String)
+            }
+            
+            if (filters.phaseInstanceId) {
+                baseQuery += ' AND phi.phi_id = :phaseInstanceId'
+                params.phaseInstanceId = UUID.fromString(filters.phaseInstanceId as String)
+            }
+            
+            // Entity filtering
+            if (filters.teamId) {
+                baseQuery += ' AND stm.tms_id_owner = :teamId'
+                params.teamId = Integer.parseInt(filters.teamId as String)
+            }
+            
+            if (filters.statusId) {
+                baseQuery += ' AND sti.sti_status = :statusId'
+                params.statusId = Integer.parseInt(filters.statusId as String)
+            }
+            
+            if (filters.stepTypeCode) {
+                baseQuery += ' AND stm.stt_code = :stepTypeCode'
+                params.stepTypeCode = filters.stepTypeCode as String
+            }
+            
+            // Label filtering (through join table)
+            if (filters.labelId) {
+                baseQuery += '''
+                    AND EXISTS (
+                        SELECT 1 FROM labels_lbl_x_steps_master_stm lxs 
+                        WHERE lxs.stm_id = stm.stm_id AND lxs.lbl_id = :labelId
+                    )
+                '''
+                params.labelId = Integer.parseInt(filters.labelId as String)
+            }
+            
+            // Search capabilities
+            if (filters.searchText) {
+                baseQuery += '''
+                    AND (UPPER(stm.stm_name) LIKE UPPER(:searchText) 
+                         OR UPPER(stm.stm_description) LIKE UPPER(:searchText)
+                         OR UPPER(sti.sti_name) LIKE UPPER(:searchText))
+                '''
+                params.searchText = "%${filters.searchText as String}%"
+            }
+            
+            // Add sorting and pagination
+            def orderClause = "ORDER BY ${sortBy} ${sortOrder}, stm.stm_number ASC"
+            def paginationClause = "LIMIT :limit OFFSET :offset"
+            
+            params.limit = limit
+            params.offset = offset
+            
+            def finalQuery = "${baseQuery} ${orderClause} ${paginationClause}"
+            
+            def results = sql.rows(finalQuery, params)
+            def totalCount = results.isEmpty() ? 0 : (results[0].total_count as Integer)
+            
+            // Transform results with status metadata enrichment
+            def enrichedSteps = results.collect { row ->
+                enrichStepInstanceWithAdvancedMetadata(row)
+            }
+            
+            return [
+                steps: enrichedSteps,
+                pagination: [
+                    totalCount: totalCount,
+                    limit: limit,
+                    offset: offset,
+                    hasMore: (offset + limit) < totalCount,
+                    pageCount: Math.ceil((totalCount / limit) as Double) as Integer
+                ],
+                filters: filters,
+                sorting: [
+                    sortBy: sortBy,
+                    sortOrder: sortOrder
+                ]
+            ]
+        }
+    }
+    
+    /**
+     * Gets summary statistics for steps by migration.
+     * Following Sprint 3 aggregation patterns.
+     * @param migrationId The UUID of the migration
+     * @return Map containing step counts by various dimensions
+     */
+    Map getStepsSummary(UUID migrationId) {
+        DatabaseUtil.withSql { sql ->
+            def summaryData = [:]
+            
+            // Overall step counts
+            def overallCounts = sql.firstRow('''
+                SELECT 
+                    COUNT(*) as total_steps,
+                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_steps,
+                    COUNT(CASE WHEN sts.sts_name = 'IN_PROGRESS' THEN 1 END) as in_progress_steps,
+                    COUNT(CASE WHEN sts.sts_name = 'PENDING' THEN 1 END) as pending_steps,
+                    COUNT(CASE WHEN sts.sts_name = 'OPEN' THEN 1 END) as open_steps,
+                    AVG(stm.stm_duration_minutes) as avg_duration_minutes
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                WHERE ite.mig_id = :migrationId
+            ''', [migrationId: migrationId])
+            
+            summaryData.overall = overallCounts
+            
+            // Steps by team
+            def teamCounts = sql.rows('''
+                SELECT 
+                    tms.tms_name,
+                    COUNT(*) as step_count,
+                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_count
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                WHERE ite.mig_id = :migrationId
+                GROUP BY tms.tms_name
+                ORDER BY step_count DESC
+            ''', [migrationId: migrationId])
+            
+            summaryData.byTeam = teamCounts
+            
+            // Steps by phase
+            def phaseCounts = sql.rows('''
+                SELECT 
+                    phm.phm_name,
+                    phm.phm_order,
+                    COUNT(*) as step_count,
+                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_count,
+                    AVG(stm.stm_duration_minutes) as avg_duration_minutes
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                WHERE ite.mig_id = :migrationId
+                GROUP BY phm.phm_name, phm.phm_order
+                ORDER BY phm.phm_order
+            ''', [migrationId: migrationId])
+            
+            summaryData.byPhase = phaseCounts
+            
+            // Steps by step type
+            def typeCounts = sql.rows('''
+                SELECT 
+                    stm.stt_code,
+                    COUNT(*) as step_count,
+                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_count
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                WHERE ite.mig_id = :migrationId
+                GROUP BY stm.stt_code
+                ORDER BY step_count DESC
+            ''', [migrationId: migrationId])
+            
+            summaryData.byType = typeCounts
+            
+            return summaryData
+        }
+    }
+    
+    /**
+     * Gets progress tracking metrics for steps by migration.
+     * @param migrationId The UUID of the migration
+     * @return Map containing progress metrics and bottleneck analysis
+     */
+    Map getStepsProgress(UUID migrationId) {
+        DatabaseUtil.withSql { sql ->
+            def progressData = [:]
+            
+            // Overall progress metrics
+            def progressMetrics = sql.firstRow('''
+                SELECT 
+                    COUNT(*) as total_steps,
+                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_steps,
+                    ROUND((COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) * 100.0 / COUNT(*)), 2) as completion_percentage,
+                    SUM(stm.stm_duration_minutes) as total_estimated_minutes,
+                    SUM(CASE WHEN sts.sts_name = 'COMPLETED' THEN stm.stm_duration_minutes ELSE 0 END) as completed_minutes,
+                    MIN(sti.sti_start_time) as earliest_start,
+                    MAX(sti.sti_end_time) as latest_completion
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                WHERE ite.mig_id = :migrationId
+            ''', [migrationId: migrationId])
+            
+            progressData.overall = progressMetrics
+            
+            // Bottleneck analysis - steps taking longer than expected
+            def bottlenecks = sql.rows('''
+                SELECT 
+                    sti.sti_id,
+                    stm.stt_code || '-' || LPAD(stm.stm_number::text, 3, '0') as step_code,
+                    stm.stm_name,
+                    tms.tms_name as owner_team,
+                    stm.stm_duration_minutes as estimated_minutes,
+                    EXTRACT(EPOCH FROM (sti.sti_end_time - sti.sti_start_time))/60 as actual_minutes,
+                    sts.sts_name as current_status
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                WHERE ite.mig_id = :migrationId
+                    AND sti.sti_start_time IS NOT NULL
+                    AND (sts.sts_name = 'IN_PROGRESS' OR sti.sti_end_time IS NOT NULL)
+                    AND (
+                        (sti.sti_end_time IS NULL AND EXTRACT(EPOCH FROM (NOW() - sti.sti_start_time))/60 > stm.stm_duration_minutes * 1.5)
+                        OR 
+                        (sti.sti_end_time IS NOT NULL AND EXTRACT(EPOCH FROM (sti.sti_end_time - sti.sti_start_time))/60 > stm.stm_duration_minutes * 1.2)
+                    )
+                ORDER BY 
+                    CASE 
+                        WHEN sti.sti_end_time IS NULL THEN EXTRACT(EPOCH FROM (NOW() - sti.sti_start_time))/60 - stm.stm_duration_minutes
+                        ELSE EXTRACT(EPOCH FROM (sti.sti_end_time - sti.sti_start_time))/60 - stm.stm_duration_minutes
+                    END DESC
+                LIMIT 10
+            ''', [migrationId: migrationId])
+            
+            progressData.bottlenecks = bottlenecks
+            
+            // Phase progress breakdown
+            def phaseProgress = sql.rows('''
+                SELECT 
+                    phm.phm_name,
+                    phm.phm_order,
+                    COUNT(*) as total_steps,
+                    COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) as completed_steps,
+                    ROUND((COUNT(CASE WHEN sts.sts_name = 'COMPLETED' THEN 1 END) * 100.0 / COUNT(*)), 2) as completion_percentage,
+                    SUM(stm.stm_duration_minutes) as total_estimated_minutes,
+                    SUM(CASE WHEN sts.sts_name = 'COMPLETED' THEN stm.stm_duration_minutes ELSE 0 END) as completed_minutes
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                WHERE ite.mig_id = :migrationId
+                GROUP BY phm.phm_name, phm.phm_order
+                ORDER BY phm.phm_order
+            ''', [migrationId: migrationId])
+            
+            progressData.phaseProgress = phaseProgress
+            
+            return progressData
+        }
+    }
+    
+    /**
+     * Bulk update step instance status with transaction safety.
+     * @param stepIds List of step instance UUIDs
+     * @param statusId Integer status ID
+     * @param userId User ID for audit logging
+     * @return Map with success status and update results
+     */
+    Map bulkUpdateStepStatus(List<UUID> stepIds, Integer statusId, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            return sql.withTransaction {
+                try {
+                    // Validate status exists
+                    def status = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'", 
+                        [statusId: statusId])
+                    
+                    if (!status) {
+                        return [success: false, error: "Invalid status ID: ${statusId}"]
+                    }
+                    
+                    def results = []
+                    def successCount = 0
+                    def errorCount = 0
+                    
+                    stepIds.each { stepId ->
+                        try {
+                            // Get current step data for notification
+                            def stepInstance = sql.firstRow('''
+                                SELECT 
+                                    sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_status,
+                                    stm.stt_code, stm.stm_number, stm.tms_id_owner
+                                FROM steps_instance_sti sti
+                                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                                WHERE sti.sti_id = :stepId
+                            ''', [stepId: stepId])
+                            
+                            if (!stepInstance) {
+                                results.add([stepId: stepId, success: false, error: "Step not found"])
+                                errorCount++
+                                return
+                            }
+                            
+                            def oldStatusId = stepInstance.sti_status
+                            
+                            // Update the status
+                            def updateCount = sql.executeUpdate('''
+                                UPDATE steps_instance_sti 
+                                SET sti_status = :statusId,
+                                    sti_end_time = CASE WHEN :statusName = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
+                                    usr_id_last_updated = :userId
+                                WHERE sti_id = :stepId
+                            ''', [statusId: statusId, statusName: status.sts_name, userId: userId, stepId: stepId])
+                            
+                            if (updateCount == 1) {
+                                results.add([stepId: stepId, success: true, oldStatus: oldStatusId, newStatus: statusId])
+                                successCount++
+                            } else {
+                                results.add([stepId: stepId, success: false, error: "Update failed"])
+                                errorCount++
+                            }
+                            
+                        } catch (Exception e) {
+                            results.add([stepId: stepId, success: false, error: e.message])
+                            errorCount++
+                        }
+                    }
+                    
+                    return [
+                        success: errorCount == 0,
+                        successCount: successCount,
+                        errorCount: errorCount,
+                        totalCount: stepIds.size(),
+                        results: results,
+                        newStatus: status.sts_name
+                    ]
+                    
+                } catch (Exception e) {
+                    return [success: false, error: "Bulk operation failed: ${e.message}"]
+                }
+            }
+        }
+    }
+    
+    /**
+     * Bulk assign steps to a team with transaction safety.
+     * @param stepIds List of step instance UUIDs (targets step master for assignment)
+     * @param teamId Integer team ID
+     * @param userId User ID for audit logging
+     * @return Map with success status and assignment results
+     */
+    Map bulkAssignSteps(List<UUID> stepIds, Integer teamId, Integer userId = null) {
+        DatabaseUtil.withSql { sql ->
+            return sql.withTransaction {
+                try {
+                    // Validate team exists
+                    def team = sql.firstRow("SELECT tms_name FROM teams_tms WHERE tms_id = :teamId", [teamId: teamId])
+                    
+                    if (!team) {
+                        return [success: false, error: "Invalid team ID: ${teamId}"]
+                    }
+                    
+                    def results = []
+                    def successCount = 0
+                    def errorCount = 0
+                    
+                    stepIds.each { stepId ->
+                        try {
+                            // Get step master ID from step instance
+                            def stepData = sql.firstRow('''
+                                SELECT sti.stm_id, stm.tms_id_owner as current_team_id
+                                FROM steps_instance_sti sti
+                                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                                WHERE sti.sti_id = :stepId
+                            ''', [stepId: stepId])
+                            
+                            if (!stepData) {
+                                results.add([stepId: stepId, success: false, error: "Step not found"])
+                                errorCount++
+                                return
+                            }
+                            
+                            def oldTeamId = stepData.current_team_id
+                            
+                            // Update team assignment on master step
+                            def updateCount = sql.executeUpdate('''
+                                UPDATE steps_master_stm 
+                                SET tms_id_owner = :teamId,
+                                    updated_by = :userId,
+                                    updated_at = CURRENT_TIMESTAMP
+                                WHERE stm_id = :stmId
+                            ''', [teamId: teamId, userId: userId ?: 'system', stmId: stepData.stm_id])
+                            
+                            if (updateCount == 1) {
+                                results.add([stepId: stepId, success: true, oldTeamId: oldTeamId, newTeamId: teamId])
+                                successCount++
+                            } else {
+                                results.add([stepId: stepId, success: false, error: "Update failed"])
+                                errorCount++
+                            }
+                            
+                        } catch (Exception e) {
+                            results.add([stepId: stepId, success: false, error: e.message])
+                            errorCount++
+                        }
+                    }
+                    
+                    return [
+                        success: errorCount == 0,
+                        successCount: successCount,
+                        errorCount: errorCount,
+                        totalCount: stepIds.size(),
+                        results: results,
+                        newTeam: team.tms_name
+                    ]
+                    
+                } catch (Exception e) {
+                    return [success: false, error: "Bulk assignment failed: ${e.message}"]
+                }
+            }
+        }
+    }
+    
+    /**
+     * Bulk reorder steps within phases with transaction safety.
+     * @param stepReorderData List of maps with stepId and newOrder
+     * @return Map with success status and reorder results
+     */
+    Map bulkReorderSteps(List<Map> stepReorderData) {
+        DatabaseUtil.withSql { sql ->
+            return sql.withTransaction {
+                try {
+                    def results = []
+                    def successCount = 0
+                    def errorCount = 0
+                    
+                    // Group by phase for efficient reordering
+                    def stepsByPhase = stepReorderData.groupBy { reorderItem ->
+                        def stepData = sql.firstRow('''
+                            SELECT phi.phi_id
+                            FROM steps_instance_sti sti
+                            JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                            WHERE sti.sti_id = :stepId
+                        ''', [stepId: reorderItem.stepId])
+                        return stepData?.phi_id
+                    }
+                    
+                    stepsByPhase.each { phaseId, stepsInPhase ->
+                        if (!phaseId) return
+                        
+                        try {
+                            // Sort steps in this phase by new order
+                            def sortedSteps = stepsInPhase.sort { it.newOrder as Integer }
+                            
+                            // Update each step's order
+                            sortedSteps.eachWithIndex { reorderItem, index ->
+                                def newOrder = index + 1 // 1-based ordering
+                                
+                                def updateCount = sql.executeUpdate('''
+                                    UPDATE steps_master_stm 
+                                    SET stm_number = :newOrder,
+                                        updated_by = 'system',
+                                        updated_at = CURRENT_TIMESTAMP
+                                    WHERE stm_id = (
+                                        SELECT sti.stm_id 
+                                        FROM steps_instance_sti sti 
+                                        WHERE sti.sti_id = :stepId
+                                    )
+                                ''', [newOrder: newOrder, stepId: reorderItem.stepId])
+                                
+                                if (updateCount == 1) {
+                                    results.add([stepId: reorderItem.stepId, success: true, newOrder: newOrder])
+                                    successCount++
+                                } else {
+                                    results.add([stepId: reorderItem.stepId, success: false, error: "Reorder failed"])
+                                    errorCount++
+                                }
+                            }
+                            
+                        } catch (Exception e) {
+                            stepsInPhase.each { reorderItem ->
+                                results.add([stepId: reorderItem.stepId, success: false, error: e.message])
+                                errorCount++
+                            }
+                        }
+                    }
+                    
+                    return [
+                        success: errorCount == 0,
+                        successCount: successCount,
+                        errorCount: errorCount,
+                        totalCount: stepReorderData.size(),
+                        results: results
+                    ]
+                    
+                } catch (Exception e) {
+                    return [success: false, error: "Bulk reorder failed: ${e.message}"]
+                }
+            }
+        }
+    }
+    
+    // ==================== HELPER METHODS ====================
+    
+    /**
+     * Sanitizes sort field to prevent SQL injection.
+     */
+    private String sanitizeSortField(String sortBy) {
+        def allowedFields = [
+            'stm_number', 'sti_name', 'stm_name', 'sti_status', 
+            'sti_duration_minutes', 'sqm_order', 'phm_order',
+            'tms_name', 'sti_start_time', 'sti_end_time'
+        ]
+        return sortBy in allowedFields ? sortBy : 'stm_number'
+    }
+    
+    /**
+     * Enhanced step instance enrichment with advanced metadata.
+     */
+    private Map enrichStepInstanceWithAdvancedMetadata(Map row) {
+        return [
+            id: row.sti_id,
+            stmId: row.stm_id,
+            sttCode: row.stt_code,
+            stmNumber: row.stm_number,
+            stepCode: "${row.stt_code}-${String.format('%03d', row.stm_number)}",
+            name: row.sti_name ?: row.master_name,
+            description: row.stm_description,
+            status: row.status_name ?: row.sti_status, // Backward compatibility
+            statusMetadata: row.status_name ? [
+                id: row.sti_status,
+                name: row.status_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ] : null,
+            durationMinutes: row.sti_duration_minutes,
+            startTime: row.sti_start_time,
+            endTime: row.sti_end_time,
+            ownerTeamId: row.tms_id_owner,
+            ownerTeamName: row.owner_team_name,
+            // Hierarchy context
+            sequenceId: row.sqm_id,
+            sequenceName: row.sqm_name,
+            sequenceOrder: row.sqm_order,
+            phaseId: row.phm_id,
+            phaseName: row.phm_name,
+            phaseOrder: row.phm_order,
+            planId: row.plm_id,
+            planName: row.plm_name,
+            // Instance IDs for hierarchical filtering
+            planInstanceId: row.pli_id,
+            sequenceInstanceId: row.sqi_id,
+            phaseInstanceId: row.phi_id,
+            iterationId: row.ite_id,
+            iterationName: row.ite_name,
+            migrationId: row.mig_id,
+            migrationName: row.mig_name
+        ] as Map
+    }
 }

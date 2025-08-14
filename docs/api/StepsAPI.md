@@ -1,8 +1,8 @@
 # Steps API Specification
 
-**Version:** 2.0.0  
+**Version:** 2.1.1  
 **API Version:** v2  
-**Last Updated:** August 7, 2025
+**Last Updated:** August 14, 2025
 
 ## Overview
 
@@ -354,9 +354,16 @@ Retrieves all status options across all entity types.
 
 ### 5. Comments Management
 
+Comments follow a RESTful sub-resource pattern where comments are accessed as sub-resources of steps using the pattern `/steps/{stepInstanceId}/comments`. Direct comment operations (update/delete) are available at `/comments/{id}` for efficiency.
+
 #### GET /steps/{stepInstanceId}/comments - Get Step Comments
 
-Retrieves all comments associated with a step instance.
+Retrieves all comments associated with a step instance. This endpoint uses the RESTful sub-resource pattern.
+
+**URL Pattern:**
+```
+GET /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments
+```
 
 **Example Response:**
 
@@ -373,9 +380,26 @@ Retrieves all comments associated with a step instance.
 ]
 ```
 
+**Enhanced Error Handling:**
+
+If you use an incorrect endpoint pattern, the API provides helpful guidance:
+
+```json
+{
+  "error": "Invalid comments endpoint usage",
+  "message": "To access comments, use: /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments",
+  "example": "/rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments"
+}
+```
+
 #### POST /steps/{stepInstanceId}/comments - Create Step Comment
 
-Creates a new comment on a step instance.
+Creates a new comment on a step instance using the RESTful sub-resource pattern.
+
+**URL Pattern:**
+```
+POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments
+```
 
 **Request Body:**
 
@@ -396,9 +420,26 @@ Creates a new comment on a step instance.
 }
 ```
 
+**Enhanced Error Handling:**
+
+If you use an incorrect endpoint pattern, the API provides helpful guidance:
+
+```json
+{
+  "error": "Invalid comments endpoint usage",
+  "message": "To create a comment, use: POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments",
+  "example": "POST /rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments with comment data in the request body"
+}
+```
+
 #### PUT /comments/{commentId} - Update Comment
 
-Updates an existing comment.
+Updates an existing comment. This endpoint uses the direct comment access pattern for efficiency.
+
+**URL Pattern:**
+```
+PUT /rest/scriptrunner/latest/custom/comments/{commentId}
+```
 
 **Request Body:**
 
@@ -418,9 +459,26 @@ Updates an existing comment.
 }
 ```
 
+**Enhanced Error Handling:**
+
+If you use an incorrect endpoint pattern, the API provides helpful guidance:
+
+```json
+{
+  "error": "Invalid comments endpoint usage",
+  "message": "To update a comment, use: PUT /rest/scriptrunner/latest/custom/comments/{commentId}",
+  "example": "PUT /rest/scriptrunner/latest/custom/comments/123 with updated comment data in the request body"
+}
+```
+
 #### DELETE /comments/{commentId} - Delete Comment
 
-Deletes a comment.
+Deletes a comment. This endpoint uses the direct comment access pattern for efficiency.
+
+**URL Pattern:**
+```
+DELETE /rest/scriptrunner/latest/custom/comments/{commentId}
+```
 
 **Example Response:**
 
@@ -428,6 +486,18 @@ Deletes a comment.
 {
   "success": true,
   "message": "Comment deleted successfully"
+}
+```
+
+**Enhanced Error Handling:**
+
+If you use an incorrect endpoint pattern, the API provides helpful guidance:
+
+```json
+{
+  "error": "Invalid comments endpoint usage",
+  "message": "To delete a comment, use: DELETE /rest/scriptrunner/latest/custom/comments/{commentId}",
+  "example": "DELETE /rest/scriptrunner/latest/custom/comments/123"
 }
 ```
 
@@ -906,6 +976,14 @@ curl -X POST "/steps/step-inst-001/open" \
 - **Breaking Changes**: Status value changes require careful migration
 
 ## Changelog
+
+### Version 2.1.1 (August 14, 2025 - US-024)
+
+- **Enhanced Comments Error Handling**: Comments endpoints now return helpful error messages instead of generic "Invalid comments endpoint" responses
+- **Improved User Guidance**: Error responses include specific usage instructions and practical examples
+- **RESTful Pattern Documentation**: Clear documentation of the sub-resource pattern for comments (`/steps/{id}/comments`)
+- **Enhanced API Usability**: Direct comment operations (`/comments/{id}`) documented with usage guidance
+- **Backward Compatibility Maintained**: All existing functionality preserved while improving user experience
 
 ### Version 2.1.0 (August 7, 2025)
 

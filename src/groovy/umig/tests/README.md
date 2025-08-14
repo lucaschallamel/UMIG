@@ -36,6 +36,22 @@ This folder contains all Groovy-based tests for the UMIG project.
 - **Rest Assured**: `io.rest-assured:rest-assured:5.3.2`
 - **JSON Path**: `io.rest-assured:json-path:5.3.2`
 
+### Known Compatibility Issues (Historical Context)
+
+Based on our testing evolution, the following dependencies cause issues with Groovy 3.0.x:
+
+**❌ Problematic Dependencies (Avoid)**:
+```groovy
+@Grab('javax.ws.rs:javax.ws.rs-api:2.1.1')  // Causes Grape to hang
+@Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')  // Version conflicts
+```
+
+**✅ Working Dependencies**:
+```groovy
+@Grab('org.postgresql:postgresql:42.7.3')
+@Grab('org.codehaus.groovy:groovy-sql:3.0.15')
+```
+
 ### Standard Test Dependencies Template
 
 ```groovy
@@ -56,8 +72,22 @@ This folder contains all Groovy-based tests for the UMIG project.
 
 - `unit/`: Unit tests with mocked dependencies using Spock framework
 - `integration/`: Integration tests requiring live database connections
+- `validation/`: Quality gate and database validation scripts
+  - `US024QualityGateValidator.groovy`: Quality gate validation for ADR compliance
+  - `DatabaseQualityValidator.groovy`: Direct database layer validation, performance testing, and data integrity checks
+- `apis/`: API-specific test suites
+- `compatibility/`: Backward compatibility validation
+- `performance/`: Performance testing and benchmarks
+- `upgrade/`: Upgrade validation tests
 - `run-unit-tests.sh`: Unit test runner script
 - `run-integration-tests.sh`: Integration test runner script
+
+### Validation Scripts
+
+The `validation/` directory contains specialized validation scripts that test quality gates and database performance:
+
+- **DatabaseQualityValidator.groovy**: Validates database layer directly with SQL queries, tests performance benchmarks (<50ms, <100ms targets), and checks data integrity including foreign keys and orphaned records.
+- **US024QualityGateValidator.groovy**: Comprehensive quality gate validation ensuring ADR compliance and implementation standards.
 
 ### Diagnostic Tools
 
@@ -99,6 +129,29 @@ Integration tests require the full development environment to be running. From t
 ```bash
 ./src/groovy/umig/tests/run-integration-tests.sh
 ```
+
+### Validation Tests
+
+Validation tests check quality gates and database performance. They are integrated with the consolidated quality-check system:
+
+```bash
+# Via quality check script (recommended - includes all 4 consolidated scripts)
+cd local-dev-setup
+./scripts/quality-check/phase-b-test-execution.sh
+
+# Or run individually from project root
+groovy src/groovy/umig/tests/validation/DatabaseQualityValidator.groovy
+groovy src/groovy/umig/tests/validation/US024QualityGateValidator.groovy
+```
+
+The **DatabaseQualityValidator** (added August 14, 2025) provides comprehensive database layer validation:
+- Database connectivity and query performance testing
+- Performance benchmarks (<50ms for simple queries, <100ms for complex)
+- Data integrity validation (foreign keys, orphaned records detection)
+- Repository pattern compliance verification
+- SQL query optimization validation
+
+**Quality Check Integration**: The validation tests are now part of the consolidated quality-check system that reduced 8 test scripts to 4 essential ones, improving maintainability while preserving comprehensive coverage.
 
 ### Compliance Validation
 
@@ -247,6 +300,11 @@ def dbUrl = "jdbc:postgresql://postgres:5432/umig_app_db"
   - Hierarchical filtering and status management
   - Error handling for invalid data
 
+### Recent API Improvements
+
+- **Comments Endpoint Error Messages**: Enhanced error handling and validation messages for better debugging and user experience
+- **Quality Integration**: All API endpoints now include comprehensive validation through the DatabaseQualityValidator
+
 ## ADR Compliance
 
 ### ADR-026: Specific SQL Query Validation
@@ -326,6 +384,38 @@ This will download the driver to the correct location. You should see:
 
 You can now re-run the integration tests.
 
+## Historical Context & Lessons Learned
+
+### Testing Evolution
+
+The UMIG test suite has evolved significantly to address compatibility challenges and improve maintainability:
+
+#### Early Challenges (2025 Q1)
+- **Dependency Conflicts**: JAX-RS dependencies caused Grape to hang with Groovy 3.0.x
+- **Version Incompatibility**: Spock 2.3-groovy-4.0 incompatible with production Groovy 3.0.15
+- **Test Fragmentation**: Multiple experimental test files created during troubleshooting
+
+#### Consolidation Efforts
+- **Test Strategy Refinement**: Identified working vs. problematic dependency patterns
+- **Script Modernization**: Updated test runners with SDKMAN integration and better error reporting
+- **File Cleanup**: Removed temporary/experimental test files:
+  - `unit/SimpleTest.groovy`
+  - `unit/api/v2/InstructionsApiMinimalSpec.groovy`
+  - `unit/api/v2/InstructionsApiTestSimple.groovy`
+  - Various temporary runner scripts
+
+#### Current Stable Patterns
+- **Working Unit Tests**: Simplified pattern without problematic JAX-RS dependencies
+- **Integration Tests**: Direct database connections using PostgreSQL JDBC 42.7.3
+- **Validation Framework**: Comprehensive quality gates with DatabaseQualityValidator
+
+### Key Success Factors
+
+1. **Dependency Management**: Use only proven Groovy 3.0.x compatible dependencies
+2. **Test Isolation**: Maintain clear separation between unit, integration, and validation tests
+3. **Infrastructure Integration**: Validation tests integrated with quality-check pipeline
+4. **Documentation**: Comprehensive guides prevent repetition of past compatibility issues
+
 ## Adding New Tests
 
 ### Adding a New Integration Test
@@ -360,6 +450,7 @@ When creating new tests:
 
 ---
 
-**Document Version**: 2.0  
-**Last Updated**: January 25, 2025  
-**Standards Compliance**: Groovy 3.0.15 Mandatory
+**Document Version**: 3.0  
+**Last Updated**: August 14, 2025  
+**Standards Compliance**: Groovy 3.0.15 Mandatory  
+**Recent Updates**: DatabaseQualityValidator integration, quality-check system consolidation, historical context documentation

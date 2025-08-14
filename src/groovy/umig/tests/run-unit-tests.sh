@@ -63,6 +63,10 @@ groovy src/groovy/umig/tests/unit/PhaseRepositoryTest.groovy || report_failure "
 echo "Testing Sequence Repository..."
 groovy src/groovy/umig/tests/unit/SequenceRepositoryTest.groovy || report_failure "SequenceRepositoryTest"
 
+## Migration Repository
+echo "Testing Migration Repository..."
+groovy src/groovy/umig/tests/unit/repository/MigrationRepositoryTest.groovy || report_failure "MigrationRepositoryTest"
+
 # --- Test Summary ---
 echo ""
 echo "Test Summary"
