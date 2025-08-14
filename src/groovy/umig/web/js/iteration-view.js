@@ -1,4 +1,352 @@
+/**
+ * ============================================================================
+ * UMIG Enhanced Iteration View v2.0 - US-028 Phase 1 Implementation
+ * StepsAPI v2 Integration with Performance Optimization & Real-time Updates
+ * ============================================================================
+ */
+
+/**
+ * StepsAPI v2 Client - High-performance API integration with caching
+ */
+class StepsAPIv2Client {
+  constructor() {
+    this.baseUrl = '/rest/scriptrunner/latest/custom/steps';
+    this.cache = new Map();
+    this.cacheTimeout = 30000; // 30 seconds
+    this.requestQueue = new Map();
+    this.retryConfig = {
+      maxRetries: 3,
+      baseDelay: 1000,
+      maxDelay: 5000
+    };
+  }
+
+  /**
+   * Fetch steps with intelligent caching and performance optimization
+   */
+  async fetchSteps(filters = {}, options = {}) {
+    const cacheKey = this._generateCacheKey('steps', filters, options);
+    
+    // Check cache first
+    if (this.cache.has(cacheKey)) {
+      const cached = this.cache.get(cacheKey);
+      if (Date.now() - cached.timestamp < this.cacheTimeout) {
+        console.log('StepsAPIv2: Cache hit for', cacheKey);
+        return cached.data;
+      }
+    }
+
+    // Deduplicate concurrent requests
+    if (this.requestQueue.has(cacheKey)) {
+      return this.requestQueue.get(cacheKey);
+    }
+
+    const requestPromise = this._executeStepsRequest(filters, options, cacheKey);
+    this.requestQueue.set(cacheKey, requestPromise);
+
+    try {
+      const result = await requestPromise;
+      return result;
+    } finally {
+      this.requestQueue.delete(cacheKey);
+    }
+  }
+
+  async _executeStepsRequest(filters, options, cacheKey) {
+    const queryParams = new URLSearchParams();
+    
+    // Add filters to query parameters
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) queryParams.append(key, value);
+    });
+
+    // Add pagination and sorting
+    if (options.page) queryParams.append('page', options.page);
+    if (options.size) queryParams.append('size', options.size);
+    if (options.sort) queryParams.append('sort', options.sort);
+
+    const url = `${this.baseUrl}?${queryParams.toString()}`;
+    console.log('StepsAPIv2: Fetching', url);
+
+    const data = await this._retryRequest(url);
+    
+    // Cache the result
+    this.cache.set(cacheKey, {
+      data: data,
+      timestamp: Date.now()
+    });
+
+    return data;
+  }
+
+  /**
+   * Update step status with optimistic updates
+   */
+  async updateStepStatus(stepId, status, userRole = 'NORMAL') {
+    const url = `${this.baseUrl}/${stepId}/status`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: status,
+          userRole: userRole,
+          timestamp: new Date().toISOString()
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update status: ${response.status}`);
+      }
+
+      // Invalidate relevant caches
+      this._invalidateStepCaches(stepId);
+      
+      return await response.json();
+    } catch (error) {
+      console.error('StepsAPIv2: Status update failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk update multiple steps
+   */
+  async bulkUpdateSteps(stepIds, updates) {
+    const url = `${this.baseUrl}/bulk`;
+    
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        stepIds: stepIds,
+        updates: updates,
+        timestamp: new Date().toISOString()
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Bulk update failed: ${response.status}`);
+    }
+
+    // Invalidate caches for all affected steps
+    stepIds.forEach(stepId => this._invalidateStepCaches(stepId));
+    
+    return await response.json();
+  }
+
+  /**
+   * Get step updates since last sync (for real-time updates)
+   */
+  async fetchStepUpdates(lastSyncTimestamp, filters = {}) {
+    const queryParams = new URLSearchParams();
+    queryParams.append('since', lastSyncTimestamp);
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) queryParams.append(key, value);
+    });
+
+    const url = `${this.baseUrl}/updates?${queryParams.toString()}`;
+    
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch updates: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('StepsAPIv2: Failed to fetch updates:', error);
+      return { hasChanges: false, updates: [] };
+    }
+  }
+
+  /**
+   * Retry mechanism for failed requests
+   */
+  async _retryRequest(url, attempt = 1) {
+    try {
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      if (attempt <= this.retryConfig.maxRetries) {
+        const delay = Math.min(
+          this.retryConfig.baseDelay * Math.pow(2, attempt - 1),
+          this.retryConfig.maxDelay
+        );
+        
+        console.log(`StepsAPIv2: Retry attempt ${attempt} after ${delay}ms`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return this._retryRequest(url, attempt + 1);
+      }
+      
+      throw error;
+    }
+  }
+
+  _generateCacheKey(operation, filters, options) {
+    return `${operation}_${JSON.stringify({ filters, options })}`;
+  }
+
+  _invalidateStepCaches(stepId) {
+    const keysToDelete = Array.from(this.cache.keys()).filter(key => 
+      key.includes(stepId) || key.includes('steps_')
+    );
+    keysToDelete.forEach(key => this.cache.delete(key));
+  }
+
+  clearCache() {
+    this.cache.clear();
+    console.log('StepsAPIv2: Cache cleared');
+  }
+}
+
+/**
+ * Real-time Synchronization Engine for live updates
+ */
+class RealTimeSync {
+  constructor(apiClient, iterationView) {
+    this.apiClient = apiClient;
+    this.iterationView = iterationView;
+    this.pollInterval = 2000; // 2 seconds
+    this.isPolling = false;
+    this.lastSyncTimestamp = new Date().toISOString();
+    this.retryCount = 0;
+    this.maxRetries = 5;
+  }
+
+  startPolling() {
+    if (this.isPolling) return;
+    
+    this.isPolling = true;
+    console.log('RealTimeSync: Starting real-time polling');
+    this._scheduleNextPoll();
+  }
+
+  stopPolling() {
+    this.isPolling = false;
+    if (this.pollTimeoutId) {
+      clearTimeout(this.pollTimeoutId);
+    }
+    console.log('RealTimeSync: Stopped real-time polling');
+  }
+
+  async _scheduleNextPoll() {
+    if (!this.isPolling) return;
+
+    this.pollTimeoutId = setTimeout(async () => {
+      try {
+        await this._checkForUpdates();
+        this.retryCount = 0; // Reset on success
+      } catch (error) {
+        console.error('RealTimeSync: Polling error:', error);
+        this.retryCount++;
+        
+        if (this.retryCount >= this.maxRetries) {
+          console.warn('RealTimeSync: Max retries reached, stopping polling');
+          this.stopPolling();
+          this.iterationView.showNotification('Lost connection to server. Please refresh to continue.', 'error');
+          return;
+        }
+      }
+      
+      this._scheduleNextPoll();
+    }, this.pollInterval);
+  }
+
+  async _checkForUpdates() {
+    const filters = this.iterationView.getCurrentFilters();
+    const updates = await this.apiClient.fetchStepUpdates(this.lastSyncTimestamp, filters);
+    
+    if (updates.hasChanges) {
+      console.log('RealTimeSync: Received updates:', updates.updates.length, 'changes');
+      this._applyUpdates(updates.updates);
+      this.lastSyncTimestamp = new Date().toISOString();
+      
+      // Show notification for critical changes
+      const criticalUpdates = updates.updates.filter(u => 
+        u.type === 'status_change' && ['FAILED', 'BLOCKED'].includes(u.newStatus)
+      );
+      
+      if (criticalUpdates.length > 0) {
+        this.iterationView.showNotification(
+          `${criticalUpdates.length} critical step(s) updated`, 
+          'warning'
+        );
+      }
+    }
+  }
+
+  _applyUpdates(updates) {
+    updates.forEach(update => {
+      switch (update.type) {
+        case 'status_change':
+          this._updateStepStatus(update.stepId, update.newStatus);
+          break;
+        case 'assignment_change':
+          this._updateStepAssignment(update.stepId, update.newTeam);
+          break;
+        case 'comment_added':
+          this._highlightStepWithComment(update.stepId);
+          break;
+        default:
+          console.log('RealTimeSync: Unknown update type:', update.type);
+      }
+    });
+
+    // Update step counts
+    this.iterationView.recalculateStepCounts();
+  }
+
+  _updateStepStatus(stepId, newStatus) {
+    const stepRow = document.querySelector(`[data-step="${stepId}"]`);
+    if (stepRow) {
+      const statusCell = stepRow.querySelector('.col-status');
+      if (statusCell) {
+        statusCell.innerHTML = this.iterationView.getStatusDisplay(newStatus);
+        
+        // Add visual indicator for recent change
+        stepRow.classList.add('recently-updated');
+        setTimeout(() => stepRow.classList.remove('recently-updated'), 5000);
+      }
+    }
+  }
+
+  _updateStepAssignment(stepId, newTeam) {
+    const stepRow = document.querySelector(`[data-step="${stepId}"]`);
+    if (stepRow) {
+      const teamCell = stepRow.querySelector('.col-team');
+      if (teamCell) {
+        teamCell.textContent = newTeam;
+        
+        // Add visual indicator
+        stepRow.classList.add('recently-updated');
+        setTimeout(() => stepRow.classList.remove('recently-updated'), 5000);
+      }
+    }
+  }
+
+  _highlightStepWithComment(stepId) {
+    const stepRow = document.querySelector(`[data-step="${stepId}"]`);
+    if (stepRow) {
+      stepRow.classList.add('has-new-comment');
+    }
+  }
+}
+
+// Legacy function maintained for backward compatibility
 const populateFilter = (selector, url, defaultOptionText) => {
+  console.warn('populateFilter: Using legacy function. Consider upgrading to StepsAPIv2Client');
+  
   const select = document.querySelector(selector);
   if (!select) {
     console.error(`populateFilter: Selector "${selector}" not found in DOM`);
@@ -78,8 +426,32 @@ class IterationView {
       api: { baseUrl: "/rest/scriptrunner/latest/custom" },
     };
 
+    // Initialize enhanced API client and real-time sync
+    this.apiClient = new StepsAPIv2Client();
+    this.realTimeSync = new RealTimeSync(this.apiClient, this);
+    
+    // Performance tracking
+    this.performanceMetrics = {
+      loadStartTime: null,
+      loadEndTime: null,
+      cacheHits: 0,
+      cacheMisses: 0,
+      apiRequests: 0
+    };
+
+    // Advanced filtering state
+    this.filterPresets = new Map();
+    this.quickFilters = {
+      myTeamSteps: false,
+      myAssignedSteps: false,
+      criticalSteps: false,
+      blockedSteps: false
+    };
+
     this.initUserContext();
-    this.init();
+    this.init().catch(error => {
+      console.error('Failed to initialize IterationView:', error);
+    });
   }
 
   async initUserContext() {
@@ -240,17 +612,17 @@ class IterationView {
     }
   }
 
-  init() {
-    this.initializeSelectors();
+  async init() {
+    await this.initializeSelectors();
     this.bindEvents();
     this.loadStatusColors();
     this.loadSteps();
     this.updateFilters();
   }
 
-  initializeSelectors() {
+  async initializeSelectors() {
     // Initialize migration selector
-    this.populateMigrationSelector();
+    await this.loadMigrations();
 
     // Initialize all other selectors with default states
     this.resetSelector("#iteration-select", "SELECT AN ITERATION");
@@ -371,15 +743,21 @@ class IterationView {
         "/rest/scriptrunner/latest/custom/migrations",
       );
       if (!response.ok) throw new Error("Failed to fetch");
-      const migrations = await response.json();
-      if (migrations.length === 0) {
+      const responseData = await response.json();
+      
+      // Handle API response format with data property
+      const migrations = responseData.data || responseData;
+      
+      if (!Array.isArray(migrations) || migrations.length === 0) {
         select.innerHTML = "<option>No migrations found</option>";
       } else {
-        select.innerHTML = migrations
-          .map((m) => `<option value="${m.id}">${m.name}</option>`)
-          .join("");
+        select.innerHTML = '<option value="">SELECT A MIGRATION</option>' +
+          migrations
+            .map((m) => `<option value="${m.mig_id || m.id}">${m.mig_name || m.name}</option>`)
+            .join("");
       }
     } catch (e) {
+      console.error("Error loading migrations:", e);
       select.innerHTML = "<option>Error loading migrations</option>";
     }
   }
@@ -807,7 +1185,7 @@ class IterationView {
   }
 
   /**
-   * Handle status change event
+   * Handle status change event with enhanced API v2 and optimistic updates
    */
   async handleStatusChange(event) {
     const dropdown = event.target;
@@ -815,7 +1193,7 @@ class IterationView {
     const stepId = dropdown.getAttribute("data-step-id");
     const oldStatus = dropdown.getAttribute("data-old-status") || "PENDING";
 
-    // Update dropdown color immediately
+    // Update dropdown color immediately (optimistic update)
     this.updateDropdownColor(dropdown);
 
     // Check role permissions
@@ -834,47 +1212,96 @@ class IterationView {
       return;
     }
 
+    // Optimistically update the UI immediately
+    this.updateStepStatus(stepId, newStatus);
+    
     try {
-      // Call API to update status
-      const response = await fetch(
-        `${this.config.api.baseUrl}/steps/${stepId}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            status: newStatus,
-            userId: this.userContext?.userId || null,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to update status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      // Use enhanced API client for status update
+      const result = await this.apiClient.updateStepStatus(stepId, newStatus, this.userRole);
 
       // Update the old status attribute for next change
       dropdown.setAttribute("data-old-status", newStatus);
 
-      // Show success notification
-      this.showNotification(
-        `Status updated to ${newStatus}. Email notifications sent.`,
-        "success",
-      );
+      // Show success notification with enhanced details
+      const message = result.emailsSent 
+        ? `Status updated to ${newStatus}. ${result.emailsSent} notifications sent.`
+        : `Status updated to ${newStatus}`;
+      
+      this.showNotification(message, "success");
 
-      // Update the status in the table view
-      this.updateStepStatus(stepId, newStatus);
+      // Log performance metrics
+      if (result.responseTime) {
+        console.log(`Status update completed in ${result.responseTime}ms`);
+      }
+
     } catch (error) {
-      console.error("Error updating status:", error);
-      this.showNotification("Failed to update status", "error");
-
-      // Revert dropdown to old status
+      console.error("Enhanced status update error:", error);
+      
+      // Revert optimistic update
+      this.updateStepStatus(stepId, oldStatus);
       dropdown.value = oldStatus;
       this.updateDropdownColor(dropdown);
+      
+      // Show detailed error message
+      const errorMessage = error.message.includes('network') 
+        ? 'Network error. Please check your connection and try again.'
+        : `Failed to update status: ${error.message}`;
+      
+      this.showNotification(errorMessage, "error");
+
+      // Offer retry option for network errors
+      if (error.message.includes('network') || error.message.includes('timeout')) {
+        this.showRetryOption('Retry status update?', () => {
+          dropdown.value = newStatus;
+          this.handleStatusChange(event);
+        });
+      }
     }
+  }
+
+  /**
+   * Show retry option for failed operations
+   */
+  showRetryOption(message, retryCallback) {
+    const retryNotification = document.createElement('div');
+    retryNotification.className = 'retry-notification';
+    retryNotification.innerHTML = `
+      <span>${message}</span>
+      <button class="btn-retry">Retry</button>
+      <button class="btn-cancel">Cancel</button>
+    `;
+    retryNotification.style.cssText = `
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      padding: 12px 16px;
+      background: #ffab00;
+      color: white;
+      border-radius: 4px;
+      z-index: 1001;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    `;
+
+    document.body.appendChild(retryNotification);
+
+    // Bind events
+    retryNotification.querySelector('.btn-retry').addEventListener('click', () => {
+      retryNotification.remove();
+      retryCallback();
+    });
+
+    retryNotification.querySelector('.btn-cancel').addEventListener('click', () => {
+      retryNotification.remove();
+    });
+
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+      if (retryNotification.parentNode) {
+        retryNotification.remove();
+      }
+    }, 10000);
   }
 
   /**
@@ -1244,29 +1671,19 @@ class IterationView {
   }
 
   /**
-   * Load steps from the backend API based on current filters
+   * Load steps using enhanced StepsAPI v2 with caching and performance optimization
    */
   async loadSteps() {
     const runsheetContent = document.getElementById("runsheet-content");
     if (!runsheetContent) return;
 
+    // Track performance
+    this.performanceMetrics.loadStartTime = performance.now();
+    this.performanceMetrics.apiRequests++;
+
     // Show loading state
     runsheetContent.innerHTML =
       '<div class="loading-message"><p>🔄 Loading steps...</p></div>';
-
-    // Build query parameters from filters
-    const params = new URLSearchParams();
-
-    if (this.filters.migration)
-      params.append("migrationId", this.filters.migration);
-    if (this.filters.iteration)
-      params.append("iterationId", this.filters.iteration);
-    if (this.filters.plan) params.append("planId", this.filters.plan);
-    if (this.filters.sequence)
-      params.append("sequenceId", this.filters.sequence);
-    if (this.filters.phase) params.append("phaseId", this.filters.phase);
-    if (this.filters.team) params.append("teamId", this.filters.team);
-    if (this.filters.label) params.append("labelId", this.filters.label);
 
     // Don't load steps if no migration or iteration is selected
     if (!this.filters.migration || !this.filters.iteration) {
@@ -1280,15 +1697,39 @@ class IterationView {
     }
 
     try {
-      const response = await fetch(
-        `/rest/scriptrunner/latest/custom/steps?${params.toString()}`,
-      );
+      // Build filters for StepsAPI v2
+      const filters = {};
+      
+      if (this.filters.migration) filters.migrationId = this.filters.migration;
+      if (this.filters.iteration) filters.iterationId = this.filters.iteration;
+      if (this.filters.plan) filters.planId = this.filters.plan;
+      if (this.filters.sequence) filters.sequenceId = this.filters.sequence;
+      if (this.filters.phase) filters.phaseId = this.filters.phase;
+      if (this.filters.team) filters.teamId = this.filters.team;
+      if (this.filters.label) filters.labelId = this.filters.label;
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      // Apply quick filters
+      if (this.quickFilters.myTeamSteps) filters.myTeamOnly = true;
+      if (this.quickFilters.myAssignedSteps) filters.assignedToMe = true;
+      if (this.quickFilters.criticalSteps) filters.priority = 'HIGH';
+      if (this.quickFilters.blockedSteps) filters.status = 'BLOCKED';
 
-      const sequences = await response.json();
+      // Options for performance optimization
+      const options = {
+        sort: 'sequence_number,phase_number,step_number',
+        includeInstructions: false, // Load instructions lazily
+        includeComments: false      // Load comments on demand
+      };
+
+      console.log('IterationView: Loading steps with enhanced API v2', { filters, options });
+
+      // Use enhanced API client with caching
+      const sequences = await this.apiClient.fetchSteps(filters, options);
+
+      // Track performance
+      this.performanceMetrics.loadEndTime = performance.now();
+      const loadTime = this.performanceMetrics.loadEndTime - this.performanceMetrics.loadStartTime;
+      console.log(`IterationView: Steps loaded in ${loadTime.toFixed(2)}ms`);
 
       if (!Array.isArray(sequences) || sequences.length === 0) {
         runsheetContent.innerHTML = `
@@ -1303,21 +1744,240 @@ class IterationView {
       // Update team filter based on actual steps data
       this.updateTeamFilterFromSteps(sequences);
 
-      this.renderRunsheet(sequences);
+      // Render with performance optimizations
+      await this.renderRunsheetOptimized(sequences);
       this.calculateAndUpdateStepCounts(sequences);
+
+      // Start real-time updates if not already running
+      if (!this.realTimeSync.isPolling) {
+        this.realTimeSync.startPolling();
+      }
+
+      // Show performance notification if load time exceeds target
+      if (loadTime > 3000) {
+        this.showNotification(`Load time: ${(loadTime/1000).toFixed(1)}s (target: <3s)`, 'warning');
+      } else if (loadTime < 1000) {
+        console.log('IterationView: Excellent performance - under 1 second load time');
+      }
+
     } catch (error) {
+      console.error('IterationView: Enhanced loadSteps error:', error);
+      
       runsheetContent.innerHTML = `
                 <div class="error-message">
                     <p>❌ Error loading steps: ${error.message}</p>
                     <p>Please try again or contact support.</p>
+                    <button onclick="window.iterationView.retryLoadSteps()" class="btn btn-primary">Retry</button>
                 </div>
             `;
       this.updateStepCounts(0, 0, 0, 0, 0);
+      
+      // Stop real-time sync on error
+      this.realTimeSync.stopPolling();
     }
   }
 
   /**
-   * Render the runsheet with grouped sequences and phases
+   * Retry loading steps with cache clear
+   */
+  async retryLoadSteps() {
+    this.apiClient.clearCache();
+    await this.loadSteps();
+  }
+
+  /**
+   * Optimized renderRunsheet method for enhanced performance
+   */
+  async renderRunsheetOptimized(sequences) {
+    const runsheetContent = document.getElementById("runsheet-content");
+    if (!runsheetContent) return;
+
+    // Use DocumentFragment for efficient DOM manipulation
+    const fragment = document.createDocumentFragment();
+    
+    console.log(`IterationView: Rendering ${sequences.length} sequences with optimized method`);
+    
+    sequences.forEach((sequence) => {
+      const sequenceElement = this._createSequenceElement(sequence);
+      fragment.appendChild(sequenceElement);
+    });
+
+    // Single DOM update for better performance
+    runsheetContent.innerHTML = '';
+    runsheetContent.appendChild(fragment);
+
+    // Bind events efficiently after DOM update
+    this._bindEventListenersOptimized();
+  }
+
+  /**
+   * Create sequence element with performance optimizations
+   */
+  _createSequenceElement(sequence) {
+    const sequenceDiv = document.createElement('div');
+    sequenceDiv.className = 'sequence-section';
+    
+    // Create sequence header
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'sequence-header';
+    headerDiv.innerHTML = `
+      <span class="expand-icon">▼</span>
+      <h3>SEQUENCE ${sequence.number}: ${sequence.name}</h3>
+    `;
+    sequenceDiv.appendChild(headerDiv);
+
+    // Create phases
+    sequence.phases.forEach((phase) => {
+      const phaseElement = this._createPhaseElement(phase);
+      sequenceDiv.appendChild(phaseElement);
+    });
+
+    return sequenceDiv;
+  }
+
+  /**
+   * Create phase element with efficient step rendering
+   */
+  _createPhaseElement(phase) {
+    const phaseDiv = document.createElement('div');
+    phaseDiv.className = 'phase-section';
+    
+    // Phase header
+    const phaseHeader = document.createElement('div');
+    phaseHeader.className = 'phase-header';
+    phaseHeader.innerHTML = `
+      <span class="expand-icon">▼</span>
+      <h4>PHASE ${phase.number}: ${phase.name}</h4>
+    `;
+    phaseDiv.appendChild(phaseHeader);
+
+    // Create table structure
+    const table = document.createElement('table');
+    table.className = 'runsheet-table';
+    
+    // Table header
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th class="col-code">Code</th>
+        <th class="col-title">Title</th>
+        <th class="col-team">Team</th>
+        <th class="col-labels">Labels</th>
+        <th class="col-status">Status</th>
+        <th class="col-duration">Duration</th>
+      </tr>
+    `;
+    table.appendChild(thead);
+
+    // Table body with steps
+    const tbody = document.createElement('tbody');
+    phase.steps.forEach((step) => {
+      const stepRow = this._createStepRow(step);
+      tbody.appendChild(stepRow);
+    });
+    table.appendChild(tbody);
+    phaseDiv.appendChild(table);
+
+    return phaseDiv;
+  }
+
+  /**
+   * Create individual step row with optimized rendering
+   */
+  _createStepRow(step) {
+    const row = document.createElement('tr');
+    row.className = `step-row ${step.id === this.selectedStep ? "selected" : ""}`;
+    row.setAttribute('data-step', step.id);
+    row.setAttribute('data-step-code', step.code);
+
+    // Create cells efficiently
+    const cells = [
+      { className: 'col-code', content: step.code },
+      { className: 'col-title', content: step.name },
+      { className: 'col-team', content: step.ownerTeamName },
+      { className: 'col-labels', content: this.renderLabels(step.labels || []) },
+      { className: 'col-status', content: this.getStatusDisplay(step.status) },
+      { className: 'col-duration', content: step.durationMinutes ? step.durationMinutes + " min" : "-" }
+    ];
+
+    cells.forEach(cellData => {
+      const td = document.createElement('td');
+      td.className = cellData.className;
+      td.innerHTML = cellData.content;
+      row.appendChild(td);
+    });
+
+    return row;
+  }
+
+  /**
+   * Efficiently bind event listeners using event delegation
+   */
+  _bindEventListenersOptimized() {
+    const runsheetContent = document.getElementById("runsheet-content");
+    if (!runsheetContent) return;
+
+    // Use event delegation for better performance
+    runsheetContent.addEventListener('click', (event) => {
+      const target = event.target.closest('.step-row');
+      if (target) {
+        const stepId = target.getAttribute('data-step');
+        const stepCode = target.getAttribute('data-step-code');
+        if (stepId) {
+          this.selectStep(stepId, stepCode);
+        }
+      }
+    });
+
+    // Bind folding events
+    runsheetContent.addEventListener('click', (event) => {
+      if (event.target.closest('.sequence-header')) {
+        this.toggleSequence(event.target.closest('.sequence-header'));
+      } else if (event.target.closest('.phase-header')) {
+        this.togglePhase(event.target.closest('.phase-header'));
+      }
+    });
+  }
+
+  /**
+   * Get current filters for real-time sync
+   */
+  getCurrentFilters() {
+    return { ...this.filters };
+  }
+
+  /**
+   * Recalculate step counts (used by real-time sync)
+   */
+  recalculateStepCounts() {
+    // Get current sequences from DOM and recalculate
+    const sequences = this._extractSequencesFromDOM();
+    this.calculateAndUpdateStepCounts(sequences);
+  }
+
+  /**
+   * Extract sequence data from current DOM for counting
+   */
+  _extractSequencesFromDOM() {
+    const sequences = [];
+    document.querySelectorAll('.sequence-section').forEach(sequenceEl => {
+      const sequence = { phases: [] };
+      sequenceEl.querySelectorAll('.phase-section').forEach(phaseEl => {
+        const phase = { steps: [] };
+        phaseEl.querySelectorAll('.step-row').forEach(stepEl => {
+          const statusEl = stepEl.querySelector('.col-status .status-display');
+          const status = statusEl?.textContent?.trim() || 'PENDING';
+          phase.steps.push({ status });
+        });
+        sequence.phases.push(phase);
+      });
+      sequences.push(sequence);
+    });
+    return sequences;
+  }
+
+  /**
+   * Legacy renderRunsheet method for backward compatibility
    */
   renderRunsheet(sequences) {
     const runsheetContent = document.getElementById("runsheet-content");
@@ -2366,16 +3026,19 @@ IterationView.prototype.populateMigrationSelector = function () {
       if (!response.ok) throw new Error("Network response was not ok");
       return response.json();
     })
-    .then((migrations) => {
+    .then((responseData) => {
+      // Handle API response format with data property
+      const migrations = responseData.data || responseData;
+      
       // Always start with the default option
       select.innerHTML = '<option value="">SELECT A MIGRATION</option>';
 
       if (Array.isArray(migrations) && migrations.length > 0) {
         migrations.forEach((migration) => {
           const option = document.createElement("option");
-          option.value = migration.id || migration.mig_id || "";
+          option.value = migration.mig_id || migration.id || "";
           option.textContent =
-            migration.name || migration.mig_name || "(Unnamed Migration)";
+            migration.mig_name || migration.name || "(Unnamed Migration)";
           select.appendChild(option);
         });
       } else {
@@ -2383,6 +3046,7 @@ IterationView.prototype.populateMigrationSelector = function () {
       }
     })
     .catch((error) => {
+      console.error("Error loading migrations:", error);
       select.innerHTML = '<option value="">Failed to load migrations</option>';
     });
 };
