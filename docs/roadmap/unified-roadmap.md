@@ -207,7 +207,26 @@ Transform UMIG into a comprehensive execution management system for migration st
 
 **Risk Assessment**: Sprint extended beyond original 5-day timeline. 17 points remaining, US-024 completion unblocks US-028.
 
-### 📅 Future Sprints (Sprint 5 onwards - Sep 2, 2025+)
+### 🔄 Sprint 5 (Aug 15-22, 2025) - Production Readiness & Operational Enhancement
+
+**Sprint Goal**: Complete remaining MVP features and prepare for production deployment  
+**Target**: 31 story points  
+**Priority**: Complete critical MVP functionality before enhancements
+
+#### Sprint 5 Scope (31 points):
+
+**Primary MVP Completion (18 points):**
+- US-031: Admin GUI Complete Integration (8 points) - Administrative interface integration
+- US-028: Enhanced IterationView with New APIs (3 points) - Operational interface enhancement
+- US-022: Integration Test Suite Expansion (3 points) - Quality assurance
+- US-030: API Documentation Completion (3 points) - Documentation finalization
+- US-029: Planning Feature HTML Export (1 point) - Planning deliverable generation
+
+**Deferred Stories from Sprint 4 (13 points):**
+- US-033: Main Dashboard UI (8 points) - Strategic overview dashboard (blocked by US-025)
+- US-034: Data Import Strategy (5 points) - Production data import capabilities
+
+### 📅 Future Sprints (Sprint 6 onwards - Sep 2, 2025+)
 
 - Advanced analytics and reporting features
 - Assignment and delegation engine enhancements
@@ -216,6 +235,7 @@ Transform UMIG into a comprehensive execution management system for migration st
 - Advanced integration features
 - Performance optimization at scale
 - Production deployment optimization
+- US-033 Main Dashboard UI completion (if not finished in Sprint 5)
 
 ## AI-Accelerated Sprint Plan
 
