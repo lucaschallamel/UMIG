@@ -39,6 +39,7 @@ We will implement a **Database Quality Validation Framework** that provides comp
 #### 1. DatabaseQualityValidator Framework
 
 **Primary Validation Component:**
+
 ```groovy
 class DatabaseQualityValidator {
     private DatabaseUtil databaseUtil
@@ -60,6 +61,7 @@ class DatabaseQualityValidator {
 #### 2. Performance Benchmarking Module
 
 **Query Performance Analysis:**
+
 ```groovy
 class PerformanceBenchmark {
     def runPerformanceTests() {
@@ -78,7 +80,7 @@ class PerformanceBenchmark {
             "SELECT * FROM phases_instance WHERE sqi_id = ?",
             "SELECT * FROM migrations WHERE mig_status = 'ACTIVE'"
         ]
-        
+
         return queries.collectEntries { query ->
             [query, measureQueryPerformance(query)]
         }
@@ -89,6 +91,7 @@ class PerformanceBenchmark {
 #### 3. Data Integrity Validation
 
 **Comprehensive Integrity Checking:**
+
 ```groovy
 class IntegrityChecker {
     def validateDataIntegrity() {
@@ -107,8 +110,8 @@ class IntegrityChecker {
         DatabaseUtil.withSql { sql ->
             // Check all foreign key relationships for orphaned records
             def violations = sql.rows("""
-                SELECT 
-                    tc.table_name, 
+                SELECT
+                    tc.table_name,
                     tc.constraint_name,
                     COUNT(*) as violation_count
                 FROM information_schema.table_constraints tc
@@ -133,6 +136,7 @@ class IntegrityChecker {
 #### 4. Schema Validation Module
 
 **Schema Consistency Validation:**
+
 ```groovy
 class SchemaValidator {
     def validateSchemaConsistency() {
@@ -152,18 +156,18 @@ class SchemaValidator {
             'phases_master', 'phases_instance',
             'steps_master', 'steps_instance'
         ]
-        
+
         DatabaseUtil.withSql { sql ->
             def actualTables = sql.rows("""
-                SELECT table_name 
-                FROM information_schema.tables 
+                SELECT table_name
+                FROM information_schema.tables
                 WHERE table_schema = 'public'
                 AND table_type = 'BASE TABLE'
             """).collect { it.table_name }
-            
+
             def missingTables = expectedTables - actualTables
             def extraTables = actualTables - expectedTables
-            
+
             return [
                 missing: missingTables,
                 extra: extraTables,
@@ -187,21 +191,25 @@ class SchemaValidator {
 ## Considered Options
 
 ### Option 1: API-Only Testing (Current State)
+
 - **Description**: Continue with current API-focused testing approach
 - **Pros**: Simple implementation, existing patterns
 - **Cons**: No direct database validation, limited performance insight
 
 ### Option 2: External Database Tools
+
 - **Description**: Use external tools like pgbench, DataDog, or New Relic
 - **Pros**: Professional-grade monitoring capabilities
 - **Cons**: Additional infrastructure, licensing costs, integration complexity
 
 ### Option 3: Database Quality Validation Framework (CHOSEN)
+
 - **Description**: Implement comprehensive direct database validation framework
 - **Pros**: Direct validation, performance benchmarking, integrity checking
 - **Cons**: Implementation effort, additional test complexity
 
 ### Option 4: Minimal Database Monitoring
+
 - **Description**: Add basic database health checks only
 - **Pros**: Low implementation effort, basic coverage
 - **Cons**: Limited insight, no performance analysis, minimal integrity checking
@@ -237,33 +245,34 @@ Chosen option: **"Database Quality Validation Framework"**, because it provides 
 ### Phase 1: Core Framework Development
 
 **DatabaseQualityValidator Implementation:**
+
 ```groovy
 class DatabaseQualityValidator {
     private static final Map<String, String> CRITICAL_QUERIES = [
         "steps_by_phase": """
-            SELECT COUNT(*) as step_count, phi_id 
-            FROM steps_instance 
-            GROUP BY phi_id 
+            SELECT COUNT(*) as step_count, phi_id
+            FROM steps_instance
+            GROUP BY phi_id
             HAVING COUNT(*) > 100
         """,
         "orphaned_instances": """
             SELECT 'steps' as table_name, COUNT(*) as orphan_count
-            FROM steps_instance si 
+            FROM steps_instance si
             WHERE NOT EXISTS (
                 SELECT 1 FROM phases_instance pi WHERE pi.phi_id = si.phi_id
             )
         """,
         "constraint_violations": """
             SELECT conname, conrelid::regclass as table_name
-            FROM pg_constraint 
-            WHERE contype = 'f' 
+            FROM pg_constraint
+            WHERE contype = 'f'
             AND NOT convalidated
         """
     ]
 
     def runComprehensiveValidation() {
         def startTime = System.currentTimeMillis()
-        
+
         try {
             def results = [
                 timestamp: new Date().toString(),
@@ -271,15 +280,15 @@ class DatabaseQualityValidator {
                 performance: runPerformanceTests(),
                 integrity: runIntegrityTests(),
                 schema: runSchemaTests(),
-                summary: [:] 
+                summary: [:]
             ]
-            
+
             def endTime = System.currentTimeMillis()
             results.summary.executionTime = endTime - startTime
             results.summary.overallHealth = calculateOverallHealth(results)
-            
+
             return results
-            
+
         } catch (Exception e) {
             return [
                 error: "Database validation failed: ${e.message}",
@@ -294,17 +303,18 @@ class DatabaseQualityValidator {
 ### Phase 2: Performance Benchmarking
 
 **Query Performance Analysis:**
+
 ```groovy
 class QueryPerformanceAnalyzer {
     def analyzeQueryPerformance(String query, Map<String, Object> params = [:]) {
         def results = [:]
-        
+
         DatabaseUtil.withSql { sql ->
             // Enable query timing
             sql.execute("SET track_io_timing = on")
-            
+
             def startTime = System.nanoTime()
-            
+
             // Execute query multiple times for average
             def executionTimes = []
             (1..5).each {
@@ -317,21 +327,21 @@ class QueryPerformanceAnalyzer {
                 def queryEnd = System.nanoTime()
                 executionTimes << (queryEnd - queryStart) / 1_000_000.0 // Convert to milliseconds
             }
-            
+
             results.avgExecutionTime = executionTimes.sum() / executionTimes.size()
             results.minExecutionTime = executionTimes.min()
             results.maxExecutionTime = executionTimes.max()
             results.executionPlan = getExecutionPlan(sql, query, params)
         }
-        
+
         return results
     }
 
     private def getExecutionPlan(sql, query, params) {
         try {
             def explainQuery = "EXPLAIN (ANALYZE true, BUFFERS true, FORMAT JSON) ${query}"
-            def planResult = params.isEmpty() ? 
-                sql.rows(explainQuery) : 
+            def planResult = params.isEmpty() ?
+                sql.rows(explainQuery) :
                 sql.rows(explainQuery, params)
             return planResult[0]['QUERY PLAN']
         } catch (Exception e) {
@@ -344,23 +354,24 @@ class QueryPerformanceAnalyzer {
 ### Phase 3: Data Integrity Validation
 
 **Comprehensive Integrity Checking:**
+
 ```groovy
 class DataIntegrityValidator {
     def validateAllIntegrity() {
         def results = [:]
-        
+
         results.foreignKeys = validateForeignKeys()
         results.uniqueConstraints = validateUniqueConstraints()
         results.checkConstraints = validateCheckConstraints()
         results.businessRules = validateBusinessRules()
         results.dataConsistency = validateDataConsistency()
-        
+
         return results
     }
 
     def validateBusinessRules() {
         def violations = []
-        
+
         DatabaseUtil.withSql { sql ->
             // Validate business rule: Steps must belong to active phases
             def inactiveStepPhases = sql.rows("""
@@ -370,7 +381,7 @@ class DataIntegrityValidator {
                 WHERE pi.phi_status NOT IN ('ACTIVE', 'PENDING')
                 AND si.sti_status = 'ACTIVE'
             """)
-            
+
             if (inactiveStepPhases) {
                 violations << [
                     rule: "Active steps in inactive phases",
@@ -378,7 +389,7 @@ class DataIntegrityValidator {
                     examples: inactiveStepPhases.take(5)
                 ]
             }
-            
+
             // Validate business rule: Migration must have at least one plan
             def migrationsWithoutPlans = sql.rows("""
                 SELECT m.mig_id, m.mig_name
@@ -388,7 +399,7 @@ class DataIntegrityValidator {
                 )
                 AND m.mig_status IN ('ACTIVE', 'PLANNING')
             """)
-            
+
             if (migrationsWithoutPlans) {
                 violations << [
                     rule: "Active migrations without plans",
@@ -397,7 +408,7 @@ class DataIntegrityValidator {
                 ]
             }
         }
-        
+
         return violations
     }
 }
@@ -406,6 +417,7 @@ class DataIntegrityValidator {
 ### Phase 4: Integration with Testing Framework
 
 **Test Runner Integration:**
+
 ```bash
 #!/bin/bash
 # Enhanced database validation runner
@@ -441,6 +453,7 @@ Success will be measured by:
 ## Database Quality Metrics
 
 ### Performance Metrics
+
 - Query execution time (average, min, max)
 - Connection pool utilization
 - Index usage effectiveness
@@ -448,6 +461,7 @@ Success will be measured by:
 - Concurrent operation handling
 
 ### Integrity Metrics
+
 - Foreign key constraint violations
 - Unique constraint violations
 - Check constraint violations
@@ -455,6 +469,7 @@ Success will be measured by:
 - Data consistency scores
 
 ### Schema Metrics
+
 - Table structure consistency
 - Index optimization score
 - Constraint completeness
@@ -480,7 +495,7 @@ Success will be measured by:
 The Database Quality Validation Framework provides essential capabilities for maintaining database reliability and performance:
 
 1. **Direct Database Testing**: Validates database layer independent of API endpoints
-2. **Performance Monitoring**: Tracks query performance and optimization opportunities  
+2. **Performance Monitoring**: Tracks query performance and optimization opportunities
 3. **Integrity Assurance**: Ensures data consistency and constraint compliance
 4. **Proactive Monitoring**: Detects issues before they impact application functionality
 5. **Quality Metrics**: Provides measurable indicators of database health

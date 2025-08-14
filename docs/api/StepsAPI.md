@@ -361,6 +361,7 @@ Comments follow a RESTful sub-resource pattern where comments are accessed as su
 Retrieves all comments associated with a step instance. This endpoint uses the RESTful sub-resource pattern.
 
 **URL Pattern:**
+
 ```
 GET /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments
 ```
@@ -397,6 +398,7 @@ If you use an incorrect endpoint pattern, the API provides helpful guidance:
 Creates a new comment on a step instance using the RESTful sub-resource pattern.
 
 **URL Pattern:**
+
 ```
 POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments
 ```
@@ -437,6 +439,7 @@ If you use an incorrect endpoint pattern, the API provides helpful guidance:
 Updates an existing comment. This endpoint uses the direct comment access pattern for efficiency.
 
 **URL Pattern:**
+
 ```
 PUT /rest/scriptrunner/latest/custom/comments/{commentId}
 ```
@@ -476,6 +479,7 @@ If you use an incorrect endpoint pattern, the API provides helpful guidance:
 Deletes a comment. This endpoint uses the direct comment access pattern for efficiency.
 
 **URL Pattern:**
+
 ```
 DELETE /rest/scriptrunner/latest/custom/comments/{commentId}
 ```

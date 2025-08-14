@@ -41,12 +41,14 @@ This folder contains all Groovy-based tests for the UMIG project.
 Based on our testing evolution, the following dependencies cause issues with Groovy 3.0.x:
 
 **❌ Problematic Dependencies (Avoid)**:
+
 ```groovy
 @Grab('javax.ws.rs:javax.ws.rs-api:2.1.1')  // Causes Grape to hang
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')  // Version conflicts
 ```
 
 **✅ Working Dependencies**:
+
 ```groovy
 @Grab('org.postgresql:postgresql:42.7.3')
 @Grab('org.codehaus.groovy:groovy-sql:3.0.15')
@@ -145,6 +147,7 @@ groovy src/groovy/umig/tests/validation/US024QualityGateValidator.groovy
 ```
 
 The **DatabaseQualityValidator** (added August 14, 2025) provides comprehensive database layer validation:
+
 - Database connectivity and query performance testing
 - Performance benchmarks (<50ms for simple queries, <100ms for complex)
 - Data integrity validation (foreign keys, orphaned records detection)
@@ -391,11 +394,13 @@ You can now re-run the integration tests.
 The UMIG test suite has evolved significantly to address compatibility challenges and improve maintainability:
 
 #### Early Challenges (2025 Q1)
+
 - **Dependency Conflicts**: JAX-RS dependencies caused Grape to hang with Groovy 3.0.x
 - **Version Incompatibility**: Spock 2.3-groovy-4.0 incompatible with production Groovy 3.0.15
 - **Test Fragmentation**: Multiple experimental test files created during troubleshooting
 
 #### Consolidation Efforts
+
 - **Test Strategy Refinement**: Identified working vs. problematic dependency patterns
 - **Script Modernization**: Updated test runners with SDKMAN integration and better error reporting
 - **File Cleanup**: Removed temporary/experimental test files:
@@ -405,6 +410,7 @@ The UMIG test suite has evolved significantly to address compatibility challenge
   - Various temporary runner scripts
 
 #### Current Stable Patterns
+
 - **Working Unit Tests**: Simplified pattern without problematic JAX-RS dependencies
 - **Integration Tests**: Direct database connections using PostgreSQL JDBC 42.7.3
 - **Validation Framework**: Comprehensive quality gates with DatabaseQualityValidator

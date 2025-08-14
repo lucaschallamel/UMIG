@@ -54,10 +54,11 @@ We will implement **Enhanced Error Handling and User Guidance** that provides sp
 #### 1. Structured Error Response Format
 
 **Standardized Error Object:**
+
 ```groovy
 class EnhancedErrorResponse {
     String error              // Brief error description
-    Integer status           // HTTP status code  
+    Integer status           // HTTP status code
     String endpoint          // API endpoint that failed
     Map<String, Object> details = [
         message: "",         // Detailed explanation
@@ -73,6 +74,7 @@ class EnhancedErrorResponse {
 #### 2. Context-Aware Error Generation
 
 **Error Context Analysis:**
+
 ```groovy
 class ErrorContextAnalyzer {
     static EnhancedErrorResponse generateContextualError(
@@ -91,33 +93,37 @@ class ErrorContextAnalyzer {
 #### 3. Helpful Error Message Categories
 
 **Configuration Errors:**
+
 ```groovy
-"Database connection failed" → 
-"Database connection failed: PostgreSQL server not accessible at localhost:5432. 
+"Database connection failed" →
+"Database connection failed: PostgreSQL server not accessible at localhost:5432.
  Check that PostgreSQL is running and .env configuration is correct.
  Suggestions: [verify POSTGRES_URL, check container status, review network connectivity]"
 ```
 
 **Validation Errors:**
+
 ```groovy
-"Invalid parameter" → 
-"Invalid step_type parameter: provided 'INVALID_TYPE', expected one of: 
- [MANUAL, AUTOMATED, VERIFICATION, APPROVAL]. 
+"Invalid parameter" →
+"Invalid step_type parameter: provided 'INVALID_TYPE', expected one of:
+ [MANUAL, AUTOMATED, VERIFICATION, APPROVAL].
  Suggestions: [check API documentation, validate against enum values, use GET /steps/types for valid options]"
 ```
 
 **Authorization Errors:**
+
 ```groovy
-"Access denied" → 
-"Access denied: insufficient permissions for step modification. 
+"Access denied" →
+"Access denied: insufficient permissions for step modification.
  User 'john.doe' requires 'STEP_EDIT' permission for step ID 123.
  Suggestions: [contact administrator, check user roles, verify team membership]"
 ```
 
 **Business Logic Errors:**
+
 ```groovy
-"Operation failed" → 
-"Operation failed: cannot delete step with active dependencies. 
+"Operation failed" →
+"Operation failed: cannot delete step with active dependencies.
  Step ID 123 has 2 dependent instructions that must be handled first.
  Suggestions: [delete dependent instructions first, use cascade deletion, modify dependencies]"
 ```
@@ -134,21 +140,25 @@ class ErrorContextAnalyzer {
 ## Considered Options
 
 ### Option 1: Generic Error Messages (Current State)
+
 - **Description**: Continue with current minimal error message approach
 - **Pros**: Simple implementation, minimal code changes
 - **Cons**: Poor developer experience, high support burden, debugging complexity
 
 ### Option 2: Verbose Error Logging
+
 - **Description**: Enhance server-side logging without changing API responses
 - **Pros**: Better debugging for administrators
 - **Cons**: No improvement for API consumers, developers still struggle
 
 ### Option 3: Enhanced Error Responses (CHOSEN)
+
 - **Description**: Implement structured, contextual error responses with guidance
 - **Pros**: Improved developer experience, reduced support burden, self-service resolution
 - **Cons**: Implementation effort, larger response payloads
 
 ### Option 4: External Error Documentation
+
 - **Description**: Maintain generic errors but provide comprehensive external documentation
 - **Pros**: Detailed guidance available
 - **Cons**: Requires context switching, difficult to maintain synchronization
@@ -184,6 +194,7 @@ Chosen option: **"Enhanced Error Responses"**, because it provides the most dire
 ### Phase 1: Error Response Framework
 
 **Standardized Error Builder:**
+
 ```groovy
 class EnhancedErrorBuilder {
     private String error
@@ -244,6 +255,7 @@ class EnhancedErrorBuilder {
 ### Phase 2: Context-Aware Error Generation
 
 **Request Context Analysis:**
+
 ```groovy
 class ErrorContextService {
     static Map<String, Object> analyzeFailureContext(
@@ -252,7 +264,7 @@ class ErrorContextService {
         Map<String, Object> requestParams
     ) {
         def context = [:]
-        
+
         // Analyze exception type
         if (exception instanceof ValidationException) {
             context.category = 'VALIDATION'
@@ -264,7 +276,7 @@ class ErrorContextService {
             context.category = 'AUTHORIZATION'
             context.requiredPermissions = extractRequiredPermissions(endpoint)
         }
-        
+
         return context
     }
 }
@@ -273,6 +285,7 @@ class ErrorContextService {
 ### Phase 3: Endpoint-Specific Error Enhancement
 
 **Steps API Error Enhancement Example:**
+
 ```groovy
 // Enhanced error handling for Steps API
 stepsApi(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
@@ -280,7 +293,7 @@ stepsApi(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
         def stepData = parseRequestBody(request)
         def result = stepsRepository.create(stepData)
         return Response.ok(result).build()
-        
+
     } catch (ValidationException e) {
         def error = EnhancedErrorBuilder
             .create("Invalid step data", 400)
@@ -297,9 +310,9 @@ stepsApi(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
             ])
             .documentation("/docs/api/steps-creation.md")
             .build()
-            
+
         return Response.status(400).entity(error).build()
-        
+
     } catch (SQLException e) {
         if (e.SQLState == "23505") { // Unique constraint violation
             def error = EnhancedErrorBuilder
@@ -314,10 +327,10 @@ stepsApi(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
                 ])
                 .documentation("/docs/api/naming-conventions.md")
                 .build()
-                
+
             return Response.status(409).entity(error).build()
         }
-        
+
         // Handle other SQL states with specific guidance
     }
 }
@@ -326,6 +339,7 @@ stepsApi(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
 ### Phase 4: Documentation Integration
 
 **Error-to-Documentation Mapping:**
+
 ```groovy
 class ErrorDocumentationMapper {
     private static final Map<String, String> ERROR_DOCS = [
@@ -334,7 +348,7 @@ class ErrorDocumentationMapper {
         "PERMISSION_REQUIREMENTS": "/docs/security/permissions.md",
         "DATABASE_CONSTRAINTS": "/docs/data-model/constraints.md"
     ]
-    
+
     static String getDocumentationLink(String errorCategory) {
         return ERROR_DOCS[errorCategory] ?: "/docs/api/general-troubleshooting.md"
     }
@@ -365,28 +379,30 @@ Success will be measured by:
 ### Example Transformations
 
 **Before (Generic):**
+
 ```json
-{"error": "Invalid request", "status": 400}
+{ "error": "Invalid request", "status": 400 }
 ```
 
 **After (Enhanced):**
+
 ```json
 {
-    "error": "Invalid step type parameter",
-    "status": 400,
-    "endpoint": "POST /steps",
-    "details": {
-        "message": "The provided step_type value is not supported",
-        "provided": "CUSTOM_TYPE",
-        "expected": "One of: MANUAL, AUTOMATED, VERIFICATION, APPROVAL",
-        "reason": "Step type must be from predefined enumeration",
-        "suggestions": [
-            "Use GET /steps/types to see all valid options",
-            "Check spelling and capitalization",
-            "Refer to API documentation for step type descriptions"
-        ],
-        "documentation": "/docs/api/steps-creation.md#step-types"
-    }
+  "error": "Invalid step type parameter",
+  "status": 400,
+  "endpoint": "POST /steps",
+  "details": {
+    "message": "The provided step_type value is not supported",
+    "provided": "CUSTOM_TYPE",
+    "expected": "One of: MANUAL, AUTOMATED, VERIFICATION, APPROVAL",
+    "reason": "Step type must be from predefined enumeration",
+    "suggestions": [
+      "Use GET /steps/types to see all valid options",
+      "Check spelling and capitalization",
+      "Refer to API documentation for step type descriptions"
+    ],
+    "documentation": "/docs/api/steps-creation.md#step-types"
+  }
 }
 ```
 

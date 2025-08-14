@@ -2514,19 +2514,20 @@ The migrations API now serves as a model implementation for other UMIG APIs, dem
 #### 17.2.1. Standardized Error Format
 
 **Core Error Object:**
+
 ```json
 {
-    "error": "Brief error description",
-    "status": 400,
-    "endpoint": "API endpoint that failed", 
-    "details": {
-        "message": "Detailed explanation",
-        "provided": "What the user provided",
-        "expected": "What was expected",
-        "reason": "Why it failed",
-        "suggestions": ["Actionable recommendations"],
-        "documentation": "Link to relevant docs"
-    }
+  "error": "Brief error description",
+  "status": 400,
+  "endpoint": "API endpoint that failed",
+  "details": {
+    "message": "Detailed explanation",
+    "provided": "What the user provided",
+    "expected": "What was expected",
+    "reason": "Why it failed",
+    "suggestions": ["Actionable recommendations"],
+    "documentation": "Link to relevant docs"
+  }
 }
 ```
 
@@ -2560,6 +2561,7 @@ class EnhancedErrorBuilder {
 #### 17.3.2. Error Context Analysis
 
 **Context Service:**
+
 ```groovy
 class ErrorContextService {
     static Map<String, Object> analyzeFailureContext(
@@ -2575,6 +2577,7 @@ class ErrorContextService {
 #### 17.4.1. Error Message Quality Standards
 
 **Excellent Error Message Checklist:**
+
 - **Specific**: Clearly states what went wrong
 - **Contextual**: Explains why it failed given the input
 - **Actionable**: Provides concrete steps to resolve
@@ -2585,28 +2588,30 @@ class ErrorContextService {
 #### 17.4.2. Before/After Examples
 
 **Before (Generic):**
+
 ```json
-{"error": "Invalid request", "status": 400}
+{ "error": "Invalid request", "status": 400 }
 ```
 
 **After (Enhanced):**
+
 ```json
 {
-    "error": "Invalid step type parameter",
-    "status": 400,
-    "endpoint": "POST /steps",
-    "details": {
-        "message": "The provided step_type value is not supported",
-        "provided": "CUSTOM_TYPE",
-        "expected": "One of: MANUAL, AUTOMATED, VERIFICATION, APPROVAL",
-        "reason": "Step type must be from predefined enumeration",
-        "suggestions": [
-            "Use GET /steps/types to see all valid options",
-            "Check spelling and capitalization",
-            "Refer to API documentation for step type descriptions"
-        ],
-        "documentation": "/docs/api/steps-creation.md#step-types"
-    }
+  "error": "Invalid step type parameter",
+  "status": 400,
+  "endpoint": "POST /steps",
+  "details": {
+    "message": "The provided step_type value is not supported",
+    "provided": "CUSTOM_TYPE",
+    "expected": "One of: MANUAL, AUTOMATED, VERIFICATION, APPROVAL",
+    "reason": "Step type must be from predefined enumeration",
+    "suggestions": [
+      "Use GET /steps/types to see all valid options",
+      "Check spelling and capitalization",
+      "Refer to API documentation for step type descriptions"
+    ],
+    "documentation": "/docs/api/steps-creation.md#step-types"
+  }
 }
 ```
 
@@ -2615,7 +2620,7 @@ class ErrorContextService {
 #### 17.5.1. Developer Experience Benefits
 
 - **Improved Developer Experience**: Clear, actionable error messages
-- **Reduced Support Burden**: Fewer support requests for common issues  
+- **Reduced Support Burden**: Fewer support requests for common issues
 - **Faster Development**: Reduced debugging and troubleshooting time
 - **Better API Adoption**: More usable and developer-friendly APIs
 - **Enhanced Documentation**: Error messages serve as inline documentation
@@ -2641,6 +2646,7 @@ class ErrorContextService {
 #### 18.2.1. Four Essential Test Categories
 
 **Specialized Test Runners:**
+
 1. **Unit Test Runner**: Groovy unit tests, service layer validation, utility functions
 2. **Integration Test Runner**: Database connectivity, repository patterns, Liquibase migrations
 3. **API Test Runner**: REST endpoint validation, authentication, HTTP status codes
@@ -2680,7 +2686,7 @@ class TestUtilities {
 ```bash
 # Consistent execution patterns
 ./src/groovy/umig/tests/run-unit-tests.sh
-./src/groovy/umig/tests/run-integration-tests.sh  
+./src/groovy/umig/tests/run-integration-tests.sh
 ./src/groovy/umig/tests/run-api-tests.sh
 ./src/groovy/umig/tests/run-system-tests.sh
 ```
@@ -2714,8 +2720,9 @@ class TestUtilities {
 #### 19.2.1. Zero Information Loss Principle
 
 **Preservation Strategy:**
+
 - Complete content audit before consolidation
-- Comprehensive cross-reference mapping  
+- Comprehensive cross-reference mapping
 - Validation of information uniqueness
 - Archival of historical context where needed
 
@@ -2735,16 +2742,18 @@ Primary Document (Master)
 #### 19.3.1. Documentation Structure Optimization
 
 **Before Consolidation:**
+
 ```
 ├── testing-framework-setup.md
 ├── testing-best-practices.md
-├── testing-troubleshooting.md  
+├── testing-troubleshooting.md
 ├── api-testing-guide.md
 ├── integration-testing.md
 └── test-data-management.md
 ```
 
 **After Consolidation:**
+
 ```
 ├── testing-comprehensive-guide.md
 │   ├── Core Testing Concepts
@@ -2798,6 +2807,7 @@ class DatabaseQualityValidator {
 #### 20.2.2. Performance Benchmarking Module
 
 **Query Performance Analysis:**
+
 - Connection pooling effectiveness
 - Query execution time analysis
 - Index usage validation
@@ -2807,6 +2817,7 @@ class DatabaseQualityValidator {
 #### 20.2.3. Data Integrity Validation
 
 **Comprehensive Integrity Checking:**
+
 - Foreign key constraint violations
 - Unique constraint violations
 - Check constraint validation
