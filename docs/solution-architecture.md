@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-08-11 (Updated for US-025 Phase 4 Migrations API Refactoring Completion)  
+**Version:** 2025-08-14 (Updated for US-024 Steps API Refactoring - Enhanced Error Handling and Testing Framework)  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 36 architectural decisions (26 archived + 10 newly consolidated: ADR-027 through ADR-036). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** US-025 Phase 4 migrations API refactoring completion with 100% integration test success (August 11, 2025), Enhanced Postman collection generation with authentication pre-configuration, Complete OpenAPI specification updates with 17 endpoints across 4 categories, Dashboard endpoints implementation for migration monitoring, Bulk operations support for export and status management, US-032 Confluence upgrade to 9.2.7 + ScriptRunner 9.21.0 with infrastructure reorganization (August 8, 2025), Status field normalization implementation (US-006b, August 2025), Sprint 3 completion milestone (5 of 6 user stories delivered, August 2025), Controls API performance optimizations with enhanced test coverage (August 2025), Groovy 3.0.15 static type checking compatibility improvements (August 2025), Instructions API implementation (US-004, August 2025), Phases API endpoint consolidation refactoring (US-003, August 2025)
+**Source ADRs:** This document consolidates 40 architectural decisions (26 archived + 14 newly consolidated: ADR-027 through ADR-040). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** US-024 Steps API refactoring with enhanced error handling framework and testing consolidation (August 14, 2025), US-025 Phase 4 migrations API refactoring completion with 100% integration test success (August 11, 2025), Enhanced Postman collection generation with authentication pre-configuration, Complete OpenAPI specification updates with 17 endpoints across 4 categories, Dashboard endpoints implementation for migration monitoring, Bulk operations support for export and status management, US-032 Confluence upgrade to 9.2.7 + ScriptRunner 9.21.0 with infrastructure reorganization (August 8, 2025), Status field normalization implementation (US-006b, August 2025), Sprint 3 completion milestone (5 of 6 user stories delivered, August 2025), Controls API performance optimizations with enhanced test coverage (August 2025), Groovy 3.0.15 static type checking compatibility improvements (August 2025), Instructions API implementation (US-004, August 2025), Phases API endpoint consolidation refactoring (US-003, August 2025)
 
 ## Consolidated ADR Reference
 
@@ -50,6 +50,7 @@ This document consolidates the following architectural decisions:
 - [ADR-023](../adr/archive/ADR-023-Standardized-Rest-Api-Patterns.md) - Standardized REST API Patterns
 - [ADR-030](../adr/archive/ADR-030-hierarchical-filtering-pattern.md) - Hierarchical Filtering Pattern
 - [ADR-031](../adr/archive/ADR-031-groovy-type-safety-and-filtering-patterns.md) - Groovy Type Safety and Filtering Patterns
+- [ADR-039](../adr/ADR-039-enhanced-error-handling-and-user-guidance.md) - Enhanced Error Handling and User Guidance
 
 ### Application Structure & UI Patterns
 
@@ -61,6 +62,9 @@ This document consolidates the following architectural decisions:
 - [ADR-019](../adr/archive/ADR-019-Integration-Testing-Framework.md) - Integration Testing Framework
 - [ADR-026](../adr/archive/ADR-026-Specific-Mocks-In-Tests.md) - Specific Mocks in Tests
 - [ADR-036](../adr/ADR-036-integration-testing-framework.md) - Integration Testing Framework (US-025)
+- [ADR-037](../adr/ADR-037-testing-framework-consolidation-strategy.md) - Testing Framework Consolidation Strategy
+- [ADR-038](../adr/ADR-038-documentation-consolidation-methodology.md) - Documentation Consolidation Methodology
+- [ADR-040](../adr/ADR-040-database-quality-validation-framework.md) - Database Quality Validation Framework
 
 ### Communication & Notifications
 
@@ -2496,6 +2500,360 @@ The migrations API now serves as a model implementation for other UMIG APIs, dem
 - OpenAPI specification updates
 - User guide for status management
 - Developer documentation for status patterns
+
+## 17. Enhanced Error Handling Framework ([ADR-039] - US-024)
+
+### 17.1. Architecture Decision Record - ADR-039
+
+**Context:** During US-024 Steps API refactoring, we identified significant developer experience issues with generic error messages that provided insufficient context for troubleshooting and resolution.
+
+**Decision:** Implement comprehensive Enhanced Error Handling and User Guidance system with structured, contextual error responses and specific resolution guidance.
+
+### 17.2. Enhanced Error Response Structure
+
+#### 17.2.1. Standardized Error Format
+
+**Core Error Object:**
+```json
+{
+    "error": "Brief error description",
+    "status": 400,
+    "endpoint": "API endpoint that failed", 
+    "details": {
+        "message": "Detailed explanation",
+        "provided": "What the user provided",
+        "expected": "What was expected",
+        "reason": "Why it failed",
+        "suggestions": ["Actionable recommendations"],
+        "documentation": "Link to relevant docs"
+    }
+}
+```
+
+#### 17.2.2. Context-Aware Error Generation
+
+**Error Categories:**
+
+- **Configuration Errors**: Database connection, environment setup issues
+- **Validation Errors**: Invalid parameters, type mismatches, enum violations
+- **Authorization Errors**: Insufficient permissions, access denied scenarios
+- **Business Logic Errors**: Constraint violations, dependent entity conflicts
+
+### 17.3. Implementation Architecture
+
+#### 17.3.1. Enhanced Error Builder Pattern
+
+```groovy
+class EnhancedErrorBuilder {
+    static EnhancedErrorBuilder create(String error, Integer status)
+    EnhancedErrorBuilder endpoint(String endpoint)
+    EnhancedErrorBuilder message(String message)
+    EnhancedErrorBuilder provided(Object provided)
+    EnhancedErrorBuilder expected(Object expected)
+    EnhancedErrorBuilder reason(String reason)
+    EnhancedErrorBuilder suggestions(List<String> suggestions)
+    EnhancedErrorBuilder documentation(String documentation)
+    Map<String, Object> build()
+}
+```
+
+#### 17.3.2. Error Context Analysis
+
+**Context Service:**
+```groovy
+class ErrorContextService {
+    static Map<String, Object> analyzeFailureContext(
+        Exception exception,
+        String endpoint,
+        Map<String, Object> requestParams
+    )
+}
+```
+
+### 17.4. Developer Experience Improvements
+
+#### 17.4.1. Error Message Quality Standards
+
+**Excellent Error Message Checklist:**
+- **Specific**: Clearly states what went wrong
+- **Contextual**: Explains why it failed given the input
+- **Actionable**: Provides concrete steps to resolve
+- **Educational**: Helps user understand the system better
+- **Professional**: Maintains appropriate tone and language
+- **Consistent**: Follows standardized format
+
+#### 17.4.2. Before/After Examples
+
+**Before (Generic):**
+```json
+{"error": "Invalid request", "status": 400}
+```
+
+**After (Enhanced):**
+```json
+{
+    "error": "Invalid step type parameter",
+    "status": 400,
+    "endpoint": "POST /steps",
+    "details": {
+        "message": "The provided step_type value is not supported",
+        "provided": "CUSTOM_TYPE",
+        "expected": "One of: MANUAL, AUTOMATED, VERIFICATION, APPROVAL",
+        "reason": "Step type must be from predefined enumeration",
+        "suggestions": [
+            "Use GET /steps/types to see all valid options",
+            "Check spelling and capitalization",
+            "Refer to API documentation for step type descriptions"
+        ],
+        "documentation": "/docs/api/steps-creation.md#step-types"
+    }
+}
+```
+
+### 17.5. Benefits and Impact
+
+#### 17.5.1. Developer Experience Benefits
+
+- **Improved Developer Experience**: Clear, actionable error messages
+- **Reduced Support Burden**: Fewer support requests for common issues  
+- **Faster Development**: Reduced debugging and troubleshooting time
+- **Better API Adoption**: More usable and developer-friendly APIs
+- **Enhanced Documentation**: Error messages serve as inline documentation
+- **Consistent Error Patterns**: Standardized error format across all endpoints
+
+#### 17.5.2. Business Impact
+
+- **Reduced Support Costs**: 30% expected decrease in basic troubleshooting requests
+- **Improved Developer Productivity**: Faster issue resolution times
+- **Enhanced API Usability**: Better developer onboarding and adoption
+- **Knowledge Transfer**: Error messages educate developers about system behavior
+
+## 18. Testing Framework Consolidation ([ADR-037] - US-024)
+
+### 18.1. Architecture Decision Record - ADR-037
+
+**Context:** During US-024 Steps API refactoring, we identified significant complexity and maintenance overhead in our testing infrastructure with 8 different test scripts creating confusion and duplicated functionality.
+
+**Decision:** Implement Testing Framework Consolidation Strategy that reduces test scripts from 8 to 4 specialized runners while maintaining 100% of current functionality.
+
+### 18.2. Consolidated Testing Architecture
+
+#### 18.2.1. Four Essential Test Categories
+
+**Specialized Test Runners:**
+1. **Unit Test Runner**: Groovy unit tests, service layer validation, utility functions
+2. **Integration Test Runner**: Database connectivity, repository patterns, Liquibase migrations
+3. **API Test Runner**: REST endpoint validation, authentication, HTTP status codes
+4. **System Test Runner**: End-to-end workflows, cross-component integration, performance
+
+#### 18.2.2. Shared Infrastructure Components
+
+```groovy
+// Consolidated configuration management
+class TestConfiguration {
+    static loadEnvironment()
+    static setupDatabase()
+    static configureAuthentication()
+    static getTestData()
+}
+
+// Shared utility functions
+class TestUtilities {
+    static generateTestData()
+    static cleanupTestData()
+    static validateResponse()
+    static performanceMetrics()
+}
+```
+
+### 18.3. Implementation Benefits
+
+#### 18.3.1. Complexity Reduction
+
+- **50% Script Reduction**: From 8 to 4 specialized test runners
+- **Centralized Configuration**: Single point of configuration per test category
+- **Shared Infrastructure**: Common utilities eliminate code duplication
+- **Clear Execution Patterns**: Consistent interface across all test categories
+
+#### 18.3.2. Standardized Execution Interface
+
+```bash
+# Consistent execution patterns
+./src/groovy/umig/tests/run-unit-tests.sh
+./src/groovy/umig/tests/run-integration-tests.sh  
+./src/groovy/umig/tests/run-api-tests.sh
+./src/groovy/umig/tests/run-system-tests.sh
+```
+
+### 18.4. Quality and Performance Impact
+
+#### 18.4.1. Maintenance Improvements
+
+- **Reduced Maintenance Overhead**: Fewer scripts to update and maintain
+- **Enhanced Developer Experience**: Clear, predictable testing workflows
+- **Documentation Consolidation**: Single source of testing documentation
+- **Improved Reliability**: Shared utilities reduce inconsistencies
+
+#### 18.4.2. Performance Optimization
+
+- **Reduced Startup Overhead**: Consolidated scripts minimize initialization time
+- **Shared Resource Usage**: Efficient utilization of test infrastructure
+- **Parallel Execution**: Clear separation enables parallel test execution
+- **Optimized Test Data**: Centralized test data management
+
+## 19. Documentation Consolidation Methodology ([ADR-038] - US-024)
+
+### 19.1. Architecture Decision Record - ADR-038
+
+**Context:** Documentation analysis during US-024 revealed significant proliferation and redundancy across multiple locations with 6 testing-related files containing substantial content overlap.
+
+**Decision:** Implement Systematic Documentation Consolidation Methodology that reduces file count by ~50% while achieving zero information loss through strategic consolidation and hierarchical organization.
+
+### 19.2. Consolidation Framework
+
+#### 19.2.1. Zero Information Loss Principle
+
+**Preservation Strategy:**
+- Complete content audit before consolidation
+- Comprehensive cross-reference mapping  
+- Validation of information uniqueness
+- Archival of historical context where needed
+
+#### 19.2.2. Hierarchical Consolidation Pattern
+
+```markdown
+Primary Document (Master)
+├── Core Concepts (Essential information)
+├── Detailed Implementation (Technical depth)  
+├── Examples & Patterns (Practical guidance)
+├── Related References (Cross-links)
+└── Historical Context (Archived decisions)
+```
+
+### 19.3. Implementation Results
+
+#### 19.3.1. Documentation Structure Optimization
+
+**Before Consolidation:**
+```
+├── testing-framework-setup.md
+├── testing-best-practices.md
+├── testing-troubleshooting.md  
+├── api-testing-guide.md
+├── integration-testing.md
+└── test-data-management.md
+```
+
+**After Consolidation:**
+```
+├── testing-comprehensive-guide.md
+│   ├── Core Testing Concepts
+│   ├── Framework Setup & Configuration
+│   ├── Testing Categories (Unit/Integration/API/System)
+│   ├── Best Practices & Patterns
+│   ├── Troubleshooting & Common Issues
+│   └── Advanced Topics & Extensions
+└── testing-quick-reference.md
+```
+
+#### 19.3.2. Benefits Achieved
+
+- **50% File Reduction**: Streamlined documentation structure
+- **Improved Discoverability**: Centralized location for related topics
+- **Enhanced Maintainability**: Single source of truth per topic area
+- **Better Navigation**: Clear hierarchical structure with cross-references
+- **Consistency Improvement**: Standardized format and organization patterns
+- **Zero Information Loss**: All valuable content preserved and accessible
+
+## 20. Database Quality Validation Framework ([ADR-040] - US-024)
+
+### 20.1. Architecture Decision Record - ADR-040
+
+**Context:** US-024 identified the need for comprehensive database layer validation capabilities beyond basic integration testing, including performance benchmarking and data integrity checking.
+
+**Decision:** Implement Database Quality Validation Framework that provides comprehensive database layer validation, performance benchmarking, and data integrity checking through direct SQL validation.
+
+### 20.2. Framework Architecture
+
+#### 20.2.1. DatabaseQualityValidator Framework
+
+```groovy
+class DatabaseQualityValidator {
+    private DatabaseUtil databaseUtil
+    private PerformanceBenchmark benchmark
+    private IntegrityChecker integrity
+    private SchemaValidator schema
+
+    def validateDatabaseHealth() {
+        def results = [:]
+        results.performance = benchmark.runPerformanceTests()
+        results.integrity = integrity.validateDataIntegrity()
+        results.schema = schema.validateSchemaConsistency()
+        results.constraints = validateConstraints()
+        return results
+    }
+}
+```
+
+#### 20.2.2. Performance Benchmarking Module
+
+**Query Performance Analysis:**
+- Connection pooling effectiveness
+- Query execution time analysis
+- Index usage validation
+- Concurrency testing
+- Scalability assessment
+
+#### 20.2.3. Data Integrity Validation
+
+**Comprehensive Integrity Checking:**
+- Foreign key constraint violations
+- Unique constraint violations
+- Check constraint validation
+- Business rule compliance
+- Referential integrity verification
+
+### 20.3. Validation Categories
+
+#### 20.3.1. Performance Metrics
+
+- Query execution time (average, min, max)
+- Connection pool utilization
+- Index effectiveness scores
+- Transaction throughput
+- Concurrent operation handling
+
+#### 20.3.2. Integrity Metrics
+
+- Constraint violation detection
+- Business rule compliance scoring
+- Data consistency validation
+- Orphaned record identification
+- Relationship integrity verification
+
+#### 20.3.3. Schema Metrics
+
+- Table structure consistency
+- Index optimization analysis
+- Constraint completeness validation
+- Migration status verification
+- Schema evolution tracking
+
+### 20.4. Benefits and Impact
+
+#### 20.4.1. Database Reliability
+
+- **Comprehensive Database Coverage**: Direct validation of database layer functionality
+- **Performance Monitoring**: Ability to track and optimize database performance
+- **Data Integrity Assurance**: Automated validation of constraints and relationships
+- **Proactive Issue Detection**: Early identification of database problems
+
+#### 20.4.2. Development Confidence
+
+- **Quality Metrics**: Measurable database quality indicators
+- **Development Confidence**: Higher confidence in database layer reliability
+- **Performance Optimization**: Identification of optimization opportunities
+- **Enterprise Readiness**: Production-grade database validation capabilities
 
 ---
 

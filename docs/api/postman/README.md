@@ -1,6 +1,13 @@
 # Postman API Collection for UMIG
 
-This directory contains the Postman collection for testing the UMIG application's V2 REST API.
+This directory contains the Postman collection for testing the UMIG application's V2 REST API (version 2.1.1).
+
+## Recent Updates (August 14, 2025)
+
+- **Enhanced Collection Generation**: Updated to use `npm run generate:postman:enhanced` script
+- **US-024 Improvements**: StepsAPI comments endpoints with enhanced error messages
+- **API Version 2.1.1**: Latest improvements and fixes included
+- **Collection Size**: 1.4 MB with comprehensive API coverage including authentication and variables
 
 ## How to Use
 
@@ -43,11 +50,12 @@ To update the collection after making changes to the OpenAPI specification:
    npm run generate:postman:enhanced
    ```
 
-   This script will:
-   - Generate the collection from the OpenAPI spec
-   - Add authentication configuration
-   - Set up environment variables
-   - Enhance with test scripts
+   This enhanced script (updated August 14, 2025) will:
+   - Generate the collection from the OpenAPI spec v2.1.1
+   - Add authentication configuration with environment variables
+   - Set up comprehensive test environments
+   - Include US-024 StepsAPI improvements
+   - Create a 1.4 MB collection with full API coverage
 
 ### Method 2: Direct command (Basic)
 

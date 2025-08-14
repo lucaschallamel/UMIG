@@ -136,19 +136,15 @@ Master instruction templates that define procedural steps within migration phase
 
 - **inm_id** (UUID, PK): Unique instruction identifier
 - **stm_id** (UUID, FK → steps_master_stm): Parent step master
-- **tea_id** (INT, FK → teams_tea, nullable): Responsible team
+- **tms_id** (INT, FK → teams_tms, nullable): Responsible team
 - **ctm_id** (UUID, FK → controls_master_ctm, nullable): Associated control point
-- **inm_name** (VARCHAR): Instruction name/title
-- **inm_description** (TEXT, nullable): Brief description
-- **inm_content** (TEXT): Detailed instruction content/steps
 - **inm_order** (INT): Order/sequence within the step
-- **inm_estimated_duration** (INT, nullable): Estimated duration in minutes
-- **inm_is_critical** (BOOLEAN, default false): Critical instruction flag
-- **inm_require_validation** (BOOLEAN, default false): Requires validation flag
-- **created_at** (TIMESTAMPTZ): Creation timestamp
-- **created_by** (INT, FK → users_usr): User who created the instruction
-- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp
-- **updated_by** (INT, FK → users_usr, nullable): User who last updated the instruction
+- **inm_body** (TEXT): Detailed instruction content/steps
+- **inm_duration_minutes** (INT, nullable): Estimated duration in minutes
+- **created_at** (TIMESTAMPTZ): Creation timestamp - Added in migration 016
+- **created_by** (VARCHAR(255)): User trigram or system identifier - Added in migration 016
+- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp - Added in migration 016
+- **updated_by** (VARCHAR(255), nullable): User trigram who last updated - Added in migration 016
 
 **Relationships:**
 
@@ -227,23 +223,18 @@ Execution instances of instruction templates created when step instances are ins
 - **ini_id** (UUID, PK): Unique instruction instance identifier
 - **sti_id** (UUID, FK → steps_instance_sti): Parent step instance
 - **inm_id** (UUID, FK → instructions_master_inm): Source master instruction
-- **ini_name** (VARCHAR): Instance name (copied from master)
-- **ini_description** (TEXT, nullable): Instance description (copied from master)
-- **ini_content** (TEXT): Instance content (copied from master)
-- **ini_order** (INT): Instance order (copied from master)
-- **ini_estimated_duration** (INT, nullable): Instance estimated duration (copied from master)
-- **tea_id** (INT, FK → teams_tea, nullable): Assigned team (copied from master)
-- **ctm_id** (UUID, FK → controls_master_ctm, nullable): Associated control (copied from master)
-- **ini_is_critical** (BOOLEAN, default false): Critical flag (copied from master)
-- **ini_require_validation** (BOOLEAN, default false): Validation flag (copied from master)
+- **tms_id** (INT, nullable): Assigned team (copied from master) - Added in migration 010
+- **cti_id** (UUID, nullable): Associated control instance - Added in migration 010
+- **ini_order** (INT): Instance order (copied from master) - Added in migration 010
+- **ini_body** (TEXT): Instance content (copied from master) - Added in migration 010
+- **ini_duration_minutes** (INT, nullable): Instance estimated duration (copied from master) - Added in migration 010
 - **ini_is_completed** (BOOLEAN, default false): Completion status (simplified model)
-- **ini_completion_timestamp** (TIMESTAMPTZ, nullable): When instruction was completed
-- **ini_completed_by** (INT, FK → users_usr, nullable): User who completed the instruction
-- **ini_notes** (TEXT, nullable): Execution notes and comments
-- **created_at** (TIMESTAMPTZ): Creation timestamp
-- **created_by** (INT, FK → users_usr): User who created the instance
-- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp
-- **updated_by** (INT, FK → users_usr, nullable): User who last updated the instance
+- **ini_completed_at** (TIMESTAMPTZ, nullable): When instruction was completed
+- **usr_id_completed_by** (INT, FK → users_usr, nullable): User who completed the instruction
+- **created_at** (TIMESTAMPTZ): Creation timestamp - Added in migration 016
+- **created_by** (VARCHAR(255)): User trigram who created the instance - Added in migration 016
+- **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp - Added in migration 016
+- **updated_by** (VARCHAR(255), nullable): User trigram who last updated - Added in migration 016
 
 **Full Attribute Instantiation Pattern:**
 All master instruction attributes are copied to instances during creation to preserve historical accuracy and allow for instance-specific overrides without affecting the master template.
@@ -835,6 +826,14 @@ Audit field indexes have been created for common query patterns:
 ---
 
 ## 8. Recent Changes & Migration Notes
+
+### 2025-08-14: US-024 Steps API Refactoring and Database Quality Enhancement
+
+- **Steps API Enhancement**: Complete refactoring of Steps API with enhanced error handling
+- **Comments System Integration**: Improved comments system with better validation
+- **DatabaseQualityValidator**: Implemented comprehensive database validation framework
+- **Type Safety Improvements**: Enhanced ADR-031 compliance across all repository methods
+- **Performance Optimizations**: Improved query performance and hierarchical filtering patterns
 
 ### 2025-08-04: Audit Fields Standardization (US-002b & US-002d)
 

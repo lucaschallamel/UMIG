@@ -1,160 +1,210 @@
 # API Coding Patterns (UMIG)
 
-## Instructions API Pattern (2025-08-05)
-
-- Complete instruction template and execution management system with 14 REST endpoints
-- Implements hierarchical filtering across all entity levels: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`, `?stepId=`
-- **TEMPLATE-BASED ARCHITECTURE**: Master/instance pattern supporting instruction templates with execution instances
-- **TYPE SAFETY**: Mandatory explicit casting patterns `UUID.fromString(filters.stepId as String)` following ADR-031
-- **INTEGRATION**: Seamless integration with Steps, Teams, Labels, and Controls for complete instruction lifecycle management
-- Full repository pattern with InstructionRepository (19 methods) for comprehensive testability
-- **BULK OPERATIONS**: Support for bulk instruction creation, updates, and status management
-- **ERROR HANDLING**: SQL state mapping (23503→400, 23505→409) with proper HTTP responses
-- Comprehensive unit and integration testing with 90%+ coverage including ScriptRunner compatibility
-- **CRITICAL**: Uses instance IDs (stm_id, phi_id, sqi_id, pli_id) for hierarchical filtering, not master IDs
-
-## Sequences API Pattern (2025-07-31)
-
-- Complete CRUD implementation with advanced ordering functionality following established patterns
-- Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?planId=` support
-- **ORDERING LOGIC**: Advanced sequence ordering with gap handling, resequencing, and circular dependency detection
-- **TYPE SAFETY**: Mandatory explicit casting patterns `UUID.fromString(filters.planId as String)`
-- Full repository pattern integration with SequenceRepository for comprehensive testability
-- **ADVANCED FEATURES**: Circular dependency detection using recursive CTEs, transaction management for order operations
-- Comprehensive integration testing with 20 test scenarios covering all CRUD and ordering edge cases
-- **CRITICAL**: Uses instance IDs (pli_id, sqi_id) for filtering, not master IDs (plm_id, sqm_id)
-
-## Plans API Pattern (2025-07-31)
-
-- Complete CRUD implementation for Plans API following established patterns
-- Implements hierarchical filtering with `?migrationId=`, `?iterationId=`, `?teamId=` support
-- **TYPE SAFETY**: Mandatory explicit casting patterns `UUID.fromString(filters.migrationId as String)`
-- Full repository pattern integration with PlansRepository for testability
-- Comprehensive integration testing with SQL query mocks
-- Enhanced error handling for constraint violations and foreign key references
-- **CRITICAL**: Uses instance IDs (pli_id) for filtering, not master IDs (plm_id)
-
-## Step View API Pattern (2025-07-17)
-
-- Standalone step view API for retrieving individual step instance data
-- Implements three-parameter lookup: `?migrationName=xxx&iterationName=xxx&stepCode=XXX-nnn`
-- **UNIQUE PATTERN**: Uses migration/iteration names + step code for unique identification across all migrations
-- Comprehensive response includes step details, instructions, teams, labels, comments, and status history
-- **CRITICAL**: Joins through environment associations for proper environment role display
-- Supports both master step data and instance execution tracking
-
-## Applications API Pattern (2025-07-15)
-
-- Extended Applications API with label association management endpoints
-- Implemented GET /applications/{id}/labels, PUT /applications/{appId}/labels/{labelId}, DELETE /applications/{appId}/labels/{labelId}
-- Added label_count to listing responses via LEFT JOIN on labels_lbl_x_applications_app table
-- **IMPORTANT**: Be aware of field name transformations between different endpoints (e.g., Labels API returns `id/name` while application-specific endpoints return `lbl_id/lbl_name`)
-- Handle duplicate key errors gracefully for association endpoints with proper 409 Conflict responses
-
-## Environments API Pattern (2025-07-15)
-
-- Complete REST API implementation for environments with full CRUD operations
-- Association management endpoints for applications and iterations with role-based relationships
-- **IMPORTANT**: Remove @Field annotations and avoid Logger imports in ScriptRunner REST endpoints
-- Implement proper authentication headers: `X-Atlassian-Token: no-check` and `credentials: same-origin`
-- Handle many-to-many associations with proper POST/DELETE endpoints
-
-## Hierarchical Filtering and Type Safety (2025-07-10)
-
-- All hierarchical filtering endpoints support query parameters: `?migrationId=`, `?iterationId=`, `?planId=`, `?sequenceId=`, `?phaseId=`
-- **MANDATORY**: Use explicit type casting for all parameter conversions: `UUID.fromString(id as String)`, `Integer.parseInt(id as String)`
-- **CRITICAL**: Use instance IDs (pli_id, sqi_id, phi_id) for filtering, NOT master IDs (plm_id, sqm_id, phm_id)
-- Include ALL database fields referenced in result mapping to prevent "No such property" errors
-- Handle many-to-many relationships gracefully with try-catch blocks for optional data
-
-## Teams Membership Robustness (2025-07-02)
-
-- All membership endpoints (`PUT`/`DELETE /teams/{teamId}/users/{userId}`) enforce robust existence checks for both team and user.
-- Duplicate associations are prevented; removal is idempotent and returns 404 if the user is not a member.
-- Clear, actionable error messages and RESTful status codes are returned for all cases.
-
 This document outlines the **mandatory** coding patterns for all REST API endpoints in the UMIG project. These standards are critical for ensuring stability and maintainability within the ScriptRunner environment.
 
 **The definitive guide for this pattern is [ADR-023](../../../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md). All developers must read it before writing API code.**
 
-For a step-by-step guide, see the [api-work.md workflow](../../../../.clinerules/workflows/api-work.md).
+## Current API Endpoints (v2)
 
-## Enhanced Error Handling (2025-07-02)
+### Core Entity APIs
+- **ApplicationsApi.groovy** - Application management with label associations
+- **ControlsApi.groovy** - Control point management for steps and instructions
+- **EmailTemplatesApi.groovy** - Email template management and rendering
+- **EnvironmentsApi.groovy** - Environment management with application/iteration associations
+- **InstructionsApi.groovy** - Instruction template and execution management (14 endpoints)
+- **LabelsApi.groovy** - Label management with application and step associations
+- **PhasesApi.groovy** - Phase management with sequence associations
+- **PlansApi.groovy** - Plan management with hierarchical filtering
+- **SequencesApi.groovy** - Sequence management with advanced ordering logic
+- **StepsApi.groovy** - Step master/instance operations with enhanced comments system
+- **TeamMembersApi.groovy** - Team membership operations with robust checks
+- **TeamsApi.groovy** - Team management with hierarchical filtering
+- **UsersApi.groovy** - User management with role and team associations
+- **migrationApi.groovy** - Migration and iteration management
+- **stepViewApi.groovy** - Individual step view for runsheet display
 
-- **DELETE /users/{id}:**
-  - If deletion is blocked by any referencing records (teams, plans, steps, comments, etc.), the API returns:
+### Specialized APIs
+- **WebApi.groovy** - Frontend integration endpoints
 
-    ```json
-    {
-      "error": "Cannot delete user with ID 3 as they are still referenced by other resources.",
-      "blocking_relationships": {
-        "teams": [{ "tms_id": 4, "tms_name": "Tools Group" }],
-        "step_comments_created": [{ "sic_id": 7 }, ...]
-        // ...all other referencing records
-      }
-    }
-    ```
-
-  - No associations are deleted unless the user is deleted.
-
-- **POST /users:**
-  - Required fields: `usr_first_name`, `usr_last_name`, `usr_email`, `usr_is_admin`, `usr_code`, `rls_id`.
-  - Returns clear errors for missing/unknown fields, type errors, and constraint violations. Example:
-
-    ```json
-    { "error": "Missing required fields: usr_code, rls_id" }
-    { "error": "Unknown fields: usr_confluence_id" }
-    { "error": "rls_id must be an integer." }
-    { "error": "A user with this email or code already exists." }
-    { "error": "Invalid rls_id: referenced role does not exist." }
-    ```
-
-## Mandatory Structure Example
+## MANDATORY REST Endpoint Pattern
 
 ```groovy
-// src/com/umig/api/v2/UsersApi.groovy
-package com.umig.api.v2
+package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
-import groovy.transform.BaseScript
+import umig.repository.ExampleRepository
 import groovy.json.JsonBuilder
+import groovy.transform.BaseScript
+
+import javax.servlet.http.HttpServletRequest
+import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
-import java.sql.SQLException
+import java.util.UUID
 
 @BaseScript CustomEndpointDelegate delegate
 
-// ... import UserRepository
-
-users(httpMethod: "DELETE", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    // 1. Get and validate path parameter
-    Integer userId = getUserIdFromPath(request)
-    if (userId == null) {
-        return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "User ID is required."]).toString()).build()
-    }
-
+// Endpoint definition with authentication
+entityName(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
-        // 2. Business logic
-        if (userRepository.findUserById(userId) == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User not found."]).toString()).build()
+        // 1. Repository instantiation (avoid class loading issues)
+        def repository = new ExampleRepository()
+        
+        // 2. Parameter extraction and type safety (ADR-031)
+        def filters = [:]
+        if (queryParams.migrationId?.first()) {
+            filters.migrationId = UUID.fromString(queryParams.migrationId.first() as String)
         }
-        userRepository.deleteUser(userId)
-
-        // 3. Return correct success response
-        return Response.noContent().build()
-
-    } catch (SQLException e) {
-        // 4. Handle specific errors
-        log.error("Database error deleting user ${userId}", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "A database error occurred."]).toString()).build()
+        
+        // 3. Business logic
+        def results = repository.findByFilters(filters)
+        
+        // 4. Response formatting
+        return Response.ok(new JsonBuilder(results).toString()).build()
+        
+    } catch (IllegalArgumentException e) {
+        // Type conversion errors
+        return Response.status(400)
+            .entity(new JsonBuilder([error: "Invalid parameter format: ${e.message}"]).toString())
+            .build()
     } catch (Exception e) {
-        // 5. Handle generic errors
-        log.error("Unexpected error deleting user ${userId}", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new JsonBuilder([error: "An internal error occurred."]).toString()).build()
+        // Generic error handling
+        return Response.status(500)
+            .entity(new JsonBuilder([error: "Internal server error: ${e.message}"]).toString())
+            .build()
     }
 }
 ```
 
-## See Also
+## Type Safety Requirements (ADR-031)
 
-- [ADR-023: Standardized REST API Implementation Patterns](../../../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md)
+**MANDATORY**: All query parameters MUST use explicit type casting:
+
+```groovy
+// ✅ CORRECT - Explicit casting
+def migrationId = UUID.fromString(queryParams.migrationId.first() as String)
+def teamId = Integer.parseInt(queryParams.teamId.first() as String)
+
+// ❌ INCORRECT - Implicit casting
+def migrationId = UUID.fromString(queryParams.migrationId.first())
+def teamId = queryParams.teamId.first() as Integer
+```
+
+## Authentication and Authorization
+
+- **Default**: `groups: ["confluence-users"]` for general access
+- **Admin-only**: `groups: ["confluence-administrators"]` for admin operations
+- **Mixed**: `groups: ["confluence-users", "confluence-administrators"]` for flexible access
+
+## Hierarchical Filtering Pattern
+
+**CRITICAL**: All hierarchical filtering must use instance IDs, NOT master IDs:
+
+```groovy
+// ✅ CORRECT - Instance IDs
+?migrationId=uuid        // References mig_id (migration instance)
+?iterationId=uuid        // References iti_id (iteration instance)
+?planId=uuid            // References pli_id (plan instance)
+?sequenceId=uuid        // References sqi_id (sequence instance)
+?phaseId=uuid           // References phi_id (phase instance)
+
+// ❌ INCORRECT - Master IDs (will fail)
+?planMasterId=uuid      // plm_id is NOT used for filtering
+```
+
+## Enhanced Error Handling
+
+### SQL State Mappings
+- **23503** → 400 Bad Request (foreign key violation)
+- **23505** → 409 Conflict (unique constraint violation)
+- **23502** → 400 Bad Request (not null violation)
+
+### Comment System Error Improvements (US-024)
+
+Enhanced error messages for comment endpoints with clear usage guidance:
+
+```groovy
+// Enhanced error response for invalid comment endpoint usage
+return Response.status(400).entity(new JsonBuilder([
+    error: "Invalid comments endpoint usage",
+    message: "To create a comment, use: POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments",
+    example: "POST /rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments"
+]).toString()).build()
+```
+
+## Repository Integration Pattern
+
+All APIs MUST use repository pattern for database access:
+
+```groovy
+// Lazy load repositories to avoid class loading issues
+def getExampleRepository = { ->
+    return new ExampleRepository()
+}
+
+def repository = getExampleRepository()
+def results = repository.findByFilters(filters)
+```
+
+## Testing Framework Integration
+
+All APIs support comprehensive testing with:
+- Unit tests with repository mocking
+- Integration tests with SQL query validation
+- ScriptRunner compatibility testing
+- 90%+ test coverage requirement
+
+## Advanced Features
+
+### Bulk Operations (Instructions, Steps)
+- Support for bulk create, update, and delete operations
+- Transaction management for consistency
+- Batch processing for performance
+
+### Association Management
+- Many-to-many relationship handling
+- Graceful duplicate key management
+- Idempotent operations for robustness
+
+### Advanced Ordering (Sequences)
+- Gap handling and resequencing
+- Circular dependency detection using recursive CTEs
+- Transaction-safe order operations
+
+## Key Implementation Standards
+
+### Response Format Consistency
+- Always return JSON responses
+- Use JsonBuilder for response formatting
+- Include meaningful error messages
+- Maintain consistent field naming
+
+### Path Parameter Handling
+- Extract path segments safely
+- Validate parameter formats
+- Handle malformed requests gracefully
+
+### Database Connection
+- ALL database access MUST use repository pattern
+- Repositories MUST use `DatabaseUtil.withSql`
+- No direct SQL in API endpoints
+
+## Recent Enhancements (US-024)
+
+### StepsApi Comment System
+- Enhanced error messages with usage examples
+- Clear endpoint documentation in error responses
+- User ownership validation for comment operations
+- Comprehensive CRUD operations for step comments
+
+### Type Safety Improvements
+- Mandatory explicit casting for all parameters
+- Enhanced parameter validation
+- Better error messages for type conversion failures
+
+## References
+
+- **PRIMARY**: [ADR-023: Standardized REST API Implementation Patterns](../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md)
+- [ADR-031: Type Safety Improvements](../../docs/adr/ADR-031-Type-Safety-Improvements.md)
 - [Repository Pattern Guidelines](../repository/README.md)
+- [API Workflow Guide](../../.clinerules/workflows/api-work.md)
+- [Testing Guidelines](../tests/README.md)
