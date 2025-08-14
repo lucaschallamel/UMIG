@@ -1,6 +1,13 @@
 # UMIG API V2 Documentation
 
-This folder contains the OpenAPI 3.0 specification for the UMIG V2 REST API. This new API version supersedes the previous V1 API.
+This folder contains the OpenAPI 3.0 specification for the UMIG V2 REST API (version 2.1.1). This new API version supersedes the previous V1 API.
+
+## Latest Updates (August 14, 2025 - Version 2.1.1)
+
+- **US-024 StepsAPI Enhancements**: Improved comments endpoint error messages with helpful guidance
+- **Enhanced Postman Collection**: Updated generation script with comprehensive authentication and variables
+- **OpenAPI Specification**: Updated error schemas and endpoint documentation
+- **Collection Size**: 1.4 MB with full API coverage and enhanced testing capabilities
 
 - The architectural principles and conventions for the V2 API are documented in **[ADR-017: V2 REST API Architecture and Conventions](../adr/ADR-017-V2-REST-API-Architecture.md)**.
 - The detailed technical specification for all endpoints is in **[`openapi.yaml`](openapi.yaml)**.
@@ -40,7 +47,7 @@ Individual API specifications are available for detailed documentation:
 - **[Phases API](PhasesAPI.md)** - Phase management with control point validation and progress tracking
 - **[Plans API](PlansAPI.md)** - Plan management with master templates and instances
 - **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support
-- **[Steps API](StepsAPI.md)** - Step management with hierarchical filtering and email notification integration
+- **[Steps API](StepsAPI.md)** - ✅ **US-024 Enhanced** - Step management with hierarchical filtering, email notification integration, and improved comments endpoint error handling
 - **[stepView API](stepViewAPI.md)** - Specialized API for standalone step view in Confluence pages
 - **[Team Members API](TeamMembersAPI.md)** - Team membership management and user-team associations
 - **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
@@ -61,12 +68,14 @@ This provides progressive filtering where options become more contextually relev
 
 ## API Testing with Postman
 
-A Postman collection is available for testing the API endpoints.
+An enhanced Postman collection is available for comprehensive API testing.
 
-- Collection: [`postman/UMIG_API_V2_Collection.postman_collection.json`](postman/UMIG_API_V2_Collection.postman_collection.json)
-- Usage Instructions: [`postman/README.md`](postman/README.md)
+- **Collection**: [`postman/UMIG_API_V2_Collection.postman_collection.json`](postman/UMIG_API_V2_Collection.postman_collection.json)
+- **Usage Instructions**: [`postman/README.md`](postman/README.md)
+- **Generation**: Use `npm run generate:postman:enhanced` for latest collection with authentication and variables
+- **Size**: 1.4 MB with comprehensive API coverage including US-024 improvements
 
-The collection is automatically generated from the OpenAPI specification and includes all V2 API endpoints.
+The collection is automatically generated from the OpenAPI specification v2.1.1 and includes all V2 API endpoints with enhanced error handling and test scripts.
 
 ## Recent API Updates
 
