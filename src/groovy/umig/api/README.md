@@ -7,6 +7,7 @@ This document outlines the **mandatory** coding patterns for all REST API endpoi
 ## Current API Endpoints (v2)
 
 ### Core Entity APIs
+
 - **ApplicationsApi.groovy** - Application management with label associations
 - **ControlsApi.groovy** - Control point management for steps and instructions
 - **EmailTemplatesApi.groovy** - Email template management and rendering
@@ -24,6 +25,7 @@ This document outlines the **mandatory** coding patterns for all REST API endpoi
 - **stepViewApi.groovy** - Individual step view for runsheet display
 
 ### Specialized APIs
+
 - **WebApi.groovy** - Frontend integration endpoints
 
 ## MANDATORY REST Endpoint Pattern
@@ -48,19 +50,19 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
     try {
         // 1. Repository instantiation (avoid class loading issues)
         def repository = new ExampleRepository()
-        
+
         // 2. Parameter extraction and type safety (ADR-031)
         def filters = [:]
         if (queryParams.migrationId?.first()) {
             filters.migrationId = UUID.fromString(queryParams.migrationId.first() as String)
         }
-        
+
         // 3. Business logic
         def results = repository.findByFilters(filters)
-        
+
         // 4. Response formatting
         return Response.ok(new JsonBuilder(results).toString()).build()
-        
+
     } catch (IllegalArgumentException e) {
         // Type conversion errors
         return Response.status(400)
@@ -114,6 +116,7 @@ def teamId = queryParams.teamId.first() as Integer
 ## Enhanced Error Handling
 
 ### SQL State Mappings
+
 - **23503** → 400 Bad Request (foreign key violation)
 - **23505** → 409 Conflict (unique constraint violation)
 - **23502** → 400 Bad Request (not null violation)
@@ -148,6 +151,7 @@ def results = repository.findByFilters(filters)
 ## Testing Framework Integration
 
 All APIs support comprehensive testing with:
+
 - Unit tests with repository mocking
 - Integration tests with SQL query validation
 - ScriptRunner compatibility testing
@@ -156,16 +160,19 @@ All APIs support comprehensive testing with:
 ## Advanced Features
 
 ### Bulk Operations (Instructions, Steps)
+
 - Support for bulk create, update, and delete operations
 - Transaction management for consistency
 - Batch processing for performance
 
 ### Association Management
+
 - Many-to-many relationship handling
 - Graceful duplicate key management
 - Idempotent operations for robustness
 
 ### Advanced Ordering (Sequences)
+
 - Gap handling and resequencing
 - Circular dependency detection using recursive CTEs
 - Transaction-safe order operations
@@ -173,17 +180,20 @@ All APIs support comprehensive testing with:
 ## Key Implementation Standards
 
 ### Response Format Consistency
+
 - Always return JSON responses
 - Use JsonBuilder for response formatting
 - Include meaningful error messages
 - Maintain consistent field naming
 
 ### Path Parameter Handling
+
 - Extract path segments safely
 - Validate parameter formats
 - Handle malformed requests gracefully
 
 ### Database Connection
+
 - ALL database access MUST use repository pattern
 - Repositories MUST use `DatabaseUtil.withSql`
 - No direct SQL in API endpoints
@@ -191,12 +201,14 @@ All APIs support comprehensive testing with:
 ## Recent Enhancements (US-024)
 
 ### StepsApi Comment System
+
 - Enhanced error messages with usage examples
 - Clear endpoint documentation in error responses
 - User ownership validation for comment operations
 - Comprehensive CRUD operations for step comments
 
 ### Type Safety Improvements
+
 - Mandatory explicit casting for all parameters
 - Enhanced parameter validation
 - Better error messages for type conversion failures

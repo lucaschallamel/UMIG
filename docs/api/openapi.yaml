@@ -7865,7 +7865,7 @@ components:
           type: string
         message:
           type: string
-    
+
     EnhancedError:
       type: object
       description: Enhanced error response with usage guidance (introduced in US-024)

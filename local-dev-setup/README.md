@@ -15,6 +15,7 @@ by the orchestration layer.
 Install Groovy version 3.0.15 for command-line testing and development. This specific version is required for compatibility with ScriptRunner 9.21.0 and ensures consistency with the containerized ScriptRunner environment.
 
 **Why Groovy 3.0.15 Specifically:**
+
 - **ScriptRunner Compatibility**: Matches the exact Groovy version used in ScriptRunner 9.21.0
 - **Type Safety Patterns**: Ensures compatibility with ADR-031 static type checking patterns
 - **Testing Consistency**: Allows local testing of repository methods and API patterns that behave identically to the containerized environment
@@ -23,17 +24,20 @@ Install Groovy version 3.0.15 for command-line testing and development. This spe
 **Recommended Installation (SDKMAN):**
 
 1. **Install SDKMAN** (if not already installed):
+
    ```bash
    curl -s "https://get.sdkman.io" | bash
    source "$HOME/.sdkman/bin/sdkman-init.sh"
    ```
 
 2. **Install Groovy 3.0.15**:
+
    ```bash
    sdk install groovy 3.0.15
    ```
 
 3. **Set as Default Version**:
+
    ```bash
    sdk default groovy 3.0.15
    ```
@@ -45,6 +49,7 @@ Install Groovy version 3.0.15 for command-line testing and development. This spe
    ```
 
 **Alternative Installation Methods:**
+
 - **macOS (Homebrew)**: `brew install groovy` (may install latest version, use SDKMAN for version control)
 - **Manual Installation**: Download from [Apache Groovy releases](https://groovy.apache.org/download.html) and configure PATH
 
@@ -60,7 +65,7 @@ import groovy.sql.Sql
 import java.sql.DriverManager
 
 def url = "jdbc:postgresql://localhost:5432/umig_app_db"
-def user = "umig_app_user"  
+def user = "umig_app_user"
 def password = "123456"
 def driver = "org.postgresql.Driver"
 
@@ -75,6 +80,7 @@ try {
 ```
 
 Run the test:
+
 ```bash
 groovy test_db_connection.groovy
 ```

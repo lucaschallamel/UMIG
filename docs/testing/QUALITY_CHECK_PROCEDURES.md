@@ -7,13 +7,16 @@ This document provides reusable quality validation procedures for any UMIG API o
 ## Pre-Validation Setup
 
 ### Environment Preparation
+
 1. **Start development environment**
+
    ```bash
    cd local-dev-setup
    npm start
    ```
 
 2. **Verify environment health**
+
    ```bash
    ./scripts/quality-check/immediate-health-check.sh
    ```
@@ -24,6 +27,7 @@ This document provides reusable quality validation procedures for any UMIG API o
    ```
 
 ### Documentation Gathering
+
 - [ ] API specification (OpenAPI/Swagger)
 - [ ] Database schema documentation
 - [ ] Business requirements
@@ -33,14 +37,17 @@ This document provides reusable quality validation procedures for any UMIG API o
 ## Phase A: Smoke Testing
 
 ### Objective
+
 Quick validation of basic functionality and endpoint availability
 
 ### Execution
+
 ```bash
 ./scripts/quality-check/api-smoke-test.sh --endpoint [target]
 ```
 
 ### Validation Checklist
+
 - [ ] All endpoints responding (not 404)
 - [ ] Authentication working
 - [ ] Basic CRUD operations functional
@@ -48,6 +55,7 @@ Quick validation of basic functionality and endpoint availability
 - [ ] Response times acceptable (<3s)
 
 ### Expected Outcomes
+
 - Endpoint availability report
 - Authentication status
 - Basic functionality confirmation
@@ -56,9 +64,11 @@ Quick validation of basic functionality and endpoint availability
 ## Phase B: Systematic Testing
 
 ### Objective
+
 Comprehensive validation including edge cases and integration points
 
 ### Execution
+
 ```bash
 ./scripts/quality-check/phase-b-test-execution.sh
 ```
@@ -66,6 +76,7 @@ Comprehensive validation including edge cases and integration points
 ### Test Categories
 
 #### 1. Functional Testing
+
 - [ ] Happy path scenarios
 - [ ] Boundary conditions
 - [ ] Invalid input handling
@@ -73,6 +84,7 @@ Comprehensive validation including edge cases and integration points
 - [ ] Data type validation
 
 #### 2. Integration Testing
+
 - [ ] Database connectivity
 - [ ] Cross-service communication
 - [ ] External dependency handling
@@ -80,6 +92,7 @@ Comprehensive validation including edge cases and integration points
 - [ ] Cascade operations
 
 #### 3. Performance Testing
+
 - [ ] Response time under normal load
 - [ ] Bulk operation handling
 - [ ] Pagination efficiency
@@ -87,6 +100,7 @@ Comprehensive validation including edge cases and integration points
 - [ ] Resource utilization
 
 #### 4. Security Testing
+
 - [ ] Authentication enforcement
 - [ ] Authorization checks
 - [ ] Input sanitization
@@ -94,6 +108,7 @@ Comprehensive validation including edge cases and integration points
 - [ ] XSS protection
 
 #### 5. Error Handling
+
 - [ ] Graceful degradation
 - [ ] Meaningful error messages
 - [ ] Proper HTTP status codes
@@ -101,6 +116,7 @@ Comprehensive validation including edge cases and integration points
 - [ ] Recovery mechanisms
 
 ### Expected Outcomes
+
 - Detailed test execution report
 - Coverage metrics
 - Performance benchmarks
@@ -110,18 +126,22 @@ Comprehensive validation including edge cases and integration points
 ## Phase C: Issue Analysis
 
 ### Objective
+
 Analyze findings and provide actionable recommendations
 
 ### Analysis Framework
 
 #### 1. Issue Categorization
+
 - **Critical**: Blocks functionality, security vulnerabilities
 - **High**: Significant impact on user experience
 - **Medium**: Functional but suboptimal
 - **Low**: Minor improvements, nice-to-have
 
 #### 2. Root Cause Analysis
+
 For each issue:
+
 1. What is the symptom?
 2. What is the root cause?
 3. What is the impact?
@@ -129,14 +149,17 @@ For each issue:
 5. What is the effort estimate?
 
 #### 3. Risk Assessment
+
 - Probability of occurrence
 - Severity of impact
 - Mitigation strategies
 - Rollback procedures
 
 ### Documentation Template
+
 ```markdown
 ### Issue: [Title]
+
 - **Severity**: Critical/High/Medium/Low
 - **Component**: [Affected component]
 - **Description**: [What is wrong]
@@ -149,11 +172,13 @@ For each issue:
 ## Master Orchestration
 
 ### Full Validation Execution
+
 ```bash
 ./scripts/quality-check/master-quality-check.sh
 ```
 
 ### Master Report Sections
+
 1. **Executive Summary**
    - Overall status (PASS/FAIL/PARTIAL)
    - Critical findings
@@ -180,6 +205,7 @@ For each issue:
 ### Go/No-Go Assessment
 
 #### Ready for Production (GO)
+
 - ✅ All critical tests passing
 - ✅ No security vulnerabilities
 - ✅ Performance within SLAs
@@ -187,6 +213,7 @@ For each issue:
 - ✅ Documentation complete
 
 #### Conditional Release (CONDITIONAL)
+
 - ⚠️ Non-critical issues present
 - ⚠️ Performance acceptable but not optimal
 - ⚠️ Minor documentation gaps
@@ -194,6 +221,7 @@ For each issue:
 - ⚠️ Workarounds available
 
 #### Not Ready (NO-GO)
+
 - ❌ Critical functionality broken
 - ❌ Security vulnerabilities found
 - ❌ Performance below requirements
@@ -203,6 +231,7 @@ For each issue:
 ## Reporting Template
 
 ### Quality Validation Report Structure
+
 ```
 # [Component] Quality Validation Report
 
@@ -240,6 +269,7 @@ For each issue:
 ## Best Practices
 
 ### Do's
+
 - ✅ Run health check before testing
 - ✅ Use verbose mode for debugging
 - ✅ Document all findings immediately
@@ -247,6 +277,7 @@ For each issue:
 - ✅ Verify fixes with targeted retests
 
 ### Don'ts
+
 - ❌ Skip environment verification
 - ❌ Ignore warning signs
 - ❌ Test in production
@@ -256,6 +287,7 @@ For each issue:
 ## Customization Guide
 
 ### Adapting for Specific APIs
+
 1. Identify API-specific requirements
 2. Add custom test cases to `api-smoke-test.sh`
 3. Create specialized Groovy tests
@@ -263,6 +295,7 @@ For each issue:
 5. Customize report templates
 
 ### Adding New Test Types
+
 1. Define test objectives
 2. Create test scripts
 3. Integrate with phase execution
@@ -272,18 +305,21 @@ For each issue:
 ## Tools and Resources
 
 ### Testing Tools
+
 - `api-smoke-test.sh` - API endpoint testing
 - `phase-b-test-execution.sh` - Groovy test runner
 - `master-quality-check.sh` - Full orchestration
 - `immediate-health-check.sh` - Environment validation
 
 ### Monitoring and Logs
+
 - Test results: `test-results/`
 - Application logs: `logs/`
 - Database logs: PostgreSQL container logs
 - Confluence logs: `confluence_data/logs/`
 
 ---
-*Template Version: 1.0*  
-*Last Updated: 2025-08-14*  
-*Based on US-024 StepsAPI Validation Experience*
+
+_Template Version: 1.0_  
+_Last Updated: 2025-08-14_  
+_Based on US-024 StepsAPI Validation Experience_

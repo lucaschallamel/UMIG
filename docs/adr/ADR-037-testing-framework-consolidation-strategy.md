@@ -47,24 +47,28 @@ We will implement a **Testing Framework Consolidation Strategy** that reduces th
 #### 2. Specialized Focus Areas
 
 **Unit Test Runner:**
+
 - Groovy class unit tests
 - Service layer validation
 - Utility function testing
 - Mock-based isolated testing
 
 **Integration Test Runner:**
+
 - Database connectivity validation
 - Repository pattern testing
 - Transaction management testing
 - Liquibase migration validation
 
 **API Test Runner:**
+
 - REST endpoint validation
 - Authentication testing
 - HTTP status code validation
 - JSON schema validation
 
 **System Test Runner:**
+
 - End-to-end workflow testing
 - Cross-component integration
 - Performance benchmarking
@@ -112,21 +116,25 @@ class TestUtilities {
 ## Considered Options
 
 ### Option 1: Complete Consolidation (Single Test Runner)
+
 - **Description**: Merge all 8 scripts into one unified test runner
 - **Pros**: Maximum simplicity, single execution point
 - **Cons**: Loss of specialized test category focus, monolithic structure
 
 ### Option 2: Current State (8 Individual Scripts)
+
 - **Description**: Maintain existing script structure
 - **Pros**: No migration effort required, familiar patterns
 - **Cons**: High maintenance overhead, cognitive complexity
 
 ### Option 3: Four Specialized Runners (CHOSEN)
+
 - **Description**: Consolidate to 4 specialized test categories with shared infrastructure
 - **Pros**: 50% complexity reduction, maintained specialization, shared utilities
 - **Cons**: Some migration effort required
 
 ### Option 4: Framework Migration (Jest/Mocha)
+
 - **Description**: Migrate to external testing framework
 - **Pros**: Industry-standard tooling, advanced features
 - **Cons**: Major architectural change, learning curve, Groovy compatibility issues
@@ -182,11 +190,13 @@ Chosen option: **"Four Specialized Runners"**, because it provides the optimal b
 ### Migration Strategy
 
 **Backward Compatibility:**
+
 - Maintain existing script interfaces during transition
 - Provide deprecation warnings for old scripts
 - Gradual migration over 2-week period
 
 **Validation Criteria:**
+
 - 100% functionality preservation
 - Zero test case loss
 - Improved execution performance
@@ -220,7 +230,7 @@ npm test:all          # Complete test suite
 ```
 src/groovy/umig/tests/
 ├── unit/              # Unit test files
-├── integration/       # Integration test files  
+├── integration/       # Integration test files
 ├── api/               # API test files
 ├── system/            # System test files
 ├── shared/            # Shared test utilities
@@ -248,7 +258,7 @@ src/groovy/umig/tests/
 This consolidation strategy aligns with the project's core principle of simplicity and maintainability while preserving all existing functionality. The 4-category structure provides clear separation of concerns:
 
 1. **Unit**: Fast, isolated component testing
-2. **Integration**: Database and repository validation  
+2. **Integration**: Database and repository validation
 3. **API**: REST endpoint and HTTP validation
 4. **System**: End-to-end workflow validation
 

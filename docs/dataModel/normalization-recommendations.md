@@ -17,11 +17,8 @@
 
 ### 📋 **ORIGINAL ISSUES (Now Mostly Resolved)**
 
-~~1. **Inconsistent audit fields** across tables~~ ✅ **RESOLVED**
-2. **Denormalized instance tables** with duplicated master fields (ADR-029 pattern) 🔄 **BY DESIGN**
-3. ~~**Missing standard fields** in many tables~~ ✅ **RESOLVED**  
-4. ~~**Inconsistent naming conventions** for audit fields~~ ✅ **RESOLVED**
-5. ~~**Lack of abstraction** for common patterns~~ ✅ **IMPROVED**
+~~1. **Inconsistent audit fields** across tables~~ ✅ **RESOLVED** 2. **Denormalized instance tables** with duplicated master fields (ADR-029 pattern) 🔄 **BY DESIGN** 3. ~~**Missing standard fields** in many tables~~ ✅ **RESOLVED**  
+4. ~~**Inconsistent naming conventions** for audit fields~~ ✅ **RESOLVED** 5. ~~**Lack of abstraction** for common patterns~~ ✅ **IMPROVED**
 
 ## Current State Analysis
 

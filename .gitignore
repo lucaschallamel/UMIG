@@ -156,6 +156,7 @@ tmp/lint/
 
 #Claude
 .claude/
+.claude_bak/
 .screenshots/
 *.bkp
 *.dtmp

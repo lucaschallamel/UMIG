@@ -1,7 +1,7 @@
 # UMIG - Unified Migration Implementation Guide
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Development Status](https://img.shields.io/badge/Status-Sprint%204%20(48.5%25%20Complete)-yellow.svg)]()
+[![Development Status](<https://img.shields.io/badge/Status-Sprint%204%20(48.5%25%20Complete)-yellow.svg>)]()
 [![Platform](https://img.shields.io/badge/Confluence-9.2.7-blue.svg)]()
 [![ScriptRunner](https://img.shields.io/badge/ScriptRunner-9.21.0-green.svg)]()
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-blue.svg)]()
@@ -581,14 +581,17 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 ### 🚧 Sprint 4 Progress (44.7% Complete - 14.75 of 33 Points)
 
 #### ✅ Completed Stories
+
 - **✅ US-017**: Application management and association features (Complete)
 - **✅ US-032**: Confluence upgrade and infrastructure modernization (Complete)
 - **✅ US-025**: Migrations API refactoring with integration testing (Complete)
 
 #### ✅ Recently Completed
+
 - **✅ US-024**: StepsAPI Refactoring (100% COMPLETE - All phases done, US-028 unblocked)
 
 #### 📋 Remaining MVP Work
+
 - **Core REST APIs**: ✅ Plans (completed), ✅ Sequences (completed), ✅ Phases (completed), ✅ Instructions (completed), ✅ Steps (100% complete)
 - **Main Dashboard UI**: Real-time interface with AJAX polling
 - **Planning Feature**: HTML macro-plan generation and export

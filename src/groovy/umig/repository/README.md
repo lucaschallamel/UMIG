@@ -19,7 +19,7 @@ class ExampleRepository {
     def findById(UUID id) {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow('''
-                SELECT * FROM table_name 
+                SELECT * FROM table_name
                 WHERE id = :id
             ''', [id: id])
         }
@@ -73,7 +73,7 @@ import java.util.UUID
  * Follows ADR-031 type safety and hierarchical filtering patterns
  */
 class ExampleRepository {
-    
+
     /**
      * Find by ID with explicit type casting
      */
@@ -81,7 +81,7 @@ class ExampleRepository {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow('''
                 SELECT col1, col2, col3
-                FROM table_name 
+                FROM table_name
                 WHERE id = :id
             ''', [id: id])
         }
@@ -142,16 +142,19 @@ DatabaseUtil.metaClass.static.withSql = { Closure closure ->
 ## Key Implementation Standards
 
 ### Hierarchical Filtering
+
 - **CRITICAL**: Use instance IDs (e.g., `pli_id`, `sqi_id`, `phi_id`) for filtering, NOT master IDs
 - Support multiple filter combinations for progressive refinement
 - Include ALL database fields referenced in result mapping
 
 ### Error Handling
+
 - SQL state mappings: 23503→400 (foreign key), 23505→409 (unique constraint)
 - Robust existence checks for all operations
 - Clear, actionable error messages
 
 ### Comment System (StepsApi Enhancement)
+
 - Comprehensive comment CRUD operations in StepRepository
 - User ownership validation for update/delete operations
 - Enhanced error messages for comment endpoints
