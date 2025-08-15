@@ -2,8 +2,10 @@
 
 This folder contains the OpenAPI 3.0 specification for the UMIG V2 REST API (version 2.1.1). This new API version supersedes the previous V1 API.
 
-## Latest Updates (August 14, 2025 - Version 2.1.1)
+## Latest Updates (August 15, 2025 - Version 2.1.2)
 
+- **US-028 Enhanced IterationView Phase 1**: Complete integration with StepsAPIv2Client, real-time synchronization, and role-based access control
+- **Critical API Endpoint Fix**: Resolved configuration issue from /api/v2/steps to /steps for proper integration
 - **US-024 StepsAPI Enhancements**: Improved comments endpoint error messages with helpful guidance
 - **Enhanced Postman Collection**: Updated generation script with comprehensive authentication and variables
 - **OpenAPI Specification**: Updated error schemas and endpoint documentation
