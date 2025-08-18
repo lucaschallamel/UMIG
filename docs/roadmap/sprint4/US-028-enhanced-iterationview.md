@@ -22,6 +22,7 @@
 ### Critical Context
 
 **IterationView is an OPERATIONAL INTERFACE for LIVE MIGRATION EXECUTION**
+
 - NOT an admin tool for data management (that's Admin GUI)
 - NOT a strategic dashboard (that's US-033)
 - IS the primary tool for Pilots and Teams during migration events
@@ -31,6 +32,7 @@
 ## Target Users & Capabilities
 
 ### 🎯 **PILOTS** (Primary Users)
+
 - Update step status in real-time
 - Reorder steps within phases based on conditions
 - Reorder phases within sequences for optimization
@@ -39,6 +41,7 @@
 - Bulk operations for efficiency
 
 ### 👥 **TEAM MEMBERS** (Execution Users)
+
 - Update their assigned step status
 - Check off completed instructions
 - Add comments and updates
@@ -47,6 +50,7 @@
 - Report blockers and issues
 
 ### 🔍 **ALL USERS** (Stakeholders)
+
 - View real-time progress
 - Add comments for collaboration
 - Subscribe to notifications
@@ -115,15 +119,18 @@
 ## Implementation Files
 
 ### Existing Files to Enhance
+
 - **Macro**: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
 - **JavaScript**: `src/groovy/umig/web/js/iteration-view.js`
 - **CSS**: `src/groovy/umig/web/css/iteration-view.css`
 
 ### API Integration Points
+
 - **Primary**: `src/groovy/umig/api/v2/StepsApi.groovy` (refactored in US-024)
 - **Supporting**: Teams, Labels, Instructions, Comments APIs
 
 ### Testing
+
 - **Integration**: `src/groovy/umig/tests/integration/IterationViewIntegrationTest.groovy`
 - **Performance**: Load testing with 50 concurrent users
 
@@ -132,6 +139,7 @@
 ## Technical Implementation
 
 ### Role-Based Access Control (Existing)
+
 ```javascript
 // Current RBAC implementation
 this.userRole = this.userContext.role || "NORMAL";
@@ -144,11 +152,12 @@ ADMIN:   All PILOT + User management, Advanced operations
 ```
 
 ### API Integration Pattern
+
 ```javascript
 // Leverage refactored StepsAPI
 const StepsAPIv2 = {
     baseUrl: '/rest/scriptrunner/latest/custom/api/v2/steps',
-    
+
     // Optimized endpoints from US-024
     fetchSteps: async (filters, pagination) => {...},
     updateStatus: async (stepId, status, userRole) => {...},
@@ -158,18 +167,19 @@ const StepsAPIv2 = {
 ```
 
 ### Real-time Synchronization
+
 ```javascript
 // Polling for live updates
 const RealTimeSync = {
-    pollInterval: 2000,
-    
-    checkForUpdates: async function() {
-        const updates = await StepsAPIv2.fetchUpdates(this.lastSync);
-        if (updates.hasChanges) {
-            this.applyUpdates(updates);
-            this.notifyUsers(updates.critical);
-        }
+  pollInterval: 2000,
+
+  checkForUpdates: async function () {
+    const updates = await StepsAPIv2.fetchUpdates(this.lastSync);
+    if (updates.hasChanges) {
+      this.applyUpdates(updates);
+      this.notifyUsers(updates.critical);
     }
+  },
 };
 ```
 
@@ -178,18 +188,21 @@ const RealTimeSync = {
 ## Performance Requirements
 
 ### Response Times
+
 - Initial load: <3s for 1000 steps
 - Status update: <1s round-trip
 - Filter application: <500ms
 - Real-time sync: 2s polling interval
 
 ### Concurrent Usage
+
 - Support 50 concurrent users
 - Handle 10 updates/second
 - Maintain consistency across sessions
 - Graceful degradation under load
 
 ### Mobile Performance
+
 - Load time: <5s on 3G
 - Touch response: <100ms
 - Offline queue: 100 operations
@@ -199,19 +212,20 @@ const RealTimeSync = {
 
 ## Risk Mitigation
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Concurrent updates | HIGH | Optimistic locking, conflict UI |
-| Mobile connectivity | HIGH | Offline mode with sync queue |
-| Performance degradation | MEDIUM | Progressive loading, caching |
-| User adoption | MEDIUM | In-app tutorials, tooltips |
-| Data inconsistency | HIGH | Transaction support, audit log |
+| Risk                    | Impact | Mitigation                      |
+| ----------------------- | ------ | ------------------------------- |
+| Concurrent updates      | HIGH   | Optimistic locking, conflict UI |
+| Mobile connectivity     | HIGH   | Offline mode with sync queue    |
+| Performance degradation | MEDIUM | Progressive loading, caching    |
+| User adoption           | MEDIUM | In-app tutorials, tooltips      |
+| Data inconsistency      | HIGH   | Transaction support, audit log  |
 
 ---
 
 ## Definition of Done
 
 ### Functional Requirements
+
 - [ ] StepsAPI integration complete
 - [ ] Real-time updates functional
 - [ ] Pilot reordering capabilities working
@@ -220,6 +234,7 @@ const RealTimeSync = {
 - [ ] Performance targets achieved
 
 ### Quality Requirements
+
 - [ ] 90% test coverage for new code
 - [ ] Load tested with 50 concurrent users
 - [ ] Mobile tested on iOS/Android
@@ -227,6 +242,7 @@ const RealTimeSync = {
 - [ ] Security review passed
 
 ### Operational Requirements
+
 - [ ] RBAC properly enforced
 - [ ] Audit trail functional
 - [ ] Error handling comprehensive
@@ -238,24 +254,28 @@ const RealTimeSync = {
 ## Implementation Phases
 
 ### Phase 1: Core Integration (Week 1)
+
 - StepsAPI v2 integration
 - Advanced filtering implementation
 - Performance optimization
 - Real-time status updates
 
 ### Phase 2: Collaboration Features (Week 2)
+
 - Dynamic reordering for Pilots
 - Instruction completion tracking
 - Comment system with @mentions
 - Activity feed and notifications
 
 ### Phase 3: Advanced Features (Week 3)
+
 - Operational KPI dashboard
 - Mobile-responsive design
 - Offline capability
 - Export functionality
 
 ### Week 3.5: Testing & Polish
+
 - User acceptance testing
 - Performance validation
 - Bug fixes and refinements
@@ -266,12 +286,14 @@ const RealTimeSync = {
 ## Success Metrics
 
 ### Business Impact
+
 - 40% reduction in coordination overhead
 - 60% faster incident response
 - 90% user adoption within first week
 - Zero data loss during migrations
 
 ### Technical Achievement
+
 - <3s load time achieved
 - 50 concurrent users supported
 - 99.9% uptime during migrations
@@ -282,6 +304,6 @@ const RealTimeSync = {
 **Story Owner**: Development Team  
 **Primary Stakeholders**: Migration Pilots, Execution Teams  
 **Business Sponsor**: Operations Manager  
-**Review Date**: Daily during Sprint 4  
+**Review Date**: Daily during Sprint 4
 
 **Success Vision**: Transform IterationView into a real-time operational command center that empowers Pilots to coordinate complex migrations efficiently while enabling teams to execute with clarity and confidence.

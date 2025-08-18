@@ -101,7 +101,7 @@ This story ensures UAT readiness by completing comprehensive API documentation w
 ### Individual API Documentation ✅ COMPLETED
 
 - [x] ✅ Complete StepsAPI documentation
-- [x] ✅ Complete MigrationsAPI documentation  
+- [x] ✅ Complete MigrationsAPI documentation
 - [x] ✅ Complete all 15+ API documentation files
 - [x] ✅ Document dashboard endpoints
 - [x] ✅ Include basic performance characteristics

@@ -37,8 +37,9 @@
 
 **Pattern**: `https://confluence-host/[resource]`  
 **Examples**:
+
 - `/steps` - Steps API
-- `/teams` - Teams API  
+- `/teams` - Teams API
 - `/migrations` - Migrations API
 - `/phases` - Phases API
 
@@ -126,6 +127,7 @@
 ### Endpoint Pattern Verification
 
 **New API Development**:
+
 1. Implement endpoint first
 2. Test connectivity manually
 3. Document actual working pattern
@@ -133,6 +135,7 @@
 5. Include automated connectivity tests
 
 **API Consumption**:
+
 1. Verify endpoint pattern with working examples
 2. Test connectivity in development environment
 3. Don't assume standard REST patterns apply
@@ -141,12 +144,14 @@
 ### Documentation Accuracy
 
 **Specification Creation**:
+
 1. Test endpoints before documenting
 2. Verify patterns match ScriptRunner conventions
 3. Include working code examples
 4. Cross-reference with existing working APIs
 
 **Maintenance**:
+
 1. Regular verification of documented endpoints
 2. Update docs when implementation changes
 3. Maintain ScriptRunner pattern documentation
@@ -181,7 +186,7 @@
 
 - [ ] Implement endpoint in ScriptRunner
 - [ ] Test connectivity with curl/Postman
-- [ ] Verify pattern matches `/[resource]` convention  
+- [ ] Verify pattern matches `/[resource]` convention
 - [ ] Update OpenAPI spec with actual working URLs
 - [ ] Include connectivity test in test suite
 - [ ] Document any platform-specific patterns

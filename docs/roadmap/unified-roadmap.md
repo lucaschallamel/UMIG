@@ -216,6 +216,7 @@ Transform UMIG into a comprehensive execution management system for migration st
 #### Sprint 5 Scope (31 points):
 
 **Primary MVP Completion (14 points):**
+
 - US-031: Admin GUI Complete Integration (8 points) - Administrative interface integration
 - US-028: Enhanced IterationView with New APIs (3 points) - Operational interface enhancement
 - US-022: Integration Test Suite Expansion (1 point) - Quality assurance (85-90% complete)
@@ -223,6 +224,7 @@ Transform UMIG into a comprehensive execution management system for migration st
 - US-029: Planning Feature HTML Export (1 point) - Planning deliverable generation
 
 **Deferred Stories from Sprint 4 (13 points):**
+
 - US-033: Main Dashboard UI (8 points) - Strategic overview dashboard (blocked by US-025)
 - US-034: Data Import Strategy (5 points) - Production data import capabilities
 
