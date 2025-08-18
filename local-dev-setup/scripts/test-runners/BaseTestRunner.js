@@ -35,7 +35,20 @@ export class BaseTestRunner {
     };
 
     this.projectRoot = this.findProjectRoot();
-    this.testDir = path.join(this.projectRoot, "src/groovy/umig/tests");
+    
+    // Centralized path configuration (PR #41 feedback - addressing hard-coded paths)
+    this.paths = {
+      projectRoot: this.projectRoot,
+      testDir: process.env.TEST_DIR || path.join(this.projectRoot, "src/groovy/umig/tests"),
+      envFile: process.env.ENV_FILE_PATH || path.join(this.projectRoot, "local-dev-setup", ".env"),
+      sourceDir: path.join(this.projectRoot, "src/groovy"),
+      umigDir: path.join(this.projectRoot, "src"),
+      tempDir: process.env.TEMP_DIR || "/tmp/umig-integration-classes",
+      jdbcDriver: null, // Set dynamically in findJDBCDriverPath()
+    };
+    
+    // Backward compatibility
+    this.testDir = this.paths.testDir;
     this.startTime = null;
 
     // Color setup
@@ -92,15 +105,32 @@ export class BaseTestRunner {
     const groovyArgs = this.buildGroovyArgs(fullPath, options);
 
     try {
+      // Execute from project root so relative paths work correctly
+      // This ensures the .env file can be found in local-dev-setup/
       const result = await execa("groovy", groovyArgs, {
         timeout: this.options.timeout,
         cwd: this.projectRoot,
-        stdio: this.options.verbose ? "inherit" : "pipe",
+        stdio: "pipe", // Always pipe to capture output
+        env: {
+          ...process.env,
+          // Ensure the working directory is passed for .env file discovery
+          PROJECT_ROOT: this.projectRoot,
+        },
+        reject: false, // Don't throw on non-zero exit codes, handle them manually
       });
 
-      this.logTestResult(testName, "PASSED", result.stdout);
-      this.results.passed++;
-      return { success: true, output: result.stdout, stderr: result.stderr };
+      // Check exit code to determine success
+      if (result.exitCode === 0) {
+        this.logTestResult(testName, "PASSED", result.stdout);
+        this.results.passed++;
+        return { success: true, output: result.stdout, stderr: result.stderr };
+      } else {
+        // Test failed with non-zero exit code
+        this.logTestResult(testName, "FAILED", result.stderr || result.stdout);
+        this.results.failed++;
+        this.results.failedTests.push(testName);
+        return { success: false, error: result.stderr || result.stdout, exitCode: result.exitCode };
+      }
     } catch (error) {
       this.logTestResult(testName, "FAILED", error.message);
       this.results.failed++;
@@ -125,19 +155,31 @@ export class BaseTestRunner {
     // Build classpath with JDBC driver and source
     const jdbcDriverPath = this.findJDBCDriverPath();
     const sourcePath = path.join(this.projectRoot, "src/groovy");
+    
+    // For integration tests, also add the umig directory structure to classpath
+    // This allows Groovy to find compiled classes like AuthenticationHelper
+    const umigPath = path.join(this.projectRoot, "src");
 
-    if (jdbcDriverPath) {
-      args.push("-cp", `${jdbcDriverPath}:${sourcePath}`);
-    } else {
-      args.push("-cp", sourcePath);
-      if (this.options.verbose) {
-        console.log(
-          this.colors.warning(
-            "⚠️  PostgreSQL JDBC driver not found, using @Grab fallback",
-          ),
-        );
-      }
+    // IMPORTANT: Use both src and src/groovy as classpath so package resolution works
+    // This allows Groovy to find classes like umig.tests.integration.AuthenticationHelper
+    let classpath = `${sourcePath}:${umigPath}`;
+    
+    // Add any pre-compiled classes from GROOVY_CLASSPATH
+    if (process.env.GROOVY_CLASSPATH) {
+      classpath = `${process.env.GROOVY_CLASSPATH}:${classpath}`;
     }
+    
+    if (jdbcDriverPath) {
+      classpath = `${classpath}:${jdbcDriverPath}`;
+    } else if (this.options.verbose) {
+      console.log(
+        this.colors.warning(
+          "⚠️  PostgreSQL JDBC driver not found, using @Grab fallback",
+        ),
+      );
+    }
+    
+    args.push("-cp", classpath);
 
     // Add the test file
     args.push(testFile);
