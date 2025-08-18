@@ -3,11 +3,11 @@
 **Sprint**: Sprint 4 - API Modernization & Admin GUI  
 **Branch**: `sprint-004-api-modernization-admin-gui`  
 **Duration**: August 7-13, 2025 (5 working days) - EXTENDED through August 14, 2025  
-**Total Points**: 29 (16 completed, 13 remaining) - Revised scope based on existing work
+**Total Points**: 27 (17 completed, 10 remaining) - Adjusted after US-028 split
 
 ## Sprint Status
 
-### ✅ Completed Stories (16 points)
+### ✅ Completed Stories (17 points)
 
 - **US-017**: Status Field Normalization (5 points) ✅ COMPLETED August 7, 2025
 - **US-032**: Confluence Upgrade to v9.2.7 & ScriptRunner 9.21.0 (3 points) ✅ COMPLETED August 8, 2025
@@ -16,10 +16,9 @@
   - **Phase 1**: Repository Layer Enhancement ✅ COMPLETED
   - **Phase 2**: API Layer Refactoring ✅ COMPLETED
   - **Phase 3**: Testing & Validation ✅ COMPLETED
-
-### 🚧 In Progress Stories (2 points)
-
-- **US-028**: Enhanced IterationView with New APIs (2 points remaining) - ✅ Phase 1 COMPLETE
+- **US-028**: Enhanced IterationView Phase 1 (1 point) ✅ COMPLETED August 15, 2025
+  - Core operational interface delivered
+  - Remaining phases moved to US-035 in backlog
 
 ### 📋 Remaining Stories (10 points)
 
@@ -63,14 +62,13 @@
 
 ## Sprint Progress Summary
 
-**Progress**: 17/29 points completed (58.6%)  
-**Breakdown**: 16 points completed (4 full stories) + 1 point (US-028 Phase 1)  
-**Completed**: 4 stories (US-017, US-032, US-025, US-024) + US-028 Phase 1  
-**In Progress**: 1 story (US-028 Phases 2-3)  
-**Remaining**: 3 stories (12 points remaining)  
+**Progress**: 17/27 points completed (63.0%)  
+**Breakdown**: 5 stories fully completed = 17 points total  
+**Completed**: US-017 (5), US-032 (3), US-025 (3), US-024 (5), US-028 Phase 1 (1)  
+**Remaining**: 3 stories (10 points remaining)  
 **Current Day**: Day 7 (August 15, 2025) - EXTENDED SPRINT  
-**Remaining Points**: 12 points  
-**Status**: 🎯 STRONG MOMENTUM - Phase 1 completion demonstrates Sprint 4 acceleration
+**Remaining Points**: 10 points  
+**Status**: 🎯 SPRINT CLOSING - 63% complete with US-028 successfully split
 
 ---
 
@@ -134,14 +132,14 @@
 **Priority**: HIGH  
 **Description**: Complete Admin GUI integration with all entities and Sprint 3 APIs
 
-### US-028: Enhanced IterationView with New APIs
+### US-028: Enhanced IterationView Phase 1 ✅
 
-**Points**: 3 (1 completed, 2 remaining)  
+**Points**: 1 (DELIVERED)  
 **Priority**: MEDIUM  
-**Status**: ✅ Phase 1 COMPLETE (August 15, 2025)  
-**Description**: Enhance IterationView to use refactored StepsAPI with improved performance
+**Status**: ✅ COMPLETE (August 15, 2025)  
+**Description**: Core operational interface with StepsAPI integration
 
-**Phase 1 Completion**: ✅ DELIVERED (1 point)
+**Delivered Features**:
 - ✅ StepsAPI Integration & Advanced Filtering
 - ✅ Status Management & Real-time Updates
 - ✅ **CRITICAL FIX**: API endpoint corrected from `/api/v2/steps` to `/steps`
@@ -150,9 +148,7 @@
 - ✅ Security: 9/10 - comprehensive XSS prevention, RBAC implemented
 - ✅ Performance: 9/10 - excellent caching, real-time optimization
 
-**Remaining Phases** (2 points):
-- Phase 2: Collaboration & Dynamic Adjustments
-- Phase 3: Advanced Dashboard & Mobile Operations
+**Note**: Remaining phases (2 points) moved to US-035 in backlog for Sprint 5
 
 ### US-022: Integration Test Suite Expansion
 
