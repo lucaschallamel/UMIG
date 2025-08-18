@@ -1,11 +1,11 @@
-# US-028: Main Dashboard UI Implementation
+# US-033: Main Dashboard UI Implementation
 
 ## Overview
 
 **Epic**: User Experience Enhancement  
-**Priority**: CRITICAL  
-**Sprint**: 4  
-**Status**: ⚠️ Critical Path - Blocked by US-025  
+**Priority**: HIGH (Secondary to US-028)  
+**Sprint**: 4-5 (Conditional on US-025 completion)  
+**Status**: ⚠️ Blocked by US-025  
 **Effort**: 8 story points  
 **Dependencies**: US-025 (dashboard API endpoints required)  
 **Risk**: HIGH (UI complexity, performance concerns)
