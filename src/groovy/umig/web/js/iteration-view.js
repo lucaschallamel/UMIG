@@ -13,8 +13,10 @@ class StepsAPIv2Client {
     this.baseUrl = '/rest/scriptrunner/latest/custom';
     this.endpoint = '/steps';
     this.cache = new Map();
+    this.maxCacheSize = 100; // Maximum cache entries for memory management
     this.cacheTimeout = 30000; // 30 seconds
     this.requestQueue = new Map();
+    this.activeTimeouts = new Set(); // Track active timeouts for cleanup
     this.retryConfig = {
       maxRetries: 3,
       baseDelay: 1000,
@@ -26,6 +28,10 @@ class StepsAPIv2Client {
    * Fetch steps with intelligent caching and performance optimization
    */
   async fetchSteps(filters = {}, options = {}) {
+    // Validate input parameters
+    this._validateFilters(filters);
+    this._validateOptions(options);
+    
     const cacheKey = this._generateCacheKey('steps', filters, options);
     
     // Check cache first
@@ -76,6 +82,9 @@ class StepsAPIv2Client {
       data: data,
       timestamp: Date.now()
     });
+    
+    // Evict old cache entries if we exceed max size
+    this._evictOldestCache();
 
     return data;
   }
@@ -186,7 +195,13 @@ class StepsAPIv2Client {
         );
         
         console.log(`StepsAPIv2: Retry attempt ${attempt} after ${delay}ms`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise(resolve => {
+          const timeoutId = setTimeout(() => {
+            this.activeTimeouts.delete(timeoutId);
+            resolve();
+          }, delay);
+          this.activeTimeouts.add(timeoutId);
+        });
         return this._retryRequest(url, attempt + 1);
       }
       
@@ -208,6 +223,113 @@ class StepsAPIv2Client {
   clearCache() {
     this.cache.clear();
     console.log('StepsAPIv2: Cache cleared');
+  }
+
+  /**
+   * Evict oldest cache entries when max size is exceeded (LRU implementation)
+   */
+  _evictOldestCache() {
+    if (this.cache.size > this.maxCacheSize) {
+      const firstKey = this.cache.keys().next().value;
+      this.cache.delete(firstKey);
+      console.log('StepsAPIv2: Evicted oldest cache entry:', firstKey);
+    }
+  }
+
+  /**
+   * Validate filters parameter
+   */
+  _validateFilters(filters) {
+    if (!filters || typeof filters !== 'object') {
+      throw new Error('Filters must be an object');
+    }
+
+    const validFilters = ['migrationId', 'iterationId', 'teamId', 'status', 'phaseId', 'sequenceId'];
+    for (const key of Object.keys(filters)) {
+      if (!validFilters.includes(key)) {
+        throw new Error(`Invalid filter: ${key}. Valid filters: ${validFilters.join(', ')}`);
+      }
+    }
+    
+    // Validate UUID formats for ID fields
+    if (filters.migrationId && !this._isValidUUID(filters.migrationId)) {
+      throw new Error('Invalid migrationId format - must be a valid UUID');
+    }
+    if (filters.iterationId && !this._isValidUUID(filters.iterationId)) {
+      throw new Error('Invalid iterationId format - must be a valid UUID');
+    }
+    if (filters.phaseId && !this._isValidUUID(filters.phaseId)) {
+      throw new Error('Invalid phaseId format - must be a valid UUID');
+    }
+    if (filters.sequenceId && !this._isValidUUID(filters.sequenceId)) {
+      throw new Error('Invalid sequenceId format - must be a valid UUID');
+    }
+
+    // Validate teamId is a number
+    if (filters.teamId && !Number.isInteger(Number(filters.teamId))) {
+      throw new Error('teamId must be a valid integer');
+    }
+
+    // Validate status values
+    if (filters.status && !['PENDING', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED', 'FAILED'].includes(filters.status)) {
+      throw new Error('Invalid status value. Must be one of: PENDING, IN_PROGRESS, COMPLETED, SKIPPED, FAILED');
+    }
+  }
+
+  /**
+   * Validate options parameter
+   */
+  _validateOptions(options) {
+    if (!options || typeof options !== 'object') {
+      throw new Error('Options must be an object');
+    }
+
+    // Validate pagination options
+    if (options.page && (!Number.isInteger(Number(options.page)) || Number(options.page) < 1)) {
+      throw new Error('page must be a positive integer');
+    }
+    if (options.size && (!Number.isInteger(Number(options.size)) || Number(options.size) < 1 || Number(options.size) > 1000)) {
+      throw new Error('size must be a positive integer between 1 and 1000');
+    }
+
+    // Validate sort options
+    if (options.sort) {
+      const validSortFields = ['stepOrder', 'name', 'status', 'estimatedDuration', 'createdDate', 'lastModified', 
+                              'sequence_number', 'phase_number', 'step_number'];
+      const sortParts = options.sort.split(',');
+      for (const sortPart of sortParts) {
+        const [field, direction] = sortPart.trim().split(':');
+        if (!validSortFields.includes(field)) {
+          throw new Error(`Invalid sort field: ${field}. Valid fields: ${validSortFields.join(', ')}`);
+        }
+        if (direction && !['asc', 'desc'].includes(direction.toLowerCase())) {
+          throw new Error(`Invalid sort direction: ${direction}. Must be 'asc' or 'desc'`);
+        }
+      }
+    }
+  }
+
+  /**
+   * Validate UUID format
+   */
+  _isValidUUID(uuid) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
+  }
+
+  /**
+   * Cleanup method to clear all active timeouts and caches
+   */
+  cleanup() {
+    // Clear all active timeouts
+    this.activeTimeouts.forEach(id => clearTimeout(id));
+    this.activeTimeouts.clear();
+    
+    // Clear request queue and cache
+    this.requestQueue.clear();
+    this.cache.clear();
+    
+    console.log('StepsAPIv2: Cleanup completed - cleared timeouts, request queue, and cache');
   }
 }
 
@@ -317,7 +439,11 @@ class RealTimeSync {
         
         // Add visual indicator for recent change
         stepRow.classList.add('recently-updated');
-        setTimeout(() => stepRow.classList.remove('recently-updated'), 5000);
+        const timeoutId = setTimeout(() => {
+          this.iterationView.activeTimeouts.delete(timeoutId);
+          stepRow.classList.remove('recently-updated');
+        }, 5000);
+        this.iterationView.activeTimeouts.add(timeoutId);
       }
     }
   }
@@ -331,7 +457,11 @@ class RealTimeSync {
         
         // Add visual indicator
         stepRow.classList.add('recently-updated');
-        setTimeout(() => stepRow.classList.remove('recently-updated'), 5000);
+        const timeoutId = setTimeout(() => {
+          this.iterationView.activeTimeouts.delete(timeoutId);
+          stepRow.classList.remove('recently-updated');
+        }, 5000);
+        this.iterationView.activeTimeouts.add(timeoutId);
       }
     }
   }
@@ -423,6 +553,7 @@ class IterationView {
     this.userRole = null;
     this.isAdmin = false;
     this.userContext = null;
+    this.activeTimeouts = new Set(); // Track active timeouts for cleanup
     this.config = window.UMIG_ITERATION_CONFIG || {
       api: { baseUrl: "/rest/scriptrunner/latest/custom" },
     };
@@ -1039,7 +1170,8 @@ class IterationView {
       this.renderStepDetails(stepData);
     } catch (error) {
       // Use setTimeout to avoid conflicts with Confluence's MutationObserver
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
+        this.activeTimeouts.delete(timeoutId);
         try {
           stepDetailsContent.innerHTML = `
                         <div class="error-message">
@@ -1051,6 +1183,7 @@ class IterationView {
           console.warn("Failed to render step details error:", domError);
         }
       }, 10);
+      this.activeTimeouts.add(timeoutId);
     }
   }
 
@@ -1298,11 +1431,13 @@ class IterationView {
     });
 
     // Auto-remove after 10 seconds
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      this.activeTimeouts.delete(timeoutId);
       if (retryNotification.parentNode) {
         retryNotification.remove();
       }
     }, 10000);
+    this.activeTimeouts.add(timeoutId);
   }
 
   /**
@@ -1447,13 +1582,15 @@ class IterationView {
     if (!stepDetailsContent) return;
 
     // Use setTimeout to avoid conflicts with Confluence's MutationObserver
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      this.activeTimeouts.delete(timeoutId);
       try {
         this.doRenderStepDetails(stepData, stepDetailsContent);
       } catch (error) {
         console.warn("Failed to render step details:", error);
       }
     }, 10);
+    this.activeTimeouts.add(timeoutId);
   }
 
   doRenderStepDetails(stepData, stepDetailsContent) {
@@ -2045,7 +2182,8 @@ class IterationView {
     });
 
     // Use setTimeout to avoid conflicts with Confluence's MutationObserver
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      this.activeTimeouts.delete(timeoutId);
       try {
         runsheetContent.innerHTML = html;
 
@@ -2058,6 +2196,7 @@ class IterationView {
         console.warn("Failed to render runsheet:", error);
       }
     }, 10);
+    this.activeTimeouts.add(timeoutId);
   }
 
   /**
@@ -2354,7 +2493,8 @@ class IterationView {
     };
 
     // Use setTimeout to avoid conflicts with Confluence's MutationObserver
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      this.activeTimeouts.delete(timeoutId);
       Object.entries(elements).forEach(([id, count]) => {
         try {
           const element = document.getElementById(id);
@@ -2366,6 +2506,7 @@ class IterationView {
         }
       });
     }, 10);
+    this.activeTimeouts.add(timeoutId);
   }
 
   /**
@@ -2895,10 +3036,12 @@ class IterationView {
     document.body.appendChild(notification);
 
     // Remove after 3 seconds
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      this.activeTimeouts.delete(timeoutId);
       notification.remove();
       style.remove();
     }, 3000);
+    this.activeTimeouts.add(timeoutId);
   }
 
   updateFilters() {
@@ -2956,6 +3099,27 @@ class IterationView {
       console.error("loadStepsAndSelectFirst: Error:", error);
       this.showBlankRunsheetState();
     }
+  }
+
+  /**
+   * Cleanup method to clear all active timeouts and prevent memory leaks
+   */
+  cleanup() {
+    // Clear all active timeouts
+    this.activeTimeouts.forEach(id => clearTimeout(id));
+    this.activeTimeouts.clear();
+    
+    // Clean up real-time sync if it exists
+    if (this.realTimeSync) {
+      this.realTimeSync.stopPolling();
+    }
+    
+    // Clean up API client if it exists
+    if (this.stepsApi && typeof this.stepsApi.cleanup === 'function') {
+      this.stepsApi.cleanup();
+    }
+    
+    console.log('IterationView: Cleanup completed - cleared all timeouts and references');
   }
 }
 
