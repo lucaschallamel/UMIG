@@ -9,8 +9,8 @@
 **Sprint Duration**: 5 working days (Aug 18-22, 2025) - Mon/Tue/Wed/Thu/Fri  
 **Team Velocity**: 5 points/day (adjusted target)  
 **Capacity**: 25 points (5 days × 5 points/day)  
-**Planned**: 19 points (76% capacity utilization)  
-**Buffer**: 6 points (24% - quality assurance and UAT preparation)
+**Planned**: 23 points (92% capacity utilization)  
+**Buffer**: 2 points (8% - quality assurance and UAT preparation)
 
 ### Success Metrics
 
@@ -20,10 +20,11 @@
 - ✅ UAT environment fully prepared
 - ✅ Zero critical defects
 - ✅ Performance targets met (<3s load times)
+- ✅ Integration testing framework standardized and technical debt reduced
 
 ---
 
-## Story Breakdown (Priority Order)
+## Story Breakdown (Priority Order) - 8 Stories Total
 
 ### 🚀 US-022: Integration Test Expansion
 
@@ -495,6 +496,94 @@
 
 ---
 
+### 🧪 US-037: Integration Testing Framework Standardization
+
+**Priority**: P3 (Technical Debt)  
+**Effort**: 5 points  
+**Status**: 0% (technical debt from Sprint 6)  
+**Owner**: QA/Development  
+**Timeline**: Day 5 tail end (Aug 22)  
+**Risk**: LOW (leveraging existing test infrastructure foundation)
+
+#### User Story
+
+**As a** development team member  
+**I want** a standardized integration testing framework  
+**So that** I can maintain consistent test quality and reduce technical debt across all API endpoints
+
+#### Acceptance Criteria
+
+1. ✅ **AC-037.1**: **Authentication Pattern Standardization**
+   - Standardize authentication utilities across all integration tests
+   - Create shared authentication service for consistent token management
+   - Implement role-based test patterns (NORMAL/PILOT/ADMIN users)
+   - Centralize authentication error handling and retry mechanisms
+
+2. ✅ **AC-037.2**: **Error Handling and Reporting Consistency**
+   - Implement consistent error assertion patterns across all test suites
+   - Create standardized error message validation utilities
+   - Add comprehensive HTTP status code validation framework
+   - Establish consistent timeout and retry handling patterns
+
+3. ✅ **AC-037.3**: **Performance Benchmarking Integration**
+   - Add performance monitoring capabilities to all integration tests
+   - Implement response time assertion framework (<500ms target)
+   - Create performance regression detection capabilities
+   - Add memory usage monitoring for large dataset operations
+
+4. ✅ **AC-037.4**: **Comprehensive Test Documentation**
+   - Document standardized testing patterns and utilities
+   - Create integration test best practices guide
+   - Update test execution procedures for CI/CD integration
+   - Document performance benchmarking standards
+
+5. ✅ **AC-037.5**: **CI/CD Integration Standards**
+   - Establish consistent test execution patterns for CI/CD pipeline
+   - Implement automated test report generation
+   - Add test coverage reporting integration
+   - Create automated test maintenance procedures
+
+6. ✅ **AC-037.6**: **Automated Test Maintenance Framework**
+   - Implement automated test data cleanup procedures
+   - Create test environment reset capabilities
+   - Add automated test dependency validation
+   - Establish test suite health monitoring
+
+#### Technical Requirements
+
+- Refactor existing integration tests in `src/groovy/umig/tests/integration/`
+- Implement shared authentication utilities in test framework
+- Add performance monitoring capabilities to test infrastructure
+- Create test execution automation framework
+- Document testing standards and procedures
+
+#### Dependencies
+
+- ✅ All core API endpoints complete (resolved)
+- ✅ Existing integration test infrastructure (resolved)
+- ✅ US-022 Integration Test Expansion foundation (resolved)
+
+#### Testing Requirements
+
+- Validate refactored tests maintain existing coverage levels
+- Test authentication utilities across all user roles
+- Benchmark performance monitoring accuracy
+- Validate CI/CD integration functionality
+
+#### Definition of Done
+
+- [ ] All integration tests refactored to use standardized patterns
+- [ ] Shared authentication utilities implemented and tested
+- [ ] Performance benchmarking integrated into all relevant tests
+- [ ] Comprehensive test documentation updated
+- [ ] CI/CD integration standards established and validated
+- [ ] Automated test maintenance procedures operational
+- [ ] Zero regression in existing test coverage
+- [ ] Performance monitoring accuracy validated
+- [ ] Technical debt metrics improved by measurable margin
+
+---
+
 ### 🏠 US-033: Main Dashboard UI (REFINED)
 
 **Priority**: P2 (Final MVP Component)  
@@ -637,8 +726,9 @@
 
 - ✅ **Morning**: Complete US-031 (Admin GUI Integration) + US-034 (Data Import) - 2.5 points
 - ✅ **Afternoon**: Complete US-036 (StepView) + US-033 (Main Dashboard UI) + US-035 (if time) - 2.5 points
-- **Deliverables**: All stories complete, UAT environment ready
-- **Sprint Review**: Demonstrate MVP completion
+- ✅ **Tail End**: US-037 (Integration Testing Framework Standardization) - 5 points (technical debt)
+- **Deliverables**: All stories complete, UAT environment ready, technical debt addressed
+- **Sprint Review**: Demonstrate MVP completion and testing framework improvements
 - **Sprint Retrospective**: Capture lessons learned
 
 ---
@@ -686,6 +776,11 @@
    - **Mitigation**: Continuous test execution, coverage monitoring
    - **Contingency**: Focused testing on critical paths
 
+3. **Integration Testing Framework Standardization** (US-037)
+   - **Risk**: Refactoring may introduce test regressions
+   - **Mitigation**: Leveraging existing test infrastructure, incremental refactoring
+   - **Contingency**: Focus on high-impact standardization patterns first
+
 ---
 
 ## Team Assignments
@@ -704,6 +799,7 @@
 ### QA/Testing Team
 
 - **Primary**: US-022 (Integration Test Expansion)
+- **Secondary**: US-037 (Integration Testing Framework Standardization)
 - **Continuous**: Testing support for all stories
 - **Final**: UAT preparation and validation
 
@@ -762,12 +858,13 @@
 
 ### Must Have (MVP Blockers)
 
-- ✅ All 7 user stories complete and tested
+- ✅ All 8 user stories complete and tested
 - ✅ UAT environment fully functional
 - ✅ Zero critical defects
 - ✅ Performance targets achieved (<3s load times)
 - ✅ API documentation 100% complete
 - ✅ Integration test coverage >95%
+- ✅ Testing framework standardization complete
 
 ### Should Have (Quality Targets)
 
@@ -786,7 +883,7 @@
 
 ### Sprint Success Definition
 
-**MVP Ready**: All core functionality complete, tested, and ready for production deployment with zero critical defects and full UAT readiness.
+**MVP Ready**: All core functionality complete, tested, and ready for production deployment with zero critical defects, full UAT readiness, and standardized testing framework reducing technical debt.
 
 ---
 

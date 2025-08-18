@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# ========================================================================
+# ⚠️  DEPRECATION WARNING ⚠️
+# ========================================================================
+# This shell script is DEPRECATED and will be removed in Sprint 6.
+# 
+# MIGRATION: Use NPM command instead:
+#   npm run test:unit
+#
+# Migration Date: August 28, 2025
+# Reason: Shell scripts have been migrated to JavaScript NPM runners 
+#         for better cross-platform compatibility and maintainability.
+# ========================================================================
+
+echo "⚠️  WARNING: This script is deprecated. Use 'npm run test:unit' instead."
+echo "   Migration deadline: August 28, 2025"
+echo "   This script will be removed in Sprint 6."
+echo ""
+
 # This script runs all unit tests for the UMIG project.
 # It should be executed from the root of the project directory.
 

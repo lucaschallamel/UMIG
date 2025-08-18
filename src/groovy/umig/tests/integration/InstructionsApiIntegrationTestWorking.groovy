@@ -3,6 +3,11 @@
 @GrabConfig(systemClassLoader=true)
 @Grab('org.postgresql:postgresql:42.7.3')
 @Grab('org.codehaus.groovy:groovy-sql:3.0.15')
+@GrabExclude('xml-apis:xml-apis')
+@GrabExclude('xerces:xercesImpl')
+@GrabExclude('xml-resolver:xml-resolver')
+@GrabExclude('xalan:xalan')
+@GrabExclude('commons-logging:commons-logging')
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 
 import groovy.sql.Sql
