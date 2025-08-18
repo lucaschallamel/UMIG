@@ -1031,7 +1031,7 @@ body {
 }
 
 .step-row.has-new-comment::after {
-  content: '💬';
+  content: "💬";
   position: absolute;
   top: 50%;
   right: 10px;
@@ -1152,7 +1152,7 @@ body {
 }
 
 .connection-status::before {
-  content: '●';
+  content: "●";
   font-size: 12px;
   animation: pulse 2s infinite;
 }
@@ -1209,7 +1209,7 @@ body {
 }
 
 .quick-filter-toggle.active::before {
-  content: '✓ ';
+  content: "✓ ";
   font-weight: 600;
 }
 
@@ -1233,7 +1233,7 @@ body {
 }
 
 .optimistic-update::after {
-  content: '⏳';
+  content: "⏳";
   position: absolute;
   top: 50%;
   right: 10px;
@@ -1243,15 +1243,31 @@ body {
 
 /* Animations */
 @keyframes pulseUpdate {
-  0% { background-color: rgba(0, 135, 90, 0.2); }
-  50% { background-color: rgba(0, 135, 90, 0.4); }
-  100% { background-color: rgba(0, 135, 90, 0.1); }
+  0% {
+    background-color: rgba(0, 135, 90, 0.2);
+  }
+  50% {
+    background-color: rgba(0, 135, 90, 0.4);
+  }
+  100% {
+    background-color: rgba(0, 135, 90, 0.1);
+  }
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(-50%); }
-  40% { transform: translateY(-60%); }
-  60% { transform: translateY(-55%); }
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(-50%);
+  }
+  40% {
+    transform: translateY(-60%);
+  }
+  60% {
+    transform: translateY(-55%);
+  }
 }
 
 @keyframes slideInRight {
@@ -1266,13 +1282,22 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Responsive enhancements for mobile (Phase 3 prep) */
@@ -1280,23 +1305,23 @@ body {
   .step-row.recently-updated {
     border-left: 6px solid var(--color-real-time-update);
   }
-  
+
   .retry-notification {
     right: 10px;
     left: 10px;
     width: auto;
   }
-  
+
   .connection-status {
     bottom: 10px;
     right: 10px;
     font-size: 11px;
   }
-  
+
   .quick-filters {
     gap: 4px;
   }
-  
+
   .quick-filter-toggle {
     padding: 4px 8px;
     font-size: 11px;
@@ -1309,11 +1334,11 @@ body {
     border-left-width: 6px;
     background-color: rgba(0, 135, 90, 0.2) !important;
   }
-  
+
   .connection-status {
     border: 2px solid currentColor;
   }
-  
+
   .performance-indicator {
     border: 2px solid white;
   }
@@ -1328,15 +1353,15 @@ body {
     animation: none;
     transition: none;
   }
-  
+
   .step-row.has-new-comment::after {
     animation: none;
   }
-  
+
   .connection-status::before {
     animation: none;
   }
-  
+
   .loading-spinner {
     animation: none;
     border-top-color: var(--color-primary);

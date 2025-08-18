@@ -91,6 +91,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 ## Technical Requirements
 
 ### Enhanced Architecture
+
 - **Component Extension**: Extend existing IterationView components
 - **Visualization Libraries**: Implement advanced visualization libraries for charts
 - **Export Integration**: Create export service integration
@@ -98,6 +99,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - **Notification Framework**: Implement comprehensive notification framework
 
 ### Dependencies
+
 - ✅ Enhanced IterationView Phase 1 complete (resolved)
 - ✅ StepsAPIv2Client available (resolved)
 - Advanced visualization library integration
@@ -105,6 +107,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - Real-time communication infrastructure
 
 ### Testing Requirements
+
 - **Advanced Feature Testing**: Test complex filtering, grouping, and visualization features
 - **Export Validation**: Validate PDF/Excel export functionality and formatting
 - **Real-time Testing**: Test collaboration features and real-time updates
@@ -129,9 +132,9 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 **Created**: August 18, 2025  
 **Last Updated**: August 18, 2025  
 **Owner**: UMIG Development Team  
-**Review Date**: August 22, 2025 (Sprint Review)  
+**Review Date**: August 22, 2025 (Sprint Review)
 
-*This enhancement story builds upon the successful Enhanced IterationView Phase 1 foundation to provide advanced features for comprehensive migration management and team collaboration.*
+_This enhancement story builds upon the successful Enhanced IterationView Phase 1 foundation to provide advanced features for comprehensive migration management and team collaboration._
 
 **As a Pilot**, I want to **reorder steps and phases dynamically** so that **I can adapt execution plans based on real-time conditions**.
 
@@ -142,8 +145,9 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - [ ] **And** the change is logged in the activity feed with timestamp and user
 
 **Technical Requirements**:
+
 - Drag-and-drop interface using HTML5 drag API
-- Real-time synchronization via StepsAPIv2 
+- Real-time synchronization via StepsAPIv2
 - Optimistic UI updates with rollback on failure
 - Database sequence number updates with transaction safety
 
@@ -158,6 +162,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - [ ] **And** the instruction shows a comment indicator badge
 
 **Technical Requirements**:
+
 - Comment system with @mention parsing and notifications
 - Real-time comment updates via WebSocket or polling
 - User notification system integration
@@ -174,6 +179,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - [ ] **And** I can filter by action type (completion, reorder, comment, etc.)
 
 **Technical Requirements**:
+
 - Event logging system for all user actions
 - Real-time activity stream with efficient polling
 - Filtering and pagination for large activity volumes
@@ -192,6 +198,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - [ ] **And** critical path analysis highlights potential delays
 
 **Technical Requirements**:
+
 - Real-time metrics calculation and caching
 - Chart rendering with Chart.js or similar lightweight library
 - Critical path algorithm implementation
@@ -208,6 +215,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - [ ] **And** performance remains under 3 seconds load time on 3G
 
 **Technical Requirements**:
+
 - Responsive CSS with mobile-first approach
 - Touch gesture support for swipe actions
 - Optimized images and assets for mobile bandwidth
@@ -224,6 +232,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 - [ ] **And** changes sync automatically when connectivity returns
 
 **Technical Requirements**:
+
 - Service Worker for offline functionality
 - Local storage for queued changes
 - Conflict resolution for concurrent updates
@@ -234,6 +243,7 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 ### Architecture Foundation (From US-028 Phase 1)
 
 **Proven Components**:
+
 - ✅ StepsAPIv2Client with intelligent caching
 - ✅ RealTimeSync with 2-second polling optimization
 - ✅ Role-based access control (NORMAL/PILOT/ADMIN)
@@ -247,25 +257,25 @@ This story enhances the proven Enhanced IterationView Phase 1 foundation with ad
 ```javascript
 // Drag-and-drop with optimistic updates
 class DynamicReorderManager {
-    constructor(stepsClient, realTimeSync) {
-        this.stepsClient = stepsClient;
-        this.realTimeSync = realTimeSync;
-        this.setupDragHandlers();
+  constructor(stepsClient, realTimeSync) {
+    this.stepsClient = stepsClient;
+    this.realTimeSync = realTimeSync;
+    this.setupDragHandlers();
+  }
+
+  async reorderStep(stepId, newPosition) {
+    // Optimistic UI update
+    this.updateUIOrder(stepId, newPosition);
+
+    try {
+      await this.stepsClient.updateStepOrder(stepId, newPosition);
+      this.realTimeSync.notifyChange("step_reorder", { stepId, newPosition });
+    } catch (error) {
+      // Rollback on failure
+      this.rollbackUIOrder();
+      throw error;
     }
-    
-    async reorderStep(stepId, newPosition) {
-        // Optimistic UI update
-        this.updateUIOrder(stepId, newPosition);
-        
-        try {
-            await this.stepsClient.updateStepOrder(stepId, newPosition);
-            this.realTimeSync.notifyChange('step_reorder', { stepId, newPosition });
-        } catch (error) {
-            // Rollback on failure
-            this.rollbackUIOrder();
-            throw error;
-        }
-    }
+  }
 }
 ```
 
@@ -274,19 +284,19 @@ class DynamicReorderManager {
 ```javascript
 // Comment and mention system
 class CollaborationManager {
-    async addComment(instructionId, content, mentions) {
-        const comment = await this.stepsClient.addComment({
-            instructionId,
-            content,
-            mentions,
-            timestamp: new Date()
-        });
-        
-        // Send notifications to mentioned users
-        this.notificationService.notifyUsers(mentions, comment);
-        
-        return comment;
-    }
+  async addComment(instructionId, content, mentions) {
+    const comment = await this.stepsClient.addComment({
+      instructionId,
+      content,
+      mentions,
+      timestamp: new Date(),
+    });
+
+    // Send notifications to mentioned users
+    this.notificationService.notifyUsers(mentions, comment);
+
+    return comment;
+  }
 }
 ```
 
@@ -297,25 +307,25 @@ class CollaborationManager {
 ```javascript
 // Real-time KPI calculation
 class MetricsEngine {
-    constructor() {
-        this.cache = new Map();
-        this.refreshInterval = 30000; // 30 seconds
+  constructor() {
+    this.cache = new Map();
+    this.refreshInterval = 30000; // 30 seconds
+  }
+
+  async calculateKPIs(iterationId) {
+    const cached = this.cache.get(iterationId);
+    if (cached && !this.isStale(cached)) {
+      return cached.data;
     }
-    
-    async calculateKPIs(iterationId) {
-        const cached = this.cache.get(iterationId);
-        if (cached && !this.isStale(cached)) {
-            return cached.data;
-        }
-        
-        const metrics = await this.computeMetrics(iterationId);
-        this.cache.set(iterationId, {
-            data: metrics,
-            timestamp: Date.now()
-        });
-        
-        return metrics;
-    }
+
+    const metrics = await this.computeMetrics(iterationId);
+    this.cache.set(iterationId, {
+      data: metrics,
+      timestamp: Date.now(),
+    });
+
+    return metrics;
+  }
 }
 ```
 
@@ -324,20 +334,20 @@ class MetricsEngine {
 ```css
 /* Mobile-first responsive design */
 @media (max-width: 768px) {
-    .iteration-view {
-        padding: 0.5rem;
-        font-size: 0.9rem;
-    }
-    
-    .step-card {
-        margin-bottom: 0.5rem;
-        touch-action: manipulation;
-    }
-    
-    .drag-handle {
-        touch-action: none;
-        -webkit-touch-callout: none;
-    }
+  .iteration-view {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .step-card {
+    margin-bottom: 0.5rem;
+    touch-action: manipulation;
+  }
+
+  .drag-handle {
+    touch-action: none;
+    -webkit-touch-callout: none;
+  }
 }
 ```
 
@@ -350,16 +360,16 @@ class MetricsEngine {
 ```groovy
 // Integration test for reordering
 class DynamicReorderingIntegrationTests {
-    
+
     @Test
     void testStepReorderingWithRealTimeSync() {
         // Given: Multiple users viewing same iteration
         def pilot = createPilotUser()
         def teamMember = createTeamMemberUser()
-        
+
         // When: Pilot reorders a step
         def result = stepsApi.reorderStep(stepId, newPosition, pilot.token)
-        
+
         // Then: Change propagates to all users
         assert result.success
         assert realTimeSync.hasUpdate(teamMember.id, 'step_reorder')
@@ -371,19 +381,19 @@ class DynamicReorderingIntegrationTests {
 
 ```javascript
 // Frontend collaboration tests
-describe('Team Collaboration', () => {
-    test('should notify mentioned users in comments', async () => {
-        const comment = await collaborationManager.addComment(
-            instructionId,
-            'Please review @johndoe',
-            ['johndoe']
-        );
-        
-        expect(notificationService.notifyUsers).toHaveBeenCalledWith(
-            ['johndoe'],
-            expect.objectContaining({ content: expect.stringContaining('@johndoe') })
-        );
-    });
+describe("Team Collaboration", () => {
+  test("should notify mentioned users in comments", async () => {
+    const comment = await collaborationManager.addComment(
+      instructionId,
+      "Please review @johndoe",
+      ["johndoe"],
+    );
+
+    expect(notificationService.notifyUsers).toHaveBeenCalledWith(
+      ["johndoe"],
+      expect.objectContaining({ content: expect.stringContaining("@johndoe") }),
+    );
+  });
 });
 ```
 
@@ -393,18 +403,18 @@ describe('Team Collaboration', () => {
 
 ```javascript
 // Responsive design tests
-describe('Mobile Interface', () => {
-    test('should adapt to mobile viewport', () => {
-        // Set mobile viewport
-        cy.viewport(375, 667);
-        
-        cy.visit('/iterations/view?id=test-iteration');
-        
-        // Verify mobile-optimized layout
-        cy.get('.iteration-view').should('have.class', 'mobile-layout');
-        cy.get('.step-card').should('be.visible');
-        cy.get('.drag-handle').should('have.css', 'touch-action', 'none');
-    });
+describe("Mobile Interface", () => {
+  test("should adapt to mobile viewport", () => {
+    // Set mobile viewport
+    cy.viewport(375, 667);
+
+    cy.visit("/iterations/view?id=test-iteration");
+
+    // Verify mobile-optimized layout
+    cy.get(".iteration-view").should("have.class", "mobile-layout");
+    cy.get(".step-card").should("be.visible");
+    cy.get(".drag-handle").should("have.css", "touch-action", "none");
+  });
 });
 ```
 
@@ -412,20 +422,20 @@ describe('Mobile Interface', () => {
 
 ```javascript
 // Service worker and offline tests
-describe('Offline Functionality', () => {
-    test('should queue changes when offline', async () => {
-        // Simulate offline state
-        await setOfflineMode(true);
-        
-        // Perform actions
-        await checkboxManager.toggleInstruction(instructionId, true);
-        
-        // Verify queued in local storage
-        const queued = localStorage.getItem('queuedChanges');
-        expect(JSON.parse(queued)).toContain(
-            expect.objectContaining({ instructionId, completed: true })
-        );
-    });
+describe("Offline Functionality", () => {
+  test("should queue changes when offline", async () => {
+    // Simulate offline state
+    await setOfflineMode(true);
+
+    // Perform actions
+    await checkboxManager.toggleInstruction(instructionId, true);
+
+    // Verify queued in local storage
+    const queued = localStorage.getItem("queuedChanges");
+    expect(JSON.parse(queued)).toContain(
+      expect.objectContaining({ instructionId, completed: true }),
+    );
+  });
 });
 ```
 
@@ -467,6 +477,7 @@ describe('Offline Functionality', () => {
 ### Phase 2: Collaboration & Dynamic Adjustments
 
 #### Backend Development
+
 - [ ] Extend StepsAPI with reordering endpoints
 - [ ] Implement comment system with mention parsing
 - [ ] Create activity logging infrastructure
@@ -474,6 +485,7 @@ describe('Offline Functionality', () => {
 - [ ] Implement bulk operations for team management
 
 #### Frontend Development
+
 - [ ] Build drag-and-drop interface with HTML5 API
 - [ ] Create comment component with @mention autocomplete
 - [ ] Implement activity feed with real-time updates
@@ -481,6 +493,7 @@ describe('Offline Functionality', () => {
 - [ ] Integrate bulk selection and operations
 
 #### Testing & Quality Assurance
+
 - [ ] Unit tests for reordering logic (90% coverage)
 - [ ] Integration tests for collaboration features
 - [ ] Performance tests for real-time updates
@@ -490,6 +503,7 @@ describe('Offline Functionality', () => {
 ### Phase 3: Advanced Dashboard & Mobile Operations
 
 #### Dashboard Development
+
 - [ ] Build KPI calculation engine
 - [ ] Implement Chart.js integration for burndown charts
 - [ ] Create critical path analysis algorithm
@@ -497,6 +511,7 @@ describe('Offline Functionality', () => {
 - [ ] Implement real-time metrics caching
 
 #### Mobile Optimization
+
 - [ ] Responsive CSS with mobile-first approach
 - [ ] Touch gesture support implementation
 - [ ] Service Worker for offline capability
@@ -504,6 +519,7 @@ describe('Offline Functionality', () => {
 - [ ] Network status detection and feedback
 
 #### Advanced Features
+
 - [ ] Voice notes recording and playback
 - [ ] Camera integration for field documentation
 - [ ] Custom role-based view configurations
@@ -511,6 +527,7 @@ describe('Offline Functionality', () => {
 - [ ] Performance optimization for mobile networks
 
 #### Testing & Deployment
+
 - [ ] Mobile responsiveness testing across devices
 - [ ] Offline functionality validation
 - [ ] Performance testing on various network conditions
@@ -521,30 +538,32 @@ describe('Offline Functionality', () => {
 
 ### Technical Risks
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| Drag-and-drop performance issues | Medium | Low | Implement virtual scrolling for large lists |
-| Real-time sync conflicts | High | Medium | Robust conflict resolution with user feedback |
-| Mobile performance degradation | Medium | Medium | Progressive enhancement and lazy loading |
-| Offline sync complexity | High | Medium | Incremental implementation with fallbacks |
+| Risk                             | Impact | Probability | Mitigation                                    |
+| -------------------------------- | ------ | ----------- | --------------------------------------------- |
+| Drag-and-drop performance issues | Medium | Low         | Implement virtual scrolling for large lists   |
+| Real-time sync conflicts         | High   | Medium      | Robust conflict resolution with user feedback |
+| Mobile performance degradation   | Medium | Medium      | Progressive enhancement and lazy loading      |
+| Offline sync complexity          | High   | Medium      | Incremental implementation with fallbacks     |
 
 ### Business Risks
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| User adoption of collaboration features | Medium | Low | Comprehensive training and documentation |
-| Mobile security concerns | High | Low | Security audit and penetration testing |
-| Increased server load | Medium | Medium | Load testing and capacity planning |
+| Risk                                    | Impact | Probability | Mitigation                               |
+| --------------------------------------- | ------ | ----------- | ---------------------------------------- |
+| User adoption of collaboration features | Medium | Low         | Comprehensive training and documentation |
+| Mobile security concerns                | High   | Low         | Security audit and penetration testing   |
+| Increased server load                   | Medium | Medium      | Load testing and capacity planning       |
 
 ## Dependencies
 
 ### Technical Dependencies
+
 - ✅ US-028 Phase 1: StepsAPIv2 integration completed
 - ✅ Real-time synchronization infrastructure in place
 - ✅ Role-based access control implemented
 - ✅ Performance optimization baseline established
 
 ### External Dependencies
+
 - Chart.js library for dashboard visualizations
 - Service Worker API support (95%+ browser coverage)
 - WebSocket or Server-Sent Events for real-time updates
@@ -553,12 +572,14 @@ describe('Offline Functionality', () => {
 ## Success Metrics
 
 ### Phase 2 Success Criteria
+
 - **Collaboration Adoption**: 80% of Pilots use reordering feature
 - **Team Coordination**: 50% reduction in coordination overhead
 - **Real-time Updates**: <2 second propagation achieved
 - **User Satisfaction**: 4.5/5 rating for collaboration features
 
 ### Phase 3 Success Criteria
+
 - **Mobile Adoption**: 60% of field teams use mobile interface
 - **Dashboard Usage**: 90% of operations managers use KPI dashboard
 - **Offline Capability**: 100% data integrity during network interruptions
@@ -567,6 +588,7 @@ describe('Offline Functionality', () => {
 ## Future Enhancements
 
 ### Phase 4 Considerations (Future Sprint)
+
 - Advanced analytics and reporting
 - Integration with external project management tools
 - AI-powered migration optimization recommendations

@@ -89,18 +89,21 @@ docs/
 ## Key Architectural Patterns
 
 ### File Naming Conventions
+
 - **APIs**: `EntityApi.groovy` (e.g., `TeamsApi.groovy`)
 - **Repositories**: `EntityRepository.groovy` (e.g., `TeamRepository.groovy`)
 - **Macros**: `entityMacro.groovy` (e.g., `adminGuiMacro.groovy`)
 - **Tests**: `EntityTest.groovy` or `entityIntegrationTest.groovy`
 
 ### Package Organization
+
 - **Versioned APIs**: `/api/v2/` for current REST endpoints
 - **Versioned Macros**: `/macros/v1/` for UI components
 - **Shared Utilities**: `/utils/` for cross-cutting concerns
 - **Frontend Assets**: `/web/js/` and `/web/css/` for client-side code
 
 ### Database Schema Organization
+
 - **Master Tables**: `entity_master_xxx` (templates/playbooks)
 - **Instance Tables**: `entity_instance_xxx` (execution records)
 - **Association Tables**: `entity1_entity2` (many-to-many relationships)
@@ -109,16 +112,19 @@ docs/
 ## Development Workflow Directories
 
 ### Active Development
+
 - Work primarily in `src/groovy/umig/` for backend changes
 - Use `local-dev-setup/` for environment and data management
 - Reference `docs/api/` for API specifications
 
 ### Testing and Quality
+
 - Unit tests in `src/groovy/umig/tests/unit/`
 - Integration tests in `src/groovy/umig/tests/integration/`
 - Node.js tests in `local-dev-setup/__tests__/`
 
 ### Documentation Updates
+
 - Architecture changes in `docs/solution-architecture.md`
 - API changes in `docs/api/openapi.yaml`
 - Development notes in `docs/devJournal/`

@@ -18,6 +18,7 @@
 ## Development Environment
 
 ### Prerequisites
+
 - Node.js v18+
 - Podman and podman-compose
 - PostgreSQL client tools
@@ -25,6 +26,7 @@
 ### Common Commands
 
 #### Environment Management
+
 ```bash
 # From local-dev-setup directory
 npm start                    # Start complete development stack
@@ -35,6 +37,7 @@ npm run restart:erase:umig   # Restart and erase only UMIG database
 ```
 
 #### Data Operations
+
 ```bash
 npm run generate-data        # Generate synthetic data
 npm run generate-data:erase  # Generate data with reset
@@ -42,6 +45,7 @@ npm run import-csv -- --file path/to/file.csv  # Import CSV data
 ```
 
 #### Testing
+
 ```bash
 npm test                     # Run Node.js tests
 # From project root:
@@ -50,12 +54,14 @@ npm test                     # Run Node.js tests
 ```
 
 #### Database Management
+
 ```bash
 # From local-dev-setup directory
 liquibase --defaults-file=liquibase/liquibase.properties update
 ```
 
 ## Service URLs (Development)
+
 - **Confluence**: http://localhost:8090
 - **PostgreSQL**: localhost:5432
 - **MailHog**: http://localhost:8025
@@ -63,18 +69,21 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 ## Code Standards
 
 ### Groovy Backend
+
 - Use `@BaseScript CustomEndpointDelegate` for all APIs
 - Explicit type casting required: `UUID.fromString(param as String)`
 - Repository pattern mandatory: `DatabaseUtil.withSql { sql -> ... }`
 - Error mapping: SQL state 23503→400, 23505→409
 
 ### JavaScript Frontend
+
 - Vanilla JS only - no external frameworks
 - Modular IIFE patterns for organization
 - Atlassian AUI components for styling
 - Promise-based async patterns
 
 ### Database
+
 - All schema changes via Liquibase only
 - snake_case naming convention
 - Audit fields: created_by, created_at, updated_by, updated_at
@@ -83,11 +92,13 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 ## Key Configuration
 
 ### ScriptRunner Setup
+
 - Database pool: `umig_db_pool`
 - Script roots: `/var/atlassian/application-data/confluence/scripts`
 - Package scanning: `umig.api.v2,umig.api.v2.web`
 
 ### Required Environment Variables
+
 ```bash
 POSTGRES_DB=umig_db
 UMIG_DB_NAME=umig_app_db
