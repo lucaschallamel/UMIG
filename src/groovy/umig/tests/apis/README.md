@@ -1,3 +1,37 @@
+# API Tests
+
+This folder contains tests that validate API endpoints, responses, and functionality across the UMIG system.
+
+## Tests Included
+
+- **MigrationApiIntegrationTest.groovy** - Integration tests for migration API endpoints
+- **PlansApiUnitTest.groovy** - Unit tests for plans API functionality
+- **PlansApiUnitTestSimple.groovy** - Simplified plans API unit tests
+- **stepViewApiUnitTest.groovy** - Unit tests for step view API
+- **checkUserEndpoint.groovy** - Validates user endpoint functionality
+- **validate-phases-api.groovy** - API validation tests for phases endpoints
+- **validate-sequences-api.groovy** - API validation tests for sequences endpoints
+
+## Purpose
+
+These tests ensure that:
+
+- API endpoints respond correctly with expected data formats
+- HTTP status codes are appropriate for different scenarios
+- API contracts are maintained across versions
+- User authentication and authorization work properly
+
+## Usage
+
+Run these tests to validate API functionality after changes to:
+
+- REST endpoint implementations
+- API response formats
+- Authentication/authorization logic
+- Data model changes affecting API responses
+
+---
+
 # Groovy Development Guidelines for UMIG
 
 This document outlines the key coding conventions, patterns, and workarounds for developing Groovy scripts within the ScriptRunner for Confluence environment for the UMIG project.

@@ -202,15 +202,18 @@ class PlanRepository {
                     pli.pli_description,
                     pli.pli_status,
                     pli.usr_id_owner,
+                    pli.created_by,
                     pli.created_at,
+                    pli.updated_by,
                     pli.updated_at,
                     plm.plm_name,
+                    plm.plm_description,
                     plm.tms_id,
                     sts.sts_id,
                     sts.sts_name,
                     sts.sts_color,
                     sts.sts_type,
-                    usr.usr_name as owner_name,
+                    usr.usr_code as owner_name,
                     ite.ite_name,
                     mig.mig_name
                 FROM plans_instance_pli pli
@@ -281,7 +284,7 @@ class PlanRepository {
                     sts.sts_name,
                     sts.sts_color,
                     sts.sts_type,
-                    usr.usr_name as owner_name,
+                    usr.usr_code as owner_name,
                     ite.ite_name,
                     mig.mig_name
                 FROM plans_instance_pli pli

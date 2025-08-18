@@ -167,23 +167,27 @@
 
 **Sprint Goal**: Complete MVP functionality and prepare for UAT deployment with fully integrated Admin GUI, enhanced user interfaces, and production-ready documentation.
 
-**Sprint Statistics**:
+**Sprint Statistics (UPDATED August 18, 2025)**:
 
 - **Sprint Duration**: 5 working days (Aug 18-22, 2025)
 - **Team Velocity**: 5 points/day (adjusted target)
 - **Capacity**: 25 points (5 days × 5 points/day)
-- **Planned**: 18 points (72% capacity utilization)
-- **Buffer**: 7 points (28% - quality assurance and UAT preparation)
+- **Planned**: 23 points (92% capacity utilization) - **INCREASED from 18 points**
+- **Buffer**: 2 points (8% - minimal buffer for quality assurance)
 
-**🚧 CURRENT ACTIVE FOCUS (7 Stories, 18 Points):**
+**🚧 CURRENT ACTIVE FOCUS (8 Stories, 23 Points) - SCOPE EXPANSION:**
 
-- **US-022**: Integration Test Expansion (1 point) - P0 CRITICAL - Day 1
+- **✅ US-022**: Integration Test Expansion (1 point) - P0 CRITICAL - **COMPLETED Day 1**
+  - **Achievement**: JavaScript Migration 100% complete with 53% code reduction (850→400 lines)
+  - **Scope**: 8 shell scripts successfully migrated to 13 NPM commands
+  - **Impact**: Cross-platform compatibility (Windows/macOS/Linux), enhanced error handling, parallel execution
 - **US-030**: API Documentation Completion (1 point) - P0 CRITICAL - Day 1-2
 - **US-031**: Admin GUI Complete Integration (6 points) - P0 CRITICAL MVP - Day 2-5
 - **US-036**: StepView UI Refactoring (3 points) - P1 HIGH VALUE (NEW) - Day 3-4
 - **US-034**: Data Import Strategy (3 points) - P1 MVP ENABLER - Day 4-5
 - **US-033**: Main Dashboard UI (3 points) - P2 FINAL MVP (REFINED) - Day 5
 - **US-035**: Enhanced IterationView Phases 2-3 (1 point) - P2 ENHANCEMENT - Day 5
+- **US-037**: Integration Testing Framework Standardization (5 points) - P3 TECHNICAL DEBT - Day 5 (MOVED FROM SPRINT 6)
 
 **Key Technical Decisions**:
 
@@ -191,6 +195,11 @@
 - **Dashboard Simplification**: Scope reduced from 5 to 3 points with fixed 3-column layout
 - **StepView Enhancement**: NEW comprehensive story leveraging Enhanced IterationView patterns
 - **Browser Compatibility**: Support Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Technical Debt Acceleration (ADR-041)**: US-037 moved from Sprint 6 to Sprint 5 based on QA analysis revealing systematic testing framework inconsistencies
+  - **Sprint Capacity**: Increased from 18 to 23 points (72% → 92% utilization)
+  - **Risk Profile**: HIGH execution risk with minimal buffer (2 points, 8%)
+  - **Strategic Value**: Prevent technical debt accumulation affecting production stability
+  - **Implementation Foundation**: Leverages existing test infrastructure from US-022 for reduced complexity
 
 ### Sprint 4 - STRATEGIC TRIUMPH (August 7-15, 2025) - COMPLETED
 

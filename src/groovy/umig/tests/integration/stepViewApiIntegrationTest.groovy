@@ -2,6 +2,11 @@ import groovy.lang.Grab
 @GrabConfig(systemClassLoader=true)
 @Grab('org.codehaus.groovy:groovy-sql:3.0.15')
 @Grab('org.postgresql:postgresql:42.7.3')
+@GrabExclude('xml-apis:xml-apis')
+@GrabExclude('xerces:xercesImpl')
+@GrabExclude('xml-resolver:xml-resolver')
+@GrabExclude('xalan:xalan')
+@GrabExclude('commons-logging:commons-logging')
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1')
 import groovy.sql.Sql
 import groovyx.net.http.RESTClient

@@ -264,10 +264,21 @@ npm stop                     # Stop services
 npm run restart:erase        # Reset everything
 npm run generate-data:erase  # Generate fake data
 
-# Testing
+# Testing (NPM-based - Shell Scripts Migrated ✅ August 2025)
 npm test                     # Node.js tests
-./src/groovy/umig/tests/run-integration-tests.sh        # Groovy integration tests
-./src/groovy/umig/tests/run-unit-tests.sh              # Groovy unit tests
+npm run test:unit           # Groovy unit tests (repositories and core logic)
+npm run test:integration     # Core integration tests for all APIs
+npm run test:integration:auth # Integration tests with authentication support
+npm run test:integration:core # Comprehensive integration test suite
+npm run test:uat            # User acceptance testing validation
+npm run test:uat:quick      # Quick UAT validation (essential tests)
+npm run test:iterationview  # IterationView UI component tests
+npm run test:all            # Complete test suite (unit + integration + UAT)
+npm run test:groovy         # Groovy-specific tests (unit + integration)
+
+# Story-Specific Testing
+npm run test:us022          # US-022 integration test expansion
+npm run test:us028          # US-028 enhanced IterationView tests
 
 # Infrastructure Operations (US-032 reorganized)
 ./local-dev-setup/infrastructure/verify-provisioning.sh    # System health check
@@ -277,6 +288,22 @@ npm test                     # Node.js tests
 # Upgrade Validation (US-032)
 ./src/groovy/umig/tests/upgrade/run-all-tests.sh          # Complete upgrade validation
 ```
+
+### ✅ Shell Script Migration Complete (August 18, 2025)
+
+**Status**: 8 shell scripts successfully migrated to NPM commands with 100% functional equivalence
+
+| Deprecated Shell Script               | NPM Replacement                 | Status      |
+| ------------------------------------- | ------------------------------- | ----------- |
+| `run-unit-tests.sh`                   | `npm run test:unit`             | ✅ Migrated |
+| `run-integration-tests.sh`            | `npm run test:integration`      | ✅ Migrated |
+| `run-authenticated-tests.sh`          | `npm run test:integration:auth` | ✅ Migrated |
+| `run-all-integration-tests.sh`        | `npm run test:integration:core` | ✅ Migrated |
+| `run-uat-validation.sh`               | `npm run test:uat`              | ✅ Migrated |
+| `run-enhanced-iterationview-tests.sh` | `npm run test:iterationview`    | ✅ Migrated |
+
+**Benefits**: Cross-platform support (Windows/macOS/Linux), enhanced error handling, improved maintainability  
+**Archive**: Original shell scripts preserved in `/src/groovy/umig/tests/archived-shell-scripts/`
 
 ## Data Model
 

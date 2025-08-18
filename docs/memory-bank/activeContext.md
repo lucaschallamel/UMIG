@@ -93,24 +93,29 @@
 
 ## Sprint 5 EXECUTION PHASE (August 18-22, 2025)
 
-### 🎯 **Sprint 5 Active Backlog - 7 Stories, 18 Points**
+### 🎯 **Sprint 5 Active Backlog - 8 Stories, 23 Points (SCOPE EXPANDED)**
 
-**Sprint Goal**: Complete MVP functionality and prepare for UAT deployment with fully integrated Admin GUI, enhanced user interfaces, and production-ready documentation.
+**Sprint Goal**: Complete MVP functionality and prepare for UAT deployment with fully integrated Admin GUI, enhanced user interfaces, production-ready documentation, and standardized technical infrastructure.
 
-**Sprint Statistics**:
+**Sprint Statistics (UPDATED August 18, 2025)**:
 
 - **Sprint Duration**: 5 working days (Aug 18-22, 2025)
 - **Team Velocity**: 5 points/day (adjusted target)
 - **Capacity**: 25 points (5 days × 5 points/day)
-- **Planned**: 18 points (72% capacity utilization)
-- **Buffer**: 7 points (28% - quality assurance and UAT preparation)
+- **Planned**: 23 points (92% capacity utilization) - **INCREASED from 18 points**
+- **Buffer**: 2 points (8% - minimal buffer for essential quality assurance)
 
-#### **US-022: Integration Test Expansion** (1 point) - P0 CRITICAL
+**CRITICAL SCOPE CHANGE**: US-037 Integration Testing Framework Standardization (5 points) moved from Sprint 6 to Sprint 5 based on QA analysis revealing systematic technical debt requiring immediate attention (see ADR-041)
 
-- **Status**: 90% complete, Day 1 target
-- **Scope**: Comprehensive integration test coverage for all APIs
-- **Impact**: Confident MVP deployment with zero regression risk
-- **Timeline**: Day 1 (Aug 18) - Foundation completion
+#### **✅ US-022: Integration Test Expansion** (1 point) - P0 CRITICAL **COMPLETED**
+
+- **Status**: ✅ 100% COMPLETE (August 18, 2025)
+- **Scope**: JavaScript migration framework completion - all 8 shell scripts successfully migrated to 13 NPM commands
+- **Achievement**: 53% code reduction (850→400 lines), universal cross-platform support, enhanced developer experience
+- **Impact**: Confident MVP deployment with zero regression risk, testing framework foundation established
+- **Migration Details**: 8 shell scripts archived to `/src/groovy/umig/tests/archived-shell-scripts/` with comprehensive README
+- **Cross-Platform**: Windows, macOS, and Linux compatibility achieved through Node.js standardization
+- **Enhanced Capabilities**: Parallel execution, improved error handling, detailed progress reporting
 
 #### **US-030: API Documentation Completion** (1 point) - P0 CRITICAL
 
@@ -157,6 +162,15 @@
 - **Dependencies**: US-028 Phase 1 foundation ✅
 - **Timeline**: Day 5 (Aug 22) - Time permitting
 
+#### **US-037: Integration Testing Framework Standardization** (5 points) - P3 TECHNICAL DEBT (MOVED FROM SPRINT 6)
+
+- **Status**: 0% (moved from Sprint 6 due to technical debt acceleration decision - see ADR-041)
+- **Scope**: Standardize authentication patterns, error handling consistency, performance benchmarking integration, CI/CD standards
+- **Impact**: Eliminate systematic testing framework inconsistencies preventing technical debt accumulation
+- **Timeline**: Day 5 tail end (Aug 22) - Technical debt resolution
+- **Risk**: LOW (leveraging existing test infrastructure foundation from US-022)
+- **Strategic Value**: Prevent technical debt affecting production stability and maintainability
+
 ### 📦 **Sprint 4 Final Delivery Summary**
 
 **Total Delivered**: 17 story points + 2 days hidden infrastructure work  
@@ -175,13 +189,16 @@
 
 ### 📋 **Sprint 5 Daily Execution Plan**
 
-#### Day 1 (Monday, August 18) - Foundation Completion
+#### Day 1 (Monday, August 18) - Foundation Completion **COMPLETED**
 
 **Focus**: Complete remaining foundation work (2 points)
 
-- ✅ **Morning**: Complete US-022 (Integration Test Expansion) - 1 point
+- ✅ **Morning**: ✅ **COMPLETED** US-022 (Integration Test Expansion) - 1 point
+  - **Achievement**: JavaScript Migration 100% complete with 53% code reduction
+  - **Scope**: 8 shell scripts → 13 NPM commands with cross-platform compatibility
+  - **Impact**: Enhanced developer experience and zero regression risk for MVP
 - ✅ **Afternoon**: Begin US-030 (API Documentation) - 0.5 points
-- **Deliverables**: Integration tests complete, API docs 95% done
+- **Deliverables**: ✅ Integration tests complete, API docs 95% done
 
 #### Day 2 (Tuesday, August 19) - Documentation & GUI Start
 
@@ -207,28 +224,40 @@
 - ✅ **Afternoon**: Begin US-034 (Data Import Strategy) - 1.5 points
 - **Deliverables**: Admin GUI 75% done, StepView 50% done, Import design complete
 
-#### Day 5 (Friday, August 22) - Integration Completion & Sprint Completion
+#### Day 5 (Friday, August 22) - Integration Completion & Technical Debt Resolution
 
-**Focus**: Complete major integrations and prepare for UAT (5.5 points)
+**Focus**: Complete major integrations, MVP finalization, and technical debt standardization (10.5 points total)
 
 - ✅ **Morning**: Complete US-031 (Admin GUI Integration) + US-034 (Data Import) - 2.5 points
 - ✅ **Afternoon**: Complete US-036 (StepView) + US-033 (Main Dashboard UI) + US-035 (if time) - 3 points
-- **Deliverables**: All stories complete, UAT environment ready
+- ✅ **Tail End**: US-037 (Integration Testing Framework Standardization) - 5 points (technical debt acceleration)
+- **Deliverables**: All stories complete, UAT environment ready, standardized testing framework, technical debt reduced
+- **CRITICAL**: Day 5 represents high-intensity execution day with 92% sprint capacity utilization
 
-### 🚨 **Active Blockers and Risks**
+### 🚨 **Active Blockers and Risks (UPDATED - HIGH-RISK EXECUTION PROFILE)**
 
 #### Current Blockers
 
 - **NONE** - All technical prerequisites resolved from Sprint 4
 
-#### High Risks
+#### High Risks (ELEVATED DUE TO SCOPE EXPANSION)
 
-1. **Admin GUI Integration Complexity** (US-031 - 6 points)
+1. **Sprint Capacity Overload** (NEW - CRITICAL)
+   - **Risk**: 92% capacity utilization with minimal buffer (2 points, 8%) creates high execution risk
+   - **Mitigation**: Rigorous daily tracking, immediate escalation of issues, technical debt leverage of existing infrastructure
+   - **Contingency**: Defer US-035 or US-037 to Sprint 6 if critical issues emerge
+
+2. **Admin GUI Integration Complexity** (US-031 - 6 points)
    - **Risk**: Cross-module synchronization may reveal compatibility issues
    - **Mitigation**: Daily integration testing, modular approach, early issue detection
    - **Contingency**: Reduce scope to core modules if needed
 
-2. **Performance Targets** (Multiple stories)
+3. **Resource Contention** (NEW - Day 5 Intensity)
+   - **Risk**: Parallel development tracks on Day 5 may experience coordination challenges
+   - **Mitigation**: Clear interface contracts, dedicated technical leads per track
+   - **Contingency**: Sequential execution instead of parallel if conflicts arise
+
+4. **Performance Targets** (Multiple stories)
    - **Risk**: <3s load time challenging with complex UI
    - **Mitigation**: Performance testing on Day 3, optimization sprint if needed
    - **Contingency**: Progressive loading, defer non-critical features
@@ -244,6 +273,16 @@
    - **Risk**: Delays in one story may impact others
    - **Mitigation**: Parallel development tracks, clear interface contracts
    - **Contingency**: Flexible story prioritization, scope adjustment
+
+#### Stakeholder Communication Requirements (CRITICAL)
+
+**Due to elevated execution risk profile, enhanced stakeholder communication is mandatory:**
+
+1. **Daily Progress Updates**: Detailed status reports on 92% capacity utilization sprint
+2. **Risk Transparency**: Clear communication of technical debt acceleration decision (ADR-041)
+3. **MVP Timeline Protection**: Explicit messaging about Sprint 5 success probability and contingency plans
+4. **Technical Debt Value Communication**: Explain long-term benefits of US-037 acceleration decision
+5. **Quality Assurance Messaging**: Reassure stakeholders about minimal buffer impact on MVP quality
 
 ## API Modernization Status
 

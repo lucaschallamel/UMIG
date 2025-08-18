@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-08-15 (Updated for US-028 Enhanced IterationView Phase 1 Completion)  
+**Version:** 2025-08-18 (Updated for Sprint 5 Technical Debt Acceleration and US-022 JavaScript Migration Completion)  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 40 architectural decisions (26 archived + 14 newly consolidated: ADR-027 through ADR-040). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** US-028 Enhanced IterationView Phase 1 completion with StepsAPIv2Client, real-time synchronization, and role-based access control (August 15, 2025), US-024 Steps API refactoring with enhanced error handling framework and testing consolidation (August 14, 2025), US-025 Phase 4 migrations API refactoring completion with 100% integration test success (August 11, 2025), Enhanced Postman collection generation with authentication pre-configuration, Complete OpenAPI specification updates with 17 endpoints across 4 categories, Dashboard endpoints implementation for migration monitoring, Bulk operations support for export and status management, US-032 Confluence upgrade to 9.2.7 + ScriptRunner 9.21.0 with infrastructure reorganization (August 8, 2025), Status field normalization implementation (US-006b, August 2025), Sprint 3 completion milestone (5 of 6 user stories delivered, August 2025), Controls API performance optimizations with enhanced test coverage (August 2025), Groovy 3.0.15 static type checking compatibility improvements (August 2025), Instructions API implementation (US-004, August 2025), Phases API endpoint consolidation refactoring (US-003, August 2025)
+**Source ADRs:** This document consolidates 41 architectural decisions (26 archived + 15 newly consolidated: ADR-027 through ADR-041). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** ADR-041 Technical Debt Prioritization Methodology for Sprint 5 scope expansion (August 18, 2025), US-022 JavaScript migration framework completion with 53% code reduction and enhanced cross-platform support (August 18, 2025), Sprint 5 technical debt acceleration decision moving US-037 from Sprint 6 (August 18, 2025), US-028 Enhanced IterationView Phase 1 completion with StepsAPIv2Client, real-time synchronization, and role-based access control (August 15, 2025), US-024 Steps API refactoring with enhanced error handling framework and testing consolidation (August 14, 2025), US-025 Phase 4 migrations API refactoring completion with 100% integration test success (August 11, 2025), Enhanced Postman collection generation with authentication pre-configuration, Complete OpenAPI specification updates with 17 endpoints across 4 categories, Dashboard endpoints implementation for migration monitoring, Bulk operations support for export and status management, US-032 Confluence upgrade to 9.2.7 + ScriptRunner 9.21.0 with infrastructure reorganization (August 8, 2025)
 
 ## Consolidated ADR Reference
 
@@ -64,7 +64,9 @@ This document consolidates the following architectural decisions:
 - [ADR-036](../adr/ADR-036-integration-testing-framework.md) - Integration Testing Framework (US-025)
 - [ADR-037](../adr/ADR-037-testing-framework-consolidation-strategy.md) - Testing Framework Consolidation Strategy
 - [ADR-038](../adr/ADR-038-documentation-consolidation-methodology.md) - Documentation Consolidation Methodology
+- [ADR-039](../adr/ADR-039-enhanced-error-handling-and-user-guidance.md) - Enhanced Error Handling and User Guidance
 - [ADR-040](../adr/ADR-040-database-quality-validation-framework.md) - Database Quality Validation Framework
+- [ADR-041](../adr/ADR-041-technical-debt-prioritization-methodology.md) - Technical Debt Prioritization Methodology
 
 ### Communication & Notifications
 
@@ -2684,11 +2686,12 @@ class TestUtilities {
 #### 18.3.2. Standardized Execution Interface
 
 ```bash
-# Consistent execution patterns
-./src/groovy/umig/tests/run-unit-tests.sh
-./src/groovy/umig/tests/run-integration-tests.sh
-./src/groovy/umig/tests/run-api-tests.sh
-./src/groovy/umig/tests/run-system-tests.sh
+# NPM-based testing commands (migrated from shell scripts August 2025)
+npm run test:unit                 # Unit tests for repositories and core logic
+npm run test:integration          # Integration tests for all APIs
+npm run test:integration:auth     # Authenticated integration tests
+npm run test:uat                  # User acceptance testing validation
+npm run test:all                  # Complete test suite execution
 ```
 
 ### 18.4. Quality and Performance Impact
@@ -2865,6 +2868,71 @@ class DatabaseQualityValidator {
 - **Development Confidence**: Higher confidence in database layer reliability
 - **Performance Optimization**: Identification of optimization opportunities
 - **Enterprise Readiness**: Production-grade database validation capabilities
+
+## 21. Technical Debt Prioritization Methodology ([ADR-041] - Sprint 5)
+
+### 21.1. Architecture Decision Record - ADR-041
+
+**Context:** Sprint 5 reached capacity planning phase with technical debt issues requiring prioritization between MVP timeline constraints and long-term quality assurance needs.
+
+**Decision:** Implement Technical Debt Prioritization Methodology with accelerated resolution framework that balances MVP delivery requirements against systematic technical debt accumulation prevention.
+
+### 21.2. Decision Framework
+
+#### 21.2.1. Evaluation Criteria
+
+- **MVP Timeline Impact**: Assessment of technical debt effect on August 28, 2025 deadline
+- **Quality Risk Assessment**: Systematic analysis of technical debt affecting production stability
+- **Resource Availability**: Team capacity utilization analysis (72% → 92% expansion evaluation)
+- **Stakeholder Impact**: Effect on UAT preparation and deployment readiness
+- **Long-term Maintainability**: Prevention of compound technical debt interest
+
+#### 21.2.2. Prioritization Matrix
+
+| Priority    | Description                  | Action Framework                | Risk Tolerance   |
+| ----------- | ---------------------------- | ------------------------------- | ---------------- |
+| P0 Critical | MVP blocking issues          | Immediate acceleration          | Zero tolerance   |
+| P1 High     | Quality affecting production | Sprint acceleration if possible | Low tolerance    |
+| P2 Medium   | Maintainability concerns     | Sprint 6 deferral consideration | Medium tolerance |
+| P3 Low      | Future optimization          | Backlog management              | High tolerance   |
+
+### 21.3. Sprint 5 Application
+
+#### 21.3.1. US-037 Acceleration Decision
+
+**Technical Debt Analysis**:
+
+- **Category**: Integration Testing Framework Standardization
+- **Scope**: Authentication patterns, error handling consistency, performance benchmarking
+- **Impact**: Systematic inconsistencies affecting all API endpoints
+- **Risk**: Compound technical debt preventing production stability
+
+**Decision Outcome**: Move US-037 (5 points) from Sprint 6 to Sprint 5, increasing scope from 18 to 23 points (72% → 92% capacity)
+
+#### 21.3.2. Risk Management Framework
+
+**Elevated Risk Profile**:
+
+- **Capacity Utilization**: 92% (minimal 8% buffer)
+- **Execution Risk**: High intensity requiring enhanced monitoring
+- **Mitigation Strategy**: Leverage existing US-022 infrastructure foundation
+- **Contingency Planning**: Ready Sprint 6 deferral if critical issues emerge
+
+### 21.4. Benefits and Strategic Value
+
+#### 21.4.1. Technical Debt Prevention
+
+- **Systematic Resolution**: Complete standardization preventing framework fragmentation
+- **Production Readiness**: Enhanced quality metrics supporting MVP deployment confidence
+- **Long-term Efficiency**: Standardized patterns reducing future development overhead
+- **Maintenance Reduction**: Consistent frameworks minimizing ongoing technical debt accumulation
+
+#### 21.4.2. Risk Mitigation Success
+
+- **Foundation Leverage**: Existing US-022 infrastructure reduces implementation complexity
+- **Quality Acceleration**: Enhanced testing framework supporting all remaining MVP work
+- **Team Efficiency**: Standardized patterns enabling faster Sprint 6+ velocity
+- **Strategic Investment**: Short-term capacity increase for long-term velocity gains
 
 ---
 

@@ -1,5 +1,26 @@
 ### [Unreleased]
 
+#### 2025-08-18 (Sprint 5 Scope Expansion - Technical Debt Acceleration)
+
+- **Planning(US-037 Integration Testing Framework Standardization):** Story moved from Sprint 6 to Sprint 5 based on technical debt analysis ✅
+  - **Story Points**: 5 points added to Sprint 5, increasing total scope from 18→23 points (72%→92% capacity utilization)
+  - **Technical Debt Focus**: Authentication pattern standardization, error handling consistency, performance benchmarking integration
+  - **CI/CD Integration**: Automated test execution patterns with comprehensive report generation and coverage integration
+  - **Test Maintenance Framework**: Automated data cleanup, environment reset capabilities, and health monitoring systems
+  - **Strategic Decision**: ADR-041 Technical Debt Prioritization Methodology documents acceleration rationale and risk management
+- **Architecture(ADR-041 Technical Debt Prioritization Methodology):** Decision record for Sprint 5 technical debt acceleration ✅
+  - **Context**: Systematic technical debt requiring immediate attention vs MVP timeline constraints (August 28, 2025)
+  - **Decision**: Full technical debt acceleration chosen over Sprint 6 deferral or partial implementation options
+  - **Rationale**: Prevention of technical debt accumulation affecting production stability outweighs elevated sprint execution risk
+  - **Risk Management**: High-risk execution profile (92% capacity, 8% buffer) requiring enhanced stakeholder communication
+  - **Implementation Foundation**: Leverages existing US-022 integration test infrastructure for reduced complexity
+- **Sprint(Capacity Planning):** Sprint 5 statistics updated reflecting scope expansion and risk profile elevation
+  - **Capacity Utilization**: Increased from 18 points (72% utilization, 28% buffer) to 23 points (92% utilization, 8% buffer)
+  - **Risk Profile**: Elevated from MEDIUM to HIGH execution risk requiring rigorous daily tracking and immediate escalation protocols
+  - **Team Velocity**: Maintained at 5 points/day target with enhanced coordination and parallel development track management
+  - **Stakeholder Communication**: Enhanced reporting requirements including daily progress updates and risk transparency messaging
+  - **Quality Assurance**: Minimal buffer impact managed through technical debt leverage of existing infrastructure foundations
+
 #### 2025-08-15 (Sprint 4 Strategic Triumph - Complete Success)
 
 - **Achievement(Sprint 4 Completion):** Strategic triumph delivering extraordinary value and AI infrastructure foundation

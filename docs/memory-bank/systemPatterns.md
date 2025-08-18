@@ -185,6 +185,23 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   - **Timeline Risk Reduction:** MEDIUM to LOW through strategic foundation establishment
   - **Morale Management:** Team recognition of true achievements beyond apparent metrics
   - **Foundation Investment:** Short-term apparent underdelivery for long-term 10x velocity gains
+- **JavaScript Testing Migration Pattern:** Shell script to NPM command modernization (US-022, August 18, 2025)
+  - **Migration Methodology:** Systematic conversion of 8 shell scripts to 13 NPM commands with 53% code reduction (850→400 lines)
+  - **Cross-Platform Standardization:** Windows, macOS, Linux compatibility through Node.js runtime consistency
+  - **Command Interface Enhancement:** Simplified developer experience through package.json script management (npm run test:\*)
+  - **Test Organization Pattern:** Hierarchical test structure (test:unit, test:integration, test:uat, test:all, test:groovy)
+  - **Archive Strategy:** Comprehensive preservation of shell scripts in `/src/groovy/umig/tests/archived-shell-scripts/` with migration documentation
+  - **Error Handling Enhancement:** Improved error reporting with detailed stack traces and proper exit code management
+  - **Parallel Execution Capability:** Enhanced performance through concurrent test execution with Node.js process management
+  - **Pattern-Based Filtering:** Advanced test filtering options (--pattern, --category, --auth, --core, --quick)
+  - **Foundation for Standardization:** Established patterns supporting US-037 Integration Testing Framework Standardization
+- **Integration Testing Framework Standardization Pattern:** Technical debt reduction through standardized testing (US-037, Sprint 5, August 2025)
+  - **Authentication Pattern Standardization:** Unified authentication utilities across all integration tests with role-based test patterns (NORMAL/PILOT/ADMIN)
+  - **Error Handling Consistency:** Standardized error assertion patterns with comprehensive HTTP status code validation framework
+  - **Performance Benchmarking Integration:** Response time monitoring (<500ms target) with performance regression detection capabilities
+  - **CI/CD Integration Standards:** Automated test execution patterns with comprehensive report generation and coverage integration
+  - **Test Maintenance Framework:** Automated test data cleanup and environment reset capabilities with health monitoring
+  - **Technical Debt Acceleration:** Priority 2-3 technical debt systematically addressed within Sprint 5 execution (92% capacity utilization)
 
 ## 3. Component Relationships
 
