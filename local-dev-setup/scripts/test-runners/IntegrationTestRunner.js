@@ -1,6 +1,7 @@
 import { BaseTestRunner } from "./BaseTestRunner.js";
 import path from "path";
 import fs from "fs";
+import { execa } from "execa";
 
 /**
  * IntegrationTestRunner - Specialized runner for integration tests
@@ -12,11 +13,12 @@ export class IntegrationTestRunner extends BaseTestRunner {
   constructor(options = {}) {
     super({
       timeout: 180000, // 3 minutes for integration tests
-      verbose: true,
+      verbose: false, // Capture output for proper error handling
       ...options,
     });
 
-    this.integrationTestsDir = path.join(this.testDir, "integration");
+    // Use centralized path configuration from BaseTestRunner
+    this.integrationTestsDir = path.join(this.paths.testDir, "integration");
   }
 
   /**
@@ -68,19 +70,29 @@ export class IntegrationTestRunner extends BaseTestRunner {
   async runAuthenticated() {
     this.logHeader("UMIG Authenticated Integration Tests");
 
-    // First verify authentication setup
+    // First compile helper classes AND the authentication test for integration tests
+    await this.compileIntegrationHelpers();
+
+    // First verify authentication setup using compiled classes
     const authTest = path.join(
       this.integrationTestsDir,
       "AuthenticationTest.groovy",
     );
     if (fs.existsSync(authTest)) {
       console.log("🔐 Verifying authentication setup...");
-      const authResult = await this.executeGroovyTest(authTest);
+      // Run the compiled test class
+      const authResult = await this.executeCompiledAuthTest();
 
       if (!authResult.success) {
         console.log(
           "❌ Authentication verification failed. Please check your .env file.",
         );
+        if (authResult.error) {
+          console.log("Error details:", authResult.error);
+        }
+        if (authResult.exitCode) {
+          console.log("Exit code:", authResult.exitCode);
+        }
         process.exit(1);
       }
 
@@ -136,6 +148,195 @@ export class IntegrationTestRunner extends BaseTestRunner {
   }
 
   /**
+   * Execute the compiled AuthenticationTest
+   */
+  async executeCompiledAuthTest() {
+    const testName = "AuthenticationTest";
+    this.logTestStart(testName);
+    
+    try {
+      // Find Groovy runtime JARs
+      const groovyJars = this.findGroovyRuntimeJars();
+      
+      // Build complete classpath using centralized paths
+      const classpath = [
+        this.paths.tempDir,
+        this.paths.sourceDir,
+        groovyJars,
+      ].filter(Boolean).join(":");
+      
+      // Run the compiled test using java
+      const result = await execa("java", [
+        "-cp", classpath,
+        `umig.tests.integration.${testName}`,
+      ], {
+        timeout: this.options.timeout,
+        cwd: this.paths.projectRoot,
+        stdio: "pipe",
+        env: {
+          ...process.env,
+          PROJECT_ROOT: this.paths.projectRoot,
+        },
+        reject: false,
+      });
+      
+      if (result.exitCode === 0) {
+        this.logTestResult(testName, "PASSED", result.stdout);
+        this.results.passed++;
+        return { success: true, output: result.stdout, stderr: result.stderr };
+      } else {
+        this.logTestResult(testName, "FAILED", result.stderr || result.stdout);
+        this.results.failed++;
+        this.results.failedTests.push(testName);
+        return { success: false, error: result.stderr || result.stdout, exitCode: result.exitCode };
+      }
+    } catch (error) {
+      this.logTestResult(testName, "FAILED", error.message);
+      this.results.failed++;
+      this.results.failedTests.push(testName);
+      return { success: false, error: error.message };
+    } finally {
+      this.results.total++;
+    }
+  }
+  
+  /**
+   * Find Groovy runtime JARs
+   */
+  findGroovyRuntimeJars() {
+    // First try groovy-all JAR which includes everything
+    const groovyAllPaths = [
+      "/Users/lucaschallamel/.groovy/grapes/org.codehaus.groovy/groovy-all/jars/groovy-all-3.0.15.jar",
+    ];
+    
+    for (const jarPath of groovyAllPaths) {
+      if (fs.existsSync(jarPath)) {
+        return jarPath;
+      }
+    }
+    
+    // Otherwise collect individual JARs from SDKMAN
+    const groovyHome = process.env.GROOVY_HOME || "/Users/lucaschallamel/.sdkman/candidates/groovy/current";
+    const libDir = path.join(groovyHome, "lib");
+    
+    if (fs.existsSync(libDir)) {
+      // Include all necessary Groovy JARs
+      const requiredJars = [
+        "groovy-3.0.15.jar",
+        "groovy-json-3.0.15.jar",
+        "groovy-sql-3.0.15.jar",
+      ];
+      
+      const jars = [];
+      for (const jarName of requiredJars) {
+        const jarPath = path.join(libDir, jarName);
+        if (fs.existsSync(jarPath)) {
+          jars.push(jarPath);
+        }
+      }
+      
+      if (jars.length > 0) {
+        return jars.join(":");
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Execute a test that needs compilation with helper classes
+   */
+  async executeCompiledTest(testFile) {
+    const testName = path.basename(testFile, ".groovy");
+    
+    try {
+      // Compile the test along with its dependencies using centralized paths
+      console.log(`  Compiling ${testName}...`);
+      await execa("groovyc", [
+        "-cp", `${this.paths.tempDir}:${this.paths.sourceDir}`,
+        "-d", this.paths.tempDir,
+        testFile,
+      ]);
+      
+      // Run the compiled test using java with groovy runtime
+      console.log(`  Running compiled ${testName}...`);
+      const result = await execa("java", [
+        "-cp", `${this.paths.tempDir}:${this.paths.sourceDir}:/Users/lucaschallamel/.groovy/grapes/org.codehaus.groovy/groovy-all/jars/groovy-all-3.0.15.jar`,
+        `umig.tests.integration.${testName}`,
+      ], {
+        timeout: this.options.timeout,
+        cwd: this.paths.projectRoot,
+        stdio: "pipe",
+        env: {
+          ...process.env,
+          PROJECT_ROOT: this.paths.projectRoot,
+        },
+        reject: false,
+      });
+      
+      if (result.exitCode === 0) {
+        this.logTestResult(testName, "PASSED", result.stdout);
+        this.results.passed++;
+        return { success: true, output: result.stdout, stderr: result.stderr };
+      } else {
+        this.logTestResult(testName, "FAILED", result.stderr || result.stdout);
+        this.results.failed++;
+        this.results.failedTests.push(testName);
+        return { success: false, error: result.stderr || result.stdout, exitCode: result.exitCode };
+      }
+    } catch (error) {
+      console.log(`  ❌ Failed to compile/run ${testName}: ${error.message}`);
+      return { success: false, error: error.message };
+    } finally {
+      this.results.total++;
+    }
+  }
+
+  /**
+   * Compile integration helper classes
+   */
+  async compileIntegrationHelpers() {
+    const helperFile = path.join(
+      this.integrationTestsDir,
+      "AuthenticationHelper.groovy",
+    );
+    const authTestFile = path.join(
+      this.integrationTestsDir,
+      "AuthenticationTest.groovy",
+    );
+    
+    try {
+      // Create a temporary directory for compiled classes using centralized path
+      await execa("mkdir", ["-p", this.paths.tempDir]);
+      
+      // Compile both AuthenticationHelper and AuthenticationTest together
+      console.log("📦 Compiling integration helper classes...");
+      const filesToCompile = [];
+      if (fs.existsSync(helperFile)) {
+        filesToCompile.push(helperFile);
+      }
+      if (fs.existsSync(authTestFile)) {
+        filesToCompile.push(authTestFile);
+      }
+      
+      if (filesToCompile.length > 0) {
+        await execa("groovyc", [
+          "-cp", this.paths.sourceDir,
+          "-d", this.paths.tempDir,
+          ...filesToCompile,
+        ]);
+        
+        // Add compiled classes to classpath for future tests
+        process.env.GROOVY_CLASSPATH = `${this.paths.tempDir}:${process.env.GROOVY_CLASSPATH || ''}`;
+        
+        console.log("✅ Helper classes compiled successfully\n");
+      }
+    } catch (error) {
+      console.log("⚠️  Warning: Could not compile helper classes:", error.message);
+    }
+  }
+
+  /**
    * Check prerequisites for integration tests
    */
   async checkPrerequisites() {
@@ -144,12 +345,12 @@ export class IntegrationTestRunner extends BaseTestRunner {
     // Initialize SDKMAN environment
     await this.initializeSDKMAN();
 
-    // Check .env file exists
-    const envFile = path.join(this.projectRoot, ".env");
-    if (!fs.existsSync(envFile)) {
+    // Check .env file exists using centralized path
+    if (!fs.existsSync(this.paths.envFile)) {
       console.log(
         "❌ .env file not found. Integration tests require environment configuration.",
       );
+      console.log(`  Looking for: ${this.paths.envFile}`);
       process.exit(1);
     }
 
