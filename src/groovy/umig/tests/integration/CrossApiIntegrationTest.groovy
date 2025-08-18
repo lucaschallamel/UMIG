@@ -90,18 +90,27 @@ class CrossApiIntegrationTest {
     def testCompleteMigrationHierarchyWorkflow() {
         println "\n=== Testing Complete Migration Hierarchy Workflow ==="
         
+        // Initialize database connection
+        sql = Sql.newInstance(DB_URL, DB_USER, DB_PASSWORD, "org.postgresql.Driver")
+        
         def workflowStartTime = System.currentTimeMillis()
         
         // Step 1: Create Migration
         println "  Step 1: Creating migration..."
         def migrationConn = createAuthenticatedConnection("${BASE_URL}/migrations", "POST", "application/json")
         
+        // Get valid status and user IDs from database
+        def statusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Migration'")?.sts_id ?: 1
+        def userId = sql.firstRow("SELECT usr_id FROM users_usr LIMIT 1")?.usr_id ?: 1
+        
         def migrationData = [
-            name: "Cross-API Test Migration ${System.currentTimeMillis()}",
-            description: "Testing complete hierarchy workflow",
-            status: "PLANNING",
-            startDate: new Date().format("yyyy-MM-dd"),
-            endDate: new Date().plus(90).format("yyyy-MM-dd")
+            mig_name: "Cross-API Test Migration ${System.currentTimeMillis()}",
+            mig_description: "Testing complete hierarchy workflow",
+            mig_status: statusId,
+            mig_start_date: new Date().format("yyyy-MM-dd"),
+            mig_end_date: new Date().plus(90).format("yyyy-MM-dd"),
+            mig_type: "MIGRATION",
+            usr_id_owner: userId
         ]
         
         migrationConn.outputStream.withWriter { writer ->
@@ -109,7 +118,7 @@ class CrossApiIntegrationTest {
         }
         
         assert migrationConn.responseCode == 201 : "Failed to create migration: ${migrationConn.responseCode}"
-        def migrationResponse = jsonSlurper.parse(migrationConn.inputStream)
+        def migrationResponse = this.jsonSlurper.parse(migrationConn.inputStream)
         testMigrationId = UUID.fromString(migrationResponse.migrationId as String)
         println "  ✓ Migration created: ${testMigrationId}"
         migrationConn.disconnect()
@@ -132,7 +141,7 @@ class CrossApiIntegrationTest {
         }
         
         assert iterationConn.responseCode == 201 : "Failed to create iteration: ${iterationConn.responseCode}"
-        def iterationResponse = jsonSlurper.parse(iterationConn.inputStream)
+        def iterationResponse = this.jsonSlurper.parse(iterationConn.inputStream)
         testIterationId = UUID.fromString(iterationResponse.iterationId as String)
         println "  ✓ Iteration created: ${testIterationId}"
         iterationConn.disconnect()
@@ -141,12 +150,15 @@ class CrossApiIntegrationTest {
         println "  Step 3: Creating plan..."
         def planConn = createAuthenticatedConnection("${BASE_URL}/plans", "POST", "application/json")
         
+        // Get valid status ID for Plan type
+        def planStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Plan'")?.sts_id ?: 1
+        
         def planData = [
-            iterationId: testIterationId.toString(),
-            name: "Cross-API Test Plan",
-            description: "Testing plan creation in workflow",
-            planType: "CUTOVER",
-            status: "DRAFT"
+            ite_id: testIterationId.toString(),
+            pli_name: "Cross-API Test Plan",
+            pli_description: "Testing plan creation in workflow",
+            pli_status: planStatusId,
+            usr_id_owner: userId
         ]
         
         planConn.outputStream.withWriter { writer ->
@@ -154,7 +166,7 @@ class CrossApiIntegrationTest {
         }
         
         assert planConn.responseCode == 201 : "Failed to create plan: ${planConn.responseCode}"
-        def planResponse = jsonSlurper.parse(planConn.inputStream)
+        def planResponse = this.jsonSlurper.parse(planConn.inputStream)
         testPlanId = UUID.fromString(planResponse.planId as String)
         println "  ✓ Plan created: ${testPlanId}"
         planConn.disconnect()
@@ -175,7 +187,7 @@ class CrossApiIntegrationTest {
         }
         
         assert sequenceConn.responseCode == 201 : "Failed to create sequence: ${sequenceConn.responseCode}"
-        def sequenceResponse = jsonSlurper.parse(sequenceConn.inputStream)
+        def sequenceResponse = this.jsonSlurper.parse(sequenceConn.inputStream)
         testSequenceId = UUID.fromString(sequenceResponse.sequenceId as String)
         println "  ✓ Sequence created: ${testSequenceId}"
         sequenceConn.disconnect()
@@ -196,7 +208,7 @@ class CrossApiIntegrationTest {
         }
         
         assert phaseConn.responseCode == 201 : "Failed to create phase: ${phaseConn.responseCode}"
-        def phaseResponse = jsonSlurper.parse(phaseConn.inputStream)
+        def phaseResponse = this.jsonSlurper.parse(phaseConn.inputStream)
         testPhaseId = UUID.fromString(phaseResponse.phaseId as String)
         println "  ✓ Phase created: ${testPhaseId}"
         phaseConn.disconnect()
@@ -235,7 +247,7 @@ class CrossApiIntegrationTest {
         }
         
         assert stepConn.responseCode == 201 : "Failed to create step: ${stepConn.responseCode}"
-        def stepResponse = jsonSlurper.parse(stepConn.inputStream)
+        def stepResponse = this.jsonSlurper.parse(stepConn.inputStream)
         testStepId = stepResponse.stepId as Integer
         println "  ✓ Step created: ${testStepId}"
         stepConn.disconnect()
@@ -321,7 +333,7 @@ class CrossApiIntegrationTest {
         def iterationConn = createAuthenticatedConnection("${BASE_URL}/iterations/${testIterationId}", "GET")
         
         assert iterationConn.responseCode == 200 : "Failed to get iteration: ${iterationConn.responseCode}"
-        def iterationResponse = jsonSlurper.parse(iterationConn.inputStream)
+        def iterationResponse = this.jsonSlurper.parse(iterationConn.inputStream)
         
         // Some systems might auto-update iteration status
         println "  ✓ Migration update successful, iteration status: ${iterationResponse.status}"

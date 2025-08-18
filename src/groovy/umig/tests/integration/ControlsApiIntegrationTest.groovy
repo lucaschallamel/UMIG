@@ -69,36 +69,45 @@ def setupTestData(String dbUrl, String dbUser, String dbPassword) {
         def user = sql.firstRow("SELECT usr_id FROM users_usr LIMIT 1")  
         testUserId = user?.usr_id
         
+        // Get valid status ID for Migration type
+        def migrationStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Migration'")?.sts_id ?: 1
+        
         // Create test migration
         def migrationResult = sql.firstRow("""
             INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_type, mig_status, created_by, updated_by)
-            VALUES (?, 'Test Migration for Controls', 'MIGRATION', 5, 'system', 'system')
+            VALUES (?, 'Test Migration for Controls', 'MIGRATION', ?, 'system', 'system')
             RETURNING mig_id
-        """, [testUserId])
+        """, [testUserId, migrationStatusId])
         testMigrationId = migrationResult?.mig_id
+        
+        // Get valid status ID for Plan type
+        def planStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Plan'")?.sts_id ?: 1
         
         // Create test master plan
         def planResult = sql.firstRow("""
             INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, updated_by)
-            VALUES (?, 'Test Master Plan for Controls', 'Test plan for control integration', 5, 'system', 'system')
+            VALUES (?, 'Test Master Plan for Controls', 'Test plan for control integration', ?, 'system', 'system')
             RETURNING plm_id
-        """, [testTeamId])
+        """, [testTeamId, planStatusId])
         testMasterPlanId = planResult?.plm_id
+        
+        // Get valid status ID for Iteration type
+        def iterationStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Iteration'")?.sts_id ?: 1
         
         // Create test iteration
         def iterationResult = sql.firstRow("""
             INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status, created_by, updated_by)
-            VALUES (?, ?, 'CUTOVER', 'Test Iteration for Controls', 'Test iteration', 5, 'system', 'system')
+            VALUES (?, ?, 'CUTOVER', 'Test Iteration for Controls', 'Test iteration', ?, 'system', 'system')
             RETURNING ite_id
-        """, [testMigrationId, testMasterPlanId])
+        """, [testMigrationId, testMasterPlanId, iterationStatusId])
         testIterationId = iterationResult?.ite_id
         
-        // Create test plan instance
+        // Create test plan instance using the same status ID as plans
         def planInstanceResult = sql.firstRow("""
             INSERT INTO plans_instance_pli (plm_id, ite_id, usr_id_owner, pli_name, pli_description, pli_status, created_by, updated_by)
-            VALUES (?, ?, ?, 'Test Plan Instance for Controls', 'Instance for control testing', 5, 'system', 'system')
+            VALUES (?, ?, ?, 'Test Plan Instance for Controls', 'Instance for control testing', ?, 'system', 'system')
             RETURNING pli_id
-        """, [testMasterPlanId, testIterationId, testUserId])
+        """, [testMasterPlanId, testIterationId, testUserId, planStatusId])
         testPlanInstanceId = planInstanceResult?.pli_id
         
         // Create test master sequence
@@ -109,12 +118,15 @@ def setupTestData(String dbUrl, String dbUser, String dbPassword) {
         """, [testMasterPlanId])
         testMasterSequenceId = sequenceResult?.sqm_id
         
+        // Get valid status ID for Sequence type
+        def sequenceStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Sequence'")?.sts_id ?: 1
+        
         // Create test sequence instance
         def sequenceInstanceResult = sql.firstRow("""
             INSERT INTO sequences_instance_sqi (sqm_id, pli_id, sqi_name, sqi_description, sqi_order, sqi_status, created_by, updated_by)
-            VALUES (?, ?, 'Test Sequence Instance for Controls', 'Instance for control testing', 1, 13, 'system', 'system')
+            VALUES (?, ?, 'Test Sequence Instance for Controls', 'Instance for control testing', 1, ?, 'system', 'system')
             RETURNING sqi_id
-        """, [testMasterSequenceId, testPlanInstanceId])
+        """, [testMasterSequenceId, testPlanInstanceId, sequenceStatusId])
         testSequenceInstanceId = sequenceInstanceResult?.sqi_id
         
         // Create test master phase
@@ -125,12 +137,15 @@ def setupTestData(String dbUrl, String dbUser, String dbPassword) {
         """, [testMasterSequenceId])
         testMasterPhaseId = phaseResult?.phm_id
         
+        // Get valid status ID for Phase type
+        def phaseStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Phase'")?.sts_id ?: 1
+        
         // Create test phase instance
         def phaseInstanceResult = sql.firstRow("""
             INSERT INTO phases_instance_phi (phm_id, sqi_id, phi_name, phi_description, phi_order, phi_status, created_by, updated_by)
-            VALUES (?, ?, 'Test Phase Instance for Controls', 'Instance for control testing', 1, 17, 'system', 'system')
+            VALUES (?, ?, 'Test Phase Instance for Controls', 'Instance for control testing', 1, ?, 'system', 'system')
             RETURNING phi_id
-        """, [testMasterPhaseId, testSequenceInstanceId])
+        """, [testMasterPhaseId, testSequenceInstanceId, phaseStatusId])
         testPhaseInstanceId = phaseInstanceResult?.phi_id
         
     } finally {

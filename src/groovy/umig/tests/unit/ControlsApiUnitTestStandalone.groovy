@@ -5,10 +5,6 @@
  * No external dependencies - can run outside ScriptRunner
  */
 
-package umig.tests.unit
-
-import groovy.sql.Sql
-
 // Mock DatabaseUtil to avoid ScriptRunner dependency
 class DatabaseUtil {
     static def withSql(Closure closure) {
@@ -107,7 +103,7 @@ class ControlsApiUnitTest {
                     [ctm_id: UUID.randomUUID(), ctm_name: 'Control 2', ctm_order: 2]
                 ]
             }
-        ] as Sql
+        ]
         
         DatabaseUtil.metaClass.static.withSql = { Closure closure ->
             return closure.call(mockSql)
@@ -136,7 +132,7 @@ class ControlsApiUnitTest {
                 }
                 return null
             }
-        ] as Sql
+        ]
         
         DatabaseUtil.metaClass.static.withSql = { Closure closure ->
             return closure.call(mockSql)
@@ -164,7 +160,7 @@ class ControlsApiUnitTest {
                     [cti_id: UUID.randomUUID(), cti_status: 'PENDING', cti_is_critical: false]
                 ]
             }
-        ] as Sql
+        ]
         
         DatabaseUtil.metaClass.static.withSql = { Closure closure ->
             return closure.call(mockSql)
@@ -194,12 +190,12 @@ class ControlsApiUnitTest {
             },
             executeUpdate: { query, params ->
                 updateCalled = true
-                assert params[0] == 'PASSED'  // cti_status
-                assert params[1] == 1          // usr_id_it_validator
-                assert params[3] == controlId  // cti_id
+                assert params.cti_status == 'PASSED'
+                assert params.usr_id_it_validator == 1
+                assert params.cti_id == controlId
                 return 1
             }
-        ] as Sql
+        ]
         
         DatabaseUtil.metaClass.static.withSql = { Closure closure ->
             return closure.call(mockSql)

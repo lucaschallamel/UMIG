@@ -7,6 +7,7 @@
 ## Root Cause
 
 The tests import `umig.utils.DatabaseUtil`, which depends on:
+
 ```groovy
 import com.onresolve.scriptrunner.db.DatabaseUtil as SRDatabaseUtil
 ```
@@ -16,13 +17,15 @@ This ScriptRunner class is only available when running inside Confluence with Sc
 ## Error Details
 
 ### Common Error Pattern
+
 ```
 unable to resolve class com.onresolve.scriptrunner.db.DatabaseUtil
 ```
 
 ### Affected Tests
+
 - ControlsApiUnitTest.groovy
-- PhaseRepositoryTest.groovy  
+- PhaseRepositoryTest.groovy
 - TeamRepositoryTest.groovy
 - UserRepositoryTest.groovy
 - EnvironmentRepositoryTest.groovy
@@ -44,15 +47,15 @@ class MockSql {
     def rowsData = []
     def firstRowData = null
     def updateCount = 0
-    
+
     def rows(query, params = [:]) {
         return rowsData
     }
-    
+
     def firstRow(query, params = [:]) {
         return firstRowData
     }
-    
+
     def executeUpdate(Object... args) {
         updateCount++
         return 1
@@ -95,16 +98,16 @@ static void testFindAllMasterControls() {
         [ctm_id: UUID.randomUUID(), ctm_name: 'Control 1', ctm_order: 1],
         [ctm_id: UUID.randomUUID(), ctm_name: 'Control 2', ctm_order: 2]
     ]
-    
+
     // Override DatabaseUtil to return our mock
     DatabaseUtil.metaClass.static.withSql = { Closure closure ->
         return closure.call(mockSql)
     }
-    
+
     // Test the repository
     def repository = new ControlRepository()
     def controls = repository.findAllMasterControls()
-    
+
     // Assertions
     assert controls.size() == 2
     assert controls[0].ctm_name == 'Control 1'
@@ -137,8 +140,9 @@ cp src/groovy/umig/tests/unit/OriginalTest.groovy \
 ## Working Example
 
 See `/src/groovy/umig/tests/unit/ControlsApiUnitTestFixed.groovy` for a complete working example that:
+
 - Runs standalone without ScriptRunner
-- Has zero external dependencies  
+- Has zero external dependencies
 - Passes all tests
 - Maintains test coverage
 

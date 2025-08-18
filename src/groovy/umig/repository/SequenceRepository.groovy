@@ -372,7 +372,7 @@ class SequenceRepository {
                     plm.plm_name,
                     plm.tms_id,
                     tms.tms_name,
-                    itr.itr_name,
+                    itr.ite_name,
                     mig.mig_name,
                     sts.sts_id,
                     sts.sts_name,
@@ -382,7 +382,7 @@ class SequenceRepository {
                 JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
                 JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                 JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
-                JOIN iterations_ite itr ON pli.ite_id = itr.itr_id
+                JOIN iterations_ite itr ON pli.ite_id = itr.ite_id
                 JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
                 LEFT JOIN status_sts sts ON sqi.sqi_status = sts.sts_id
@@ -457,7 +457,7 @@ class SequenceRepository {
                     plm.plm_name,
                     plm.tms_id,
                     tms.tms_name,
-                    itr.itr_name,
+                    itr.ite_name,
                     mig.mig_name,
                     sts.sts_id,
                     sts.sts_name,
@@ -467,7 +467,7 @@ class SequenceRepository {
                 JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
                 JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                 JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
-                JOIN iterations_ite itr ON pli.ite_id = itr.itr_id
+                JOIN iterations_ite itr ON pli.ite_id = itr.ite_id
                 JOIN migrations_mig mig ON itr.mig_id = mig.mig_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
                 LEFT JOIN status_sts sts ON sqi.sqi_status = sts.sts_id

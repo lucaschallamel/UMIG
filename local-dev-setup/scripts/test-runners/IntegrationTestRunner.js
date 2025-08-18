@@ -153,33 +153,32 @@ export class IntegrationTestRunner extends BaseTestRunner {
   async executeCompiledAuthTest() {
     const testName = "AuthenticationTest";
     this.logTestStart(testName);
-    
+
     try {
       // Find Groovy runtime JARs
       const groovyJars = this.findGroovyRuntimeJars();
-      
+
       // Build complete classpath using centralized paths
-      const classpath = [
-        this.paths.tempDir,
-        this.paths.sourceDir,
-        groovyJars,
-      ].filter(Boolean).join(":");
-      
+      const classpath = [this.paths.tempDir, this.paths.sourceDir, groovyJars]
+        .filter(Boolean)
+        .join(":");
+
       // Run the compiled test using java
-      const result = await execa("java", [
-        "-cp", classpath,
-        `umig.tests.integration.${testName}`,
-      ], {
-        timeout: this.options.timeout,
-        cwd: this.paths.projectRoot,
-        stdio: "pipe",
-        env: {
-          ...process.env,
-          PROJECT_ROOT: this.paths.projectRoot,
+      const result = await execa(
+        "java",
+        ["-cp", classpath, `umig.tests.integration.${testName}`],
+        {
+          timeout: this.options.timeout,
+          cwd: this.paths.projectRoot,
+          stdio: "pipe",
+          env: {
+            ...process.env,
+            PROJECT_ROOT: this.paths.projectRoot,
+          },
+          reject: false,
         },
-        reject: false,
-      });
-      
+      );
+
       if (result.exitCode === 0) {
         this.logTestResult(testName, "PASSED", result.stdout);
         this.results.passed++;
@@ -188,7 +187,11 @@ export class IntegrationTestRunner extends BaseTestRunner {
         this.logTestResult(testName, "FAILED", result.stderr || result.stdout);
         this.results.failed++;
         this.results.failedTests.push(testName);
-        return { success: false, error: result.stderr || result.stdout, exitCode: result.exitCode };
+        return {
+          success: false,
+          error: result.stderr || result.stdout,
+          exitCode: result.exitCode,
+        };
       }
     } catch (error) {
       this.logTestResult(testName, "FAILED", error.message);
@@ -199,7 +202,7 @@ export class IntegrationTestRunner extends BaseTestRunner {
       this.results.total++;
     }
   }
-  
+
   /**
    * Find Groovy runtime JARs
    */
@@ -208,17 +211,19 @@ export class IntegrationTestRunner extends BaseTestRunner {
     const groovyAllPaths = [
       "/Users/lucaschallamel/.groovy/grapes/org.codehaus.groovy/groovy-all/jars/groovy-all-3.0.15.jar",
     ];
-    
+
     for (const jarPath of groovyAllPaths) {
       if (fs.existsSync(jarPath)) {
         return jarPath;
       }
     }
-    
+
     // Otherwise collect individual JARs from SDKMAN
-    const groovyHome = process.env.GROOVY_HOME || "/Users/lucaschallamel/.sdkman/candidates/groovy/current";
+    const groovyHome =
+      process.env.GROOVY_HOME ||
+      "/Users/lucaschallamel/.sdkman/candidates/groovy/current";
     const libDir = path.join(groovyHome, "lib");
-    
+
     if (fs.existsSync(libDir)) {
       // Include all necessary Groovy JARs
       const requiredJars = [
@@ -226,7 +231,7 @@ export class IntegrationTestRunner extends BaseTestRunner {
         "groovy-json-3.0.15.jar",
         "groovy-sql-3.0.15.jar",
       ];
-      
+
       const jars = [];
       for (const jarName of requiredJars) {
         const jarPath = path.join(libDir, jarName);
@@ -234,12 +239,12 @@ export class IntegrationTestRunner extends BaseTestRunner {
           jars.push(jarPath);
         }
       }
-      
+
       if (jars.length > 0) {
         return jars.join(":");
       }
     }
-    
+
     return null;
   }
 
@@ -248,32 +253,39 @@ export class IntegrationTestRunner extends BaseTestRunner {
    */
   async executeCompiledTest(testFile) {
     const testName = path.basename(testFile, ".groovy");
-    
+
     try {
       // Compile the test along with its dependencies using centralized paths
       console.log(`  Compiling ${testName}...`);
       await execa("groovyc", [
-        "-cp", `${this.paths.tempDir}:${this.paths.sourceDir}`,
-        "-d", this.paths.tempDir,
+        "-cp",
+        `${this.paths.tempDir}:${this.paths.sourceDir}`,
+        "-d",
+        this.paths.tempDir,
         testFile,
       ]);
-      
+
       // Run the compiled test using java with groovy runtime
       console.log(`  Running compiled ${testName}...`);
-      const result = await execa("java", [
-        "-cp", `${this.paths.tempDir}:${this.paths.sourceDir}:/Users/lucaschallamel/.groovy/grapes/org.codehaus.groovy/groovy-all/jars/groovy-all-3.0.15.jar`,
-        `umig.tests.integration.${testName}`,
-      ], {
-        timeout: this.options.timeout,
-        cwd: this.paths.projectRoot,
-        stdio: "pipe",
-        env: {
-          ...process.env,
-          PROJECT_ROOT: this.paths.projectRoot,
+      const result = await execa(
+        "java",
+        [
+          "-cp",
+          `${this.paths.tempDir}:${this.paths.sourceDir}:/Users/lucaschallamel/.groovy/grapes/org.codehaus.groovy/groovy-all/jars/groovy-all-3.0.15.jar`,
+          `umig.tests.integration.${testName}`,
+        ],
+        {
+          timeout: this.options.timeout,
+          cwd: this.paths.projectRoot,
+          stdio: "pipe",
+          env: {
+            ...process.env,
+            PROJECT_ROOT: this.paths.projectRoot,
+          },
+          reject: false,
         },
-        reject: false,
-      });
-      
+      );
+
       if (result.exitCode === 0) {
         this.logTestResult(testName, "PASSED", result.stdout);
         this.results.passed++;
@@ -282,7 +294,11 @@ export class IntegrationTestRunner extends BaseTestRunner {
         this.logTestResult(testName, "FAILED", result.stderr || result.stdout);
         this.results.failed++;
         this.results.failedTests.push(testName);
-        return { success: false, error: result.stderr || result.stdout, exitCode: result.exitCode };
+        return {
+          success: false,
+          error: result.stderr || result.stdout,
+          exitCode: result.exitCode,
+        };
       }
     } catch (error) {
       console.log(`  ❌ Failed to compile/run ${testName}: ${error.message}`);
@@ -304,11 +320,11 @@ export class IntegrationTestRunner extends BaseTestRunner {
       this.integrationTestsDir,
       "AuthenticationTest.groovy",
     );
-    
+
     try {
       // Create a temporary directory for compiled classes using centralized path
       await execa("mkdir", ["-p", this.paths.tempDir]);
-      
+
       // Compile both AuthenticationHelper and AuthenticationTest together
       console.log("📦 Compiling integration helper classes...");
       const filesToCompile = [];
@@ -318,21 +334,26 @@ export class IntegrationTestRunner extends BaseTestRunner {
       if (fs.existsSync(authTestFile)) {
         filesToCompile.push(authTestFile);
       }
-      
+
       if (filesToCompile.length > 0) {
         await execa("groovyc", [
-          "-cp", this.paths.sourceDir,
-          "-d", this.paths.tempDir,
+          "-cp",
+          this.paths.sourceDir,
+          "-d",
+          this.paths.tempDir,
           ...filesToCompile,
         ]);
-        
+
         // Add compiled classes to classpath for future tests
-        process.env.GROOVY_CLASSPATH = `${this.paths.tempDir}:${process.env.GROOVY_CLASSPATH || ''}`;
-        
+        process.env.GROOVY_CLASSPATH = `${this.paths.tempDir}:${process.env.GROOVY_CLASSPATH || ""}`;
+
         console.log("✅ Helper classes compiled successfully\n");
       }
     } catch (error) {
-      console.log("⚠️  Warning: Could not compile helper classes:", error.message);
+      console.log(
+        "⚠️  Warning: Could not compile helper classes:",
+        error.message,
+      );
     }
   }
 
