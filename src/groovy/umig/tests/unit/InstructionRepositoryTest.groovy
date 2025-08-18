@@ -196,9 +196,9 @@ class InstructionRepository {
                 
                 return result.inm_id
             } catch (SQLException e) {
-                if (e.sqlState == '23503') {
+                if (e.SQLState == '23503') {
                     throw new IllegalArgumentException("Referenced step, team, or control does not exist")
-                } else if (e.sqlState == '23505') {
+                } else if (e.SQLState == '23505') {
                     throw new IllegalArgumentException("Instruction order already exists for this step")
                 }
                 throw new RuntimeException("Failed to create master instruction", e)
@@ -212,7 +212,7 @@ class InstructionRepository {
 
 // ==================== TEST CLASS ====================
 
-class InstructionRepositoryTest {
+class InstructionRepositoryTestRunner {
     
     static InstructionRepository repository
     static MockSql mockSql
@@ -518,7 +518,6 @@ class InstructionRepositoryTest {
     }
 }
 
-// Execute the tests when script is run directly
-if (this.class.name.endsWith('InstructionRepositoryTest')) {
-    InstructionRepositoryTest.main(args)
-}
+// Execute tests when run as script
+InstructionRepositoryTestRunner.main(args)
+

@@ -91,14 +91,39 @@ class MigrationsApiBulkOperationsTest {
             def migration = sql.firstRow("SELECT mig_id FROM migrations_mig LIMIT 1")
             testMigrationId = migration?.mig_id
             
+            // Get valid status ID for Migration type
+            def planningStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Migration'")
+            def statusId = planningStatus?.sts_id ?: 1
+            println "Setup: Status ID found = ${statusId}"
+            
+            // Get valid user ID - create one if none exists
+            def user = sql.firstRow("SELECT usr_id FROM users_usr LIMIT 1")
+            def userId
+            if (user) {
+                userId = user.usr_id
+                println "Setup: Found existing user ID = ${userId}"
+            } else {
+                // Create a test user if none exists
+                def userResult = sql.executeInsert("""
+                    INSERT INTO users_usr (usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin)
+                    VALUES ('TST', 'Test', 'User', 'test@example.com', false)
+                    RETURNING usr_id
+                """)
+                userId = userResult[0][0]
+                println "Setup: Created new user ID = ${userId}"
+            }
+            
             // Create template for bulk operations
             testMigrationTemplate = [
-                name: "Bulk Test Migration",
-                description: "Bulk operation test",
-                status: "PLANNING",
-                startDate: new Date().format("yyyy-MM-dd"),
-                endDate: new Date().plus(30).format("yyyy-MM-dd")
+                mig_name: "Bulk Test Migration",
+                mig_description: "Bulk operation test",
+                mig_status: statusId,
+                mig_start_date: new Date().format("yyyy-MM-dd"),
+                mig_end_date: new Date().plus(30).format("yyyy-MM-dd"),
+                mig_type: "MIGRATION",
+                usr_id_owner: userId
             ]
+            println "Setup: Template created with usr_id_owner = ${testMigrationTemplate.usr_id_owner}"
         } catch (Exception e) {
             println "Warning: Could not setup test data: ${e.message}"
         }
@@ -116,11 +141,13 @@ class MigrationsApiBulkOperationsTest {
         // Prepare 10 migrations for bulk creation
         (1..10).each { index ->
             bulkData << [
-                name: "${testMigrationTemplate.name} ${index}",
-                description: "${testMigrationTemplate.description} ${index}",
-                status: testMigrationTemplate.status,
-                startDate: testMigrationTemplate.startDate,
-                endDate: testMigrationTemplate.endDate
+                mig_name: "${testMigrationTemplate.mig_name} ${index}",
+                mig_description: "${testMigrationTemplate.mig_description} ${index}",
+                mig_status: testMigrationTemplate.mig_status,
+                mig_start_date: testMigrationTemplate.mig_start_date,
+                mig_end_date: testMigrationTemplate.mig_end_date,
+                mig_type: testMigrationTemplate.mig_type,
+                usr_id_owner: testMigrationTemplate.usr_id_owner
             ]
         }
         
@@ -135,9 +162,28 @@ class MigrationsApiBulkOperationsTest {
                 writer << new JsonBuilder(migration).toString()
             }
             
-            if (connection.responseCode == 201) {
-                def response = jsonSlurper.parse(connection.inputStream)
+            def responseCode = connection.responseCode
+            if (responseCode == 201) {
+                def response = this.jsonSlurper.parse(connection.inputStream)
                 createdIds << response.migrationId
+            } else {
+                // Log detailed error for debugging
+                def errorResponse = "No error details"
+                try {
+                    if (connection.errorStream) {
+                        errorResponse = connection.errorStream.text
+                        try {
+                            def parsedError = this.jsonSlurper.parseText(errorResponse)
+                            errorResponse = parsedError
+                        } catch (Exception parseEx) {
+                            // Keep raw response if JSON parsing fails
+                        }
+                    }
+                } catch (Exception e) {
+                    errorResponse = "Error reading response: ${e.message}"
+                }
+                println "Migration creation failed with ${responseCode}: ${errorResponse}"
+                println "Request payload: ${new JsonBuilder(migration).toString()}"
             }
             connection.disconnect()
         }
@@ -182,8 +228,8 @@ class MigrationsApiBulkOperationsTest {
         
         def responseCode = connection.responseCode
         def response = responseCode == 200 ? 
-            jsonSlurper.parse(connection.inputStream) : 
-            jsonSlurper.parse(connection.errorStream)
+            this.jsonSlurper.parse(connection.inputStream) : 
+            this.jsonSlurper.parse(connection.errorStream)
         
         def elapsedTime = System.currentTimeMillis() - startTime
         
@@ -210,18 +256,34 @@ class MigrationsApiBulkOperationsTest {
         sql.withTransaction {
             (1..3).each { index ->
                 def result = sql.executeInsert("""
-                    INSERT INTO migrations_mig (mig_id, mig_name, mig_description, mig_status, mig_start_date, mig_end_date, created_by, updated_by)
-                    VALUES (gen_random_uuid(), ?, ?, 5, CURRENT_DATE, CURRENT_DATE + INTERVAL '30 days', 'system', 'system')
+                    INSERT INTO migrations_mig (mig_id, mig_name, mig_description, mig_status, mig_start_date, mig_end_date, mig_type, created_by, updated_by, usr_id_owner)
+                    VALUES (gen_random_uuid(), ?, ?, 5, CURRENT_DATE, CURRENT_DATE + INTERVAL '30 days', 'MIGRATION', 'system', 'system', 1)
                     RETURNING mig_id
                 """, ["Delete Test ${index}" as String, "Test migration for deletion" as String])
                 toDelete << result[0][0]
             }
             
-            // Create a dependent iteration for one migration to force rollback
+            // First create or get a plan master for the iteration
+            def existingPlan = sql.firstRow("SELECT plm_id FROM plans_master_plm LIMIT 1")
+            def planId
+            
+            if (existingPlan) {
+                planId = existingPlan.plm_id
+            } else {
+                // Create a minimal plan master for the test
+                def planResult = sql.executeInsert("""
+                    INSERT INTO plans_master_plm (plm_id, tms_id, plm_name, plm_description, plm_status)
+                    VALUES (gen_random_uuid(), 1, 'Test Plan for Rollback', 'Temporary plan for testing', 5)
+                    RETURNING plm_id
+                """)
+                planId = planResult[0][0]
+            }
+            
+            // Create a dependent iteration for one migration to force rollback (requires plm_id)
             sql.executeInsert("""
-                INSERT INTO iterations_ite (ite_id, mig_id, ite_name, created_by, updated_by)
-                VALUES (gen_random_uuid(), ?, 'Dependent Iteration', 'system', 'system')
-            """, [toDelete[0]])
+                INSERT INTO iterations_ite (ite_id, mig_id, plm_id, itt_code, ite_name, ite_status, created_by, updated_by)
+                VALUES (gen_random_uuid(), ?, ?, 'RUN', 'Dependent Iteration', 5, 'system', 'system')
+            """, [toDelete[0], planId])
         }
         
         // Attempt bulk delete (should fail due to foreign key constraint)
@@ -233,8 +295,8 @@ class MigrationsApiBulkOperationsTest {
         
         def responseCode = connection.responseCode
         def response = responseCode == 400 ? 
-            jsonSlurper.parse(connection.errorStream) : 
-            jsonSlurper.parse(connection.inputStream)
+            this.jsonSlurper.parse(connection.errorStream) : 
+            this.jsonSlurper.parse(connection.inputStream)
         
         // Verify transaction rollback
         assert responseCode == 400 : "Expected 400 for constraint violation, got ${responseCode}"
@@ -279,11 +341,13 @@ class MigrationsApiBulkOperationsTest {
                     def connection = createAuthenticatedConnection("${BASE_URL}/migrations", "POST", "application/json")
                     
                     def migrationData = [
-                        name: "Concurrent Test ${threadIndex}-${System.currentTimeMillis()}",
-                        description: "Testing concurrent access",
-                        status: "PLANNING",
-                        startDate: new Date().format("yyyy-MM-dd"),
-                        endDate: new Date().plus(30).format("yyyy-MM-dd")
+                        mig_name: "Concurrent Test ${threadIndex}-${System.currentTimeMillis()}",
+                        mig_description: "Testing concurrent access",
+                        mig_status: testMigrationTemplate.mig_status,
+                        mig_start_date: new Date().format("yyyy-MM-dd"),
+                        mig_end_date: new Date().plus(30).format("yyyy-MM-dd"),
+                        mig_type: "MIGRATION",
+                        usr_id_owner: testMigrationTemplate.usr_id_owner
                     ]
                     
                     connection.outputStream.withWriter { writer ->
@@ -333,11 +397,13 @@ class MigrationsApiBulkOperationsTest {
             def bulkData = []
             (1..batchSize).each { index ->
                 bulkData << [
-                    name: "Performance Test ${index}",
-                    description: "Testing batch size ${batchSize}",
-                    status: "PLANNING",
-                    startDate: new Date().format("yyyy-MM-dd"),
-                    endDate: new Date().plus(30).format("yyyy-MM-dd")
+                    mig_name: "Performance Test ${index}",
+                    mig_description: "Testing batch size ${batchSize}",
+                    mig_status: testMigrationTemplate.mig_status,
+                    mig_start_date: new Date().format("yyyy-MM-dd"),
+                    mig_end_date: new Date().plus(30).format("yyyy-MM-dd"),
+                    mig_type: "MIGRATION",
+                    usr_id_owner: testMigrationTemplate.usr_id_owner
                 ]
             }
             
@@ -379,18 +445,22 @@ class MigrationsApiBulkOperationsTest {
         
         def testData = [
             [
-                name: "Integrity Test 1",
-                description: "Testing data integrity with special chars: ' \" & < >",
-                status: "PLANNING",
-                startDate: new Date().format("yyyy-MM-dd"),
-                endDate: new Date().plus(30).format("yyyy-MM-dd")
+                mig_name: "Integrity Test 1",
+                mig_description: "Testing data integrity with special chars: ' \" & < >",
+                mig_status: testMigrationTemplate.mig_status,
+                mig_start_date: new Date().format("yyyy-MM-dd"),
+                mig_end_date: new Date().plus(30).format("yyyy-MM-dd"),
+                mig_type: "MIGRATION",
+                usr_id_owner: testMigrationTemplate.usr_id_owner
             ],
             [
-                name: "Integrity Test 2 with Unicode: 測試 テスト тест",
-                description: "Multi-byte character handling",
-                status: "IN_PROGRESS",
-                startDate: new Date().format("yyyy-MM-dd"),
-                endDate: new Date().plus(60).format("yyyy-MM-dd")
+                mig_name: "Integrity Test 2 with Unicode: 測試 テスト тест",
+                mig_description: "Multi-byte character handling",
+                mig_status: testMigrationTemplate.mig_status,
+                mig_start_date: new Date().format("yyyy-MM-dd"),
+                mig_end_date: new Date().plus(60).format("yyyy-MM-dd"),
+                mig_type: "MIGRATION",
+                usr_id_owner: testMigrationTemplate.usr_id_owner
             ]
         ]
         
@@ -403,8 +473,8 @@ class MigrationsApiBulkOperationsTest {
         
         def responseCode = connection.responseCode
         def response = responseCode == 200 ? 
-            jsonSlurper.parse(connection.inputStream) : 
-            jsonSlurper.parse(connection.errorStream)
+            this.jsonSlurper.parse(connection.inputStream) : 
+            this.jsonSlurper.parse(connection.errorStream)
         
         assert responseCode == 404 : "Bulk endpoint not implemented yet - expected 404, got ${responseCode}"
         
@@ -415,10 +485,10 @@ class MigrationsApiBulkOperationsTest {
         sql.withTransaction {
             createdIds.eachWithIndex { migrationId, index ->
                 def saved = sql.firstRow("SELECT mig_name, mig_description FROM migrations_mig WHERE mig_id = ?", [migrationId])
-                assert saved.mig_name == testData[index].name : 
-                    "Name mismatch: expected '${testData[index].name}', got '${saved.mig_name}'"
-                assert saved.mig_description == testData[index].description : 
-                    "Description mismatch: expected '${testData[index].description}', got '${saved.mig_description}'"
+                assert saved.mig_name == testData[index].mig_name : 
+                    "Name mismatch: expected '${testData[index].mig_name}', got '${saved.mig_name}'"
+                assert saved.mig_description == testData[index].mig_description : 
+                    "Description mismatch: expected '${testData[index].mig_description}', got '${saved.mig_description}'"
             }
         }
         */
@@ -427,12 +497,12 @@ class MigrationsApiBulkOperationsTest {
         
         connection.disconnect()
         
-        // Cleanup
-        sql.withTransaction {
-            createdIds.each { migrationId ->
-                sql.execute("DELETE FROM migrations_mig WHERE mig_id = ?", [migrationId])
-            }
-        }
+        // TODO: Cleanup when bulk endpoints are implemented
+        // sql.withTransaction {
+        //     createdIds.each { migrationId ->
+        //         sql.execute("DELETE FROM migrations_mig WHERE mig_id = ?", [migrationId])
+        //     }
+        // }
     }
 
     /**

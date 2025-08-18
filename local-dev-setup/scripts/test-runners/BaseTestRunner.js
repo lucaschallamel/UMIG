@@ -35,18 +35,22 @@ export class BaseTestRunner {
     };
 
     this.projectRoot = this.findProjectRoot();
-    
+
     // Centralized path configuration (PR #41 feedback - addressing hard-coded paths)
     this.paths = {
       projectRoot: this.projectRoot,
-      testDir: process.env.TEST_DIR || path.join(this.projectRoot, "src/groovy/umig/tests"),
-      envFile: process.env.ENV_FILE_PATH || path.join(this.projectRoot, "local-dev-setup", ".env"),
+      testDir:
+        process.env.TEST_DIR ||
+        path.join(this.projectRoot, "src/groovy/umig/tests"),
+      envFile:
+        process.env.ENV_FILE_PATH ||
+        path.join(this.projectRoot, "local-dev-setup", ".env"),
       sourceDir: path.join(this.projectRoot, "src/groovy"),
       umigDir: path.join(this.projectRoot, "src"),
       tempDir: process.env.TEMP_DIR || "/tmp/umig-integration-classes",
       jdbcDriver: null, // Set dynamically in findJDBCDriverPath()
     };
-    
+
     // Backward compatibility
     this.testDir = this.paths.testDir;
     this.startTime = null;
@@ -129,7 +133,11 @@ export class BaseTestRunner {
         this.logTestResult(testName, "FAILED", result.stderr || result.stdout);
         this.results.failed++;
         this.results.failedTests.push(testName);
-        return { success: false, error: result.stderr || result.stdout, exitCode: result.exitCode };
+        return {
+          success: false,
+          error: result.stderr || result.stdout,
+          exitCode: result.exitCode,
+        };
       }
     } catch (error) {
       this.logTestResult(testName, "FAILED", error.message);
@@ -155,7 +163,7 @@ export class BaseTestRunner {
     // Build classpath with JDBC driver and source
     const jdbcDriverPath = this.findJDBCDriverPath();
     const sourcePath = path.join(this.projectRoot, "src/groovy");
-    
+
     // For integration tests, also add the umig directory structure to classpath
     // This allows Groovy to find compiled classes like AuthenticationHelper
     const umigPath = path.join(this.projectRoot, "src");
@@ -163,12 +171,12 @@ export class BaseTestRunner {
     // IMPORTANT: Use both src and src/groovy as classpath so package resolution works
     // This allows Groovy to find classes like umig.tests.integration.AuthenticationHelper
     let classpath = `${sourcePath}:${umigPath}`;
-    
+
     // Add any pre-compiled classes from GROOVY_CLASSPATH
     if (process.env.GROOVY_CLASSPATH) {
       classpath = `${process.env.GROOVY_CLASSPATH}:${classpath}`;
     }
-    
+
     if (jdbcDriverPath) {
       classpath = `${classpath}:${jdbcDriverPath}`;
     } else if (this.options.verbose) {
@@ -178,7 +186,7 @@ export class BaseTestRunner {
         ),
       );
     }
-    
+
     args.push("-cp", classpath);
 
     // Add the test file

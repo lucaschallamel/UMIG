@@ -412,7 +412,7 @@ class PhaseRepository {
                     plm.plm_name,
                     plm.tms_id,
                     tms.tms_name,
-                    itr.itr_name,
+                    itr.ite_name,
                     mig.mig_name,
                     sts.sts_id,
                     sts.sts_name,
@@ -485,10 +485,14 @@ class PhaseRepository {
                         predecessorInstanceId = predecessorInstance?.phi_id as UUID
                     }
                     
+                    // Resolve status string to status ID
+                    def statusName = overrides.phi_status ?: 'PLANNING'
+                    def statusId = resolvePhaseStatusId(sql, statusName)
+                    
                     def instanceData = [
                         sqi_id: sequenceInstanceId,
                         phm_id: masterPhaseId,
-                        phi_status: overrides.phi_status ?: 'PLANNING',
+                        phi_status: statusId,
                         phi_name: overrides.phi_name ?: masterPhase.phm_name,
                         phi_description: overrides.phi_description ?: masterPhase.phm_description,
                         phi_order: overrides.phi_order ?: masterPhase.phm_order,
@@ -507,7 +511,17 @@ class PhaseRepository {
                     """, instanceData)
                     
                     if (result?.phi_id) {
-                        return findPhaseInstanceById(result.phi_id as UUID)
+                        // Return basic instance data - simplified to avoid transaction context issues
+                        return [
+                            phi_id: result.phi_id,
+                            sqi_id: sequenceInstanceId,
+                            phm_id: masterPhaseId,
+                            phi_status: statusName,
+                            phi_name: instanceData.phi_name,
+                            phi_description: instanceData.phi_description,
+                            phi_order: instanceData.phi_order,
+                            predecessor_phi_id: instanceData.predecessor_phi_id
+                        ]
                     }
                     return null
                 }
@@ -1185,5 +1199,36 @@ class PhaseRepository {
         }
         
         return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
+    }
+    
+    /**
+     * Resolves a phase status name to its corresponding status ID.
+     * @param sql Active SQL connection
+     * @param statusName The status name to resolve (e.g., 'PLANNING', 'IN_PROGRESS')
+     * @return Integer status ID for the given status name
+     */
+    private Integer resolvePhaseStatusId(groovy.sql.Sql sql, String statusName) {
+        if (!statusName) {
+            return getDefaultPhaseInstanceStatusId(sql)
+        }
+        
+        try {
+            Map status = sql.firstRow("""
+                SELECT sts_id 
+                FROM status_sts 
+                WHERE sts_name = :statusName AND sts_type = 'Phase'
+                LIMIT 1
+            """, [statusName: statusName.toUpperCase()]) as Map
+            
+            // Fallback to default if status name not found
+            if (!status) {
+                return getDefaultPhaseInstanceStatusId(sql)
+            }
+            
+            return status.sts_id as Integer
+        } catch (Exception e) {
+            // If any exception in status resolution, fall back to default
+            return getDefaultPhaseInstanceStatusId(sql)
+        }
     }
 }

@@ -20,6 +20,24 @@
 - **Technical Foundation**: Establishes scalable framework for future API integration testing
 - **Risk Mitigation**: Reduces inconsistency-related bugs in test suite
 
+## Integration Test Coverage Completion
+
+**Immediate Sprint 5 Requirement**: Fix remaining 6/11 failing integration tests (currently 45% pass rate → target 80%+)
+
+**Outstanding Failed Tests**:
+- MigrationsApiBulkOperationsTest
+- CrossApiIntegrationTest  
+- ApplicationsApiIntegrationTest
+- EnvironmentsApiIntegrationTest
+- ControlsApiIntegrationTest
+- PhasesApiIntegrationTest (1 endpoint)
+
+**Proven Resolution Pattern**: Apply successful fix pattern from SequencesApiIntegrationTest resolution
+
+**Effort Estimate**: 3-4 hours total across all failing tests
+
+**Success Criteria**: Zero regression risk for MVP deployment - all integration tests must pass consistently
+
 ## Problem Statement
 
 QA analysis of US-022 completion identified 8 critical issues in the current integration testing approach:

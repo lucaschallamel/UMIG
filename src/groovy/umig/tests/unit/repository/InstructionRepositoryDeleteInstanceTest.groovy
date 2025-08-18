@@ -1,4 +1,3 @@
-#!/usr/bin/env groovy
 /**
  * Unit Test for InstructionRepository - deleteInstanceInstruction method
  * Tests the new deleteInstanceInstruction method added in code review
@@ -10,12 +9,11 @@
  * - Error handling and SQL state mapping verification
  * 
  * Converted from Spock to standard Groovy test pattern for Phase 2 refactoring
+ * Zero-dependency pattern applied for US-022 integration test expansion
  * 
  * Run from project root: npm run test:unit
  */
 
-import umig.repository.InstructionRepository
-import umig.utils.DatabaseUtil
 import java.util.UUID
 import java.sql.SQLException
 
@@ -46,53 +44,51 @@ class MockDatabaseUtil {
     }
 }
 
-class InstructionRepositoryDeleteInstanceTest {
-    
-    InstructionRepository repository
-    MockSql mockSql
-    
-    def setUp() {
-        repository = new InstructionRepository()
-        mockSql = new MockSql()
-        MockDatabaseUtil.mockSql = mockSql
+// Mock InstructionRepository for zero-dependency testing
+class MockInstructionRepository {
+    def deleteInstanceInstruction(UUID instanceId) {
+        if (instanceId == null) {
+            throw new IllegalArgumentException("Instruction instance ID cannot be null")
+        }
         
-        // Replace DatabaseUtil with our mock
-        DatabaseUtil.metaClass.static.withSql = MockDatabaseUtil.&withSql
-    }
-    
-    def tearDown() {
-        // Reset DatabaseUtil
-        DatabaseUtil.metaClass = null
-    }
-    
-    // Repository method implementation for testing
-    def setupDeleteInstanceInstructionMethod() {
-        repository.metaClass.deleteInstanceInstruction = { UUID instanceId ->
-            if (instanceId == null) {
-                throw new IllegalArgumentException("Instruction instance ID cannot be null")
-            }
-            
-            return DatabaseUtil.withSql { sql ->
-                try {
-                    return sql.executeUpdate(
-                        'DELETE FROM instructions_instance_ini WHERE ini_id = :iniId',
-                        [iniId: instanceId]
-                    )
-                } catch (SQLException e) {
-                    if (e.getSQLState() == "23503") {
-                        throw new IllegalArgumentException("Cannot delete instruction instance due to foreign key constraint", e)
-                    } else {
-                        throw new RuntimeException("Failed to delete instruction instance ${instanceId}", e)
-                    }
+        return MockDatabaseUtil.withSql { sql ->
+            try {
+                return sql.executeUpdate(
+                    'DELETE FROM instructions_instance_ini WHERE ini_id = :iniId',
+                    [iniId: instanceId]
+                )
+            } catch (SQLException e) {
+                if (e.getSQLState() == "23503") {
+                    throw new IllegalArgumentException("Cannot delete instruction instance due to foreign key constraint", e)
+                } else {
+                    throw new RuntimeException("Failed to delete instruction instance ${instanceId}", e)
                 }
             }
         }
     }
+}
+
+class InstructionRepositoryDeleteInstanceTests {
+    
+    MockInstructionRepository repository
+    MockSql mockSql
+    
+    def setUp() {
+        repository = new MockInstructionRepository()
+        mockSql = new MockSql()
+        MockDatabaseUtil.mockSql = mockSql
+    }
+    
+    def tearDown() {
+        // Clean up mocks
+        mockSql.executeUpdateCalls.clear()
+        mockSql.executeUpdateResponses.clear()
+    }
+    
     
     void testDeleteInstanceInstructionShouldDeleteInstructionInstanceSuccessfully() {
         // given: an instruction instance ID
         def instanceId = UUID.randomUUID()
-        setupDeleteInstanceInstructionMethod()
         
         // and: DatabaseUtil.withSql is mocked
         mockSql.executeUpdateResponses << 1
@@ -114,7 +110,6 @@ class InstructionRepositoryDeleteInstanceTest {
     void testDeleteInstanceInstructionShouldReturn0WhenInstructionInstanceNotFound() {
         // given: a non-existent instruction instance ID
         def instanceId = UUID.randomUUID()
-        setupDeleteInstanceInstructionMethod()
         
         // and: DatabaseUtil.withSql is mocked
         mockSql.executeUpdateResponses << 0
@@ -133,7 +128,6 @@ class InstructionRepositoryDeleteInstanceTest {
     
     void testDeleteInstanceInstructionShouldThrowIllegalArgumentExceptionForNullId() {
         // given: null ID
-        setupDeleteInstanceInstructionMethod()
         
         try {
             // when: deleteInstanceInstruction is called with null
@@ -149,7 +143,6 @@ class InstructionRepositoryDeleteInstanceTest {
         // given: instruction instance ID that has foreign key references
         def instanceId = UUID.randomUUID()
         def sqlException = new SQLException("Foreign key constraint", "23503")
-        setupDeleteInstanceInstructionMethod()
         
         // and: DatabaseUtil.withSql is mocked
         mockSql.executeUpdateResponses << sqlException
@@ -169,7 +162,6 @@ class InstructionRepositoryDeleteInstanceTest {
         // given: instruction instance ID and general SQL error
         def instanceId = UUID.randomUUID()
         def sqlException = new SQLException("Database connection failed", "08001")
-        setupDeleteInstanceInstructionMethod()
         
         // and: DatabaseUtil.withSql is mocked
         mockSql.executeUpdateResponses << sqlException
@@ -188,7 +180,6 @@ class InstructionRepositoryDeleteInstanceTest {
     void testDeleteInstanceInstructionShouldValidateSqlQueryStructureExactly() {
         // given: an instruction instance ID
         def instanceId = UUID.randomUUID()
-        setupDeleteInstanceInstructionMethod()
         
         // and: DatabaseUtil.withSql is mocked
         mockSql.executeUpdateResponses << 1
@@ -219,7 +210,6 @@ class InstructionRepositoryDeleteInstanceTest {
     
     void testDeleteInstanceInstructionParameterTypeValidation() {
         // given: DatabaseUtil.withSql is mocked
-        setupDeleteInstanceInstructionMethod()
         
         // Test different UUID types
         def testUuids = [
@@ -245,7 +235,6 @@ class InstructionRepositoryDeleteInstanceTest {
     void testDeleteInstanceInstructionPerformanceWithRealisticId() {
         // given: a realistic instruction instance UUID
         def instanceId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000")
-        setupDeleteInstanceInstructionMethod()
         
         // and: DatabaseUtil.withSql is mocked
         mockSql.executeUpdateResponses << 1
@@ -270,7 +259,6 @@ class InstructionRepositoryDeleteInstanceTest {
     void testDeleteInstanceInstructionConcurrentDeletionAttempts() {
         // given: instruction instance ID for concurrent deletion test
         def instanceId = UUID.randomUUID()
-        setupDeleteInstanceInstructionMethod()
         
         // and: DatabaseUtil.withSql is mocked to simulate concurrent access
         mockSql.executeUpdateResponses.addAll([1, 0, 0]) // First succeeds, others find nothing
@@ -291,10 +279,8 @@ class InstructionRepositoryDeleteInstanceTest {
         assert results == [1, 0, 0]
     }
     
-    // Main test runner
-    static void main(String[] args) {
-        def test = new InstructionRepositoryDeleteInstanceTest()
-        
+    // Test runner method
+    void runTests() {
         println "Running InstructionRepositoryDeleteInstanceTest..."
         
         def testMethods = [
@@ -314,9 +300,9 @@ class InstructionRepositoryDeleteInstanceTest {
         
         testMethods.each { methodName ->
             try {
-                test.setUp()
-                test."$methodName"()
-                test.tearDown()
+                setUp()
+                this."$methodName"()
+                tearDown()
                 println "✓ $methodName"
                 passed++
             } catch (Exception e) {
@@ -325,9 +311,19 @@ class InstructionRepositoryDeleteInstanceTest {
             }
         }
         
-        println "\nTest Results: $passed passed, $failed failed"
+        println "\n========== Test Summary =========="
+        println "Total tests: ${passed + failed}"
+        println "Passed: ${passed}"
+        println "Failed: ${failed}"
+        println "Success rate: ${passed / (passed + failed) * 100}%"
+        println "=================================="
+        
         if (failed > 0) {
             System.exit(1)
         }
     }
 }
+
+// Run the tests
+def test = new InstructionRepositoryDeleteInstanceTests()
+test.runTests()
