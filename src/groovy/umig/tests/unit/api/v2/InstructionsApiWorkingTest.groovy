@@ -1,12 +1,57 @@
 #!/usr/bin/env groovy
+/**
+ * Standalone Unit Test for Instructions API  
+ * Tests API responses with properly mocked dependencies
+ * Zero external dependencies - runs outside ScriptRunner
+ */
 
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 
-// Import our mock response
-import umig.tests.unit.api.v2.MockResponse
+/**
+ * Mock Response class to avoid JAX-RS dependency issues during testing
+ */
+class MockResponse {
+    int status
+    Object entity
+    
+    static MockResponse ok(Object entity = null) {
+        new MockResponse(status: 200, entity: entity)
+    }
+    
+    static MockResponse status(int code) {
+        new MockResponse(status: code)
+    }
+    
+    static MockResponse notFound() {
+        new MockResponse(status: 404)
+    }
+    
+    static MockResponse badRequest() {
+        new MockResponse(status: 400)
+    }
+    
+    MockResponse entity(Object entity) {
+        this.entity = entity
+        return this
+    }
+    
+    MockResponse build() {
+        return this
+    }
+    
+    static class Status {
+        static final Status OK = new Status(statusCode: 200)
+        static final Status BAD_REQUEST = new Status(statusCode: 400)
+        static final Status NOT_FOUND = new Status(statusCode: 404)
+        static final Status INTERNAL_SERVER_ERROR = new Status(statusCode: 500)
+        static final Status NOT_IMPLEMENTED = new Status(statusCode: 501)
+        
+        int statusCode
+    }
+}
 
-class InstructionsApiWorkingTest {
+class InstructionsApiWorkingTestClass {
     
     static void testGetInstructionsByStepId() {
         println "\n🧪 Testing GET /instructions by stepId..."
@@ -97,19 +142,50 @@ class InstructionsApiWorkingTest {
     }
     
     static void main(String[] args) {
-        println "🚀 Running Instructions API Unit Tests (Without External Dependencies)..."
+        println "============================================"
+        println "Instructions API Unit Tests (Fixed)"
+        println "============================================\n"
         
-        try {
-            testGetInstructionsByStepId()
-            testGetInstructionNotFound()
-            testInvalidUUID()
-            testUpdateInstruction()
-            testDeleteInstruction()
-            
-            println "\n✅ All Instructions API unit tests passed!"
-        } catch (AssertionError e) {
-            println "\n❌ Test failed: ${e.message}"
+        def testsPassed = 0
+        def testsFailed = 0
+        
+        def tests = [
+            'getInstructionsByStepId': this.&testGetInstructionsByStepId,
+            'getInstructionNotFound': this.&testGetInstructionNotFound,
+            'invalidUUID': this.&testInvalidUUID,
+            'updateInstruction': this.&testUpdateInstruction,
+            'deleteInstruction': this.&testDeleteInstruction
+        ]
+        
+        tests.each { name, test ->
+            try {
+                test()
+                testsPassed++
+            } catch (AssertionError e) {
+                println "❌ ${name} test failed: ${e.message}"
+                testsFailed++
+            } catch (Exception e) {
+                println "❌ ${name} test error: ${e.message}"
+                e.printStackTrace()
+                testsFailed++
+            }
+        }
+        
+        println "\n" + "=" * 40
+        println "Test Summary"
+        println "=" * 40
+        println "✅ Passed: ${testsPassed}"
+        println "❌ Failed: ${testsFailed}"
+        println "Total: ${testsPassed + testsFailed}"
+        
+        if (testsFailed == 0) {
+            println "\n🎉 All unit tests passed!"
+        } else {
+            println "\n⚠️ Some tests failed"
             System.exit(1)
         }
     }
 }
+
+// Run the tests
+InstructionsApiWorkingTestClass.main(args)

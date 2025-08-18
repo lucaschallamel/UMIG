@@ -210,23 +210,24 @@ Transform UMIG into a comprehensive execution management system for migration st
 ### 🔄 Sprint 5 (Aug 15-22, 2025) - Production Readiness & Operational Enhancement
 
 **Sprint Goal**: Complete remaining MVP features and prepare for production deployment  
-**Target**: 27 story points (reduced from 31 due to Sprint 4 scope refinement)  
+**Target**: 23 story points (92% capacity utilization)  
 **Priority**: Complete critical MVP functionality before enhancements
 
-#### Sprint 5 Scope (31 points):
+#### Sprint 5 Scope (23 points):
 
-**Primary MVP Completion (14 points):**
+**Primary MVP Completion (18 points):**
 
-- US-031: Admin GUI Complete Integration (8 points) - Administrative interface integration
-- US-028: Enhanced IterationView with New APIs (3 points) - Operational interface enhancement
-- US-022: Integration Test Suite Expansion (1 point) - Quality assurance (85-90% complete)
-- US-030: API Documentation Completion (1 point) - Documentation finalization (85% complete)
-- US-029: Planning Feature HTML Export (1 point) - Planning deliverable generation
+- US-031: Admin GUI Complete Integration (6 points) - Administrative interface integration
+- US-036: StepView UI Refactoring (3 points) - Enhanced step viewing interface
+- US-034: Data Import Strategy (3 points) - Production data import capabilities
+- US-033: Main Dashboard UI (3 points) - Strategic overview dashboard
+- US-022: Integration Test Suite Expansion (1 point) - Quality assurance foundation
+- US-030: API Documentation Completion (1 point) - Documentation finalization
+- US-035: Enhanced IterationView Phases 2-3 (1 point) - Advanced operational features
 
-**Deferred Stories from Sprint 4 (13 points):**
+**Technical Debt Resolution (5 points):**
 
-- US-033: Main Dashboard UI (8 points) - Strategic overview dashboard (blocked by US-025)
-- US-034: Data Import Strategy (5 points) - Production data import capabilities
+- US-037: Integration Testing Framework Standardization (5 points) - Testing framework improvements
 
 ### 📅 Future Sprints (Sprint 6 onwards - Sep 2, 2025+)
 

@@ -1007,7 +1007,7 @@ class MigrationRepository {
         DatabaseUtil.withSql { sql ->
             // Set default status if not provided
             if (!migrationData.mig_status) {
-                def defaultStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'Planning' AND sts_type = 'migration'")
+                def defaultStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Migration'")
                 migrationData.mig_status = defaultStatus?.sts_id ?: 1
             }
             

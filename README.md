@@ -104,9 +104,8 @@ UMIG/
 │           │   │   ├── test-api-endpoints.sh     # REST API validation
 │           │   │   └── test-scriptrunner.sh      # ScriptRunner tests
 │           │   ├── validation/       # Database and quality validation
-│           │   ├── grab-postgres-jdbc.groovy
-│           │   ├── run-integration-tests.sh
-│           │   └── run-unit-tests.sh
+│           │   ├── archived-shell-scripts/ # Deprecated shell scripts (archived)
+│           │   └── grab-postgres-jdbc.groovy
 │           ├── utils/                # Utility classes
 │           │   └── DatabaseUtil.groovy
 │           └── web/                  # Frontend assets
@@ -335,9 +334,12 @@ npm run import-csv -- --file path/to/your/file.csv
 # Run all tests
 npm test
 
-# Run Groovy tests (from project root)
-./src/groovy/umig/tests/run-integration-tests.sh        # Integration tests
-./src/groovy/umig/tests/run-unit-tests.sh              # Unit tests
+# Run Groovy tests (from local-dev-setup/)
+npm run test:integration     # Integration tests
+npm run test:unit           # Unit tests
+npm run test:integration:auth # Authenticated integration tests
+npm run test:uat            # UAT validation tests
+npm run test:iterationview  # Enhanced IterationView tests
 ```
 
 ### Database Operations
@@ -604,10 +606,11 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 **Sprint Goal**: Complete MVP functionality and prepare for UAT deployment with fully integrated Admin GUI, enhanced user interfaces, and production-ready documentation.
 
 **Timeline**: 5 working days (August 18-22, 2025)  
-**Planned Velocity**: 18 points (72% of 25-point capacity)  
-**Buffer**: 7 points (28% for quality assurance and UAT preparation)
+**Planned Velocity**: 23 points (92% of 25-point capacity) - **INCREASED from 18 points**  
+**Buffer**: 2 points (8% - minimal buffer due to technical debt acceleration - see ADR-041)  
+**Risk Profile**: HIGH execution risk due to US-037 technical debt acceleration from Sprint 6
 
-#### 📋 Sprint 5 Stories (7 Stories, 18 Points Total)
+#### 📋 Sprint 5 Stories (8 Stories, 23 Points Total - SCOPE EXPANDED)
 
 - **US-022**: Integration Test Expansion (1 point) - Day 1 - Foundation completion
 - **US-030**: API Documentation Completion (1 point) - Day 1 - UAT preparation
@@ -616,6 +619,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **US-034**: Data Import Strategy (3 points) - Days 4-5 - Migration enablement
 - **US-033**: Main Dashboard UI (3 points) - Day 5 - Final MVP component
 - **US-035**: Enhanced IterationView Phases 2-3 (1 point) - Day 5 - Enhancement features
+- **US-037**: Integration Testing Framework Standardization (5 points) - Day 5 - **MOVED FROM SPRINT 6** - Technical debt acceleration (ADR-041)
 
 #### 📈 Current Status (Sprint 5 Planning Complete)
 
