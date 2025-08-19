@@ -98,6 +98,35 @@
 - **AND** implement proper error handling when authentication fails (redirect to login, no mock fallback)
 - **AND** this is a CRITICAL security vulnerability that must be fixed before ANY production deployment
 
+### AC11: Differential Macro Authentication Strategy
+- **GIVEN** UMIG has different types of macros with varying security requirements
+- **WHEN** implementing macro-level authentication
+- **THEN** two distinct authentication strategies must be implemented:
+
+**Permissive Strategy (Regular Macros: IterationView, StepView)**:
+- **AND** implement implicit role discovery from Confluence context + user trigram
+- **AND** auto-provision unknown users with NORMAL role in users_usr table
+- **AND** provide progressive feature enhancement based on discovered/assigned role
+- **AND** always show UI with role-appropriate features (graceful degradation)
+- **AND** follow "default allow with restrictions" approach for user experience
+
+**Strict Strategy (Admin GUI Macro)**:
+- **AND** implement NO auto-provisioning - user MUST exist in users_usr table
+- **AND** user MUST have ADMIN or PILOT role explicitly assigned
+- **AND** completely deny access for NORMAL users or undeclared users
+- **AND** show "Access Denied" page with "contact administrator" message for unauthorized access
+- **AND** check usr_is_admin flag for SUPERADMIN privileges verification
+- **AND** follow "default deny unless explicitly authorized" approach for security
+
+**Strategy Pattern Implementation**:
+- **AND** implement MacroAuthenticationStrategy interface with authenticate(MacroType, user) method
+- **AND** create MacroType enum with REGULAR_MACRO and ADMIN_GUI_MACRO values
+- **AND** implement different caching durations (10 minutes for regular macros, 2 minutes for admin GUI)
+- **AND** implement PermissiveMacroAuthStrategy with auto-provisioning logic
+- **AND** implement StrictMacroAuthStrategy with AccessDeniedException handling
+- **AND** enhance AuthenticationService with authenticateForMacro(MacroType, user) method
+- **AND** ensure strategy selection is determined by macro type configuration, not user input
+
 ## Technical Implementation Notes
 
 ### Database Changes (Liquibase Migration)
@@ -329,19 +358,81 @@ function initializeStepView(config) {
 }
 ```
 
-#### Macro Registration Pattern
+#### Differential Macro Authentication Usage Examples
+
+#### Regular Macro Implementation (PermissiveStrategy)
 ```groovy
-// Common pattern for all UMIG macros
+@Component
+class IterationViewMacro extends UMIGBaseMacro {
+    
+    String execute(Map<String, String> parameters, String bodyContent, ConversionContext conversionContext) {
+        def request = ((DefaultConversionContext) conversionContext).getHttpServletRequest()
+        
+        try {
+            // Use permissive strategy - auto-provision if needed
+            def userContext = AuthenticationService.authenticateForMacro(MacroType.REGULAR_MACRO, request)
+            
+            return buildRegularMacroHtml(userContext, parameters, "iteration-view")
+            
+        } catch (SecurityException e) {
+            return buildErrorResponse("IterationView", e.message)
+        }
+    }
+}
+```
+
+#### Admin GUI Macro Implementation (StrictStrategy)
+```groovy
+@Component 
+class AdminGUIMacro extends UMIGBaseMacro {
+    
+    String execute(Map<String, String> parameters, String bodyContent, ConversionContext conversionContext) {
+        def request = ((DefaultConversionContext) conversionContext).getHttpServletRequest()
+        
+        try {
+            // Use strict strategy - must exist and have ADMIN/PILOT role
+            def userContext = AuthenticationService.authenticateForMacro(MacroType.ADMIN_GUI_MACRO, request)
+            
+            return buildAdminGUIMacroHtml(userContext, parameters)
+            
+        } catch (AccessDeniedException e) {
+            return buildAccessDeniedResponse(e.message)
+        } catch (SecurityException e) {
+            return buildErrorResponse("AdminGUI", e.message) 
+        }
+    }
+    
+    private String buildAccessDeniedResponse(String message) {
+        return """
+        <div class='umig-access-denied'>
+            <div class='umig-error-icon'>🔒</div>
+            <h2>Access Denied</h2>
+            <p>${message}</p>
+            <div class='umig-contact-info'>
+                <h4>Need Access?</h4>
+                <p>Contact your system administrator to request UMIG administration privileges.</p>
+                <p><strong>Requirements:</strong> ADMIN or PILOT role in UMIG user management system</p>
+            </div>
+            <div class='umig-error-code'>Error Code: UMIG_ADMIN_GUI_UNAUTHORIZED</div>
+        </div>
+        """
+    }
+}
+```
+
+### Macro Registration Pattern
+```groovy
+// Common pattern for all UMIG macros with differential authentication support
 abstract class UMIGBaseMacro implements Macro {
     
+    // NEW: Differential authentication based on macro type
+    protected UserContext authenticateForMacroType(HttpServletRequest request, MacroType macroType) throws SecurityException {
+        return AuthenticationService.authenticateForMacro(macroType, request)
+    }
+    
+    // Legacy method for backward compatibility - defaults to regular macro
     protected UserContext authenticateAndAuthorize(HttpServletRequest request) throws SecurityException {
-        def userContext = AuthenticationService.getUserContext(request)
-        
-        if (!userContext.isAuthorized) {
-            throw new SecurityException("User not authorized for UMIG application")
-        }
-        
-        return userContext
+        return authenticateForMacroType(request, MacroType.REGULAR_MACRO)
     }
     
     protected String buildUnauthorizedResponse(String macroName) {
@@ -411,6 +502,86 @@ abstract class UMIGBaseMacro implements Macro {
 }
 ```
 
+### Differential Macro Authentication Strategy Implementation
+
+#### Strategy Pattern Architecture
+```groovy
+// MacroType enum for strategy selection
+enum MacroType {
+    REGULAR_MACRO,    // IterationView, StepView - Permissive strategy
+    ADMIN_GUI_MACRO   // Admin GUI - Strict strategy
+}
+
+// Strategy interface
+interface MacroAuthenticationStrategy {
+    UserContext authenticate(MacroType macroType, String confluenceUserName, HttpServletRequest request) throws SecurityException
+}
+
+// Permissive strategy for regular macros
+class PermissiveMacroAuthStrategy implements MacroAuthenticationStrategy {
+    @Override
+    UserContext authenticate(MacroType macroType, String confluenceUserName, HttpServletRequest request) throws SecurityException {
+        def userContext = getUserFromDatabase(confluenceUserName)
+        
+        if (!userContext) {
+            // Auto-provision unknown users with NORMAL role
+            userContext = autoProvisionUser(confluenceUserName)
+            AuditSecurityRepository.logSecurityChange(
+                null, userContext.userId, 'USER_AUTO_PROVISIONED', 
+                null, 'NORMAL', request.remoteAddr
+            )
+        }
+        
+        // Always return context for progressive feature enhancement
+        return userContext
+    }
+    
+    private UserContext autoProvisionUser(String confluenceUserName) {
+        def trigram = extractTrigram(confluenceUserName)
+        def normalRoleId = getNormalRoleId()
+        
+        return DatabaseUtil.withSql { sql ->
+            def userId = UUID.randomUUID()
+            sql.executeInsert("""
+                INSERT INTO users_usr (usr_id, usr_first_name, usr_last_name, usr_trigram, 
+                                     usr_confluence_username, usr_role_id, user_is_admin)
+                VALUES (?, ?, ?, ?, ?, ?, false)
+            """, [userId as String, "Auto", "Provisioned", trigram, confluenceUserName, normalRoleId as String])
+            
+            return buildUserContext(confluenceUserName) // Rebuild after insert
+        }
+    }
+}
+
+// Strict strategy for admin GUI
+class StrictMacroAuthStrategy implements MacroAuthenticationStrategy {
+    @Override
+    UserContext authenticate(MacroType macroType, String confluenceUserName, HttpServletRequest request) throws SecurityException {
+        def userContext = getUserFromDatabase(confluenceUserName)
+        
+        if (!userContext) {
+            AuditSecurityRepository.logAuthenticationAttempt(confluenceUserName, "ADMIN_GUI_REJECTED_NOT_IN_DB", request.remoteAddr)
+            throw new AccessDeniedException("User not authorized for UMIG administration. Contact your system administrator.")
+        }
+        
+        // Must have ADMIN or PILOT role explicitly
+        if (!["ADMIN", "PILOT"].contains(userContext.role)) {
+            AuditSecurityRepository.logAuthenticationAttempt(confluenceUserName, "ADMIN_GUI_REJECTED_INSUFFICIENT_ROLE", request.remoteAddr)
+            throw new AccessDeniedException("Insufficient privileges for UMIG administration. Contact your system administrator.")
+        }
+        
+        return userContext
+    }
+}
+
+// Access denied exception for strict strategy
+class AccessDeniedException extends SecurityException {
+    AccessDeniedException(String message) {
+        super(message)
+    }
+}
+```
+
 ### Enhanced AuthenticationService.groovy Implementation
 ```groovy
 // UserContext data class
@@ -424,19 +595,63 @@ class UserContext {
     List<String> teams
     Map<String, Boolean> permissions
     Date lastUpdated
+    MacroType authenticatedForMacroType  // NEW: Track authentication context
 }
 
-// Enhanced AuthenticationService with two-layer authentication
+// Enhanced AuthenticationService with two-layer authentication and strategy pattern
 class AuthenticationService {
     private static final Map<String, UserContext> userContextCache = [:]
-    private static final int CACHE_DURATION_MINUTES = 5
+    private static final int REGULAR_MACRO_CACHE_MINUTES = 10
+    private static final int ADMIN_GUI_CACHE_MINUTES = 2
+    
+    // Strategy instances
+    private static final MacroAuthenticationStrategy permissiveStrategy = new PermissiveMacroAuthStrategy()
+    private static final MacroAuthenticationStrategy strictStrategy = new StrictMacroAuthStrategy()
 
     // Backward compatible method - KEEP EXISTING
     static String getCurrentUser() {
         return ComponentAccessor.jiraAuthenticationContext.loggedInUser?.name ?: "anonymous"
     }
+    
+    // NEW: Macro-specific authentication with strategy pattern
+    static UserContext authenticateForMacro(MacroType macroType, javax.servlet.http.HttpServletRequest request) {
+        def confluenceUser = ComponentAccessor.jiraAuthenticationContext.loggedInUser
+        
+        if (!confluenceUser) {
+            throw new SecurityException("No Confluence authentication found")
+        }
+        
+        def cacheKey = "${confluenceUser.name}_${macroType.name()}"
+        def cacheDuration = (macroType == MacroType.ADMIN_GUI_MACRO) ? 
+            ADMIN_GUI_CACHE_MINUTES : REGULAR_MACRO_CACHE_MINUTES
+        def cachedContext = getCachedUserContext(cacheKey, cacheDuration)
+        if (cachedContext) {
+            return cachedContext
+        }
+        
+        // Select strategy based on macro type
+        def strategy = (macroType == MacroType.ADMIN_GUI_MACRO) ? strictStrategy : permissiveStrategy
+        
+        try {
+            def userContext = strategy.authenticate(macroType, confluenceUser.name, request)
+            userContext.authenticatedForMacroType = macroType
+            
+            // Cache with appropriate duration
+            cacheUserContext(cacheKey, userContext)
+            AuditSecurityRepository.logAuthenticationAttempt(confluenceUser.name, "SUCCESS_${macroType.name()}", request.remoteAddr)
+            
+            return userContext
+            
+        } catch (AccessDeniedException e) {
+            // Don't cache failed admin GUI attempts
+            throw e
+        } catch (SecurityException e) {
+            AuditSecurityRepository.logAuthenticationAttempt(confluenceUser.name, "FAILED_${macroType.name()}", request.remoteAddr)
+            throw e
+        }
+    }
 
-    // New two-layer authentication method
+    // Original two-layer authentication method (backward compatibility)
     static UserContext getUserContext(javax.servlet.http.HttpServletRequest request) {
         def confluenceUser = ComponentAccessor.jiraAuthenticationContext.loggedInUser
         
@@ -521,13 +736,18 @@ class AuthenticationService {
         }
     }
 
-    // Cache management
-    private static UserContext getCachedUserContext(String cacheKey) {
+    // Cache management with variable durations
+    private static UserContext getCachedUserContext(String cacheKey, int cacheDurationMinutes = 5) {
         def cached = userContextCache[cacheKey]
-        if (cached && isWithinCacheDuration(cached.lastUpdated)) {
+        if (cached && isWithinCacheDuration(cached.lastUpdated, cacheDurationMinutes)) {
             return cached
         }
         return null
+    }
+    
+    // Overload for backward compatibility
+    private static UserContext getCachedUserContext(String cacheKey) {
+        return getCachedUserContext(cacheKey, 5)
     }
 
     private static void cacheUserContext(String cacheKey, UserContext userContext) {
@@ -538,10 +758,15 @@ class AuthenticationService {
         userContextCache.remove(confluenceUserName)
     }
 
-    private static boolean isWithinCacheDuration(Date lastUpdated) {
+    private static boolean isWithinCacheDuration(Date lastUpdated, int cacheDurationMinutes = 5) {
         def now = new Date()
         def diffMinutes = (now.time - lastUpdated.time) / (1000 * 60)
-        return diffMinutes < CACHE_DURATION_MINUTES
+        return diffMinutes < cacheDurationMinutes
+    }
+    
+    // Overload for backward compatibility
+    private static boolean isWithinCacheDuration(Date lastUpdated) {
+        return isWithinCacheDuration(lastUpdated, 5)
     }
 
     private static List<String> getUserTeams(UUID userId) {
@@ -737,6 +962,16 @@ CREATE POLICY user_data_access ON users_usr
 - [ ] **CRITICAL: Client-side admin backdoor removed from AuthenticationManager.js**
 - [ ] **CRITICAL: All mock authentication code removed (createMockUser function)**
 - [ ] **CRITICAL: No client-side authentication or authorization logic remaining**
+- [ ] **Differential Macro Authentication Strategy implemented with MacroType enum and strategy pattern**
+- [ ] **PermissiveMacroAuthStrategy implemented with auto-provisioning for regular macros (IterationView, StepView)**
+- [ ] **StrictMacroAuthStrategy implemented with access denial for admin GUI macro**
+- [ ] **AuthenticationService.authenticateForMacro() method implemented with different cache durations (10min regular, 2min admin)**
+- [ ] **MacroAuthenticationStrategy interface implemented with proper exception handling**
+- [ ] **AccessDeniedException implemented for strict strategy access denials**
+- [ ] **Auto-provisioning logic implemented for unknown users in regular macros (NORMAL role assignment)**
+- [ ] **Strategy selection logic implemented based on macro type configuration**
+- [ ] **Enhanced audit logging implemented for macro-specific authentication events**
+- [ ] **Access denied UI implemented for admin GUI with contact administrator message**
 
 ## Story Points: 13
 
@@ -760,6 +995,14 @@ CREATE POLICY user_data_access ON users_usr
 - **CRITICAL:** Complete removal of client-side admin backdoor (ADM, JAS, SUP, SYS trump users)
 - **CRITICAL:** Refactoring AuthenticationManager.js to eliminate all mock authentication
 - **CRITICAL:** Migration from client-side to server-side only authentication decisions
+- **NEW COMPLEXITY:** Differential macro authentication strategy pattern implementation
+- **NEW COMPLEXITY:** Two distinct authentication strategies (permissive vs strict) with different behaviors
+- **NEW COMPLEXITY:** Auto-provisioning logic for unknown users in regular macros only
+- **NEW COMPLEXITY:** Different caching durations and invalidation strategies per macro type
+- **NEW COMPLEXITY:** Enhanced error handling with AccessDeniedException and graceful degradation
+- **NEW COMPLEXITY:** Strategy selection logic and macro type configuration management
+
+**Note**: Story points remain at 13 as the differential authentication strategy represents a refinement of the existing macro-level RBAC work rather than completely new functionality. The strategy pattern provides a cleaner, more maintainable implementation of the already planned two-layer authentication system.
 
 ## Dependencies
 

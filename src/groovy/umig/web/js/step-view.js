@@ -214,28 +214,28 @@ class StepViewSearchFilter {
    */
   getSearchHTML() {
     return `
-      <div class="search-filters-section" style="margin: 16px 0; padding: 16px; background: #f4f5f7; border-radius: 3px;">
-        <div class="search-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-          <h4 style="margin: 0; color: #172B4D;">🔍 SEARCH & FILTERS</h4>
+      <div class="search-filters-section" style="margin: 16px 0; padding: 16px; background: white !important; border-radius: 3px; color: #172B4D !important;">
+        <div class="search-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; background: white !important; color: #172B4D !important;">
+          <h4 style="margin: 0; color: #172B4D !important; background: white !important;">🔍 SEARCH & FILTERS</h4>
           <button id="toggle-filters" class="aui-button aui-button-subtle" type="button">
             <span class="filter-toggle-text">Show Filters</span>
           </button>
           <button id="clear-filters" class="aui-button aui-button-subtle" type="button">Clear All</button>
         </div>
         
-        <div class="search-input-container" style="margin-bottom: 12px;">
+        <div class="search-input-container" style="margin-bottom: 12px; background: white !important; color: #172B4D !important;">
           <input type="text" 
                  id="step-search-input" 
                  class="text" 
                  placeholder="Search instructions, comments, or step details..."
                  value="${this.searchState.query}"
-                 style="width: 100%; max-width: 400px;">
-          <span class="search-results-count" style="margin-left: 12px; color: #6B778C; font-size: 14px;"></span>
+                 style="width: 100%; max-width: 400px; background: white !important; background-color: white !important; color: black !important; border: 1px solid #ddd !important; padding: 8px 12px !important; border-radius: 3px !important; font-size: 14px !important;">
+          <span class="search-results-count" style="margin-left: 12px; color: #6B778C; font-size: 14px; background: white !important;"></span>
         </div>
         
-        <div id="advanced-filters" class="advanced-filters" style="display: none; gap: 16px; flex-wrap: wrap;">
-          <div class="filter-group">
-            <label for="status-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D;">Status:</label>
+        <div id="advanced-filters" class="advanced-filters" style="display: none; gap: 16px; flex-wrap: wrap; background: white !important; color: #172B4D !important;">
+          <div class="filter-group" style="background: white !important; color: #172B4D !important;">
+            <label for="status-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D !important; background: white !important;">Status:</label>
             <select id="status-filter" class="select">
               <option value="all">All Statuses</option>
               <option value="PENDING" ${this.searchState.statusFilter === 'PENDING' ? 'selected' : ''}>Pending</option>
@@ -247,8 +247,8 @@ class StepViewSearchFilter {
             </select>
           </div>
           
-          <div class="filter-group">
-            <label for="instruction-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D;">Instructions:</label>
+          <div class="filter-group" style="background: white !important; color: #172B4D !important;">
+            <label for="instruction-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D !important; background: white !important;">Instructions:</label>
             <select id="instruction-filter" class="select">
               <option value="all" ${this.searchState.completedFilter === 'all' ? 'selected' : ''}>All Instructions</option>
               <option value="completed" ${this.searchState.completedFilter === 'completed' ? 'selected' : ''}>Completed Only</option>
@@ -256,8 +256,8 @@ class StepViewSearchFilter {
             </select>
           </div>
           
-          <div class="filter-group">
-            <label for="date-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D;">Comments:</label>
+          <div class="filter-group" style="background: white !important; color: #172B4D !important;">
+            <label for="date-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D !important; background: white !important;">Comments:</label>
             <select id="date-filter" class="select">
               <option value="all" ${this.searchState.dateRange === 'all' ? 'selected' : ''}>All Comments</option>
               <option value="today" ${this.searchState.dateRange === 'today' ? 'selected' : ''}>Today</option>
@@ -267,8 +267,8 @@ class StepViewSearchFilter {
           </div>
         </div>
         
-        <div class="search-shortcuts" style="margin-top: 8px; font-size: 12px; color: #6B778C;">
-          <strong>Quick Search:</strong>
+        <div class="search-shortcuts" style="margin-top: 8px; font-size: 12px; color: #6B778C; background: white !important;">
+          <strong style="background: white !important; color: #172B4D !important;">Quick Search:</strong>
           <button class="search-shortcut" data-query="TODO">Todo Items</button> |
           <button class="search-shortcut" data-query="completed">Completed</button> |
           <button class="search-shortcut" data-query="comment">Comments</button> |
@@ -1413,7 +1413,7 @@ class StepViewPilotFeatures {
     try {
       this.stepView.cache.clearCache();
       
-      const container = document.getElementById("umig-step-view-root");
+      const container = document.querySelector(".step-details-panel");
       if (container && this.stepView.currentMigration && this.stepView.currentIteration && this.stepView.currentStepCode) {
         await this.stepView.loadStepDetails(
           this.stepView.currentMigration, 
@@ -1708,6 +1708,9 @@ class StepView {
     this.currentIteration = iterationName;
     this.currentStepCode = stepId;
 
+    // Add the step-details-panel class to the container for styling
+    container.classList.add('step-details-panel');
+
     // Load step details with caching
     await this.loadStepDetails(migrationName, iterationName, stepId, container);
     
@@ -1774,7 +1777,7 @@ class StepView {
         console.log('📊 StepView: Received real-time update');
         
         // Update UI with fresh data
-        const container = document.getElementById("umig-step-view-root");
+        const container = document.querySelector(".step-details-panel");
         if (container) {
           this.renderStepView(updatedData, container);
           
@@ -1802,40 +1805,40 @@ class StepView {
     const comments = stepData.comments || [];
 
     let html = `
-            <div class="panel-header">
-                <div class="step-header-content">
-                    <div class="step-title-row">
-                        <h2 class="step-name">
-                            <span class="step-code">📋 ${this.escapeHtml(summary.StepCode || "Unknown")}</span>
-                            <span class="step-title-text">${this.escapeHtml(summary.Name || "Unknown Step")}</span>
+            <div class="panel-header" style="background-color: white !important; color: #172B4D !important;">
+                <div class="step-header-content" style="background-color: white !important; color: #172B4D !important;">
+                    <div class="step-title-row" style="background-color: white !important; color: #172B4D !important;">
+                        <h2 class="step-name" style="background-color: white !important; color: #172B4D !important;">
+                            <span class="step-code" style="background-color: white !important; color: #172B4D !important;">📋 ${this.escapeHtml(summary.StepCode || "Unknown")}</span>
+                            <span class="step-title-text" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.Name || "Unknown Step")}</span>
                         </h2>
-                        <span class="status-badge">${this.escapeHtml(summary.StatusID || "21")}</span>
+                        ${this.createStatusBadge(summary.StatusID || "21")}
                     </div>
-                    <div class="step-meta">
-                        <span class="step-owner">${this.escapeHtml(summary.AssignedTeamName || "Unassigned")}</span>
-                        <span class="step-timing">${this.escapeHtml(summary.Duration || "0")} minutes</span>
+                    <div class="step-meta" style="background-color: white !important; color: #172B4D !important;">
+                        <span class="step-owner" style="background-color: white !important; color: #172B4D !important;">${summary.AssignedTeamName ? '👥 ' + this.escapeHtml(summary.AssignedTeamName) : '👤 No team assigned'}</span>
+                        <span class="step-timing" style="background-color: white !important; color: #172B4D !important;">⏱️ ${summary.Duration ? this.escapeHtml(summary.Duration) + ' minute' + (summary.Duration != 1 ? 's' : '') : 'No duration specified'}</span>
                     </div>
                 </div>
-                <div class="step-breadcrumb">
-                    <span class="breadcrumb-item">${this.escapeHtml(summary.MigrationName || "Migration")}</span>
-                    <span class="breadcrumb-separator">›</span>
-                    <span class="breadcrumb-item">${this.escapeHtml(summary.IterationName || "Iteration")}</span>
-                    <span class="breadcrumb-separator">›</span>
-                    <span class="breadcrumb-item">${this.escapeHtml(summary.PlanName || "Plan")}</span>
-                    <span class="breadcrumb-separator">›</span>
-                    <span class="breadcrumb-item">${this.escapeHtml(summary.SequenceName || "Sequence")}</span>
-                    <span class="breadcrumb-separator">›</span>
-                    <span class="breadcrumb-item">${this.escapeHtml(summary.PhaseName || "Phase")}</span>
+                <div class="step-breadcrumb" style="background-color: white !important; color: #172B4D !important;">
+                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.MigrationName || "Migration")}</span>
+                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
+                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.IterationName || "Iteration")}</span>
+                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
+                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.PlanName || "Plan")}</span>
+                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
+                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.SequenceName || "Sequence")}</span>
+                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
+                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.PhaseName || "Phase")}</span>
                 </div>
-                <div class="cache-status">
-                    <small style="color: #6B778C;">
-                        🔄 Last updated: <span id="cache-timestamp">${new Date().toLocaleTimeString()}</span>
+                <div class="cache-status" style="background-color: white !important;">
+                    <small style="color: #6B778C; background-color: white !important;">
+                        🔄 Last updated: <span id="cache-timestamp" style="background-color: white !important;">${new Date().toLocaleTimeString()}</span>
                     </small>
                 </div>
             </div>
             
-            <div class="step-details-content">
-                <div class="step-info" data-sti-id="${summary.ID || ""}">
+            <div class="step-details-content" style="background-color: white !important; color: #172B4D !important;">
+                <div class="step-info" data-sti-id="${summary.ID || ""}" style="background-color: white !important; color: #172B4D !important;">
                     ${this.renderStepSummary(summary)}
                     ${this.renderLabels(summary.Labels)}
                     ${this.renderInstructions(instructions)}
@@ -1865,40 +1868,40 @@ class StepView {
   }
 
   renderStepSummary(summary) {
-    const statusDisplay = this.getStatusDisplay(summary.Status);
-    const durationDisplay = summary.Duration
-      ? `${summary.Duration} minute${summary.Duration !== 1 ? "s" : ""}`
-      : "Not specified";
+    // Only show additional details not already in header, plus status dropdown for PILOT users
+    // Convert status ID to name if needed - API returns StatusID not Status
+    const statusId = summary.StatusID || summary.Status || 21;
+    const statusName = this.getStatusNameFromId(statusId);
+    const statusDisplay = this.createStatusBadge(statusId);
+    
+    // Check if we have any additional details to show
+    const hasAdditionalDetails = summary.PredecessorCode || summary.TargetEnvironment || summary.Description;
+    
+    if (!hasAdditionalDetails) {
+      // If no additional details, just show the status dropdown for PILOT users
+      return `
+        <div class="step-summary-section">
+          <div class="step-status-container" style="margin-bottom: 16px;">
+            <label style="font-weight: 600; margin-bottom: 4px; display: block;">Quick Status Update:</label>
+            ${statusDisplay}
+            <select id="step-status-dropdown" class="pilot-only select" style="display: none;">
+              <!-- Will be populated dynamically -->
+            </select>
+          </div>
+        </div>
+      `;
+    }
 
     return `
             <div class="step-summary-section">
-                <h3>📊 SUMMARY</h3>
+                <h3>📋 ADDITIONAL DETAILS</h3>
                 <table class="aui">
                     <tbody>
-                        <tr>
-                            <th>Status</th>
-                            <td>
-                                <div class="step-status-container">
-                                    ${statusDisplay}
-                                    <select id="step-status-dropdown" class="pilot-only select" style="display: none;">
-                                        <!-- Will be populated dynamically -->
-                                    </select>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Duration</th>
-                            <td>${durationDisplay}</td>
-                        </tr>
-                        <tr>
-                            <th>Assigned Team</th>
-                            <td>${this.escapeHtml(summary.AssignedTeam || "Unassigned")}</td>
-                        </tr>
                         ${
                           summary.PredecessorCode
                             ? `
                         <tr>
-                            <th>Predecessor</th>
+                            <th>Predecessor Step</th>
                             <td>${this.escapeHtml(summary.PredecessorCode)}${summary.PredecessorName ? `: ${this.escapeHtml(summary.PredecessorName)}` : ""}</td>
                         </tr>
                         `
@@ -1908,7 +1911,7 @@ class StepView {
                           summary.TargetEnvironment
                             ? `
                         <tr>
-                            <th>Environment</th>
+                            <th>Target Environment</th>
                             <td>${this.escapeHtml(summary.TargetEnvironment)}</td>
                         </tr>
                         `
@@ -2587,7 +2590,70 @@ class StepView {
     }
   }
 
+  /**
+   * Map status ID to status name based on database schema
+   */
+  getStatusNameFromId(statusId) {
+    const statusMap = {
+      20: 'PENDING',
+      21: 'TODO', 
+      22: 'IN_PROGRESS',
+      23: 'COMPLETED',
+      24: 'FAILED',
+      25: 'BLOCKED',
+      26: 'CANCELLED'
+    };
+    
+    return statusMap[parseInt(statusId)] || 'PENDING';
+  }
+
+  /**
+   * Create a proper status badge with background color like IterationView
+   */
+  createStatusBadge(statusId) {
+    const statusName = this.getStatusNameFromId(statusId);
+    const statusColors = {
+      PENDING: "#DDDDDD",
+      TODO: "#FFFF00", 
+      IN_PROGRESS: "#0066CC",
+      COMPLETED: "#00AA00",
+      FAILED: "#FF0000",
+      BLOCKED: "#FF6600",
+      CANCELLED: "#CC0000",
+    };
+
+    const color = statusColors[statusName] || "#DDDDDD";
+    const textColor = this.getTextColorForBackground(color);
+    const displayText = statusName.replace(/_/g, " ");
+
+    return `<span class="status-badge" style="background-color: ${color}; color: ${textColor}; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">${displayText}</span>`;
+  }
+
+  /**
+   * Get appropriate text color (black or white) based on background color
+   */
+  getTextColorForBackground(bgColor) {
+    // Convert hex to RGB
+    const hex = bgColor.replace("#", "");
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+
+    // Calculate luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    // Return black for light backgrounds, white for dark backgrounds
+    return luminance > 0.5 ? "#000000" : "#FFFFFF";
+  }
+
   getStatusDisplay(status) {
+    // Use the same badge creation as in the header for consistency
+    const statusId = this.getStatusIdFromName(status);
+    if (statusId) {
+      return this.createStatusBadge(statusId);
+    }
+    
+    // Fallback to colored text if no ID found
     const statusColors = {
       PENDING: "#6554C0",
       TODO: "#0052CC",
@@ -2600,6 +2666,20 @@ class StepView {
 
     const color = statusColors[status] || "#6B778C";
     return `<span style="color: ${color}; font-weight: bold;">${status || "UNKNOWN"}</span>`;
+  }
+  
+  getStatusIdFromName(statusName) {
+    const statusMap = {
+      'PENDING': 20,
+      'TODO': 21,
+      'IN_PROGRESS': 22,
+      'COMPLETED': 23,
+      'FAILED': 24,
+      'BLOCKED': 25,
+      'CANCELLED': 26
+    };
+    
+    return statusMap[statusName] || null;
   }
 
   formatTimeAgo(dateString) {
@@ -2659,6 +2739,74 @@ style.textContent = `
         }
     }
     
+    /* Force white background for StepView - overrides dark mode */
+    #umig-step-view-root {
+        background-color: white !important;
+        color: #172B4D !important;
+    }
+    
+    .step-details-panel {
+        background-color: white !important;
+        color: #172B4D !important;
+    }
+    
+    .step-details-content {
+        background-color: white !important;
+        color: #172B4D !important;
+    }
+    
+    .step-info {
+        background-color: white !important;
+        color: #172B4D !important;
+    }
+    
+    /* StepView Header Styles */
+    .step-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .step-name {
+        margin: 0;
+        font-size: 20px;
+        color: #172B4D;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+    
+    .step-code {
+        color: #6B778C;
+        font-weight: 600;
+    }
+    
+    .step-title-text {
+        font-weight: 600;
+    }
+    
+    .step-meta {
+        display: flex;
+        gap: 24px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #DFE1E6;
+        color: #6B778C;
+        font-size: 13px;
+    }
+    
+    .step-owner, .step-timing {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .status-badge {
+        flex-shrink: 0;
+    }
+    
     /* Mobile-First Responsive Design for StepView */
     
     /* Base Mobile Styles (320px+) */
@@ -2695,6 +2843,28 @@ style.textContent = `
         .cache-status {
             margin-top: 8px;
             font-size: 11px;
+        }
+        
+        /* Header mobile styles */
+        .step-title-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+        }
+        
+        .step-name {
+            font-size: 16px !important;
+            flex-wrap: wrap;
+        }
+        
+        .step-meta {
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+        
+        .status-badge {
+            font-size: 10px !important;
+            padding: 2px 6px !important;
         }
         
         /* Search filters mobile layout */
@@ -3159,6 +3329,17 @@ style.textContent = `
         .label {
             border: 1px solid #000 !important;
         }
+    }
+    
+    /* Status Badge Styles */
+    .step-status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-left: 8px;
     }
 `;
 document.head.appendChild(style);
