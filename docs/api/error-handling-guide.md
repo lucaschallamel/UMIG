@@ -28,28 +28,31 @@ This guide provides comprehensive error handling documentation for the UMIG API 
 ## HTTP Status Code Reference
 
 ### 2xx Success Codes
-| Code | Meaning | When Used | Example Response |
-|------|---------|-----------|------------------|
-| 200 | OK | Successful GET, PUT operations | `{"data": {...}, "message": "Success"}` |
-| 201 | Created | Successful POST operations | `{"id": "uuid", "message": "Resource created"}` |
-| 204 | No Content | Successful DELETE operations | *(Empty response body)* |
+
+| Code | Meaning    | When Used                      | Example Response                                |
+| ---- | ---------- | ------------------------------ | ----------------------------------------------- |
+| 200  | OK         | Successful GET, PUT operations | `{"data": {...}, "message": "Success"}`         |
+| 201  | Created    | Successful POST operations     | `{"id": "uuid", "message": "Resource created"}` |
+| 204  | No Content | Successful DELETE operations   | _(Empty response body)_                         |
 
 ### 4xx Client Error Codes
-| Code | Meaning | When Used | Recovery Action |
-|------|---------|-----------|-----------------|
-| 400 | Bad Request | Invalid input, validation failures | Fix request data and retry |
-| 401 | Unauthorized | Missing or invalid authentication | Provide valid credentials |
-| 403 | Forbidden | Insufficient permissions | Contact administrator for access |
-| 404 | Not Found | Resource doesn't exist | Verify resource ID and availability |
-| 409 | Conflict | Duplicate resource, constraint violation | Use different values or update existing |
-| 422 | Unprocessable Entity | Business logic validation failure | Fix business rule violations |
+
+| Code | Meaning              | When Used                                | Recovery Action                         |
+| ---- | -------------------- | ---------------------------------------- | --------------------------------------- |
+| 400  | Bad Request          | Invalid input, validation failures       | Fix request data and retry              |
+| 401  | Unauthorized         | Missing or invalid authentication        | Provide valid credentials               |
+| 403  | Forbidden            | Insufficient permissions                 | Contact administrator for access        |
+| 404  | Not Found            | Resource doesn't exist                   | Verify resource ID and availability     |
+| 409  | Conflict             | Duplicate resource, constraint violation | Use different values or update existing |
+| 422  | Unprocessable Entity | Business logic validation failure        | Fix business rule violations            |
 
 ### 5xx Server Error Codes
-| Code | Meaning | When Used | Recovery Action |
-|------|---------|-----------|-----------------|
-| 500 | Internal Server Error | Unexpected system failure | Report to support team |
-| 502 | Bad Gateway | Database connection issues | Retry after brief delay |
-| 503 | Service Unavailable | System maintenance mode | Wait and retry later |
+
+| Code | Meaning               | When Used                  | Recovery Action         |
+| ---- | --------------------- | -------------------------- | ----------------------- |
+| 500  | Internal Server Error | Unexpected system failure  | Report to support team  |
+| 502  | Bad Gateway           | Database connection issues | Retry after brief delay |
+| 503  | Service Unavailable   | System maintenance mode    | Wait and retry later    |
 
 ---
 
@@ -58,6 +61,7 @@ This guide provides comprehensive error handling documentation for the UMIG API 
 UMIG API implements specific SQL state to HTTP status mappings for database-related errors:
 
 ### Critical Mappings
+
 ```
 SQL State 23503 → HTTP 400 (Foreign Key Constraint Violation)
 SQL State 23505 → HTTP 409 (Unique Constraint Violation)
@@ -67,6 +71,7 @@ SQL State 23502 → HTTP 400 (Not Null Constraint Violation)
 ```
 
 ### Example Error Response
+
 ```json
 {
   "error": "Constraint violation",
@@ -90,6 +95,7 @@ SQL State 23502 → HTTP 400 (Not Null Constraint Violation)
 ### 1. Migration Creation Errors
 
 #### Scenario: Missing Required Fields
+
 ```json
 {
   "error": "Validation failed",
@@ -107,6 +113,7 @@ SQL State 23502 → HTTP 400 (Not Null Constraint Violation)
 **Resolution**: Ensure all required fields are provided with valid values.
 
 #### Scenario: Invalid Date Sequence
+
 ```json
 {
   "error": "Business logic violation",
@@ -127,6 +134,7 @@ SQL State 23502 → HTTP 400 (Not Null Constraint Violation)
 ### 2. Team Management Errors
 
 #### Scenario: Invalid Team Lead Assignment
+
 ```json
 {
   "error": "Constraint violation",
@@ -146,6 +154,7 @@ SQL State 23502 → HTTP 400 (Not Null Constraint Violation)
 **Resolution**: Verify user exists before assignment, use `/users` endpoint to get valid IDs.
 
 #### Scenario: Duplicate Team Name
+
 ```json
 {
   "error": "Resource conflict",
@@ -167,6 +176,7 @@ SQL State 23502 → HTTP 400 (Not Null Constraint Violation)
 ### 3. Step Management Errors
 
 #### Scenario: Bulk Update Partial Failure
+
 ```json
 {
   "error": "Partial operation failure",
@@ -205,6 +215,7 @@ SQL State 23502 → HTTP 400 (Not Null Constraint Violation)
 ## Troubleshooting Decision Tree
 
 ### Step 1: Identify Error Category
+
 ```
 Is HTTP status 4xx?
 ├─ YES → Client Error (Continue to Step 2)
@@ -216,6 +227,7 @@ Is HTTP status 5xx?
 ```
 
 ### Step 2: Client Error Analysis
+
 ```
 HTTP 400 Bad Request?
 ├─ Check "details.code" field
@@ -246,6 +258,7 @@ HTTP 409 Conflict?
 ```
 
 ### Step 3: Resolution Actions
+
 ```
 Validation Error?
 ├─ Review API documentation for field requirements
@@ -271,6 +284,7 @@ Permission Error?
 ## Authentication & Authorization Errors
 
 ### Authentication Required (401)
+
 ```json
 {
   "error": "Authentication required",
@@ -285,11 +299,13 @@ Permission Error?
 ```
 
 **Resolution Steps**:
+
 1. Add Authorization header: `Authorization: Basic <base64-encoded-credentials>`
 2. For admin access: Use `admin:admin` (base64: `YWRtaW46YWRtaW4=`)
 3. Verify Confluence server authentication settings
 
 ### Insufficient Permissions (403)
+
 ```json
 {
   "error": "Insufficient permissions",
@@ -306,6 +322,7 @@ Permission Error?
 ```
 
 **Resolution Steps**:
+
 1. Check user group membership in Confluence
 2. Request administrator to add user to required groups
 3. Verify endpoint-specific permission requirements
@@ -316,6 +333,7 @@ Permission Error?
 ## Data Validation Errors
 
 ### Required Field Validation
+
 ```json
 {
   "error": "Validation failed",
@@ -331,6 +349,7 @@ Permission Error?
 ```
 
 ### Format Validation
+
 ```json
 {
   "error": "Validation failed",
@@ -348,6 +367,7 @@ Permission Error?
 ```
 
 ### Length Validation
+
 ```json
 {
   "error": "Validation failed",
@@ -369,6 +389,7 @@ Permission Error?
 ## Business Logic Errors
 
 ### Status Transition Errors
+
 ```json
 {
   "error": "Business logic violation",
@@ -387,6 +408,7 @@ Permission Error?
 ```
 
 ### Dependency Validation
+
 ```json
 {
   "error": "Business logic violation",
@@ -407,6 +429,7 @@ Permission Error?
 ## System & Infrastructure Errors
 
 ### Database Connection Errors
+
 ```json
 {
   "error": "Database connection failed",
@@ -421,12 +444,14 @@ Permission Error?
 ```
 
 **Resolution Steps**:
+
 1. Verify PostgreSQL container is running: `docker ps`
 2. Check database logs: `docker logs umig-postgres`
 3. Test database connectivity: `psql -h localhost -U umig_user -d umig_db`
 4. Restart database if needed: `npm run restart:erase`
 
 ### ScriptRunner Integration Errors
+
 ```json
 {
   "error": "ScriptRunner execution failed",
@@ -443,6 +468,7 @@ Permission Error?
 ```
 
 **Resolution Steps**:
+
 1. Check ScriptRunner logs in Confluence administration
 2. Verify Groovy script syntax in ScriptRunner console
 3. Test script compilation with simplified payload
@@ -453,6 +479,7 @@ Permission Error?
 ## UAT Testing Error Scenarios
 
 ### Test Scenario 1: Authentication Testing
+
 ```bash
 # Test 1: No authentication
 curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations
@@ -470,6 +497,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ```
 
 ### Test Scenario 2: Validation Testing
+
 ```bash
 # Test 1: Missing required fields
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
@@ -494,6 +522,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migratio
 ```
 
 ### Test Scenario 3: Error Recovery Testing
+
 ```bash
 # Test 1: Create resource to test conflict
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
@@ -521,6 +550,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 ## Integration Best Practices
 
 ### 1. Error Handling Strategy
+
 ```javascript
 // Recommended error handling pattern
 async function callUmigApi(endpoint, options) {
@@ -528,10 +558,10 @@ async function callUmigApi(endpoint, options) {
     const response = await fetch(endpoint, {
       ...options,
       headers: {
-        'Authorization': 'Basic YWRtaW46YWRtaW4=',
-        'Content-Type': 'application/json',
-        ...options.headers
-      }
+        Authorization: "Basic YWRtaW46YWRtaW4=",
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
     });
 
     if (!response.ok) {
@@ -564,6 +594,7 @@ class UmigApiError extends Error {
 ```
 
 ### 2. Retry Logic Implementation
+
 ```javascript
 async function apiCallWithRetry(endpoint, options, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -573,7 +604,7 @@ async function apiCallWithRetry(endpoint, options, maxRetries = 3) {
       // Retry on 5xx errors, but not on 4xx client errors
       if (error.status >= 500 && attempt < maxRetries) {
         const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
       throw error;
@@ -583,20 +614,23 @@ async function apiCallWithRetry(endpoint, options, maxRetries = 3) {
 ```
 
 ### 3. Validation Before API Calls
+
 ```javascript
 function validateMigrationData(migration) {
   const errors = [];
-  
-  if (!migration.mig_name || migration.mig_name.trim() === '') {
-    errors.push('Migration name is required');
+
+  if (!migration.mig_name || migration.mig_name.trim() === "") {
+    errors.push("Migration name is required");
   }
-  
+
   if (migration.mig_start_date && migration.mig_end_date) {
-    if (new Date(migration.mig_start_date) >= new Date(migration.mig_end_date)) {
-      errors.push('End date must be after start date');
+    if (
+      new Date(migration.mig_start_date) >= new Date(migration.mig_end_date)
+    ) {
+      errors.push("End date must be after start date");
     }
   }
-  
+
   if (errors.length > 0) {
     throw new ValidationError(errors);
   }
@@ -608,12 +642,14 @@ function validateMigrationData(migration) {
 ## Support and Escalation
 
 ### When to Contact Support
+
 - **Persistent 500 errors**: System-level issues requiring infrastructure attention
 - **Authentication configuration issues**: ScriptRunner or Confluence setup problems
 - **Database connectivity problems**: PostgreSQL connection or configuration issues
 - **Performance degradation**: Response times exceeding 10 seconds consistently
 
 ### Information to Provide
+
 1. **Complete error response**: Full JSON error message
 2. **Request details**: HTTP method, endpoint, headers, body
 3. **Timestamp**: Exact time of error occurrence
@@ -621,6 +657,7 @@ function validateMigrationData(migration) {
 5. **Reproduction steps**: Minimal steps to reproduce the issue
 
 ### Contact Information
+
 - **Development Team**: UMIG Sprint 5 team
 - **System Administrator**: Confluence/ScriptRunner support
 - **Database Team**: PostgreSQL administration
@@ -631,6 +668,7 @@ function validateMigrationData(migration) {
 ## Appendix: Quick Reference
 
 ### Common HTTP Status Codes
+
 - `200` - Success (GET, PUT)
 - `201` - Created (POST)
 - `204` - No Content (DELETE)
@@ -642,16 +680,19 @@ function validateMigrationData(migration) {
 - `500` - Internal Server Error (system failure)
 
 ### Key SQL State Mappings
+
 - `23503` → `400` (Foreign key violation)
 - `23505` → `409` (Unique constraint violation)
 - `23502` → `400` (Not null constraint violation)
 
 ### Authentication Header
+
 ```
 Authorization: Basic YWRtaW46YWRtaW4=
 ```
 
 ### Error Response Format
+
 ```json
 {
   "error": "Error category",
