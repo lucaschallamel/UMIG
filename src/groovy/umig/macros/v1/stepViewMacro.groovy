@@ -23,16 +23,18 @@ def isPilot = false
 def userId = null
 def username = 'Guest'
 
-// Check for role parameter in the URL (for testing/override)
+// Check for role parameter in the URL (restricted to development environment only)
 def roleParam = null
-try {
-    // Access the request parameters from the page context
-    def pageContext = com.atlassian.confluence.renderer.radeox.macros.MacroUtils.getPageContext()
-    if (pageContext && pageContext.request) {
-        roleParam = pageContext.request.getParameter('role')
+if (System.getProperty('confluence.dev.mode') == 'true') {
+    try {
+        // Access the request parameters from the page context - DEV ONLY
+        def pageContext = com.atlassian.confluence.renderer.radeox.macros.MacroUtils.getPageContext()
+        if (pageContext && pageContext.request) {
+            roleParam = pageContext.request.getParameter('role')
+        }
+    } catch (Exception e) {
+        // Ignore if request context is not available
     }
-} catch (Exception e) {
-    // Ignore if request context is not available
 }
 
 if (currentConfluenceUser) {
@@ -42,18 +44,28 @@ if (currentConfluenceUser) {
     def user = userRepository.findUserByUsername(username)
     
     if (user) {
-        userId = user['usr_id'] as Integer
-        userRole = (user['role_code'] ?: 'NORMAL') as String
+        // Type-safe handling with validation
+        userId = user['usr_id'] ? Integer.parseInt(user['usr_id'].toString()) : null
+        userRole = (user['role_code']?.toString()?.toUpperCase() ?: 'NORMAL') as String
+        
+        // Validate role is one of allowed values
+        if (!(userRole in ['NORMAL', 'PILOT', 'ADMIN'])) {
+            userRole = 'NORMAL'
+            log.warn("Invalid role '${user['role_code']}' for user ${username}, defaulting to NORMAL")
+        }
+        
         isAdmin = userRole == 'ADMIN'
         isPilot = userRole == 'PILOT' || isAdmin
     }
 }
 
-// Override with URL parameter if provided (for testing/pilot access)
-if (roleParam in ['PILOT', 'ADMIN']) {
+// Override with URL parameter if provided (development environment only)
+if (System.getProperty('confluence.dev.mode') == 'true' && roleParam in ['PILOT', 'ADMIN']) {
     userRole = roleParam
     isPilot = (userRole == 'PILOT' || userRole == 'ADMIN')
     isAdmin = (userRole == 'ADMIN')
+    // Log this override for audit purposes
+    log.warn("DEV MODE: User role overridden to ${userRole} for ${username}")
 }
 
 // The base path for the REST endpoint that serves static assets
