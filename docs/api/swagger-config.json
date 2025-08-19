@@ -1,0 +1,228 @@
+{
+  "swagger_ui_config": {
+    "title": "UMIG API V2 Interactive Documentation",
+    "version": "2.1.1",
+    "description": "US-030 Enhanced Interactive Documentation - Sprint 5",
+    "generated_by": "GENDEV Deployment Operations Manager v2.3",
+    "generated_at": "2025-08-18T17:30:00Z",
+    "sprint": "Sprint 5",
+    "user_story": "US-030",
+    "priority": "P0 Critical",
+    "uat_ready": true
+  },
+  
+  "environments": {
+    "local": {
+      "name": "Local Development",
+      "base_url": "http://localhost:8090/rest/scriptrunner/latest/custom",
+      "confluence_url": "http://localhost:8090",
+      "description": "Local development environment for UAT testing",
+      "openapi_spec": "./openapi.yaml",
+      "authentication": {
+        "type": "http_basic",
+        "username": "admin",
+        "password": "admin",
+        "encoded": "YWRtaW46YWRtaW4="
+      },
+      "features": {
+        "try_it_out": true,
+        "authentication_presets": true,
+        "request_snippets": true,
+        "performance_monitoring": true
+      }
+    },
+    "test": {
+      "name": "Test Environment",
+      "base_url": "https://test-confluence.company.com/rest/scriptrunner/latest/custom",
+      "confluence_url": "https://test-confluence.company.com",
+      "description": "Test environment for integration testing",
+      "openapi_spec": "./openapi.yaml",
+      "authentication": {
+        "type": "http_basic",
+        "note": "Use test environment credentials"
+      },
+      "features": {
+        "try_it_out": true,
+        "authentication_presets": false,
+        "request_snippets": true,
+        "performance_monitoring": true
+      }
+    },
+    "staging": {
+      "name": "Staging Environment",
+      "base_url": "https://staging-confluence.company.com/rest/scriptrunner/latest/custom",
+      "confluence_url": "https://staging-confluence.company.com",
+      "description": "Staging environment for pre-production validation",
+      "openapi_spec": "./openapi.yaml",
+      "authentication": {
+        "type": "http_basic",
+        "note": "Use staging environment credentials"
+      },
+      "features": {
+        "try_it_out": true,
+        "authentication_presets": false,
+        "request_snippets": true,
+        "performance_monitoring": true
+      }
+    }
+  },
+  
+  "swagger_ui_settings": {
+    "layout": "StandaloneLayout",
+    "deep_linking": true,
+    "display_operation_id": true,
+    "default_models_expand_depth": 1,
+    "default_model_expand_depth": 1,
+    "default_model_rendering": "example",
+    "display_request_duration": true,
+    "doc_expansion": "list",
+    "filter": true,
+    "show_extensions": true,
+    "show_common_extensions": true,
+    "show_request_headers": true,
+    "supported_submit_methods": ["get", "post", "put", "delete", "patch"],
+    "try_it_out_enabled": true,
+    "request_snippets_enabled": true,
+    "validator_url": null,
+    "with_credentials": false
+  },
+  
+  "request_snippets": {
+    "languages": ["curl_bash", "curl_powershell", "curl_cmd"],
+    "default_language": "curl_bash",
+    "curl_options": {
+      "longform": false,
+      "indent": "  "
+    }
+  },
+  
+  "authentication_config": {
+    "local_development": {
+      "auto_populate": true,
+      "credentials": {
+        "username": "admin",
+        "password": "admin"
+      },
+      "headers": {
+        "Authorization": "Basic YWRtaW46YWRtaW4=",
+        "Content-Type": "application/json"
+      }
+    },
+    "security_schemes": {
+      "http_basic": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "HTTP Basic Authentication using Confluence credentials"
+      }
+    }
+  },
+  
+  "performance_targets": {
+    "initial_load": "< 2 seconds",
+    "api_response": "< 3 seconds",
+    "swagger_ui_rendering": "< 1 second",
+    "try_it_out_execution": "< 5 seconds"
+  },
+  
+  "uat_integration": {
+    "test_scenarios_supported": [
+      "Complete migration lifecycle",
+      "Error handling validation", 
+      "Authentication testing",
+      "Performance validation",
+      "Bulk operations testing"
+    ],
+    "documentation_links": {
+      "uat_guide": "./uat-integration-guide.md",
+      "error_handling": "./error-handling-guide.md",
+      "enhanced_examples": "./enhanced-examples.yaml",
+      "validation_script": "./validate-documentation.js"
+    },
+    "success_criteria": {
+      "all_endpoints_functional": true,
+      "authentication_working": true,
+      "examples_validated": true,
+      "performance_targets_met": true,
+      "error_scenarios_covered": true
+    }
+  },
+  
+  "customization": {
+    "theme": {
+      "primary_color": "#1976d2",
+      "success_color": "#4caf50",
+      "error_color": "#f44336",
+      "warning_color": "#ff9800"
+    },
+    "branding": {
+      "title": "UMIG API V2",
+      "description": "Unified Migration and Implementation Governance",
+      "footer_text": "Sprint 5 Documentation | Generated by GENDEV"
+    },
+    "custom_css": {
+      "header_styling": true,
+      "environment_selector": true,
+      "status_code_coloring": true,
+      "enhanced_try_it_out": true
+    }
+  },
+  
+  "deployment": {
+    "served_from": "/docs/api/",
+    "entry_point": "swagger-ui-deployment.html",
+    "assets": {
+      "openapi_spec": "openapi.yaml",
+      "configuration": "swagger-config.json",
+      "enhanced_examples": "enhanced-examples.yaml"
+    },
+    "dependencies": {
+      "swagger_ui_bundle": "5.7.2",
+      "swagger_ui_standalone_preset": "5.7.2"
+    },
+    "browser_support": [
+      "Chrome 90+",
+      "Firefox 88+", 
+      "Safari 14+",
+      "Edge 90+"
+    ]
+  },
+  
+  "monitoring": {
+    "performance_logging": true,
+    "error_tracking": true,
+    "user_interaction_tracking": false,
+    "api_call_monitoring": true,
+    "load_time_alerts": {
+      "threshold": 2000,
+      "action": "console_warning"
+    }
+  },
+  
+  "validation": {
+    "spec_validation": true,
+    "example_validation": false,
+    "schema_validation": true,
+    "response_validation": false
+  },
+  
+  "documentation_metadata": {
+    "us_030_deliverables": {
+      "validation_script": "✅ Complete",
+      "enhanced_examples": "✅ Complete", 
+      "error_handling_guide": "✅ Complete",
+      "uat_integration_guide": "✅ Complete",
+      "interactive_swagger_ui": "✅ Complete"
+    },
+    "quality_gates": {
+      "gate_1_foundation": "✅ Passed",
+      "gate_2_error_docs": "✅ Passed",
+      "gate_3_interactive_ui": "🔄 In Progress",
+      "gate_4_final_package": "⏳ Pending"
+    },
+    "sprint_5_integration": {
+      "us_031_admin_gui": "Supports API reference",
+      "us_034_data_import": "Provides import patterns",
+      "us_036_stepview_ui": "Enables Steps API integration"
+    }
+  }
+}
