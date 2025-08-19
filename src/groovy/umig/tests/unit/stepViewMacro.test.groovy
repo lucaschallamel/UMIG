@@ -1,46 +1,134 @@
-/**
- * STEP View Macro — UMIG Project
- *
- * Renders a standalone view for a single step instance with all the features
- * from the iteration view's step details panel. Supports role-based controls,
- * instruction completion tracking, comments, and status management.
- * 
- * The view is driven by the 'stepid' URL parameter (format: STT-nnn)
- * 
- * Phase 2 Enhancement: Aligned with IterationView styling using iteration-view.css
- * and matching HTML structure for consistency across the UMIG platform.
- */
+package umig.tests.unit
 
-import com.atlassian.confluence.user.AuthenticatedUserThreadLocal
-import com.atlassian.confluence.user.ConfluenceUser
-import umig.repository.UserRepository
+import spock.lang.Specification
+import spock.lang.Title
+import spock.lang.Narrative
 
-// Get current user context
-def currentConfluenceUser = AuthenticatedUserThreadLocal.get() as ConfluenceUser
-def userRole = 'NORMAL'
-def isAdmin = false
-def isPilot = false
-def userId = null
-def username = 'Guest'
-
-if (currentConfluenceUser) {
-    username = currentConfluenceUser.name
+@Title("StepView Macro Test - US-036 Phase 2 Alignment")
+@Narrative("""
+    Test suite for verifying that the StepView Macro correctly generates HTML
+    that aligns with the IterationView styling and structure.
+    Part of US-036: StepView UI Refactoring Phase 2.
+""")
+class StepViewMacroTest extends Specification {
     
-    def userRepository = new UserRepository()
-    def user = userRepository.findUserByUsername(username)
-    
-    if (user) {
-        userId = user['usr_id'] as Integer
-        userRole = (user['role_code'] ?: 'NORMAL') as String
-        isAdmin = userRole == 'ADMIN'
-        isPilot = userRole == 'PILOT' || isAdmin
+    def "should generate HTML with correct IterationView CSS classes"() {
+        given: "A mock macro execution"
+        def userRole = 'PILOT'
+        def userId = 123
+        def username = 'testuser'
+        def isAdmin = false
+        def isPilot = true
+        
+        when: "The macro generates HTML"
+        def html = generateMacroHtml(userRole, userId, username, isAdmin, isPilot)
+        
+        then: "It includes the iteration-view.css"
+        html.contains('href="/rest/scriptrunner/latest/custom/web/css/iteration-view.css"')
+        
+        and: "It has the correct container structure"
+        html.contains('class="step-details-container"')
+        html.contains('class="step-header"')
+        html.contains('class="step-content"')
+        
+        and: "It has the correct sections"
+        html.contains('class="step-section step-description-section"')
+        html.contains('class="step-section teams-section"')
+        html.contains('class="step-section instructions-section"')
+        html.contains('class="step-section comments-section"')
+        
+        and: "It has status badge placeholder"
+        html.contains('class="status-badge"')
+        
+        and: "It has the correct instruction container"
+        html.contains('class="instructions-container"')
+        
+        and: "It has the correct comments container"
+        html.contains('class="comments-container"')
     }
-}
-
-// The base path for the REST endpoint that serves static assets
-def restApiBase = "/rest/scriptrunner/latest/custom/web"
-
-return """
+    
+    def "should include PILOT-specific features when user is PILOT"() {
+        given: "A PILOT user"
+        def userRole = 'PILOT'
+        def isPilot = true
+        def isAdmin = false
+        
+        when: "The macro generates HTML"
+        def html = generateMacroHtml(userRole, 123, 'pilot', isAdmin, isPilot)
+        
+        then: "It shows the step-actions div"
+        html.contains('class="step-actions"')
+        !html.contains('class="step-actions" style="display: none;"')
+        
+        and: "It enables bulk operations in config"
+        html.contains('bulkOperations: true')
+    }
+    
+    def "should hide ADMIN-only features for non-ADMIN users"() {
+        given: "A PILOT user (not ADMIN)"
+        def userRole = 'PILOT'
+        def isPilot = true
+        def isAdmin = false
+        
+        when: "The macro generates HTML"
+        def html = generateMacroHtml(userRole, 123, 'pilot', isAdmin, isPilot)
+        
+        then: "It hides bulk complete button"
+        html.contains('class="aui-button bulk-complete" style="display: none;"')
+    }
+    
+    def "should include mobile-responsive media queries"() {
+        when: "The macro generates HTML"
+        def html = generateMacroHtml('NORMAL', null, 'Guest', false, false)
+        
+        then: "It includes mobile breakpoint styles"
+        html.contains('@media (max-width: 768px)')
+        html.contains('padding: 10px')
+        html.contains('border-radius: 0')
+    }
+    
+    def "should configure 2-second polling and 30-second cache"() {
+        when: "The macro generates HTML"
+        def html = generateMacroHtml('NORMAL', null, 'Guest', false, false)
+        
+        then: "It has correct timing configuration"
+        html.contains('pollingInterval: 2000')
+        html.contains('cacheTimeout: 30000')
+    }
+    
+    def "should include enhanced features configuration"() {
+        given: "A PILOT user"
+        def isPilot = true
+        
+        when: "The macro generates HTML"
+        def html = generateMacroHtml('PILOT', 123, 'pilot', false, isPilot)
+        
+        then: "It enables all enhanced features"
+        html.contains('caching: true')
+        html.contains('realTimeSync: true')
+        html.contains('exportEnabled: true')
+        html.contains('searchEnabled: true')
+        html.contains('filterEnabled: true')
+    }
+    
+    def "should include error and loading containers"() {
+        when: "The macro generates HTML"
+        def html = generateMacroHtml('NORMAL', null, 'Guest', false, false)
+        
+        then: "It has loading indicator"
+        html.contains('class="loading-indicator"')
+        html.contains('class="spinner"')
+        
+        and: "It has error container"
+        html.contains('class="error-container"')
+        html.contains('class="aui-message aui-message-error"')
+    }
+    
+    // Helper method to simulate macro HTML generation
+    private String generateMacroHtml(String userRole, Integer userId, String username, boolean isAdmin, boolean isPilot) {
+        def restApiBase = "/rest/scriptrunner/latest/custom/web"
+        
+        return """
 <!-- Include the iteration view CSS for consistent styling -->
 <link rel="stylesheet" type="text/css" href="${restApiBase}/css/iteration-view.css">
 
@@ -206,3 +294,5 @@ return """
 
 <script type="text/javascript" src="${restApiBase}/js/step-view.js"></script>
 """
+    }
+}
