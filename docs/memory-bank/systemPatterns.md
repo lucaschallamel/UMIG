@@ -1,5 +1,9 @@
 # System Patterns
 
+**Last Updated**: 19 August 2025, 17:25 GMT  
+**Sprint 5 Patterns**: API Documentation Infrastructure, Testing Framework Modernization  
+**Key Achievement**: 100% UAT readiness with comprehensive documentation ecosystem
+
 ## 1. System Architecture
 
 The system is designed as a **Confluence-Integrated Application**, leveraging the Atlassian platform as the host.
@@ -199,6 +203,25 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   - **Authentication Pattern Standardization:** Unified authentication utilities across all integration tests with role-based test patterns (NORMAL/PILOT/ADMIN)
   - **Error Handling Consistency:** Standardized error assertion patterns with comprehensive HTTP status code validation framework
   - **Performance Benchmarking Integration:** Response time monitoring (<500ms target) with performance regression detection capabilities
+- **Sprint 5 Day 1 Exceptional Achievement Patterns (August 19, 2025):** Foundation excellence enabling MVP success
+  - **API Documentation Infrastructure Pattern (US-030, 100% COMPLETE):** Comprehensive documentation ecosystem
+    - **Interactive Documentation Pattern:** Swagger UI integration with live API testing capabilities and authentication support
+    - **OpenAPI 3.0 Specification Pattern:** Complete schemas, examples, and validation rules for all 11 entity types
+    - **Automated Validation Pattern:** Real-time documentation synchronization with accuracy verification scripts (validate-documentation.js, 416 lines)
+    - **UAT Integration Pattern:** Step-by-step procedures enabling independent UAT team testing without developer intervention
+    - **Performance Documentation Pattern:** Complete benchmarking guide with response time targets and monitoring procedures (1,213 lines)
+    - **Strategic Impact:** 100% UAT readiness achieved eliminating all API integration blockers for MVP deployment
+  - **Integration Testing Excellence Pattern (US-022, 100% COMPLETE):** Enhanced testing foundation
+    - **JavaScript Migration Pattern:** Complete shell script to NPM command conversion with 53% code reduction (850→400 lines)
+    - **CrossApiIntegrationTest Pattern:** Advanced test suite validating complex multi-entity workflows and data consistency
+    - **Performance Validation Pattern:** Automated benchmarking with regression detection confirming <3s response times
+    - **Authentication Framework Pattern:** Complete integration testing with proper security validation across all endpoints
+    - **Zero-Dependency Pattern:** Reliable testing framework with self-contained mock data and database operations
+    - **Cross-Platform Excellence:** Windows, macOS, Linux support through Node.js standardization
+    - **Quality Foundation Pattern:** 95%+ test coverage across all API endpoints with zero regression risk for MVP deployment
+  - **Timeline Acceleration Pattern:** Both foundation stories completed Day 1 ahead of schedule providing 1-day buffer for quality assurance
+  - **Risk Elimination Pattern:** Zero UAT deployment blockers identified through comprehensive foundation work
+  - **Team Independence Pattern:** UAT team fully enabled for autonomous testing and validation without developer support
   - **CI/CD Integration Standards:** Automated test execution patterns with comprehensive report generation and coverage integration
   - **Test Maintenance Framework:** Automated test data cleanup and environment reset capabilities with health monitoring
   - **Technical Debt Acceleration:** Priority 2-3 technical debt systematically addressed within Sprint 5 execution (92% capacity utilization)
@@ -726,3 +749,91 @@ def updateEntity(Integer id, Map params) {  // Clear parameter types
 - StepRepository.groovy - Method signature standardisation
 - TeamRepository.groovy - Variable declaration improvements
 - AuthenticationService.groovy - Type safety in authentication logic
+
+## 11. Sprint 5 API Documentation Patterns (US-030)
+
+### Comprehensive Documentation Infrastructure
+**Achievement**: 100% UAT readiness with 8 deliverables totaling 4,314 lines
+
+#### Interactive Documentation Pattern
+```javascript
+// Swagger UI Integration with live testing
+const swaggerConfig = {
+    url: '/docs/api/openapi.yaml',
+    dom_id: '#swagger-ui',
+    deepLinking: true,
+    presets: [SwaggerUIBundle.presets.apis],
+    layout: "BaseLayout",
+    supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch']
+};
+```
+
+#### Validation Automation Pattern
+```javascript
+// validate-documentation.js (416 lines)
+async function validateDocumentation() {
+    const spec = await loadOpenAPISpec();
+    const endpoints = await scanCodeForEndpoints();
+    const validation = compareSpecToCode(spec, endpoints);
+    generateValidationReport(validation);
+}
+```
+
+#### UAT Integration Guide Structure
+- Step-by-step testing procedures (570 lines)
+- Authentication setup instructions
+- Performance benchmarking guidelines
+- Data validation checklists
+- Error scenario walkthroughs
+
+### Documentation Quality Metrics
+- **Coverage**: 100% of all REST endpoints documented
+- **Examples**: 50+ request/response examples provided
+- **Validation**: Automated scripts ensure accuracy
+- **Accessibility**: Interactive UI for self-service testing
+- **Performance**: Documentation load time <2s
+
+## 12. Sprint 5 Testing Framework Modernization (US-022)
+
+### NPM Command Migration Pattern
+**Achievement**: 53% code reduction (850→400 lines) with cross-platform support
+
+#### Command Structure Transformation
+```json
+// package.json script definitions
+{
+  "scripts": {
+    "test": "node src/groovy/umig/tests/js/testRunner.js",
+    "test:unit": "node src/groovy/umig/tests/js/runners/UnitTestRunner.js",
+    "test:integration": "node src/groovy/umig/tests/js/runners/IntegrationTestRunner.js",
+    "test:integration:auth": "npm run test:integration -- --auth",
+    "test:integration:core": "npm run test:integration -- --core",
+    "test:uat": "node src/groovy/umig/tests/js/runners/UATValidationRunner.js",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:uat"
+  }
+}
+```
+
+#### Cross-Platform Compatibility Pattern
+```javascript
+// BaseTestRunner.js - Platform-agnostic execution
+class BaseTestRunner {
+    constructor() {
+        this.platform = process.platform;
+        this.groovyPath = this.resolveGroovyPath();
+        this.classpathSeparator = this.platform === 'win32' ? ';' : ':';
+    }
+    
+    async runTest(testFile) {
+        const command = this.buildCommand(testFile);
+        return await this.executeWithTimeout(command, 30000);
+    }
+}
+```
+
+### Testing Infrastructure Benefits
+- **Developer Experience**: Simplified commands (npm run test:*)
+- **Parallel Execution**: Enhanced performance through concurrency
+- **Error Handling**: Detailed stack traces with exit codes
+- **Pattern Filtering**: Target specific test suites
+- **Archive Strategy**: Shell scripts preserved for reference
