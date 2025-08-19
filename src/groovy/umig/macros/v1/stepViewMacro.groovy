@@ -75,17 +75,17 @@ if (System.getProperty('confluence.dev.mode') == 'true' && roleParam in ['PILOT'
 }
 */
 
-// The base path for the REST endpoint that serves static assets
-def restApiBase = "/rest/scriptrunner/latest/custom/web"
+// Use the same pattern as iterationViewMacro for consistency
+def webRoot = System.getenv('UMIG_WEB_ROOT') ?: '/rest/scriptrunner/latest/custom/web'
 
 return """
 <!-- Include the iteration view CSS for consistent styling -->
-<link rel="stylesheet" type="text/css" href="${restApiBase}/css/iteration-view.css" id="iteration-view-css">
+<link rel="stylesheet" type="text/css" href="${webRoot}/css/iteration-view.css" id="iteration-view-css">
 
 <!-- CSS Loading Debug Information -->
 <script type="text/javascript">
 console.log('🎨 StepView CSS Debug: CSS Link Element Created');
-console.log('🔗 CSS Path: ${restApiBase}/css/iteration-view.css');
+console.log('🔗 CSS Path: ${webRoot}/css/iteration-view.css');
 
 // Check if CSS loads successfully
 document.getElementById('iteration-view-css').addEventListener('load', function() {
@@ -94,7 +94,7 @@ document.getElementById('iteration-view-css').addEventListener('load', function(
 
 document.getElementById('iteration-view-css').addEventListener('error', function() {
     console.error('❌ StepView CSS: Failed to load iteration-view.css');
-    console.error('🔗 Failed URL: ${restApiBase}/css/iteration-view.css');
+    console.error('🔗 Failed URL: ${webRoot}/css/iteration-view.css');
 });
 
 // Debug CSS rules after DOM is ready
@@ -415,5 +415,5 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 </script>
 
-<script type="text/javascript" src="${restApiBase}/js/step-view.js"></script>
+<script type="text/javascript" src="${webRoot}/js/step-view.js"></script>
 """
