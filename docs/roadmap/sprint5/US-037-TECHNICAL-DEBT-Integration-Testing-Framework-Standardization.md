@@ -25,8 +25,9 @@
 **Immediate Sprint 5 Requirement**: Fix remaining 6/11 failing integration tests (currently 45% pass rate → target 80%+)
 
 **Outstanding Failed Tests**:
+
 - MigrationsApiBulkOperationsTest
-- CrossApiIntegrationTest  
+- CrossApiIntegrationTest
 - ApplicationsApiIntegrationTest
 - EnvironmentsApiIntegrationTest
 - ControlsApiIntegrationTest

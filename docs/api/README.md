@@ -184,3 +184,69 @@ All API entities now include standardized audit fields:
 - **Repository pattern** with `DatabaseUtil.withSql`
 - **Instance IDs usage** for hierarchical filtering (pli_id, sqi_id, phi_id)
 - **Complete field selection** - include ALL fields referenced in result mapping
+
+## US-030 Documentation Suite (August 2025)
+
+The US-030 API Documentation Completion initiative delivered 8 comprehensive documentation deliverables to enhance API usability, testing, and development workflows:
+
+### Interactive Documentation
+
+- **[Interactive Swagger UI](swagger-ui-deployment.html)** - Self-contained HTML interface for exploring and testing APIs directly in the browser
+- **[Swagger Configuration](swagger-config.json)** - Multi-environment configuration supporting development, UAT, and production endpoints
+
+### Enhanced Examples & Testing
+
+- **[Enhanced API Examples](enhanced-examples.yaml)** - 50+ realistic API examples using authentic UMIG domain data including migrations, iterations, plans, and team hierarchies
+- **[UAT Integration Guide](uat-integration-guide.md)** - Complete User Acceptance Testing procedures with test scenarios, validation checklists, and environment setup instructions
+- **[Documentation Validation Script](validate-documentation.js)** - Automated validation tool ensuring OpenAPI specification accuracy and completeness
+
+### Comprehensive Guides
+
+- **[Error Handling Guide](error-handling-guide.md)** - Complete error documentation with HTTP status codes, error schemas, troubleshooting procedures, and resolution strategies
+- **[Performance Guide](performance-guide.md)** - Performance benchmarks, optimization guidelines, caching strategies, and monitoring recommendations
+- **[US-030 Completion Summary](us-030-completion-summary.md)** - Project completion report with implementation details and future recommendations
+
+### Quick Start
+
+#### Access Interactive Documentation
+
+Open `swagger-ui-deployment.html` in your browser for immediate API exploration with live testing capabilities.
+
+#### Validate Documentation
+
+```bash
+# Run automated validation
+node validate-documentation.js
+
+# Validate specific OpenAPI file
+node validate-documentation.js openapi.yaml
+```
+
+#### UAT Testing
+
+Follow the comprehensive procedures in `uat-integration-guide.md` for systematic API validation including:
+
+- Environment setup and configuration
+- Test scenario execution
+- Performance validation
+- Security testing
+- Data integrity verification
+
+### Key Features
+
+- **Production-Ready Examples**: All examples use realistic UMIG data patterns
+- **Multi-Environment Support**: Documentation works across development, UAT, and production
+- **Automated Validation**: Continuous validation ensures documentation accuracy
+- **Performance Optimized**: Guidelines for optimal API usage and caching strategies
+- **UAT-Ready**: Complete testing procedures for production deployment
+- **Interactive Testing**: Browser-based API exploration and testing
+
+### Documentation Standards
+
+All US-030 deliverables follow enterprise documentation standards:
+
+- **Comprehensive Coverage**: 100% endpoint documentation with examples
+- **Validation Automated**: Continuous accuracy checking
+- **Performance Focused**: Sub-3-second response time guidelines
+- **Security Compliant**: Authentication and authorization documentation
+- **UAT-Validated**: Production-ready testing procedures
