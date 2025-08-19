@@ -23,6 +23,18 @@ def isPilot = false
 def userId = null
 def username = 'Guest'
 
+// Check for role parameter in the URL (for testing/override)
+def roleParam = null
+try {
+    // Access the request parameters from the page context
+    def pageContext = com.atlassian.confluence.renderer.radeox.macros.MacroUtils.getPageContext()
+    if (pageContext && pageContext.request) {
+        roleParam = pageContext.request.getParameter('role')
+    }
+} catch (Exception e) {
+    // Ignore if request context is not available
+}
+
 if (currentConfluenceUser) {
     username = currentConfluenceUser.name
     
@@ -35,6 +47,13 @@ if (currentConfluenceUser) {
         isAdmin = userRole == 'ADMIN'
         isPilot = userRole == 'PILOT' || isAdmin
     }
+}
+
+// Override with URL parameter if provided (for testing/pilot access)
+if (roleParam in ['PILOT', 'ADMIN']) {
+    userRole = roleParam
+    isPilot = (userRole == 'PILOT' || userRole == 'ADMIN')
+    isAdmin = (userRole == 'ADMIN')
 }
 
 // The base path for the REST endpoint that serves static assets

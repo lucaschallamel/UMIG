@@ -201,8 +201,8 @@ class StepViewSearchFilter {
     searchContainer.className = 'step-search-container';
     searchContainer.innerHTML = this.getSearchHTML();
 
-    // Insert after step header
-    const stepHeader = document.querySelector('.step-view-header');
+    // Insert after step header - using new class names
+    const stepHeader = document.querySelector('.step-header, .step-view-header');
     if (stepHeader) {
       stepHeader.insertAdjacentElement('afterend', searchContainer);
       this.attachSearchListeners();
@@ -917,7 +917,7 @@ class StepViewPilotFeatures {
    * Add advanced controls for PILOT users
    */
   addAdvancedControls() {
-    const stepHeader = document.querySelector('.step-view-header');
+    const stepHeader = document.querySelector('.step-header, .step-view-header');
     if (!stepHeader) return;
 
     // Add advanced controls panel
@@ -1802,8 +1802,20 @@ class StepView {
     const comments = stepData.comments || [];
 
     let html = `
-            <div class="step-view-header">
-                <h2>📋 ${this.escapeHtml(summary.StepCode || "Unknown")} - ${this.escapeHtml(summary.Name || "Unknown Step")}</h2>
+            <div class="step-header">
+                <div class="step-header-content">
+                    <div class="step-title-row">
+                        <h2 class="step-name">
+                            <span class="step-code">📋 ${this.escapeHtml(summary.StepCode || "Unknown")}</span>
+                            <span class="step-title-text">${this.escapeHtml(summary.Name || "Unknown Step")}</span>
+                        </h2>
+                        <span class="status-badge">${this.escapeHtml(summary.StatusID || "21")}</span>
+                    </div>
+                    <div class="step-meta">
+                        <span class="step-owner">${this.escapeHtml(summary.AssignedTeamName || "Unassigned")}</span>
+                        <span class="step-timing">${this.escapeHtml(summary.Duration || "0")} minutes</span>
+                    </div>
+                </div>
                 <div class="step-breadcrumb">
                     <span class="breadcrumb-item">${this.escapeHtml(summary.MigrationName || "Migration")}</span>
                     <span class="breadcrumb-separator">›</span>
@@ -1822,7 +1834,7 @@ class StepView {
                 </div>
             </div>
             
-            <div class="step-view-content">
+            <div class="step-content">
                 <div class="step-info" data-sti-id="${summary.ID || ""}">
                     ${this.renderStepSummary(summary)}
                     ${this.renderLabels(summary.Labels)}
@@ -2651,14 +2663,14 @@ style.textContent = `
     
     /* Base Mobile Styles (320px+) */
     @media screen and (max-width: 767px) {
-        .step-view-header {
+        .step-header, .step-view-header {
             padding: 12px 16px;
             background: #f8f9fa;
             margin-bottom: 16px;
             border-radius: 4px;
         }
         
-        .step-view-header h2 {
+        .step-header h2, .step-view-header h2 {
             font-size: 18px !important;
             line-height: 1.3;
             margin-bottom: 8px;
@@ -2952,11 +2964,11 @@ style.textContent = `
     
     /* Tablet Styles (768px - 1023px) */
     @media screen and (min-width: 768px) and (max-width: 1023px) {
-        .step-view-header {
+        .step-header, .step-view-header {
             padding: 16px 20px;
         }
         
-        .step-view-header h2 {
+        .step-header h2, .step-view-header h2 {
             font-size: 22px;
         }
         
@@ -3017,7 +3029,7 @@ style.textContent = `
     
     /* Desktop Styles (1024px+) */
     @media screen and (min-width: 1024px) {
-        .step-view-header {
+        .step-header, .step-view-header {
             padding: 20px 24px;
         }
         
@@ -3089,7 +3101,7 @@ style.textContent = `
     
     /* Dark mode support */
     @media (prefers-color-scheme: dark) {
-        .step-view-header {
+        .step-header, .step-view-header {
             background: #1e1e1e;
             color: #ffffff;
         }
