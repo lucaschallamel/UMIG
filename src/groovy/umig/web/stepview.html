@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="UMIG Standalone Step View - Shareable step details for IT migration management">
+    <meta name="keywords" content="UMIG, IT Migration, Step Management, Confluence">
+    <meta name="author" content="UMIG Project Team">
+    
+    <!-- UMIG Branding -->
+    <title>UMIG Step View - Loading...</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    
+    <!-- Open Graph meta tags for sharing -->
+    <meta property="og:title" content="UMIG Step View">
+    <meta property="og:description" content="Standalone shareable step details for IT migration management">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 630' style='background:%23f5f6f7'><rect x='0' y='0' width='1200' height='630' fill='%23f5f6f7'/><rect x='100' y='150' width='1000' height='330' rx='8' fill='white' stroke='%23e5e8ec'/><text x='600' y='250' text-anchor='middle' font-family='system-ui' font-size='48' fill='%230052CC'>📋 UMIG</text><text x='600' y='320' text-anchor='middle' font-family='system-ui' font-size='24' fill='%23172B4D'>Unified Migration Implementation Guide</text><text x='600' y='370' text-anchor='middle' font-family='system-ui' font-size='20' fill='%236B778C'>Standalone Step View</text></svg>">
+    
+    <!-- Mobile-first CSS with print support -->
+    <style>
+        /* CSS Reset and Base Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-size: 16px;
+            line-height: 1.6;
+            -webkit-text-size-adjust: 100%;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            color: #172B4D;
+            background-color: #f5f6f7;
+            overflow-x: hidden;
+        }
+        
+        /* Accessibility improvements */
+        :focus {
+            outline: 2px solid #0052CC;
+            outline-offset: 2px;
+        }
+        
+        /* Skip link for screen readers */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100000;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        /* Main container - mobile-first */
+        .stepview-standalone-container {
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Loading state with improved animation */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0052CC;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 24px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Error handling styles */
+        .error-state {
+            padding: 40px 20px;
+            text-align: center;
+            min-height: 50vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .error-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .error-message {
+            color: #de350b;
+            font-weight: 500;
+            margin: 16px 0;
+            max-width: 600px;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 12px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .error-actions button {
+            padding: 12px 24px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            min-height: 44px; /* Touch-friendly */
+        }
+        
+        .btn-retry {
+            background: #0052CC;
+            color: white;
+            border-color: #0052CC;
+        }
+        
+        .btn-retry:hover, .btn-retry:focus {
+            background: #0065FF;
+        }
+        
+        .btn-go-back:hover, .btn-go-back:focus {
+            border-color: #0052CC;
+            background: #f4f5f7;
+        }
+        
+        /* Notification system */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: min(400px, calc(100vw - 40px));
+            padding: 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideInRight 0.3s ease-out;
+            backdrop-filter: blur(8px);
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* Responsive design breakpoints */
+        
+        /* Small screens (320px - 767px) - Mobile-first base styles already applied above */
+        
+        /* Medium screens (768px+) - Tablets */
+        @media screen and (min-width: 768px) {
+            .stepview-standalone-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            }
+            
+            .loading-spinner {
+                width: 56px;
+                height: 56px;
+            }
+        }
+        
+        /* Large screens (1024px+) - Desktop */
+        @media screen and (min-width: 1024px) {
+            html {
+                font-size: 18px;
+            }
+            
+            .loading-state {
+                padding: 80px 40px;
+            }
+            
+            .error-state {
+                padding: 80px 40px;
+            }
+        }
+        
+        /* Extra large screens (1440px+) */
+        @media screen and (min-width: 1440px) {
+            .stepview-standalone-container {
+                max-width: 1400px;
+            }
+        }
+        
+        /* High DPI displays */
+        @media screen and (min-resolution: 2dppx) {
+            body {
+                -webkit-font-smoothing: subpixel-antialiased;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 12pt;
+            }
+            
+            .stepview-standalone-container {
+                box-shadow: none !important;
+                max-width: none !important;
+                margin: 0 !important;
+            }
+            
+            .skip-link,
+            .notification,
+            .step-actions-toolbar,
+            .pilot-only {
+                display: none !important;
+            }
+            
+            .stepview-standalone-header {
+                background: none !important;
+                color: black !important;
+                border-bottom: 2px solid #000 !important;
+            }
+            
+            .stepview-standalone-footer {
+                border-top: 1px solid #000 !important;
+                page-break-inside: avoid;
+            }
+        }
+        
+        /* Reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            .loading-spinner {
+                animation: none;
+            }
+            
+            .notification {
+                animation: none;
+            }
+            
+            * {
+                transition: none !important;
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a1a;
+                color: #ffffff;
+            }
+            
+            .stepview-standalone-container {
+                background: #2a2a2a;
+            }
+            
+            /* Note: Full dark mode styles would be implemented by the JavaScript */
+        }
+        
+        /* Support for older browsers */
+        .no-js .loading-state {
+            display: block !important;
+        }
+        
+        .no-js .loading-state::after {
+            content: "JavaScript is required to view step details. Please enable JavaScript in your browser.";
+            display: block;
+            margin-top: 20px;
+            color: #de350b;
+            font-weight: 500;
+        }
+    </style>
+    
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="/" crossorigin>
+</head>
+<body class="no-js">
+    <!-- Skip link for accessibility -->
+    <a href="#stepview-root" class="skip-link">Skip to main content</a>
+    
+    <!-- Main container - will be populated by JavaScript -->
+    <div id="stepview-root" class="stepview-standalone-container" role="main" aria-live="polite">
+        <!-- Initial loading state -->
+        <div class="loading-state">
+            <div class="loading-spinner" role="status" aria-label="Loading step details"></div>
+            <h1>🏗️ Loading UMIG Step Details...</h1>
+            <p>Please wait while we fetch the latest step information from the server.</p>
+            <p><small>If this takes too long, please check your internet connection or try refreshing the page.</small></p>
+        </div>
+    </div>
+    
+    <!-- Structured data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "UMIG Step View",
+        "description": "Standalone shareable step details for IT migration management",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0"
+        }
+    }
+    </script>
+    
+    <!-- Load the standalone step view JavaScript -->
+    <script>
+        // Remove no-js class
+        document.body.classList.remove('no-js');
+        
+        // Basic error handling for script loading
+        window.addEventListener('error', function(e) {
+            console.error('Script loading error:', e.error);
+            
+            const container = document.getElementById('stepview-root');
+            if (container) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">⚠️</div>
+                        <h2>Failed to Load Application</h2>
+                        <p class="error-message">There was an error loading the step view application. This might be due to a network issue or the server being unavailable.</p>
+                        <div class="error-actions">
+                            <button type="button" class="btn-retry" onclick="window.location.reload()">
+                                🔄 Reload Page
+                            </button>
+                            <button type="button" class="btn-go-back" onclick="window.history.back()">
+                                ← Go Back
+                            </button>
+                        </div>
+                        <p><small>If the problem persists, please contact your system administrator.</small></p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+    <script src="stepview-standalone.js" defer></script>
+</body>
+</html>
