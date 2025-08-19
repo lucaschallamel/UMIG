@@ -29,22 +29,23 @@ This performance guide provides comprehensive optimization strategies, benchmark
 
 ### Established Performance Targets
 
-| Operation Type | Target Response Time | Maximum Acceptable | SLA Threshold |
-|----------------|---------------------|-------------------|---------------|
-| **Simple GET** (single entity) | < 200ms | < 500ms | < 1s |
-| **Complex GET** (with filtering) | < 500ms | < 1s | < 3s |
-| **LIST operations** (50 items) | < 1s | < 2s | < 3s |
-| **POST/PUT** (single entity) | < 300ms | < 800ms | < 2s |
-| **DELETE operations** | < 200ms | < 500ms | < 1s |
-| **BULK operations** (100 items) | < 5s | < 10s | < 15s |
-| **Dashboard queries** | < 2s | < 5s | < 8s |
-| **Search & filtering** | < 1s | < 3s | < 5s |
+| Operation Type                   | Target Response Time | Maximum Acceptable | SLA Threshold |
+| -------------------------------- | -------------------- | ------------------ | ------------- |
+| **Simple GET** (single entity)   | < 200ms              | < 500ms            | < 1s          |
+| **Complex GET** (with filtering) | < 500ms              | < 1s               | < 3s          |
+| **LIST operations** (50 items)   | < 1s                 | < 2s               | < 3s          |
+| **POST/PUT** (single entity)     | < 300ms              | < 800ms            | < 2s          |
+| **DELETE operations**            | < 200ms              | < 500ms            | < 1s          |
+| **BULK operations** (100 items)  | < 5s                 | < 10s              | < 15s         |
+| **Dashboard queries**            | < 2s                 | < 5s               | < 8s          |
+| **Search & filtering**           | < 1s                 | < 3s               | < 5s          |
 
 ### Performance Measurement Standards
+
 ```javascript
 // Performance measurement pattern
 const startTime = performance.now();
-const response = await fetch('/api/endpoint');
+const response = await fetch("/api/endpoint");
 const endTime = performance.now();
 const duration = endTime - startTime;
 
@@ -54,6 +55,7 @@ console.log(`API call completed in ${duration.toFixed(2)}ms`);
 ### Current System Performance Baselines
 
 #### Development Environment (localhost:8090)
+
 ```
 Hardware: MacBook Pro (Apple Silicon)
 Database: PostgreSQL 13 (containerized)
@@ -61,6 +63,7 @@ Application: Confluence 9.2.7 + ScriptRunner 9.21.0
 ```
 
 **Measured Performance (August 18, 2025)**:
+
 - **Migrations API**: Average 245ms (GET), 320ms (POST)
 - **Teams API**: Average 180ms (GET), 280ms (POST)
 - **Steps API**: Average 190ms (GET single), 850ms (GET filtered list)
@@ -74,6 +77,7 @@ Application: Confluence 9.2.7 + ScriptRunner 9.21.0
 ### 1. Entity Retrieval Endpoints
 
 #### Single Entity Retrieval
+
 ```bash
 # Example: Get specific migration
 GET /migrations/{id}
@@ -81,12 +85,14 @@ Target: < 200ms | Measured: ~180ms | Status: ✅ Excellent
 ```
 
 **Optimization Factors**:
+
 - Primary key lookups (UUID-based)
 - Minimal JOIN operations
 - Database index utilization
 - Response payload size optimization
 
 #### List Endpoints with Basic Filtering
+
 ```bash
 # Example: Get all teams
 GET /teams
@@ -98,6 +104,7 @@ Target: < 500ms | Measured: ~380ms | Status: ✅ Good
 ```
 
 **Performance Characteristics**:
+
 - Linear scaling with result set size
 - Index-optimized WHERE clauses
 - Efficient ORDER BY operations
@@ -106,6 +113,7 @@ Target: < 500ms | Measured: ~380ms | Status: ✅ Good
 ### 2. Complex Query Endpoints
 
 #### Hierarchical Filtering
+
 ```bash
 # Example: Steps by migration hierarchy
 GET /steps?migrationId={id}&iterationId={id}&status=2
@@ -117,12 +125,14 @@ Target: < 1s | Measured: ~920ms | Status: ✅ Acceptable
 ```
 
 **Optimization Strategies**:
+
 - Composite index usage
 - Query plan optimization
 - WHERE clause ordering
 - JOIN operation minimization
 
 #### Dashboard Aggregation Queries
+
 ```bash
 # Example: Dashboard summary data
 GET /migrations/dashboard/summary
@@ -134,6 +144,7 @@ Target: < 2s | Measured: ~1.6s | Status: ✅ Good
 ```
 
 **Performance Factors**:
+
 - Aggregation function efficiency
 - GROUP BY optimization
 - Subquery performance
@@ -142,6 +153,7 @@ Target: < 2s | Measured: ~1.6s | Status: ✅ Good
 ### 3. Write Operations
 
 #### Single Entity Creation
+
 ```bash
 # Example: Create new migration
 POST /migrations
@@ -153,12 +165,14 @@ Target: < 300ms | Measured: ~280ms | Status: ✅ Good
 ```
 
 **Performance Considerations**:
+
 - Transaction isolation levels
 - Foreign key validation overhead
 - Trigger execution time
 - Index maintenance cost
 
 #### Bulk Operations
+
 ```bash
 # Example: Bulk step updates
 PUT /steps/bulk/update (100 items)
@@ -170,6 +184,7 @@ Target: < 10s | Measured: ~7.8s | Status: ✅ Good
 ```
 
 **Optimization Approaches**:
+
 - Batch processing techniques
 - Transaction batching
 - Prepared statement reuse
@@ -182,18 +197,20 @@ Target: < 10s | Measured: ~7.8s | Status: ✅ Good
 ### Recommended Pagination Pattern
 
 #### Standard Pagination Parameters
+
 ```javascript
 // Optimal pagination configuration
 const paginationConfig = {
-    page: 1,              // Starting page (1-based)
-    limit: 50,            // Items per page (recommended: 25-100)
-    sortBy: 'created_at', // Sort field
-    sortOrder: 'desc',    // Sort direction
-    includeTotal: false   // Skip COUNT(*) for performance
+  page: 1, // Starting page (1-based)
+  limit: 50, // Items per page (recommended: 25-100)
+  sortBy: "created_at", // Sort field
+  sortOrder: "desc", // Sort direction
+  includeTotal: false, // Skip COUNT(*) for performance
 };
 ```
 
 #### Performance-Optimized Requests
+
 ```bash
 # Fast pagination (no total count)
 GET /steps?page=1&limit=50&sortBy=sti_completion_date&sortOrder=desc
@@ -207,38 +224,40 @@ GET /steps?cursor=2025-08-18T16:00:00Z&limit=50&direction=next
 
 ### Pagination Performance Guidelines
 
-| Dataset Size | Recommended Limit | Max Limit | Performance Impact |
-|--------------|------------------|-----------|-------------------|
-| < 1,000 items | 25-50 | 100 | Minimal |
-| 1K - 10K items | 25-50 | 75 | Low |
-| 10K - 100K items | 25-50 | 50 | Medium |
-| > 100K items | 25 | 25 | High |
+| Dataset Size     | Recommended Limit | Max Limit | Performance Impact |
+| ---------------- | ----------------- | --------- | ------------------ |
+| < 1,000 items    | 25-50             | 100       | Minimal            |
+| 1K - 10K items   | 25-50             | 75        | Low                |
+| 10K - 100K items | 25-50             | 50        | Medium             |
+| > 100K items     | 25                | 25        | High               |
 
 #### Advanced Pagination Strategies
 
 **1. Cursor-Based Pagination (for real-time data)**
+
 ```javascript
 // Implementation pattern
 const getCursorPaginatedSteps = async (cursor, limit = 50) => {
-    const response = await fetch(
-        `/steps?cursor=${cursor}&limit=${limit}&direction=next`,
-        {
-            headers: {
-                'Authorization': 'Basic YWRtaW46YWRtaW4=',
-                'Content-Type': 'application/json'
-            }
-        }
-    );
-    return response.json();
+  const response = await fetch(
+    `/steps?cursor=${cursor}&limit=${limit}&direction=next`,
+    {
+      headers: {
+        Authorization: "Basic YWRtaW46YWRtaW4=",
+        "Content-Type": "application/json",
+      },
+    },
+  );
+  return response.json();
 };
 ```
 
 **2. Keyset Pagination (for stable ordering)**
+
 ```sql
 -- SQL pattern for keyset pagination
-SELECT * FROM steps 
+SELECT * FROM steps
 WHERE (sti_completion_date, sti_id) > ('2025-08-18 16:00:00', 'last_seen_id')
-ORDER BY sti_completion_date, sti_id 
+ORDER BY sti_completion_date, sti_id
 LIMIT 50;
 ```
 
@@ -249,100 +268,107 @@ LIMIT 50;
 ### Bulk Update Strategies
 
 #### Optimal Batch Sizes
+
 ```javascript
 // Recommended batch sizing
 const batchSizes = {
-    steps_bulk_update: {
-        optimal: 100,      // Best performance/reliability balance
-        maximum: 500,      // Upper limit for safety
-        minimum: 10        // Lower limit for efficiency
-    },
-    export_operations: {
-        optimal: 1000,     // Larger batches acceptable for exports
-        maximum: 5000,     // Memory considerations
-        streaming: true    // Use streaming for very large exports
-    }
+  steps_bulk_update: {
+    optimal: 100, // Best performance/reliability balance
+    maximum: 500, // Upper limit for safety
+    minimum: 10, // Lower limit for efficiency
+  },
+  export_operations: {
+    optimal: 1000, // Larger batches acceptable for exports
+    maximum: 5000, // Memory considerations
+    streaming: true, // Use streaming for very large exports
+  },
 };
 ```
 
 #### Bulk Update Implementation Pattern
+
 ```javascript
 // High-performance bulk update implementation
 async function performBulkStepUpdate(updates) {
-    const batchSize = 100;
-    const batches = [];
-    
-    // Split into optimal batches
-    for (let i = 0; i < updates.length; i += batchSize) {
-        batches.push(updates.slice(i, i + batchSize));
+  const batchSize = 100;
+  const batches = [];
+
+  // Split into optimal batches
+  for (let i = 0; i < updates.length; i += batchSize) {
+    batches.push(updates.slice(i, i + batchSize));
+  }
+
+  const results = [];
+  for (const batch of batches) {
+    const startTime = performance.now();
+
+    try {
+      const response = await fetch("/steps/bulk/update", {
+        method: "PUT",
+        headers: {
+          Authorization: "Basic YWRtaW46YWRtaW4=",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ updates: batch }),
+      });
+
+      const result = await response.json();
+      const duration = performance.now() - startTime;
+
+      console.log(
+        `Batch ${batches.indexOf(batch) + 1} completed in ${duration.toFixed(2)}ms`,
+      );
+      results.push(result);
+
+      // Optional: Brief pause between batches to prevent overload
+      if (batches.indexOf(batch) < batches.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    } catch (error) {
+      console.error(`Batch ${batches.indexOf(batch) + 1} failed:`, error);
+      results.push({
+        error: error.message,
+        batch_index: batches.indexOf(batch),
+      });
     }
-    
-    const results = [];
-    for (const batch of batches) {
-        const startTime = performance.now();
-        
-        try {
-            const response = await fetch('/steps/bulk/update', {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'Basic YWRtaW46YWRtaW4=',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ updates: batch })
-            });
-            
-            const result = await response.json();
-            const duration = performance.now() - startTime;
-            
-            console.log(`Batch ${batches.indexOf(batch) + 1} completed in ${duration.toFixed(2)}ms`);
-            results.push(result);
-            
-            // Optional: Brief pause between batches to prevent overload
-            if (batches.indexOf(batch) < batches.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 50));
-            }
-            
-        } catch (error) {
-            console.error(`Batch ${batches.indexOf(batch) + 1} failed:`, error);
-            results.push({ error: error.message, batch_index: batches.indexOf(batch) });
-        }
-    }
-    
-    return results;
+  }
+
+  return results;
 }
 ```
 
 ### Export/Import Performance
 
 #### Streaming Export Implementation
+
 ```javascript
 // Memory-efficient streaming export
-async function streamingExport(migrationIds, format = 'csv') {
-    const response = await fetch('/migrations/bulk/export', {
-        method: 'POST',
-        headers: {
-            'Authorization': 'Basic YWRtaW46YWRtaW4=',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            migrationIds,
-            format,
-            streaming: true,
-            batchSize: 1000
-        })
-    });
-    
-    // Process response as stream
-    const reader = response.body.getReader();
-    const chunks = [];
-    
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-    }
-    
-    return new Blob(chunks, { type: 'text/csv' });
+async function streamingExport(migrationIds, format = "csv") {
+  const response = await fetch("/migrations/bulk/export", {
+    method: "POST",
+    headers: {
+      Authorization: "Basic YWRtaW46YWRtaW4=",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      migrationIds,
+      format,
+      streaming: true,
+      batchSize: 1000,
+    }),
+  });
+
+  // Process response as stream
+  const reader = response.body.getReader();
+  const chunks = [];
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+
+  return new Blob(chunks, { type: "text/csv" });
 }
 ```
 
@@ -353,74 +379,77 @@ async function streamingExport(migrationIds, format = 'csv') {
 ### Client-Side Caching
 
 #### Browser Cache Configuration
+
 ```javascript
 // Optimal cache headers for static data
 const cacheHeaders = {
-    'Cache-Control': 'public, max-age=300', // 5 minutes for dynamic data
-    'ETag': '"entity-version-hash"',         // Entity versioning
-    'Last-Modified': 'Wed, 18 Aug 2025 16:00:00 GMT'
+  "Cache-Control": "public, max-age=300", // 5 minutes for dynamic data
+  ETag: '"entity-version-hash"', // Entity versioning
+  "Last-Modified": "Wed, 18 Aug 2025 16:00:00 GMT",
 };
 
 // Cache-friendly API calls
 const getCachedMigrations = async () => {
-    const response = await fetch('/migrations', {
-        headers: {
-            'Authorization': 'Basic YWRtaW46YWRtaW4=',
-            'If-None-Match': localStorage.getItem('migrations-etag')
-        }
-    });
-    
-    if (response.status === 304) {
-        // Use cached data
-        return JSON.parse(localStorage.getItem('migrations-data'));
-    }
-    
-    const data = await response.json();
-    const etag = response.headers.get('ETag');
-    
-    // Update cache
-    localStorage.setItem('migrations-data', JSON.stringify(data));
-    localStorage.setItem('migrations-etag', etag);
-    
-    return data;
+  const response = await fetch("/migrations", {
+    headers: {
+      Authorization: "Basic YWRtaW46YWRtaW4=",
+      "If-None-Match": localStorage.getItem("migrations-etag"),
+    },
+  });
+
+  if (response.status === 304) {
+    // Use cached data
+    return JSON.parse(localStorage.getItem("migrations-data"));
+  }
+
+  const data = await response.json();
+  const etag = response.headers.get("ETag");
+
+  // Update cache
+  localStorage.setItem("migrations-data", JSON.stringify(data));
+  localStorage.setItem("migrations-etag", etag);
+
+  return data;
 };
 ```
 
 #### Application-Level Caching
+
 ```javascript
 // In-memory cache with TTL
 class ApiCache {
-    constructor(ttl = 300000) { // 5 minutes default
-        this.cache = new Map();
-        this.ttl = ttl;
+  constructor(ttl = 300000) {
+    // 5 minutes default
+    this.cache = new Map();
+    this.ttl = ttl;
+  }
+
+  set(key, value) {
+    this.cache.set(key, {
+      value,
+      timestamp: Date.now(),
+    });
+  }
+
+  get(key) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+
+    if (Date.now() - item.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
     }
-    
-    set(key, value) {
-        this.cache.set(key, {
-            value,
-            timestamp: Date.now()
-        });
+
+    return item.value;
+  }
+
+  invalidate(pattern) {
+    for (const key of this.cache.keys()) {
+      if (key.includes(pattern)) {
+        this.cache.delete(key);
+      }
     }
-    
-    get(key) {
-        const item = this.cache.get(key);
-        if (!item) return null;
-        
-        if (Date.now() - item.timestamp > this.ttl) {
-            this.cache.delete(key);
-            return null;
-        }
-        
-        return item.value;
-    }
-    
-    invalidate(pattern) {
-        for (const key of this.cache.keys()) {
-            if (key.includes(pattern)) {
-                this.cache.delete(key);
-            }
-        }
-    }
+  }
 }
 
 // Usage
@@ -430,6 +459,7 @@ const apiCache = new ApiCache();
 ### Server-Side Caching Considerations
 
 #### Database Query Caching
+
 ```sql
 -- PostgreSQL query optimization with prepared statements
 PREPARE get_migration_steps(uuid) AS
@@ -445,6 +475,7 @@ EXECUTE get_migration_steps('6ba7b810-9dad-11d1-80b4-00c04fd430c8');
 ```
 
 #### Connection Pool Optimization
+
 ```groovy
 // ScriptRunner connection pool configuration
 def connectionConfig = [
@@ -464,6 +495,7 @@ def connectionConfig = [
 ### Index Strategy
 
 #### Critical Indexes for Performance
+
 ```sql
 -- Primary performance indexes (already implemented)
 CREATE INDEX idx_step_instances_mig_id ON step_instances(mig_id);
@@ -472,19 +504,20 @@ CREATE INDEX idx_step_instances_completion_date ON step_instances(sti_completion
 CREATE INDEX idx_step_instances_team_id ON step_instances(tm_id);
 
 -- Composite indexes for complex queries
-CREATE INDEX idx_step_instances_mig_status_date 
+CREATE INDEX idx_step_instances_mig_status_date
 ON step_instances(mig_id, sti_status, sti_completion_date);
 
-CREATE INDEX idx_step_instances_team_status 
+CREATE INDEX idx_step_instances_team_status
 ON step_instances(tm_id, sti_status);
 
 -- Covering indexes for frequent list operations
-CREATE INDEX idx_migrations_summary 
-ON migrations(mig_id, mig_name, mig_status, mig_start_date) 
+CREATE INDEX idx_migrations_summary
+ON migrations(mig_id, mig_name, mig_status, mig_start_date)
 INCLUDE (mig_description);
 ```
 
 #### Query Optimization Patterns
+
 ```sql
 -- Optimized hierarchical filtering
 SELECT si.*, phi.phi_name, sqi.sqi_name
@@ -497,7 +530,7 @@ ORDER BY si.sti_order
 LIMIT 50;
 
 -- Efficient aggregation queries
-SELECT 
+SELECT
     sti_status,
     COUNT(*) as step_count,
     COUNT(CASE WHEN sti_completion_date IS NOT NULL THEN 1 END) as completed_count
@@ -509,11 +542,12 @@ GROUP BY sti_status;
 ### Query Performance Analysis
 
 #### EXPLAIN Plan Optimization
+
 ```sql
 -- Analyze query performance
-EXPLAIN (ANALYZE, BUFFERS) 
-SELECT * FROM step_instances 
-WHERE mig_id = '6ba7b810-9dad-11d1-80b4-00c04fd430c8' 
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM step_instances
+WHERE mig_id = '6ba7b810-9dad-11d1-80b4-00c04fd430c8'
   AND sti_status = 2
 ORDER BY sti_completion_date DESC;
 
@@ -524,11 +558,12 @@ ORDER BY sti_completion_date DESC;
 ```
 
 #### Query Optimization Checklist
+
 - ✅ Use parameterized queries (prevents SQL injection + performance)
 - ✅ Leverage composite indexes for multi-column WHERE clauses
 - ✅ Order WHERE clauses by selectivity (most selective first)
 - ✅ Use LIMIT for large result sets
-- ✅ Avoid SELECT * in favor of specific columns
+- ✅ Avoid SELECT \* in favor of specific columns
 - ✅ Use EXISTS instead of IN for subqueries
 - ✅ Consider partial indexes for frequently filtered subsets
 
@@ -539,91 +574,98 @@ ORDER BY sti_completion_date DESC;
 ### Efficient API Consumption Patterns
 
 #### 1. Batch API Calls
+
 ```javascript
 // Efficient parallel API calls
 async function getCompleteIterationData(migrationId, iterationId) {
-    const [iteration, planInstances, teams] = await Promise.all([
-        fetch(`/migrations/${migrationId}/iterations/${iterationId}`),
-        fetch(`/migrations/${migrationId}/iterations/${iterationId}/plan-instances`),
-        fetch(`/teams?migration=${migrationId}`)
-    ]);
-    
-    return {
-        iteration: await iteration.json(),
-        planInstances: await planInstances.json(),
-        teams: await teams.json()
-    };
+  const [iteration, planInstances, teams] = await Promise.all([
+    fetch(`/migrations/${migrationId}/iterations/${iterationId}`),
+    fetch(
+      `/migrations/${migrationId}/iterations/${iterationId}/plan-instances`,
+    ),
+    fetch(`/teams?migration=${migrationId}`),
+  ]);
+
+  return {
+    iteration: await iteration.json(),
+    planInstances: await planInstances.json(),
+    teams: await teams.json(),
+  };
 }
 ```
 
 #### 2. Progressive Data Loading
+
 ```javascript
 // Load data progressively for better UX
 async function loadStepsProgressively(migrationId) {
-    // 1. Load summary first (fast)
-    const summary = await fetch(`/migrations/${migrationId}/summary`);
-    displaySummary(await summary.json());
-    
-    // 2. Load critical steps
-    const criticalSteps = await fetch(`/steps?migrationId=${migrationId}&status=2&limit=10`);
-    displayCriticalSteps(await criticalSteps.json());
-    
-    // 3. Load remaining steps in background
-    setTimeout(async () => {
-        const allSteps = await fetch(`/steps?migrationId=${migrationId}&limit=100`);
-        displayAllSteps(await allSteps.json());
-    }, 100);
+  // 1. Load summary first (fast)
+  const summary = await fetch(`/migrations/${migrationId}/summary`);
+  displaySummary(await summary.json());
+
+  // 2. Load critical steps
+  const criticalSteps = await fetch(
+    `/steps?migrationId=${migrationId}&status=2&limit=10`,
+  );
+  displayCriticalSteps(await criticalSteps.json());
+
+  // 3. Load remaining steps in background
+  setTimeout(async () => {
+    const allSteps = await fetch(`/steps?migrationId=${migrationId}&limit=100`);
+    displayAllSteps(await allSteps.json());
+  }, 100);
 }
 ```
 
 #### 3. Smart Polling for Real-Time Updates
+
 ```javascript
 // Efficient polling strategy
 class SmartPoller {
-    constructor(endpoint, interval = 2000) {
-        this.endpoint = endpoint;
-        this.interval = interval;
-        this.lastModified = null;
-        this.isPolling = false;
+  constructor(endpoint, interval = 2000) {
+    this.endpoint = endpoint;
+    this.interval = interval;
+    this.lastModified = null;
+    this.isPolling = false;
+  }
+
+  async poll() {
+    if (this.isPolling) return;
+    this.isPolling = true;
+
+    try {
+      const headers = {};
+      if (this.lastModified) {
+        headers["If-Modified-Since"] = this.lastModified;
+      }
+
+      const response = await fetch(this.endpoint, { headers });
+
+      if (response.status === 304) {
+        // No changes, continue polling
+        console.log("No changes detected");
+      } else if (response.ok) {
+        // Data changed, update UI
+        const data = await response.json();
+        this.lastModified = response.headers.get("Last-Modified");
+        this.onUpdate(data);
+      }
+    } catch (error) {
+      console.error("Polling error:", error);
+    } finally {
+      this.isPolling = false;
+      setTimeout(() => this.poll(), this.interval);
     }
-    
-    async poll() {
-        if (this.isPolling) return;
-        this.isPolling = true;
-        
-        try {
-            const headers = {};
-            if (this.lastModified) {
-                headers['If-Modified-Since'] = this.lastModified;
-            }
-            
-            const response = await fetch(this.endpoint, { headers });
-            
-            if (response.status === 304) {
-                // No changes, continue polling
-                console.log('No changes detected');
-            } else if (response.ok) {
-                // Data changed, update UI
-                const data = await response.json();
-                this.lastModified = response.headers.get('Last-Modified');
-                this.onUpdate(data);
-            }
-        } catch (error) {
-            console.error('Polling error:', error);
-        } finally {
-            this.isPolling = false;
-            setTimeout(() => this.poll(), this.interval);
-        }
-    }
-    
-    onUpdate(data) {
-        // Override in implementation
-        console.log('Data updated:', data);
-    }
+  }
+
+  onUpdate(data) {
+    // Override in implementation
+    console.log("Data updated:", data);
+  }
 }
 
 // Usage
-const stepPoller = new SmartPoller('/steps?status=2', 2000);
+const stepPoller = new SmartPoller("/steps?status=2", 2000);
 stepPoller.onUpdate = (steps) => updateStepDisplay(steps);
 stepPoller.poll();
 ```
@@ -635,58 +677,62 @@ stepPoller.poll();
 ### Key Performance Indicators (KPIs)
 
 #### Response Time Metrics
+
 ```javascript
 // Performance monitoring implementation
 class PerformanceMonitor {
-    constructor() {
-        this.metrics = {
-            api_calls: [],
-            errors: [],
-            slow_queries: []
-        };
+  constructor() {
+    this.metrics = {
+      api_calls: [],
+      errors: [],
+      slow_queries: [],
+    };
+  }
+
+  recordApiCall(endpoint, method, duration, status) {
+    const metric = {
+      endpoint,
+      method,
+      duration,
+      status,
+      timestamp: Date.now(),
+    };
+
+    this.metrics.api_calls.push(metric);
+
+    // Alert on slow queries
+    if (duration > 3000) {
+      this.metrics.slow_queries.push(metric);
+      console.warn(`Slow query detected: ${endpoint} took ${duration}ms`);
     }
-    
-    recordApiCall(endpoint, method, duration, status) {
-        const metric = {
-            endpoint,
-            method,
-            duration,
-            status,
-            timestamp: Date.now()
-        };
-        
-        this.metrics.api_calls.push(metric);
-        
-        // Alert on slow queries
-        if (duration > 3000) {
-            this.metrics.slow_queries.push(metric);
-            console.warn(`Slow query detected: ${endpoint} took ${duration}ms`);
-        }
-        
-        // Track errors
-        if (status >= 400) {
-            this.metrics.errors.push(metric);
-        }
-        
-        // Clean old metrics (keep last 1000)
-        if (this.metrics.api_calls.length > 1000) {
-            this.metrics.api_calls.splice(0, 100);
-        }
+
+    // Track errors
+    if (status >= 400) {
+      this.metrics.errors.push(metric);
     }
-    
-    getPerformanceReport() {
-        const recentCalls = this.metrics.api_calls.slice(-100);
-        const avgResponseTime = recentCalls.reduce((sum, call) => sum + call.duration, 0) / recentCalls.length;
-        const errorRate = (this.metrics.errors.length / this.metrics.api_calls.length) * 100;
-        
-        return {
-            total_calls: this.metrics.api_calls.length,
-            avg_response_time: Math.round(avgResponseTime),
-            error_rate: Math.round(errorRate * 100) / 100,
-            slow_queries: this.metrics.slow_queries.length,
-            recent_errors: this.metrics.errors.slice(-10)
-        };
+
+    // Clean old metrics (keep last 1000)
+    if (this.metrics.api_calls.length > 1000) {
+      this.metrics.api_calls.splice(0, 100);
     }
+  }
+
+  getPerformanceReport() {
+    const recentCalls = this.metrics.api_calls.slice(-100);
+    const avgResponseTime =
+      recentCalls.reduce((sum, call) => sum + call.duration, 0) /
+      recentCalls.length;
+    const errorRate =
+      (this.metrics.errors.length / this.metrics.api_calls.length) * 100;
+
+    return {
+      total_calls: this.metrics.api_calls.length,
+      avg_response_time: Math.round(avgResponseTime),
+      error_rate: Math.round(errorRate * 100) / 100,
+      slow_queries: this.metrics.slow_queries.length,
+      recent_errors: this.metrics.errors.slice(-10),
+    };
+  }
 }
 
 // Global performance monitor
@@ -694,40 +740,37 @@ const perfMonitor = new PerformanceMonitor();
 
 // Intercept fetch calls for automatic monitoring
 const originalFetch = window.fetch;
-window.fetch = function(...args) {
-    const startTime = performance.now();
-    const url = args[0];
-    const options = args[1] || {};
-    
-    return originalFetch.apply(this, args)
-        .then(response => {
-            const duration = performance.now() - startTime;
-            perfMonitor.recordApiCall(
-                url, 
-                options.method || 'GET', 
-                duration, 
-                response.status
-            );
-            return response;
-        })
-        .catch(error => {
-            const duration = performance.now() - startTime;
-            perfMonitor.recordApiCall(
-                url, 
-                options.method || 'GET', 
-                duration, 
-                0
-            );
-            throw error;
-        });
+window.fetch = function (...args) {
+  const startTime = performance.now();
+  const url = args[0];
+  const options = args[1] || {};
+
+  return originalFetch
+    .apply(this, args)
+    .then((response) => {
+      const duration = performance.now() - startTime;
+      perfMonitor.recordApiCall(
+        url,
+        options.method || "GET",
+        duration,
+        response.status,
+      );
+      return response;
+    })
+    .catch((error) => {
+      const duration = performance.now() - startTime;
+      perfMonitor.recordApiCall(url, options.method || "GET", duration, 0);
+      throw error;
+    });
 };
 ```
 
 #### Database Performance Monitoring
+
 ```sql
 -- PostgreSQL performance queries
 -- 1. Slow query identification
-SELECT 
+SELECT
     query,
     calls,
     total_time,
@@ -739,7 +782,7 @@ ORDER BY mean_time DESC
 LIMIT 10;
 
 -- 2. Index usage analysis
-SELECT 
+SELECT
     schemaname,
     tablename,
     attname,
@@ -750,7 +793,7 @@ WHERE tablename IN ('migrations', 'step_instances', 'teams')
 ORDER BY n_distinct DESC;
 
 -- 3. Connection monitoring
-SELECT 
+SELECT
     count(*) as total_connections,
     count(*) FILTER (WHERE state = 'active') as active_connections,
     count(*) FILTER (WHERE state = 'idle') as idle_connections
@@ -760,28 +803,29 @@ FROM pg_stat_activity;
 ### Alerting Thresholds
 
 #### Performance Alert Configuration
+
 ```javascript
 const performanceAlerts = {
-    response_time: {
-        warning: 2000,   // 2 seconds
-        critical: 5000,  // 5 seconds
-        action: 'log_and_notify'
-    },
-    error_rate: {
-        warning: 5,      // 5% error rate
-        critical: 10,    // 10% error rate
-        action: 'escalate'
-    },
-    concurrent_requests: {
-        warning: 50,     // 50 concurrent requests
-        critical: 100,   // 100 concurrent requests
-        action: 'throttle'
-    },
-    database_connections: {
-        warning: 15,     // 15 active connections
-        critical: 18,    // 18 active connections (out of 20 max)
-        action: 'connection_pool_alert'
-    }
+  response_time: {
+    warning: 2000, // 2 seconds
+    critical: 5000, // 5 seconds
+    action: "log_and_notify",
+  },
+  error_rate: {
+    warning: 5, // 5% error rate
+    critical: 10, // 10% error rate
+    action: "escalate",
+  },
+  concurrent_requests: {
+    warning: 50, // 50 concurrent requests
+    critical: 100, // 100 concurrent requests
+    action: "throttle",
+  },
+  database_connections: {
+    warning: 15, // 15 active connections
+    critical: 18, // 18 active connections (out of 20 max)
+    action: "connection_pool_alert",
+  },
 };
 ```
 
@@ -794,22 +838,24 @@ const performanceAlerts = {
 #### 1. Slow Database Queries
 
 **Symptoms**:
+
 - API response times > 3 seconds
 - High CPU usage on database server
 - Increasing number of active connections
 
 **Diagnosis**:
+
 ```sql
 -- Identify slow queries
-SELECT 
+SELECT
     pid,
     now() - pg_stat_activity.query_start AS duration,
-    query 
-FROM pg_stat_activity 
+    query
+FROM pg_stat_activity
 WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes';
 
 -- Check for missing indexes
-SELECT 
+SELECT
     schemaname,
     tablename,
     seq_scan,
@@ -822,6 +868,7 @@ ORDER BY seq_tup_read DESC;
 ```
 
 **Solutions**:
+
 - Add missing indexes for frequently filtered columns
 - Optimize WHERE clause ordering
 - Use LIMIT for large result sets
@@ -830,11 +877,13 @@ ORDER BY seq_tup_read DESC;
 #### 2. Memory Issues
 
 **Symptoms**:
+
 - Gradual performance degradation
 - OutOfMemory errors in ScriptRunner
 - High memory usage in Confluence
 
 **Diagnosis**:
+
 ```groovy
 // ScriptRunner memory monitoring
 def runtime = Runtime.getRuntime()
@@ -847,6 +896,7 @@ log.warn("Memory usage: ${usedMemory / 1024 / 1024} MB used of ${maxMemory / 102
 ```
 
 **Solutions**:
+
 - Implement result set streaming for large exports
 - Use pagination for list operations
 - Clear unused object references
@@ -855,14 +905,16 @@ log.warn("Memory usage: ${usedMemory / 1024 / 1024} MB used of ${maxMemory / 102
 #### 3. Connection Pool Exhaustion
 
 **Symptoms**:
+
 - Timeout errors on database connections
 - API requests hanging or failing
 - "Connection pool exhausted" errors
 
 **Diagnosis**:
+
 ```sql
 -- Check active connections
-SELECT 
+SELECT
     datname,
     count(*) as connections,
     count(*) FILTER (WHERE state = 'active') as active,
@@ -872,6 +924,7 @@ GROUP BY datname;
 ```
 
 **Solutions**:
+
 - Implement proper connection closing
 - Optimize connection pool configuration
 - Use connection pooling middleware
@@ -880,6 +933,7 @@ GROUP BY datname;
 ### Performance Debugging Tools
 
 #### 1. Database Query Analysis
+
 ```bash
 # Enable query logging in PostgreSQL
 psql -h localhost -U umig_user -d umig_db -c "
@@ -894,45 +948,48 @@ tail -f /var/log/postgresql/postgresql.log | grep "duration:"
 ```
 
 #### 2. Application Performance Profiling
+
 ```javascript
 // Performance profiling utility
 class PerformanceProfiler {
-    constructor() {
-        this.profiles = new Map();
-    }
-    
-    start(label) {
-        this.profiles.set(label, {
-            startTime: performance.now(),
-            startMemory: performance.memory ? performance.memory.usedJSHeapSize : 0
-        });
-    }
-    
-    end(label) {
-        const profile = this.profiles.get(label);
-        if (!profile) return null;
-        
-        const endTime = performance.now();
-        const endMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
-        
-        const result = {
-            duration: endTime - profile.startTime,
-            memoryDelta: endMemory - profile.startMemory,
-            timestamp: new Date().toISOString()
-        };
-        
-        this.profiles.delete(label);
-        console.log(`Performance [${label}]:`, result);
-        
-        return result;
-    }
+  constructor() {
+    this.profiles = new Map();
+  }
+
+  start(label) {
+    this.profiles.set(label, {
+      startTime: performance.now(),
+      startMemory: performance.memory ? performance.memory.usedJSHeapSize : 0,
+    });
+  }
+
+  end(label) {
+    const profile = this.profiles.get(label);
+    if (!profile) return null;
+
+    const endTime = performance.now();
+    const endMemory = performance.memory
+      ? performance.memory.usedJSHeapSize
+      : 0;
+
+    const result = {
+      duration: endTime - profile.startTime,
+      memoryDelta: endMemory - profile.startMemory,
+      timestamp: new Date().toISOString(),
+    };
+
+    this.profiles.delete(label);
+    console.log(`Performance [${label}]:`, result);
+
+    return result;
+  }
 }
 
 // Usage
 const profiler = new PerformanceProfiler();
-profiler.start('bulk-update');
+profiler.start("bulk-update");
 await performBulkStepUpdate(updates);
-profiler.end('bulk-update');
+profiler.end("bulk-update");
 ```
 
 ---
@@ -942,91 +999,106 @@ profiler.end('bulk-update');
 ### UAT Performance Test Scenarios
 
 #### Scenario 1: Load Testing
+
 ```javascript
 // Load testing with multiple concurrent users
 async function loadTest() {
-    const concurrentUsers = 10;
-    const requestsPerUser = 50;
-    const endpoints = [
-        '/migrations',
-        '/teams',
-        '/steps?status=2',
-        '/migrations/dashboard/summary'
-    ];
-    
-    const userPromises = [];
-    
-    for (let user = 0; user < concurrentUsers; user++) {
-        const userPromise = async () => {
-            const userMetrics = [];
-            
-            for (let request = 0; request < requestsPerUser; request++) {
-                const endpoint = endpoints[request % endpoints.length];
-                const startTime = performance.now();
-                
-                try {
-                    const response = await fetch(`http://localhost:8090/rest/scriptrunner/latest/custom/umig${endpoint}`, {
-                        headers: {
-                            'Authorization': 'Basic YWRtaW46YWRtaW4='
-                        }
-                    });
-                    
-                    const duration = performance.now() - startTime;
-                    userMetrics.push({
-                        endpoint,
-                        duration,
-                        status: response.status,
-                        user,
-                        request
-                    });
-                    
-                    // Simulate user think time
-                    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 400));
-                    
-                } catch (error) {
-                    userMetrics.push({
-                        endpoint,
-                        duration: performance.now() - startTime,
-                        status: 0,
-                        error: error.message,
-                        user,
-                        request
-                    });
-                }
-            }
-            
-            return userMetrics;
-        };
-        
-        userPromises.push(userPromise());
-    }
-    
-    const allResults = await Promise.all(userPromises);
-    const flatResults = allResults.flat();
-    
-    // Analyze results
-    const analysis = {
-        total_requests: flatResults.length,
-        avg_response_time: flatResults.reduce((sum, r) => sum + r.duration, 0) / flatResults.length,
-        max_response_time: Math.max(...flatResults.map(r => r.duration)),
-        min_response_time: Math.min(...flatResults.map(r => r.duration)),
-        error_rate: (flatResults.filter(r => r.status === 0).length / flatResults.length) * 100,
-        p95_response_time: calculatePercentile(flatResults.map(r => r.duration), 95),
-        p99_response_time: calculatePercentile(flatResults.map(r => r.duration), 99)
+  const concurrentUsers = 10;
+  const requestsPerUser = 50;
+  const endpoints = [
+    "/migrations",
+    "/teams",
+    "/steps?status=2",
+    "/migrations/dashboard/summary",
+  ];
+
+  const userPromises = [];
+
+  for (let user = 0; user < concurrentUsers; user++) {
+    const userPromise = async () => {
+      const userMetrics = [];
+
+      for (let request = 0; request < requestsPerUser; request++) {
+        const endpoint = endpoints[request % endpoints.length];
+        const startTime = performance.now();
+
+        try {
+          const response = await fetch(
+            `http://localhost:8090/rest/scriptrunner/latest/custom/umig${endpoint}`,
+            {
+              headers: {
+                Authorization: "Basic YWRtaW46YWRtaW4=",
+              },
+            },
+          );
+
+          const duration = performance.now() - startTime;
+          userMetrics.push({
+            endpoint,
+            duration,
+            status: response.status,
+            user,
+            request,
+          });
+
+          // Simulate user think time
+          await new Promise((resolve) =>
+            setTimeout(resolve, 100 + Math.random() * 400),
+          );
+        } catch (error) {
+          userMetrics.push({
+            endpoint,
+            duration: performance.now() - startTime,
+            status: 0,
+            error: error.message,
+            user,
+            request,
+          });
+        }
+      }
+
+      return userMetrics;
     };
-    
-    console.log('Load Test Results:', analysis);
-    return analysis;
+
+    userPromises.push(userPromise());
+  }
+
+  const allResults = await Promise.all(userPromises);
+  const flatResults = allResults.flat();
+
+  // Analyze results
+  const analysis = {
+    total_requests: flatResults.length,
+    avg_response_time:
+      flatResults.reduce((sum, r) => sum + r.duration, 0) / flatResults.length,
+    max_response_time: Math.max(...flatResults.map((r) => r.duration)),
+    min_response_time: Math.min(...flatResults.map((r) => r.duration)),
+    error_rate:
+      (flatResults.filter((r) => r.status === 0).length / flatResults.length) *
+      100,
+    p95_response_time: calculatePercentile(
+      flatResults.map((r) => r.duration),
+      95,
+    ),
+    p99_response_time: calculatePercentile(
+      flatResults.map((r) => r.duration),
+      99,
+    ),
+  };
+
+  console.log("Load Test Results:", analysis);
+  return analysis;
 }
 
 function calculatePercentile(values, percentile) {
-    const sorted = values.sort((a, b) => a - b);
-    const index = Math.ceil((percentile / 100) * sorted.length) - 1;
-    return sorted[index];
+  const sorted = values.sort((a, b) => a - b);
+  const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+  return sorted[index];
 }
 ```
 
 #### Scenario 2: Stress Testing
+
 ```bash
 # Stress testing with curl and parallel processing
 #!/bin/bash
@@ -1041,7 +1113,7 @@ AUTH_HEADER="Authorization: Basic YWRtaW46YWRtaW4="
 make_request() {
     local endpoint=$1
     local method=${2:-GET}
-    
+
     curl -s -w "%{http_code},%{time_total}\\n" \
          -H "$AUTH_HEADER" \
          -H "Content-Type: application/json" \
@@ -1060,11 +1132,11 @@ seq 1 $TOTAL_REQUESTS | xargs -n1 -P$CONCURRENT_REQUESTS -I{} bash -c 'make_requ
 
 # Analyze results
 awk -F',' '{
-    status[substr($1, length($1)-2)]++; 
-    sum += $2; 
-    if($2 > max) max = $2; 
+    status[substr($1, length($1)-2)]++;
+    sum += $2;
+    if($2 > max) max = $2;
     if(min == 0 || $2 < min) min = $2
-} 
+}
 END {
     print "Results Summary:";
     print "- Total requests:", NR;
@@ -1079,6 +1151,7 @@ END {
 ### Performance Validation Checklist
 
 #### Pre-UAT Performance Validation
+
 - [ ] **Database Indexes**: All critical indexes present and optimized
 - [ ] **Connection Pool**: Properly configured for expected load
 - [ ] **Query Performance**: All queries under target response times
@@ -1086,6 +1159,7 @@ END {
 - [ ] **Error Handling**: Performance degradation handled gracefully
 
 #### During UAT Performance Monitoring
+
 - [ ] **Response Time Tracking**: All API calls monitored and logged
 - [ ] **Resource Utilization**: CPU, memory, database connections monitored
 - [ ] **Error Rate Tracking**: Performance-related errors identified
@@ -1093,6 +1167,7 @@ END {
 - [ ] **Scalability Testing**: System behavior under increased load verified
 
 #### Post-UAT Performance Analysis
+
 - [ ] **Performance Baselines**: Updated with UAT results
 - [ ] **Optimization Opportunities**: Areas for improvement identified
 - [ ] **Capacity Planning**: Future scaling requirements documented
@@ -1106,10 +1181,11 @@ END {
 ### Recommended Performance Testing Tools
 
 #### 1. Artillery.js (Node.js Load Testing)
+
 ```yaml
 # artillery-config.yml
 config:
-  target: 'http://localhost:8090'
+  target: "http://localhost:8090"
   phases:
     - duration: 60
       arrivalRate: 10
@@ -1135,13 +1211,14 @@ scenarios:
 ```
 
 #### 2. PostgreSQL Performance Monitoring
+
 ```sql
 -- Enable pg_stat_statements extension
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 
 -- Key performance monitoring queries
 -- 1. Top 10 slowest queries
-SELECT 
+SELECT
     query,
     calls,
     total_time,
@@ -1154,7 +1231,7 @@ ORDER BY mean_time DESC
 LIMIT 10;
 
 -- 2. Most frequently called queries
-SELECT 
+SELECT
     query,
     calls,
     total_time,
@@ -1164,7 +1241,7 @@ ORDER BY calls DESC
 LIMIT 10;
 
 -- 3. Index usage statistics
-SELECT 
+SELECT
     schemaname,
     tablename,
     indexname,
@@ -1178,6 +1255,7 @@ ORDER BY idx_scan DESC;
 ### Quick Reference Commands
 
 #### Development Environment Performance Check
+
 ```bash
 # Check Confluence performance
 curl -w "Total time: %{time_total}s\n" \
@@ -1192,6 +1270,7 @@ docker stats umig-postgres umig-confluence
 ```
 
 #### Performance Optimization Commands
+
 ```bash
 # Analyze PostgreSQL performance
 psql -h localhost -U umig_user -d umig_db -c "VACUUM ANALYZE;"

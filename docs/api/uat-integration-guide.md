@@ -13,6 +13,7 @@ This guide provides UAT teams with comprehensive integration materials for effec
 ## UAT Readiness Checklist
 
 ### ✅ Completed Documentation Components
+
 - [x] **Validation Script**: Automated documentation validation (`validate-documentation.js`)
 - [x] **Enhanced Examples**: 50+ practical examples with UMIG domain data
 - [x] **Error Handling Guide**: Comprehensive error documentation with troubleshooting
@@ -20,6 +21,7 @@ This guide provides UAT teams with comprehensive integration materials for effec
 - [ ] **Performance Guide**: API performance and optimization guidance (Day 2 target)
 
 ### 📋 UAT Team Requirements
+
 - [x] **API Coverage**: All 15+ UMIG APIs documented with working examples
 - [x] **Authentication**: HTTP Basic Auth integration documented
 - [x] **Error Scenarios**: Complete error handling with resolution steps
@@ -31,9 +33,11 @@ This guide provides UAT teams with comprehensive integration materials for effec
 ## UAT Testing Strategy
 
 ### Phase 1: Foundation Validation (Day 1 - Completed)
+
 **Objective**: Verify core API functionality and documentation accuracy
 
 #### Test Areas Covered:
+
 1. **Authentication & Authorization**
    - HTTP Basic Auth mechanism
    - Role-based access control
@@ -50,9 +54,11 @@ This guide provides UAT teams with comprehensive integration materials for effec
    - Error message accuracy
 
 ### Phase 2: Integration Testing (Day 2 - Planned)
+
 **Objective**: Validate complex scenarios and system integration
 
 #### Test Areas to Cover:
+
 1. **Hierarchical Data Operations**
    - Migration → Iteration → Plan → Sequence → Phase → Step workflows
    - Parent-child relationship validation
@@ -73,11 +79,13 @@ This guide provides UAT teams with comprehensive integration materials for effec
 ## UAT Test Scenarios
 
 ### Scenario 1: Complete Migration Lifecycle
+
 **Priority**: P0 Critical  
 **Duration**: 2 hours  
 **Objective**: End-to-end happy path validation
 
 #### Test Steps:
+
 ```bash
 # 1. Create Migration
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
@@ -147,17 +155,20 @@ curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ```
 
 #### Success Criteria:
+
 - All operations complete without errors
 - Data integrity maintained across operations
 - Proper HTTP status codes returned
 - Response times under 3 seconds per operation
 
 ### Scenario 2: Error Handling Validation
+
 **Priority**: P0 Critical  
 **Duration**: 1 hour  
 **Objective**: Validate error responses and recovery procedures
 
 #### Test Steps:
+
 ```bash
 # 1. Test Authentication Errors
 curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations
@@ -215,17 +226,20 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 ```
 
 #### Success Criteria:
+
 - All error responses include actionable guidance
 - Error codes match documentation specifications
 - Error messages are clear and user-friendly
 - Recovery procedures work as documented
 
 ### Scenario 3: Performance Validation
+
 **Priority**: P1 High  
 **Duration**: 1.5 hours  
 **Objective**: Validate API performance under realistic load
 
 #### Test Steps:
+
 ```bash
 # 1. Single Request Performance
 time curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
@@ -257,6 +271,7 @@ curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/steps/bul
 ```
 
 #### Success Criteria:
+
 - Individual operations under 3 seconds
 - Bulk operations under 10 seconds
 - Memory usage remains stable
@@ -267,24 +282,29 @@ curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/steps/bul
 ## UAT Environment Setup
 
 ### Prerequisites
+
 ✅ **Development Environment Running**
+
 - Confluence 9.2.7 accessible at http://localhost:8090
 - PostgreSQL database operational
 - ScriptRunner 9.21.0 installed and configured
 - UMIG API endpoints deployed
 
 ✅ **Test Data Available**
+
 - Sample migrations, iterations, and teams created
 - User accounts configured with proper permissions
 - Database contains realistic test data volumes
 
 ✅ **Tools Ready**
+
 - curl or Postman for API testing
 - Browser for Swagger UI testing (Day 2)
 - JSON validation tools
 - Performance monitoring capabilities
 
 ### Environment Validation
+
 ```bash
 # 1. Check Confluence accessibility
 curl -I http://localhost:8090
@@ -309,6 +329,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ## UAT Test Data Sets
 
 ### Standard Test Migrations
+
 ```json
 {
   "uat_migrations": [
@@ -338,6 +359,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ```
 
 ### Standard Test Teams
+
 ```json
 {
   "uat_teams": [
@@ -364,6 +386,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ```
 
 ### Test User Accounts
+
 ```json
 {
   "uat_users": [
@@ -394,6 +417,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ## UAT Success Criteria
 
 ### Critical Success Factors (Must Achieve)
+
 - **100% API Endpoint Functionality**: All documented endpoints work as specified
 - **Zero Critical Errors**: No system-breaking issues discovered
 - **Authentication Integration**: All auth mechanisms work correctly
@@ -401,12 +425,14 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 - **Performance Targets Met**: Response times within acceptable limits
 
 ### Important Success Factors (Should Achieve)
+
 - **Documentation Accuracy**: 95%+ documentation-to-reality accuracy
 - **User Experience Quality**: Intuitive error messages and guidance
 - **Integration Reliability**: Consistent behavior across test scenarios
 - **Data Integrity**: All operations maintain data consistency
 
 ### Enhancement Success Factors (Could Achieve)
+
 - **Advanced Scenario Coverage**: Complex edge cases validated
 - **Performance Optimization**: Response times exceed baseline targets
 - **Automation Integration**: Test cases ready for automated execution
@@ -416,26 +442,31 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ## UAT Reporting Framework
 
 ### Daily Test Execution Reports
+
 ```markdown
 ## UAT Daily Report - [Date]
 
 **Test Execution Summary**:
+
 - Test scenarios completed: [X/Y]
 - Critical issues discovered: [count]
 - API endpoints validated: [count]
 - Performance benchmarks met: [X/Y]
 
 **Issues Identified**:
+
 - Issue ID: [ID] - Description: [brief] - Severity: [High/Medium/Low]
 - Resolution status: [In Progress/Resolved/Escalated]
 
 **Next Day Focus**:
+
 - Scenario priorities: [list]
 - Outstanding issue resolution: [list]
 - Performance validation: [areas]
 ```
 
 ### Issue Tracking Template
+
 ```markdown
 ## UAT Issue Report
 
@@ -449,6 +480,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 [Detailed description of the issue]
 
 **Steps to Reproduce**:
+
 1. [Step 1]
 2. [Step 2]
 3. [Step 3]
@@ -460,6 +492,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 [What actually happened]
 
 **API Details**:
+
 - Endpoint: [endpoint]
 - Method: [HTTP method]
 - Request: [request details]
@@ -479,17 +512,20 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ## UAT Team Communication Plan
 
 ### Communication Channels
+
 - **Primary**: Direct team meetings for issue discussion
 - **Secondary**: Email updates for status reports
 - **Escalation**: Development team for critical issues
 - **Documentation**: Shared repository for test results
 
 ### Meeting Schedule
+
 - **Daily Standup**: 9:00 AM - Progress and blockers
 - **Midday Checkpoint**: 1:00 PM - Issue resolution status
 - **End-of-Day Review**: 5:00 PM - Summary and next day planning
 
 ### Escalation Triggers
+
 - **Critical Issues**: System-breaking errors, authentication failures
 - **Performance Issues**: Response times exceeding 10 seconds
 - **Documentation Gaps**: Missing or incorrect API documentation
@@ -500,18 +536,21 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ## Next Steps and Day 2 Preparation
 
 ### Immediate Actions (Day 1 Completion)
+
 - [x] **Documentation Foundation**: Core documentation components ready
 - [x] **Test Environment**: Environment validated and test data prepared
 - [x] **UAT Team Readiness**: Team briefed and equipped for testing
 - [ ] **Quality Gate 1**: Validation foundation checkpoint at 12:00 PM
 
 ### Day 2 Objectives
+
 - [ ] **Interactive Documentation**: Swagger UI deployment and testing
 - [ ] **Performance Guide**: Comprehensive performance documentation
 - [ ] **Advanced Scenarios**: Complex integration pattern testing
 - [ ] **Final Validation**: Complete documentation package verification
 
 ### Success Metrics Tracking
+
 - **Documentation Completeness**: Target 100% (currently 75%)
 - **Test Scenario Coverage**: Target 95% (currently 60%)
 - **Issue Resolution Rate**: Target 90% same-day resolution
@@ -522,6 +561,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ## Appendix: Quick Reference
 
 ### Essential API Endpoints
+
 ```
 GET    /migrations                    - List all migrations
 POST   /migrations                    - Create new migration
@@ -540,12 +580,14 @@ POST   /steps/{id}/comments          - Add step comment
 ```
 
 ### Authentication
+
 ```bash
 Authorization: Basic YWRtaW46YWRtaW4=
 Content-Type: application/json
 ```
 
 ### Common Response Codes
+
 - `200` - Success (GET, PUT)
 - `201` - Created (POST)
 - `204` - No Content (DELETE)
@@ -556,6 +598,7 @@ Content-Type: application/json
 - `500` - Server Error
 
 ### Support Contacts
+
 - **Development Team**: Sprint 5 UMIG team
 - **Environment Issues**: Local development setup support
 - **Documentation Questions**: API documentation team
