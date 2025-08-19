@@ -202,7 +202,7 @@ class StepViewSearchFilter {
     searchContainer.innerHTML = this.getSearchHTML();
 
     // Insert after step header - using new class names
-    const stepHeader = document.querySelector('.step-header, .step-view-header');
+    const stepHeader = document.querySelector('.panel-header, .step-view-header');
     if (stepHeader) {
       stepHeader.insertAdjacentElement('afterend', searchContainer);
       this.attachSearchListeners();
@@ -917,7 +917,7 @@ class StepViewPilotFeatures {
    * Add advanced controls for PILOT users
    */
   addAdvancedControls() {
-    const stepHeader = document.querySelector('.step-header, .step-view-header');
+    const stepHeader = document.querySelector('.panel-header, .step-view-header');
     if (!stepHeader) return;
 
     // Add advanced controls panel
@@ -1802,7 +1802,7 @@ class StepView {
     const comments = stepData.comments || [];
 
     let html = `
-            <div class="step-header">
+            <div class="panel-header">
                 <div class="step-header-content">
                     <div class="step-title-row">
                         <h2 class="step-name">
@@ -1834,7 +1834,7 @@ class StepView {
                 </div>
             </div>
             
-            <div class="step-content">
+            <div class="step-details-content">
                 <div class="step-info" data-sti-id="${summary.ID || ""}">
                     ${this.renderStepSummary(summary)}
                     ${this.renderLabels(summary.Labels)}
@@ -2663,14 +2663,14 @@ style.textContent = `
     
     /* Base Mobile Styles (320px+) */
     @media screen and (max-width: 767px) {
-        .step-header, .step-view-header {
+        .panel-header, .step-view-header {
             padding: 12px 16px;
             background: #f8f9fa;
             margin-bottom: 16px;
             border-radius: 4px;
         }
         
-        .step-header h2, .step-view-header h2 {
+        .panel-header h2, .step-view-header h2 {
             font-size: 18px !important;
             line-height: 1.3;
             margin-bottom: 8px;
@@ -2964,11 +2964,11 @@ style.textContent = `
     
     /* Tablet Styles (768px - 1023px) */
     @media screen and (min-width: 768px) and (max-width: 1023px) {
-        .step-header, .step-view-header {
+        .panel-header, .step-view-header {
             padding: 16px 20px;
         }
         
-        .step-header h2, .step-view-header h2 {
+        .panel-header h2, .step-view-header h2 {
             font-size: 22px;
         }
         
@@ -3029,7 +3029,7 @@ style.textContent = `
     
     /* Desktop Styles (1024px+) */
     @media screen and (min-width: 1024px) {
-        .step-header, .step-view-header {
+        .panel-header, .step-view-header {
             padding: 20px 24px;
         }
         
@@ -3101,7 +3101,7 @@ style.textContent = `
     
     /* Dark mode support */
     @media (prefers-color-scheme: dark) {
-        .step-header, .step-view-header {
+        .panel-header, .step-view-header {
             background: #1e1e1e;
             color: #ffffff;
         }
@@ -3163,5 +3163,99 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// CSS Debug Helper Functions
+window.debugStepViewCSS = function() {
+    console.log('🔍 StepView CSS Debug Helper');
+    console.log('============================');
+    
+    // Check if iteration-view.css is loaded
+    const iterationCSS = document.getElementById('iteration-view-css');
+    if (iterationCSS) {
+        console.log('✅ iteration-view.css link element found');
+        console.log('🔗 href:', iterationCSS.href);
+    } else {
+        console.error('❌ iteration-view.css link element NOT found');
+    }
+    
+    // Check key elements
+    const rootElement = document.getElementById('umig-step-view-root');
+    const panelElement = document.querySelector('.step-details-panel');
+    const headerElement = document.querySelector('.panel-header');
+    
+    if (rootElement) {
+        console.log('✅ Root element found');
+        const rootStyle = window.getComputedStyle(rootElement);
+        console.log('📊 Root background:', rootStyle.background);
+    } else {
+        console.error('❌ Root element NOT found');
+    }
+    
+    if (panelElement) {
+        console.log('✅ Panel element found');
+        const panelStyle = window.getComputedStyle(panelElement);
+        console.log('📊 Panel background:', panelStyle.background);
+        console.log('📊 Panel border:', panelStyle.border);
+        console.log('📊 Panel box-shadow:', panelStyle.boxShadow);
+        
+        // Add temporary debug highlight
+        panelElement.classList.add('debug-highlight');
+        setTimeout(() => {
+            panelElement.classList.remove('debug-highlight');
+        }, 3000);
+    } else {
+        console.error('❌ Panel element NOT found');
+    }
+    
+    if (headerElement) {
+        console.log('✅ Header element found');
+        const headerStyle = window.getComputedStyle(headerElement);
+        console.log('📊 Header color:', headerStyle.color);
+        console.log('📊 Header font-size:', headerStyle.fontSize);
+        console.log('📊 Header font-weight:', headerStyle.fontWeight);
+    } else {
+        console.error('❌ Header element NOT found');
+    }
+    
+    // Check CSS variables
+    const documentStyle = window.getComputedStyle(document.documentElement);
+    console.log('🎨 CSS Variables:');
+    console.log('  --color-primary:', documentStyle.getPropertyValue('--color-primary'));
+    console.log('  --color-bg-primary:', documentStyle.getPropertyValue('--color-bg-primary'));
+    console.log('  --color-border:', documentStyle.getPropertyValue('--color-border'));
+    
+    // Check for conflicting styles
+    const allStyleSheets = document.styleSheets;
+    console.log('📋 Total stylesheets loaded:', allStyleSheets.length);
+    
+    console.log('💡 To debug further, check:');
+    console.log('  1. Browser Network tab for failed CSS requests');
+    console.log('  2. Elements tab for applied styles');
+    console.log('  3. Run debugStepViewCSS() again after making changes');
+};
+
+// Add debug button for ADMIN users
+if (window.UMIG_STEP_CONFIG && window.UMIG_STEP_CONFIG.user && window.UMIG_STEP_CONFIG.user.isAdmin) {
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const versionMarker = document.querySelector('.version-marker');
+            if (versionMarker) {
+                const debugButton = document.createElement('button');
+                debugButton.textContent = '🔍 Debug CSS';
+                debugButton.style.cssText = 'margin-left: 10px; padding: 4px 8px; border: none; border-radius: 3px; background: rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 10px;';
+                debugButton.onclick = window.debugStepViewCSS;
+                versionMarker.appendChild(debugButton);
+            }
+        }, 500);
+    });
+}
+
 // Initialize the step view
 window.stepView = new StepView();
+
+// Auto-run CSS debug after initialization
+setTimeout(() => {
+    if (window.debugStepViewCSS) {
+        console.log('🚀 Auto-running CSS debug...');
+        window.debugStepViewCSS();
+    }
+}, 2000);

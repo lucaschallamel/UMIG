@@ -25,6 +25,9 @@ def username = 'Guest'
 
 // Check for role parameter in the URL (restricted to development environment only)
 def roleParam = null
+// Commenting out role override due to static type checking issues
+// This feature needs to be reimplemented with proper type handling
+/*
 if (System.getProperty('confluence.dev.mode') == 'true') {
     try {
         // Access the request parameters from the page context - DEV ONLY
@@ -36,6 +39,7 @@ if (System.getProperty('confluence.dev.mode') == 'true') {
         // Ignore if request context is not available
     }
 }
+*/
 
 if (currentConfluenceUser) {
     username = currentConfluenceUser.name
@@ -60,6 +64,8 @@ if (currentConfluenceUser) {
 }
 
 // Override with URL parameter if provided (development environment only)
+// Commented out due to static type checking issues - needs reimplementation
+/*
 if (System.getProperty('confluence.dev.mode') == 'true' && roleParam in ['PILOT', 'ADMIN']) {
     userRole = roleParam
     isPilot = (userRole == 'PILOT' || userRole == 'ADMIN')
@@ -67,50 +73,224 @@ if (System.getProperty('confluence.dev.mode') == 'true' && roleParam in ['PILOT'
     // Log this override for audit purposes
     log.warn("DEV MODE: User role overridden to ${userRole} for ${username}")
 }
+*/
 
 // The base path for the REST endpoint that serves static assets
 def restApiBase = "/rest/scriptrunner/latest/custom/web"
 
 return """
 <!-- Include the iteration view CSS for consistent styling -->
-<link rel="stylesheet" type="text/css" href="${restApiBase}/css/iteration-view.css">
+<link rel="stylesheet" type="text/css" href="${restApiBase}/css/iteration-view.css" id="iteration-view-css">
+
+<!-- CSS Loading Debug Information -->
+<script type="text/javascript">
+console.log('🎨 StepView CSS Debug: CSS Link Element Created');
+console.log('🔗 CSS Path: ${restApiBase}/css/iteration-view.css');
+
+// Check if CSS loads successfully
+document.getElementById('iteration-view-css').addEventListener('load', function() {
+    console.log('✅ StepView CSS: iteration-view.css loaded successfully');
+});
+
+document.getElementById('iteration-view-css').addEventListener('error', function() {
+    console.error('❌ StepView CSS: Failed to load iteration-view.css');
+    console.error('🔗 Failed URL: ${restApiBase}/css/iteration-view.css');
+});
+
+// Debug CSS rules after DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        console.log('🔍 StepView CSS Debug: Checking CSS rules...');
+        const stepPanel = document.querySelector('.step-details-panel');
+        if (stepPanel) {
+            const computedStyle = window.getComputedStyle(stepPanel);
+            console.log('📊 .step-details-panel computed styles:');
+            console.log('  background:', computedStyle.background);
+            console.log('  border:', computedStyle.border);
+            console.log('  border-radius:', computedStyle.borderRadius);
+            console.log('  box-shadow:', computedStyle.boxShadow);
+            console.log('  display:', computedStyle.display);
+            console.log('  flex-direction:', computedStyle.flexDirection);
+            console.log('  height:', computedStyle.height);
+            console.log('  overflow:', computedStyle.overflow);
+        } else {
+            console.error('❌ .step-details-panel element not found!');
+        }
+        
+        const panelHeader = document.querySelector('.panel-header');
+        if (panelHeader) {
+            const headerStyle = window.getComputedStyle(panelHeader);
+            console.log('📊 .panel-header computed styles:');
+            console.log('  font-size:', headerStyle.fontSize);
+            console.log('  font-weight:', headerStyle.fontWeight);
+            console.log('  color:', headerStyle.color);
+            console.log('  margin-bottom:', headerStyle.marginBottom);
+        } else {
+            console.error('❌ .panel-header element not found!');
+        }
+        
+        // Check for CSS variables
+        const rootStyle = window.getComputedStyle(document.documentElement);
+        console.log('🎨 CSS Variables Check:');
+        console.log('  --color-primary:', rootStyle.getPropertyValue('--color-primary'));
+        console.log('  --color-bg-primary:', rootStyle.getPropertyValue('--color-bg-primary'));
+        console.log('  --color-border:', rootStyle.getPropertyValue('--color-border'));
+        console.log('  --font-family:', rootStyle.getPropertyValue('--font-family'));
+    }, 1000);
+});
+</script>
 
 <style>
-    /* Additional styles specific to standalone step view */
+    /* Additional styles specific to standalone step view with debug info */
     #umig-step-view-root {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: #f4f5f7 !important; /* Force background to match IterationView */
     }
     
-    /* Ensure proper layout matching IterationView */
-    .step-details-container {
-        background: white;
-        border: 1px solid #dfe1e6;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    /* Ensure proper layout matching IterationView with enhanced specificity */
+    #umig-step-view-root .step-details-panel {
+        background: white !important;
+        border: 1px solid #dfe1e6 !important;
+        border-radius: 4px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 16px !important;
+        min-width: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    /* Panel header styling matching IterationView */
+    #umig-step-view-root .panel-header {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: #0052cc !important;
+        margin-bottom: 8px !important;
+        padding-bottom: 8px !important;
+        border-bottom: 1px solid #dfe1e6 !important;
+    }
+    
+    /* Step section styling */
+    #umig-step-view-root .step-section {
+        margin-bottom: 24px !important;
+    }
+    
+    #umig-step-view-root .section-title {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        color: #5e6c84 !important;
+        margin-bottom: 8px !important;
+    }
+    
+    #umig-step-view-root .section-content {
+        background: white !important;
+        border: 1px solid #dfe1e6 !important;
+        border-radius: 4px !important;
+        padding: 12px !important;
+    }
+    
+    /* Step header content */
+    #umig-step-view-root .step-header-content {
+        background: white !important;
+    }
+    
+    #umig-step-view-root .step-title-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 8px !important;
+    }
+    
+    #umig-step-view-root .step-name {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        color: #0052cc !important;
+        margin: 0 !important;
+    }
+    
+    #umig-step-view-root .step-meta {
+        display: flex !important;
+        gap: 16px !important;
+        font-size: 12px !important;
+        color: #5e6c84 !important;
+    }
+    
+    /* Teams grid styling */
+    #umig-step-view-root .teams-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 16px !important;
+    }
+    
+    #umig-step-view-root .team-label {
+        font-weight: 600 !important;
+        color: #5e6c84 !important;
+        margin-right: 8px !important;
+    }
+    
+    #umig-step-view-root .team-value {
+        color: #172b4d !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Instructions container */
+    #umig-step-view-root .instructions-container {
+        background: white !important;
+        border: 1px solid #dfe1e6 !important;
+        border-radius: 4px !important;
+    }
+    
+    /* Comments container */
+    #umig-step-view-root .comments-container {
+        background: white !important;
+    }
+    
+    /* Action buttons */
+    #umig-step-view-root .step-actions {
+        display: flex !important;
+        gap: 8px !important;
+        padding-top: 16px !important;
+        border-top: 1px solid #dfe1e6 !important;
+        margin-top: 8px !important;
     }
     
     /* Mobile responsiveness matching IterationView */
     @media (max-width: 768px) {
         #umig-step-view-root {
-            padding: 10px;
+            padding: 10px !important;
         }
         
-        .step-details-container {
-            border-radius: 0;
-            border-left: none;
-            border-right: none;
+        #umig-step-view-root .step-details-panel {
+            border-radius: 0 !important;
+            border-left: none !important;
+            border-right: none !important;
         }
+        
+        #umig-step-view-root .teams-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+    
+    /* Debug helper - highlight elements for troubleshooting */
+    .debug-highlight {
+        border: 2px solid red !important;
+        background: rgba(255, 0, 0, 0.1) !important;
     }
 </style>
 
 <div id="umig-step-view-root">
+    <!-- Version Marker: US-036 Phase 2 v2.2 - ${new Date().format('yyyy-MM-dd HH:mm:ss')} -->
+    <div class="version-marker" style="background: #0747a6; color: white; padding: 8px; margin-bottom: 10px; border-radius: 3px; font-size: 12px;">
+        🚀 StepView v2.2 - US-036 CSS Debug Enhanced (Deployed: ${new Date().format('HH:mm:ss')})
+    </div>
     <!-- Main container matching IterationView structure -->
-    <div class="step-details-container">
+    <div class="step-details-panel">
         <!-- Step header section with status badge -->
-        <div class="step-header">
+        <div class="panel-header">
             <div class="step-header-content">
                 <div class="step-title-row">
                     <h2 class="step-name">
@@ -127,7 +307,7 @@ return """
         </div>
         
         <!-- Step content sections -->
-        <div class="step-content">
+        <div class="step-details-content">
             <!-- Description section -->
             <div class="step-section step-description-section">
                 <h3 class="section-title">Description</h3>
