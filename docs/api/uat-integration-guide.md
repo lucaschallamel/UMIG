@@ -89,7 +89,7 @@ This guide provides UAT teams with comprehensive integration materials for effec
 ```bash
 # 1. Create Migration
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "mig_name": "UAT Test Migration - E2E",
@@ -106,7 +106,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migratio
 
 # 2. Create Iteration for Migration
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations/{mig_id}/iterations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "ite_name": "UAT Iteration 1",
@@ -120,7 +120,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migratio
 
 # 3. Create Team
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "tm_name": "UAT Testing Team",
@@ -136,14 +136,14 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 
 # 4. Retrieve Created Resources
 curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations/{mig_id} \
-  -H "Authorization: Basic YWRtaW46YWRtaW4="
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 
 # Expected: 200 OK with complete migration data
 # Validation: All fields populated correctly, timestamps present
 
 # 5. Update Migration Status
 curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations/{mig_id} \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "mig_status": 2,
@@ -180,13 +180,13 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 
 # 2. Test Validation Errors
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{}'
 # Expected: 400 Bad Request with validation details
 
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "mig_name": "Test",
@@ -196,7 +196,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migratio
 
 # 3. Test Constraint Violations
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "tm_name": "Duplicate Team Test",
@@ -205,7 +205,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 # Expected: 201 Created
 
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "tm_name": "Duplicate Team Test",
@@ -215,7 +215,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 
 # 4. Test Foreign Key Violations
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "tm_name": "Invalid Lead Team",
@@ -243,22 +243,22 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 ```bash
 # 1. Single Request Performance
 time curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4="
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 # Expected: Response time < 3 seconds
 
 # 2. Pagination Performance
 curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/umig/steps?page=1&limit=50" \
-  -H "Authorization: Basic YWRtaW46YWRtaW4="
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 # Expected: Response time < 3 seconds for 50 items
 
 # 3. Filtering Performance
 curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/umig/steps?migrationId={mig_id}&status=2" \
-  -H "Authorization: Basic YWRtaW46YWRtaW4="
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 # Expected: Response time < 5 seconds for filtered results
 
 # 4. Bulk Operation Performance
 curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/steps/bulk/update \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{
     "updates": [
@@ -320,7 +320,7 @@ node /docs/api/validate-documentation.js
 
 # 4. Check authentication
 curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4="
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 # Expected: 200 OK with migration list
 ```
 
@@ -582,7 +582,7 @@ POST   /steps/{id}/comments          - Add step comment
 ### Authentication
 
 ```bash
-Authorization: Basic YWRtaW46YWRtaW4=
+Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)
 Content-Type: application/json
 ```
 

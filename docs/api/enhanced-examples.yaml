@@ -238,13 +238,13 @@ enhanced_examples:
     basic_auth_header:
       summary: "HTTP Basic Authentication"
       description: "Standard authentication header for API access"
-      value: "Basic YWRtaW46YWRtaW4=" # admin:admin base64 encoded
+      value: "Basic {CREDENTIALS_BASE64}" # Use environment variable UMIG_AUTH_CREDENTIALS
 
     confluence_user_context:
       summary: "Confluence user context"
       description: "Additional headers for Confluence integration"
       headers:
-        Authorization: "Basic YWRtaW46YWRtaW4="
+        Authorization: "Basic {CREDENTIALS_BASE64}" # Use environment variable UMIG_AUTH_CREDENTIALS
         X-Atlassian-Token: "no-check"
         Content-Type: "application/json"
 

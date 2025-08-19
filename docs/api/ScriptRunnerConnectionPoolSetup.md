@@ -63,10 +63,10 @@ After configuring the pool, test the API:
 
 ```bash
 # Test master plans endpoint
-curl -u admin:admin http://localhost:8090/rest/scriptrunner/latest/custom/plans/master
+curl -u "${UMIG_AUTH_CREDENTIALS:-admin:admin}" http://localhost:8090/rest/scriptrunner/latest/custom/plans/master
 
 # Test debug endpoint (if PlansApiDebug.groovy is deployed)
-curl -u admin:admin http://localhost:8090/rest/scriptrunner/latest/custom/plans/test
+curl -u "${UMIG_AUTH_CREDENTIALS:-admin:admin}" http://localhost:8090/rest/scriptrunner/latest/custom/plans/test
 ```
 
 ## Troubleshooting

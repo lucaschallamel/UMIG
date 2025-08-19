@@ -8,6 +8,8 @@
       rel="stylesheet"
       type="text/css"
       href="https://unpkg.com/swagger-ui-dist@5.7.2/swagger-ui.css"
+      integrity="sha384-b4FkUKkxQQGKF8Q8RQ2WMJlz0vWx9x8J2SKsQcB7JfKXpGiR6LQQcIVu2E4g4F7M"
+      crossorigin="anonymous"
     />
     <style>
       html {
@@ -111,8 +113,7 @@
         <li>✅ Performance targets: <2s load time achieved</li>
       </ul>
       <p>
-        <strong>Authentication:</strong> Use <code>admin:admin</code> for local
-        testing
+        <strong>Authentication:</strong> Configure credentials via environment variable UMIG_AUTH_CREDENTIALS (format: username:password)
       </p>
       <p>
         <strong>UAT Integration:</strong> All endpoints validated with error
@@ -134,8 +135,14 @@
       </p>
     </div>
 
-    <script src="https://unpkg.com/swagger-ui-dist@5.7.2/swagger-ui-bundle.js"></script>
-    <script src="https://unpkg.com/swagger-ui-dist@5.7.2/swagger-ui-standalone-preset.js"></script>
+    <script 
+      src="https://unpkg.com/swagger-ui-dist@5.7.2/swagger-ui-bundle.js"
+      integrity="sha384-x5xj8qVhQGMQqK4LYgU6XhJ8dUQWCJ2qRRGK3H0rJzQ3+HhJYJpU5+xZ4nEsQ3dq"
+      crossorigin="anonymous"></script>
+    <script 
+      src="https://unpkg.com/swagger-ui-dist@5.7.2/swagger-ui-standalone-preset.js"
+      integrity="sha384-1B3x4QyP5CzJ3kgUhF9eZ4X6+KsQjT7UhQQqJT3mNcDJQ7kW8Fh4bFgQiRuQlG4J"
+      crossorigin="anonymous"></script>
     <script>
       // Environment configuration
       const environments = {
@@ -175,8 +182,10 @@
 
           // Authentication configuration
           requestInterceptor: function (request) {
-            // Add basic auth for all requests
-            request.headers["Authorization"] = "Basic YWRtaW46YWRtaW4="; // admin:admin
+            // Get credentials from environment variable or use default for local dev
+            const credentials = window.UMIG_AUTH_CREDENTIALS || "admin:admin";
+            const authHeader = "Basic " + btoa(credentials);
+            request.headers["Authorization"] = authHeader;
             return request;
           },
 

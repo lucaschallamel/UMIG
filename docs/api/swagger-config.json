@@ -20,9 +20,7 @@
       "openapi_spec": "./openapi.yaml",
       "authentication": {
         "type": "http_basic",
-        "username": "admin",
-        "password": "admin",
-        "encoded": "YWRtaW46YWRtaW4="
+        "note": "Use UMIG_AUTH_CREDENTIALS environment variable format: username:password"
       },
       "features": {
         "try_it_out": true,
@@ -98,13 +96,9 @@
 
   "authentication_config": {
     "local_development": {
-      "auto_populate": true,
-      "credentials": {
-        "username": "admin",
-        "password": "admin"
-      },
+      "auto_populate": false,
+      "note": "Configure credentials via UMIG_AUTH_CREDENTIALS environment variable",
       "headers": {
-        "Authorization": "Basic YWRtaW46YWRtaW4=",
         "Content-Type": "application/json"
       }
     },

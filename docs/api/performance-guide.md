@@ -242,7 +242,7 @@ const getCursorPaginatedSteps = async (cursor, limit = 50) => {
     `/steps?cursor=${cursor}&limit=${limit}&direction=next`,
     {
       headers: {
-        Authorization: "Basic YWRtaW46YWRtaW4=",
+        Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
         "Content-Type": "application/json",
       },
     },
@@ -306,7 +306,7 @@ async function performBulkStepUpdate(updates) {
       const response = await fetch("/steps/bulk/update", {
         method: "PUT",
         headers: {
-          Authorization: "Basic YWRtaW46YWRtaW4=",
+          Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ updates: batch }),
@@ -347,7 +347,7 @@ async function streamingExport(migrationIds, format = "csv") {
   const response = await fetch("/migrations/bulk/export", {
     method: "POST",
     headers: {
-      Authorization: "Basic YWRtaW46YWRtaW4=",
+      Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -392,7 +392,7 @@ const cacheHeaders = {
 const getCachedMigrations = async () => {
   const response = await fetch("/migrations", {
     headers: {
-      Authorization: "Basic YWRtaW46YWRtaW4=",
+      Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
       "If-None-Match": localStorage.getItem("migrations-etag"),
     },
   });
@@ -1027,7 +1027,7 @@ async function loadTest() {
             `http://localhost:8090/rest/scriptrunner/latest/custom/umig${endpoint}`,
             {
               headers: {
-                Authorization: "Basic YWRtaW46YWRtaW4=",
+                Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
               },
             },
           );
@@ -1107,7 +1107,7 @@ function calculatePercentile(values, percentile) {
 CONCURRENT_REQUESTS=20
 TOTAL_REQUESTS=1000
 BASE_URL="http://localhost:8090/rest/scriptrunner/latest/custom/umig"
-AUTH_HEADER="Authorization: Basic YWRtaW46YWRtaW4="
+AUTH_HEADER="Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 
 # Function to make API request
 make_request() {
@@ -1203,11 +1203,11 @@ scenarios:
       - get:
           url: "/rest/scriptrunner/latest/custom/umig/migrations"
           headers:
-            Authorization: "Basic YWRtaW46YWRtaW4="
+            Authorization: "Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
       - get:
           url: "/rest/scriptrunner/latest/custom/umig/teams"
           headers:
-            Authorization: "Basic YWRtaW46YWRtaW4="
+            Authorization: "Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 ```
 
 #### 2. PostgreSQL Performance Monitoring
@@ -1259,7 +1259,7 @@ ORDER BY idx_scan DESC;
 ```bash
 # Check Confluence performance
 curl -w "Total time: %{time_total}s\n" \
-     -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+     -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
      http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations
 
 # Check database performance
