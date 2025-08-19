@@ -301,7 +301,7 @@ Permission Error?
 **Resolution Steps**:
 
 1. Add Authorization header: `Authorization: Basic <base64-encoded-credentials>`
-2. For admin access: Use `admin:admin` (base64: `YWRtaW46YWRtaW4=`)
+2. For admin access: Configure credentials via environment variable `UMIG_AUTH_CREDENTIALS`
 3. Verify Confluence server authentication settings
 
 ### Insufficient Permissions (403)
@@ -492,7 +492,7 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 
 # Test 3: Valid credentials
 curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4="
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 # Expected: 200 OK with migration list
 ```
 
@@ -501,21 +501,21 @@ curl -X GET http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 ```bash
 # Test 1: Missing required fields
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{}'
 # Expected: 400 Bad Request with validation errors
 
 # Test 2: Invalid data formats
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{"mig_name": "Test", "mig_start_date": "invalid-date"}'
 # Expected: 400 Bad Request with format error
 
 # Test 3: Valid data
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migrations \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{"mig_name": "UAT Test Migration", "mig_start_date": "2025-09-01"}'
 # Expected: 201 Created with migration details
@@ -526,20 +526,20 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/migratio
 ```bash
 # Test 1: Create resource to test conflict
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{"tm_name": "Test Team", "tm_description": "Test Description"}'
 
 # Test 2: Attempt duplicate creation
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{"tm_name": "Test Team", "tm_description": "Duplicate Test"}'
 # Expected: 409 Conflict with unique constraint error
 
 # Test 3: Recovery with different name
 curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
-  -H "Authorization: Basic YWRtaW46YWRtaW4=" \
+  -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)" \
   -H "Content-Type: application/json" \
   -d '{"tm_name": "Test Team 2", "tm_description": "Updated Test"}'
 # Expected: 201 Created with new team details
@@ -558,7 +558,7 @@ async function callUmigApi(endpoint, options) {
     const response = await fetch(endpoint, {
       ...options,
       headers: {
-        Authorization: "Basic YWRtaW46YWRtaW4=",
+        Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
         "Content-Type": "application/json",
         ...options.headers,
       },
@@ -688,7 +688,7 @@ function validateMigrationData(migration) {
 ### Authentication Header
 
 ```
-Authorization: Basic YWRtaW46YWRtaW4=
+Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)
 ```
 
 ### Error Response Format
