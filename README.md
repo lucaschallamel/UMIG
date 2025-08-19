@@ -422,7 +422,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ## Current Development Status
 
-### ✅ Completed Features
+### Core System Features
 
 - **Local Development Environment**: Node.js orchestrated Podman containers
 - **Admin UI (SPA Pattern)**: Complete user/team management with robust error handling
@@ -431,225 +431,60 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Testing Framework**: Stabilized with SQL query mocks and type safety patterns
 - **Architecture Documentation**: Consolidated solution architecture with implementation patterns
 - **Project Reorganization**: Clean package structure with `src/groovy/umig/` namespace
-- **Iteration View Implementation**: Complete hierarchical filtering and labels integration
-- **Labels API**: Full CRUD operations with hierarchical filtering capabilities
-- **Teams API**: Enhanced with hierarchical filtering across all levels
-- **Migration API**: Core functionality with proper error handling
 
-### ✅ Recently Completed (August 2025)
+### REST API Implementation
 
-- **✅ US-024 COMPLETE - StepsAPI Refactoring**: All 3 phases complete - repository, API, and testing - performance targets exceeded (August 14, 2025)
-  - **100% Complete**: All 3 phases (Repository, API, Testing) fully implemented and validated
-  - **Repository Optimization**: StepRepository.groovy enhanced with 45+ methods for complete lifecycle management
-  - **API Layer Complete**: All endpoints with parameter validation, bulk operations, summary/progress analytics
-  - **Testing Achievement**: 95% test coverage with comprehensive unit, integration, and performance testing
-  - **Performance Exceeded**: 150ms average response time (exceeded 200ms target)
-  - **US-028 UNBLOCKED**: Enhanced IterationView can now proceed with new StepsAPI endpoints
-  - **Documentation Consolidation**: 50% reduction (6→3 files, 8→4 scripts) with 4 new ADRs (037-040)
-- **✅ US-025 Phase 4 Complete - Migrations API Refactoring**: Comprehensive migrations API enhancement with integration testing framework (August 11, 2025)
-  - **17 Total Endpoints**: Complete CRUD + 4 dashboard endpoints + 2 bulk operations + 11 hierarchical endpoints
-  - **Dashboard Integration**: Summary, progress, and metrics endpoints for real-time migration visibility
-  - **Bulk Operations**: Export functionality with JSON/CSV formats and configurable iteration inclusion
-  - **Advanced Filtering**: Pagination, search, sorting, and multi-criteria filtering with status metadata enrichment
-  - **Critical Bug Fixes**: Resolved mig_type Integer→String casting issue and GString serialization overflow
-  - **ADR-036**: Pure Groovy integration testing framework with zero external dependencies
-  - **100% Success Rate**: All 9 integration tests passing with complete API coverage
-  - **Dynamic Configuration**: Environment-based credential loading with .env file support
-  - **Authentication Validation**: HTTP Basic Auth integration with proper security validation
-  - **Error Handling Coverage**: Complete SQL state to HTTP status mapping verification (23503→409, 23505→409, 23502→400)
-  - **Comprehensive Documentation**: Updated migrationApi.md, openapi.yaml, and solution-architecture.md with full implementation details
-  - **Reusable Patterns**: Established testing standards for all future API endpoint validation
-- **Controls API Implementation**: Complete control point and quality gate management system (August 6, 2025)
-  - **20 REST Endpoints**: Full CRUD operations for control masters and instances following phase-level architecture (ADR-016)
-  - **ControlsApi.groovy**: Comprehensive API implementation with hierarchical filtering across all entity levels
-  - **ControlRepository.groovy**: 20-method repository with validation, override, and progress calculation operations
-  - **Quality Gate System**: Critical/non-critical controls with status tracking (PENDING, VALIDATED, PASSED, FAILED, CANCELLED, TODO)
-  - **Progress Monitoring**: Real-time phase control progress calculation with 41.85% critical control distribution
-  - **Bulk Operations**: Efficient control instantiation and validation across multiple phases
-  - **Static Type Checking**: Complete Groovy 3.0.15 compatibility with all type errors resolved
-  - **Test Coverage**: Unit and integration tests with verified database operations (184 control instances)
-  - **Complete Documentation**: OpenAPI specification updated with all 20 endpoints and schemas
-- **Groovy 3.0.15 Static Type Checking Compatibility**: Comprehensive type safety improvements across the codebase (August 5, 2025)
-  - **API Layer Fixes**: Resolved dynamic property access patterns, method signature mismatches, and undeclared variables
-  - **Repository Enhancements**: Fixed collection typing, numeric casting, and improved error handling in all repository classes
-  - **Development Experience**: Enhanced IDE support, earlier error detection, and improved code completion capabilities
-  - **Production Reliability**: Eliminated ClassCastException and NoSuchMethodException runtime errors through compile-time validation
-  - **Architecture Consistency**: Strengthened type safety patterns established in ADR-031 for ScriptRunner compatibility
-- **Instructions API Implementation**: Complete instruction template and execution management system (August 5, 2025)
-  - **14 REST Endpoints**: Full CRUD operations for instruction masters and instances following UMIG patterns
-  - **InstructionsApi.groovy**: Comprehensive API implementation with hierarchical filtering across all entity levels
-  - **InstructionRepository.groovy**: 19-method repository with complete lifecycle management and bulk operations
-  - **Template-Based Architecture**: Master/instance pattern supporting instruction templates with execution instances
-  - **Integration**: Seamless integration with Steps, Teams, Labels, and Controls for complete instruction management
-  - **Type Safety**: Explicit casting for all parameters following ADR-031 with comprehensive error handling
-  - **90%+ Test Coverage**: Comprehensive unit and integration tests with ScriptRunner compatibility
-  - **Complete Documentation**: API documentation, OpenAPI specification updates, and Postman collection
-  - **Executive Presentations**: Stakeholder-ready architecture presentations and technical documentation
-- **Phases API Implementation with Control Point System**: Complete quality gate management system (August 4, 2025)
-  - **Endpoint Consolidation Refactoring**: Unified all 21 endpoints under single `phases` entry point for consistent developer experience
-  - **API Organization**: Aligned with Plans and Sequences APIs using path-based routing (`/phases/master`, `/phases/instance`)
-  - PhasesApi.groovy (1,060+ lines, refactored) with complete hierarchical filtering and bulk reordering
-  - PostgreSQL compatibility fixes and query optimizations for improved reliability
-  - PhaseRepository.groovy (1,139 lines) with complex control point validation logic
-  - Control point validation system with emergency override capabilities and full audit trail
-  - Progress aggregation: 70% step completion + 30% control point status for real-time visibility
-  - 30 comprehensive integration test scenarios with 1,694 lines of unit tests (90%+ coverage)
-  - Complete API documentation (898 lines) with examples and updated OpenAPI specification
-  - Performance optimization meeting <200ms response time targets
-  - Foundation for remaining MVP APIs with proven patterns
-- **Database Audit Fields Standardization**: Comprehensive audit trail implementation across entire system (August 4, 2025)
-  - Standardized audit fields (created_by, created_at, updated_by, updated_at) added to all 25+ database tables
-  - Implemented tiered association audit strategy based on business criticality
-  - Created AuditFieldsUtil.groovy infrastructure with comprehensive test coverage
-  - Updated all data generation scripts for audit compliance
-  - Added ADR-035 for Database Audit Fields Standardization
-  - Achieved 100% test coverage (74 tests passing) with full audit field compliance
+**Complete REST APIs** (100% implemented):
+- **Users API**: User management with role-based access control
+- **Teams API**: Team management with member associations
+- **Applications API**: Application management and environment associations
+- **Environments API**: Environment management with role-based associations
+- **Labels API**: Label management with color coding and step associations
+- **Migrations API**: Migration lifecycle management with dashboard endpoints
+- **Plans API**: Implementation plan management with hierarchical filtering
+- **Sequences API**: Sequence management with ordering and bulk operations
+- **Phases API**: Phase management with control point validation system
+- **Instructions API**: Instruction template and execution management
+- **Steps API**: Complete step lifecycle management with performance optimization
+- **Controls API**: Quality gate and control point management system
 
-### ✅ Recently Completed (July 2025)
+### User Interface Components
 
-- **Plans API Implementation**: Complete CRUD operations with hierarchical filtering (July 31, 2025)
-  - Full REST API endpoints for plans management
-  - Type-safe parameter handling with explicit casting (ADR-031)
-  - Comprehensive integration testing with ScriptRunner compatibility
-  - Repository pattern implementation with PlansRepository
-  - Enhanced Postman collection with authentication support
-- **Role-Based Access Control System**: Comprehensive user permission management (July 16, 2025)
-  - Implemented NORMAL (read-only), PILOT (operational), and ADMIN (full access) user roles
-  - Confluence user context integration with automatic role detection
-  - CSS-based UI element visibility control with pilot-only and admin-only classes
-  - Dynamic role-based controls applied after user authentication
-  - Read-only mode indicators and graceful permission degradation
-- **Enhanced Iteration View Interface**: Major UI/UX overhaul with operational capabilities (July 16, 2025)
-  - Dynamic status dropdown with database-driven color coding
-  - Interactive instruction completion tracking with real-time checkbox controls
-  - Comprehensive comment system with add, edit, delete operations
-  - Step instance detail views with metadata, teams, and impact analysis
-  - Enhanced step action buttons (Mark All Complete, Update Status)
-  - Improved error handling and user feedback notifications
-- **StatusRepository & API Extensions**: Centralized status management infrastructure (July 16, 2025)
-  - Created StatusRepository for type-safe access to status_sts table
-  - Extended StepsApi with step instance management, comments, and user context endpoints
-  - Added UserRepository username-based lookup for Confluence integration
-  - Comprehensive error handling with proper HTTP status codes
-- **Centralized Status Management System**: Unified status values with color coding across all entities (July 16, 2025)
-  - Created status_sts table with 31 pre-populated statuses across 7 entity types
-  - Each status includes hex color code for consistent UI presentation
-  - Updated all data generators to use centralized statuses instead of hard-coded values
-  - Fixed iteration view status counters to accurately reflect new status system
-  - Ensured data consistency across migrations, iterations, plans, sequences, phases, steps, and controls
-- **Environment Role Association**: Steps can now be associated with specific environment types (July 16, 2025)
-  - Added enr_id column to both steps_master_stm and steps_instance_sti tables
-  - Database migration with foreign key constraints and performance indexes
-  - Updated data generation scripts to randomly assign environment roles to steps
-  - Enhanced step-view specification with environment role context and filtering
-- **Email Notification System**: Production-ready automated notifications with template management (July 16, 2025)
-  - Complete integration with Confluence native mail API and MailHog for local testing
-  - Multi-team notification logic (owner + impacted teams + cutover teams)
-  - Template management with HTML/text content and GString variable processing
-  - Comprehensive audit logging for all email events in JSONB format
-  - Automatic notifications for step opened, instruction completed, and status changes
-  - Working end-to-end testing with ScriptRunner Console integration
-- **Environments Management**: Complete admin GUI entity with CRUD operations and association management
-  - Full repository pattern implementation with relationship counts
-  - REST API endpoints with hierarchical data access
-  - Enhanced UI with view details modal and association features
-  - Integration with applications and iterations through role-based associations
-- **Labels Management**: Complete admin GUI implementation with full CRUD functionality (July 16, 2025)
-  - Comprehensive LabelRepository with dynamic update support
-  - Complete REST API with CRUD and association endpoints
-  - Color picker support with accessibility features
-  - Migration-based filtering for step associations
-  - VIEW and EDIT modals with association management
-  - Real-time step dropdown filtering based on selected migration
+- **Iteration View**: Enhanced hierarchical filtering with real-time collaboration features
+- **Step View**: Embeddable step interface with role-based access controls
+- **Admin GUI**: Complete SPA-based administration for all entity types
+- **Email Notifications**: Production-ready automated notification system
 
-#### Admin GUI System (July 15-16, 2025)
+### Infrastructure & Quality
 
-- **Complete Admin Interface**: Full SPA-based administration system for managing users, teams, applications, environments, and labels
-- **Enhanced Association Management**: Complete many-to-many relationship management for all entities
-- **Labels Management**: Full CRUD with color-coded tags, migration-scoped filtering, and dynamic step associations
-- **Modal Consistency**: Standardized VIEW and EDIT modals across all entities with consistent UI patterns
-- **Advanced Features**: Environment search, migration-based filtering, real-time dropdown updates
-- **Custom Confirmation Dialogs**: Promise-based confirmation system replacing native dialogs for better UX
-- **Active User Filtering**: Support for filtering active/inactive users in team member dropdowns
+- **Type Safety**: Groovy 3.0.15 static type checking compatibility
+- **Database Standards**: Comprehensive audit trail implementation
+- **Testing Coverage**: 95% test coverage with unit, integration, and UAT validation
+- **Performance**: <200ms API response times, <3s page load targets met
+- **Security**: Role-based access control (NORMAL/PILOT/ADMIN) with Confluence integration
+- **Platform**: Confluence 9.2.7 + ScriptRunner 9.21.0 (modernized infrastructure)
 
-#### Iteration View Enhancements (July 10, 2025)
+### Current Sprint Progress
 
-- **Hierarchical Filter Cascade**: Complete parent-child reset logic across Migration → Iteration → Plan → Sequence → Phase → Teams + Labels
-- **Labels Column Integration**: Colored label tags displayed in runsheet between Team and Status
-- **Groovy Type Safety**: Comprehensive patterns for static type checking and error prevention
-- **Master vs Instance Filtering**: Proper instance ID filtering for accurate step retrieval
-- **Database Relationship Handling**: Many-to-many label-step associations with graceful error handling
+**MVP Completion Focus** (Sprint 5):
+- Core REST APIs: ✅ All Complete (100% finished)
+- Admin GUI Integration: In Progress - All entity types with cross-module synchronization  
+- Data Import Strategy: In Progress - CSV/Excel import with validation
+- Enhanced UIs: In Progress - StepView refactoring and IterationView enhancements
+- UAT Preparation: In Progress - Documentation completion and performance validation
 
-### ✅ Sprint 4 Complete - Strategic Triumph (August 7-15, 2025)
+**Timeline**: MVP delivery target August 28, 2025
 
-#### 🏆 Strategic Achievement
-
-**Sprint 4** concluded as a strategic triumph, delivering exceptional value through both visible features and critical AI infrastructure development. With an actual velocity of **5.7 points/day** (project record), the sprint achieved all core objectives while establishing foundations for 10x future acceleration.
-
-#### ✅ Completed Stories (17 Adjusted Points)
-
-- **✅ US-017**: Application management and association features (Complete)
-- **✅ US-032**: Confluence upgrade and infrastructure modernization (Complete)
-- **✅ US-025**: Migrations API refactoring with integration testing (Complete)
-- **✅ US-024**: StepsAPI Refactoring (100% COMPLETE - All phases done, US-028 unblocked)
-- **✅ US-028 Phase 1**: Enhanced IterationView Phase 1 (COMPLETE August 15, 2025)
-
-#### 🚀 Hidden Infrastructure Work (2 Days Strategic Investment)
-
-- **GENDEV Agent Optimization**: Enhanced development workflows reducing future coding effort by 80%
-- **AI Infrastructure**: Semantic compression achieving 47% efficiency with 100% semantic preservation
-- **Memory Bank Enhancement**: Intelligent project knowledge organization for instant AI context
-- **Template Standardization**: Reusable patterns enabling rapid feature development
-
-### 🚧 Sprint 5 Progress (MVP Completion Focus - August 18-22, 2025)
-
-**Sprint Goal**: Complete MVP functionality and prepare for UAT deployment with fully integrated Admin GUI, enhanced user interfaces, and production-ready documentation.
-
-**Timeline**: 5 working days (August 18-22, 2025)  
-**Planned Velocity**: 23 points (92% of 25-point capacity) - **INCREASED from 18 points**  
-**Buffer**: 2 points (8% - minimal buffer due to technical debt acceleration - see ADR-041)  
-**Risk Profile**: HIGH execution risk due to US-037 technical debt acceleration from Sprint 6
-
-#### 📋 Sprint 5 Stories (8 Stories, 23 Points Total - SCOPE EXPANDED)
-
-- **US-022**: Integration Test Expansion (1 point) - Day 1 - Foundation completion
-- **US-030**: API Documentation Completion (1 point) - Day 1 - UAT preparation
-- **US-031**: Admin GUI Complete Integration (6 points) - Days 2-4 - Core MVP functionality
-- **US-036**: StepView UI Refactoring (3 points) - Days 3-4 - NEW Enhanced interface
-- **US-034**: Data Import Strategy (3 points) - Days 4-5 - Migration enablement
-- **US-033**: Main Dashboard UI (3 points) - Day 5 - Final MVP component
-- **US-035**: Enhanced IterationView Phases 2-3 (1 point) - Day 5 - Enhancement features
-- **US-037**: Integration Testing Framework Standardization (5 points) - Day 5 - **MOVED FROM SPRINT 6** - Technical debt acceleration (ADR-041)
-
-#### 📈 Current Status (Sprint 5 Planning Complete)
-
-- **MVP Timeline**: On track for August 28, 2025 delivery
-- **Quality Metrics**: 95% test coverage sustained, 8.8/10 code review scores
-- **Infrastructure**: Modernized to Confluence 9.2.7 + ScriptRunner 9.21.0
-- **Recent Achievement**: Enhanced IterationView Phase 1 fully operational (August 15)
-- **Focus Areas**: MVP completion, UAT preparation, Admin GUI integration, enhanced UIs
-
-#### 🎯 Sprint 5 MVP Completion Focus
-
-- **Core REST APIs**: ✅ All Complete (Plans, Sequences, Phases, Instructions, Steps - 100% finished)
-- **Admin GUI Integration**: ✅ Sprint 5 - All 11 entity types with cross-module synchronization
-- **Data Import Strategy**: ✅ Sprint 5 - CSV/Excel import with validation and batch processing
-- **Main Dashboard UI**: ✅ Sprint 5 - Streamlined interface with essential widgets
-- **Enhanced UIs**: ✅ Sprint 5 - StepView refactoring and IterationView Phases 2-3
-- **UAT Preparation**: ✅ Sprint 5 - API docs, testing, performance validation
-
-**Post-MVP**: Planning Feature (HTML export), Event Logging backend implementation
-
-### Step View System (✅ Completed - July 2025)
+### Step View System
 
 The **Step View** is a standalone macro for embedding individual step interfaces in Confluence pages:
 
 - **Specification**: `docs/roadmap/step-view.md`
 - **Macro Implementation**: `src/groovy/umig/macros/v1/stepViewMacro.groovy`
-- **Frontend Implementation**: `src/groovy/umig/web/js/step-view.js` (890 lines)
+- **Frontend Implementation**: `src/groovy/umig/web/js/step-view.js`
 - **API Backend**: `src/groovy/umig/api/v2/stepViewApi.groovy`
 
-**Key Features (2025-07-17)**:
+**Key Features**:
 
 - **Three-Parameter URL Support**: `?mig=migrationName&ite=iterationName&stepid=XXX-nnn`
 - **Feature Parity**: All iteration view step panel capabilities
@@ -664,18 +499,20 @@ The **Step View** is a standalone macro for embedding individual step interfaces
 http://localhost:8090/display/UMIG/UMIG+-+Step+View?mig=migrationa&ite=run1&stepid=DEC-001
 ```
 
-### Current Focus: Iteration View System
+### Iteration View System
 
 The **Iteration View** is the primary runsheet interface for cutover events:
 
 - **Specification**: `docs/roadmap/iteration-view.md`
 - **Functional Mockup**: `mock/iteration-view.html`
-- **Target Implementation**: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
-- **Current Pattern**: Iteration View macro dynamically loads migration data from `/migrations` API
+- **Implementation**: `src/groovy/umig/macros/v1/iterationViewMacro.groovy`
+- **Dynamic Data Pattern**: Iteration View macro loads migration data dynamically via REST API
 
-**Dynamic Data Pattern (2025-07-04)**:
+**Key Capabilities**:
 
-- The Iteration View macro loads migration selector data dynamically via REST API
+- Dynamic migration selector data loading via REST API
+- Hierarchical filtering across all entity levels
+- Real-time collaboration features with commenting system
 - No hardcoded options - all data loaded via REST and JavaScript
 - Strict separation of concerns for maintainability and testability
 
