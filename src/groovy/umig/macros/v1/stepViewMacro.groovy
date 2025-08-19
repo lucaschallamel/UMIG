@@ -80,10 +80,10 @@ def webRoot = System.getenv('UMIG_WEB_ROOT') ?: '/rest/scriptrunner/latest/custo
 
 return """
 <!-- Include the iteration view CSS for consistent styling -->
-<link rel="stylesheet" type="text/css" href="${webRoot}/css/iteration-view.css" id="iteration-view-css">
+<link rel=\"stylesheet\" type=\"text/css\" href=\"${webRoot}/css/iteration-view.css\" id=\"iteration-view-css\">
 
 <!-- CSS Loading Debug Information -->
-<script type="text/javascript">
+<script type=\"text/javascript\">
 console.log('🎨 StepView CSS Debug: CSS Link Element Created');
 console.log('🔗 CSS Path: ${webRoot}/css/iteration-view.css');
 
@@ -141,255 +141,50 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-    /* Additional styles specific to standalone step view with debug info */
-    #umig-step-view-root {
+    /* Minimal styles for standalone step view - let iteration-view.css handle most styling */
+    .step-view-standalone {
         max-width: 1200px;
         margin: 0 auto;
         padding: 20px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-        background: #f4f5f7 !important; /* Force background to match IterationView */
     }
     
-    /* Ensure proper layout matching IterationView with enhanced specificity */
-    #umig-step-view-root .step-details-panel {
-        background: white !important;
-        border: 1px solid #dfe1e6 !important;
-        border-radius: 4px !important;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-        display: flex !important;
-        flex-direction: column !important;
-        padding: 16px !important;
-        min-width: 0 !important;
-        height: auto !important;
-        overflow: visible !important;
-    }
-    
-    /* Panel header styling matching IterationView */
-    #umig-step-view-root .panel-header {
-        font-size: 16px !important;
-        font-weight: 600 !important;
-        color: #0052cc !important;
-        margin-bottom: 8px !important;
-        padding-bottom: 8px !important;
-        border-bottom: 1px solid #dfe1e6 !important;
-    }
-    
-    /* Step section styling */
-    #umig-step-view-root .step-section {
-        margin-bottom: 24px !important;
-    }
-    
-    #umig-step-view-root .section-title {
-        font-size: 14px !important;
-        font-weight: 600 !important;
-        color: #5e6c84 !important;
-        margin-bottom: 8px !important;
-    }
-    
-    #umig-step-view-root .section-content {
-        background: white !important;
-        border: 1px solid #dfe1e6 !important;
-        border-radius: 4px !important;
-        padding: 12px !important;
-    }
-    
-    /* Step header content */
-    #umig-step-view-root .step-header-content {
-        background: white !important;
-    }
-    
-    #umig-step-view-root .step-title-row {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        margin-bottom: 8px !important;
-    }
-    
-    #umig-step-view-root .step-name {
-        font-size: 18px !important;
-        font-weight: 600 !important;
-        color: #0052cc !important;
-        margin: 0 !important;
-    }
-    
-    #umig-step-view-root .step-meta {
-        display: flex !important;
-        gap: 16px !important;
-        font-size: 12px !important;
-        color: #5e6c84 !important;
-    }
-    
-    /* Teams grid styling */
-    #umig-step-view-root .teams-grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 16px !important;
-    }
-    
-    #umig-step-view-root .team-label {
-        font-weight: 600 !important;
-        color: #5e6c84 !important;
-        margin-right: 8px !important;
-    }
-    
-    #umig-step-view-root .team-value {
-        color: #172b4d !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Instructions container */
-    #umig-step-view-root .instructions-container {
-        background: white !important;
-        border: 1px solid #dfe1e6 !important;
-        border-radius: 4px !important;
-    }
-    
-    /* Comments container */
-    #umig-step-view-root .comments-container {
-        background: white !important;
-    }
-    
-    /* Action buttons */
-    #umig-step-view-root .step-actions {
-        display: flex !important;
-        gap: 8px !important;
-        padding-top: 16px !important;
-        border-top: 1px solid #dfe1e6 !important;
-        margin-top: 8px !important;
-    }
-    
-    /* Mobile responsiveness matching IterationView */
+    /* Mobile responsiveness */
     @media (max-width: 768px) {
-        #umig-step-view-root {
-            padding: 10px !important;
+        .step-view-standalone {
+            padding: 10px;
         }
-        
-        #umig-step-view-root .step-details-panel {
-            border-radius: 0 !important;
-            border-left: none !important;
-            border-right: none !important;
-        }
-        
-        #umig-step-view-root .teams-grid {
-            grid-template-columns: 1fr !important;
-        }
-    }
-    
-    /* Debug helper - highlight elements for troubleshooting */
-    .debug-highlight {
-        border: 2px solid red !important;
-        background: rgba(255, 0, 0, 0.1) !important;
     }
 </style>
 
-<div id="umig-step-view-root">
-    <!-- Version Marker: US-036 Phase 2 v2.2 - ${new Date().format('yyyy-MM-dd HH:mm:ss')} -->
-    <div class="version-marker" style="background: #0747a6; color: white; padding: 8px; margin-bottom: 10px; border-radius: 3px; font-size: 12px;">
-        🚀 StepView v2.2 - US-036 CSS Debug Enhanced (Deployed: ${new Date().format('HH:mm:ss')})
+<div class=\"iteration-view step-view-standalone\">
+    <!-- Version Marker: US-036 Phase 2 v2.3 - ${new Date().format('yyyy-MM-dd HH:mm:ss')} -->
+    <div class=\"version-marker\" style=\"background: #0747a6; color: white; padding: 8px; margin-bottom: 10px; border-radius: 3px; font-size: 12px;\">
+        🚀 StepView v2.3 - HTML Structure Aligned (Deployed: ${new Date().format('HH:mm:ss')})
     </div>
-    <!-- Main container matching IterationView structure -->
-    <div class="step-details-panel">
-        <!-- Step header section with status badge -->
-        <div class="panel-header">
-            <div class="step-header-content">
-                <div class="step-title-row">
-                    <h2 class="step-name">
-                        <span class="step-code"></span>
-                        <span class="step-title-text"></span>
-                    </h2>
-                    <span class="status-badge"></span>
-                </div>
-                <div class="step-meta">
-                    <span class="step-owner"></span>
-                    <span class="step-timing"></span>
-                </div>
-            </div>
+    <!-- Main container for JavaScript to populate -->
+    <aside id=\"umig-step-view-root\" class=\"step-details-panel\">
+        <!-- JavaScript will populate this container with step details -->
+        <div class=\"placeholder-message\">
+            <p>Loading step details...</p>
         </div>
-        
-        <!-- Step content sections -->
-        <div class="step-details-content">
-            <!-- Description section -->
-            <div class="step-section step-description-section">
-                <h3 class="section-title">Description</h3>
-                <div class="section-content">
-                    <p class="step-description"></p>
-                </div>
-            </div>
-            
-            <!-- Teams section -->
-            <div class="step-section teams-section">
-                <h3 class="section-title">Teams</h3>
-                <div class="section-content">
-                    <div class="teams-grid">
-                        <div class="team-assigned">
-                            <label class="team-label">Assigned Team:</label>
-                            <span class="team-value"></span>
-                        </div>
-                        <div class="team-impacted">
-                            <label class="team-label">Impacted Teams:</label>
-                            <span class="team-value"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Instructions section with 6-column layout -->
-            <div class="step-section instructions-section">
-                <h3 class="section-title">
-                    Instructions
-                    <span class="instruction-count"></span>
-                </h3>
-                <div class="section-content">
-                    <div class="instructions-container">
-                        <!-- Instructions will be rendered here with 6-column grid layout -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Comments section with card-based layout -->
-            <div class="step-section comments-section">
-                <h3 class="section-title">
-                    Comments
-                    <span class="comment-count"></span>
-                </h3>
-                <div class="section-content">
-                    <div class="comments-container">
-                        <!-- Comments will be rendered here with card-based layout -->
-                    </div>
-                    <div class="comment-form" style="display: none;">
-                        <textarea class="comment-input" placeholder="Add a comment..."></textarea>
-                        <div class="comment-actions">
-                            <button class="aui-button aui-button-primary submit-comment">Add Comment</button>
-                            <button class="aui-button cancel-comment">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Action buttons for PILOT/ADMIN users -->
-            <div class="step-actions" style="${isPilot ? '' : 'display: none;'}">
-                <button class="aui-button update-status">Update Status</button>
-                <button class="aui-button bulk-complete" style="${isAdmin ? '' : 'display: none;'}">Bulk Complete Instructions</button>
-            </div>
-        </div>
-    </div>
+    </aside>
     
     <!-- Loading indicator -->
-    <div class="loading-indicator" style="display: none;">
-        <div class="spinner"></div>
+    <div class=\"loading-indicator\" style=\"display: none;\">
+        <div class=\"spinner\"></div>
         <span>Loading step details...</span>
     </div>
     
     <!-- Error message container -->
-    <div class="error-container" style="display: none;">
-        <div class="aui-message aui-message-error">
-            <span class="aui-icon icon-error"></span>
-            <span class="error-message"></span>
+    <div class=\"error-container\" style=\"display: none;\">
+        <div class=\"aui-message aui-message-error\">
+            <span class=\"aui-icon icon-error\"></span>
+            <span class=\"error-message\"></span>
         </div>
     </div>
 </div>
 
-<script type="text/javascript">
+<script type=\"text/javascript\">
     // Pass configuration to the step view with enhanced user context
     window.UMIG_STEP_CONFIG = {
         api: {
@@ -413,7 +208,33 @@ document.addEventListener('DOMContentLoaded', function() {
             filterEnabled: true
         }
     };
+    
+    // Debug URL parameters and container availability
+    console.log('🔍 StepView Debug: Initializing...');
+    console.log('🔗 Current URL:', window.location.href);
+    console.log('📋 URL Search params:', window.location.search);
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log('🎯 URL Parameters:');
+    console.log('  mig (migration):', urlParams.get('mig'));
+    console.log('  ite (iteration):', urlParams.get('ite'));
+    console.log('  stepid:', urlParams.get('stepid'));
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('umig-step-view-root');
+        if (container) {
+            console.log('✅ StepView: Container #umig-step-view-root found successfully');
+            console.log('📋 Container classes:', container.className);
+            console.log('📋 Container innerHTML length:', container.innerHTML.length);
+        } else {
+            console.error('❌ StepView: Container #umig-step-view-root NOT FOUND');
+            console.log('🔍 Available elements with IDs:');
+            document.querySelectorAll('[id]').forEach(el => {
+                console.log('  -', el.id, '(tag:', el.tagName + ')');
+            });
+        }
+    });
 </script>
 
-<script type="text/javascript" src="${webRoot}/js/step-view.js"></script>
+<script type=\"text/javascript\" src=\"${webRoot}/js/step-view.js\"></script>
 """

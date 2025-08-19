@@ -45,7 +45,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
         }
         
         try {
-            def (sttCode, stmNumberStr) = stepCode.tokenize('-')
+            def (sttCode, stmNumberStr) = stepCode.toUpperCase().tokenize('-')
             def stmNumber = stmNumberStr as Integer
             
             // Find the active step instance for this step code
@@ -94,8 +94,8 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
                     LEFT JOIN environments_env env ON eei.env_id = env.env_id
                     WHERE stm.stt_code = :sttCode 
                     AND stm.stm_number = :stmNumber
-                    AND mig.mig_name = :migrationName
-                    AND ite.ite_name = :iterationName
+                    AND UPPER(mig.mig_name) = UPPER(:migrationName)
+                    AND UPPER(ite.ite_name) = UPPER(:iterationName)
                     ORDER BY ite.created_at DESC
                     LIMIT 1
                 ''', [sttCode: sttCode, stmNumber: stmNumber, migrationName: migrationName, iterationName: iterationName])
