@@ -1337,7 +1337,23 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             // Parse request body
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def commentBody = requestData.body as String
-            def userId = requestData.userId as Integer ?: 1 // Default to user 1 for now
+            
+            // Get user context using UserService for intelligent fallback handling
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                
+                // Log the user context for debugging
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (POST /comments): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userContext.userId})"
+                }
+            } catch (Exception e) {
+                // If UserService fails, fall back to null userId (acceptable for repository)
+                println "StepsApi (POST /comments): UserService failed (${e.message}), proceeding with null userId for audit"
+                userContext = [userId: null, confluenceUsername: "unknown"]
+            }
+            
+            def userId = userContext?.userId
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -1359,6 +1375,8 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                 .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
                 .build()
         } catch (Exception e) {
+            println "ERROR in comments POST endpoint: ${e.message}"
+            e.printStackTrace()
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(new JsonBuilder([error: "Failed to create comment: ${e.message}"]).toString())
                 .build()
@@ -1401,7 +1419,23 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             // Parse request body
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def commentBody = requestData.body as String
-            def userId = requestData.userId as Integer ?: 1 // Default to user 1 for now
+            
+            // Get user context using UserService for intelligent fallback handling
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                
+                // Log the user context for debugging
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (PUT /comments): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userContext.userId})"
+                }
+            } catch (Exception e) {
+                // If UserService fails, fall back to null userId (acceptable for repository)
+                println "StepsApi (PUT /comments): UserService failed (${e.message}), proceeding with null userId for audit"
+                userContext = [userId: null, confluenceUsername: "unknown"]
+            }
+            
+            def userId = userContext?.userId
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)

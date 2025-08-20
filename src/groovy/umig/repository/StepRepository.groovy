@@ -1086,7 +1086,7 @@ class StepRepository {
         DatabaseUtil.withSql { Sql sql ->
             def result = sql.firstRow('''
                 INSERT INTO step_instance_comments_sic (sti_id, comment_body, created_by)
-                VALUES (:stepInstanceId, :commentBody, :userId)
+                VALUES (:stepInstanceId, :commentBody, CASE WHEN :userId IS NULL THEN 57 ELSE :userId END)
                 RETURNING sic_id, created_at
             ''', [stepInstanceId: stepInstanceId, commentBody: commentBody, userId: userId])
             
@@ -1109,7 +1109,7 @@ class StepRepository {
             def updateCount = sql.executeUpdate('''
                 UPDATE step_instance_comments_sic 
                 SET comment_body = :commentBody,
-                    updated_by = :userId,
+                    updated_by = CASE WHEN :userId IS NULL THEN 57 ELSE :userId END,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE sic_id = :commentId
             ''', [commentId: commentId, commentBody: commentBody, userId: userId])

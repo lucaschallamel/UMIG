@@ -1705,6 +1705,9 @@ class IterationView {
 
       this.showNotification(message, "success");
 
+      // 🆕 NEW: Synchronize runsheet pane
+      this.syncRunsheetStatus(stepId, newStatus, newStatusId);
+
       // Log performance metrics
       if (result.responseTime) {
         console.log(`Status update completed in ${result.responseTime}ms`);
@@ -1734,6 +1737,39 @@ class IterationView {
           this.handleStatusChange(event);
         });
       }
+    }
+  }
+
+  /**
+   * Synchronize status update in runsheet pane
+   * Updates the runsheet table to reflect status changes made in the main panel
+   */
+  syncRunsheetStatus(stepId, newStatus, newStatusId) {
+    // Find the step in the runsheet table
+    const runsheetRow = document.querySelector(`table.runsheet-table tr[data-step-id="${stepId}"]`);
+    if (runsheetRow) {
+      const statusCell = runsheetRow.querySelector('.status-cell, .col-status');
+      if (statusCell) {
+        // Update status display with existing color coding
+        statusCell.innerHTML = this.getStatusDisplay(newStatus);
+        statusCell.setAttribute('data-status-id', newStatusId);
+        
+        // Visual feedback for recent change
+        runsheetRow.classList.add('recently-updated');
+        const timeoutId = setTimeout(() => {
+          this.activeTimeouts.delete(timeoutId);
+          runsheetRow.classList.remove('recently-updated');
+        }, 3000);
+        
+        // Track timeout for cleanup
+        this.activeTimeouts.add(timeoutId);
+        
+        console.log(`✅ Runsheet synchronized: Step ${stepId} status updated to ${newStatus}`);
+      } else {
+        console.warn(`⚠️ Runsheet sync: Status cell not found for step ${stepId}`);
+      }
+    } else {
+      console.warn(`⚠️ Runsheet sync: Row not found for step ${stepId}`);
     }
   }
 
