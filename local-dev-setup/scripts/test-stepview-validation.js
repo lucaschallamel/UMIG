@@ -210,7 +210,7 @@ async function runTargetedValidation() {
 async function executeRoleBasedValidation(role) {
   console.log(chalk.magenta(`🔐 Testing Role: ${role}`));
 
-  const testUrl = `http://localhost:8090/spaces/UMIG/pages/1114120/UMIG+-+Step+View?mig=TORONTO&ite=RUN1&stepid=AUT-001&role=${role}`;
+  const testUrl = `http://localhost:8090/spaces/UMIG/pages/1114120/UMIG+-+Step+View?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=${role}`;
   
   try {
     // Execute role-specific tests

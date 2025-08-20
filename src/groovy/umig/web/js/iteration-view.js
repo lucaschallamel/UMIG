@@ -96,7 +96,7 @@ class StepsAPIv2Client {
   /**
    * Update step status with optimistic updates
    */
-  async updateStepStatus(stepId, status, userRole = "NORMAL") {
+  async updateStepStatus(stepId, statusId, userRole = "NORMAL") {
     const url = `${this.baseUrl}${this.endpoint}/${stepId}/status`;
 
     try {
@@ -106,7 +106,7 @@ class StepsAPIv2Client {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: status,
+          statusId: parseInt(statusId), // REFACTORED: Send statusId as integer, not status name
           userRole: userRole,
           timestamp: new Date().toISOString(),
         }),
@@ -1319,33 +1319,118 @@ class IterationView {
     const dropdown = document.getElementById("step-status-dropdown");
     if (!dropdown) return;
 
-    // Store the current status as an attribute
-    dropdown.setAttribute("data-old-status", currentStatus);
+    // Debug log to check what status is being passed
+    console.log("PopulateStatusDropdown - Current Status (raw):", currentStatus, "Type:", typeof currentStatus);
 
-    // Fetch available statuses
+    // Fetch available statuses first to get the mapping
     const statuses = await this.fetchStepStatuses();
+    
+    // Handle status ID to name conversion
+    let currentStatusName = null;
+    
+    if (currentStatus !== null && currentStatus !== undefined) {
+      if (typeof currentStatus === 'number') {
+        // Current status is an ID, need to convert to name
+        // Find the status object that matches this ID
+        const statusObj = statuses.find(status => status.id === currentStatus);
+        if (statusObj) {
+          currentStatusName = statusObj.name;
+          console.log(`PopulateStatusDropdown - Converted status ID ${currentStatus} to name: ${currentStatusName}`);
+        } else {
+          console.warn(`PopulateStatusDropdown - Could not find status name for ID: ${currentStatus}`);
+          // Try to fetch the status name from API if not found in the list
+          try {
+            const response = await fetch(`/rest/scriptrunner/latest/custom/statuses/${currentStatus}`);
+            if (response.ok) {
+              const statusInfo = await response.json();
+              currentStatusName = statusInfo.name;
+              console.log(`PopulateStatusDropdown - Fetched status name from API: ${currentStatusName}`);
+            }
+          } catch (error) {
+            console.warn("PopulateStatusDropdown - Could not fetch status from API:", error);
+          }
+        }
+      } else if (typeof currentStatus === 'string') {
+        // Current status is already a name
+        currentStatusName = currentStatus;
+        console.log(`PopulateStatusDropdown - Using status name directly: ${currentStatusName}`);
+      } else {
+        console.warn("PopulateStatusDropdown - Unexpected status type:", typeof currentStatus, currentStatus);
+      }
+    }
+
+    // Fallback to PENDING if we still don't have a valid status name
+    if (!currentStatusName) {
+      currentStatusName = "PENDING";
+      console.log("PopulateStatusDropdown - Falling back to PENDING status");
+    }
+
+    // Store the current status as attributes (both name and ID for compatibility)
+    dropdown.setAttribute("data-old-status", currentStatusName);
+    
+    // Find and store the current status ID
+    let currentStatusIdForStorage = null;
+    if (typeof currentStatus === 'number') {
+      currentStatusIdForStorage = currentStatus;
+    } else if (currentStatusName) {
+      const matchingStatus = statuses.find(s => 
+        (s.name || "").trim().toUpperCase() === (currentStatusName || "").trim().toUpperCase()
+      );
+      if (matchingStatus) {
+        currentStatusIdForStorage = matchingStatus.id;
+      }
+    }
+    
+    if (currentStatusIdForStorage !== null) {
+      dropdown.setAttribute("data-old-status-id", currentStatusIdForStorage);
+    }
 
     // Clear existing options
     dropdown.innerHTML = "";
 
-    // Add status options
+    let optionSelected = false;
+
+    // Add status options using status IDs as values
     statuses.forEach((status) => {
       const option = document.createElement("option");
-      option.value = status.name;
+      option.value = status.id; // REFACTORED: Use status ID as value instead of name
       option.textContent = status.name.replace(/_/g, " ");
       option.setAttribute("data-color", status.color);
+      option.setAttribute("data-status-name", status.name); // Store name for backward compatibility
 
-      if (status.name === currentStatus) {
+      // Convert current status to ID for comparison if needed
+      let currentStatusId = null;
+      if (typeof currentStatus === 'number') {
+        currentStatusId = currentStatus;
+      } else if (typeof currentStatus === 'string' || currentStatusName) {
+        // Find status ID by name for backward compatibility
+        const matchingStatus = statuses.find(s => 
+          (s.name || "").trim().toUpperCase() === (currentStatusName || "").trim().toUpperCase()
+        );
+        if (matchingStatus) {
+          currentStatusId = matchingStatus.id;
+        }
+      }
+      
+      if (currentStatusId !== null && status.id === currentStatusId) {
         option.selected = true;
+        optionSelected = true;
+        console.log(`PopulateStatusDropdown - Selected status: ${status.name} (ID: ${status.id})`);
       }
 
       dropdown.appendChild(option);
     });
 
+    // Log if no option was selected
+    if (!optionSelected) {
+      console.warn(`PopulateStatusDropdown - No matching status found for: ${currentStatusName}. Available statuses:`, statuses.map(s => s.name));
+    }
+
     // Set dropdown background color based on selected status
     this.updateDropdownColor(dropdown);
 
-    // Add change event listener
+    // Add change event listener (avoid duplicate listeners)
+    dropdown.removeEventListener("change", this.handleStatusChange);
     dropdown.addEventListener("change", (e) => this.handleStatusChange(e));
   }
 
@@ -1385,9 +1470,19 @@ class IterationView {
    */
   async handleStatusChange(event) {
     const dropdown = event.target;
-    const newStatus = dropdown.value;
+    const newStatusId = dropdown.value; // REFACTORED: Now receives status ID
     const stepId = dropdown.getAttribute("data-step-id");
+    const oldStatusId = dropdown.getAttribute("data-old-status-id") || null;
+
+    // Convert status ID to status name for API compatibility
+    const selectedOption = dropdown.options[dropdown.selectedIndex];
+    const newStatus = selectedOption ? selectedOption.getAttribute("data-status-name") : null;
     const oldStatus = dropdown.getAttribute("data-old-status") || "PENDING";
+
+    if (!newStatus) {
+      console.error("HandleStatusChange - Could not determine status name from ID:", newStatusId);
+      return;
+    }
 
     // Update dropdown color immediately (optimistic update)
     this.updateDropdownColor(dropdown);
@@ -1398,13 +1493,24 @@ class IterationView {
         "Only PILOT or ADMIN users can change status",
         "error",
       );
-      dropdown.value = oldStatus; // Reset to old status
+      // Reset to old status ID if available, otherwise find by name
+      if (oldStatusId) {
+        dropdown.value = oldStatusId;
+      } else {
+        // Find old status ID by name for backward compatibility
+        const oldOption = Array.from(dropdown.options).find(opt => 
+          opt.getAttribute("data-status-name") === oldStatus
+        );
+        if (oldOption) {
+          dropdown.value = oldOption.value;
+        }
+      }
       this.updateDropdownColor(dropdown);
       return;
     }
 
-    // Don't do anything if status hasn't actually changed
-    if (newStatus === oldStatus) {
+    // Don't do anything if status hasn't actually changed (compare by ID for robustness)
+    if (newStatusId === oldStatusId || (oldStatusId === null && newStatus === oldStatus)) {
       return;
     }
 
@@ -1412,15 +1518,16 @@ class IterationView {
     this.updateStepStatus(stepId, newStatus);
 
     try {
-      // Use enhanced API client for status update
+      // Use enhanced API client for status update with status ID
       const result = await this.apiClient.updateStepStatus(
         stepId,
-        newStatus,
+        newStatusId, // REFACTORED: Pass status ID instead of status name
         this.userRole,
       );
 
-      // Update the old status attribute for next change
+      // Update the old status attributes for next change (store both ID and name)
       dropdown.setAttribute("data-old-status", newStatus);
+      dropdown.setAttribute("data-old-status-id", newStatusId);
 
       // Show success notification with enhanced details
       const message = result.emailsSent

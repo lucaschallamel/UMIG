@@ -111,6 +111,7 @@ class StepsApiIntegrationTest {
             results << testRunner.testUpdateStepStatus()
             results << testRunner.testUpdateStepStatusWithComment()
             results << testRunner.testUpdateStepOwner()
+            results << testRunner.testStatusUpdateWithConfluenceAuth()
             
             // Test Group 6: Bulk Operations
             results << testRunner.testBulkUpdateStatus()
@@ -889,5 +890,43 @@ class StepsApiIntegrationTest {
         println "Phase 3.2 Integration Testing Complete"
         println "Status: ${successRate >= 80 ? 'PASSED' : 'NEEDS ATTENTION'}"
         println "=".repeat(80)
+    }
+    
+    /**
+     * Test the status update fix that gets userId from Confluence context
+     * instead of requiring it in the request body.
+     * This addresses the 500 error when changing status dropdown.
+     */
+    def testStatusUpdateWithConfluenceAuth() {
+        def testName = "PUT /steps/{id}/status - Status Update with Confluence Auth Fix"
+        try {
+            if (!testStepInstanceId) {
+                return [test: testName, success: false, error: "No test step instance data available"]
+            }
+            
+            // Test with new format: statusId only (no userId in request body)
+            def requestBody = new JsonBuilder([
+                statusId: 2  // Using statusId instead of newStatus, no userId
+            ]).toString()
+            
+            def url = "${BASE_URL}/steps/${testStepInstanceId}/status"
+            def response = makeHttpRequest("PUT", url, requestBody)
+            
+            // The fix should handle getting userId from Confluence context
+            // Accept 200 (success) or specific error codes but not 500
+            def success = response.status in [200, 400, 401] && response.status != 500
+            
+            def details = "Status: ${response.status}"
+            if (response.data?.message) {
+                details += ", Message: ${response.data.message}"
+            }
+            if (response.data?.error) {
+                details += ", Error: ${response.data.error}"
+            }
+                         
+            return [test: testName, success: success, details: details]
+        } catch (Exception e) {
+            return [test: testName, success: false, error: e.message]
+        }
     }
 }

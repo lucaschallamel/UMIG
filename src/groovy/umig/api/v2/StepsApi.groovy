@@ -647,9 +647,30 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     .build()
             }
             
+            // Validate statusId using database
+            StatusRepository statusRepository = getStatusRepository()
             if (!statusId) {
+                def validStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = validStatuses.collect { "${it.id}=${it.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "statusId is required"]).toString())
+                    .entity(new JsonBuilder([
+                        error: "statusId is required", 
+                        validOptions: statusOptions
+                    ]).toString())
+                    .build()
+            }
+            
+            // Validate status ID against database - single source of truth
+            if (!statusRepository.isValidStatusId(statusId, 'Step')) {
+                def validStatusIds = statusRepository.getValidStatusIds('Step')
+                def availableStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = availableStatuses.collect { "${it.id}=${it.name}" }.join(', ')
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([
+                        error: "Invalid statusId '${statusId}' for Step entities",
+                        validStatusIds: validStatusIds,
+                        validOptions: statusOptions
+                    ]).toString())
                     .build()
             }
             
@@ -828,26 +849,78 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             // Parse request body with type safety
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def newStatus = requestData.status as String
-            def userId = requestData.userId as Integer
+            def statusId = requestData.statusId as Integer
             
-            if (!newStatus || newStatus.trim().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Missing or empty required field: status"]).toString())
+            // Get current user from Confluence context instead of request body
+            def currentUser = getCurrentUser()
+            if (!currentUser) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(new JsonBuilder([error: "Unable to determine current user"]).toString())
                     .build()
             }
             
-            // Validate status value - these match the status_sts table
-            def validStatuses = ['PENDING', 'TODO', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED']
-            if (!validStatuses.contains(newStatus.toUpperCase())) {
+            // Get userId from UserRepository using Confluence username
+            UserRepository userRepository = getUserRepository()
+            def user = userRepository.findUserByUsername(currentUser.getName())
+            def userId = user?.usr_id
+            
+            if (!userId) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid status. Must be one of: ${validStatuses.join(', ')}"]).toString())
+                    .entity(new JsonBuilder([
+                        error: "User not found in system",
+                        username: currentUser.getName()
+                    ]).toString())
+                    .build()
+            }
+            
+            // BACKWARD COMPATIBILITY: Support legacy status field for gradual migration
+            StatusRepository statusRepository = getStatusRepository()
+            if (!statusId && requestData.status) {
+                // Convert status name to ID using database lookup for backward compatibility
+                def statusName = (requestData.status as String).toUpperCase()
+                def statusRecord = statusRepository.findStatusByNameAndType(statusName, 'Step')
+                
+                if (statusRecord) {
+                    statusId = statusRecord.id as Integer
+                } else {
+                    def availableStatuses = statusRepository.findStatusesByType('Step')
+                    def statusNames = availableStatuses.collect { it.name }.join(', ')
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([
+                            error: "Invalid status name '${statusName}'. Use statusId instead, or valid status names: ${statusNames}"
+                        ]).toString())
+                        .build()
+                }
+            }
+            
+            if (!statusId) {
+                def validStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = validStatuses.collect { "${it.id}=${it.name}" }.join(', ')
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([
+                        error: "Missing required field: statusId", 
+                        validOptions: statusOptions
+                    ]).toString())
+                    .build()
+            }
+            
+            // Validate status ID against database - single source of truth
+            if (!statusRepository.isValidStatusId(statusId, 'Step')) {
+                def validStatusIds = statusRepository.getValidStatusIds('Step')
+                def availableStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = availableStatuses.collect { "${it.id}=${it.name}" }.join(', ')
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([
+                        error: "Invalid statusId '${statusId}' for Step entities",
+                        validStatusIds: validStatusIds,
+                        validOptions: statusOptions
+                    ]).toString())
                     .build()
             }
             
             // Update step status and send notifications
             StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, newStatus, userId)
+            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, statusId, userId)
             def result = repositoryResult as Map
             
             if ((result.success as Boolean)) {
@@ -855,7 +928,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     success: true,
                     message: "Step status updated successfully",
                     stepInstanceId: stepInstanceId,
-                    newStatus: newStatus,
+                    statusId: statusId,
                     emailsSent: result.emailsSent ?: 0
                 ]).toString()).build()
             } else {
@@ -1376,5 +1449,20 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
             example: "DELETE /rest/scriptrunner/latest/custom/comments/123"
         ]).toString())
         .build()
+}
+
+// Helper method to get current user from Confluence context
+private def getCurrentUser() {
+    try {
+        return com.atlassian.confluence.user.AuthenticatedUserThreadLocal.get()
+    } catch (Exception e) {
+        log.warn("StepsApi: Could not get current user", e)
+        return null
+    }
+}
+
+// Helper method to get UserRepository instance
+private def getUserRepository() {
+    return new UserRepository()
 }
 
