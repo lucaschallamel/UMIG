@@ -838,8 +838,7 @@ class StepRepository {
                 return null
             }
             
-            // Find the most recent step instance (for now, we'll just get any instance)
-            // In a real scenario, this should be filtered by the current iteration context
+            // Find the most recent step instance WITH complete hierarchical context
             def stepInstance = sql.firstRow('''
                 SELECT 
                     sti.sti_id,
@@ -848,13 +847,43 @@ class StepRepository {
                     sti.sti_duration_minutes,
                     sti.phi_id,
                     sti.enr_id,
-                    tms.tms_name as owner_team_name
+                    -- Team information (FIXED JOIN)
+                    tms.tms_name as owner_team_name,
+                    -- Status information (FIXED)
+                    sts.sts_name as status_name,
+                    -- Complete hierarchical context
+                    mig.mig_name as migration_name,
+                    ite.ite_name as iteration_name,
+                    plm.plm_name as plan_name,
+                    sqm.sqm_name as sequence_name,
+                    phm.phm_name as phase_name,
+                    -- Environment information
+                    enr.enr_name as environment_role_name,
+                    env.env_name as environment_name
                 FROM steps_instance_sti sti
-                LEFT JOIN teams_tms tms ON :teamId = tms.tms_id
+                -- FIXED: Add the missing steps_master join
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                -- FIXED: Proper team join using the actual foreign key
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                -- FIXED: Status name resolution
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                -- Complete hierarchy joins
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                -- Environment joins
+                LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
+                LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                LEFT JOIN environments_env env ON eei.env_id = env.env_id
                 WHERE sti.stm_id = :stmId
                 ORDER BY sti.sti_id DESC
                 LIMIT 1
-            ''', [stmId: stepMaster.stm_id, teamId: stepMaster.tms_id_owner])
+            ''', [stmId: stepMaster.stm_id])
             
             if (!stepInstance) {
                 // If no instance exists, return master data only
@@ -870,7 +899,14 @@ class StepRepository {
                         Name: stepMaster.stm_name,
                         Description: stepMaster.stm_description,
                         Status: 'PENDING',
-                        AssignedTeam: ownerTeam?.tms_name ?: 'Unassigned'
+                        AssignedTeam: ownerTeam?.tms_name ?: 'Unassigned',
+                        // Add empty hierarchical context for consistency
+                        MigrationName: null,
+                        IterationName: null,
+                        PlanName: null,
+                        SequenceName: null,
+                        PhaseName: null,
+                        Labels: []
                     ],
                     instructions: [],
                     impactedTeams: []
@@ -912,15 +948,41 @@ class StepRepository {
             // Get comments for this step instance
             def comments = findCommentsByStepInstanceId(stepInstance.sti_id as UUID)
             
+            // Get labels for this step (using master step ID) - ADDED
+            List labels = []
+            if (stepMaster.stm_id) {
+                try {
+                    labels = findLabelsByStepId(stepMaster.stm_id as UUID) as List
+                    println "DEBUG: Found ${labels.size()} labels for step ${stepMaster.stm_id}"
+                } catch (Exception e) {
+                    println "ERROR fetching labels: ${e.message}"
+                }
+            }
+            
             return [
                 stepSummary: [
                     ID: stepCode,
                     Name: stepInstance.sti_name ?: stepMaster.stm_name,
                     Description: stepMaster.stm_description,
-                    Status: stepInstance.sti_status,
+                    // FIXED: Return status name instead of ID
+                    Status: stepInstance.status_name ?: 'UNKNOWN',
                     AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
                     Duration: stepMaster.stm_duration_minutes,
-                    sti_id: stepInstance.sti_id?.toString()  // Include step instance ID for comments
+                    sti_id: stepInstance.sti_id?.toString(),  // Include step instance ID for comments
+                    // ADDED: Complete hierarchical context
+                    MigrationName: stepInstance.migration_name,
+                    IterationName: stepInstance.iteration_name,
+                    PlanName: stepInstance.plan_name,
+                    SequenceName: stepInstance.sequence_name,
+                    PhaseName: stepInstance.phase_name,
+                    // ADDED: Environment context
+                    TargetEnvironment: stepInstance.environment_role_name ? 
+                        (stepInstance.environment_name ? 
+                            "${stepInstance.environment_role_name} (${stepInstance.environment_name})" : 
+                            "${stepInstance.environment_role_name} (!No Environment Assigned Yet!)") : 
+                        'Not specified',
+                    // ADDED: Labels
+                    Labels: labels
                 ],
                 instructions: instructions.collect { instruction ->
                     [

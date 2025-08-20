@@ -95,6 +95,10 @@ async function generateCanonicalPlans(config, options = {}) {
     );
     const plmId = planRes.rows[0].plm_id;
 
+    // CRITICAL FIX: Initialize step counter at plan level to ensure unique step codes
+    // Step numbers must be unique across ALL phases within a plan to prevent duplicate codes
+    let planStepCounter = 1;
+
     const numSequences = faker.number.int({ min: 2, max: 4 });
     for (let j = 0; j < numSequences; j++) {
       const seqRes = await dbClient.query(
@@ -141,10 +145,10 @@ async function generateCanonicalPlans(config, options = {}) {
               phmId,
               ownerTeamId,
               faker.helpers.arrayElement(stepTypes.rows).stt_code,
-              l + 1,
+              planStepCounter, // FIXED: Use continuous counter instead of l + 1
               targetEnvRoleId,
               faker.helpers.arrayElement(envRoles.rows).enr_id, // Add enr_id column
-              `Step ${l + 1}: ${faker.lorem.words(5)}`,
+              `Step ${planStepCounter}: ${faker.lorem.words(5)}`, // Updated step name to reflect continuous numbering
               faker.lorem.paragraph(),
               faker.number.int({ min: 5, max: 120 }),
               "generator",
@@ -154,6 +158,9 @@ async function generateCanonicalPlans(config, options = {}) {
             ],
           );
           const stmId = stepRes.rows[0].stm_id;
+
+          // Increment the plan-level step counter for next step
+          planStepCounter++;
 
           // Link step to impacted teams
           const numImpactedTeams = faker.number.int({ min: 1, max: 3 });

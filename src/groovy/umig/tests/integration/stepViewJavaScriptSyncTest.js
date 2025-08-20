@@ -11,7 +11,7 @@ const { test, expect } = require('@playwright/test');
 
 const TEST_CONFIG = {
   baseUrl: 'http://localhost:8090',
-  stepViewUrl: '/spaces/UMIG/pages/1114120/UMIG+-+Step+View?mig=TORONTO&ite=RUN1&stepid=AUT-001',
+  stepViewUrl: '/spaces/UMIG/pages/1114120/UMIG+-+Step+View?mig=TORONTO&ite=RUN1&stepid=BGO-002',
   timeout: 10000,
   screenshotPath: '/Users/lucaschallamel/Documents/GitHub/UMIG/src/groovy/umig/tests/integration/screenshots/'
 };
@@ -206,7 +206,7 @@ test.describe('StepView JavaScript-HTML Synchronization', () => {
 
     // Mock step data for testing
     const mockStepData = {
-      stepCode: 'AUT-001',
+      stepCode: 'BGO-002',
       stepName: 'Test Step Name',
       stepDescription: 'This is a test step description',
       status: 'IN_PROGRESS',

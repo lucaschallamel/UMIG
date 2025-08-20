@@ -8,7 +8,7 @@
 
 const { test, expect } = require('@playwright/test');
 
-const TEST_URL = 'http://localhost:8090/spaces/UMIG/pages/1114120/UMIG+-+Step+View?mig=TORONTO&ite=RUN1&stepid=AUT-001&role=PILOT';
+const TEST_URL = 'http://localhost:8090/spaces/UMIG/pages/1114120/UMIG+-+Step+View?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=PILOT';
 const EXPECTED_LOAD_TIME = 3000; // 3 seconds max
 const MOBILE_WIDTH = 375;
 const DESKTOP_WIDTH = 1920;
