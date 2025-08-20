@@ -2755,7 +2755,7 @@ class StepView {
         <div class="step-summary-section">
           <div class="step-status-container" style="margin-bottom: 16px;">
             <label style="font-weight: 600; margin-bottom: 4px; display: block;">Quick Status Update:</label>
-            ${statusDisplay}
+            ${!["NORMAL", "PILOT", "ADMIN"].includes(this.userRole) ? statusDisplay : ''}
             <select id="step-status-dropdown-summary" class="status-select pilot-only" style="display: none;" data-current-status-id="${statusId}">
               <!-- Will be populated dynamically -->
             </select>
@@ -3397,6 +3397,8 @@ class StepView {
 
   async handleStatusChange(event) {
     const newStatus = event.target.value;
+    console.log(`🔄 StepView: Handling status change to ${newStatus} for step ${this.currentStepCode}`);
+    
     if (!this.currentStepInstanceId) {
       this.showNotification(
         "Unable to update status: No step instance ID",
@@ -3440,11 +3442,83 @@ class StepView {
       // Clear cache to force refresh on next poll
       this.cache.clearCache();
 
+      // Sync the runsheet status in the left panel  
+      this.syncRunsheetStatus(this.currentStepCode, newStatus);
+
       this.showNotification("Status updated successfully", "success");
     } catch (error) {
       console.error("Error updating status:", error);
       this.showNotification("Failed to update status", "error");
     }
+  }
+
+  /**
+   * Synchronize status change with runsheet table in the left panel
+   * @param {string} stepCode - Step code to update (e.g., "DUM-003")
+   * @param {string} newStatusId - New status ID
+   */
+  syncRunsheetStatus(stepCode, newStatusId) {
+    console.log(`🔄 StepView: Syncing runsheet status for step ${stepCode} to status ${newStatusId}`);
+    
+    if (!stepCode || !newStatusId) {
+      console.warn("⚠️ StepView: Missing stepCode or newStatusId for runsheet sync");
+      return;
+    }
+
+    try {
+      // Find the step row in the runsheet table using data-step attribute
+      const stepRow = document.querySelector(`[data-step="${stepCode}"]`);
+      
+      if (!stepRow) {
+        console.warn(`⚠️ StepView: No runsheet row found for step ${stepCode}`);
+        return;
+      }
+
+      // Find the status cell within the row
+      const statusCell = stepRow.querySelector('.col-status');
+      
+      if (!statusCell) {
+        console.warn(`⚠️ StepView: No status cell found in runsheet row for step ${stepCode}`);
+        return;
+      }
+
+      // Get the status display (badge) for the new status
+      const statusDisplay = this.getStatusDisplayForRunsheet(newStatusId);
+      
+      if (statusDisplay) {
+        // Update the status cell content and classes
+        statusCell.innerHTML = statusDisplay.text;
+        statusCell.className = `col-status ${statusDisplay.cssClass}`;
+        
+        console.log(`✅ StepView: Successfully synced runsheet status for step ${stepCode}`);
+      } else {
+        console.warn(`⚠️ StepView: Could not get status display for status ID ${newStatusId}`);
+      }
+      
+    } catch (error) {
+      console.error(`❌ StepView: Error syncing runsheet status for step ${stepCode}:`, error);
+    }
+  }
+
+  /**
+   * Get status display information for runsheet synchronization
+   * @param {string} statusId - Status ID  
+   * @returns {Object} Object with text and cssClass properties
+   */
+  getStatusDisplayForRunsheet(statusId) {
+    // Map status IDs to runsheet display format
+    const statusMap = {
+      '21': { text: 'Pending', cssClass: 'status-pending' },
+      '22': { text: 'In Progress', cssClass: 'status-progress' },  
+      '23': { text: 'Completed', cssClass: 'status-completed' },
+      '24': { text: 'Failed', cssClass: 'status-failed' },
+      '25': { text: 'Skipped', cssClass: 'status-skipped' },
+      '26': { text: 'Blocked', cssClass: 'status-blocked' }
+    };
+
+    // Handle both string and numeric status IDs
+    const normalizedStatusId = String(statusId);
+    return statusMap[normalizedStatusId] || { text: 'Unknown', cssClass: 'status-unknown' };
   }
 
   async handleInstructionToggle(event) {
@@ -3933,8 +4007,17 @@ class StepView {
   /**
    * Update static status badges after statuses have been fetched
    * This ensures consistency between dropdown options and static badges
+   * Only runs for users without formal roles (who see static badges)
    */
   updateStaticStatusBadges() {
+    // US-036: Only update badges for users without formal roles
+    if (["NORMAL", "PILOT", "ADMIN"].includes(this.userRole)) {
+      console.log(
+        `🔄 StepView: Skipping badge updates for ${this.userRole} user (uses dropdown instead)`,
+      );
+      return;
+    }
+
     // Find all static status badges in the DOM (they have the status-badge class)
     const statusBadges = document.querySelectorAll(".status-badge");
     console.log(
@@ -4115,7 +4198,9 @@ class StepView {
                 <div class="metadata-item">
                     <span class="label">📊 STATUS:</span>
                     <span class="value">
-                        <span class="status-badge" style="background-color: #DDDDDD; color: #000000; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">Loading...</span>
+                        ${!["NORMAL", "PILOT", "ADMIN"].includes(this.userRole) ? 
+                            '<span class="status-badge" style="background-color: #DDDDDD; color: #000000; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">Loading...</span>' : 
+                            ''}
                         <select id="step-status-dropdown" class="status-dropdown pilot-only" data-step-id="${summary.ID || stepData.stepCode}" data-current-status-id="${summary.StatusID || summary.Status || "21"}" style="padding: 2px 8px; border-radius: 3px; margin-left: 8px; display: none;">
                             <option value="">Loading...</option>
                         </select>
