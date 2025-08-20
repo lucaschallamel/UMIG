@@ -157,9 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 
 <div class=\"iteration-view step-view-standalone\">
-    <!-- Version Marker: US-036 Phase 2 v2.3 - ${new Date().format('yyyy-MM-dd HH:mm:ss')} -->
+    <!-- Version Marker: US-036 UI Refactoring v2.4 - ${new Date().format('yyyy-MM-dd HH:mm:ss')} -->
     <div class=\"version-marker\" style=\"background: #0747a6; color: white; padding: 8px; margin-bottom: 10px; border-radius: 3px; font-size: 12px;\">
-        🚀 StepView v2.3 - HTML Structure Aligned (Deployed: ${new Date().format('HH:mm:ss')})
+        🚀 StepView v2.4 - UI Streamlined & Redundancy Removed (Deployed: ${new Date().format('HH:mm:ss')})
     </div>
     <!-- Main container for JavaScript to populate -->
     <aside id=\"umig-step-view-root\" class=\"step-details-panel\">
@@ -204,8 +204,8 @@ document.addEventListener('DOMContentLoaded', function() {
             realTimeSync: true,
             bulkOperations: ${isPilot},
             exportEnabled: true,
-            searchEnabled: true,
-            filterEnabled: true
+            searchEnabled: false,     // US-036: Search removed
+            filterEnabled: false      // US-036: Filters removed
         }
     };
     

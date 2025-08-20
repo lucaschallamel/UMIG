@@ -12,6 +12,7 @@ Based on Phase 1 specification, refactor `/Users/lucaschallamel/Documents/GitHub
 ## Current Implementation Issues
 
 **Current Code Location (line ~620)**:
+
 ```javascript
 <div class="step-details-content" style="background-color: white !important; color: #172B4D !important;">
     <div class="step-info" data-sti-id="${summary.ID || ""}" style="background-color: white !important; color: #172B4D !important;">
@@ -25,6 +26,7 @@ Based on Phase 1 specification, refactor `/Users/lucaschallamel/Documents/GitHub
 ```
 
 **Problems**:
+
 1. Uses separate rendering methods instead of unified doRenderStepDetails
 2. Wrong HTML structure - missing required CSS classes and layout
 3. Missing breadcrumb navigation, status integration, metadata sections
@@ -35,6 +37,7 @@ Based on Phase 1 specification, refactor `/Users/lucaschallamel/Documents/GitHub
 ### 1. Replace Current Rendering Block
 
 **OLD (lines ~620-630)**:
+
 ```javascript
 <div class="step-details-content" style="background-color: white !important; color: #172B4D !important;">
     <div class="step-info" data-sti-id="${summary.ID || ""}" style="background-color: white !important; color: #172B4D !important;">
@@ -48,9 +51,10 @@ Based on Phase 1 specification, refactor `/Users/lucaschallamel/Documents/GitHub
 ```
 
 **NEW**:
+
 ```javascript
 <div class="step-details-content">
-    ${this.doRenderStepDetails(stepData, container)}
+  ${this.doRenderStepDetails(stepData, container)}
 </div>
 ```
 
@@ -68,18 +72,18 @@ doRenderStepDetails(stepData) {
     const instructions = stepData.instructions || [];
     const impactedTeams = stepData.impactedTeams || [];
     const comments = stepData.comments || [];
-    
+
     // Helper function to get status display - use the main getStatusDisplay method
     const getStatusDisplay = (status) => {
         return this.createStatusBadge(status);
     };
-    
+
     let html = `
         <div class="step-info" data-sti-id="${summary.ID || ""}">
             <div class="step-title">
                 <h3>📋 ${summary.StepCode || "Unknown"} - ${summary.Name || "Unknown Step"}</h3>
             </div>
-            
+
             <div class="step-breadcrumb">
                 <span class="breadcrumb-item">${summary.MigrationName || "Migration"}</span>
                 <span class="breadcrumb-separator">›</span>
@@ -91,7 +95,7 @@ doRenderStepDetails(stepData) {
                 <span class="breadcrumb-separator">›</span>
                 <span class="breadcrumb-item">${summary.PhaseName || "Phase"}</span>
             </div>
-            
+
             <div class="step-key-info">
                 <div class="metadata-item">
                     <span class="label">📊 Status:</span>
@@ -106,7 +110,7 @@ doRenderStepDetails(stepData) {
                     <span class="value">${summary.PredecessorCode ? `${summary.PredecessorCode}${summary.PredecessorName ? ` - ${summary.PredecessorName}` : ""}` : "-"}</span>
                 </div>
             </div>
-            
+
             <div class="step-metadata">
                 <div class="metadata-item">
                     <span class="label">🎯 Target Environment:</span>
@@ -157,14 +161,14 @@ doRenderStepDetails(stepData) {
                     : ""
                 }
             </div>
-            
+
             <div class="step-description">
                 <h4>📝 Description:</h4>
                 <p>${summary.Description || "No description available"}</p>
             </div>
         </div>
     `;
-    
+
     // Add instructions section using IterationView pattern
     if (instructions.length > 0) {
         html += `
@@ -180,7 +184,7 @@ doRenderStepDetails(stepData) {
                         <div class="col-complete">✓</div>
                     </div>
         `;
-        
+
         instructions.forEach((instruction, index) => {
             html += `
                 <div class="instruction-row ${instruction.IsCompleted ? "completed" : ""}">
@@ -190,8 +194,8 @@ doRenderStepDetails(stepData) {
                     <div class="col-control">${instruction.Control || instruction.ControlCode || `CTRL-${String(index + 1).padStart(2, "0")}`}</div>
                     <div class="col-duration">${instruction.Duration ? `${instruction.Duration} min.` : instruction.EstimatedDuration ? `${instruction.EstimatedDuration} min.` : "5 min."}</div>
                     <div class="col-complete">
-                        <input type="checkbox" 
-                            class="instruction-checkbox pilot-only" 
+                        <input type="checkbox"
+                            class="instruction-checkbox pilot-only"
                             data-instruction-id="${instruction.ID || instruction.ini_id || instruction.Order || index + 1}"
                             data-step-id="${summary.ID || stepData.stepCode || ""}"
                             data-instruction-index="${index}"
@@ -200,20 +204,20 @@ doRenderStepDetails(stepData) {
                 </div>
             `;
         });
-        
+
         html += `
                 </div>
             </div>
         `;
     }
-    
+
     // Add comment section with real data (using existing implementation)
     html += `
         <div class="comments-section">
             <h4>💬 COMMENTS (${comments.length})</h4>
             <div class="comments-list" id="comments-list">
     `;
-    
+
     if (comments.length > 0) {
         comments.forEach((comment) => {
             const relativeTime = this.getRelativeTime(comment.CreatedDate);
@@ -230,19 +234,19 @@ doRenderStepDetails(stepData) {
     } else {
         html += `<p class="no-comments">No comments yet.</p>`;
     }
-    
+
     html += `
             </div>
             <div class="add-comment-section">
                 <h5>Add Comment</h5>
                 <div class="comment-form">
-                    <textarea id="new-comment-text" 
-                              class="textarea" 
-                              placeholder="Add your comment here..." 
-                              rows="3" 
+                    <textarea id="new-comment-text"
+                              class="textarea"
+                              placeholder="Add your comment here..."
+                              rows="3"
                               style="width: 100%; margin-bottom: 8px;"></textarea>
-                    <button id="add-comment-btn" 
-                            class="aui-button aui-button-primary" 
+                    <button id="add-comment-btn"
+                            class="aui-button aui-button-primary"
                             type="button">
                         Add Comment
                     </button>
@@ -250,7 +254,7 @@ doRenderStepDetails(stepData) {
             </div>
         </div>
     `;
-    
+
     return html;
 }
 ```
@@ -269,10 +273,10 @@ getContrastColor(hexColor) {
     const r = parseInt(hex.substr(0, 2), 16);
     const g = parseInt(hex.substr(2, 2), 16);
     const b = parseInt(hex.substr(4, 2), 16);
-    
+
     // Calculate luminance
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    
+
     // Return black or white based on luminance
     return luminance > 0.5 ? '#000000' : '#ffffff';
 }
@@ -281,6 +285,7 @@ getContrastColor(hexColor) {
 ### 4. Update Main Render Call
 
 **Current (around line 620)**:
+
 ```javascript
 <div class="step-details-content" style="background-color: white !important; color: #172B4D !important;">
     <div class="step-info" data-sti-id="${summary.ID || ""}" style="background-color: white !important; color: #172B4D !important;">
@@ -294,17 +299,17 @@ getContrastColor(hexColor) {
 ```
 
 **Replace with**:
+
 ```javascript
-<div class="step-details-content">
-    ${this.doRenderStepDetails(stepData)}
-</div>
+<div class="step-details-content">${this.doRenderStepDetails(stepData)}</div>
 ```
 
 ### 5. Remove Obsolete Methods (Optional - for cleanup)
 
 These methods can be removed after verification:
+
 - `renderStepSummary(summary)`
-- `renderLabels(labels)` 
+- `renderLabels(labels)`
 - `renderInstructions(instructions)`
 - `renderImpactedTeams(impactedTeams)`
 - `renderComments(comments)`
@@ -323,6 +328,7 @@ These methods can be removed after verification:
 ## BGO-002 Test Validation
 
 After implementation, test with:
+
 - URL: `?mig=TORONTO&ite=RUN1&stepid=BGO-002`
 - Expected: Step displays with Electronics Squad team
 - Expected: Labels show with #376e4e background color
@@ -332,6 +338,7 @@ After implementation, test with:
 ## Success Criteria
 
 Phase 2 is successful when:
+
 1. ✅ Single doRenderStepDetails method implemented
 2. ✅ HTML output matches Phase 1 specification exactly
 3. ✅ All metadata items use same CSS classes as IterationView
@@ -349,4 +356,4 @@ Phase 2 is successful when:
 
 ---
 
-*Phase 2 Implementation Plan Ready - Proceed with Code Changes*
+_Phase 2 Implementation Plan Ready - Proceed with Code Changes_

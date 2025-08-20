@@ -9,6 +9,7 @@
 ## Acceptance Criteria
 
 ### AC1: Audit Logging Implementation
+
 - **GIVEN** the UMIG application has user and role management
 - **WHEN** any role assignment, role change, or `user_is_admin` flag modification occurs
 - **THEN** the system must log the change with timestamp, actor, target user, old value, new value, and IP address
@@ -16,6 +17,7 @@
 - **AND** audit logs must be accessible via REST API with appropriate authorization
 
 ### AC2: Permission Validation Logic
+
 - **GIVEN** a user has role and admin flag assignments
 - **WHEN** the system validates user permissions
 - **THEN** conflicting permissions must be detected and prevented (e.g., USER role with admin flag = true)
@@ -23,6 +25,7 @@
 - **AND** validation must occur on all user creation, update, and role assignment operations
 
 ### AC3: Row-Level Security Implementation
+
 - **GIVEN** users have different role levels
 - **WHEN** querying data through the application
 - **THEN** data access must be filtered based on user role automatically
@@ -31,6 +34,7 @@
 - **AND** PILOT and USER roles have restricted data access based on business rules
 
 ### AC4: Admin Flag Control and Documentation
+
 - **GIVEN** the `user_is_admin` flag grants SUPERADMIN privileges
 - **WHEN** modifying this flag
 - **THEN** only existing SUPERADMIN users can make this change
@@ -39,6 +43,7 @@
 - **AND** system documentation must clearly define admin flag usage and control procedures
 
 ### AC5: API Security Enhancements
+
 - **GIVEN** existing REST APIs for user and role management
 - **WHEN** accessing security-sensitive endpoints
 - **THEN** enhanced authorization checks must be implemented beyond basic `groups: ["confluence-users"]`
@@ -46,6 +51,7 @@
 - **AND** audit logs must capture all API access attempts (successful and failed)
 
 ### AC6: Two-Layer Authentication Model
+
 - **GIVEN** users access the UMIG application through Confluence
 - **WHEN** authenticating user requests
 - **THEN** Layer 1 (Confluence authentication) must verify `groups: ["confluence-users"]`
@@ -54,6 +60,7 @@
 - **AND** system must reject requests where Confluence user is not in `users_usr` table
 
 ### AC7: AuthenticationService.groovy Enhancements
+
 - **GIVEN** current AuthenticationService returns "anonymous" for missing users
 - **WHEN** enhancing the authentication service
 - **THEN** new `getUserContext()` method must implement two-layer authentication
@@ -64,6 +71,7 @@
 - **AND** service must integrate with audit logging for authentication events
 
 ### AC8: Enhanced User Context and Caching
+
 - **GIVEN** the need for efficient user context retrieval
 - **WHEN** accessing user information across the application
 - **THEN** `UserContext` class must include: userId, userName, role, isAdmin, teams, permissions
@@ -72,6 +80,7 @@
 - **AND** SUPERADMIN check must validate `user_is_admin` flag from database
 
 ### AC9: Macro-Level RBAC Implementation
+
 - **GIVEN** users access UMIG through Confluence macro pages (IterationView, StepView, etc.)
 - **WHEN** user hits any UMIG macro page
 - **THEN** system must immediately retrieve user role from `users_usr` + `roles_rls` tables via `AuthenticationService.getUserContext()`
@@ -85,6 +94,7 @@
 - **AND** unauthorized users must see access denied message with administrator contact information
 
 ### AC10: Remove Client-Side Admin Backdoor (CRITICAL SECURITY)
+
 - **GIVEN** the current admin GUI has hardcoded trump users in `AuthenticationManager.js`
 - **WHEN** implementing proper RBAC authentication
 - **THEN** the following client-side backdoor code MUST be removed immediately:
@@ -99,11 +109,13 @@
 - **AND** this is a CRITICAL security vulnerability that must be fixed before ANY production deployment
 
 ### AC11: Differential Macro Authentication Strategy
+
 - **GIVEN** UMIG has different types of macros with varying security requirements
 - **WHEN** implementing macro-level authentication
 - **THEN** two distinct authentication strategies must be implemented:
 
 **Permissive Strategy (Regular Macros: IterationView, StepView)**:
+
 - **AND** implement implicit role discovery from Confluence context + user trigram
 - **AND** auto-provision unknown users with NORMAL role in users_usr table
 - **AND** provide progressive feature enhancement based on discovered/assigned role
@@ -111,6 +123,7 @@
 - **AND** follow "default allow with restrictions" approach for user experience
 
 **Strict Strategy (Admin GUI Macro)**:
+
 - **AND** implement NO auto-provisioning - user MUST exist in users_usr table
 - **AND** user MUST have ADMIN or PILOT role explicitly assigned
 - **AND** completely deny access for NORMAL users or undeclared users
@@ -119,6 +132,7 @@
 - **AND** follow "default deny unless explicitly authorized" approach for security
 
 **Strategy Pattern Implementation**:
+
 - **AND** implement MacroAuthenticationStrategy interface with authenticate(MacroType, user) method
 - **AND** create MacroType enum with REGULAR_MACRO and ADMIN_GUI_MACRO values
 - **AND** implement different caching durations (10 minutes for regular macros, 2 minutes for admin GUI)
@@ -130,6 +144,7 @@
 ## Technical Implementation Notes
 
 ### Database Changes (Liquibase Migration)
+
 ```sql
 -- Audit table for security changes
 CREATE TABLE audit_security_changes (
@@ -151,13 +166,14 @@ ALTER TABLE migrations_mig ENABLE ROW LEVEL SECURITY;
 ```
 
 ### Repository Pattern (AuditSecurityRepository.groovy)
+
 ```groovy
 class AuditSecurityRepository {
     static List<Map> getAuditTrail(UUID userId, String action = null) {
         return DatabaseUtil.withSql { sql ->
             def query = """
                 SELECT asc_id, asc_timestamp, asc_action, asc_old_value, asc_new_value
-                FROM audit_security_changes 
+                FROM audit_security_changes
                 WHERE asc_target_user_id = ?
             """
             def params = [userId as String]
@@ -168,22 +184,22 @@ class AuditSecurityRepository {
             return sql.rows(query + " ORDER BY asc_timestamp DESC", params)
         }
     }
-    
-    static void logSecurityChange(UUID actorId, UUID targetId, String action, 
+
+    static void logSecurityChange(UUID actorId, UUID targetId, String action,
                                 String oldValue, String newValue, String ipAddress) {
         DatabaseUtil.withSql { sql ->
             sql.executeInsert("""
-                INSERT INTO audit_security_changes 
+                INSERT INTO audit_security_changes
                 (asc_actor_user_id, asc_target_user_id, asc_action, asc_old_value, asc_new_value, asc_ip_address)
                 VALUES (?, ?, ?, ?, ?, ?::inet)
             """, [actorId as String, targetId as String, action, oldValue, newValue, ipAddress])
         }
     }
-    
+
     static void logAuthenticationAttempt(String confluenceUserName, String result, String ipAddress) {
         DatabaseUtil.withSql { sql ->
             sql.executeInsert("""
-                INSERT INTO audit_security_changes 
+                INSERT INTO audit_security_changes
                 (asc_actor_user_id, asc_target_user_id, asc_action, asc_old_value, asc_new_value, asc_ip_address)
                 VALUES (null, null, ?, ?, ?, ?::inet)
             """, ['AUTHENTICATION_ATTEMPT', confluenceUserName, result, ipAddress])
@@ -193,17 +209,18 @@ class AuditSecurityRepository {
 ```
 
 ### Enhanced UsersRepository with Validation
+
 ```groovy
 class EnhancedUsersRepository {
     static void validateUserPermissions(Map user) {
         def roleId = user.usr_role_id as UUID
         def isAdmin = user.user_is_admin as Boolean
-        
+
         // Get role name for validation
         def role = DatabaseUtil.withSql { sql ->
             sql.firstRow("SELECT rls_name FROM roles_rls WHERE rls_id = ?", [roleId as String])
         }
-        
+
         // Validate no conflicting permissions
         if (role?.rls_name == 'USER' && isAdmin) {
             throw new IllegalArgumentException("USER role cannot have admin privileges")
@@ -214,20 +231,21 @@ class EnhancedUsersRepository {
 ```
 
 ### API Security Enhancements
+
 ```groovy
 @BaseScript CustomEndpointDelegate delegate
 usersSecurityManagement(httpMethod: "POST", groups: ["confluence-users"]) { request, binding ->
     def currentUser = getCurrentUser()
-    
+
     // Enhanced authorization - only SUPERADMIN can modify admin flags
     if (!isUserSuperAdmin(currentUser.usr_id)) {
         return Response.status(403).entity([error: "Insufficient privileges"]).build()
     }
-    
+
     // Validation and audit logging
     EnhancedUsersRepository.validateUserPermissions(requestData)
     AuditSecurityRepository.logSecurityChange(...)
-    
+
     return Response.ok().build()
 }
 ```
@@ -235,18 +253,19 @@ usersSecurityManagement(httpMethod: "POST", groups: ["confluence-users"]) { requ
 ### Macro-Level RBAC Implementation Pattern
 
 #### Server-Side Macro Integration (Groovy)
+
 ```groovy
 // Example: IterationViewMacro.groovy implementation
 @Component
 class IterationViewMacro {
-    
+
     String execute(Map<String, String> parameters, String bodyContent, ConversionContext conversionContext) {
         def request = ((DefaultConversionContext) conversionContext).getHttpServletRequest()
-        
+
         try {
             // Immediate role retrieval - no bypass possible
             def userContext = AuthenticationService.getUserContext(request)
-            
+
             // Server-side authorization check
             if (!userContext.isAuthorized) {
                 return """
@@ -256,7 +275,7 @@ class IterationViewMacro {
                 </div>
                 """
             }
-            
+
             // Role-based feature flags determined server-side
             def configJson = new JsonBuilder([
                 user: [
@@ -273,9 +292,9 @@ class IterationViewMacro {
                     systemConfig: userContext.isSuperAdmin
                 ]
             ]).toString()
-            
+
             return buildMacroHtml(configJson, parameters)
-            
+
         } catch (SecurityException e) {
             AuditSecurityRepository.logAuthenticationAttempt(
                 "unknown", "MACRO_ACCESS_DENIED", request.remoteAddr
@@ -289,7 +308,7 @@ class IterationViewMacro {
             """
         }
     }
-    
+
     private String buildMacroHtml(String configJson, Map parameters) {
         return """
         <div class="umig-macro-container" data-macro="iteration-view">
@@ -297,7 +316,7 @@ class IterationViewMacro {
             <script type="text/javascript">
                 // Configuration passed from server-side (no client manipulation possible)
                 window.UMIGConfig = ${configJson};
-                
+
                 // Initialize macro with role-based features
                 if (typeof initializeIterationView === 'function') {
                     initializeIterationView(UMIGConfig);
@@ -310,70 +329,72 @@ class IterationViewMacro {
 ```
 
 #### Frontend JavaScript Integration Pattern
+
 ```javascript
 // IterationView frontend integration
 function initializeIterationView(config) {
-    const userRole = config.user.role;
-    const canEdit = config.user.canEdit;
-    const isAdmin = config.user.isAdmin;
-    
-    // Role-based UI rendering
-    if (canEdit) {
-        document.getElementById('editStatusButton').style.display = 'block';
-        enableStatusEditing();
-    }
-    
-    if (isAdmin) {
-        document.getElementById('adminControls').style.display = 'block';
-        enableFullControl();
-    }
-    
-    if (config.user.isSuperAdmin) {
-        document.getElementById('systemConfigPanel').style.display = 'block';
-        enableSystemConfiguration();
-    }
-    
-    // Read-only mode for NORMAL users
-    if (userRole === 'NORMAL') {
-        disableAllEditFeatures();
-        showReadOnlyMessage();
-    }
+  const userRole = config.user.role;
+  const canEdit = config.user.canEdit;
+  const isAdmin = config.user.isAdmin;
+
+  // Role-based UI rendering
+  if (canEdit) {
+    document.getElementById("editStatusButton").style.display = "block";
+    enableStatusEditing();
+  }
+
+  if (isAdmin) {
+    document.getElementById("adminControls").style.display = "block";
+    enableFullControl();
+  }
+
+  if (config.user.isSuperAdmin) {
+    document.getElementById("systemConfigPanel").style.display = "block";
+    enableSystemConfiguration();
+  }
+
+  // Read-only mode for NORMAL users
+  if (userRole === "NORMAL") {
+    disableAllEditFeatures();
+    showReadOnlyMessage();
+  }
 }
 
 // StepView role-based features
 function initializeStepView(config) {
-    const permissions = config.user.permissions;
-    
-    if (permissions.update_steps) {
-        enableProgressUpdates();
-    }
-    
-    if (permissions.manage_assignments) {
-        enableAssignmentModification();
-    }
-    
-    if (permissions.edit_templates) {
-        enableTemplateEditing();
-    }
+  const permissions = config.user.permissions;
+
+  if (permissions.update_steps) {
+    enableProgressUpdates();
+  }
+
+  if (permissions.manage_assignments) {
+    enableAssignmentModification();
+  }
+
+  if (permissions.edit_templates) {
+    enableTemplateEditing();
+  }
 }
 ```
 
 #### Differential Macro Authentication Usage Examples
 
 #### Regular Macro Implementation (PermissiveStrategy)
+
 ```groovy
 @Component
 class IterationViewMacro extends UMIGBaseMacro {
-    
+
     String execute(Map<String, String> parameters, String bodyContent, ConversionContext conversionContext) {
         def request = ((DefaultConversionContext) conversionContext).getHttpServletRequest()
-        
+
         try {
             // Use permissive strategy - auto-provision if needed
             def userContext = AuthenticationService.authenticateForMacro(MacroType.REGULAR_MACRO, request)
-            
+
             return buildRegularMacroHtml(userContext, parameters, "iteration-view")
-            
+
         } catch (SecurityException e) {
             return buildErrorResponse("IterationView", e.message)
         }
@@ -382,26 +403,27 @@ class IterationViewMacro extends UMIGBaseMacro {
 ```
 
 #### Admin GUI Macro Implementation (StrictStrategy)
+
 ```groovy
-@Component 
+@Component
 class AdminGUIMacro extends UMIGBaseMacro {
-    
+
     String execute(Map<String, String> parameters, String bodyContent, ConversionContext conversionContext) {
         def request = ((DefaultConversionContext) conversionContext).getHttpServletRequest()
-        
+
         try {
             // Use strict strategy - must exist and have ADMIN/PILOT role
             def userContext = AuthenticationService.authenticateForMacro(MacroType.ADMIN_GUI_MACRO, request)
-            
+
             return buildAdminGUIMacroHtml(userContext, parameters)
-            
+
         } catch (AccessDeniedException e) {
             return buildAccessDeniedResponse(e.message)
         } catch (SecurityException e) {
-            return buildErrorResponse("AdminGUI", e.message) 
+            return buildErrorResponse("AdminGUI", e.message)
         }
     }
-    
+
     private String buildAccessDeniedResponse(String message) {
         return """
         <div class='umig-access-denied'>
@@ -421,20 +443,21 @@ class AdminGUIMacro extends UMIGBaseMacro {
 ```
 
 ### Macro Registration Pattern
+
 ```groovy
 // Common pattern for all UMIG macros with differential authentication support
 abstract class UMIGBaseMacro implements Macro {
-    
+
     // NEW: Differential authentication based on macro type
     protected UserContext authenticateForMacroType(HttpServletRequest request, MacroType macroType) throws SecurityException {
         return AuthenticationService.authenticateForMacro(macroType, request)
     }
-    
+
     // Legacy method for backward compatibility - defaults to regular macro
     protected UserContext authenticateAndAuthorize(HttpServletRequest request) throws SecurityException {
         return authenticateForMacroType(request, MacroType.REGULAR_MACRO)
     }
-    
+
     protected String buildUnauthorizedResponse(String macroName) {
         return """
         <div class='umig-error umig-${macroName}-error'>
@@ -446,10 +469,10 @@ abstract class UMIGBaseMacro implements Macro {
         </div>
         """
     }
-    
+
     protected String buildConfigurationJson(UserContext userContext, String macroType) {
         def rolePermissions = getRolePermissionsForMacro(userContext.role, macroType)
-        
+
         return new JsonBuilder([
             user: [
                 userId: userContext.userId,
@@ -465,10 +488,10 @@ abstract class UMIGBaseMacro implements Macro {
             timestamp: new Date().time
         ]).toString()
     }
-    
+
     private Map getRolePermissionsForMacro(String role, String macroType) {
         def permissions = [:]
-        
+
         switch (macroType) {
             case 'iteration-view':
                 permissions = getIterationViewPermissions(role)
@@ -478,10 +501,10 @@ abstract class UMIGBaseMacro implements Macro {
                 break
             // Add other macro types as needed
         }
-        
+
         return permissions
     }
-    
+
     private Map getIterationViewPermissions(String role) {
         return [
             canView: ['NORMAL', 'PILOT', 'ADMIN'].contains(role),
@@ -490,7 +513,7 @@ abstract class UMIGBaseMacro implements Macro {
             canConfigureSystem: role == 'ADMIN' // && isSuperAdmin check done separately
         ]
     }
-    
+
     private Map getStepViewPermissions(String role) {
         return [
             canViewDetails: ['NORMAL', 'PILOT', 'ADMIN'].contains(role),
@@ -505,6 +528,7 @@ abstract class UMIGBaseMacro implements Macro {
 ### Differential Macro Authentication Strategy Implementation
 
 #### Strategy Pattern Architecture
+
 ```groovy
 // MacroType enum for strategy selection
 enum MacroType {
@@ -522,32 +546,32 @@ class PermissiveMacroAuthStrategy implements MacroAuthenticationStrategy {
     @Override
     UserContext authenticate(MacroType macroType, String confluenceUserName, HttpServletRequest request) throws SecurityException {
         def userContext = getUserFromDatabase(confluenceUserName)
-        
+
         if (!userContext) {
             // Auto-provision unknown users with NORMAL role
             userContext = autoProvisionUser(confluenceUserName)
             AuditSecurityRepository.logSecurityChange(
-                null, userContext.userId, 'USER_AUTO_PROVISIONED', 
+                null, userContext.userId, 'USER_AUTO_PROVISIONED',
                 null, 'NORMAL', request.remoteAddr
             )
         }
-        
+
         // Always return context for progressive feature enhancement
         return userContext
     }
-    
+
     private UserContext autoProvisionUser(String confluenceUserName) {
         def trigram = extractTrigram(confluenceUserName)
         def normalRoleId = getNormalRoleId()
-        
+
         return DatabaseUtil.withSql { sql ->
             def userId = UUID.randomUUID()
             sql.executeInsert("""
-                INSERT INTO users_usr (usr_id, usr_first_name, usr_last_name, usr_trigram, 
+                INSERT INTO users_usr (usr_id, usr_first_name, usr_last_name, usr_trigram,
                                      usr_confluence_username, usr_role_id, user_is_admin)
                 VALUES (?, ?, ?, ?, ?, ?, false)
             """, [userId as String, "Auto", "Provisioned", trigram, confluenceUserName, normalRoleId as String])
-            
+
             return buildUserContext(confluenceUserName) // Rebuild after insert
         }
     }
@@ -558,18 +582,18 @@ class StrictMacroAuthStrategy implements MacroAuthenticationStrategy {
     @Override
     UserContext authenticate(MacroType macroType, String confluenceUserName, HttpServletRequest request) throws SecurityException {
         def userContext = getUserFromDatabase(confluenceUserName)
-        
+
         if (!userContext) {
             AuditSecurityRepository.logAuthenticationAttempt(confluenceUserName, "ADMIN_GUI_REJECTED_NOT_IN_DB", request.remoteAddr)
             throw new AccessDeniedException("User not authorized for UMIG administration. Contact your system administrator.")
         }
-        
+
         // Must have ADMIN or PILOT role explicitly
         if (!["ADMIN", "PILOT"].contains(userContext.role)) {
             AuditSecurityRepository.logAuthenticationAttempt(confluenceUserName, "ADMIN_GUI_REJECTED_INSUFFICIENT_ROLE", request.remoteAddr)
             throw new AccessDeniedException("Insufficient privileges for UMIG administration. Contact your system administrator.")
         }
-        
+
         return userContext
     }
 }
@@ -583,6 +607,7 @@ class AccessDeniedException extends SecurityException {
 ```
 
 ### Enhanced AuthenticationService.groovy Implementation
+
 ```groovy
 // UserContext data class
 class UserContext {
@@ -603,7 +628,7 @@ class AuthenticationService {
     private static final Map<String, UserContext> userContextCache = [:]
     private static final int REGULAR_MACRO_CACHE_MINUTES = 10
     private static final int ADMIN_GUI_CACHE_MINUTES = 2
-    
+
     // Strategy instances
     private static final MacroAuthenticationStrategy permissiveStrategy = new PermissiveMacroAuthStrategy()
     private static final MacroAuthenticationStrategy strictStrategy = new StrictMacroAuthStrategy()
@@ -612,36 +637,36 @@ class AuthenticationService {
     static String getCurrentUser() {
         return ComponentAccessor.jiraAuthenticationContext.loggedInUser?.name ?: "anonymous"
     }
-    
+
     // NEW: Macro-specific authentication with strategy pattern
     static UserContext authenticateForMacro(MacroType macroType, javax.servlet.http.HttpServletRequest request) {
         def confluenceUser = ComponentAccessor.jiraAuthenticationContext.loggedInUser
-        
+
         if (!confluenceUser) {
             throw new SecurityException("No Confluence authentication found")
         }
-        
+
         def cacheKey = "${confluenceUser.name}_${macroType.name()}"
-        def cacheDuration = (macroType == MacroType.ADMIN_GUI_MACRO) ? 
+        def cacheDuration = (macroType == MacroType.ADMIN_GUI_MACRO) ?
             ADMIN_GUI_CACHE_MINUTES : REGULAR_MACRO_CACHE_MINUTES
         def cachedContext = getCachedUserContext(cacheKey, cacheDuration)
         if (cachedContext) {
             return cachedContext
         }
-        
+
         // Select strategy based on macro type
         def strategy = (macroType == MacroType.ADMIN_GUI_MACRO) ? strictStrategy : permissiveStrategy
-        
+
         try {
             def userContext = strategy.authenticate(macroType, confluenceUser.name, request)
             userContext.authenticatedForMacroType = macroType
-            
+
             // Cache with appropriate duration
             cacheUserContext(cacheKey, userContext)
             AuditSecurityRepository.logAuthenticationAttempt(confluenceUser.name, "SUCCESS_${macroType.name()}", request.remoteAddr)
-            
+
             return userContext
-            
+
         } catch (AccessDeniedException e) {
             // Don't cache failed admin GUI attempts
             throw e
@@ -654,28 +679,28 @@ class AuthenticationService {
     // Original two-layer authentication method (backward compatibility)
     static UserContext getUserContext(javax.servlet.http.HttpServletRequest request) {
         def confluenceUser = ComponentAccessor.jiraAuthenticationContext.loggedInUser
-        
+
         if (!confluenceUser) {
             throw new SecurityException("No Confluence authentication found")
         }
-        
+
         def cacheKey = confluenceUser.name
         def cachedContext = getCachedUserContext(cacheKey)
         if (cachedContext) {
             return cachedContext
         }
-        
+
         // Layer 2: Verify user exists in users_usr table
         def userContext = buildUserContext(confluenceUser.name)
         if (!userContext) {
             AuditSecurityRepository.logAuthenticationAttempt(confluenceUser.name, "REJECTED_NOT_IN_DB", request.remoteAddr)
             throw new SecurityException("User not authorized for UMIG application")
         }
-        
+
         // Cache for performance
         cacheUserContext(cacheKey, userContext)
         AuditSecurityRepository.logAuthenticationAttempt(confluenceUser.name, "SUCCESS", request.remoteAddr)
-        
+
         return userContext
     }
 
@@ -684,16 +709,16 @@ class AuthenticationService {
             def userRow = sql.firstRow("""
                 SELECT usr_id, usr_first_name, usr_last_name, usr_role_id, user_is_admin,
                        rls_name as role_name
-                FROM users_usr u 
-                JOIN roles_rls r ON u.usr_role_id = r.rls_id 
+                FROM users_usr u
+                JOIN roles_rls r ON u.usr_role_id = r.rls_id
                 WHERE usr_confluence_username = ?
             """, [confluenceUserName])
-            
+
             if (!userRow) return null
-            
+
             def teams = getUserTeams(userRow.usr_id as UUID)
             def permissions = buildUserPermissions(userRow.role_name, userRow.user_is_admin as Boolean, teams)
-            
+
             return new UserContext(
                 userId: userRow.usr_id as UUID,
                 userName: "${userRow.usr_first_name} ${userRow.usr_last_name}",
@@ -744,7 +769,7 @@ class AuthenticationService {
         }
         return null
     }
-    
+
     // Overload for backward compatibility
     private static UserContext getCachedUserContext(String cacheKey) {
         return getCachedUserContext(cacheKey, 5)
@@ -763,7 +788,7 @@ class AuthenticationService {
         def diffMinutes = (now.time - lastUpdated.time) / (1000 * 60)
         return diffMinutes < cacheDurationMinutes
     }
-    
+
     // Overload for backward compatibility
     private static boolean isWithinCacheDuration(Date lastUpdated) {
         return isWithinCacheDuration(lastUpdated, 5)
@@ -781,7 +806,7 @@ class AuthenticationService {
 
     private static Map<String, Boolean> buildUserPermissions(String role, Boolean isAdmin, List<String> teams) {
         def permissions = [:]
-        
+
         // Base permissions by role
         switch (role) {
             case 'ADMIN':
@@ -806,7 +831,7 @@ class AuthenticationService {
                 ])
                 break
         }
-        
+
         // SUPERADMIN gets all permissions
         if (isAdmin) {
             permissions.putAll([
@@ -815,29 +840,30 @@ class AuthenticationService {
                 'view_all_audit_logs': true
             ])
         }
-        
+
         return permissions
     }
 }
 ```
 
 ### Integration Pattern for APIs
+
 ```groovy
 @BaseScript CustomEndpointDelegate delegate
 enhancedSecureEndpoint(httpMethod: "GET", groups: ["confluence-users"]) { request, binding ->
     try {
         // Two-layer authentication
         def userContext = AuthenticationService.getUserContext(request)
-        
+
         // Role-based authorization
         if (!AuthenticationService.canAccess(request, 'view_sensitive_data')) {
             return Response.status(403).entity([error: "Insufficient permissions"]).build()
         }
-        
+
         // Proceed with business logic
         def data = SomeRepository.getSecureData(userContext.userId)
         return Response.ok(data).build()
-        
+
     } catch (SecurityException e) {
         return Response.status(401).entity([error: e.message]).build()
     }
@@ -845,10 +871,11 @@ enhancedSecureEndpoint(httpMethod: "GET", groups: ["confluence-users"]) { reques
 ```
 
 ### Row-Level Security Policies
+
 ```sql
 -- Example RLS policy for user data access
-CREATE POLICY user_data_access ON users_usr 
-    FOR ALL TO application_role 
+CREATE POLICY user_data_access ON users_usr
+    FOR ALL TO application_role
     USING (
         usr_id = current_setting('app.current_user_id')::uuid OR
         is_user_admin(current_setting('app.current_user_id')::uuid) = true
@@ -858,6 +885,7 @@ CREATE POLICY user_data_access ON users_usr
 ## Test Scenarios
 
 ### Unit Tests
+
 1. **Permission Validation Tests**
    - Test valid role/admin flag combinations
    - Test invalid combinations (USER + admin flag)
@@ -878,6 +906,7 @@ CREATE POLICY user_data_access ON users_usr
    - Test security exceptions for unauthorized users
 
 ### Integration Tests
+
 1. **API Security Tests**
    - Test role-based endpoint access
    - Test SUPERADMIN-only operations
@@ -907,6 +936,7 @@ CREATE POLICY user_data_access ON users_usr
    - Test macro error handling for authentication failures and security exceptions
 
 ### Security Tests
+
 1. **Privilege Escalation Tests**
    - Attempt to elevate USER to admin without proper authorization
    - Test role assignment bypassing validation
@@ -930,6 +960,7 @@ CREATE POLICY user_data_access ON users_usr
    - Test concurrent user session handling across multiple macro pages
 
 ### Performance Tests
+
 1. **RLS Performance Impact**
    - Benchmark query performance with RLS enabled
    - Test with large datasets
@@ -976,6 +1007,7 @@ CREATE POLICY user_data_access ON users_usr
 ## Story Points: 13
 
 **Complexity Factors:**
+
 - Multi-layer implementation (database, repository, API, authentication service, macro layer)
 - Two-layer authentication system design and implementation
 - Security-critical functionality requiring extensive testing

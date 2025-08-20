@@ -12,21 +12,25 @@ A critical data validation effort was conducted to address concerns about data a
 ## 🔍 Issues Identified
 
 ### 1. ❌ Missing Hierarchical Context
+
 **Problem**: The breadcrumb navigation was not showing Migration, Iteration, Plan, Sequence, and Phase names.  
 **Root Cause**: The `StepRepository.findStepInstanceDetailsByCode()` method was not joining through the complete hierarchy.  
 **Impact**: Users couldn't see the organizational context of steps.
 
 ### 2. ❌ Broken Team Query
+
 **Problem**: Team names were not displaying correctly.  
 **Root Cause**: SQL join error - `LEFT JOIN teams_tms tms ON :teamId = tms.tms_id` was comparing a parameter to a column instead of using proper foreign key.  
 **Impact**: Team assignments showed as NULL or incorrect values.
 
 ### 3. ❌ Missing Labels
+
 **Problem**: Step labels were not being displayed in the UI.  
 **Root Cause**: The repository method was not fetching labels at all.  
 **Impact**: Users couldn't see important categorization information.
 
 ### 4. ❌ Status ID Instead of Name
+
 **Problem**: Status dropdown was showing numeric IDs instead of readable status names.  
 **Root Cause**: No join to the status table to resolve status names.  
 **Impact**: Users saw cryptic numbers like "3" instead of "IN_PROGRESS".
@@ -69,21 +73,22 @@ def labels = findLabelsByStepId(stepInstance.sti_id)
 ## ✅ Validation Results
 
 ### Test Step: BGO-002
+
 **Location**: Migration 1 → RUN Iteration 2 → Sequence 1 → Phase 1
 
-| Data Point | Status | Verified Value |
-|------------|--------|----------------|
-| Step Code | ✅ PASS | BGO-002 |
-| Migration Name | ✅ PASS | Migration 1 |
-| Iteration Name | ✅ PASS | RUN Iteration 2 |
-| Plan Name | ✅ PASS | Available |
-| Sequence Name | ✅ PASS | Sequence 1 |
-| Phase Name | ✅ PASS | Phase 1 |
-| Team Assignment | ✅ PASS | Electronics Squad |
-| Status Name | ✅ PASS | CANCELLED |
-| Labels | ✅ PASS | 1 label with color |
-| Instructions | ✅ PASS | 2 instructions |
-| Comments | ✅ PASS | Full system working |
+| Data Point      | Status  | Verified Value      |
+| --------------- | ------- | ------------------- |
+| Step Code       | ✅ PASS | BGO-002             |
+| Migration Name  | ✅ PASS | Migration 1         |
+| Iteration Name  | ✅ PASS | RUN Iteration 2     |
+| Plan Name       | ✅ PASS | Available           |
+| Sequence Name   | ✅ PASS | Sequence 1          |
+| Phase Name      | ✅ PASS | Phase 1             |
+| Team Assignment | ✅ PASS | Electronics Squad   |
+| Status Name     | ✅ PASS | CANCELLED           |
+| Labels          | ✅ PASS | 1 label with color  |
+| Instructions    | ✅ PASS | 2 instructions      |
+| Comments        | ✅ PASS | Full system working |
 
 **Overall Result**: 100% Pass Rate - All backend data issues resolved
 

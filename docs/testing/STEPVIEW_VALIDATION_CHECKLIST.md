@@ -1,9 +1,11 @@
 # StepView UI Refactoring Validation Checklist
+
 **US-036 Phase 2 - Quality Assurance Protocol**
 
 ## Pre-Testing Validation ✅
 
 ### Environment Setup
+
 - [ ] Local development environment running (`npm start`)
 - [ ] Confluence accessible at `http://localhost:8090`
 - [ ] Database connectivity confirmed
@@ -11,6 +13,7 @@
 - [ ] Test data populated
 
 ### Code Review Checklist
+
 - [ ] **Macro File**: `/src/groovy/umig/macros/v1/stepViewMacro.groovy`
   - [ ] URL parameter role detection implemented
   - [ ] Role logic correctly handles NORMAL, PILOT, ADMIN
@@ -71,6 +74,7 @@
   - [ ] `should verify error handling and loading states`
 
 **Role-based Integration Tests**:
+
 - [ ] **NORMAL User Test** (`?role=NORMAL`)
   - [ ] Action buttons hidden
   - [ ] Bulk operations disabled
@@ -135,6 +139,7 @@
 ## Quality Gates Evaluation 🚪
 
 ### Critical Quality Gates
+
 - [ ] **Test Success Rate**: 100% (no failed tests)
 - [ ] **Performance Baseline**: Page load <3 seconds
 - [ ] **Role-based Security**: All role tests pass
@@ -143,12 +148,14 @@
 - [ ] **JavaScript Sync**: DOM manipulation working correctly
 
 ### Performance Metrics
+
 - [ ] **Load Time**: < 3000ms (target from US-028)
 - [ ] **Cache Performance**: 30-second TTL working
 - [ ] **Polling Performance**: 2-second interval not impacting UX
 - [ ] **Memory Usage**: No memory leaks detected
 
 ### Security Validation
+
 - [ ] **Role Parameter Security**: URL tampering handled safely
 - [ ] **Authentication**: Confluence authentication preserved
 - [ ] **Permission Escalation**: NORMAL users can't access ADMIN features
@@ -157,12 +164,14 @@
 ## Cross-Browser Compatibility 🌐
 
 ### Desktop Browsers
+
 - [ ] **Chrome** (Primary): Full functionality
 - [ ] **Firefox**: UI alignment and functionality
 - [ ] **Safari**: MacOS compatibility
 - [ ] **Edge**: Windows compatibility
 
 ### Mobile Browsers
+
 - [ ] **Mobile Safari**: iOS compatibility
 - [ ] **Chrome Mobile**: Android compatibility
 - [ ] **Responsive Design**: 375px viewport working
@@ -178,18 +187,21 @@
 ## Pre-Commit Final Checklist ✅
 
 ### Automated Validation
+
 - [ ] Run: `npm run test:stepview:all`
 - [ ] All tests pass (0 failures)
 - [ ] Quality gates satisfied
 - [ ] Performance benchmarks met
 
 ### Manual Verification
+
 - [ ] Visual review of screenshots
 - [ ] No visual regressions detected
 - [ ] Role-based functionality confirmed
 - [ ] Mobile layout acceptable
 
 ### Documentation Updates
+
 - [ ] Test results documented
 - [ ] Screenshots archived appropriately
 - [ ] Issues logged in backlog if any
@@ -198,6 +210,7 @@
 ## Risk Assessment & Rollback Plan 🚨
 
 ### High-Risk Areas Verified
+
 - [ ] **Role Parameter Security**: URL tampering attempts blocked
 - [ ] **JavaScript-HTML Sync**: No mismatched selectors
 - [ ] **CSS Override Conflicts**: No style conflicts with IterationView
@@ -205,6 +218,7 @@
 - [ ] **Mobile Layout**: No responsive design breakage
 
 ### Rollback Readiness
+
 - [ ] Git commit ready for revert if needed
 - [ ] Backup of previous working version available
 - [ ] Rollback procedure documented and tested
@@ -215,7 +229,7 @@
 # Quick validation (5-10 minutes)
 npm run test:us036:quick
 
-# Full comprehensive validation (15-20 minutes)  
+# Full comprehensive validation (15-20 minutes)
 npm run test:us036
 
 # Role-specific testing
@@ -235,15 +249,17 @@ node scripts/test-stepview-validation.js --full --verbose
 ## Success Criteria Summary ✅
 
 **PASS Criteria**:
+
 - ✅ 100% test pass rate (0 failures)
 - ✅ Page load time <3 seconds
 - ✅ All role-based features working
-- ✅ Mobile responsiveness confirmed  
+- ✅ Mobile responsiveness confirmed
 - ✅ CSS alignment with IterationView achieved
 - ✅ JavaScript-HTML synchronization working
 - ✅ No security vulnerabilities detected
 
 **FAIL Criteria** (Do NOT commit if any apply):
+
 - ❌ Any test failures
 - ❌ Page load time >3 seconds
 - ❌ Role-based access not working
@@ -253,8 +269,8 @@ node scripts/test-stepview-validation.js --full --verbose
 
 ---
 
-**Validation Completed**: ___/___/___ by: _____________  
+**Validation Completed**: **_/_**/**\_ by: ****\_\_\_******  
 **Quality Gate Status**: PASS ✅ / FAIL ❌  
 **Commit Approved**: YES ✅ / NO ❌
 
-*This checklist must be completed before committing US-036 Phase 2 changes.*
+_This checklist must be completed before committing US-036 Phase 2 changes._

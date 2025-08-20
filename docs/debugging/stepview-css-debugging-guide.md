@@ -7,6 +7,7 @@ This guide helps troubleshoot CSS loading and styling issues with the UMIG StepV
 ## Current Issue (August 19, 2025)
 
 **Problem**: StepView UI not displaying correctly despite:
+
 - Stack restart ✅
 - CSS file path verified ✅
 - HTML classes updated ✅
@@ -39,6 +40,7 @@ debugStepViewCSS();
 ```
 
 This will output:
+
 - CSS file loading status
 - Element existence checks
 - Computed style values
@@ -74,11 +76,11 @@ The macro includes `!important` declarations to override conflicts:
 
 ```css
 #umig-step-view-root .step-details-panel {
-    background: white !important;
-    border: 1px solid #dfe1e6 !important;
-    border-radius: 4px !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-    /* ... more styles with !important */
+  background: white !important;
+  border: 1px solid #dfe1e6 !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  /* ... more styles with !important */
 }
 ```
 
@@ -87,7 +89,8 @@ The macro includes `!important` declarations to override conflicts:
 ### Issue 1: CSS File Not Loading (404)
 
 **Symptoms**: Console shows failed CSS load
-**Solution**: 
+**Solution**:
+
 - Verify file exists at `/src/groovy/umig/web/css/iteration-view.css`
 - Check ScriptRunner web resource mapping
 - Restart Confluence if needed
@@ -96,6 +99,7 @@ The macro includes `!important` declarations to override conflicts:
 
 **Symptoms**: CSS loads successfully but no visual changes
 **Solutions**:
+
 - Check CSS selector specificity
 - Look for conflicting Confluence/AUI styles
 - Verify HTML class names match CSS selectors
@@ -105,15 +109,17 @@ The macro includes `!important` declarations to override conflicts:
 
 **Symptoms**: Colors and spacing appear incorrect
 **Solution**: Check if CSS variables are defined in the loaded stylesheet:
+
 ```javascript
 // Check in console
-getComputedStyle(document.documentElement).getPropertyValue('--color-primary');
+getComputedStyle(document.documentElement).getPropertyValue("--color-primary");
 ```
 
 ### Issue 4: Confluence AUI Override
 
 **Symptoms**: Confluence's default styles override custom styles
 **Solutions**:
+
 - Use higher specificity selectors
 - Add `!important` declarations
 - Use unique ID-based selectors (`#umig-step-view-root`)
@@ -149,6 +155,7 @@ getComputedStyle(document.documentElement).getPropertyValue('--color-primary');
 ## Support
 
 If debugging reveals the CSS is loading but styles aren't applying:
+
 - Check for Confluence theme conflicts
 - Verify ScriptRunner web resource configuration
 - Consider CSS cascade and specificity issues
@@ -156,4 +163,4 @@ If debugging reveals the CSS is loading but styles aren't applying:
 
 ---
 
-*Generated: August 19, 2025 | Version: v2.2 | US-036 CSS Debugging Enhancement*
+_Generated: August 19, 2025 | Version: v2.2 | US-036 CSS Debugging Enhancement_
