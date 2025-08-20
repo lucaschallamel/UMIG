@@ -409,7 +409,7 @@ class RealTimeSync {
   constructor(apiClient, iterationView) {
     this.apiClient = apiClient;
     this.iterationView = iterationView;
-    this.pollInterval = 2000; // 2 seconds
+    this.pollInterval = 60000; // 60 seconds
     this.isPolling = false;
     this.lastSyncTimestamp = new Date().toISOString();
     this.retryCount = 0;
@@ -459,6 +459,12 @@ class RealTimeSync {
   }
 
   async _checkForUpdates() {
+    // 🔧 FIX: Disable API polling to non-existent /steps/updates endpoint
+    // The endpoint doesn't exist and was causing continuous 404 errors every 2 seconds
+    // TODO: Implement proper /steps/updates endpoint in StepsApi.groovy if real-time sync is needed
+    console.log("RealTimeSync: Polling disabled - no /steps/updates endpoint available");
+    return; // Skip API call to prevent 404 errors
+
     const filters = this.iterationView.getCurrentFilters();
     const updates = await this.apiClient.fetchStepUpdates(
       this.lastSyncTimestamp,
