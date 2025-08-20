@@ -1115,20 +1115,24 @@ class StepViewPilotFeatures {
       </div>
     `;
 
-    // Insert bulk toolbar before instructions table
-    const instructionsTable = instructionsSection.querySelector("table.aui");
-    if (instructionsTable) {
-      instructionsTable.parentNode.insertBefore(bulkToolbar, instructionsTable);
-    }
-
-    // Add enable bulk operations toggle
+    // Add enable bulk operations toggle first
     const enableBulkBtn = document.createElement("button");
     enableBulkBtn.className = "aui-button aui-button-primary pilot-only";
     enableBulkBtn.textContent = "🚁 Enable Bulk Operations";
     enableBulkBtn.id = "enable-bulk-operations";
     enableBulkBtn.style.marginBottom = "12px";
 
-    instructionsSection.insertBefore(enableBulkBtn, bulkToolbar);
+    // Insert bulk toolbar before instructions table
+    const instructionsTable = instructionsSection.querySelector("table.aui");
+    if (instructionsTable) {
+      // Insert enable button before instructions table
+      instructionsTable.parentNode.insertBefore(enableBulkBtn, instructionsTable);
+      // Insert bulk toolbar before instructions table (after the button)
+      instructionsTable.parentNode.insertBefore(bulkToolbar, instructionsTable);
+    } else {
+      console.warn("⚠️ StepView: Instructions table not found for bulk operations UI");
+      return;
+    }
 
     // Attach event listeners
     this.attachBulkOperationListeners();
@@ -2258,9 +2262,29 @@ class StepView {
       api: { baseUrl: "/rest/scriptrunner/latest/custom" },
     };
     this.currentStepInstanceId = null;
-    this.userRole = this.config.user?.role || "NORMAL";
+    this.userRole = this.config.user?.role || null;  // null for unknown users, no fallback to NORMAL
     this.isAdmin = this.config.user?.isAdmin || false;
     this.userId = this.config.user?.id || null;
+    
+    // 🚨 CRITICAL RBAC DEBUG: Trace role detection flow
+    console.log("🔍 StepView RBAC Debug: Role Detection Analysis");
+    console.log("  📋 Raw config.user:", this.config.user);
+    console.log("  📋 config.user?.role:", this.config.user?.role);
+    console.log("  🎯 Final userRole:", this.userRole);
+    console.log("  🔑 userRole type:", typeof this.userRole);
+    console.log("  ✅ isAdmin:", this.isAdmin);
+    console.log("  ✅ userId:", this.userId);
+    
+    // Static badge condition check
+    const shouldShowStaticBadge = this.userRole === null || this.userRole === undefined;
+    console.log("  🎨 Should show static badge:", shouldShowStaticBadge);
+    console.log("  🎨 Static badge condition: userRole === null || undefined");
+    
+    if (shouldShowStaticBadge) {
+      console.log("  🏷️  RBAC Decision: Unknown user → Static badge only");
+    } else {
+      console.log("  🎛️  RBAC Decision: Known user (" + this.userRole + ") → Dropdown controls");
+    }
 
     // Initialize cache system for real-time synchronization
     this.cache = new StepViewCache();
@@ -2296,13 +2320,55 @@ class StepView {
       "🔒 StepView: Initializing RBAC system for role:",
       this.userRole,
     );
+    
+    try {
+      // Get canonical permissions matrix from single source of truth
+      this.permissions = this.getEmergencyPermissions();
 
-    // Define feature-level permissions matrix
-    this.permissions = {
+      // 🔒 Freeze permissions object for immutability and security
+      Object.freeze(this.permissions);
+
+      console.log("✅ RBAC: Permissions matrix initialized successfully with 11 features");
+    } catch (error) {
+      console.error("🚨 CRITICAL: RBAC initialization failed:", error);
+      
+      // Emergency fallback - use method to ensure consistency
+      try {
+        this.permissions = this.getEmergencyPermissions();
+        Object.freeze(this.permissions);
+        console.warn("⚠️ RBAC: Emergency fallback permissions applied");
+      } catch (fallbackError) {
+        console.error("💥 FATAL: Even emergency RBAC fallback failed:", fallbackError);
+        // Last resort minimal permissions for unknown users
+        this.permissions = {};
+        Object.freeze(this.permissions);
+      }
+    }
+
+    // Security event log for ADMIN monitoring
+    this.securityLog = [];
+
+    // Debug permission checks for unknown users - MOVED TO AFTER permissions initialization
+    if (this.userRole === null || this.userRole === undefined) {
+      console.log("🚨 RBAC Debug: Unknown user permission analysis:");
+      console.log("  🎛️  update_step_status:", this.hasPermission("update_step_status"));
+      console.log("  ✅  complete_instructions:", this.hasPermission("complete_instructions"));
+      console.log("  📝  add_comments:", this.hasPermission("add_comments"));
+      console.log("  🔧  advanced_controls:", this.hasPermission("advanced_controls"));
+      console.log("  📊  Expected: All false for unknown users");
+    }
+  }
+
+  /**
+   * Get canonical permissions matrix - single source of truth
+   * @returns {object} - Complete permissions matrix with all 11 permissions
+   */
+  getEmergencyPermissions() {
+    return {
       view_step_details: ["NORMAL", "PILOT", "ADMIN"],
       add_comments: ["NORMAL", "PILOT", "ADMIN"],
-      update_step_status: ["NORMAL", "PILOT", "ADMIN"], // ✅ UPDATED: Now includes NORMAL users
-      complete_instructions: ["NORMAL", "PILOT", "ADMIN"], // ✅ UPDATED: Now includes NORMAL users
+      update_step_status: ["NORMAL", "PILOT", "ADMIN"],
+      complete_instructions: ["NORMAL", "PILOT", "ADMIN"],
       bulk_operations: ["PILOT", "ADMIN"],
       email_step_details: ["PILOT", "ADMIN"],
       advanced_controls: ["PILOT", "ADMIN"],
@@ -2311,9 +2377,6 @@ class StepView {
       force_refresh_cache: ["PILOT", "ADMIN"],
       security_logging: ["ADMIN"],
     };
-
-    // Security event log for ADMIN monitoring
-    this.securityLog = [];
   }
 
   /**
@@ -2322,8 +2385,20 @@ class StepView {
    * @returns {boolean} - True if user has permission
    */
   hasPermission(feature) {
+    // 🛡️ DEFENSIVE: Ensure permissions object exists to prevent crashes  
+    if (!this.permissions || typeof this.permissions !== 'object') {
+      console.error('🚨 CRITICAL: permissions object is undefined - reinitializing RBAC system');
+      this.initializeRBACSystem();
+    }
+
     const allowed = this.permissions[feature] || [];
     const hasAccess = allowed.includes(this.userRole);
+
+    // 🚨 CRITICAL RBAC DEBUG: Log permission checks for unknown users
+    if (this.userRole === null || this.userRole === undefined) {
+      console.log(`🔒 Permission Check: ${feature} for unknown user (${this.userRole}) → ${hasAccess}`);
+      console.log(`   Allowed roles: [${allowed.join(', ')}]`);
+    }
 
     if (!hasAccess) {
       this.logSecurityEvent("permission_denied", {
@@ -2536,6 +2611,65 @@ class StepView {
           console.warn('Restored step instance ID after refresh:', preservedStepInstanceId);
         }
       }
+    }
+  }
+
+  /**
+   * Load step details with fresh data (bypass cache) - replicates IterationView's working pattern
+   * This method mimics how IterationView successfully refreshes comments after save
+   */
+  async loadStepDetailsWithFreshData(migrationName, iterationName, stepCode, container) {
+    try {
+      // Show loading state like IterationView does
+      container.innerHTML = `
+        <div class="aui-message aui-message-info">
+          <span class="aui-icon icon-info"></span>
+          <p>🔄 Loading step details...</p>
+        </div>
+      `;
+
+      // Make direct API call like IterationView (bypass cache entirely)
+      const stepInstanceResponse = await fetch(
+        `/rest/scriptrunner/latest/custom/steps/instance/${encodeURIComponent(this.currentStepInstanceId)}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Atlassian-Token": "no-check",
+          },
+          credentials: "same-origin",
+        }
+      );
+
+      if (!stepInstanceResponse.ok) {
+        throw new Error(`HTTP ${stepInstanceResponse.status}`);
+      }
+
+      const stepData = await stepInstanceResponse.json();
+
+      if (stepData.error) {
+        throw new Error(stepData.error);
+      }
+
+      // Transform the API response to match the expected format
+      const transformedStepData = {
+        stepSummary: stepData,
+        migrations: await this.cache.getMigrations(),
+        currentStepInstanceId: this.currentStepInstanceId
+      };
+
+      // Render the step view with fresh data (same pattern as normal load)
+      this.renderStepView(transformedStepData, container);
+      
+      console.log("✅ Step details refreshed with fresh data - comments should be visible");
+    } catch (error) {
+      console.error("Error loading fresh step details:", error);
+      container.innerHTML = `
+        <div class="aui-message aui-message-error">
+          <span class="aui-icon icon-error"></span>
+          <p>Failed to load step details: ${this.escapeHtml(error.message)}</p>
+        </div>
+      `;
     }
   }
 
@@ -2755,8 +2889,9 @@ class StepView {
         <div class="step-summary-section">
           <div class="step-status-container" style="margin-bottom: 16px;">
             <label style="font-weight: 600; margin-bottom: 4px; display: block;">Quick Status Update:</label>
-            ${!["NORMAL", "PILOT", "ADMIN"].includes(this.userRole) ? statusDisplay : ''}
+            ${this.userRole === null || this.userRole === undefined ? statusDisplay : ''}
             <select id="step-status-dropdown-summary" class="status-select pilot-only" style="display: none;" data-current-status-id="${statusId}">
+              <!-- Note: 'pilot-only' CSS class is historical - actual visibility controlled by update_step_status permission -->
               <!-- Will be populated dynamically -->
             </select>
           </div>
@@ -2936,7 +3071,7 @@ class StepView {
                 
                 <div class="comment-form pilot-only">
                     <textarea id="new-comment-text" placeholder="Add a comment..." rows="3"></textarea>
-                    <button type="button" class="aui-button aui-button-primary" id="add-comment-btn">Add Comment</button>
+                    <button type="button" class="btn btn-primary" id="add-comment-btn">Add Comment</button>
                 </div>
             </div>
         `;
@@ -3641,13 +3776,24 @@ class StepView {
         throw new Error(`Failed to add comment: ${response.status}`);
       }
 
-      // Clear the textarea and clear cache to force refresh
+      // Clear the textarea
       textarea.value = "";
-      this.cache.clearCache();
-      this.showNotification("Comment added successfully", "success");
 
-      // Immediately refresh the step details to show the new comment
-      await this.refreshStepDetails();
+      // Replicate IterationView's working pattern: direct refresh with fresh data
+      if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
+        const container = document.querySelector('.step-view-container');
+        if (container) {
+          // Force fresh data load (bypass cache) like IterationView does
+          await this.loadStepDetailsWithFreshData(
+            this.currentMigrationName,
+            this.currentIterationName,
+            this.currentStepCode,
+            container
+          );
+        }
+      }
+
+      this.showNotification("Comment added successfully", "success");
     } catch (error) {
       console.error("Error adding comment:", error);
       this.showNotification("Failed to add comment", "error");
@@ -3675,8 +3821,8 @@ class StepView {
     editContainer.innerHTML = `
             <textarea id="edit-comment-${commentId}" rows="3" style="width: 100%;">${this.escapeHtml(currentText)}</textarea>
             <div style="margin-top: 8px;">
-                <button class="aui-button aui-button-primary save-comment-btn" data-comment-id="${commentId}">Save</button>
-                <button class="aui-button cancel-comment-btn" data-comment-id="${commentId}">Cancel</button>
+                <button class="btn btn-primary btn-sm save-comment-btn" data-comment-id="${commentId}">Save</button>
+                <button class="btn btn-secondary btn-sm cancel-comment-btn" data-comment-id="${commentId}">Cancel</button>
             </div>
         `;
 
@@ -3717,7 +3863,9 @@ class StepView {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
           },
+          credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
             body: newText,
             userId: this.userId,
@@ -3729,14 +3877,20 @@ class StepView {
         throw new Error(`Failed to update comment: ${response.status}`);
       }
 
-      // Update the display
-      const bodyDiv = document.getElementById(`comment-body-${commentId}`);
-      if (bodyDiv) {
-        bodyDiv.innerHTML = this.escapeHtml(newText);
+      // Replicate IterationView's working pattern: direct refresh with fresh data
+      if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
+        const container = document.querySelector('.step-view-container');
+        if (container) {
+          // Force fresh data load (bypass cache) like IterationView does
+          await this.loadStepDetailsWithFreshData(
+            this.currentMigrationName,
+            this.currentIterationName,
+            this.currentStepCode,
+            container
+          );
+        }
       }
 
-      // Clear cache to force refresh
-      this.cache.clearCache();
       this.showNotification("Comment updated successfully", "success");
     } catch (error) {
       console.error("Error updating comment:", error);
@@ -3766,7 +3920,9 @@ class StepView {
               method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
+                "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
               },
+              credentials: "same-origin", // Include cookies for authentication
             },
           );
 
@@ -3774,11 +3930,21 @@ class StepView {
             throw new Error(`Failed to delete comment: ${response.status}`);
           }
 
-          // Clear cache to force refresh
-          this.cache.clearCache();
-          this.showNotification("Comment deleted successfully", "success");
+          // Replicate IterationView's working pattern: direct refresh with fresh data
+          if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
+            const container = document.querySelector('.step-view-container');
+            if (container) {
+              // Force fresh data load (bypass cache) like IterationView does
+              await this.loadStepDetailsWithFreshData(
+                this.currentMigrationName,
+                this.currentIterationName,
+                this.currentStepCode,
+                container
+              );
+            }
+          }
 
-          // The real-time polling will pick up the change automatically
+          this.showNotification("Comment deleted successfully", "success");
         } catch (error) {
           console.error("Error deleting comment:", error);
           this.showNotification("Failed to delete comment", "error");
@@ -3816,8 +3982,8 @@ class StepView {
             <h3 style="margin: 0 0 10px 0; color: #172B4D;">${this.escapeHtml(title)}</h3>
             <p style="margin: 0 0 20px 0; color: #5E6C84;">${this.escapeHtml(message)}</p>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button class="aui-button" id="cancel-delete-btn">Cancel</button>
-                <button class="aui-button aui-button-primary" id="confirm-delete-btn">Delete</button>
+                <button class="btn btn-secondary btn-sm" id="cancel-delete-btn">Cancel</button>
+                <button class="btn btn-primary btn-sm" id="confirm-delete-btn">Delete</button>
             </div>
         `;
 
@@ -4007,16 +4173,12 @@ class StepView {
   /**
    * Update static status badges after statuses have been fetched
    * This ensures consistency between dropdown options and static badges
-   * Only runs for users without formal roles (who see static badges)
+   * Runs for all users (static badges shown alongside dropdowns for PILOT/ADMIN)
    */
   updateStaticStatusBadges() {
-    // US-036: Only update badges for users without formal roles
-    if (["NORMAL", "PILOT", "ADMIN"].includes(this.userRole)) {
-      console.log(
-        `🔄 StepView: Skipping badge updates for ${this.userRole} user (uses dropdown instead)`,
-      );
-      return;
-    }
+    // US-036: Update badges for all users (static badges are shown alongside dropdowns)
+    
+    console.log('🔄 StepView: Updating static badges for all users');
 
     // Find all static status badges in the DOM (they have the status-badge class)
     const statusBadges = document.querySelectorAll(".status-badge");
@@ -4175,6 +4337,10 @@ class StepView {
     const impactedTeams = stepData.impactedTeams || [];
     const comments = stepData.comments || [];
 
+    // Define statusDisplay for use in the template
+    const statusId = summary.StatusID || summary.Status || "21";
+    const statusDisplay = this.createStatusBadge(statusId);
+
     // US-036 Refactored: Streamlined layout per user requirements
     let html = `
         <div class="step-info" data-sti-id="${summary.ID || ""}">
@@ -4198,10 +4364,9 @@ class StepView {
                 <div class="metadata-item">
                     <span class="label">📊 STATUS:</span>
                     <span class="value">
-                        ${!["NORMAL", "PILOT", "ADMIN"].includes(this.userRole) ? 
-                            '<span class="status-badge" style="background-color: #DDDDDD; color: #000000; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">Loading...</span>' : 
-                            ''}
+                        ${this.userRole === null || this.userRole === undefined ? statusDisplay : ''}
                         <select id="step-status-dropdown" class="status-dropdown pilot-only" data-step-id="${summary.ID || stepData.stepCode}" data-current-status-id="${summary.StatusID || summary.Status || "21"}" style="padding: 2px 8px; border-radius: 3px; margin-left: 8px; display: none;">
+                            <!-- Note: 'pilot-only' CSS class is historical - actual visibility controlled by update_step_status permission -->
                             <option value="">Loading...</option>
                         </select>
                     </span>
@@ -4314,7 +4479,7 @@ class StepView {
         `;
     }
 
-    // Add comment section with real data
+    // Add comment section with IterationView-aligned styling
     html += `
         <div class="comments-section">
             <h4>💬 COMMENTS (${comments.length})</h4>
@@ -4328,35 +4493,30 @@ class StepView {
           ? ` (${comment.author.team})`
           : "";
         html += `
-                <div class="comment-item" data-comment-id="${comment.id}">
+                <div class="comment" data-comment-id="${comment.id}">
                     <div class="comment-header">
                         <span class="comment-author">${this.escapeHtml(comment.author?.name || "Unknown")}${teamName}</span>
-                        <span class="comment-timestamp">${relativeTime}</span>
+                        <span class="comment-time">${relativeTime}</span>
+                        <div class="comment-actions">
+                            <button class="btn-edit-comment" data-comment-id="${comment.id}" title="Edit">✏️</button>
+                            <button class="btn-delete-comment" data-comment-id="${comment.id}" title="Delete">🗑️</button>
+                        </div>
                     </div>
-                    <div class="comment-body">${this.escapeHtml(comment.body || "")}</div>
+                    <div class="comment-body" id="comment-body-${comment.id}">${this.escapeHtml(comment.body || "")}</div>
                 </div>
             `;
       });
     } else {
-      html += `<p class="no-comments">No comments yet.</p>`;
+      html += `<p class="no-comments">No comments yet. Be the first to add one!</p>`;
     }
 
     html += `
             </div>
-            <div class="add-comment-section">
-                <h5>Add Comment</h5>
-                <div class="comment-form">
-                    <textarea id="new-comment-text" 
-                              class="textarea" 
-                              placeholder="Add your comment here..." 
-                              rows="3" 
-                              style="width: 100%; margin-bottom: 8px;"></textarea>
-                    <button id="add-comment-btn" 
-                            class="aui-button aui-button-primary" 
-                            type="button">
-                        Add Comment
-                    </button>
-                </div>
+            <div class="comment-form">
+                <textarea id="new-comment-text" 
+                          placeholder="Add a comment..." 
+                          rows="3"></textarea>
+                <button type="button" class="btn btn-primary" id="add-comment-btn">Add Comment</button>
             </div>
         </div>
     `;
