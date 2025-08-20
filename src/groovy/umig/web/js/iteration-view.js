@@ -99,21 +99,44 @@ class StepsAPIv2Client {
   async updateStepStatus(stepId, statusId, userRole = "NORMAL") {
     const url = `${this.baseUrl}${this.endpoint}/${stepId}/status`;
 
+    // Debug logging
+    console.log("StepsAPIv2: updateStepStatus called with:", {
+      stepId,
+      statusId,
+      statusIdType: typeof statusId,
+      parsedStatusId: parseInt(statusId),
+      url,
+      userRole,
+    });
+
     try {
+      const requestBody = {
+        statusId: parseInt(statusId), // REFACTORED: Send statusId as integer, not status name
+      };
+
+      console.log(
+        "StepsAPIv2: Sending request body:",
+        JSON.stringify(requestBody),
+      );
+
       const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
         },
-        body: JSON.stringify({
-          statusId: parseInt(statusId), // REFACTORED: Send statusId as integer, not status name
-          userRole: userRole,
-          timestamp: new Date().toISOString(),
-        }),
+        credentials: "same-origin", // Include cookies for authentication
+        body: JSON.stringify(requestBody),
       });
 
+      console.log("StepsAPIv2: Response status:", response.status);
+
       if (!response.ok) {
-        throw new Error(`Failed to update status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("StepsAPIv2: Error response body:", errorText);
+        throw new Error(
+          `Failed to update status: ${response.status} - ${errorText}`,
+        );
       }
 
       // Invalidate relevant caches
@@ -136,7 +159,9 @@ class StepsAPIv2Client {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
       },
+      credentials: "same-origin", // Include cookies for authentication
       body: JSON.stringify({
         stepIds: stepIds,
         updates: updates,
@@ -805,7 +830,10 @@ class IterationView {
   async init() {
     await this.initializeSelectors();
     this.bindEvents();
-    this.loadStatusColors();
+
+    // Load status colors asynchronously with retry logic to handle authentication timing
+    this.loadStatusColorsWithRetry();
+
     this.loadSteps();
     this.updateFilters();
   }
@@ -1268,6 +1296,53 @@ class IterationView {
   }
 
   /**
+   * Fetch status options with retry logic for authentication timing issues
+   */
+  async fetchStepStatusesWithRetry(maxRetries = 2, delayMs = 500) {
+    let retryCount = 0;
+
+    while (retryCount <= maxRetries) {
+      try {
+        const response = await fetch(
+          "/rest/scriptrunner/latest/custom/statuses/step",
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const statuses = await response.json();
+
+        // Ensure we got valid data
+        if (statuses && Array.isArray(statuses) && statuses.length > 0) {
+          console.log(
+            `fetchStepStatusesWithRetry: Successfully loaded ${statuses.length} statuses on attempt ${retryCount + 1}`,
+          );
+          return statuses;
+        } else {
+          throw new Error("Empty or invalid statuses response");
+        }
+      } catch (error) {
+        console.warn(
+          `fetchStepStatusesWithRetry: Attempt ${retryCount + 1}/${maxRetries + 1} failed:`,
+          error.message,
+        );
+
+        if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(
+            `fetchStepStatusesWithRetry: Retrying in ${delayMs}ms...`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        } else {
+          console.error(
+            "fetchStepStatusesWithRetry: All attempts failed, returning empty array",
+          );
+          return [];
+        }
+      }
+    }
+  }
+
+  /**
    * Load status colors from the API and store them for dynamic styling
    */
   async loadStatusColors() {
@@ -1298,6 +1373,59 @@ class IterationView {
   }
 
   /**
+   * Load status colors with retry logic to handle authentication timing issues
+   */
+  async loadStatusColorsWithRetry() {
+    // Start the async operation - don't block initialization
+    const loadAsync = async () => {
+      try {
+        this.statusColors = new Map();
+        const statuses = await this.fetchStepStatusesWithRetry();
+
+        // If we successfully got statuses, process them
+        if (statuses && statuses.length > 0) {
+          statuses.forEach((status) => {
+            this.statusColors.set(status.name.toUpperCase(), status.color);
+          });
+
+          console.log(
+            "loadStatusColorsWithRetry: Successfully loaded",
+            this.statusColors.size,
+            "status colors",
+          );
+
+          // Apply the colors to CSS custom properties
+          this.applyStatusColors();
+
+          // Apply the colors to step count badges
+          this.applyCounterColors();
+
+          return true; // Success
+        } else {
+          console.warn(
+            "loadStatusColorsWithRetry: No statuses returned, initializing with empty colors",
+          );
+          this.statusColors = new Map();
+          return false;
+        }
+      } catch (error) {
+        console.error(
+          "loadStatusColorsWithRetry: Failed to load status colors:",
+          error,
+        );
+        // Initialize with empty map so other methods don't fail
+        this.statusColors = new Map();
+        return false;
+      }
+    };
+
+    // Start the process asynchronously
+    loadAsync().catch((error) => {
+      console.error("loadStatusColorsWithRetry: Async loading failed:", error);
+    });
+  }
+
+  /**
    * Apply status colors to CSS custom properties
    */
   applyStatusColors() {
@@ -1320,42 +1448,66 @@ class IterationView {
     if (!dropdown) return;
 
     // Debug log to check what status is being passed
-    console.log("PopulateStatusDropdown - Current Status (raw):", currentStatus, "Type:", typeof currentStatus);
+    console.log(
+      "PopulateStatusDropdown - Current Status (raw):",
+      currentStatus,
+      "Type:",
+      typeof currentStatus,
+    );
 
-    // Fetch available statuses first to get the mapping
-    const statuses = await this.fetchStepStatuses();
-    
+    // Fetch available statuses first to get the mapping (use retry method for robustness)
+    const statuses = await this.fetchStepStatusesWithRetry();
+
     // Handle status ID to name conversion
     let currentStatusName = null;
-    
+
     if (currentStatus !== null && currentStatus !== undefined) {
-      if (typeof currentStatus === 'number') {
+      if (typeof currentStatus === "number") {
         // Current status is an ID, need to convert to name
         // Find the status object that matches this ID
-        const statusObj = statuses.find(status => status.id === currentStatus);
+        const statusObj = statuses.find(
+          (status) => status.id === currentStatus,
+        );
         if (statusObj) {
           currentStatusName = statusObj.name;
-          console.log(`PopulateStatusDropdown - Converted status ID ${currentStatus} to name: ${currentStatusName}`);
+          console.log(
+            `PopulateStatusDropdown - Converted status ID ${currentStatus} to name: ${currentStatusName}`,
+          );
         } else {
-          console.warn(`PopulateStatusDropdown - Could not find status name for ID: ${currentStatus}`);
+          console.warn(
+            `PopulateStatusDropdown - Could not find status name for ID: ${currentStatus}`,
+          );
           // Try to fetch the status name from API if not found in the list
           try {
-            const response = await fetch(`/rest/scriptrunner/latest/custom/statuses/${currentStatus}`);
+            const response = await fetch(
+              `/rest/scriptrunner/latest/custom/statuses/${currentStatus}`,
+            );
             if (response.ok) {
               const statusInfo = await response.json();
               currentStatusName = statusInfo.name;
-              console.log(`PopulateStatusDropdown - Fetched status name from API: ${currentStatusName}`);
+              console.log(
+                `PopulateStatusDropdown - Fetched status name from API: ${currentStatusName}`,
+              );
             }
           } catch (error) {
-            console.warn("PopulateStatusDropdown - Could not fetch status from API:", error);
+            console.warn(
+              "PopulateStatusDropdown - Could not fetch status from API:",
+              error,
+            );
           }
         }
-      } else if (typeof currentStatus === 'string') {
+      } else if (typeof currentStatus === "string") {
         // Current status is already a name
         currentStatusName = currentStatus;
-        console.log(`PopulateStatusDropdown - Using status name directly: ${currentStatusName}`);
+        console.log(
+          `PopulateStatusDropdown - Using status name directly: ${currentStatusName}`,
+        );
       } else {
-        console.warn("PopulateStatusDropdown - Unexpected status type:", typeof currentStatus, currentStatus);
+        console.warn(
+          "PopulateStatusDropdown - Unexpected status type:",
+          typeof currentStatus,
+          currentStatus,
+        );
       }
     }
 
@@ -1367,20 +1519,22 @@ class IterationView {
 
     // Store the current status as attributes (both name and ID for compatibility)
     dropdown.setAttribute("data-old-status", currentStatusName);
-    
+
     // Find and store the current status ID
     let currentStatusIdForStorage = null;
-    if (typeof currentStatus === 'number') {
+    if (typeof currentStatus === "number") {
       currentStatusIdForStorage = currentStatus;
     } else if (currentStatusName) {
-      const matchingStatus = statuses.find(s => 
-        (s.name || "").trim().toUpperCase() === (currentStatusName || "").trim().toUpperCase()
+      const matchingStatus = statuses.find(
+        (s) =>
+          (s.name || "").trim().toUpperCase() ===
+          (currentStatusName || "").trim().toUpperCase(),
       );
       if (matchingStatus) {
         currentStatusIdForStorage = matchingStatus.id;
       }
     }
-    
+
     if (currentStatusIdForStorage !== null) {
       dropdown.setAttribute("data-old-status-id", currentStatusIdForStorage);
     }
@@ -1400,22 +1554,26 @@ class IterationView {
 
       // Convert current status to ID for comparison if needed
       let currentStatusId = null;
-      if (typeof currentStatus === 'number') {
+      if (typeof currentStatus === "number") {
         currentStatusId = currentStatus;
-      } else if (typeof currentStatus === 'string' || currentStatusName) {
+      } else if (typeof currentStatus === "string" || currentStatusName) {
         // Find status ID by name for backward compatibility
-        const matchingStatus = statuses.find(s => 
-          (s.name || "").trim().toUpperCase() === (currentStatusName || "").trim().toUpperCase()
+        const matchingStatus = statuses.find(
+          (s) =>
+            (s.name || "").trim().toUpperCase() ===
+            (currentStatusName || "").trim().toUpperCase(),
         );
         if (matchingStatus) {
           currentStatusId = matchingStatus.id;
         }
       }
-      
+
       if (currentStatusId !== null && status.id === currentStatusId) {
         option.selected = true;
         optionSelected = true;
-        console.log(`PopulateStatusDropdown - Selected status: ${status.name} (ID: ${status.id})`);
+        console.log(
+          `PopulateStatusDropdown - Selected status: ${status.name} (ID: ${status.id})`,
+        );
       }
 
       dropdown.appendChild(option);
@@ -1423,7 +1581,10 @@ class IterationView {
 
     // Log if no option was selected
     if (!optionSelected) {
-      console.warn(`PopulateStatusDropdown - No matching status found for: ${currentStatusName}. Available statuses:`, statuses.map(s => s.name));
+      console.warn(
+        `PopulateStatusDropdown - No matching status found for: ${currentStatusName}. Available statuses:`,
+        statuses.map((s) => s.name),
+      );
     }
 
     // Set dropdown background color based on selected status
@@ -1476,11 +1637,16 @@ class IterationView {
 
     // Convert status ID to status name for API compatibility
     const selectedOption = dropdown.options[dropdown.selectedIndex];
-    const newStatus = selectedOption ? selectedOption.getAttribute("data-status-name") : null;
+    const newStatus = selectedOption
+      ? selectedOption.getAttribute("data-status-name")
+      : null;
     const oldStatus = dropdown.getAttribute("data-old-status") || "PENDING";
 
     if (!newStatus) {
-      console.error("HandleStatusChange - Could not determine status name from ID:", newStatusId);
+      console.error(
+        "HandleStatusChange - Could not determine status name from ID:",
+        newStatusId,
+      );
       return;
     }
 
@@ -1498,8 +1664,8 @@ class IterationView {
         dropdown.value = oldStatusId;
       } else {
         // Find old status ID by name for backward compatibility
-        const oldOption = Array.from(dropdown.options).find(opt => 
-          opt.getAttribute("data-status-name") === oldStatus
+        const oldOption = Array.from(dropdown.options).find(
+          (opt) => opt.getAttribute("data-status-name") === oldStatus,
         );
         if (oldOption) {
           dropdown.value = oldOption.value;
@@ -1510,7 +1676,10 @@ class IterationView {
     }
 
     // Don't do anything if status hasn't actually changed (compare by ID for robustness)
-    if (newStatusId === oldStatusId || (oldStatusId === null && newStatus === oldStatus)) {
+    if (
+      newStatusId === oldStatusId ||
+      (oldStatusId === null && newStatus === oldStatus)
+    ) {
       return;
     }
 
@@ -1700,7 +1869,9 @@ class IterationView {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
         },
+        credentials: "same-origin", // Include cookies for authentication
         body: JSON.stringify({
           userId: this.userContext?.userId || null,
         }),
@@ -1732,7 +1903,9 @@ class IterationView {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
         },
+        credentials: "same-origin", // Include cookies for authentication
         body: JSON.stringify({
           userId: this.userContext?.userId || null,
         }),
@@ -1970,7 +2143,7 @@ class IterationView {
     this.applyRoleBasedControls();
 
     // Populate the status dropdown with available options
-    this.populateStatusDropdown(summary.Status);
+    this.populateStatusDropdown(summary.StatusID);
 
     // Add event listeners for instruction checkboxes
     this.attachInstructionListeners();
@@ -2935,7 +3108,9 @@ class IterationView {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
           },
+          credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
             body: commentText,
             userId: 1, // TODO: Get actual user ID
@@ -3039,7 +3214,9 @@ class IterationView {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
           },
+          credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
             body: newText,
             userId: 1, // TODO: Get actual user ID
@@ -3092,7 +3269,9 @@ class IterationView {
               method: "DELETE",
               headers: {
                 "Content-Type": "application/json",
+                "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
               },
+              credentials: "same-origin", // Include cookies for authentication
             },
           );
 

@@ -12,77 +12,235 @@
 
 /**
  * StepView Real-time Synchronization and Caching System
- * 
+ *
  * Enhanced with intelligent caching patterns following Enhanced IterationView approach.
- * Features 30-second cache TTL and 2-second polling for real-time updates.
+ * Features 30-second cache TTL and smart 60-second polling with change detection for real-time updates.
  */
 class StepViewCache {
   constructor() {
     this.cache = new Map();
     this.cacheTTL = 30000; // 30 seconds
-    this.pollingInterval = 2000; // 2 seconds
+    this.pollingInterval = 60000; // 60 seconds - smart polling
     this.pollingTimer = null;
     this.isPolling = false;
     this.lastRefreshTime = 0;
+    this.lastDataSnapshot = null; // Store last data for comparison
+  }
+
+  /**
+   * Create a snapshot of key data fields for comparison
+   */
+  createDataSnapshot(stepData) {
+    if (!stepData) return null;
+
+    const summary = stepData.stepSummary || {};
+    const instructions = stepData.instructions || [];
+    const comments = stepData.comments || [];
+
+    return {
+      // Status information
+      status: summary.Status,
+      statusID: summary.StatusID,
+      sti_status: summary.sti_status,
+
+      // Instruction completion states
+      instructionCount: instructions.length,
+      completedInstructions: instructions.filter((i) => i.IsCompleted).length,
+      instructionStatuses: instructions.map((i) => ({
+        id: i.ID,
+        isCompleted: i.IsCompleted,
+        completedByUserName: i.CompletedByUserName,
+      })),
+
+      // Comments count and latest activity
+      commentCount: comments.length,
+      latestCommentId:
+        comments.length > 0 ? Math.max(...comments.map((c) => c.ID || 0)) : 0,
+
+      // Other relevant fields
+      lastModified: summary.LastModified || summary.last_modified,
+      version: summary.Version || summary.version || 0,
+    };
+  }
+
+  /**
+   * Compare two data snapshots to detect changes
+   */
+  hasDataChanged(newData, oldSnapshot) {
+    if (!oldSnapshot) return true; // First time, always update
+    if (!newData) return false;
+
+    const newSnapshot = this.createDataSnapshot(newData);
+    if (!newSnapshot) return false;
+
+    // Compare key fields
+    const fieldsToCompare = [
+      "status",
+      "statusID",
+      "sti_status",
+      "instructionCount",
+      "completedInstructions",
+      "commentCount",
+      "latestCommentId",
+      "lastModified",
+      "version",
+    ];
+
+    for (const field of fieldsToCompare) {
+      if (newSnapshot[field] !== oldSnapshot[field]) {
+        console.log(
+          `📊 StepView: Data change detected in ${field}:`,
+          oldSnapshot[field],
+          "→",
+          newSnapshot[field],
+        );
+        return true;
+      }
+    }
+
+    // Deep compare instruction statuses
+    if (
+      newSnapshot.instructionStatuses.length !==
+      oldSnapshot.instructionStatuses.length
+    ) {
+      console.log("📊 StepView: Instruction count changed");
+      return true;
+    }
+
+    for (let i = 0; i < newSnapshot.instructionStatuses.length; i++) {
+      const newInst = newSnapshot.instructionStatuses[i];
+      const oldInst = oldSnapshot.instructionStatuses[i];
+
+      if (
+        newInst.isCompleted !== oldInst.isCompleted ||
+        newInst.completedByUserName !== oldInst.completedByUserName
+      ) {
+        console.log("📊 StepView: Instruction completion status changed");
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
    * Get cached step data or fetch fresh if expired
    */
-  async getStepData(migrationName, iterationName, stepCode, forceRefresh = false) {
+  async getStepData(
+    migrationName,
+    iterationName,
+    stepCode,
+    forceRefresh = false,
+  ) {
     const cacheKey = `${migrationName}|${iterationName}|${stepCode}`;
     const now = Date.now();
-    
+
     if (!forceRefresh && this.cache.has(cacheKey)) {
       const cached = this.cache.get(cacheKey);
       if (now - cached.timestamp < this.cacheTTL) {
-        console.log('🎯 StepView: Using cached data');
+        console.log("🎯 StepView: Using cached data");
         return cached.data;
       }
     }
 
-    console.log('🔄 StepView: Fetching fresh data');
+    console.log("🔄 StepView: Fetching fresh data");
     return this.fetchStepData(migrationName, iterationName, stepCode);
   }
 
   /**
    * Fetch step data from API and cache it
    */
-  async fetchStepData(migrationName, iterationName, stepCode) {
+  async fetchStepData(migrationName, iterationName, stepCode, retryCount = 0) {
     const config = window.UMIG_STEP_CONFIG || {
-      api: { baseUrl: "/rest/scriptrunner/latest/custom" }
+      api: { baseUrl: "/rest/scriptrunner/latest/custom" },
     };
 
     const queryParams = new URLSearchParams({
       migrationName: migrationName,
       iterationName: iterationName,
-      stepCode: stepCode
+      stepCode: stepCode,
     });
 
-    const response = await fetch(
-      `${config.api.baseUrl}/stepViewApi/instance?${queryParams}`
-    );
+    try {
+      const response = await fetch(
+        `${config.api.baseUrl}/stepViewApi/instance?${queryParams}`,
+      );
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-      throw new Error(errorData.error || `Failed to load step: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(
+          errorData.error || `Failed to load step: ${response.status}`,
+        );
+      }
+
+      const stepData = await response.json();
+
+      // Debug logging for DUM-003 status issue - enhanced
+      if (stepCode === "DUM-003" || stepCode === "DUM") {
+        console.log(
+          "🐛 DEBUG DUM API Response - Full data structure:",
+          stepData,
+        );
+        console.log(
+          "🐛 DEBUG DUM API Response - Summary only:",
+          stepData.summary,
+        );
+        if (stepData.summary) {
+          console.log("🐛 DEBUG DUM Summary fields:", {
+            StatusID: stepData.summary.StatusID,
+            Status: stepData.summary.Status,
+            sti_status: stepData.summary.sti_status,
+            AllKeys: Object.keys(stepData.summary),
+          });
+        }
+      }
+
+      if (stepData.error) {
+        throw new Error(stepData.error);
+      }
+
+      // Success - cache the data and return it
+      const cacheKey = `${migrationName}|${iterationName}|${stepCode}`;
+      this.cache.set(cacheKey, {
+        data: stepData,
+        timestamp: Date.now(),
+      });
+
+      this.lastRefreshTime = Date.now();
+      return stepData;
+    } catch (error) {
+      // Handle transient "object can not be found" errors with retry logic
+      if (
+        retryCount < 2 &&
+        (error.message.includes("object can not be found") ||
+          error.message.includes("not be found here") ||
+          error.message.includes("HTTP 404") ||
+          error.message.includes("HTTP 500"))
+      ) {
+        console.warn(
+          `🔄 StepView: Transient error (attempt ${retryCount + 1}), retrying in ${500 * (retryCount + 1)}ms...`,
+          error.message,
+        );
+        await new Promise((resolve) =>
+          setTimeout(resolve, 500 * (retryCount + 1)),
+        ); // Progressive delay
+        return this.fetchStepData(
+          migrationName,
+          iterationName,
+          stepCode,
+          retryCount + 1,
+        );
+      }
+
+      // Log the final error for debugging
+      console.error(
+        `❌ StepView: Failed to fetch step data after ${retryCount + 1} attempts:`,
+        error.message,
+      );
+      throw error;
     }
-
-    const stepData = await response.json();
-    
-    if (stepData.error) {
-      throw new Error(stepData.error);
-    }
-
-    // Cache the data
-    const cacheKey = `${migrationName}|${iterationName}|${stepCode}`;
-    this.cache.set(cacheKey, {
-      data: stepData,
-      timestamp: Date.now()
-    });
-
-    this.lastRefreshTime = Date.now();
-    return stepData;
   }
 
   /**
@@ -90,33 +248,51 @@ class StepViewCache {
    */
   startPolling(migrationName, iterationName, stepCode, onUpdate) {
     if (this.isPolling) {
-      console.log('⚠️ StepView: Polling already active');
+      console.log("⚠️ StepView: Polling already active");
       return;
     }
 
-    console.log('🚀 StepView: Starting real-time synchronization');
+    console.log(
+      "🚀 StepView: Starting smart polling (60s interval) with change detection",
+    );
     this.isPolling = true;
+
+    // Initialize with current data snapshot
+    this.getStepData(migrationName, iterationName, stepCode, true)
+      .then((initialData) => {
+        this.lastDataSnapshot = this.createDataSnapshot(initialData);
+        console.log("📸 StepView: Initial data snapshot created");
+      })
+      .catch((error) => {
+        console.error("❌ StepView: Failed to create initial snapshot:", error);
+      });
 
     this.pollingTimer = setInterval(async () => {
       try {
         // Only poll if the page is visible
         if (document.hidden) {
+          console.log("👁️ StepView: Page hidden, skipping poll");
           return;
         }
 
-        const stepData = await this.getStepData(migrationName, iterationName, stepCode, true);
-        
-        // Check if data has changed by comparing timestamp or key fields
-        const currentHash = this.generateDataHash(stepData);
-        const previousHash = this.cache.get('lastHash');
-        
-        if (currentHash !== previousHash) {
-          console.log('📊 StepView: Data updated, refreshing UI');
-          this.cache.set('lastHash', currentHash);
+        console.log("🔍 StepView: Polling for changes...");
+        const stepData = await this.getStepData(
+          migrationName,
+          iterationName,
+          stepCode,
+          true,
+        );
+
+        // Smart change detection using data comparison
+        if (this.hasDataChanged(stepData, this.lastDataSnapshot)) {
+          console.log("📊 StepView: Data changes detected, updating UI");
+          this.lastDataSnapshot = this.createDataSnapshot(stepData);
           onUpdate(stepData);
+        } else {
+          console.log("✅ StepView: No changes detected, UI update skipped");
         }
       } catch (error) {
-        console.error('❌ StepView polling error:', error);
+        console.error("❌ StepView polling error:", error);
         // Don't stop polling on error - might be temporary network issue
       }
     }, this.pollingInterval);
@@ -131,25 +307,8 @@ class StepViewCache {
       this.pollingTimer = null;
     }
     this.isPolling = false;
-    console.log('🛑 StepView: Real-time synchronization stopped');
-  }
-
-  /**
-   * Generate simple hash of critical data for change detection
-   */
-  generateDataHash(stepData) {
-    if (!stepData || !stepData.stepSummary) {
-      return '';
-    }
-
-    const critical = {
-      status: stepData.stepSummary.Status,
-      instructionCount: stepData.instructions?.length || 0,
-      completedInstructions: stepData.instructions?.filter(i => i.IsCompleted)?.length || 0,
-      commentCount: stepData.comments?.length || 0
-    };
-
-    return JSON.stringify(critical);
+    this.lastDataSnapshot = null; // Clear data snapshot
+    console.log("🛑 StepView: Smart polling stopped and data snapshot cleared");
   }
 
   /**
@@ -157,7 +316,7 @@ class StepViewCache {
    */
   clearCache() {
     this.cache.clear();
-    console.log('🧹 StepView: Cache cleared');
+    console.log("🧹 StepView: Cache cleared");
   }
 
   /**
@@ -169,27 +328,27 @@ class StepViewCache {
       isPolling: this.isPolling,
       lastRefresh: this.lastRefreshTime,
       ttl: this.cacheTTL,
-      interval: this.pollingInterval
+      interval: this.pollingInterval,
     };
   }
 }
 
 /**
  * StepView Search and Filtering System
- * 
+ *
  * Client-side search and filtering capabilities with localStorage persistence.
  * Provides real-time filtering of instructions, comments, and step data.
  */
 class StepViewSearchFilter {
   constructor() {
     this.searchState = {
-      query: '',
-      statusFilter: 'all',
-      teamFilter: 'all',
-      completedFilter: 'all',
-      dateRange: 'all'
+      query: "",
+      statusFilter: "all",
+      teamFilter: "all",
+      completedFilter: "all",
+      dateRange: "all",
     };
-    
+
     this.loadFiltersFromStorage();
   }
 
@@ -197,14 +356,16 @@ class StepViewSearchFilter {
    * Initialize search and filter UI
    */
   initializeSearchUI() {
-    const searchContainer = document.createElement('div');
-    searchContainer.className = 'step-search-container';
+    const searchContainer = document.createElement("div");
+    searchContainer.className = "step-search-container";
     searchContainer.innerHTML = this.getSearchHTML();
 
     // Insert after step header - using new class names
-    const stepHeader = document.querySelector('.panel-header, .step-view-header');
+    const stepHeader = document.querySelector(
+      ".panel-header, .step-view-header",
+    );
     if (stepHeader) {
-      stepHeader.insertAdjacentElement('afterend', searchContainer);
+      stepHeader.insertAdjacentElement("afterend", searchContainer);
       this.attachSearchListeners();
     }
   }
@@ -238,31 +399,31 @@ class StepViewSearchFilter {
             <label for="status-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D !important; background: white !important;">Status:</label>
             <select id="status-filter" class="select">
               <option value="all">All Statuses</option>
-              <option value="PENDING" ${this.searchState.statusFilter === 'PENDING' ? 'selected' : ''}>Pending</option>
-              <option value="TODO" ${this.searchState.statusFilter === 'TODO' ? 'selected' : ''}>To Do</option>
-              <option value="IN_PROGRESS" ${this.searchState.statusFilter === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
-              <option value="COMPLETED" ${this.searchState.statusFilter === 'COMPLETED' ? 'selected' : ''}>Completed</option>
-              <option value="BLOCKED" ${this.searchState.statusFilter === 'BLOCKED' ? 'selected' : ''}>Blocked</option>
-              <option value="FAILED" ${this.searchState.statusFilter === 'FAILED' ? 'selected' : ''}>Failed</option>
+              <option value="PENDING" ${this.searchState.statusFilter === "PENDING" ? "selected" : ""}>Pending</option>
+              <option value="TODO" ${this.searchState.statusFilter === "TODO" ? "selected" : ""}>To Do</option>
+              <option value="IN_PROGRESS" ${this.searchState.statusFilter === "IN_PROGRESS" ? "selected" : ""}>In Progress</option>
+              <option value="COMPLETED" ${this.searchState.statusFilter === "COMPLETED" ? "selected" : ""}>Completed</option>
+              <option value="BLOCKED" ${this.searchState.statusFilter === "BLOCKED" ? "selected" : ""}>Blocked</option>
+              <option value="FAILED" ${this.searchState.statusFilter === "FAILED" ? "selected" : ""}>Failed</option>
             </select>
           </div>
           
           <div class="filter-group" style="background: white !important; color: #172B4D !important;">
             <label for="instruction-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D !important; background: white !important;">Instructions:</label>
             <select id="instruction-filter" class="select">
-              <option value="all" ${this.searchState.completedFilter === 'all' ? 'selected' : ''}>All Instructions</option>
-              <option value="completed" ${this.searchState.completedFilter === 'completed' ? 'selected' : ''}>Completed Only</option>
-              <option value="pending" ${this.searchState.completedFilter === 'pending' ? 'selected' : ''}>Pending Only</option>
+              <option value="all" ${this.searchState.completedFilter === "all" ? "selected" : ""}>All Instructions</option>
+              <option value="completed" ${this.searchState.completedFilter === "completed" ? "selected" : ""}>Completed Only</option>
+              <option value="pending" ${this.searchState.completedFilter === "pending" ? "selected" : ""}>Pending Only</option>
             </select>
           </div>
           
           <div class="filter-group" style="background: white !important; color: #172B4D !important;">
             <label for="date-filter" style="display: block; margin-bottom: 4px; font-weight: 600; color: #172B4D !important; background: white !important;">Comments:</label>
             <select id="date-filter" class="select">
-              <option value="all" ${this.searchState.dateRange === 'all' ? 'selected' : ''}>All Comments</option>
-              <option value="today" ${this.searchState.dateRange === 'today' ? 'selected' : ''}>Today</option>
-              <option value="week" ${this.searchState.dateRange === 'week' ? 'selected' : ''}>This Week</option>
-              <option value="month" ${this.searchState.dateRange === 'month' ? 'selected' : ''}>This Month</option>
+              <option value="all" ${this.searchState.dateRange === "all" ? "selected" : ""}>All Comments</option>
+              <option value="today" ${this.searchState.dateRange === "today" ? "selected" : ""}>Today</option>
+              <option value="week" ${this.searchState.dateRange === "week" ? "selected" : ""}>This Week</option>
+              <option value="month" ${this.searchState.dateRange === "month" ? "selected" : ""}>This Month</option>
             </select>
           </div>
         </div>
@@ -282,18 +443,18 @@ class StepViewSearchFilter {
    * Attach event listeners to search elements
    */
   attachSearchListeners() {
-    const searchInput = document.getElementById('step-search-input');
-    const toggleFilters = document.getElementById('toggle-filters');
-    const clearFilters = document.getElementById('clear-filters');
-    const statusFilter = document.getElementById('status-filter');
-    const instructionFilter = document.getElementById('instruction-filter');
-    const dateFilter = document.getElementById('date-filter');
-    const shortcuts = document.querySelectorAll('.search-shortcut');
+    const searchInput = document.getElementById("step-search-input");
+    const toggleFilters = document.getElementById("toggle-filters");
+    const clearFilters = document.getElementById("clear-filters");
+    const statusFilter = document.getElementById("status-filter");
+    const instructionFilter = document.getElementById("instruction-filter");
+    const dateFilter = document.getElementById("date-filter");
+    const shortcuts = document.querySelectorAll(".search-shortcut");
 
     // Search input with debouncing
     if (searchInput) {
       let searchTimeout;
-      searchInput.addEventListener('input', (e) => {
+      searchInput.addEventListener("input", (e) => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
           this.searchState.query = e.target.value.toLowerCase();
@@ -305,23 +466,23 @@ class StepViewSearchFilter {
 
     // Toggle advanced filters
     if (toggleFilters) {
-      toggleFilters.addEventListener('click', () => {
-        const advancedFilters = document.getElementById('advanced-filters');
-        const toggleText = toggleFilters.querySelector('.filter-toggle-text');
-        
-        if (advancedFilters.style.display === 'none') {
-          advancedFilters.style.display = 'flex';
-          toggleText.textContent = 'Hide Filters';
+      toggleFilters.addEventListener("click", () => {
+        const advancedFilters = document.getElementById("advanced-filters");
+        const toggleText = toggleFilters.querySelector(".filter-toggle-text");
+
+        if (advancedFilters.style.display === "none") {
+          advancedFilters.style.display = "flex";
+          toggleText.textContent = "Hide Filters";
         } else {
-          advancedFilters.style.display = 'none';
-          toggleText.textContent = 'Show Filters';
+          advancedFilters.style.display = "none";
+          toggleText.textContent = "Show Filters";
         }
       });
     }
 
     // Clear all filters
     if (clearFilters) {
-      clearFilters.addEventListener('click', () => {
+      clearFilters.addEventListener("click", () => {
         this.resetFilters();
         this.performSearch();
       });
@@ -329,7 +490,7 @@ class StepViewSearchFilter {
 
     // Filter dropdowns
     if (statusFilter) {
-      statusFilter.addEventListener('change', (e) => {
+      statusFilter.addEventListener("change", (e) => {
         this.searchState.statusFilter = e.target.value;
         this.performSearch();
         this.saveFiltersToStorage();
@@ -337,7 +498,7 @@ class StepViewSearchFilter {
     }
 
     if (instructionFilter) {
-      instructionFilter.addEventListener('change', (e) => {
+      instructionFilter.addEventListener("change", (e) => {
         this.searchState.completedFilter = e.target.value;
         this.performSearch();
         this.saveFiltersToStorage();
@@ -345,7 +506,7 @@ class StepViewSearchFilter {
     }
 
     if (dateFilter) {
-      dateFilter.addEventListener('change', (e) => {
+      dateFilter.addEventListener("change", (e) => {
         this.searchState.dateRange = e.target.value;
         this.performSearch();
         this.saveFiltersToStorage();
@@ -353,10 +514,10 @@ class StepViewSearchFilter {
     }
 
     // Quick search shortcuts
-    shortcuts.forEach(shortcut => {
-      shortcut.addEventListener('click', (e) => {
+    shortcuts.forEach((shortcut) => {
+      shortcut.addEventListener("click", (e) => {
         const query = e.target.dataset.query;
-        const searchInput = document.getElementById('step-search-input');
+        const searchInput = document.getElementById("step-search-input");
         if (searchInput) {
           searchInput.value = query;
           this.searchState.query = query.toLowerCase();
@@ -374,7 +535,7 @@ class StepViewSearchFilter {
     const searchResults = {
       instructions: this.filterInstructions(),
       comments: this.filterComments(),
-      summary: this.filterSummary()
+      summary: this.filterSummary(),
     };
 
     // Apply visual filtering
@@ -385,31 +546,39 @@ class StepViewSearchFilter {
     // Update search results count
     this.updateSearchResultsCount(searchResults);
 
-    console.log('🔍 StepView Search: Applied filters', searchResults);
+    console.log("🔍 StepView Search: Applied filters", searchResults);
   }
 
   /**
    * Filter instructions based on current search state
    */
   filterInstructions() {
-    const instructionRows = document.querySelectorAll('.instruction-row');
+    const instructionRows = document.querySelectorAll(".instruction-row");
     const results = [];
 
     instructionRows.forEach((row, index) => {
-      const instructionText = row.querySelector('.instruction-body')?.textContent?.toLowerCase() || '';
-      const isCompleted = row.classList.contains('completed');
-      
+      const instructionText =
+        row.querySelector(".instruction-body")?.textContent?.toLowerCase() ||
+        "";
+      const isCompleted = row.classList.contains("completed");
+
       let matches = true;
 
       // Text search
-      if (this.searchState.query && !instructionText.includes(this.searchState.query)) {
+      if (
+        this.searchState.query &&
+        !instructionText.includes(this.searchState.query)
+      ) {
         matches = false;
       }
 
       // Completion filter
-      if (this.searchState.completedFilter === 'completed' && !isCompleted) {
+      if (this.searchState.completedFilter === "completed" && !isCompleted) {
         matches = false;
-      } else if (this.searchState.completedFilter === 'pending' && isCompleted) {
+      } else if (
+        this.searchState.completedFilter === "pending" &&
+        isCompleted
+      ) {
         matches = false;
       }
 
@@ -423,26 +592,30 @@ class StepViewSearchFilter {
    * Filter comments based on current search state
    */
   filterComments() {
-    const comments = document.querySelectorAll('.comment');
+    const comments = document.querySelectorAll(".comment");
     const results = [];
 
     comments.forEach((comment, index) => {
-      const commentText = comment.querySelector('.comment-body')?.textContent?.toLowerCase() || '';
-      const authorText = comment.querySelector('.comment-author')?.textContent?.toLowerCase() || '';
-      const timeElement = comment.querySelector('.comment-time');
-      
+      const commentText =
+        comment.querySelector(".comment-body")?.textContent?.toLowerCase() ||
+        "";
+      const authorText =
+        comment.querySelector(".comment-author")?.textContent?.toLowerCase() ||
+        "";
+      const timeElement = comment.querySelector(".comment-time");
+
       let matches = true;
 
       // Text search (search in both comment body and author)
       if (this.searchState.query) {
-        const searchText = commentText + ' ' + authorText;
+        const searchText = commentText + " " + authorText;
         if (!searchText.includes(this.searchState.query)) {
           matches = false;
         }
       }
 
       // Date filter
-      if (this.searchState.dateRange !== 'all' && timeElement) {
+      if (this.searchState.dateRange !== "all" && timeElement) {
         const commentTime = this.parseTimeAgo(timeElement.textContent);
         if (!this.isWithinDateRange(commentTime, this.searchState.dateRange)) {
           matches = false;
@@ -459,22 +632,30 @@ class StepViewSearchFilter {
    * Filter summary information
    */
   filterSummary() {
-    const summarySection = document.querySelector('.step-summary-section');
+    const summarySection = document.querySelector(".step-summary-section");
     if (!summarySection) return { element: null, matches: true };
 
-    const summaryText = summarySection.textContent?.toLowerCase() || '';
-    const currentStatus = document.querySelector('.step-status-container span')?.textContent?.toLowerCase() || '';
-    
+    const summaryText = summarySection.textContent?.toLowerCase() || "";
+    const currentStatus =
+      document
+        .querySelector(".step-status-container span")
+        ?.textContent?.toLowerCase() || "";
+
     let matches = true;
 
     // Text search
-    if (this.searchState.query && !summaryText.includes(this.searchState.query)) {
+    if (
+      this.searchState.query &&
+      !summaryText.includes(this.searchState.query)
+    ) {
       matches = false;
     }
 
     // Status filter
-    if (this.searchState.statusFilter !== 'all' && 
-        !currentStatus.includes(this.searchState.statusFilter.toLowerCase())) {
+    if (
+      this.searchState.statusFilter !== "all" &&
+      !currentStatus.includes(this.searchState.statusFilter.toLowerCase())
+    ) {
       matches = false;
     }
 
@@ -485,29 +666,34 @@ class StepViewSearchFilter {
    * Apply visual filtering to instructions
    */
   applyInstructionFiltering(results) {
-    results.forEach(result => {
+    results.forEach((result) => {
       if (result.matches) {
-        result.element.style.display = '';
-        result.element.classList.remove('filtered-out');
-        
+        result.element.style.display = "";
+        result.element.classList.remove("filtered-out");
+
         // Highlight search terms
         if (this.searchState.query) {
-          this.highlightSearchTerm(result.element.querySelector('.instruction-body'), this.searchState.query);
+          this.highlightSearchTerm(
+            result.element.querySelector(".instruction-body"),
+            this.searchState.query,
+          );
         } else {
-          this.removeHighlights(result.element.querySelector('.instruction-body'));
+          this.removeHighlights(
+            result.element.querySelector(".instruction-body"),
+          );
         }
       } else {
-        result.element.style.display = 'none';
-        result.element.classList.add('filtered-out');
+        result.element.style.display = "none";
+        result.element.classList.add("filtered-out");
       }
     });
 
     // Show/hide instructions table
-    const instructionsSection = document.querySelector('.instructions-section');
-    const visibleInstructions = results.filter(r => r.matches).length;
-    
+    const instructionsSection = document.querySelector(".instructions-section");
+    const visibleInstructions = results.filter((r) => r.matches).length;
+
     if (visibleInstructions === 0 && this.searchState.query) {
-      this.showNoResultsMessage(instructionsSection, 'instructions');
+      this.showNoResultsMessage(instructionsSection, "instructions");
     } else {
       this.removeNoResultsMessage(instructionsSection);
     }
@@ -517,30 +703,38 @@ class StepViewSearchFilter {
    * Apply visual filtering to comments
    */
   applyCommentFiltering(results) {
-    results.forEach(result => {
+    results.forEach((result) => {
       if (result.matches) {
-        result.element.style.display = '';
-        result.element.classList.remove('filtered-out');
-        
+        result.element.style.display = "";
+        result.element.classList.remove("filtered-out");
+
         // Highlight search terms
         if (this.searchState.query) {
-          this.highlightSearchTerm(result.element.querySelector('.comment-body'), this.searchState.query);
-          this.highlightSearchTerm(result.element.querySelector('.comment-author'), this.searchState.query);
+          this.highlightSearchTerm(
+            result.element.querySelector(".comment-body"),
+            this.searchState.query,
+          );
+          this.highlightSearchTerm(
+            result.element.querySelector(".comment-author"),
+            this.searchState.query,
+          );
         } else {
-          this.removeHighlights(result.element.querySelector('.comment-body'));
-          this.removeHighlights(result.element.querySelector('.comment-author'));
+          this.removeHighlights(result.element.querySelector(".comment-body"));
+          this.removeHighlights(
+            result.element.querySelector(".comment-author"),
+          );
         }
       } else {
-        result.element.style.display = 'none';
-        result.element.classList.add('filtered-out');
+        result.element.style.display = "none";
+        result.element.classList.add("filtered-out");
       }
     });
 
     // Update comment count display
-    const commentsHeader = document.querySelector('.comments-section h3');
-    const visibleComments = results.filter(r => r.matches).length;
+    const commentsHeader = document.querySelector(".comments-section h3");
+    const visibleComments = results.filter((r) => r.matches).length;
     const totalComments = results.length;
-    
+
     if (commentsHeader) {
       if (visibleComments < totalComments) {
         commentsHeader.textContent = `💬 COMMENTS (${visibleComments}/${totalComments})`;
@@ -557,24 +751,24 @@ class StepViewSearchFilter {
     if (!result.element) return;
 
     if (result.matches) {
-      result.element.style.display = '';
-      result.element.classList.remove('filtered-out');
-      
+      result.element.style.display = "";
+      result.element.classList.remove("filtered-out");
+
       // Highlight search terms in summary
       if (this.searchState.query) {
-        const textElements = result.element.querySelectorAll('td, th');
-        textElements.forEach(el => {
+        const textElements = result.element.querySelectorAll("td, th");
+        textElements.forEach((el) => {
           if (el.textContent.toLowerCase().includes(this.searchState.query)) {
             this.highlightSearchTerm(el, this.searchState.query);
           }
         });
       } else {
-        const textElements = result.element.querySelectorAll('td, th');
-        textElements.forEach(el => this.removeHighlights(el));
+        const textElements = result.element.querySelectorAll("td, th");
+        textElements.forEach((el) => this.removeHighlights(el));
       }
     } else {
-      result.element.style.opacity = '0.3';
-      result.element.classList.add('filtered-out');
+      result.element.style.opacity = "0.3";
+      result.element.classList.add("filtered-out");
     }
   }
 
@@ -588,9 +782,12 @@ class StepViewSearchFilter {
     this.removeHighlights(element);
 
     const text = element.textContent;
-    const regex = new RegExp(`(${this.escapeRegex(searchTerm)})`, 'gi');
-    const highlightedText = text.replace(regex, '<mark style="background: #fff2cc; padding: 1px 2px;">$1</mark>');
-    
+    const regex = new RegExp(`(${this.escapeRegex(searchTerm)})`, "gi");
+    const highlightedText = text.replace(
+      regex,
+      '<mark style="background: #fff2cc; padding: 1px 2px;">$1</mark>',
+    );
+
     if (highlightedText !== text) {
       element.innerHTML = highlightedText;
     }
@@ -601,9 +798,9 @@ class StepViewSearchFilter {
    */
   removeHighlights(element) {
     if (!element) return;
-    
-    const marks = element.querySelectorAll('mark');
-    marks.forEach(mark => {
+
+    const marks = element.querySelectorAll("mark");
+    marks.forEach((mark) => {
       mark.outerHTML = mark.textContent;
     });
   }
@@ -615,15 +812,15 @@ class StepViewSearchFilter {
     if (!container) return;
 
     this.removeNoResultsMessage(container);
-    
-    const noResultsDiv = document.createElement('div');
-    noResultsDiv.className = 'no-search-results';
+
+    const noResultsDiv = document.createElement("div");
+    noResultsDiv.className = "no-search-results";
     noResultsDiv.innerHTML = `
       <p style="padding: 16px; color: #6B778C; font-style: italic; text-align: center;">
         No ${type} match your search criteria. Try adjusting your filters or search terms.
       </p>
     `;
-    
+
     container.appendChild(noResultsDiv);
   }
 
@@ -632,8 +829,8 @@ class StepViewSearchFilter {
    */
   removeNoResultsMessage(container) {
     if (!container) return;
-    
-    const existingMessage = container.querySelector('.no-search-results');
+
+    const existingMessage = container.querySelector(".no-search-results");
     if (existingMessage) {
       existingMessage.remove();
     }
@@ -643,28 +840,31 @@ class StepViewSearchFilter {
    * Update search results count display
    */
   updateSearchResultsCount(results) {
-    const countElement = document.querySelector('.search-results-count');
+    const countElement = document.querySelector(".search-results-count");
     if (!countElement) return;
 
-    const visibleInstructions = results.instructions.filter(r => r.matches).length;
+    const visibleInstructions = results.instructions.filter(
+      (r) => r.matches,
+    ).length;
     const totalInstructions = results.instructions.length;
-    const visibleComments = results.comments.filter(r => r.matches).length;
+    const visibleComments = results.comments.filter((r) => r.matches).length;
     const totalComments = results.comments.length;
 
     if (this.searchState.query || this.hasActiveFilters()) {
       const parts = [];
-      
+
       if (totalInstructions > 0) {
         parts.push(`${visibleInstructions}/${totalInstructions} instructions`);
       }
-      
+
       if (totalComments > 0) {
         parts.push(`${visibleComments}/${totalComments} comments`);
       }
 
-      countElement.textContent = parts.length > 0 ? `Found: ${parts.join(', ')}` : '';
+      countElement.textContent =
+        parts.length > 0 ? `Found: ${parts.join(", ")}` : "";
     } else {
-      countElement.textContent = '';
+      countElement.textContent = "";
     }
   }
 
@@ -672,9 +872,11 @@ class StepViewSearchFilter {
    * Check if any filters are active
    */
   hasActiveFilters() {
-    return this.searchState.statusFilter !== 'all' || 
-           this.searchState.completedFilter !== 'all' || 
-           this.searchState.dateRange !== 'all';
+    return (
+      this.searchState.statusFilter !== "all" ||
+      this.searchState.completedFilter !== "all" ||
+      this.searchState.dateRange !== "all"
+    );
   }
 
   /**
@@ -682,23 +884,23 @@ class StepViewSearchFilter {
    */
   resetFilters() {
     this.searchState = {
-      query: '',
-      statusFilter: 'all',
-      teamFilter: 'all',
-      completedFilter: 'all',
-      dateRange: 'all'
+      query: "",
+      statusFilter: "all",
+      teamFilter: "all",
+      completedFilter: "all",
+      dateRange: "all",
     };
 
     // Reset UI elements
-    const searchInput = document.getElementById('step-search-input');
-    const statusFilter = document.getElementById('status-filter');
-    const instructionFilter = document.getElementById('instruction-filter');
-    const dateFilter = document.getElementById('date-filter');
+    const searchInput = document.getElementById("step-search-input");
+    const statusFilter = document.getElementById("status-filter");
+    const instructionFilter = document.getElementById("instruction-filter");
+    const dateFilter = document.getElementById("date-filter");
 
-    if (searchInput) searchInput.value = '';
-    if (statusFilter) statusFilter.value = 'all';
-    if (instructionFilter) instructionFilter.value = 'all';
-    if (dateFilter) dateFilter.value = 'all';
+    if (searchInput) searchInput.value = "";
+    if (statusFilter) statusFilter.value = "all";
+    if (instructionFilter) instructionFilter.value = "all";
+    if (dateFilter) dateFilter.value = "all";
 
     this.saveFiltersToStorage();
   }
@@ -708,34 +910,34 @@ class StepViewSearchFilter {
    */
   parseTimeAgo(timeString) {
     const now = new Date();
-    
-    if (timeString.includes('just now')) {
+
+    if (timeString.includes("just now")) {
       return now;
     }
-    
+
     const match = timeString.match(/(\d+)\s+(minute|hour|day|week)s?\s+ago/);
     if (!match) return now;
-    
+
     const value = parseInt(match[1]);
     const unit = match[2];
-    
+
     const result = new Date(now);
-    
+
     switch (unit) {
-      case 'minute':
+      case "minute":
         result.setMinutes(result.getMinutes() - value);
         break;
-      case 'hour':
+      case "hour":
         result.setHours(result.getHours() - value);
         break;
-      case 'day':
+      case "day":
         result.setDate(result.getDate() - value);
         break;
-      case 'week':
-        result.setDate(result.getDate() - (value * 7));
+      case "week":
+        result.setDate(result.getDate() - value * 7);
         break;
     }
-    
+
     return result;
   }
 
@@ -745,15 +947,15 @@ class StepViewSearchFilter {
   isWithinDateRange(date, range) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
+
     switch (range) {
-      case 'today':
+      case "today":
         return date >= today;
-      case 'week':
+      case "week":
         const weekAgo = new Date(today);
         weekAgo.setDate(weekAgo.getDate() - 7);
         return date >= weekAgo;
-      case 'month':
+      case "month":
         const monthAgo = new Date(today);
         monthAgo.setMonth(monthAgo.getMonth() - 1);
         return date >= monthAgo;
@@ -767,9 +969,12 @@ class StepViewSearchFilter {
    */
   saveFiltersToStorage() {
     try {
-      localStorage.setItem('umig-stepview-filters', JSON.stringify(this.searchState));
+      localStorage.setItem(
+        "umig-stepview-filters",
+        JSON.stringify(this.searchState),
+      );
     } catch (error) {
-      console.warn('Failed to save search filters to localStorage:', error);
+      console.warn("Failed to save search filters to localStorage:", error);
     }
   }
 
@@ -778,13 +983,13 @@ class StepViewSearchFilter {
    */
   loadFiltersFromStorage() {
     try {
-      const saved = localStorage.getItem('umig-stepview-filters');
+      const saved = localStorage.getItem("umig-stepview-filters");
       if (saved) {
         const parsed = JSON.parse(saved);
         this.searchState = { ...this.searchState, ...parsed };
       }
     } catch (error) {
-      console.warn('Failed to load search filters from localStorage:', error);
+      console.warn("Failed to load search filters from localStorage:", error);
     }
   }
 
@@ -792,7 +997,7 @@ class StepViewSearchFilter {
    * Escape special regex characters
    */
   escapeRegex(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   /**
@@ -806,7 +1011,7 @@ class StepViewSearchFilter {
 
 /**
  * StepView PILOT User Features
- * 
+ *
  * Advanced features for PILOT and ADMIN users including bulk operations,
  * advanced controls, and enhanced security validation.
  */
@@ -822,25 +1027,28 @@ class StepViewPilotFeatures {
    */
   initializePilotFeatures() {
     const userRole = this.stepView.userRole;
-    
-    if (!['PILOT', 'ADMIN'].includes(userRole)) {
-      console.log('🔒 StepView: PILOT features disabled for user role:', userRole);
+
+    if (!["PILOT", "ADMIN"].includes(userRole)) {
+      console.log(
+        "🔒 StepView: PILOT features disabled for user role:",
+        userRole,
+      );
       return;
     }
 
-    console.log('🚁 StepView: Initializing PILOT features for role:', userRole);
-    
+    console.log("🚁 StepView: Initializing PILOT features for role:", userRole);
+
     // Add bulk operations UI
     this.addBulkOperationsUI();
-    
+
     // Add advanced controls
     this.addAdvancedControls();
-    
+
     // Add keyboard shortcuts
     this.addKeyboardShortcuts();
-    
+
     // Add debug information panel
-    if (userRole === 'ADMIN') {
+    if (userRole === "ADMIN") {
       this.addDebugPanel();
     }
   }
@@ -849,12 +1057,12 @@ class StepViewPilotFeatures {
    * Add bulk operations interface
    */
   addBulkOperationsUI() {
-    const instructionsSection = document.querySelector('.instructions-section');
+    const instructionsSection = document.querySelector(".instructions-section");
     if (!instructionsSection) return;
 
     // Create bulk operations toolbar
-    const bulkToolbar = document.createElement('div');
-    bulkToolbar.className = 'pilot-bulk-toolbar';
+    const bulkToolbar = document.createElement("div");
+    bulkToolbar.className = "pilot-bulk-toolbar";
     bulkToolbar.innerHTML = `
       <div class="bulk-toolbar-content" style="display: none; padding: 12px; background: #e8f4fd; border: 1px solid #0052cc; border-radius: 4px; margin-bottom: 16px;">
         <div class="bulk-toolbar-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
@@ -895,18 +1103,18 @@ class StepViewPilotFeatures {
     `;
 
     // Insert bulk toolbar before instructions table
-    const instructionsTable = instructionsSection.querySelector('table.aui');
+    const instructionsTable = instructionsSection.querySelector("table.aui");
     if (instructionsTable) {
       instructionsTable.parentNode.insertBefore(bulkToolbar, instructionsTable);
     }
 
     // Add enable bulk operations toggle
-    const enableBulkBtn = document.createElement('button');
-    enableBulkBtn.className = 'aui-button aui-button-primary pilot-only';
-    enableBulkBtn.textContent = '🚁 Enable Bulk Operations';
-    enableBulkBtn.id = 'enable-bulk-operations';
-    enableBulkBtn.style.marginBottom = '12px';
-    
+    const enableBulkBtn = document.createElement("button");
+    enableBulkBtn.className = "aui-button aui-button-primary pilot-only";
+    enableBulkBtn.textContent = "🚁 Enable Bulk Operations";
+    enableBulkBtn.id = "enable-bulk-operations";
+    enableBulkBtn.style.marginBottom = "12px";
+
     instructionsSection.insertBefore(enableBulkBtn, bulkToolbar);
 
     // Attach event listeners
@@ -917,12 +1125,14 @@ class StepViewPilotFeatures {
    * Add advanced controls for PILOT users
    */
   addAdvancedControls() {
-    const stepHeader = document.querySelector('.panel-header, .step-view-header');
+    const stepHeader = document.querySelector(
+      ".panel-header, .step-view-header",
+    );
     if (!stepHeader) return;
 
     // Add advanced controls panel
-    const advancedControls = document.createElement('div');
-    advancedControls.className = 'pilot-advanced-controls';
+    const advancedControls = document.createElement("div");
+    advancedControls.className = "pilot-advanced-controls";
     advancedControls.innerHTML = `
       <div class="advanced-controls-panel pilot-only" style="margin-top: 12px; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px;">
         <h5 style="margin: 0 0 8px 0; color: #856404;">⚙️ Advanced Controls</h5>
@@ -938,6 +1148,9 @@ class StepViewPilotFeatures {
           </button>
           <button type="button" class="aui-button aui-button-subtle" id="step-history">
             📈 View History
+          </button>
+          <button type="button" class="aui-button aui-button-subtle" id="email-step-details" title="Email step details to stakeholders">
+            📧 Email Step Details
           </button>
           <button type="button" class="aui-button aui-button-subtle admin-only" id="edit-step-metadata">
             ⚙️ Edit Metadata
@@ -956,37 +1169,57 @@ class StepViewPilotFeatures {
    * Add keyboard shortcuts for power users
    */
   addKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener("keydown", (e) => {
       // Only handle shortcuts when not in input fields
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) {
         return;
       }
 
-      // Ctrl/Cmd + shortcuts
+      // Ctrl/Cmd + shortcuts (Extended shortcuts for PILOT/ADMIN users)
       if (e.ctrlKey || e.metaKey) {
         switch (e.key.toLowerCase()) {
-          case 'a':
-            e.preventDefault();
-            this.selectAllInstructions();
+          case "a":
+            // Select all instructions - requires bulk operations permission
+            if (this.hasPermission("bulk_operations")) {
+              e.preventDefault();
+              this.selectAllInstructions();
+            }
             break;
-          case 'r':
-            e.preventDefault();
-            this.forceRefreshData();
+          case "r":
+            // Force refresh - requires force refresh permission
+            if (this.hasPermission("force_refresh_cache")) {
+              e.preventDefault();
+              this.forceRefreshData();
+            }
             break;
-          case 'e':
-            e.preventDefault();
-            this.exportStepData();
+          case "e":
+            // Export data - requires advanced controls permission
+            if (this.hasPermission("advanced_controls")) {
+              e.preventDefault();
+              this.exportStepData();
+            }
             break;
-          case 'f':
+          case "f":
+            // Focus search - available to all users (basic functionality)
             e.preventDefault();
             this.focusSearchInput();
+            break;
+          case "m":
+            // Email step details - requires email permission (PILOT/ADMIN only)
+            if (
+              this.hasPermission("email_step_details") &&
+              this.pilotFeatures
+            ) {
+              e.preventDefault();
+              this.pilotFeatures.emailStepDetails();
+            }
             break;
         }
       }
 
       // Other shortcuts
       switch (e.key) {
-        case 'Escape':
+        case "Escape":
           this.clearSelection();
           this.closeModals();
           break;
@@ -1001,8 +1234,8 @@ class StepViewPilotFeatures {
    * Add debug panel for ADMIN users
    */
   addDebugPanel() {
-    const debugPanel = document.createElement('div');
-    debugPanel.className = 'admin-debug-panel';
+    const debugPanel = document.createElement("div");
+    debugPanel.className = "admin-debug-panel";
     debugPanel.innerHTML = `
       <div class="debug-panel admin-only" style="position: fixed; bottom: 20px; right: 20px; width: 300px; background: #1e1e1e; color: #fff; padding: 12px; border-radius: 4px; font-family: monospace; font-size: 11px; z-index: 8888; max-height: 200px; overflow-y: auto;">
         <div class="debug-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -1014,7 +1247,7 @@ class StepViewPilotFeatures {
           <div class="debug-item">Polling: <span id="debug-polling-status">Loading...</span></div>
           <div class="debug-item">Last Sync: <span id="debug-last-sync">Loading...</span></div>
           <div class="debug-item">User Role: <span id="debug-user-role">${this.stepView.userRole}</span></div>
-          <div class="debug-item">Step ID: <span id="debug-step-id">${this.stepView.currentStepInstanceId || 'None'}</span></div>
+          <div class="debug-item">Step ID: <span id="debug-step-id">${this.stepView.currentStepInstanceId || "None"}</span></div>
           <div class="debug-item">Selection: <span id="debug-selection-count">0 items</span></div>
         </div>
       </div>
@@ -1028,9 +1261,11 @@ class StepViewPilotFeatures {
     }, 2000);
 
     // Close debug panel listener
-    document.getElementById('close-debug-panel')?.addEventListener('click', () => {
-      debugPanel.remove();
-    });
+    document
+      .getElementById("close-debug-panel")
+      ?.addEventListener("click", () => {
+        debugPanel.remove();
+      });
   }
 
   /**
@@ -1038,60 +1273,91 @@ class StepViewPilotFeatures {
    */
   attachBulkOperationListeners() {
     // Enable bulk operations toggle
-    document.getElementById('enable-bulk-operations')?.addEventListener('click', () => {
-      this.toggleBulkOperations();
-    });
+    document
+      .getElementById("enable-bulk-operations")
+      ?.addEventListener("click", () => {
+        this.toggleBulkOperations();
+      });
 
     // Bulk action buttons
-    document.getElementById('bulk-complete-btn')?.addEventListener('click', () => {
-      this.performBulkOperation('complete');
-    });
+    document
+      .getElementById("bulk-complete-btn")
+      ?.addEventListener("click", () => {
+        this.performBulkOperation("complete");
+      });
 
-    document.getElementById('bulk-incomplete-btn')?.addEventListener('click', () => {
-      this.performBulkOperation('incomplete');
-    });
+    document
+      .getElementById("bulk-incomplete-btn")
+      ?.addEventListener("click", () => {
+        this.performBulkOperation("incomplete");
+      });
 
-    document.getElementById('bulk-duplicate-btn')?.addEventListener('click', () => {
-      this.performBulkOperation('duplicate');
-    });
+    document
+      .getElementById("bulk-duplicate-btn")
+      ?.addEventListener("click", () => {
+        this.performBulkOperation("duplicate");
+      });
 
-    document.getElementById('bulk-export-btn')?.addEventListener('click', () => {
-      this.performBulkOperation('export');
-    });
+    document
+      .getElementById("bulk-export-btn")
+      ?.addEventListener("click", () => {
+        this.performBulkOperation("export");
+      });
 
     // Selection controls
-    document.getElementById('bulk-select-all')?.addEventListener('click', () => {
-      this.selectAllInstructions();
-    });
+    document
+      .getElementById("bulk-select-all")
+      ?.addEventListener("click", () => {
+        this.selectAllInstructions();
+      });
 
-    document.getElementById('bulk-clear-selection')?.addEventListener('click', () => {
-      this.clearSelection();
-    });
+    document
+      .getElementById("bulk-clear-selection")
+      ?.addEventListener("click", () => {
+        this.clearSelection();
+      });
   }
 
   /**
    * Attach event listeners for advanced controls
    */
   attachAdvancedControlListeners() {
-    document.getElementById('refresh-step-data')?.addEventListener('click', () => {
-      this.forceRefreshData();
-    });
+    document
+      .getElementById("refresh-step-data")
+      ?.addEventListener("click", () => {
+        this.forceRefreshData();
+      });
 
-    document.getElementById('export-step-data')?.addEventListener('click', () => {
-      this.exportStepData();
-    });
+    document
+      .getElementById("export-step-data")
+      ?.addEventListener("click", () => {
+        this.exportStepData();
+      });
 
-    document.getElementById('clone-step')?.addEventListener('click', () => {
+    document.getElementById("clone-step")?.addEventListener("click", () => {
       this.cloneStep();
     });
 
-    document.getElementById('step-history')?.addEventListener('click', () => {
+    document.getElementById("step-history")?.addEventListener("click", () => {
       this.showStepHistory();
     });
 
-    document.getElementById('edit-step-metadata')?.addEventListener('click', () => {
-      this.editStepMetadata();
-    });
+    document
+      .getElementById("email-step-details")
+      ?.addEventListener("click", () => {
+        if (
+          this.validatePermission("email_step_details", "email step details") &&
+          this.pilotFeatures
+        ) {
+          this.pilotFeatures.emailStepDetails();
+        }
+      });
+
+    document
+      .getElementById("edit-step-metadata")
+      ?.addEventListener("click", () => {
+        this.editStepMetadata();
+      });
   }
 
   /**
@@ -1099,28 +1365,28 @@ class StepViewPilotFeatures {
    */
   toggleBulkOperations() {
     this.bulkOperationsEnabled = !this.bulkOperationsEnabled;
-    const toggleBtn = document.getElementById('enable-bulk-operations');
-    const bulkToolbar = document.querySelector('.bulk-toolbar-content');
+    const toggleBtn = document.getElementById("enable-bulk-operations");
+    const bulkToolbar = document.querySelector(".bulk-toolbar-content");
 
     if (this.bulkOperationsEnabled) {
-      toggleBtn.textContent = '❌ Disable Bulk Operations';
-      toggleBtn.className = 'aui-button pilot-only';
-      bulkToolbar.style.display = 'block';
-      
+      toggleBtn.textContent = "❌ Disable Bulk Operations";
+      toggleBtn.className = "aui-button pilot-only";
+      bulkToolbar.style.display = "block";
+
       // Add checkboxes to instruction rows
       this.addInstructionCheckboxes();
-      
-      this.stepView.showNotification('Bulk operations enabled', 'info');
+
+      this.stepView.showNotification("Bulk operations enabled", "info");
     } else {
-      toggleBtn.textContent = '🚁 Enable Bulk Operations';
-      toggleBtn.className = 'aui-button aui-button-primary pilot-only';
-      bulkToolbar.style.display = 'none';
-      
+      toggleBtn.textContent = "🚁 Enable Bulk Operations";
+      toggleBtn.className = "aui-button aui-button-primary pilot-only";
+      bulkToolbar.style.display = "none";
+
       // Remove checkboxes
       this.removeInstructionCheckboxes();
       this.clearSelection();
-      
-      this.stepView.showNotification('Bulk operations disabled', 'info');
+
+      this.stepView.showNotification("Bulk operations disabled", "info");
     }
   }
 
@@ -1128,35 +1394,36 @@ class StepViewPilotFeatures {
    * Add checkboxes to instruction rows for bulk selection
    */
   addInstructionCheckboxes() {
-    const instructionRows = document.querySelectorAll('.instruction-row');
-    
-    instructionRows.forEach(row => {
-      const instructionId = row.querySelector('.instruction-checkbox')?.dataset?.instructionId;
+    const instructionRows = document.querySelectorAll(".instruction-row");
+
+    instructionRows.forEach((row) => {
+      const instructionId = row.querySelector(".instruction-checkbox")?.dataset
+        ?.instructionId;
       if (!instructionId) return;
 
       // Don't add if checkbox already exists
-      if (row.querySelector('.bulk-selection-checkbox')) return;
+      if (row.querySelector(".bulk-selection-checkbox")) return;
 
-      const bulkCheckbox = document.createElement('input');
-      bulkCheckbox.type = 'checkbox';
-      bulkCheckbox.className = 'bulk-selection-checkbox';
+      const bulkCheckbox = document.createElement("input");
+      bulkCheckbox.type = "checkbox";
+      bulkCheckbox.className = "bulk-selection-checkbox";
       bulkCheckbox.dataset.instructionId = instructionId;
-      bulkCheckbox.style.marginRight = '8px';
+      bulkCheckbox.style.marginRight = "8px";
 
       // Insert at the beginning of the row
-      const firstCell = row.querySelector('td');
+      const firstCell = row.querySelector("td");
       if (firstCell) {
         firstCell.insertBefore(bulkCheckbox, firstCell.firstChild);
       }
 
       // Add change listener
-      bulkCheckbox.addEventListener('change', (e) => {
+      bulkCheckbox.addEventListener("change", (e) => {
         if (e.target.checked) {
           this.selectedInstructions.add(instructionId);
-          row.classList.add('bulk-selected');
+          row.classList.add("bulk-selected");
         } else {
           this.selectedInstructions.delete(instructionId);
-          row.classList.remove('bulk-selected');
+          row.classList.remove("bulk-selected");
         }
         this.updateBulkSelectionUI();
       });
@@ -1167,12 +1434,14 @@ class StepViewPilotFeatures {
    * Remove bulk selection checkboxes
    */
   removeInstructionCheckboxes() {
-    document.querySelectorAll('.bulk-selection-checkbox').forEach(checkbox => {
-      checkbox.remove();
-    });
-    
-    document.querySelectorAll('.instruction-row').forEach(row => {
-      row.classList.remove('bulk-selected');
+    document
+      .querySelectorAll(".bulk-selection-checkbox")
+      .forEach((checkbox) => {
+        checkbox.remove();
+      });
+
+    document.querySelectorAll(".instruction-row").forEach((row) => {
+      row.classList.remove("bulk-selected");
     });
   }
 
@@ -1182,16 +1451,16 @@ class StepViewPilotFeatures {
   selectAllInstructions() {
     if (!this.bulkOperationsEnabled) return;
 
-    const checkboxes = document.querySelectorAll('.bulk-selection-checkbox');
-    checkboxes.forEach(checkbox => {
+    const checkboxes = document.querySelectorAll(".bulk-selection-checkbox");
+    checkboxes.forEach((checkbox) => {
       checkbox.checked = true;
       const instructionId = checkbox.dataset.instructionId;
       this.selectedInstructions.add(instructionId);
-      checkbox.closest('.instruction-row')?.classList.add('bulk-selected');
+      checkbox.closest(".instruction-row")?.classList.add("bulk-selected");
     });
 
     this.updateBulkSelectionUI();
-    this.stepView.showNotification('All instructions selected', 'info');
+    this.stepView.showNotification("All instructions selected", "info");
   }
 
   /**
@@ -1199,13 +1468,15 @@ class StepViewPilotFeatures {
    */
   clearSelection() {
     this.selectedInstructions.clear();
-    
-    document.querySelectorAll('.bulk-selection-checkbox').forEach(checkbox => {
-      checkbox.checked = false;
-    });
-    
-    document.querySelectorAll('.instruction-row').forEach(row => {
-      row.classList.remove('bulk-selected');
+
+    document
+      .querySelectorAll(".bulk-selection-checkbox")
+      .forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+
+    document.querySelectorAll(".instruction-row").forEach((row) => {
+      row.classList.remove("bulk-selected");
     });
 
     this.updateBulkSelectionUI();
@@ -1216,20 +1487,22 @@ class StepViewPilotFeatures {
    */
   updateBulkSelectionUI() {
     const selectedCount = this.selectedInstructions.size;
-    const countElement = document.getElementById('selected-count');
-    const bulkButtons = document.querySelectorAll('#bulk-complete-btn, #bulk-incomplete-btn, #bulk-duplicate-btn, #bulk-export-btn');
+    const countElement = document.getElementById("selected-count");
+    const bulkButtons = document.querySelectorAll(
+      "#bulk-complete-btn, #bulk-incomplete-btn, #bulk-duplicate-btn, #bulk-export-btn",
+    );
 
     if (countElement) {
       countElement.textContent = selectedCount.toString();
     }
 
     // Enable/disable bulk action buttons
-    bulkButtons.forEach(btn => {
+    bulkButtons.forEach((btn) => {
       btn.disabled = selectedCount === 0;
     });
 
     // Update debug panel if exists
-    const debugSelection = document.getElementById('debug-selection-count');
+    const debugSelection = document.getElementById("debug-selection-count");
     if (debugSelection) {
       debugSelection.textContent = `${selectedCount} items`;
     }
@@ -1240,42 +1513,50 @@ class StepViewPilotFeatures {
    */
   async performBulkOperation(operation) {
     if (this.selectedInstructions.size === 0) {
-      this.stepView.showNotification('No instructions selected', 'warning');
+      this.stepView.showNotification("No instructions selected", "warning");
       return;
     }
 
     // Security confirmation for destructive operations
-    if (['duplicate', 'complete'].includes(operation)) {
-      const confirmed = await this.showSecurityConfirmation(operation, this.selectedInstructions.size);
+    if (["duplicate", "complete"].includes(operation)) {
+      const confirmed = await this.showSecurityConfirmation(
+        operation,
+        this.selectedInstructions.size,
+      );
       if (!confirmed) return;
     }
 
     this.showBulkProgress(true);
-    
+
     try {
       switch (operation) {
-        case 'complete':
+        case "complete":
           await this.bulkCompleteInstructions();
           break;
-        case 'incomplete':
+        case "incomplete":
           await this.bulkIncompleteInstructions();
           break;
-        case 'duplicate':
+        case "duplicate":
           await this.bulkDuplicateInstructions();
           break;
-        case 'export':
+        case "export":
           await this.bulkExportInstructions();
           break;
       }
-      
-      this.stepView.showNotification(`Bulk ${operation} completed successfully`, 'success');
-      
+
+      this.stepView.showNotification(
+        `Bulk ${operation} completed successfully`,
+        "success",
+      );
+
       // Refresh step data to reflect changes
       await this.forceRefreshData();
-      
     } catch (error) {
       console.error(`Bulk ${operation} failed:`, error);
-      this.stepView.showNotification(`Bulk ${operation} failed: ${error.message}`, 'error');
+      this.stepView.showNotification(
+        `Bulk ${operation} failed: ${error.message}`,
+        "error",
+      );
     } finally {
       this.showBulkProgress(false);
     }
@@ -1286,8 +1567,8 @@ class StepViewPilotFeatures {
    */
   showSecurityConfirmation(operation, count) {
     return new Promise((resolve) => {
-      const modal = document.createElement('div');
-      modal.className = 'security-confirmation-modal';
+      const modal = document.createElement("div");
+      modal.className = "security-confirmation-modal";
       modal.innerHTML = `
         <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center;">
           <div style="background: white; padding: 24px; border-radius: 8px; max-width: 400px; width: 90%;">
@@ -1310,39 +1591,39 @@ class StepViewPilotFeatures {
       document.body.appendChild(modal);
 
       // Event listeners
-      modal.querySelector('#security-cancel').addEventListener('click', () => {
+      modal.querySelector("#security-cancel").addEventListener("click", () => {
         modal.remove();
         resolve(false);
       });
 
-      modal.querySelector('#security-confirm').addEventListener('click', () => {
+      modal.querySelector("#security-confirm").addEventListener("click", () => {
         modal.remove();
         resolve(true);
       });
 
       // ESC key closes modal
       const handleEsc = (e) => {
-        if (e.key === 'Escape') {
+        if (e.key === "Escape") {
           modal.remove();
-          document.removeEventListener('keydown', handleEsc);
+          document.removeEventListener("keydown", handleEsc);
           resolve(false);
         }
       };
-      document.addEventListener('keydown', handleEsc);
+      document.addEventListener("keydown", handleEsc);
     });
   }
 
   /**
    * Show/hide bulk operation progress
    */
-  showBulkProgress(show, details = '') {
-    const progressDiv = document.getElementById('bulk-progress');
-    const detailsSpan = document.getElementById('progress-details');
-    
+  showBulkProgress(show, details = "") {
+    const progressDiv = document.getElementById("bulk-progress");
+    const detailsSpan = document.getElementById("progress-details");
+
     if (progressDiv) {
-      progressDiv.style.display = show ? 'block' : 'none';
+      progressDiv.style.display = show ? "block" : "none";
     }
-    
+
     if (detailsSpan && details) {
       detailsSpan.textContent = details;
     }
@@ -1352,11 +1633,19 @@ class StepViewPilotFeatures {
    * Bulk complete instructions
    */
   async bulkCompleteInstructions() {
-    const promises = Array.from(this.selectedInstructions).map(async (instructionId, index) => {
-      this.showBulkProgress(true, `Completing ${index + 1}/${this.selectedInstructions.size}`);
-      
-      return this.stepView.completeInstruction(this.stepView.currentStepInstanceId, instructionId);
-    });
+    const promises = Array.from(this.selectedInstructions).map(
+      async (instructionId, index) => {
+        this.showBulkProgress(
+          true,
+          `Completing ${index + 1}/${this.selectedInstructions.size}`,
+        );
+
+        return this.stepView.completeInstruction(
+          this.stepView.currentStepInstanceId,
+          instructionId,
+        );
+      },
+    );
 
     await Promise.allSettled(promises);
   }
@@ -1365,11 +1654,19 @@ class StepViewPilotFeatures {
    * Bulk incomplete instructions
    */
   async bulkIncompleteInstructions() {
-    const promises = Array.from(this.selectedInstructions).map(async (instructionId, index) => {
-      this.showBulkProgress(true, `Reverting ${index + 1}/${this.selectedInstructions.size}`);
-      
-      return this.stepView.uncompleteInstruction(this.stepView.currentStepInstanceId, instructionId);
-    });
+    const promises = Array.from(this.selectedInstructions).map(
+      async (instructionId, index) => {
+        this.showBulkProgress(
+          true,
+          `Reverting ${index + 1}/${this.selectedInstructions.size}`,
+        );
+
+        return this.stepView.uncompleteInstruction(
+          this.stepView.currentStepInstanceId,
+          instructionId,
+        );
+      },
+    );
 
     await Promise.allSettled(promises);
   }
@@ -1387,22 +1684,25 @@ class StepViewPilotFeatures {
           exportedBy: this.stepView.userId,
           exportedAt: new Date().toISOString(),
           userRole: this.stepView.userRole,
-          cacheStats: this.stepView.cache.getCacheStats()
-        }
+          cacheStats: this.stepView.cache.getCacheStats(),
+        },
       };
 
       const dataStr = JSON.stringify(stepData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      
-      const link = document.createElement('a');
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+
+      const link = document.createElement("a");
       link.href = URL.createObjectURL(dataBlob);
       link.download = `step-${this.stepView.currentStepCode}-${Date.now()}.json`;
       link.click();
-      
-      this.stepView.showNotification('Step data exported successfully', 'success');
+
+      this.stepView.showNotification(
+        "Step data exported successfully",
+        "success",
+      );
     } catch (error) {
-      console.error('Export failed:', error);
-      this.stepView.showNotification('Export failed', 'error');
+      console.error("Export failed:", error);
+      this.stepView.showNotification("Export failed", "error");
     }
   }
 
@@ -1412,24 +1712,29 @@ class StepViewPilotFeatures {
   async forceRefreshData() {
     try {
       this.stepView.cache.clearCache();
-      
+
       const container = document.querySelector(".step-details-panel");
-      if (container && this.stepView.currentMigration && this.stepView.currentIteration && this.stepView.currentStepCode) {
+      if (
+        container &&
+        this.stepView.currentMigration &&
+        this.stepView.currentIteration &&
+        this.stepView.currentStepCode
+      ) {
         await this.stepView.loadStepDetails(
-          this.stepView.currentMigration, 
-          this.stepView.currentIteration, 
-          this.stepView.currentStepCode, 
-          container
+          this.stepView.currentMigration,
+          this.stepView.currentIteration,
+          this.stepView.currentStepCode,
+          container,
         );
-        
+
         // Re-initialize PILOT features
         this.initializePilotFeatures();
       }
-      
-      this.stepView.showNotification('Step data refreshed', 'success');
+
+      this.stepView.showNotification("Step data refreshed", "success");
     } catch (error) {
-      console.error('Refresh failed:', error);
-      this.stepView.showNotification('Refresh failed', 'error');
+      console.error("Refresh failed:", error);
+      this.stepView.showNotification("Refresh failed", "error");
     }
   }
 
@@ -1438,18 +1743,20 @@ class StepViewPilotFeatures {
    */
   getStepSummaryData() {
     const summary = {};
-    const summaryTable = document.querySelector('.step-summary-section table.aui tbody');
-    
+    const summaryTable = document.querySelector(
+      ".step-summary-section table.aui tbody",
+    );
+
     if (summaryTable) {
-      summaryTable.querySelectorAll('tr').forEach(row => {
-        const th = row.querySelector('th');
-        const td = row.querySelector('td');
+      summaryTable.querySelectorAll("tr").forEach((row) => {
+        const th = row.querySelector("th");
+        const td = row.querySelector("td");
         if (th && td) {
           summary[th.textContent.trim()] = td.textContent.trim();
         }
       });
     }
-    
+
     return summary;
   }
 
@@ -1458,14 +1765,18 @@ class StepViewPilotFeatures {
    */
   getInstructionsData() {
     const instructions = [];
-    const instructionRows = document.querySelectorAll('.instruction-row');
-    
-    instructionRows.forEach(row => {
-      const checkbox = row.querySelector('.instruction-checkbox');
-      const order = row.querySelector('.instruction-order')?.textContent?.trim();
-      const body = row.querySelector('.instruction-body')?.textContent?.trim();
-      const duration = row.querySelector('.instruction-duration')?.textContent?.trim();
-      
+    const instructionRows = document.querySelectorAll(".instruction-row");
+
+    instructionRows.forEach((row) => {
+      const checkbox = row.querySelector(".instruction-checkbox");
+      const order = row
+        .querySelector(".instruction-order")
+        ?.textContent?.trim();
+      const body = row.querySelector(".instruction-body")?.textContent?.trim();
+      const duration = row
+        .querySelector(".instruction-duration")
+        ?.textContent?.trim();
+
       if (checkbox && body) {
         instructions.push({
           id: checkbox.dataset.instructionId,
@@ -1473,11 +1784,13 @@ class StepViewPilotFeatures {
           description: body,
           duration: duration,
           completed: checkbox.checked,
-          selected: this.selectedInstructions.has(checkbox.dataset.instructionId)
+          selected: this.selectedInstructions.has(
+            checkbox.dataset.instructionId,
+          ),
         });
       }
     });
-    
+
     return instructions;
   }
 
@@ -1486,24 +1799,26 @@ class StepViewPilotFeatures {
    */
   getCommentsData() {
     const comments = [];
-    const commentElements = document.querySelectorAll('.comment');
-    
-    commentElements.forEach(comment => {
-      const author = comment.querySelector('.comment-author')?.textContent?.trim();
-      const time = comment.querySelector('.comment-time')?.textContent?.trim();
-      const body = comment.querySelector('.comment-body')?.textContent?.trim();
+    const commentElements = document.querySelectorAll(".comment");
+
+    commentElements.forEach((comment) => {
+      const author = comment
+        .querySelector(".comment-author")
+        ?.textContent?.trim();
+      const time = comment.querySelector(".comment-time")?.textContent?.trim();
+      const body = comment.querySelector(".comment-body")?.textContent?.trim();
       const commentId = comment.dataset.commentId;
-      
+
       if (author && body) {
         comments.push({
           id: commentId,
           author: author,
           time: time,
-          body: body
+          body: body,
         });
       }
     });
-    
+
     return comments;
   }
 
@@ -1511,27 +1826,29 @@ class StepViewPilotFeatures {
    * Update debug information
    */
   updateDebugInfo() {
-    const cacheStatus = document.getElementById('debug-cache-status');
-    const pollingStatus = document.getElementById('debug-polling-status');
-    const lastSync = document.getElementById('debug-last-sync');
-    
+    const cacheStatus = document.getElementById("debug-cache-status");
+    const pollingStatus = document.getElementById("debug-polling-status");
+    const lastSync = document.getElementById("debug-last-sync");
+
     if (cacheStatus && this.stepView.cache) {
       const stats = this.stepView.cache.getCacheStats();
       cacheStatus.textContent = `${stats.size} items, TTL: ${stats.ttl}ms`;
     }
-    
+
     if (pollingStatus && this.stepView.cache) {
       const stats = this.stepView.cache.getCacheStats();
-      pollingStatus.textContent = stats.isPolling ? `Active (${stats.interval}ms)` : 'Inactive';
+      pollingStatus.textContent = stats.isPolling
+        ? `Active (${stats.interval}ms)`
+        : "Inactive";
     }
-    
+
     if (lastSync && this.stepView.cache) {
       const stats = this.stepView.cache.getCacheStats();
       if (stats.lastRefresh) {
         const ago = Date.now() - stats.lastRefresh;
         lastSync.textContent = `${Math.round(ago / 1000)}s ago`;
       } else {
-        lastSync.textContent = 'Never';
+        lastSync.textContent = "Never";
       }
     }
   }
@@ -1540,15 +1857,15 @@ class StepViewPilotFeatures {
    * Add keyboard shortcuts help
    */
   addKeyboardShortcutsHelp() {
-    const helpButton = document.createElement('button');
-    helpButton.className = 'aui-button aui-button-subtle pilot-only';
-    helpButton.textContent = '⌨️ Shortcuts';
-    helpButton.style.position = 'fixed';
-    helpButton.style.bottom = '80px';
-    helpButton.style.right = '20px';
-    helpButton.style.zIndex = '8887';
+    const helpButton = document.createElement("button");
+    helpButton.className = "aui-button aui-button-subtle pilot-only";
+    helpButton.textContent = "⌨️ Shortcuts";
+    helpButton.style.position = "fixed";
+    helpButton.style.bottom = "80px";
+    helpButton.style.right = "20px";
+    helpButton.style.zIndex = "8887";
 
-    helpButton.addEventListener('click', () => {
+    helpButton.addEventListener("click", () => {
       this.showKeyboardShortcuts();
     });
 
@@ -1556,22 +1873,66 @@ class StepViewPilotFeatures {
   }
 
   /**
-   * Show keyboard shortcuts modal
+   * Show keyboard shortcuts modal with role-based shortcuts
    */
   showKeyboardShortcuts() {
-    const modal = document.createElement('div');
+    const modal = document.createElement("div");
+
+    // Build shortcuts based on user permissions
+    let shortcutsHTML = "";
+
+    // Basic shortcuts available to all users
+    shortcutsHTML += `
+      <div style="margin-bottom: 16px;">
+        <h4 style="margin: 0 0 8px 0; color: #0052cc;">Basic Shortcuts (All Users)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px 16px; font-size: 14px;">
+          <strong>Ctrl/Cmd + F</strong><span>Focus search input</span>
+          <strong>Escape</strong><span>Clear selection / Close modals</span>
+        </div>
+      </div>
+    `;
+
+    // Extended shortcuts for PILOT/ADMIN users
+    if (
+      this.stepView.hasPermission("advanced_controls") ||
+      this.stepView.hasPermission("bulk_operations")
+    ) {
+      shortcutsHTML += `
+        <div style="margin-bottom: 16px;">
+          <h4 style="margin: 0 0 8px 0; color: #ff8b00;">Extended Shortcuts (PILOT/ADMIN)</h4>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px 16px; font-size: 14px;">
+      `;
+
+      if (this.stepView.hasPermission("bulk_operations")) {
+        shortcutsHTML += `<strong>Ctrl/Cmd + A</strong><span>Select all instructions</span>`;
+      }
+      if (this.stepView.hasPermission("force_refresh_cache")) {
+        shortcutsHTML += `<strong>Ctrl/Cmd + R</strong><span>Force refresh data</span>`;
+      }
+      if (this.stepView.hasPermission("advanced_controls")) {
+        shortcutsHTML += `<strong>Ctrl/Cmd + E</strong><span>Export step data</span>`;
+      }
+      if (this.stepView.hasPermission("email_step_details")) {
+        shortcutsHTML += `<strong>Ctrl/Cmd + M</strong><span>Email step details</span>`;
+      }
+
+      shortcutsHTML += `
+          </div>
+        </div>
+      `;
+    }
+
     modal.innerHTML = `
       <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10001; display: flex; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 24px; border-radius: 8px; max-width: 500px; width: 90%; max-height: 70vh; overflow-y: auto;">
-          <h3 style="margin: 0 0 16px 0;">⌨️ Keyboard Shortcuts</h3>
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 8px 16px; font-size: 14px;">
-            <strong>Ctrl/Cmd + A</strong><span>Select all instructions</span>
-            <strong>Ctrl/Cmd + R</strong><span>Force refresh data</span>
-            <strong>Ctrl/Cmd + E</strong><span>Export step data</span>
-            <strong>Ctrl/Cmd + F</strong><span>Focus search input</span>
-            <strong>Escape</strong><span>Clear selection / Close modals</span>
-          </div>
-          <div style="margin-top: 20px; text-align: right;">
+        <div style="background: white; padding: 24px; border-radius: 8px; max-width: 600px; width: 90%; max-height: 70vh; overflow-y: auto;">
+          <h3 style="margin: 0 0 16px 0; display: flex; align-items: center;">
+            ⌨️ Keyboard Shortcuts 
+            <span style="margin-left: auto; background: #0052cc; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: normal;">
+              ${this.stepView.userRole} User
+            </span>
+          </h3>
+          ${shortcutsHTML}
+          <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee; text-align: right;">
             <button class="aui-button aui-button-primary" id="close-shortcuts">Close</button>
           </div>
         </div>
@@ -1580,11 +1941,11 @@ class StepViewPilotFeatures {
 
     document.body.appendChild(modal);
 
-    modal.querySelector('#close-shortcuts').addEventListener('click', () => {
+    modal.querySelector("#close-shortcuts").addEventListener("click", () => {
       modal.remove();
     });
 
-    modal.addEventListener('click', (e) => {
+    modal.addEventListener("click", (e) => {
       if (e.target === modal.firstElementChild.parentElement) {
         modal.remove();
       }
@@ -1595,7 +1956,7 @@ class StepViewPilotFeatures {
    * Focus search input for keyboard navigation
    */
   focusSearchInput() {
-    const searchInput = document.getElementById('step-search-input');
+    const searchInput = document.getElementById("step-search-input");
     if (searchInput) {
       searchInput.focus();
       searchInput.select();
@@ -1606,8 +1967,8 @@ class StepViewPilotFeatures {
    * Close all modals
    */
   closeModals() {
-    document.querySelectorAll('[style*="position: fixed"]').forEach(modal => {
-      if (modal.style.zIndex >= '10000') {
+    document.querySelectorAll('[style*="position: fixed"]').forEach((modal) => {
+      if (modal.style.zIndex >= "10000") {
         modal.remove();
       }
     });
@@ -1617,33 +1978,261 @@ class StepViewPilotFeatures {
    * Placeholder methods for future implementation
    */
   async bulkDuplicateInstructions() {
-    this.stepView.showNotification('Bulk duplicate functionality coming soon', 'info');
+    this.stepView.showNotification(
+      "Bulk duplicate functionality coming soon",
+      "info",
+    );
   }
 
   async bulkExportInstructions() {
-    const selectedData = this.getInstructionsData().filter(inst => 
-      this.selectedInstructions.has(inst.id)
+    const selectedData = this.getInstructionsData().filter((inst) =>
+      this.selectedInstructions.has(inst.id),
     );
-    
+
     const dataStr = JSON.stringify(selectedData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const link = document.createElement('a');
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(dataBlob);
     link.download = `selected-instructions-${Date.now()}.json`;
     link.click();
   }
 
   cloneStep() {
-    this.stepView.showNotification('Clone step functionality coming soon', 'info');
+    this.stepView.showNotification(
+      "Clone step functionality coming soon",
+      "info",
+    );
   }
 
   showStepHistory() {
-    this.stepView.showNotification('Step history functionality coming soon', 'info');
+    this.stepView.showNotification(
+      "Step history functionality coming soon",
+      "info",
+    );
   }
 
   editStepMetadata() {
-    this.stepView.showNotification('Edit metadata functionality coming soon', 'info');
+    this.stepView.showNotification(
+      "Edit metadata functionality coming soon",
+      "info",
+    );
+  }
+
+  /**
+   * Email step details to stakeholders (PILOT/ADMIN only)
+   */
+  async emailStepDetails() {
+    if (
+      !this.stepView.validatePermission(
+        "email_step_details",
+        "email step details",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      // Gather current step data
+      const stepData = {
+        stepSummary: this.getStepSummaryData(),
+        instructions: this.getInstructionsData(),
+        comments: this.getCommentsData(),
+        metadata: {
+          migration: this.stepView.currentMigration,
+          iteration: this.stepView.currentIteration,
+          stepCode: this.stepView.currentStepCode,
+          sentBy: this.stepView.userId,
+          sentAt: new Date().toISOString(),
+          userRole: this.stepView.userRole,
+        },
+      };
+
+      // Show email composition dialog
+      this.showEmailDialog(stepData);
+    } catch (error) {
+      console.error("Failed to prepare email data:", error);
+      this.stepView.showNotification(
+        `Failed to prepare email: ${error.message}`,
+        "error",
+      );
+    }
+  }
+
+  /**
+   * Show email composition dialog
+   */
+  showEmailDialog(stepData) {
+    const dialog = document.createElement("div");
+    dialog.className = "email-dialog-overlay";
+    dialog.innerHTML = `
+      <div class="email-dialog" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 600px; max-width: 90vw; z-index: 9999;">
+        <div class="email-header" style="padding: 16px; border-bottom: 1px solid #eee; background: #f5f5f5;">
+          <h3 style="margin: 0; display: flex; align-items: center;">
+            📧 Email Step Details: ${stepData.metadata.stepCode}
+            <button type="button" class="close-email-dialog" style="margin-left: auto; background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">&times;</button>
+          </h3>
+        </div>
+        <div class="email-body" style="padding: 16px;">
+          <form id="email-step-form">
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="email-recipients" style="display: block; margin-bottom: 4px; font-weight: 600;">To:</label>
+              <input type="email" id="email-recipients" name="recipients" multiple placeholder="Enter email addresses (comma separated)" 
+                style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required>
+              <small style="color: #666; font-size: 12px;">Separate multiple emails with commas</small>
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="email-subject" style="display: block; margin-bottom: 4px; font-weight: 600;">Subject:</label>
+              <input type="text" id="email-subject" name="subject" value="Step Update: ${stepData.metadata.stepCode} in ${stepData.metadata.migration}/${stepData.metadata.iteration}"
+                style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label for="email-message" style="display: block; margin-bottom: 4px; font-weight: 600;">Message:</label>
+              <textarea id="email-message" name="message" rows="6" placeholder="Add your message here..."
+                style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;"></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label style="display: flex; align-items: center;">
+                <input type="checkbox" id="include-instructions" name="includeInstructions" checked style="margin-right: 8px;">
+                Include instruction details in email
+              </label>
+              <label style="display: flex; align-items: center; margin-top: 8px;">
+                <input type="checkbox" id="include-comments" name="includeComments" checked style="margin-right: 8px;">
+                Include comments in email
+              </label>
+            </div>
+          </form>
+        </div>
+        <div class="email-footer" style="padding: 16px; border-top: 1px solid #eee; background: #f5f5f5; display: flex; gap: 8px; justify-content: flex-end;">
+          <button type="button" class="aui-button cancel-email">Cancel</button>
+          <button type="button" class="aui-button aui-button-primary send-email">📧 Send Email</button>
+        </div>
+      </div>
+      <div class="email-backdrop" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9998;"></div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    // Add event listeners
+    const closeDialog = () => {
+      document.body.removeChild(dialog);
+    };
+
+    dialog
+      .querySelector(".close-email-dialog")
+      .addEventListener("click", closeDialog);
+    dialog
+      .querySelector(".cancel-email")
+      .addEventListener("click", closeDialog);
+    dialog
+      .querySelector(".email-backdrop")
+      .addEventListener("click", closeDialog);
+
+    dialog.querySelector(".send-email").addEventListener("click", () => {
+      this.sendStepEmail(stepData, dialog);
+    });
+
+    // Focus on recipients field
+    dialog.querySelector("#email-recipients").focus();
+  }
+
+  /**
+   * Send the step email
+   */
+  async sendStepEmail(stepData, dialog) {
+    const form = dialog.querySelector("#email-step-form");
+    const formData = new FormData(form);
+
+    const recipients = formData
+      .get("recipients")
+      .split(",")
+      .map((email) => email.trim())
+      .filter((email) => email);
+    const subject = formData.get("subject");
+    const message = formData.get("message");
+    const includeInstructions = formData.has("includeInstructions");
+    const includeComments = formData.has("includeComments");
+
+    if (recipients.length === 0) {
+      this.stepView.showNotification(
+        "Please enter at least one email recipient",
+        "warning",
+      );
+      return;
+    }
+
+    try {
+      // Show loading state
+      const sendBtn = dialog.querySelector(".send-email");
+      const originalText = sendBtn.textContent;
+      sendBtn.textContent = "Sending...";
+      sendBtn.disabled = true;
+
+      // Prepare email payload
+      const emailPayload = {
+        recipients: recipients,
+        subject: subject,
+        message: message,
+        stepData: {
+          summary: stepData.stepSummary,
+          instructions: includeInstructions ? stepData.instructions : [],
+          comments: includeComments ? stepData.comments : [],
+          metadata: stepData.metadata,
+        },
+        includeInstructions: includeInstructions,
+        includeComments: includeComments,
+      };
+
+      // Send email request to backend
+      const response = await fetch(
+        `${this.stepView.config.api.baseUrl}/stepViewApi/email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(emailPayload),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(
+          errorData.error || `Failed to send email: ${response.status}`,
+        );
+      }
+
+      const result = await response.json();
+
+      // Close dialog and show success message
+      document.body.removeChild(dialog);
+      this.stepView.showNotification(
+        `Email sent successfully to ${recipients.length} recipient(s)`,
+        "success",
+      );
+
+      // Log the action for audit trail
+      this.stepView.logSecurityEvent("email_sent", {
+        recipients: recipients.length,
+        stepCode: stepData.metadata.stepCode,
+        includeInstructions: includeInstructions,
+        includeComments: includeComments,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      this.stepView.showNotification(
+        `Failed to send email: ${error.message}`,
+        "error",
+      );
+
+      // Restore button state
+      const sendBtn = dialog.querySelector(".send-email");
+      sendBtn.textContent = originalText;
+      sendBtn.disabled = false;
+    }
   }
 }
 
@@ -1656,15 +2245,22 @@ class StepView {
     this.userRole = this.config.user?.role || "NORMAL";
     this.isAdmin = this.config.user?.isAdmin || false;
     this.userId = this.config.user?.id || null;
-    
+
     // Initialize cache system for real-time synchronization
     this.cache = new StepViewCache();
+
+    // Store fetched statuses for consistent badge and dropdown display
+    this.statusesMap = new Map(); // ID -> {id, name, color}
     this.currentMigration = null;
     this.currentIteration = null;
     this.currentStepCode = null;
-    
+
     // Initialize search and filtering system
-    this.searchFilter = new StepViewSearchFilter();
+    // US-036: Search/filter functionality removed - not needed for single step view
+    // this.searchFilter = new StepViewSearchFilter(); // REMOVED
+
+    // RBAC: Initialize permission system
+    this.initializeRBACSystem();
 
     // Initialize on DOM ready
     if (document.readyState === "loading") {
@@ -1674,11 +2270,189 @@ class StepView {
     }
   }
 
+  /**
+   * Initialize comprehensive RBAC permission system
+   */
+  initializeRBACSystem() {
+    console.log(
+      "🔒 StepView: Initializing RBAC system for role:",
+      this.userRole,
+    );
+
+    // Define feature-level permissions matrix
+    this.permissions = {
+      view_step_details: ["NORMAL", "PILOT", "ADMIN"],
+      add_comments: ["NORMAL", "PILOT", "ADMIN"],
+      update_step_status: ["NORMAL", "PILOT", "ADMIN"], // ✅ UPDATED: Now includes NORMAL users
+      complete_instructions: ["NORMAL", "PILOT", "ADMIN"], // ✅ UPDATED: Now includes NORMAL users
+      bulk_operations: ["PILOT", "ADMIN"],
+      email_step_details: ["PILOT", "ADMIN"],
+      advanced_controls: ["PILOT", "ADMIN"],
+      extended_shortcuts: ["PILOT", "ADMIN"],
+      debug_panel: ["ADMIN"],
+      force_refresh_cache: ["PILOT", "ADMIN"],
+      security_logging: ["ADMIN"],
+    };
+
+    // Security event log for ADMIN monitoring
+    this.securityLog = [];
+  }
+
+  /**
+   * Check if current user has permission for specific feature
+   * @param {string} feature - Feature permission key
+   * @returns {boolean} - True if user has permission
+   */
+  hasPermission(feature) {
+    const allowed = this.permissions[feature] || [];
+    const hasAccess = allowed.includes(this.userRole);
+
+    if (!hasAccess) {
+      this.logSecurityEvent("permission_denied", {
+        feature: feature,
+        userRole: this.userRole,
+        timestamp: new Date().toISOString(),
+        stackTrace: new Error().stack,
+      });
+    }
+
+    return hasAccess;
+  }
+
+  /**
+   * Validate permission and show user feedback if denied
+   * @param {string} feature - Feature permission key
+   * @param {string} action - Action description for user feedback
+   * @returns {boolean} - True if permission granted
+   */
+  validatePermission(feature, action = "perform this action") {
+    if (!this.hasPermission(feature)) {
+      this.showPermissionDeniedMessage(action, feature);
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Show user-friendly permission denied message
+   * @param {string} action - Action that was attempted
+   * @param {string} feature - Feature that was denied
+   */
+  showPermissionDeniedMessage(action, feature) {
+    const roleMessages = {
+      NORMAL:
+        "This action requires elevated permissions. Contact your administrator for PILOT or ADMIN access.",
+      PILOT:
+        "This action requires ADMIN permissions. Contact your administrator.",
+      ADMIN: "Permission denied for security reasons.",
+    };
+
+    const message = roleMessages[this.userRole] || "Permission denied.";
+
+    // Create visual feedback
+    const notification = document.createElement("div");
+    notification.className = "rbac-notification rbac-denied";
+    notification.innerHTML = `
+      <div class="rbac-icon">🔒</div>
+      <div class="rbac-message">
+        <strong>Access Denied</strong><br>
+        ${message}
+      </div>
+      <button class="rbac-close" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 5000);
+  }
+
+  /**
+   * Log security events for monitoring and audit trail
+   * @param {string} event - Event type
+   * @param {Object} details - Event details
+   */
+  logSecurityEvent(event, details = {}) {
+    const logEntry = {
+      event: event,
+      userRole: this.userRole,
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+      ...details,
+    };
+
+    this.securityLog.push(logEntry);
+    console.log("🛡️ StepView Security Log:", logEntry);
+
+    // Keep last 100 entries only
+    if (this.securityLog.length > 100) {
+      this.securityLog = this.securityLog.slice(-100);
+    }
+
+    // Send critical security events to backend (implement as needed)
+    if (
+      ["permission_denied", "role_override", "unauthorized_access"].includes(
+        event,
+      )
+    ) {
+      this.reportSecurityEvent(logEntry);
+    }
+  }
+
+  /**
+   * Report critical security events to backend
+   * @param {Object} logEntry - Security log entry
+   */
+  async reportSecurityEvent(logEntry) {
+    try {
+      // Implementation would send to backend security endpoint
+      // await fetch('/api/security/events', { method: 'POST', body: JSON.stringify(logEntry) });
+      console.warn("🚨 Critical security event logged:", logEntry);
+    } catch (error) {
+      console.error("Failed to report security event:", error);
+    }
+  }
+
+  /**
+   * Get security log (ADMIN only)
+   * @returns {Array} Security log entries
+   */
+  getSecurityLog() {
+    if (!this.hasPermission("security_logging")) {
+      return [];
+    }
+    return [...this.securityLog];
+  }
+
   async init() {
     const params = new URLSearchParams(window.location.search);
     const migrationName = params.get("mig");
     const iterationName = params.get("ite");
     const stepId = params.get("stepid");
+
+    // RBAC: Development role override (temporary testing capability)
+    const urlRoleOverride = params.get("role");
+    if (
+      urlRoleOverride &&
+      ["NORMAL", "PILOT", "ADMIN"].includes(urlRoleOverride.toUpperCase())
+    ) {
+      console.warn(
+        "🧪 StepView: Development role override active:",
+        urlRoleOverride.toUpperCase(),
+      );
+      this.userRole = urlRoleOverride.toUpperCase();
+      this.isAdmin = this.userRole === "ADMIN";
+      this.logSecurityEvent("role_override", {
+        originalRole: this.config.user?.role || "NORMAL",
+        overrideRole: this.userRole,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     const container = document.getElementById("umig-step-view-root");
 
     if (!container) {
@@ -1709,16 +2483,16 @@ class StepView {
     this.currentStepCode = stepId;
 
     // Add the step-details-panel class to the container for styling
-    container.classList.add('step-details-panel');
+    container.classList.add("step-details-panel");
 
     // Load step details with caching
     await this.loadStepDetails(migrationName, iterationName, stepId, container);
-    
+
     // Start real-time synchronization
     this.startRealTimeSync();
-    
+
     // Add cleanup on page unload
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener("beforeunload", () => {
       this.cleanup();
     });
   }
@@ -1734,7 +2508,11 @@ class StepView {
             `;
 
       // Use cache system to get step data
-      const stepData = await this.cache.getStepData(migrationName, iterationName, stepCode);
+      const stepData = await this.cache.getStepData(
+        migrationName,
+        iterationName,
+        stepCode,
+      );
 
       if (stepData.error) {
         throw new Error(stepData.error);
@@ -1762,29 +2540,35 @@ class StepView {
    * Start real-time synchronization with intelligent polling
    */
   startRealTimeSync() {
-    if (!this.currentMigration || !this.currentIteration || !this.currentStepCode) {
-      console.warn('⚠️ StepView: Cannot start sync - missing context parameters');
+    if (
+      !this.currentMigration ||
+      !this.currentIteration ||
+      !this.currentStepCode
+    ) {
+      console.warn(
+        "⚠️ StepView: Cannot start sync - missing context parameters",
+      );
       return;
     }
 
-    console.log('🚀 StepView: Starting real-time synchronization');
-    
+    console.log("🚀 StepView: Starting real-time synchronization");
+
     this.cache.startPolling(
       this.currentMigration,
       this.currentIteration,
       this.currentStepCode,
       (updatedData) => {
-        console.log('📊 StepView: Received real-time update');
-        
+        console.log("📊 StepView: Received real-time update");
+
         // Update UI with fresh data
         const container = document.querySelector(".step-details-panel");
         if (container) {
           this.renderStepView(updatedData, container);
-          
+
           // Show subtle notification about update
           this.showNotification("Step data updated", "info");
         }
-      }
+      },
     );
   }
 
@@ -1794,7 +2578,7 @@ class StepView {
   cleanup() {
     if (this.cache) {
       this.cache.stopPolling();
-      console.log('🧹 StepView: Cleanup completed');
+      console.log("🧹 StepView: Cleanup completed");
     }
   }
 
@@ -1804,32 +2588,9 @@ class StepView {
     const impactedTeams = stepData.impactedTeams || [];
     const comments = stepData.comments || [];
 
+    // US-036 Refactored: Simplified header with only essential elements
     let html = `
             <div class="panel-header" style="background-color: white !important; color: #172B4D !important;">
-                <div class="step-header-content" style="background-color: white !important; color: #172B4D !important;">
-                    <div class="step-title-row" style="background-color: white !important; color: #172B4D !important;">
-                        <h2 class="step-name" style="background-color: white !important; color: #172B4D !important;">
-                            <span class="step-code" style="background-color: white !important; color: #172B4D !important;">📋 ${this.escapeHtml(summary.StepCode || "Unknown")}</span>
-                            <span class="step-title-text" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.Name || "Unknown Step")}</span>
-                        </h2>
-                        ${this.createStatusBadge(summary.StatusID || "21")}
-                    </div>
-                    <div class="step-meta" style="background-color: white !important; color: #172B4D !important;">
-                        <span class="step-owner" style="background-color: white !important; color: #172B4D !important;">${summary.AssignedTeamName ? '👥 ' + this.escapeHtml(summary.AssignedTeamName) : '👤 No team assigned'}</span>
-                        <span class="step-timing" style="background-color: white !important; color: #172B4D !important;">⏱️ ${summary.Duration ? this.escapeHtml(summary.Duration) + ' minute' + (summary.Duration != 1 ? 's' : '') : 'No duration specified'}</span>
-                    </div>
-                </div>
-                <div class="step-breadcrumb" style="background-color: white !important; color: #172B4D !important;">
-                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.MigrationName || "Migration")}</span>
-                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
-                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.IterationName || "Iteration")}</span>
-                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
-                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.PlanName || "Plan")}</span>
-                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
-                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.SequenceName || "Sequence")}</span>
-                    <span class="breadcrumb-separator" style="background-color: white !important; color: #172B4D !important;">›</span>
-                    <span class="breadcrumb-item" style="background-color: white !important; color: #172B4D !important;">${this.escapeHtml(summary.PhaseName || "Phase")}</span>
-                </div>
                 <div class="cache-status" style="background-color: white !important;">
                     <small style="color: #6B778C; background-color: white !important;">
                         🔄 Last updated: <span id="cache-timestamp" style="background-color: white !important;">${new Date().toLocaleTimeString()}</span>
@@ -1849,36 +2610,66 @@ class StepView {
 
     // Attach event listeners
     this.attachEventListeners();
-    
-    // Initialize search and filtering UI
-    this.searchFilter.initializeSearchUI();
-    
-    // Initialize PILOT features for eligible users
+
+    // Populate status dropdowns for all users with current status from stepData
+    const currentStatus = summary.StatusID || summary.Status || 21; // Use StatusID first, fallback to Status, then default (21=PENDING)
+    this.populateStatusDropdown(currentStatus);
+
+    // Initialize PILOT features AFTER DOM is fully populated
     if (["PILOT", "ADMIN"].includes(this.userRole)) {
+      // Create PILOT features instance and initialize after DOM is ready
       this.pilotFeatures = new StepViewPilotFeatures(this);
-      this.pilotFeatures.initializePilotFeatures();
-      console.log('🚁 StepView: PILOT features initialized for', this.userRole, 'user');
+      // Use setTimeout to ensure DOM is completely rendered before accessing elements
+      setTimeout(() => {
+        this.pilotFeatures.initializePilotFeatures();
+        console.log(
+          "🚁 StepView: PILOT features initialized successfully for",
+          this.userRole,
+          "user",
+        );
+      }, 50); // Small delay to ensure DOM is ready
     }
+
+    // US-036: Remove search/filter initialization - not needed for single step view
+    // this.searchFilter.initializeSearchUI(); // REMOVED
   }
 
   renderStepSummary(summary) {
     // Only show additional details not already in header, plus status dropdown for PILOT users
     // Convert status ID to name if needed - API returns StatusID not Status
     const statusId = summary.StatusID || summary.Status || 21;
+
+    // Debug logging for DUM-003 status issue
+    if (summary.StepCode === "DUM-003" || summary.StepCode?.startsWith("DUM")) {
+      console.log("🐛 DEBUG DUM Status Rendering:", {
+        summaryStepCode: summary.StepCode,
+        summaryStatusID: summary.StatusID,
+        summaryStatus: summary.Status,
+        statusIdUsed: statusId,
+        statusNameResolved: this.getStatusNameFromId(statusId),
+        allSummaryKeys: Object.keys(summary),
+        expectedBlocked: "Should be 26 for BLOCKED",
+      });
+    }
+
     const statusName = this.getStatusNameFromId(statusId);
     const statusDisplay = this.createStatusBadge(statusId);
-    
+
     // Check if we have any additional details to show
-    const hasAdditionalDetails = summary.PredecessorCode || summary.TargetEnvironment || summary.Description;
-    
+    const hasAdditionalDetails =
+      summary.PredecessorCode ||
+      summary.TargetEnvironment ||
+      summary.Description;
+
     if (!hasAdditionalDetails) {
       // If no additional details, just show the status dropdown for PILOT users
+      // US-036: Use unique ID to avoid conflicts with main dropdown
       return `
         <div class="step-summary-section">
           <div class="step-status-container" style="margin-bottom: 16px;">
             <label style="font-weight: 600; margin-bottom: 4px; display: block;">Quick Status Update:</label>
             ${statusDisplay}
-            <select id="step-status-dropdown" class="pilot-only select" style="display: none;">
+            <select id="step-status-dropdown-summary" class="status-select pilot-only" style="display: none;" data-current-status-id="${statusId}">
               <!-- Will be populated dynamically -->
             </select>
           </div>
@@ -2067,24 +2858,61 @@ class StepView {
   }
 
   applyRoleBasedControls() {
+    console.log(
+      "🔒 StepView: Applying comprehensive RBAC controls for role:",
+      this.userRole,
+    );
+
     const normalElements = document.querySelectorAll(".normal-only");
     const pilotElements = document.querySelectorAll(".pilot-only");
     const adminElements = document.querySelectorAll(".admin-only");
     const normalUserActions = document.querySelectorAll(".normal-user-action");
 
-    // Show/hide elements based on role
+    // Apply basic role-based visibility
     normalElements.forEach((el) => {
       el.style.display = this.userRole === "NORMAL" ? "" : "none";
     });
 
     pilotElements.forEach((el) => {
-      el.style.display = ["PILOT", "ADMIN"].includes(this.userRole)
-        ? ""
-        : "none";
+      // ✅ UPDATED: Special handling for status dropdowns and instruction checkboxes
+      const isStatusDropdown = el.id && el.id.includes("step-status-dropdown");
+      const isInstructionCheckbox = el.classList.contains(
+        "instruction-checkbox",
+      );
+
+      let shouldShow;
+      if (isStatusDropdown) {
+        shouldShow = this.hasPermission("update_step_status");
+      } else if (isInstructionCheckbox) {
+        shouldShow = this.hasPermission("complete_instructions");
+      } else {
+        shouldShow =
+          this.hasPermission("advanced_controls") ||
+          this.hasPermission("bulk_operations");
+      }
+
+      el.style.display = shouldShow ? "" : "none";
+
+      // Add visual indicator for restricted features
+      if (
+        !shouldShow &&
+        !el.classList.contains("rbac-restricted-indicator-added")
+      ) {
+        this.addRestrictedIndicator(el);
+      }
     });
 
     adminElements.forEach((el) => {
-      el.style.display = this.userRole === "ADMIN" ? "" : "none";
+      const shouldShow = this.hasPermission("debug_panel");
+      el.style.display = shouldShow ? "" : "none";
+
+      // Add visual indicator for restricted features
+      if (
+        !shouldShow &&
+        !el.classList.contains("rbac-restricted-indicator-added")
+      ) {
+        this.addRestrictedIndicator(el);
+      }
     });
 
     // Normal users can only see checkboxes
@@ -2092,53 +2920,361 @@ class StepView {
       el.style.display = this.userRole === "NORMAL" ? "" : "none";
     });
 
-    // Show status dropdown for PILOT/ADMIN
-    const statusDropdown = document.getElementById("step-status-dropdown");
-    if (statusDropdown && ["PILOT", "ADMIN"].includes(this.userRole)) {
-      statusDropdown.style.display = "";
-      this.populateStatusDropdown();
+    // Apply feature-specific permission controls
+    this.applyFeaturePermissions();
+
+    console.log("🔒 StepView: RBAC controls applied successfully");
+  }
+
+  /**
+   * Apply feature-specific permission controls
+   */
+  applyFeaturePermissions() {
+    // Comment functionality
+    const commentForms = document.querySelectorAll(".comment-form");
+    commentForms.forEach((form) => {
+      if (!this.hasPermission("add_comments")) {
+        form.style.display = "none";
+        this.addRestrictedIndicator(form.parentElement);
+      }
+    });
+
+    // Instruction completion checkboxes
+    const instructionCheckboxes = document.querySelectorAll(
+      "input[data-instruction-id]",
+    );
+    instructionCheckboxes.forEach((checkbox) => {
+      if (!this.hasPermission("complete_instructions")) {
+        checkbox.disabled = true;
+        checkbox.title =
+          "You need elevated permissions to complete instructions";
+        this.addRestrictedIndicator(checkbox.closest("td"));
+      }
+    });
+
+    // Email functionality
+    const emailButtons = document.querySelectorAll(
+      '[id*="email"], [class*="email"]',
+    );
+    emailButtons.forEach((button) => {
+      if (!this.hasPermission("email_step_details")) {
+        button.disabled = true;
+        button.title =
+          "You need PILOT or ADMIN permissions to email step details";
+        this.addRestrictedIndicator(button);
+      }
+    });
+
+    // Force refresh functionality
+    const refreshButtons = document.querySelectorAll(
+      '[id*="refresh"], [class*="refresh"]',
+    );
+    refreshButtons.forEach((button) => {
+      if (!this.hasPermission("force_refresh_cache")) {
+        button.disabled = true;
+        button.title =
+          "You need PILOT or ADMIN permissions to force refresh cache";
+        this.addRestrictedIndicator(button);
+      }
+    });
+  }
+
+  /**
+   * Add visual indicator for restricted features
+   * @param {HTMLElement} element - Element to mark as restricted
+   */
+  addRestrictedIndicator(element) {
+    if (
+      !element ||
+      element.classList.contains("rbac-restricted-indicator-added")
+    )
+      return;
+
+    element.classList.add("rbac-restricted-indicator-added");
+    element.style.position = "relative";
+
+    const indicator = document.createElement("div");
+    indicator.className = "rbac-restricted-indicator";
+    indicator.innerHTML = "🔒";
+    indicator.title = `Requires elevated permissions (${this.userRole} → PILOT/ADMIN)`;
+
+    element.appendChild(indicator);
+  }
+
+  /**
+   * Add role indicator to the page
+   */
+  addRoleIndicator() {
+    // Remove existing indicator
+    const existingIndicator = document.querySelector(".rbac-role-indicator");
+    if (existingIndicator) {
+      existingIndicator.remove();
+    }
+
+    const indicator = document.createElement("div");
+    indicator.className = "rbac-role-indicator";
+    indicator.innerHTML = `
+      <div class="rbac-role-badge rbac-role-${this.userRole.toLowerCase()}">
+        <span class="rbac-role-icon">${this.getRoleIcon()}</span>
+        <span class="rbac-role-text">${this.userRole}</span>
+        ${this.userRole !== "NORMAL" ? '<span class="rbac-role-elevated">⭐</span>' : ""}
+      </div>
+    `;
+
+    document.body.appendChild(indicator);
+  }
+
+  /**
+   * Get role-specific icon
+   * @returns {string} Role icon
+   */
+  getRoleIcon() {
+    switch (this.userRole) {
+      case "ADMIN":
+        return "👑";
+      case "PILOT":
+        return "🚁";
+      case "NORMAL":
+        return "👤";
+      default:
+        return "❓";
     }
   }
 
-  async populateStatusDropdown() {
-    const dropdown = document.getElementById("step-status-dropdown");
-    if (!dropdown) return;
+  async populateStatusDropdown(currentStatus = null) {
+    // US-036: Populate ALL status dropdowns with proper current status selection
+    // Enhanced to match iterationView pattern for reliable status synchronization
+    const dropdowns = document.querySelectorAll('[id^="step-status-dropdown"]');
+    console.log(
+      "📊 StepView: Found",
+      dropdowns.length,
+      "status dropdown(s) to populate",
+    );
+
+    if (dropdowns.length === 0) {
+      console.warn("📊 StepView: No status dropdowns found!");
+      return;
+    }
 
     try {
+      console.log(
+        "📊 StepView: Fetching statuses from:",
+        `${this.config.api.baseUrl}/statuses/step`,
+      );
+      console.log(
+        "📊 StepView: Current Status (raw):",
+        currentStatus,
+        "Type:",
+        typeof currentStatus,
+      );
+
       const response = await fetch(`${this.config.api.baseUrl}/statuses/step`);
-      if (!response.ok) throw new Error("Failed to fetch statuses");
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
 
       const statuses = await response.json();
+      console.log(
+        "📊 StepView: Successfully loaded",
+        statuses.length,
+        "statuses:",
+        statuses,
+      );
 
-      // Get current status
-      const currentStatus =
-        document.querySelector(".step-info")?.dataset?.currentStatus ||
-        "PENDING";
+      // Store fetched statuses for use in both dropdown and static badge
+      this.statusesMap.clear();
+      statuses.forEach((status) => {
+        this.statusesMap.set(status.id, {
+          id: status.id,
+          name: status.name,
+          color: status.color,
+        });
+      });
+      console.log(
+        "📊 StepView: Stored",
+        this.statusesMap.size,
+        "statuses in statusesMap for consistent badge display",
+      );
 
-      dropdown.innerHTML = statuses
-        .map(
-          (status) => `
-                <option value="${status.sts_code}" 
-                        ${status.sts_code === currentStatus ? "selected" : ""}
-                        style="color: ${status.sts_color || "#000"}">
-                    ${status.sts_name}
-                </option>
-            `,
-        )
-        .join("");
+      // Update static status badges now that we have correct status data
+      // Single update with small delay to ensure DOM elements are fully rendered
+      // This is the only badge update needed - no duplicate calls required
+      setTimeout(() => {
+        this.updateStaticStatusBadges();
+      }, 100);
+
+      // Handle status ID to name conversion (same logic as iterationView)
+      let currentStatusName = null;
+      let currentStatusIdForSelection = null;
+
+      if (currentStatus !== null && currentStatus !== undefined) {
+        if (typeof currentStatus === "number") {
+          // Current status is an ID, need to convert to name
+          const statusObj = statuses.find(
+            (status) => status.id === currentStatus,
+          );
+          if (statusObj) {
+            currentStatusName = statusObj.name;
+            currentStatusIdForSelection = currentStatus;
+            console.log(
+              `📊 StepView: Converted status ID ${currentStatus} to name: ${currentStatusName}`,
+            );
+          } else {
+            console.warn(
+              `📊 StepView: Could not find status name for ID: ${currentStatus}`,
+            );
+          }
+        } else if (typeof currentStatus === "string") {
+          // Current status is already a name
+          currentStatusName = currentStatus;
+          const matchingStatus = statuses.find(
+            (s) =>
+              (s.name || "").trim().toUpperCase() ===
+              (currentStatus || "").trim().toUpperCase(),
+          );
+          if (matchingStatus) {
+            currentStatusIdForSelection = matchingStatus.id;
+          }
+          console.log(
+            `📊 StepView: Using status name directly: ${currentStatusName}`,
+          );
+        } else {
+          console.warn(
+            "📊 StepView: Unexpected status type:",
+            typeof currentStatus,
+            currentStatus,
+          );
+        }
+      }
+
+      // Fallback to data attribute if no parameter provided, then fallback to PENDING
+      if (!currentStatusIdForSelection && dropdowns.length > 0) {
+        const firstDropdown = dropdowns[0];
+        const dataStatusId = firstDropdown.dataset.currentStatusId || "21";
+        currentStatusIdForSelection = parseInt(dataStatusId);
+        console.log(
+          "📊 StepView: Fallback to data attribute status ID:",
+          currentStatusIdForSelection,
+        );
+
+        // Convert fallback ID to name for logging
+        const statusObj = statuses.find(
+          (status) => status.id === currentStatusIdForSelection,
+        );
+        if (statusObj) {
+          currentStatusName = statusObj.name;
+        }
+      }
+
+      // Final fallback to PENDING
+      if (!currentStatusIdForSelection) {
+        const pendingStatus = statuses.find(
+          (s) => (s.name || "").trim().toUpperCase() === "PENDING",
+        );
+        if (pendingStatus) {
+          currentStatusIdForSelection = pendingStatus.id;
+          currentStatusName = "PENDING";
+        } else {
+          currentStatusIdForSelection = 21; // Default PENDING status ID (corrected comment)
+          currentStatusName = "PENDING"; // Corrected: ID 21 is PENDING, not TODO
+        }
+        console.log(
+          "📊 StepView: Final fallback to status:",
+          currentStatusName,
+          "ID:",
+          currentStatusIdForSelection,
+        );
+      }
+
+      // Populate each dropdown individually
+      dropdowns.forEach((dropdown, index) => {
+        console.log(
+          `📊 StepView: Dropdown ${index + 1} - ID: ${dropdown.id}, Setting Status: ${currentStatusName} (ID: ${currentStatusIdForSelection})`,
+        );
+
+        // Store the current status as attributes (both name and ID for compatibility)
+        dropdown.setAttribute("data-old-status", currentStatusName);
+        if (currentStatusIdForSelection !== null) {
+          dropdown.setAttribute(
+            "data-old-status-id",
+            currentStatusIdForSelection,
+          );
+        }
+
+        // Clear existing options
+        dropdown.innerHTML = "";
+        let optionSelected = false;
+
+        // Add status options using status IDs as values (same as iterationView)
+        statuses.forEach((status) => {
+          const option = document.createElement("option");
+          option.value = status.id; // Use status ID as value
+          option.textContent = status.name.replace(/_/g, " ");
+          option.setAttribute("data-color", status.color);
+          option.setAttribute("data-status-name", status.name);
+
+          // Apply background color styling to option
+          option.style.backgroundColor = status.color;
+          const rgb = this.hexToRgb(status.color);
+          const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+          option.style.color = brightness > 128 ? "#000" : "#fff";
+
+          // Set selected option based on ID comparison
+          if (
+            currentStatusIdForSelection !== null &&
+            status.id === currentStatusIdForSelection
+          ) {
+            option.selected = true;
+            optionSelected = true;
+            console.log(
+              `📊 StepView: Selected status: ${status.name} (ID: ${status.id})`,
+            );
+          }
+
+          dropdown.appendChild(option);
+        });
+
+        // Log warning if no option was selected
+        if (!optionSelected) {
+          console.warn(
+            `📊 StepView: No option selected for dropdown ${index + 1}. Current status ID: ${currentStatusIdForSelection}`,
+          );
+        }
+
+        // Set dropdown background color based on selected status
+        this.updateDropdownColor(dropdown);
+
+        console.log(
+          `📊 StepView: Dropdown ${index + 1} populated with ${statuses.length} options`,
+        );
+      });
+
+      console.log(
+        "📊 StepView: All status dropdowns populated successfully with current status:",
+        currentStatusName,
+      );
+
+      // Note: Static badges are updated once above after status data is loaded (line 2718)
+      // No duplicate update needed here - first update at 100ms handles all badge synchronization
     } catch (error) {
-      console.error("Error loading statuses:", error);
+      console.error("❌ StepView: Error loading statuses:", error);
+      // Show error in dropdown
+      dropdowns.forEach((dropdown) => {
+        dropdown.innerHTML =
+          '<option value="">Failed to load statuses</option>';
+      });
     }
   }
 
   attachEventListeners() {
-    // Status dropdown
-    const statusDropdown = document.getElementById("step-status-dropdown");
-    if (statusDropdown) {
-      statusDropdown.addEventListener("change", (e) =>
-        this.handleStatusChange(e),
-      );
-    }
+    // US-036: Attach event listeners to ALL status dropdowns
+    const statusDropdowns = document.querySelectorAll(
+      '[id^="step-status-dropdown"]',
+    );
+    statusDropdowns.forEach((dropdown) => {
+      dropdown.addEventListener("change", (e) => this.handleStatusChange(e));
+    });
 
     // Instruction checkboxes
     const checkboxes = document.querySelectorAll(".instruction-checkbox");
@@ -2191,8 +3327,7 @@ class StepView {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            status: newStatus,
-            userId: this.userId,
+            statusId: parseInt(newStatus),
           }),
         },
       );
@@ -2211,6 +3346,9 @@ class StepView {
           statusSpan.outerHTML = this.getStatusDisplay(newStatus);
         }
       }
+
+      // Update dropdown color to match new status
+      this.updateDropdownColor(event.target);
 
       // Clear cache to force refresh on next poll
       this.cache.clearCache();
@@ -2245,7 +3383,7 @@ class StepView {
         checkbox.closest(".instruction-row")?.classList.remove("completed");
         this.showNotification("Instruction marked as incomplete", "success");
       }
-      
+
       // Clear cache to force refresh on next poll
       this.cache.clearCache();
     } catch (error) {
@@ -2475,7 +3613,7 @@ class StepView {
           // Clear cache to force refresh
           this.cache.clearCache();
           this.showNotification("Comment deleted successfully", "success");
-          
+
           // The real-time polling will pick up the change automatically
         } catch (error) {
           console.error("Error deleting comment:", error);
@@ -2545,82 +3683,223 @@ class StepView {
   }
 
   showNotification(message, type = "info") {
+    // Create notification element using IterationView pattern
     const notification = document.createElement("div");
-    notification.className = `aui-message aui-message-${type} closeable`;
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
     notification.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            z-index: 9999;
-            max-width: 400px;
-            animation: slideIn 0.3s ease-out;
+            padding: 12px 20px;
+            border-radius: 4px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
         `;
 
-    const iconMap = {
-      success: "check-circle",
-      error: "error",
-      warning: "warning",
-      info: "info",
+    // Set background color based on type (matching IterationView)
+    const colors = {
+      info: "#0065FF",
+      success: "#00875A",
+      warning: "#FF8B00",
+      error: "#DE350B",
     };
+    notification.style.backgroundColor = colors[type] || colors.info;
 
-    notification.innerHTML = `
-            <span class="aui-icon icon-${iconMap[type] || "info"}"></span>
-            <p>${this.escapeHtml(message)}</p>
-            <span class="aui-icon icon-close" role="button" tabindex="0"></span>
-        `;
+    // Add CSS animation if not already present
+    if (!document.querySelector("#notification-styles")) {
+      const style = document.createElement("style");
+      style.id = "notification-styles";
+      style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+      document.head.appendChild(style);
+    }
 
+    // Add to DOM
     document.body.appendChild(notification);
 
-    // Auto-remove after 5 seconds
+    // Remove after 3 seconds (matching IterationView timing)
     setTimeout(() => {
       notification.style.animation = "slideOut 0.3s ease-in";
       setTimeout(() => notification.remove(), 300);
-    }, 5000);
+    }, 3000);
+  }
 
-    // Close button
-    const closeBtn = notification.querySelector(".icon-close");
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => notification.remove());
+  /**
+   * Debug method to test status mapping - can be called from browser console
+   */
+  testStatusMappings() {
+    console.log("🧪 Testing Status ID Mappings:");
+    const testIds = [21, 22, 23, 24, 25, 26, 27];
+    testIds.forEach((id) => {
+      const name = this.getStatusNameFromId(id);
+      console.log(`  ID ${id} → ${name}`);
+    });
+    console.log("Expected: ID 26 → BLOCKED");
+  }
+
+  /**
+   * Map status ID to status name using fetched status data
+   * Falls back to hardcoded mapping if statuses haven't been fetched yet
+   */
+  getStatusNameFromId(statusId) {
+    // US-036: Use fetched statuses data for accurate mapping
+    const parsedId = parseInt(statusId);
+
+    // First try to use fetched status data
+    if (this.statusesMap && this.statusesMap.has(parsedId)) {
+      const status = this.statusesMap.get(parsedId);
+      return status.name;
+    }
+
+    // Fallback to hardcoded mapping if statuses not yet fetched
+    // Step statuses start at ID 21 (after Migration:1-4, Plan:5-8, Iteration:9-12, Sequence:13-16, Phase:17-20)
+    const statusMap = {
+      21: "PENDING", // Corrected: was 20
+      22: "TODO", // Corrected: was 21
+      23: "IN_PROGRESS", // Corrected: was 22
+      24: "COMPLETED", // Corrected: was 23
+      25: "FAILED", // Corrected: was 24
+      26: "BLOCKED", // Corrected: was 25
+      27: "CANCELLED", // Corrected: was 26
+    };
+
+    return statusMap[parsedId] || "PENDING";
+  }
+
+  /**
+   * Update dropdown background color based on selected option
+   */
+  updateDropdownColor(dropdown) {
+    const selectedOption = dropdown.options[dropdown.selectedIndex];
+    if (selectedOption) {
+      const color = selectedOption.getAttribute("data-color");
+      if (color) {
+        dropdown.style.backgroundColor = color;
+        // Set text color based on background brightness
+        const rgb = this.hexToRgb(color);
+        const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+        dropdown.style.color = brightness > 128 ? "#000" : "#fff";
+      }
     }
   }
 
   /**
-   * Map status ID to status name based on database schema
+   * Convert hex color to RGB
    */
-  getStatusNameFromId(statusId) {
-    const statusMap = {
-      20: 'PENDING',
-      21: 'TODO', 
-      22: 'IN_PROGRESS',
-      23: 'COMPLETED',
-      24: 'FAILED',
-      25: 'BLOCKED',
-      26: 'CANCELLED'
-    };
-    
-    return statusMap[parseInt(statusId)] || 'PENDING';
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : { r: 0, g: 0, b: 0 };
   }
 
   /**
-   * Create a proper status badge with background color like IterationView
+   * Create a proper status badge with background color using fetched status data
    */
   createStatusBadge(statusId) {
+    const parsedId = parseInt(statusId);
     const statusName = this.getStatusNameFromId(statusId);
-    const statusColors = {
-      PENDING: "#DDDDDD",
-      TODO: "#FFFF00", 
-      IN_PROGRESS: "#0066CC",
-      COMPLETED: "#00AA00",
-      FAILED: "#FF0000",
-      BLOCKED: "#FF6600",
-      CANCELLED: "#CC0000",
-    };
 
-    const color = statusColors[statusName] || "#DDDDDD";
+    // Get color from fetched status data if available
+    let color = "#DDDDDD"; // default fallback
+    if (this.statusesMap && this.statusesMap.has(parsedId)) {
+      const status = this.statusesMap.get(parsedId);
+      color = status.color || color;
+    } else {
+      // Fallback to hardcoded colors if statuses not yet fetched
+      const statusColors = {
+        PENDING: "#DDDDDD",
+        TODO: "#FFFF00",
+        IN_PROGRESS: "#0066CC",
+        COMPLETED: "#00AA00",
+        FAILED: "#FF0000",
+        BLOCKED: "#FF6600",
+        CANCELLED: "#CC0000",
+      };
+      color = statusColors[statusName] || "#DDDDDD";
+    }
+
     const textColor = this.getTextColorForBackground(color);
     const displayText = statusName.replace(/_/g, " ");
 
     return `<span class="status-badge" style="background-color: ${color}; color: ${textColor}; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">${displayText}</span>`;
+  }
+
+  /**
+   * Update static status badges after statuses have been fetched
+   * This ensures consistency between dropdown options and static badges
+   */
+  updateStaticStatusBadges() {
+    // Find all static status badges in the DOM (they have the status-badge class)
+    const statusBadges = document.querySelectorAll(".status-badge");
+    console.log(
+      "🔄 StepView: Updating",
+      statusBadges.length,
+      "static status badge(s)",
+    );
+
+    statusBadges.forEach((statusBadge) => {
+      // Find the nearby dropdown to get the current status ID
+      const container =
+        statusBadge.closest(".value") || statusBadge.parentElement;
+      const nearbyDropdown = container
+        ? container.querySelector('[id*="step-status-dropdown"]')
+        : null;
+
+      if (nearbyDropdown) {
+        // Get the status ID from the dropdown's data attribute
+        const statusId = parseInt(nearbyDropdown.dataset.currentStatusId);
+        console.log(
+          `🔄 StepView: Processing badge with statusId: ${statusId}, statusesMap has: ${this.statusesMap.has(statusId)}`,
+        );
+
+        if (statusId && this.statusesMap.has(statusId)) {
+          // Update the badge with fresh data from fetched statuses
+          const status = this.statusesMap.get(statusId);
+          const textColor = this.getTextColorForBackground(status.color);
+
+          // Update the badge's content and style
+          statusBadge.textContent = status.name.replace(/_/g, " ");
+          statusBadge.style.backgroundColor = status.color;
+          statusBadge.style.color = textColor;
+
+          console.log(
+            `📊 StepView: Updated static badge - ID:${statusId} → ${status.name} (${status.color})`,
+          );
+        } else {
+          console.warn(
+            `🚨 StepView: Could not update badge - statusId: ${statusId}, statusesMap size: ${this.statusesMap.size}`,
+          );
+          // Log available status IDs for debugging
+          if (this.statusesMap.size > 0) {
+            console.log(
+              "Available status IDs in map:",
+              Array.from(this.statusesMap.keys()),
+            );
+          }
+        }
+      } else {
+        console.warn(
+          `🚨 StepView: Could not find nearby dropdown for badge:`,
+          statusBadge,
+        );
+      }
+    });
   }
 
   /**
@@ -2646,7 +3925,7 @@ class StepView {
     if (statusId) {
       return this.createStatusBadge(statusId);
     }
-    
+
     // Fallback to colored text if no ID found
     const statusColors = {
       PENDING: "#6554C0",
@@ -2661,18 +3940,30 @@ class StepView {
     const color = statusColors[status] || "#6B778C";
     return `<span style="color: ${color}; font-weight: bold;">${status || "UNKNOWN"}</span>`;
   }
-  
+
   getStatusIdFromName(statusName) {
+    // US-036: Use fetched statuses data for accurate mapping
+    // First try to use fetched status data
+    if (this.statusesMap && this.statusesMap.size > 0) {
+      for (const [id, status] of this.statusesMap) {
+        if (status.name === statusName) {
+          return id;
+        }
+      }
+    }
+
+    // Fallback to hardcoded mapping if statuses not yet fetched
+    // Step statuses start at ID 21 (after Migration:1-4, Plan:5-8, Iteration:9-12, Sequence:13-16, Phase:17-20)
     const statusMap = {
-      'PENDING': 20,
-      'TODO': 21,
-      'IN_PROGRESS': 22,
-      'COMPLETED': 23,
-      'FAILED': 24,
-      'BLOCKED': 25,
-      'CANCELLED': 26
+      PENDING: 21, // Corrected: was 20
+      TODO: 22, // Corrected: was 21
+      IN_PROGRESS: 23, // Corrected: was 22
+      COMPLETED: 24, // Corrected: was 23
+      FAILED: 25, // Corrected: was 24
+      BLOCKED: 26, // Corrected: was 25
+      CANCELLED: 27, // Corrected: was 26
     };
-    
+
     return statusMap[statusName] || null;
   }
 
@@ -2710,7 +4001,8 @@ class StepView {
     const instructions = stepData.instructions || [];
     const impactedTeams = stepData.impactedTeams || [];
     const comments = stepData.comments || [];
-    
+
+    // US-036 Refactored: Streamlined layout per user requirements
     let html = `
         <div class="step-info" data-sti-id="${summary.ID || ""}">
             <div class="step-title">
@@ -2718,22 +4010,23 @@ class StepView {
             </div>
             
             <div class="step-breadcrumb">
-                <span class="breadcrumb-item">${summary.MigrationName || "Migration"}</span>
+                <span class="breadcrumb-item">${this.escapeHtml(summary.MigrationName || "Migration")}</span>
                 <span class="breadcrumb-separator">›</span>
-                <span class="breadcrumb-item">${summary.PlanName || "Plan"}</span>
+                <span class="breadcrumb-item">${this.escapeHtml(summary.IterationName || "Iteration")}</span>
                 <span class="breadcrumb-separator">›</span>
-                <span class="breadcrumb-item">${summary.IterationName || "Iteration"}</span>
+                <span class="breadcrumb-item">${this.escapeHtml(summary.PlanName || "Plan")}</span>
                 <span class="breadcrumb-separator">›</span>
-                <span class="breadcrumb-item">${summary.SequenceName || "Sequence"}</span>
+                <span class="breadcrumb-item">${this.escapeHtml(summary.SequenceName || "Sequence")}</span>
                 <span class="breadcrumb-separator">›</span>
-                <span class="breadcrumb-item">${summary.PhaseName || "Phase"}</span>
+                <span class="breadcrumb-item">${this.escapeHtml(summary.PhaseName || "Phase")}</span>
             </div>
             
             <div class="step-key-info">
                 <div class="metadata-item">
-                    <span class="label">📊 Status:</span>
+                    <span class="label">📊 STATUS:</span>
                     <span class="value">
-                        <select id="step-status-dropdown" class="status-dropdown pilot-only" data-step-id="${summary.ID || stepData.stepCode}" style="padding: 2px 8px; border-radius: 3px;">
+                        <span class="status-badge" style="background-color: #DDDDDD; color: #000000; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">Loading...</span>
+                        <select id="step-status-dropdown" class="status-dropdown pilot-only" data-step-id="${summary.ID || stepData.stepCode}" data-current-status-id="${summary.StatusID || summary.Status || "21"}" style="padding: 2px 8px; border-radius: 3px; margin-left: 8px; display: none;">
                             <option value="">Loading...</option>
                         </select>
                     </span>
@@ -2765,17 +4058,13 @@ class StepView {
                 </div>
                 <div class="metadata-item teams-container">
                     <div class="team-section">
-                        <span class="label">👤 Primary Team:</span>
-                        <span class="value">${summary.AssignedTeam || "Not assigned"}</span>
-                    </div>
-                    <div class="team-section">
                         <span class="label">👥 Impacted Teams:</span>
                         <span class="value">${impactedTeams.length > 0 ? impactedTeams.join(", ") : "None"}</span>
                     </div>
                 </div>
                 <div class="metadata-item">
                     <span class="label">📂 Location:</span>
-                    <span class="value">${summary.SequenceName ? `Sequence: ${summary.SequenceName}` : "Unknown sequence"}${summary.PhaseName ? ` | Phase: ${summary.PhaseName}` : ""}</span>
+                    <span class="value">${summary.MigrationName || "Migration"} › ${summary.IterationName || "Iteration"} › ${summary.PlanName || "Plan"} › ${summary.SequenceName || "Sequence"} › ${summary.PhaseName || "Phase"}</span>
                 </div>
                 <div class="metadata-item">
                     <span class="label">⏱️ Duration:</span>
@@ -2801,10 +4090,10 @@ class StepView {
             </div>
         </div>
     `;
-    
+
     // Add instructions section using IterationView pattern
     if (instructions.length > 0) {
-        html += `
+      html += `
             <div class="instructions-section">
                 <h4>📋 INSTRUCTIONS</h4>
                 <div class="instructions-table">
@@ -2817,9 +4106,9 @@ class StepView {
                         <div class="col-complete">✓</div>
                     </div>
         `;
-        
-        instructions.forEach((instruction, index) => {
-            html += `
+
+      instructions.forEach((instruction, index) => {
+        html += `
                 <div class="instruction-row ${instruction.IsCompleted ? "completed" : ""}">
                     <div class="col-num">${instruction.Order || index + 1}</div>
                     <div class="col-instruction">${instruction.Description || instruction.Instruction || "No description"}</div>
@@ -2836,26 +4125,28 @@ class StepView {
                     </div>
                 </div>
             `;
-        });
-        
-        html += `
+      });
+
+      html += `
                 </div>
             </div>
         `;
     }
-    
+
     // Add comment section with real data
     html += `
         <div class="comments-section">
             <h4>💬 COMMENTS (${comments.length})</h4>
             <div class="comments-list" id="comments-list">
     `;
-    
+
     if (comments.length > 0) {
-        comments.forEach((comment) => {
-            const relativeTime = this.formatTimeAgo(comment.createdAt);
-            const teamName = comment.author?.team ? ` (${comment.author.team})` : "";
-            html += `
+      comments.forEach((comment) => {
+        const relativeTime = this.formatTimeAgo(comment.createdAt);
+        const teamName = comment.author?.team
+          ? ` (${comment.author.team})`
+          : "";
+        html += `
                 <div class="comment-item" data-comment-id="${comment.id}">
                     <div class="comment-header">
                         <span class="comment-author">${this.escapeHtml(comment.author?.name || "Unknown")}${teamName}</span>
@@ -2864,11 +4155,11 @@ class StepView {
                     <div class="comment-body">${this.escapeHtml(comment.body || "")}</div>
                 </div>
             `;
-        });
+      });
     } else {
-        html += `<p class="no-comments">No comments yet.</p>`;
+      html += `<p class="no-comments">No comments yet.</p>`;
     }
-    
+
     html += `
             </div>
             <div class="add-comment-section">
@@ -2888,7 +4179,7 @@ class StepView {
             </div>
         </div>
     `;
-    
+
     return html;
   }
 
@@ -3016,6 +4307,9 @@ style.textContent = `
             gap: 4px;
             display: flex;
             align-items: center;
+            margin: 8px 0 12px 0;
+            color: #6B778C;
+            opacity: 0.9;
         }
         
         .breadcrumb-item {
@@ -3023,6 +4317,12 @@ style.textContent = `
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        
+        .breadcrumb-separator {
+            margin: 0 4px;
+            color: #6B778C;
+            opacity: 0.7;
         }
         
         .cache-status {
@@ -3529,90 +4829,278 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// Enhanced RBAC styling
+const rbacStyles = document.createElement("style");
+rbacStyles.textContent = `
+  /* RBAC Role Indicator Styles */
+  .rbac-role-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9000;
+    animation: fadeInSlide 0.5s ease-out;
+  }
+  
+  .rbac-role-badge {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    backdrop-filter: blur(10px);
+  }
+  
+  .rbac-role-normal {
+    background: linear-gradient(135deg, #6b778c 0%, #8993a4 100%);
+  }
+  
+  .rbac-role-pilot {
+    background: linear-gradient(135deg, #ff8b00 0%, #ffa724 100%);
+  }
+  
+  .rbac-role-admin {
+    background: linear-gradient(135deg, #d04437 0%, #e66353 100%);
+  }
+  
+  .rbac-role-icon {
+    margin-right: 6px;
+    font-size: 14px;
+  }
+  
+  .rbac-role-elevated {
+    margin-left: 6px;
+    animation: sparkle 2s ease-in-out infinite;
+  }
+  
+  /* Permission Denied Notification */
+  .rbac-notification {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 320px;
+    padding: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-left: 4px solid #d04437;
+    z-index: 9999;
+    display: flex;
+    align-items: flex-start;
+    animation: slideInRight 0.3s ease-out;
+  }
+  
+  .rbac-denied {
+    border-left-color: #d04437;
+  }
+  
+  .rbac-icon {
+    font-size: 24px;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  
+  .rbac-message {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  
+  .rbac-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #6b778c;
+    margin-left: 8px;
+    flex-shrink: 0;
+  }
+  
+  .rbac-close:hover {
+    color: #d04437;
+  }
+  
+  /* Restricted Feature Indicators */
+  .rbac-restricted-indicator {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 12px;
+    background: rgba(208, 68, 55, 0.9);
+    color: white;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8px;
+    line-height: 1;
+    z-index: 10;
+  }
+  
+  /* Enhanced RBAC Animations */
+  @keyframes fadeInSlide {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes sparkle {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.8;
+    }
+  }
+  
+  /* Mobile responsive adjustments for RBAC */
+  @media (max-width: 768px) {
+    .rbac-role-indicator {
+      top: 10px;
+      right: 10px;
+    }
+    
+    .rbac-role-badge {
+      padding: 6px 10px;
+      font-size: 11px;
+    }
+    
+    .rbac-notification {
+      top: 60px;
+      right: 10px;
+      left: 10px;
+      width: auto;
+    }
+    
+    .email-dialog {
+      margin: 20px;
+      width: calc(100% - 40px) !important;
+    }
+  }
+`;
+
+document.head.appendChild(rbacStyles);
+
 // CSS Debug Helper Functions
-window.debugStepViewCSS = function() {
-    console.log('🔍 StepView CSS Debug Helper');
-    console.log('============================');
-    
-    // Check if iteration-view.css is loaded
-    const iterationCSS = document.getElementById('iteration-view-css');
-    if (iterationCSS) {
-        console.log('✅ iteration-view.css link element found');
-        console.log('🔗 href:', iterationCSS.href);
-    } else {
-        console.error('❌ iteration-view.css link element NOT found');
-    }
-    
-    // Check key elements
-    const rootElement = document.getElementById('umig-step-view-root');
-    const panelElement = document.querySelector('.step-details-panel');
-    const headerElement = document.querySelector('.panel-header');
-    
-    if (rootElement) {
-        console.log('✅ Root element found');
-        const rootStyle = window.getComputedStyle(rootElement);
-        console.log('📊 Root background:', rootStyle.background);
-    } else {
-        console.error('❌ Root element NOT found');
-    }
-    
-    if (panelElement) {
-        console.log('✅ Panel element found');
-        const panelStyle = window.getComputedStyle(panelElement);
-        console.log('📊 Panel background:', panelStyle.background);
-        console.log('📊 Panel border:', panelStyle.border);
-        console.log('📊 Panel box-shadow:', panelStyle.boxShadow);
-        
-        // Add temporary debug highlight
-        panelElement.classList.add('debug-highlight');
-        setTimeout(() => {
-            panelElement.classList.remove('debug-highlight');
-        }, 3000);
-    } else {
-        console.error('❌ Panel element NOT found');
-    }
-    
-    if (headerElement) {
-        console.log('✅ Header element found');
-        const headerStyle = window.getComputedStyle(headerElement);
-        console.log('📊 Header color:', headerStyle.color);
-        console.log('📊 Header font-size:', headerStyle.fontSize);
-        console.log('📊 Header font-weight:', headerStyle.fontWeight);
-    } else {
-        console.error('❌ Header element NOT found');
-    }
-    
-    // Check CSS variables
-    const documentStyle = window.getComputedStyle(document.documentElement);
-    console.log('🎨 CSS Variables:');
-    console.log('  --color-primary:', documentStyle.getPropertyValue('--color-primary'));
-    console.log('  --color-bg-primary:', documentStyle.getPropertyValue('--color-bg-primary'));
-    console.log('  --color-border:', documentStyle.getPropertyValue('--color-border'));
-    
-    // Check for conflicting styles
-    const allStyleSheets = document.styleSheets;
-    console.log('📋 Total stylesheets loaded:', allStyleSheets.length);
-    
-    console.log('💡 To debug further, check:');
-    console.log('  1. Browser Network tab for failed CSS requests');
-    console.log('  2. Elements tab for applied styles');
-    console.log('  3. Run debugStepViewCSS() again after making changes');
+window.debugStepViewCSS = function () {
+  console.log("🔍 StepView CSS Debug Helper");
+  console.log("============================");
+
+  // Check if iteration-view.css is loaded
+  const iterationCSS = document.getElementById("iteration-view-css");
+  if (iterationCSS) {
+    console.log("✅ iteration-view.css link element found");
+    console.log("🔗 href:", iterationCSS.href);
+  } else {
+    console.error("❌ iteration-view.css link element NOT found");
+  }
+
+  // Check key elements
+  const rootElement = document.getElementById("umig-step-view-root");
+  const panelElement = document.querySelector(".step-details-panel");
+  const headerElement = document.querySelector(".panel-header");
+
+  if (rootElement) {
+    console.log("✅ Root element found");
+    const rootStyle = window.getComputedStyle(rootElement);
+    console.log("📊 Root background:", rootStyle.background);
+  } else {
+    console.error("❌ Root element NOT found");
+  }
+
+  if (panelElement) {
+    console.log("✅ Panel element found");
+    const panelStyle = window.getComputedStyle(panelElement);
+    console.log("📊 Panel background:", panelStyle.background);
+    console.log("📊 Panel border:", panelStyle.border);
+    console.log("📊 Panel box-shadow:", panelStyle.boxShadow);
+
+    // Add temporary debug highlight
+    panelElement.classList.add("debug-highlight");
+    setTimeout(() => {
+      panelElement.classList.remove("debug-highlight");
+    }, 3000);
+  } else {
+    console.error("❌ Panel element NOT found");
+  }
+
+  if (headerElement) {
+    console.log("✅ Header element found");
+    const headerStyle = window.getComputedStyle(headerElement);
+    console.log("📊 Header color:", headerStyle.color);
+    console.log("📊 Header font-size:", headerStyle.fontSize);
+    console.log("📊 Header font-weight:", headerStyle.fontWeight);
+  } else {
+    console.error("❌ Header element NOT found");
+  }
+
+  // Check CSS variables
+  const documentStyle = window.getComputedStyle(document.documentElement);
+  console.log("🎨 CSS Variables:");
+  console.log(
+    "  --color-primary:",
+    documentStyle.getPropertyValue("--color-primary"),
+  );
+  console.log(
+    "  --color-bg-primary:",
+    documentStyle.getPropertyValue("--color-bg-primary"),
+  );
+  console.log(
+    "  --color-border:",
+    documentStyle.getPropertyValue("--color-border"),
+  );
+
+  // Check for conflicting styles
+  const allStyleSheets = document.styleSheets;
+  console.log("📋 Total stylesheets loaded:", allStyleSheets.length);
+
+  console.log("💡 To debug further, check:");
+  console.log("  1. Browser Network tab for failed CSS requests");
+  console.log("  2. Elements tab for applied styles");
+  console.log("  3. Run debugStepViewCSS() again after making changes");
 };
 
 // Add debug button for ADMIN users
-if (window.UMIG_STEP_CONFIG && window.UMIG_STEP_CONFIG.user && window.UMIG_STEP_CONFIG.user.isAdmin) {
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            const versionMarker = document.querySelector('.version-marker');
-            if (versionMarker) {
-                const debugButton = document.createElement('button');
-                debugButton.textContent = '🔍 Debug CSS';
-                debugButton.style.cssText = 'margin-left: 10px; padding: 4px 8px; border: none; border-radius: 3px; background: rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 10px;';
-                debugButton.onclick = window.debugStepViewCSS;
-                versionMarker.appendChild(debugButton);
-            }
-        }, 500);
-    });
+if (
+  window.UMIG_STEP_CONFIG &&
+  window.UMIG_STEP_CONFIG.user &&
+  window.UMIG_STEP_CONFIG.user.isAdmin
+) {
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(function () {
+      const versionMarker = document.querySelector(".version-marker");
+      if (versionMarker) {
+        const debugButton = document.createElement("button");
+        debugButton.textContent = "🔍 Debug CSS";
+        debugButton.style.cssText =
+          "margin-left: 10px; padding: 4px 8px; border: none; border-radius: 3px; background: rgba(255,255,255,0.2); color: white; cursor: pointer; font-size: 10px;";
+        debugButton.onclick = window.debugStepViewCSS;
+        versionMarker.appendChild(debugButton);
+      }
+    }, 500);
+  });
 }
 
 // Initialize the step view
@@ -3620,8 +5108,8 @@ window.stepView = new StepView();
 
 // Auto-run CSS debug after initialization
 setTimeout(() => {
-    if (window.debugStepViewCSS) {
-        console.log('🚀 Auto-running CSS debug...');
-        window.debugStepViewCSS();
-    }
+  if (window.debugStepViewCSS) {
+    console.log("🚀 Auto-running CSS debug...");
+    window.debugStepViewCSS();
+  }
 }, 2000);

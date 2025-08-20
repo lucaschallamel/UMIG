@@ -4,6 +4,7 @@ import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.StepRepository
 import umig.repository.StatusRepository
 import umig.repository.UserRepository
+import umig.service.UserService
 import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
@@ -580,6 +581,12 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     def getStepRepository = { ->
         return new StepRepository()
     }
+    def getStatusRepository = { ->
+        return new StatusRepository()
+    }
+    def getUserRepository = { ->
+        return new UserRepository()
+    }
     
     // Enhanced error handling with SQL state mapping and context - inline
     def handleError = { Exception e, String context ->
@@ -851,27 +858,23 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def statusId = requestData.statusId as Integer
             
-            // Get current user from Confluence context instead of request body
-            def currentUser = getCurrentUser()
-            if (!currentUser) {
-                return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity(new JsonBuilder([error: "Unable to determine current user"]).toString())
-                    .build()
+            // Get user context using UserService for intelligent fallback handling
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                def userId = userContext.userId
+                
+                // Log the user context for debugging
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi: Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userId})"
+                }
+            } catch (Exception e) {
+                // If UserService fails, fall back to null userId (acceptable for repository)
+                println "StepsApi: UserService failed (${e.message}), proceeding with null userId for audit"
+                userContext = [userId: null, confluenceUsername: "unknown"]
             }
             
-            // Get userId from UserRepository using Confluence username
-            UserRepository userRepository = getUserRepository()
-            def user = userRepository.findUserByUsername(currentUser.getName())
-            def userId = user?.usr_id
-            
-            if (!userId) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([
-                        error: "User not found in system",
-                        username: currentUser.getName()
-                    ]).toString())
-                    .build()
-            }
+            def userId = userContext?.userId
             
             // BACKWARD COMPATIBILITY: Support legacy status field for gradual migration
             StatusRepository statusRepository = getStatusRepository()
@@ -968,6 +971,12 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     def getStepRepository = { ->
         return new StepRepository()
     }
+    def getStatusRepository = { ->
+        return new StatusRepository()
+    }
+    def getUserRepository = { ->
+        return new UserRepository()
+    }
     
     // Enhanced error handling with SQL state mapping and context - inline
     def handleError = { Exception e, String context ->
@@ -1025,7 +1034,19 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            def userId = requestData.userId as Integer
+            // Get user context using UserService
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (open): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
+                }
+            } catch (Exception e) {
+                println "StepsApi (open): UserService failed (${e.message}), using null userId"
+                userContext = [userId: null]
+            }
+            
+            def userId = userContext?.userId
             
             // Mark step as opened and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1066,7 +1087,19 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            def userId = requestData.userId as Integer
+            // Get user context using UserService
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (complete): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
+                }
+            } catch (Exception e) {
+                println "StepsApi (complete): UserService failed (${e.message}), using null userId"
+                userContext = [userId: null]
+            }
+            
+            def userId = userContext?.userId
             
             // Complete instruction and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1112,7 +1145,19 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            def userId = requestData.userId as Integer
+            // Get user context using UserService
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (incomplete): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
+                }
+            } catch (Exception e) {
+                println "StepsApi (incomplete): UserService failed (${e.message}), using null userId"
+                userContext = [userId: null]
+            }
+            
+            def userId = userContext?.userId
             
             // Mark instruction as incomplete and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1464,5 +1509,15 @@ private def getCurrentUser() {
 // Helper method to get UserRepository instance
 private def getUserRepository() {
     return new UserRepository()
+}
+
+// Helper method to get StatusRepository instance
+private def getStatusRepository() {
+    return new StatusRepository()
+}
+
+// Helper method to get StepRepository instance
+private def getStepRepository() {
+    return new StepRepository()
 }
 

@@ -13,12 +13,14 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### Required Mobile Devices
 
 #### Physical Devices (Priority 1 - Critical)
+
 - **iPhone 13/14/15** (iOS 15+) - Safari
-- **Samsung Galaxy S21/S22/S23** (Android 11+) - Chrome  
+- **Samsung Galaxy S21/S22/S23** (Android 11+) - Chrome
 - **iPad 9th/10th Generation** (iPadOS 15+) - Safari
 - **Google Pixel 6/7/8** (Android 12+) - Chrome
 
 #### Browser Testing Matrix
+
 - **iOS Safari** (Primary mobile browser)
 - **Chrome Mobile** (Android primary)
 - **Samsung Internet** (Samsung devices)
@@ -26,6 +28,7 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 - **Edge Mobile** (Enterprise environments)
 
 #### Responsive Design Breakpoints
+
 - **320px** - Small mobile phones (iPhone SE)
 - **375px** - Standard mobile phones (iPhone 12/13)
 - **414px** - Large mobile phones (iPhone 14 Plus)
@@ -37,11 +40,13 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 1. URL Navigation and Routing Tests
 
 #### Test Case M-001: Direct URL Access
+
 **Objective**: Verify standalone URLs work correctly on mobile browsers
 
 **Steps**:
+
 1. Open mobile browser (Safari/Chrome)
-2. Navigate to human-readable URL: 
+2. Navigate to human-readable URL:
    ```
    https://confluence.company.com/stepview.html?mig=migrationa&ite=run1&stepid=DEC-001&role=NORMAL
    ```
@@ -51,25 +56,30 @@ The standalone StepView page must work seamlessly across mobile devices for exte
    ```
 
 **Expected Results**:
+
 - Page loads within 3 seconds on mobile
 - Content is properly formatted for mobile viewport
 - No horizontal scrolling required
 - All UI elements are visible and accessible
 
 **Performance Criteria**:
+
 - Page load time < 3 seconds on 3G network
 - First contentful paint < 2 seconds
 - Interactive elements respond within 100ms
 
 #### Test Case M-002: Email Link Navigation
+
 **Objective**: Test navigation from email clients on mobile
 
 **Steps**:
+
 1. Open email client (Gmail, Outlook, Apple Mail)
 2. Tap standalone StepView link in email template
 3. Verify browser opens and loads page correctly
 
 **Expected Results**:
+
 - Browser launches automatically
 - Page loads without authentication prompts
 - Content displays properly in mobile format
@@ -77,14 +87,17 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 2. Touch Interaction Testing
 
 #### Test Case M-003: Button and Control Accessibility
+
 **Objective**: Ensure all interactive elements are touch-friendly
 
 **Touch Target Requirements**:
+
 - Minimum size: 44x44px (iOS Human Interface Guidelines)
 - Clear visual feedback on tap
 - No accidental activations
 
 **Elements to Test**:
+
 1. **Instruction Checkboxes**
    - Tap to complete/uncomplete instructions
    - Visual feedback (checkmark animation)
@@ -106,19 +119,22 @@ The standalone StepView page must work seamlessly across mobile devices for exte
    - Clear visual indicators
 
 **Test Procedure**:
+
 ```javascript
 // Touch interaction test sequence
 1. Tap each button/control with finger
-2. Verify immediate visual feedback (highlight/press state)  
+2. Verify immediate visual feedback (highlight/press state)
 3. Confirm action completes successfully
 4. Test rapid successive taps (prevent double-actions)
 5. Test edge cases (partial taps, swipes)
 ```
 
 #### Test Case M-004: Gesture Support
+
 **Objective**: Verify swipe and gesture functionality
 
 **Gestures to Test**:
+
 1. **Pull-to-Refresh**
    - Swipe down from top to refresh step data
    - Show loading indicator
@@ -136,6 +152,7 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 3. Responsive Design Validation
 
 #### Test Case M-005: Layout Adaptation
+
 **Objective**: Verify content adapts properly across screen sizes
 
 **Testing Matrix**:
@@ -148,6 +165,7 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 | 1024px | iPad Pro | Landscape | Medium |
 
 **Layout Elements**:
+
 1. **Header Section**
    - Step title remains readable
    - Breadcrumb wraps properly
@@ -163,15 +181,18 @@ The standalone StepView page must work seamlessly across mobile devices for exte
    - Links are touch-friendly
 
 #### Test Case M-006: Typography and Readability
+
 **Objective**: Ensure text is readable across all mobile devices
 
 **Criteria**:
+
 - Minimum font size: 16px (iOS Safari zoom prevention)
 - Line height: 1.4-1.6 for readability
 - Sufficient contrast ratios (WCAG AA compliance)
 - No text cutoff or overflow
 
 **Elements to Validate**:
+
 - Step titles and descriptions
 - Instruction text
 - Comment content
@@ -181,39 +202,46 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 4. Performance Testing on Mobile
 
 #### Test Case M-007: Network Performance
+
 **Objective**: Validate performance across mobile networks
 
 **Network Conditions**:
+
 - **4G LTE** (Good: 4G, 150ms RTT)
-- **3G** (Regular: 3G, 300ms RTT)  
+- **3G** (Regular: 3G, 300ms RTT)
 - **Slow 3G** (Slow: 3G, 2000ms RTT)
 - **Offline** (No connection)
 
 **Performance Metrics**:
+
 ```javascript
 // Performance measurement points
 - Time to First Byte (TTFB) < 800ms
 - First Contentful Paint (FCP) < 2s
-- Largest Contentful Paint (LCP) < 4s  
+- Largest Contentful Paint (LCP) < 4s
 - Cumulative Layout Shift (CLS) < 0.1
 - Total Blocking Time (TBT) < 300ms
 ```
 
 **Test Procedure**:
+
 1. Use Chrome DevTools Network throttling
 2. Load page and measure Core Web Vitals
 3. Test with both URL formats
 4. Verify graceful degradation on slow connections
 
 #### Test Case M-008: Memory and Battery Usage
+
 **Objective**: Ensure efficient resource usage on mobile devices
 
 **Testing Tools**:
+
 - Chrome DevTools Performance tab
 - Safari Web Inspector
 - Mobile device battery monitoring
 
 **Criteria**:
+
 - Memory usage < 50MB for page
 - No memory leaks during polling
 - Battery drain < 5% per hour of usage
@@ -222,9 +250,11 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 5. Offline and Connectivity Testing
 
 #### Test Case M-009: Offline Functionality
+
 **Objective**: Test behavior when network connection is lost
 
 **Scenarios**:
+
 1. **Page Load Offline**
    - Attempt to load page without internet
    - Show appropriate error message
@@ -241,15 +271,18 @@ The standalone StepView page must work seamlessly across mobile devices for exte
    - Verify data consistency
 
 **Expected Behavior**:
+
 - Clear offline indicators
 - Actions queue for retry when online
 - No data corruption
 - User-friendly error messages
 
 #### Test Case M-010: Low Bandwidth Optimization
+
 **Objective**: Ensure usability on slow connections
 
 **Optimization Features**:
+
 - Progressive loading of content
 - Efficient polling intervals (30s vs 2s)
 - Minimal API requests
@@ -258,9 +291,11 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 6. Form Input and Interaction Testing
 
 #### Test Case M-011: Comment Input on Mobile
+
 **Objective**: Test comment textarea and form interactions
 
 **Elements to Test**:
+
 1. **Comment Textarea**
    - Tap to focus and show virtual keyboard
    - Proper keyboard type (text)
@@ -280,9 +315,11 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 7. Accessibility on Mobile
 
 #### Test Case M-012: Mobile Accessibility
+
 **Objective**: Ensure accessibility features work on mobile
 
 **Testing Areas**:
+
 1. **Screen Reader Support**
    - iOS VoiceOver navigation
    - Android TalkBack navigation
@@ -301,9 +338,11 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### 8. Security Testing on Mobile
 
 #### Test Case M-013: Mobile Security Validation
+
 **Objective**: Verify security measures work on mobile browsers
 
 **Test Areas**:
+
 1. **URL Parameter Security**
    - XSS prevention in mobile browsers
    - URL manipulation attempts
@@ -319,12 +358,14 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### iPhone/iPad Specific Tests
 
 #### Test Case iOS-001: Safari-Specific Features
+
 - PWA installation prompts
 - Safari Reader mode compatibility
 - iOS share sheet integration
 - Handoff with Mac Safari
 
 #### Test Case iOS-002: iOS Gestures
+
 - 3D Touch/Haptic Touch support
 - iOS swipe gestures
 - Control Center interaction
@@ -333,12 +374,14 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### Android Specific Tests
 
 #### Test Case AND-001: Chrome Mobile Features
+
 - Add to Home Screen functionality
 - Chrome Custom Tabs support
 - Android share intents
 - Autofill integration
 
 #### Test Case AND-002: Android System Integration
+
 - Back button behavior
 - Recent apps integration
 - Android keyboard support
@@ -348,17 +391,18 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 
 ### Target Performance Metrics
 
-| Metric | Target | Critical |
-|--------|---------|----------|
-| Page Load (3G) | < 3s | < 5s |
-| Page Load (4G) | < 2s | < 3s |
-| Time to Interactive | < 4s | < 6s |
-| Memory Usage | < 50MB | < 100MB |
-| Battery per Hour | < 5% | < 10% |
+| Metric              | Target | Critical |
+| ------------------- | ------ | -------- |
+| Page Load (3G)      | < 3s   | < 5s     |
+| Page Load (4G)      | < 2s   | < 3s     |
+| Time to Interactive | < 4s   | < 6s     |
+| Memory Usage        | < 50MB | < 100MB  |
+| Battery per Hour    | < 5%   | < 10%    |
 
 ### Performance Testing Tools
 
 1. **Chrome DevTools**
+
    ```javascript
    // Performance audit command
    lighthouse http://localhost:8090/stepview.html?ite_id=test --chrome-flags="--headless" --output=html
@@ -386,13 +430,14 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### Manual Testing Protocol
 
 1. **Pre-Test Setup**
+
    ```bash
    # Start test environment
    npm start
-   
+
    # Generate test data
    npm run generate-data:test
-   
+
    # Verify mobile access URLs
    curl -I http://localhost:8090/stepview.html
    ```
@@ -404,9 +449,10 @@ The standalone StepView page must work seamlessly across mobile devices for exte
    - Test both portrait and landscape modes
 
 3. **Issue Documentation**
+
    ```markdown
    ## Issue: [Brief Description]
-   
+
    **Device**: iPhone 13 (iOS 16.1)
    **Browser**: Safari 16.1
    **URL**: [Test URL]
@@ -420,40 +466,41 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### Automated Mobile Testing
 
 #### Selenium WebDriver Mobile Tests
+
 ```javascript
 // Example mobile automation test
-const { Builder, By, until } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
+const { Builder, By, until } = require("selenium-webdriver");
+const chrome = require("selenium-webdriver/chrome");
 
 // Configure mobile emulation
-const mobileOptions = new chrome.Options()
-  .setMobileEmulation({
-    deviceName: 'iPhone 12 Pro'
-  });
+const mobileOptions = new chrome.Options().setMobileEmulation({
+  deviceName: "iPhone 12 Pro",
+});
 
 const driver = new Builder()
-  .forBrowser('chrome')
+  .forBrowser("chrome")
   .setChromeOptions(mobileOptions)
   .build();
 
 // Test mobile page load
-await driver.get('http://localhost:8090/stepview.html?ite_id=test-uuid');
-await driver.wait(until.elementLocated(By.id('stepview-root')), 10000);
+await driver.get("http://localhost:8090/stepview.html?ite_id=test-uuid");
+await driver.wait(until.elementLocated(By.id("stepview-root")), 10000);
 ```
 
 #### Playwright Mobile Testing
+
 ```javascript
 // Playwright mobile test example
-const { test, devices } = require('@playwright/test');
+const { test, devices } = require("@playwright/test");
 
-test.describe('Mobile StepView Tests', () => {
+test.describe("Mobile StepView Tests", () => {
   test.use({
-    ...devices['iPhone 12'],
+    ...devices["iPhone 12"],
   });
 
-  test('loads stepview on mobile', async ({ page }) => {
-    await page.goto('/stepview.html?ite_id=test-uuid');
-    await expect(page.locator('#stepview-root')).toBeVisible();
+  test("loads stepview on mobile", async ({ page }) => {
+    await page.goto("/stepview.html?ite_id=test-uuid");
+    await expect(page.locator("#stepview-root")).toBeVisible();
   });
 });
 ```
@@ -461,6 +508,7 @@ test.describe('Mobile StepView Tests', () => {
 ## Test Data Requirements
 
 ### Test Step Data
+
 ```json
 {
   "testStepInstance": {
@@ -481,13 +529,15 @@ test.describe('Mobile StepView Tests', () => {
 ```
 
 ### Test Users
+
 - **NORMAL User**: `mobile-normal-user-123`
-- **PILOT User**: `mobile-pilot-user-456`  
+- **PILOT User**: `mobile-pilot-user-456`
 - **Guest User**: Generated automatically
 
 ## Success Criteria
 
 ### Functional Requirements
+
 - ✅ All URL formats work on mobile browsers
 - ✅ Touch interactions are responsive and accurate
 - ✅ Content is readable without horizontal scrolling
@@ -496,6 +546,7 @@ test.describe('Mobile StepView Tests', () => {
 - ✅ Offline error handling is user-friendly
 
 ### Quality Gates
+
 - Zero critical mobile compatibility issues
 - Performance scores > 90 on Lighthouse mobile
 - Accessibility scores > 95 (WCAG AA compliance)
@@ -504,6 +555,7 @@ test.describe('Mobile StepView Tests', () => {
 ## Troubleshooting Common Issues
 
 ### Layout Issues
+
 ```css
 /* Common mobile layout fixes */
 .stepview-standalone-container {
@@ -518,6 +570,7 @@ test.describe('Mobile StepView Tests', () => {
 ```
 
 ### Performance Issues
+
 ```javascript
 // Performance optimization techniques
 - Lazy load non-critical content
@@ -527,9 +580,11 @@ test.describe('Mobile StepView Tests', () => {
 ```
 
 ### iOS Safari Specific Issues
+
 ```css
 /* iOS Safari fixes */
-input, textarea {
+input,
+textarea {
   font-size: 16px; /* Prevent zoom on focus */
   -webkit-appearance: none; /* Remove default styling */
 }
@@ -543,12 +598,14 @@ input, textarea {
 ## Testing Schedule and Priorities
 
 ### Sprint Integration
+
 - **Week 1**: Core functionality mobile testing
-- **Week 2**: Performance and responsive design  
+- **Week 2**: Performance and responsive design
 - **Week 3**: Device-specific testing
 - **Week 4**: Edge cases and polish
 
 ### Continuous Testing
+
 - Run mobile tests on every pull request
 - Performance regression testing
 - Monthly device compatibility reviews

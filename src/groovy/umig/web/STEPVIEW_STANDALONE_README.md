@@ -13,6 +13,7 @@ This implementation provides a complete standalone StepView page and self-contai
 A mobile-first responsive HTML page that serves as the standalone wrapper for step viewing functionality.
 
 **Key Features:**
+
 - Mobile-first responsive design (320px minimum width)
 - Touch-friendly interface (44px minimum touch targets)
 - Accessibility compliant (WCAG 2.1 guidelines)
@@ -23,6 +24,7 @@ A mobile-first responsive HTML page that serves as the standalone wrapper for st
 - Loading states and error recovery
 
 **URL Parameters Supported:**
+
 - Human-readable: `?mig=migrationa&ite=run1&stepid=DEC-001&role=PILOT`
 - UUID-based: `?ite_id={uuid}&role=NORMAL&user_id={uuid}`
 
@@ -33,6 +35,7 @@ A mobile-first responsive HTML page that serves as the standalone wrapper for st
 A comprehensive email template that includes ALL step information inline for external users without network access.
 
 **Key Features:**
+
 - Complete step information embedded inline
 - Email client compatibility (Outlook, Gmail, Apple Mail, etc.)
 - Mobile-responsive design for email
@@ -48,7 +51,7 @@ A comprehensive email template that includes ALL step information inline for ext
 The implementation follows a mobile-first responsive design strategy:
 
 1. **Base styles (320px+):** Optimized for small screens
-2. **Tablet styles (768px+):** Enhanced layout for medium screens  
+2. **Tablet styles (768px+):** Enhanced layout for medium screens
 3. **Desktop styles (1024px+):** Full-featured desktop experience
 4. **Large screens (1440px+):** Maximum width constraints
 
@@ -63,15 +66,15 @@ The implementation follows a mobile-first responsive design strategy:
 
 The email template is tested and optimized for:
 
-| Client | Version | Support Level |
-|--------|---------|---------------|
-| Outlook | 2016+ | Full Support |
-| Gmail Web | Current | Full Support |
-| Gmail Mobile | Current | Full Support |
-| Apple Mail iOS | 13+ | Full Support |
-| Apple Mail macOS | 10.15+ | Full Support |
-| Android Email | 8+ | Full Support |
-| Samsung Email | Current | Full Support |
+| Client           | Version | Support Level |
+| ---------------- | ------- | ------------- |
+| Outlook          | 2016+   | Full Support  |
+| Gmail Web        | Current | Full Support  |
+| Gmail Mobile     | Current | Full Support  |
+| Apple Mail iOS   | 13+     | Full Support  |
+| Apple Mail macOS | 10.15+  | Full Support  |
+| Android Email    | 8+      | Full Support  |
+| Samsung Email    | Current | Full Support  |
 
 ### Accessibility Features
 
@@ -95,6 +98,7 @@ cp stepview-standalone.js /path/to/web/root/
 ```
 
 **Access URLs:**
+
 ```
 # Human-readable format
 https://your-domain.com/stepview.html?mig=migrationa&ite=run1&stepid=DEC-001&role=PILOT
@@ -108,6 +112,7 @@ https://your-domain.com/stepview.html?ite_id=12345678-1234-1234-1234-123456789ab
 The email template uses Mustache syntax for data population. Required template variables:
 
 #### Core Variables
+
 - `{{STEP_CODE}}` - Step identifier (e.g., "DEC-001")
 - `{{STEP_NAME}}` - Step display name
 - `{{STEP_STATUS}}` - Current status
@@ -122,6 +127,7 @@ The email template uses Mustache syntax for data population. Required template v
 - `{{SENDER_NAME}}` - Name of email sender
 
 #### Optional Variables
+
 - `{{STEP_DESCRIPTION}}` - Step description text
 - `{{STEP_DURATION}}` - Duration in minutes
 - `{{ASSIGNED_TEAM}}` - Assigned team name
@@ -130,6 +136,7 @@ The email template uses Mustache syntax for data population. Required template v
 - `{{PREDECESSOR_NAME}}` - Predecessor step name
 
 #### Collection Variables
+
 - `{{#HAS_LABELS}}` - Conditional block for labels
 - `{{#LABELS}}` - Array of label objects
 - `{{#HAS_INSTRUCTIONS}}` - Conditional block for instructions
@@ -140,6 +147,7 @@ The email template uses Mustache syntax for data population. Required template v
 - `{{#IMPACTED_TEAMS}}` - Array of team objects
 
 #### URL Variables
+
 - `{{CONFLUENCE_URL}}` - Link back to Confluence
 - `{{STANDALONE_URL}}` - Link to standalone page
 - `{{HELP_URL}}` - Help documentation link
@@ -158,20 +166,20 @@ Example Groovy service integration:
 ```groovy
 // EmailTemplateService.groovy
 class EmailTemplateService {
-    
+
     def generateStepEmail(stepInstanceId, userId) {
         // 1. Fetch complete step data
         def stepData = fetchCompleteStepData(stepInstanceId)
-        
+
         // 2. Load email template
         def template = loadTemplate('email-template.html')
-        
+
         // 3. Populate template variables
         def variables = buildTemplateVariables(stepData, userId)
-        
+
         // 4. Render template
         def renderedEmail = renderMustacheTemplate(template, variables)
-        
+
         return renderedEmail
     }
 }
@@ -180,16 +188,19 @@ class EmailTemplateService {
 ## Security Considerations
 
 ### XSS Prevention
+
 - All user-generated content is HTML-escaped in templates
 - Content Security Policy headers recommended
 - Input validation on URL parameters
 
 ### Access Control
+
 - Role-based access control implemented
 - Guest user support for external sharing
 - Session management for authenticated users
 
 ### Email Security
+
 - Templates designed to prevent email injection
 - All links use HTTPS where possible
 - Sensitive information properly masked
@@ -197,12 +208,14 @@ class EmailTemplateService {
 ## Performance Optimization
 
 ### Standalone Page
+
 - Lazy loading of non-critical resources
 - Optimized CSS with media queries
 - Minimal JavaScript dependencies
 - Efficient polling with visibility API
 
 ### Email Template
+
 - Inline CSS for maximum compatibility
 - Optimized image sizes and formats
 - Minimized HTML size for email limits
@@ -211,6 +224,7 @@ class EmailTemplateService {
 ## Browser Support
 
 ### Standalone Page
+
 - Chrome 80+
 - Safari 13+
 - Firefox 75+
@@ -219,6 +233,7 @@ class EmailTemplateService {
 - Chrome Android 80+
 
 ### Email Template
+
 - All major email clients (see compatibility table above)
 - Graceful degradation for older clients
 - Fallback styles for unsupported features
@@ -245,6 +260,7 @@ class EmailTemplateService {
 ### Debug Information
 
 The standalone page includes comprehensive error handling:
+
 - Network connectivity issues
 - API response errors
 - Invalid URL parameters
@@ -253,6 +269,7 @@ The standalone page includes comprehensive error handling:
 ## Testing Guidelines
 
 ### Standalone Page Testing
+
 1. Test all URL parameter formats
 2. Verify mobile responsiveness on multiple devices
 3. Test keyboard navigation and accessibility
@@ -260,6 +277,7 @@ The standalone page includes comprehensive error handling:
 5. Test offline behavior and error states
 
 ### Email Template Testing
+
 1. Test across all supported email clients
 2. Verify mobile rendering in email apps
 3. Test print functionality from email clients
@@ -269,12 +287,14 @@ The standalone page includes comprehensive error handling:
 ## Maintenance
 
 ### Regular Updates
+
 - Monitor email client compatibility changes
 - Update responsive breakpoints as needed
 - Review and update accessibility standards
 - Performance monitoring and optimization
 
 ### Version Control
+
 - Template versions should be tracked
 - Backward compatibility considerations
 - Migration strategy for template changes
@@ -282,6 +302,7 @@ The standalone page includes comprehensive error handling:
 ## Support
 
 For technical support or questions about this implementation:
+
 - Review the implementation code and comments
 - Check the UMIG project documentation
 - Contact the development team for specific issues

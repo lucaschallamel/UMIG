@@ -24,16 +24,16 @@ class StandaloneStepView {
       api: {
         baseUrl: this.detectApiBaseUrl(),
         timeout: 30000,
-        retryAttempts: 3
+        retryAttempts: 3,
       },
       polling: {
         enabled: true,
-        interval: 30000 // 30 seconds for standalone mode
+        interval: 30000, // 30 seconds for standalone mode
       },
       email: {
         enabled: true,
-        templateGeneration: true
-      }
+        templateGeneration: true,
+      },
     };
 
     // Initialize user context from URL or defaults
@@ -41,11 +41,11 @@ class StandaloneStepView {
     this.currentStepInstanceId = null;
     this.stepContext = null;
     this.refreshTimer = null;
-    
+
     // Bind methods for event handling
     this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
     this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
-    
+
     // Initialize when DOM is ready
     this.initializeWhenReady();
   }
@@ -68,25 +68,27 @@ class StandaloneStepView {
     try {
       // Set up the page structure first
       this.setupStandalonePage();
-      
+
       // Parse and validate URL parameters
       const urlParams = this.parseStepViewParams();
-      console.log('[StandaloneStepView] Parsed URL parameters:', urlParams);
-      
+      console.log("[StandaloneStepView] Parsed URL parameters:", urlParams);
+
       // Resolve step instance from URL parameters
       const stepInstanceData = await this.resolveStepInstance(urlParams);
-      console.log('[StandaloneStepView] Resolved step instance:', stepInstanceData);
-      
+      console.log(
+        "[StandaloneStepView] Resolved step instance:",
+        stepInstanceData,
+      );
+
       // Load and render the complete step view
       await this.loadAndRenderStepView(stepInstanceData);
-      
+
       // Set up standalone page features
       this.setupStandaloneFeatures();
-      
-      console.log('[StandaloneStepView] Initialization complete');
-      
+
+      console.log("[StandaloneStepView] Initialization complete");
     } catch (error) {
-      console.error('[StandaloneStepView] Initialization failed:', error);
+      console.error("[StandaloneStepView] Initialization failed:", error);
       this.renderErrorState(error);
     }
   }
@@ -98,42 +100,42 @@ class StandaloneStepView {
    */
   parseStepViewParams() {
     const params = new URLSearchParams(window.location.search);
-    
+
     // Check for UUID format first (simpler resolution)
-    if (params.has('ite_id')) {
-      const iteId = params.get('ite_id');
+    if (params.has("ite_id")) {
+      const iteId = params.get("ite_id");
       if (!this.isValidUUID(iteId)) {
-        throw new Error('Invalid iteration ID format. Must be a valid UUID.');
+        throw new Error("Invalid iteration ID format. Must be a valid UUID.");
       }
-      return { 
-        type: 'uuid',
+      return {
+        type: "uuid",
         ite_id: iteId,
-        user_role: params.get('role') || 'NORMAL',
-        user_id: params.get('user_id') || null
+        user_role: params.get("role") || "NORMAL",
+        user_id: params.get("user_id") || null,
       };
     }
-    
+
     // Check for human-readable format
-    if (params.has('mig') && params.has('ite') && params.has('stepid')) {
-      const migName = params.get('mig');
-      const iteName = params.get('ite');
-      const stepCode = params.get('stepid');
-      
+    if (params.has("mig") && params.has("ite") && params.has("stepid")) {
+      const migName = params.get("mig");
+      const iteName = params.get("ite");
+      const stepCode = params.get("stepid");
+
       // Validate step code format (XXX-nnn)
       if (!this.isValidStepCode(stepCode)) {
-        throw new Error('Invalid step code format. Expected format: ABC-123');
+        throw new Error("Invalid step code format. Expected format: ABC-123");
       }
-      
+
       return {
-        type: 'human-readable',
+        type: "human-readable",
         mig_name: migName,
         ite_name: iteName,
         step_code: stepCode,
-        user_role: params.get('role') || 'NORMAL',
-        user_id: params.get('user_id') || null
+        user_role: params.get("role") || "NORMAL",
+        user_id: params.get("user_id") || null,
       };
     }
-    
+
     // No valid parameters found
     throw new Error(`
       Missing required URL parameters. Use one of these formats:
@@ -153,18 +155,20 @@ class StandaloneStepView {
    */
   initializeUserContext() {
     const params = new URLSearchParams(window.location.search);
-    
+
     return {
-      role: params.get('role') || 'NORMAL',
-      id: params.get('user_id') || this.generateGuestUserId(),
-      isGuest: !params.has('user_id'),
+      role: params.get("role") || "NORMAL",
+      id: params.get("user_id") || this.generateGuestUserId(),
+      isGuest: !params.has("user_id"),
       permissions: {
-        canEditInstructions: ['NORMAL', 'PILOT'].includes(params.get('role') || 'NORMAL'),
-        canChangeStatus: ['PILOT'].includes(params.get('role') || 'NORMAL'),
-        canAddComments: ['PILOT'].includes(params.get('role') || 'NORMAL'),
-        canSendEmail: ['PILOT'].includes(params.get('role') || 'NORMAL'),
-        canEditComments: ['PILOT'].includes(params.get('role') || 'NORMAL')
-      }
+        canEditInstructions: ["NORMAL", "PILOT"].includes(
+          params.get("role") || "NORMAL",
+        ),
+        canChangeStatus: ["PILOT"].includes(params.get("role") || "NORMAL"),
+        canAddComments: ["PILOT"].includes(params.get("role") || "NORMAL"),
+        canSendEmail: ["PILOT"].includes(params.get("role") || "NORMAL"),
+        canEditComments: ["PILOT"].includes(params.get("role") || "NORMAL"),
+      },
     };
   }
 
@@ -172,10 +176,14 @@ class StandaloneStepView {
    * Resolve step instance from URL parameters using appropriate API calls
    */
   async resolveStepInstance(urlParams) {
-    if (urlParams.type === 'uuid') {
+    if (urlParams.type === "uuid") {
       return await this.resolveByIterationId(urlParams.ite_id);
     } else {
-      return await this.resolveByNames(urlParams.mig_name, urlParams.ite_name, urlParams.step_code);
+      return await this.resolveByNames(
+        urlParams.mig_name,
+        urlParams.ite_name,
+        urlParams.step_code,
+      );
     }
   }
 
@@ -186,18 +194,20 @@ class StandaloneStepView {
     const response = await this.fetchWithRetry(
       `${this.config.api.baseUrl}/stepViewApi/byIteration/${iterationId}`,
       {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Accept': 'application/json',
-          'X-StandaloneView': 'true'
-        }
-      }
+          Accept: "application/json",
+          "X-StandaloneView": "true",
+        },
+      },
     );
-    
+
     if (!response.ok) {
-      throw new Error(`Failed to resolve step by iteration ID: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Failed to resolve step by iteration ID: ${response.status} ${response.statusText}`,
+      );
     }
-    
+
     return await response.json();
   }
 
@@ -209,23 +219,26 @@ class StandaloneStepView {
       migrationName: migrationName,
       iterationName: iterationName,
       stepCode: stepCode,
-      includeContext: 'true'
+      includeContext: "true",
     });
 
     const response = await this.fetchWithRetry(
       `${this.config.api.baseUrl}/stepViewApi/instance?${queryParams}`,
       {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Accept': 'application/json',
-          'X-StandaloneView': 'true'
-        }
-      }
+          Accept: "application/json",
+          "X-StandaloneView": "true",
+        },
+      },
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Failed to resolve step: ${response.status} ${response.statusText}`);
+      throw new Error(
+        errorData.error ||
+          `Failed to resolve step: ${response.status} ${response.statusText}`,
+      );
     }
 
     return await response.json();
@@ -235,14 +248,16 @@ class StandaloneStepView {
    * Load and render the complete step view
    */
   async loadAndRenderStepView(stepInstanceData) {
-    const container = document.getElementById('stepview-root');
+    const container = document.getElementById("stepview-root");
     if (!container) {
-      throw new Error('StepView root container not found. Expected #stepview-root element.');
+      throw new Error(
+        "StepView root container not found. Expected #stepview-root element.",
+      );
     }
 
     // Store step context for later use
     this.stepContext = stepInstanceData;
-    
+
     if (stepInstanceData.stepSummary?.ID) {
       this.currentStepInstanceId = stepInstanceData.stepSummary.ID;
     }
@@ -253,20 +268,19 @@ class StandaloneStepView {
     try {
       // Render the complete step view
       this.renderStepView(stepInstanceData, container);
-      
+
       // Apply role-based controls
       this.applyRoleBasedControls();
-      
+
       // Attach all event listeners
       this.attachEventListeners();
-      
+
       // Start polling for updates if enabled
       if (this.config.polling.enabled) {
         this.startPolling();
       }
-      
     } catch (error) {
-      console.error('[StandaloneStepView] Error rendering step view:', error);
+      console.error("[StandaloneStepView] Error rendering step view:", error);
       this.renderErrorState(error, container);
     }
   }
@@ -276,27 +290,28 @@ class StandaloneStepView {
    */
   setupStandalonePage() {
     // Set page title
-    document.title = 'UMIG Step View - Loading...';
-    
+    document.title = "UMIG Step View - Loading...";
+
     // Add viewport meta tag for mobile responsiveness
     if (!document.querySelector('meta[name="viewport"]')) {
-      const viewport = document.createElement('meta');
-      viewport.name = 'viewport';
-      viewport.content = 'width=device-width, initial-scale=1.0, user-scalable=yes';
+      const viewport = document.createElement("meta");
+      viewport.name = "viewport";
+      viewport.content =
+        "width=device-width, initial-scale=1.0, user-scalable=yes";
       document.head.appendChild(viewport);
     }
 
     // Add responsive styles
     this.addStandaloneStyles();
-    
+
     // Create root container if it doesn't exist
-    if (!document.getElementById('stepview-root')) {
-      const container = document.createElement('div');
-      container.id = 'stepview-root';
-      container.className = 'stepview-standalone-container';
-      
+    if (!document.getElementById("stepview-root")) {
+      const container = document.createElement("div");
+      container.id = "stepview-root";
+      container.className = "stepview-standalone-container";
+
       // Clear body and add container
-      document.body.innerHTML = '';
+      document.body.innerHTML = "";
       document.body.appendChild(container);
     }
   }
@@ -306,17 +321,17 @@ class StandaloneStepView {
    */
   setupStandaloneFeatures() {
     // Add page visibility change handling for polling
-    document.addEventListener('visibilitychange', this.handleVisibilityChange);
-    
+    document.addEventListener("visibilitychange", this.handleVisibilityChange);
+
     // Add before unload handling
-    window.addEventListener('beforeunload', this.handleBeforeUnload);
-    
+    window.addEventListener("beforeunload", this.handleBeforeUnload);
+
     // Add keyboard shortcuts
     this.setupKeyboardShortcuts();
-    
+
     // Add responsive behavior
     this.setupResponsiveFeatures();
-    
+
     // Update page title with step information
     this.updatePageTitle();
   }
@@ -359,7 +374,7 @@ class StandaloneStepView {
       </div>
       
       <div class="stepview-standalone-content">
-        <div class="step-info" data-sti-id="${summary.ID || ""}" data-current-status="${summary.Status || 'PENDING'}">
+        <div class="step-info" data-sti-id="${summary.ID || ""}" data-current-status="${summary.Status || "PENDING"}">
           ${this.renderStepSummary(summary)}
           ${this.renderLabels(summary.Labels)}
           ${this.renderInstructions(instructions)}
@@ -370,7 +385,7 @@ class StandaloneStepView {
       
       <div class="stepview-standalone-footer">
         <div class="footer-info">
-          <span class="user-info">Viewing as: ${this.escapeHtml(this.userContext.role)} ${this.userContext.isGuest ? '(Guest)' : 'User'}</span>
+          <span class="user-info">Viewing as: ${this.escapeHtml(this.userContext.role)} ${this.userContext.isGuest ? "(Guest)" : "User"}</span>
           <span class="last-updated" id="last-updated-time">Updated: ${new Date().toLocaleTimeString()}</span>
         </div>
       </div>
@@ -412,27 +427,39 @@ class StandaloneStepView {
             <div class="summary-value">${this.escapeHtml(summary.AssignedTeam || "Unassigned")}</div>
           </div>
           
-          ${summary.PredecessorCode ? `
+          ${
+            summary.PredecessorCode
+              ? `
           <div class="summary-item">
             <label>Predecessor</label>
             <div class="summary-value">${this.escapeHtml(summary.PredecessorCode)}${summary.PredecessorName ? `: ${this.escapeHtml(summary.PredecessorName)}` : ""}</div>
           </div>
-          ` : ""}
+          `
+              : ""
+          }
           
-          ${summary.TargetEnvironment ? `
+          ${
+            summary.TargetEnvironment
+              ? `
           <div class="summary-item">
             <label>Environment</label>
             <div class="summary-value">${this.escapeHtml(summary.TargetEnvironment)}</div>
           </div>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
         
-        ${summary.Description ? `
+        ${
+          summary.Description
+            ? `
         <div class="summary-description">
           <label>Description</label>
           <div class="description-content">${this.escapeHtml(summary.Description)}</div>
         </div>
-        ` : ""}
+        `
+            : ""
+        }
       </div>
     `;
   }
@@ -446,11 +473,14 @@ class StandaloneStepView {
     }
 
     const labelHtml = labels
-      .map(label => `
+      .map(
+        (label) => `
         <span class="step-label" style="background-color: ${label.color || "#e3e5e8"}; color: ${this.getContrastColor(label.color || "#e3e5e8")}">
           ${this.escapeHtml(label.name)}
         </span>
-      `).join("");
+      `,
+      )
+      .join("");
 
     return `
       <div class="labels-section">
@@ -476,7 +506,8 @@ class StandaloneStepView {
     }
 
     const rows = instructions
-      .map((inst, index) => `
+      .map(
+        (inst, index) => `
         <tr class="instruction-row ${inst.IsCompleted ? "completed" : ""}">
           <td class="instruction-checkbox-cell">
             <input type="checkbox" 
@@ -490,7 +521,9 @@ class StandaloneStepView {
           <td class="instruction-body">${this.escapeHtml(inst.Description)}</td>
           <td class="instruction-duration">${inst.Duration || "-"} min</td>
         </tr>
-      `).join("");
+      `,
+      )
+      .join("");
 
     return `
       <div class="instructions-section">
@@ -523,7 +556,10 @@ class StandaloneStepView {
     }
 
     const teamList = teams
-      .map(team => `<li class="team-item">${this.escapeHtml(team.name || team)}</li>`)
+      .map(
+        (team) =>
+          `<li class="team-item">${this.escapeHtml(team.name || team)}</li>`,
+      )
       .join("");
 
     return `
@@ -547,11 +583,14 @@ class StandaloneStepView {
     `;
 
     if (comments.length === 0) {
-      html += '<p class="no-comments">No comments yet. Be the first to add one!</p>';
+      html +=
+        '<p class="no-comments">No comments yet. Be the first to add one!</p>';
     } else {
-      comments.forEach(comment => {
+      comments.forEach((comment) => {
         const timeAgo = this.formatTimeAgo(comment.createdAt);
-        const teamName = comment.author?.team ? ` (${comment.author.team})` : "";
+        const teamName = comment.author?.team
+          ? ` (${comment.author.team})`
+          : "";
         html += `
           <div class="comment" data-comment-id="${comment.id}">
             <div class="comment-header">
@@ -594,13 +633,17 @@ class StandaloneStepView {
     // Status dropdown
     const statusDropdown = document.getElementById("step-status-dropdown");
     if (statusDropdown) {
-      statusDropdown.addEventListener("change", (e) => this.handleStatusChange(e));
+      statusDropdown.addEventListener("change", (e) =>
+        this.handleStatusChange(e),
+      );
     }
 
     // Instruction checkboxes
     const checkboxes = document.querySelectorAll(".instruction-checkbox");
-    checkboxes.forEach(checkbox => {
-      checkbox.addEventListener("change", (e) => this.handleInstructionToggle(e));
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener("change", (e) =>
+        this.handleInstructionToggle(e),
+      );
     });
 
     // Toolbar buttons
@@ -630,13 +673,13 @@ class StandaloneStepView {
 
     // Edit comment buttons
     const editButtons = document.querySelectorAll(".btn-edit-comment");
-    editButtons.forEach(btn => {
+    editButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => this.handleEditComment(e));
     });
 
     // Delete comment buttons
     const deleteButtons = document.querySelectorAll(".btn-delete-comment");
-    deleteButtons.forEach(btn => {
+    deleteButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => this.handleDeleteComment(e));
     });
   }
@@ -647,27 +690,32 @@ class StandaloneStepView {
   async handleStatusChange(event) {
     const newStatus = event.target.value;
     if (!this.currentStepInstanceId) {
-      this.showNotification("Unable to update status: No step instance ID", "error");
+      this.showNotification(
+        "Unable to update status: No step instance ID",
+        "error",
+      );
       return;
     }
 
     if (!this.userContext.permissions.canChangeStatus) {
-      this.showNotification("You don't have permission to change status", "warning");
+      this.showNotification(
+        "You don't have permission to change status",
+        "warning",
+      );
       return;
     }
 
     try {
       await this.updateStepStatus(newStatus);
       this.showNotification("Status updated successfully", "success");
-      
+
       // Update the visual status display
       this.updateStatusDisplay(newStatus);
-      
     } catch (error) {
       console.error("Error updating status:", error);
       this.showNotification("Failed to update status", "error");
       // Revert the dropdown
-      event.target.value = this.stepContext?.stepSummary?.Status || 'PENDING';
+      event.target.value = this.stepContext?.stepSummary?.Status || "PENDING";
     }
   }
 
@@ -686,7 +734,10 @@ class StandaloneStepView {
     }
 
     if (!this.userContext.permissions.canEditInstructions) {
-      this.showNotification("You don't have permission to modify instructions", "warning");
+      this.showNotification(
+        "You don't have permission to modify instructions",
+        "warning",
+      );
       checkbox.checked = !isChecked; // Revert
       return;
     }
@@ -716,7 +767,10 @@ class StandaloneStepView {
    */
   async handleEmailStep() {
     if (!this.userContext.permissions.canSendEmail) {
-      this.showNotification("You don't have permission to send emails", "warning");
+      this.showNotification(
+        "You don't have permission to send emails",
+        "warning",
+      );
       return;
     }
 
@@ -737,13 +791,12 @@ class StandaloneStepView {
     try {
       const urlParams = this.parseStepViewParams();
       const freshData = await this.resolveStepInstance(urlParams);
-      
-      const container = document.getElementById('stepview-root');
+
+      const container = document.getElementById("stepview-root");
       await this.loadAndRenderStepView(freshData);
-      
+
       this.showNotification("Step data refreshed", "success");
       this.updateLastUpdatedTime();
-      
     } catch (error) {
       console.error("Error refreshing step:", error);
       this.showNotification("Failed to refresh step data", "error");
@@ -764,7 +817,10 @@ class StandaloneStepView {
     }
 
     if (!this.userContext.permissions.canAddComments) {
-      this.showNotification("You don't have permission to add comments", "warning");
+      this.showNotification(
+        "You don't have permission to add comments",
+        "warning",
+      );
       return;
     }
 
@@ -772,10 +828,9 @@ class StandaloneStepView {
       await this.addComment(commentText);
       textarea.value = "";
       this.showNotification("Comment added successfully", "success");
-      
+
       // Refresh comments section
       await this.refreshCommentsSection();
-      
     } catch (error) {
       console.error("Error adding comment:", error);
       this.showNotification("Failed to add comment", "error");
@@ -788,12 +843,15 @@ class StandaloneStepView {
   async handleEditComment(event) {
     // Similar to existing implementation but with permission checks
     const commentId = event.target.dataset.commentId;
-    
+
     if (!this.userContext.permissions.canEditComments) {
-      this.showNotification("You don't have permission to edit comments", "warning");
+      this.showNotification(
+        "You don't have permission to edit comments",
+        "warning",
+      );
       return;
     }
-    
+
     // Implement edit functionality similar to existing code
     // ... (implementation details as in original)
   }
@@ -803,12 +861,15 @@ class StandaloneStepView {
    */
   async handleDeleteComment(event) {
     const commentId = event.target.dataset.commentId;
-    
+
     if (!this.userContext.permissions.canEditComments) {
-      this.showNotification("You don't have permission to delete comments", "warning");
+      this.showNotification(
+        "You don't have permission to delete comments",
+        "warning",
+      );
       return;
     }
-    
+
     // Show confirmation and delete
     // ... (implementation details as in original)
   }
@@ -822,30 +883,35 @@ class StandaloneStepView {
    */
   async fetchWithRetry(url, options = {}, maxRetries = 3) {
     let lastError;
-    
+
     for (let i = 0; i < maxRetries; i++) {
       try {
         const response = await fetch(url, {
           ...options,
           headers: {
-            'Content-Type': 'application/json',
-            'X-StandaloneView': 'true',
-            ...options.headers
-          }
+            "Content-Type": "application/json",
+            "X-StandaloneView": "true",
+            ...options.headers,
+          },
         });
-        
+
         return response;
       } catch (error) {
         lastError = error;
-        console.warn(`[StandaloneStepView] Fetch attempt ${i + 1} failed:`, error);
-        
+        console.warn(
+          `[StandaloneStepView] Fetch attempt ${i + 1} failed:`,
+          error,
+        );
+
         if (i < maxRetries - 1) {
           // Wait before retry (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, i) * 1000),
+          );
         }
       }
     }
-    
+
     throw lastError;
   }
 
@@ -858,13 +924,12 @@ class StandaloneStepView {
       {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: newStatus,
-          userId: this.userContext.id
-        })
-      }
+          statusId: parseInt(newStatus),
+        }),
+      },
     );
 
     if (!response.ok) {
@@ -883,12 +948,12 @@ class StandaloneStepView {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: this.userContext.id
-        })
-      }
+          userId: this.userContext.id,
+        }),
+      },
     );
 
     if (!response.ok) {
@@ -907,12 +972,12 @@ class StandaloneStepView {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: this.userContext.id
-        })
-      }
+          userId: this.userContext.id,
+        }),
+      },
     );
 
     if (!response.ok) {
@@ -931,13 +996,13 @@ class StandaloneStepView {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           body: commentText,
-          userId: this.userContext.id
-        })
-      }
+          userId: this.userContext.id,
+        }),
+      },
     );
 
     if (!response.ok) {
@@ -956,15 +1021,15 @@ class StandaloneStepView {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId: this.userContext.id,
           includeInstructions: true,
           includeComments: true,
-          templateFormat: 'html'
-        })
-      }
+          templateFormat: "html",
+        }),
+      },
     );
 
     if (!response.ok) {
@@ -984,32 +1049,49 @@ class StandaloneStepView {
   applyRoleBasedControls() {
     const userRole = this.userContext.role;
     const permissions = this.userContext.permissions;
-    
+
     // Show/hide role-specific elements
     const normalElements = document.querySelectorAll(".normal-only");
     const pilotElements = document.querySelectorAll(".pilot-only");
     const normalUserActions = document.querySelectorAll(".normal-user-action");
 
     // Show elements based on permissions
-    normalElements.forEach(el => {
+    normalElements.forEach((el) => {
       el.style.display = userRole === "NORMAL" ? "" : "none";
     });
 
-    pilotElements.forEach(el => {
-      el.style.display = permissions.canChangeStatus || permissions.canAddComments ? "" : "none";
+    pilotElements.forEach((el) => {
+      el.style.display =
+        permissions.canChangeStatus || permissions.canAddComments ? "" : "none";
     });
 
-    normalUserActions.forEach(el => {
+    normalUserActions.forEach((el) => {
       el.style.display = permissions.canEditInstructions ? "" : "none";
     });
 
-    // Populate status dropdown for users with permission
-    if (permissions.canChangeStatus) {
-      const statusDropdown = document.getElementById("step-status-dropdown");
-      if (statusDropdown) {
-        statusDropdown.style.display = "";
-        this.populateStatusDropdown();
-      }
+    // FIXED: Always populate status dropdown for display, show controls based on permissions
+    const statusDropdown = document.getElementById("step-status-dropdown");
+    if (statusDropdown) {
+      // Always populate dropdown so users can see current status
+      this.populateStatusDropdown()
+        .then(() => {
+          // Only show as editable if user has change permissions
+          if (permissions.canChangeStatus) {
+            statusDropdown.style.display = "";
+            statusDropdown.disabled = false;
+          } else {
+            statusDropdown.style.display = "";
+            statusDropdown.disabled = true;
+            statusDropdown.title = "Status display only - no edit permission";
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to populate status dropdown:", error);
+          statusDropdown.innerHTML =
+            '<option value="">Error loading statuses</option>';
+          statusDropdown.style.display = "";
+          statusDropdown.disabled = true;
+        });
     }
   }
 
@@ -1018,26 +1100,56 @@ class StandaloneStepView {
    */
   async populateStatusDropdown() {
     const dropdown = document.getElementById("step-status-dropdown");
-    if (!dropdown) return;
+    if (!dropdown) {
+      throw new Error("Status dropdown element not found");
+    }
+
+    // Show loading state
+    dropdown.innerHTML = '<option value="">Loading statuses...</option>';
 
     try {
-      const response = await this.fetchWithRetry(`${this.config.api.baseUrl}/statuses/step`);
-      if (!response.ok) throw new Error("Failed to fetch statuses");
+      // FIXED: Use direct fetch without custom headers to match working iteration-view.js
+      const response = await fetch(`${this.config.api.baseUrl}/statuses/step`, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch statuses: ${response.status} ${response.statusText}`,
+        );
+      }
 
       const statuses = await response.json();
+
+      if (!statuses || statuses.length === 0) {
+        throw new Error("No statuses returned from API");
+      }
+
       const currentStatus = this.stepContext?.stepSummary?.Status || "PENDING";
 
       dropdown.innerHTML = statuses
-        .map(status => `
-          <option value="${status.sts_code}" 
-                  ${status.sts_code === currentStatus ? "selected" : ""}
-                  style="color: ${status.sts_color || "#000"}">
-            ${status.sts_name}
+        .map(
+          (status) => `
+          <option value="${status.id}" 
+                  ${status.name === currentStatus ? "selected" : ""}
+                  style="color: ${status.color || "#000"}">
+            ${status.name}
           </option>
-        `).join("");
-        
+        `,
+        )
+        .join("");
+
+      console.log(
+        `[StepView] Successfully loaded ${statuses.length} statuses, current: ${currentStatus}`,
+      );
     } catch (error) {
-      console.error("Error loading statuses:", error);
+      console.error("[StepView] Error loading statuses:", error);
+      dropdown.innerHTML = `<option value="">Error: ${error.message}</option>`;
+      throw error; // Re-throw so caller can handle it
     }
   }
 
@@ -1048,7 +1160,7 @@ class StandaloneStepView {
     if (this.refreshTimer) {
       clearInterval(this.refreshTimer);
     }
-    
+
     this.refreshTimer = setInterval(async () => {
       if (!document.hidden) {
         try {
@@ -1095,23 +1207,26 @@ class StandaloneStepView {
    * Setup keyboard shortcuts
    */
   setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener("keydown", (e) => {
       // Only if not in input fields
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
         return;
       }
-      
+
       switch (e.key) {
-        case 'r':
-        case 'R':
+        case "r":
+        case "R":
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             this.handleRefreshStep();
           }
           break;
-        case 'e':
-        case 'E':
-          if ((e.ctrlKey || e.metaKey) && this.userContext.permissions.canSendEmail) {
+        case "e":
+        case "E":
+          if (
+            (e.ctrlKey || e.metaKey) &&
+            this.userContext.permissions.canSendEmail
+          ) {
             e.preventDefault();
             this.handleEmailStep();
           }
@@ -1125,11 +1240,11 @@ class StandaloneStepView {
    */
   setupResponsiveFeatures() {
     // Add responsive table wrapper for instructions
-    const instructionsTable = document.querySelector('.instructions-table');
+    const instructionsTable = document.querySelector(".instructions-table");
     if (instructionsTable) {
-      instructionsTable.classList.add('responsive-table');
+      instructionsTable.classList.add("responsive-table");
     }
-    
+
     // Setup mobile-friendly interactions
     this.setupMobileInteractions();
   }
@@ -1139,13 +1254,13 @@ class StandaloneStepView {
    */
   setupMobileInteractions() {
     // Add touch-friendly button sizing
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(button => {
-      button.classList.add('touch-friendly');
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach((button) => {
+      button.classList.add("touch-friendly");
     });
-    
+
     // Add swipe gestures for mobile navigation (optional)
-    if ('ontouchstart' in window) {
+    if ("ontouchstart" in window) {
       this.setupSwipeGestures();
     }
   }
@@ -1156,18 +1271,18 @@ class StandaloneStepView {
   setupSwipeGestures() {
     let startX = 0;
     let startY = 0;
-    
-    document.addEventListener('touchstart', (e) => {
+
+    document.addEventListener("touchstart", (e) => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
     });
-    
-    document.addEventListener('touchend', (e) => {
+
+    document.addEventListener("touchend", (e) => {
       const endX = e.changedTouches[0].clientX;
       const endY = e.changedTouches[0].clientY;
       const deltaX = endX - startX;
       const deltaY = endY - startY;
-      
+
       // Only act on significant horizontal swipes
       if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
         if (deltaX > 0) {
@@ -1189,8 +1304,8 @@ class StandaloneStepView {
     // For standalone mode, try to detect the API base URL
     const currentHost = window.location.hostname;
     const currentPort = window.location.port;
-    
-    if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+
+    if (currentHost === "localhost" || currentHost === "127.0.0.1") {
       // Development environment
       return `http://${currentHost}:${currentPort || 8090}/rest/scriptrunner/latest/custom`;
     } else {
@@ -1203,14 +1318,15 @@ class StandaloneStepView {
    * Generate a guest user ID for anonymous access
    */
   generateGuestUserId() {
-    return 'guest-' + Math.random().toString(36).substr(2, 9);
+    return "guest-" + Math.random().toString(36).substr(2, 9);
   }
 
   /**
    * Validate UUID format
    */
   isValidUUID(uuid) {
-    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidPattern.test(uuid);
   }
 
@@ -1236,7 +1352,7 @@ class StandaloneStepView {
    * Update last updated time display
    */
   updateLastUpdatedTime() {
-    const lastUpdatedElement = document.getElementById('last-updated-time');
+    const lastUpdatedElement = document.getElementById("last-updated-time");
     if (lastUpdatedElement) {
       lastUpdatedElement.textContent = `Updated: ${new Date().toLocaleTimeString()}`;
     }
@@ -1253,11 +1369,11 @@ class StandaloneStepView {
         statusSpan.outerHTML = this.getStatusDisplay(newStatus);
       }
     }
-    
+
     // Update step info data attribute
-    const stepInfo = document.querySelector('.step-info');
+    const stepInfo = document.querySelector(".step-info");
     if (stepInfo) {
-      stepInfo.setAttribute('data-current-status', newStatus);
+      stepInfo.setAttribute("data-current-status", newStatus);
     }
   }
 
@@ -1268,17 +1384,17 @@ class StandaloneStepView {
     try {
       const urlParams = this.parseStepViewParams();
       const freshData = await this.resolveStepInstance(urlParams);
-      
-      const commentsSection = document.querySelector('.comments-section');
+
+      const commentsSection = document.querySelector(".comments-section");
       if (commentsSection && freshData.comments) {
         const newCommentsHtml = this.renderComments(freshData.comments);
         commentsSection.outerHTML = newCommentsHtml;
-        
+
         // Reattach comment listeners
         this.attachCommentListeners();
       }
     } catch (error) {
-      console.error('Error refreshing comments:', error);
+      console.error("Error refreshing comments:", error);
     }
   }
 
@@ -1303,7 +1419,8 @@ class StandaloneStepView {
    * Render error state with retry option
    */
   renderErrorState(error, container = null) {
-    const targetContainer = container || document.getElementById('stepview-root');
+    const targetContainer =
+      container || document.getElementById("stepview-root");
     if (!targetContainer) return;
 
     targetContainer.innerHTML = `
@@ -1349,18 +1466,18 @@ class StandaloneStepView {
       success: "✅",
       error: "❌",
       warning: "⚠️",
-      info: "ℹ️"
+      info: "ℹ️",
     };
 
     const colorMap = {
       success: "#d4edda",
       error: "#f8d7da",
       warning: "#fff3cd",
-      info: "#d1ecf1"
+      info: "#d1ecf1",
     };
 
     notification.style.backgroundColor = colorMap[type] || colorMap.info;
-    
+
     notification.innerHTML = `
       <div style="display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 18px;">${iconMap[type] || iconMap.info}</span>
@@ -1386,7 +1503,7 @@ class StandaloneStepView {
    * Add comprehensive standalone styles
    */
   addStandaloneStyles() {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       /* Reset and base styles */
       * {
@@ -1895,7 +2012,7 @@ class StandaloneStepView {
       
       /* Will be shown by JavaScript based on user role */
     `;
-    
+
     document.head.appendChild(style);
   }
 
@@ -1910,7 +2027,7 @@ class StandaloneStepView {
       COMPLETED: "#36B37E",
       FAILED: "#FF5630",
       BLOCKED: "#FF5630",
-      CANCELLED: "#6B778C"
+      CANCELLED: "#6B778C",
     };
 
     const color = statusColors[status] || "#6B778C";
@@ -1952,8 +2069,8 @@ class StandaloneStepView {
    * Escape HTML to prevent XSS
    */
   escapeHtml(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
+    if (typeof text !== "string") return "";
+    const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
   }
@@ -1964,11 +2081,14 @@ class StandaloneStepView {
   destroy() {
     // Stop polling
     this.stopPolling();
-    
+
     // Remove event listeners
-    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
-    window.removeEventListener('beforeunload', this.handleBeforeUnload);
-    
+    document.removeEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange,
+    );
+    window.removeEventListener("beforeunload", this.handleBeforeUnload);
+
     // Clear any timeouts
     if (this.refreshTimer) {
       clearInterval(this.refreshTimer);
@@ -1980,6 +2100,6 @@ class StandaloneStepView {
 window.standaloneStepView = new StandaloneStepView();
 
 // Export for module systems
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
   module.exports = StandaloneStepView;
 }

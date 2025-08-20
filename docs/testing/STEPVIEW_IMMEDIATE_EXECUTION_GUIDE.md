@@ -1,4 +1,5 @@
 # StepView QA Framework - Immediate Execution Guide
+
 **US-036 Phase 2 - Execute Now to Validate Changes**
 
 ## ⚡ Quick Start (5 minutes)
@@ -23,6 +24,7 @@ npm run test:us036:quick
 ## 🔍 Step-by-Step Execution
 
 ### Step 1: Environment Check
+
 ```bash
 cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup
 
@@ -35,6 +37,7 @@ npm run test:integration:core --quick
 ```
 
 ### Step 2: Execute Unit Tests
+
 ```bash
 # Test macro HTML generation
 npm run test:stepview:unit:macro
@@ -46,7 +49,8 @@ npm run test:stepview:unit:role
 echo "Unit test results completed"
 ```
 
-### Step 3: Execute Integration Tests  
+### Step 3: Execute Integration Tests
+
 ```bash
 # Test JavaScript-HTML synchronization
 npm run test:stepview:integration
@@ -59,6 +63,7 @@ echo "Integration test results completed"
 ```
 
 ### Step 4: Execute UAT Tests
+
 ```bash
 # Full UAT validation
 npm run test:stepview:uat
@@ -76,21 +81,26 @@ ls -la ../src/groovy/umig/tests/uat/screenshots/
 ## 🚨 Critical Issues to Watch For
 
 ### 1. Role-Based Access Control
+
 **Test**: URL parameter override functionality
+
 ```bash
 # Test specific roles
 node scripts/test-stepview-validation.js --role NORMAL
-node scripts/test-stepview-validation.js --role PILOT  
+node scripts/test-stepview-validation.js --role PILOT
 node scripts/test-stepview-validation.js --role ADMIN
 ```
 
 **Expected Results**:
+
 - NORMAL: No action buttons visible
 - PILOT: Update Status button visible, Bulk Complete hidden
 - ADMIN: All buttons visible
 
 ### 2. HTML Structure Alignment
+
 **Test**: CSS classes match IterationView
+
 ```bash
 # Check for these classes in browser console:
 # .step-details-container
@@ -101,12 +111,15 @@ node scripts/test-stepview-validation.js --role ADMIN
 ```
 
 **Expected Results**:
+
 - All IterationView CSS classes present
 - iteration-view.css loaded
 - Mobile responsive (768px breakpoint)
 
 ### 3. JavaScript Synchronization
+
 **Test**: DOM manipulation working correctly
+
 ```bash
 # Browser console check:
 # window.UMIG_STEP_CONFIG should exist
@@ -115,6 +128,7 @@ node scripts/test-stepview-validation.js --role ADMIN
 ```
 
 **Expected Results**:
+
 - Configuration object properly populated
 - Cache working with 30-second TTL
 - Real-time synchronization active
@@ -124,8 +138,9 @@ node scripts/test-stepview-validation.js --role ADMIN
 After running tests, verify these quality gates:
 
 ### ✅ PASS Criteria
+
 - [ ] All unit tests pass (0 failures)
-- [ ] All integration tests pass (0 failures)  
+- [ ] All integration tests pass (0 failures)
 - [ ] All UAT tests pass (0 failures)
 - [ ] Page loads in <3 seconds
 - [ ] Screenshots show correct UI layout
@@ -134,6 +149,7 @@ After running tests, verify these quality gates:
 - [ ] Role-based features function correctly
 
 ### ❌ FAIL Criteria (DO NOT COMMIT)
+
 - [ ] Any test failures
 - [ ] Page load time >3 seconds
 - [ ] Missing CSS classes from IterationView
@@ -145,6 +161,7 @@ After running tests, verify these quality gates:
 ## 🔧 Troubleshooting Common Issues
 
 ### Issue 1: Tests Not Finding Files
+
 ```bash
 # Check file paths exist:
 ls -la src/groovy/umig/macros/v1/stepViewMacro.groovy
@@ -153,6 +170,7 @@ ls -la src/groovy/umig/tests/unit/stepViewMacro*.groovy
 ```
 
 ### Issue 2: Environment Not Running
+
 ```bash
 # Start the environment:
 cd local-dev-setup
@@ -163,6 +181,7 @@ npm start
 ```
 
 ### Issue 3: Database Connection Issues
+
 ```bash
 # Check database:
 npm run test:integration --quick
@@ -172,6 +191,7 @@ npm run generate-data:erase
 ```
 
 ### Issue 4: Screenshots Not Generated
+
 ```bash
 # Create directory:
 mkdir -p src/groovy/umig/tests/uat/screenshots
@@ -185,6 +205,7 @@ chmod 755 src/groovy/umig/tests/uat/screenshots
 After running UAT tests, review these screenshots:
 
 **Expected Screenshots** (should be created automatically):
+
 - `stepview-initial-load.png` - Page loads correctly
 - `stepview-container.png` - Container structure
 - `stepview-header.png` - Header with status badge
@@ -194,6 +215,7 @@ After running UAT tests, review these screenshots:
 - `stepview-final-state.png` - Complete UI
 
 **Manual Review**:
+
 1. Open each screenshot
 2. Verify UI looks consistent with IterationView
 3. Check mobile layout is responsive
@@ -208,7 +230,7 @@ If you need fastest possible validation:
 npm run test:stepview:unit:macro && npm run test:stepview:uat:performance
 
 # Check result
-echo $? 
+echo $?
 # 0 = success, non-zero = failure
 ```
 
@@ -231,10 +253,11 @@ fi
 ## 📋 Results Interpretation
 
 ### Success Output Example:
+
 ```
 🚀 StepView UI Refactoring Validation - US-036 Phase 2
 ✅ Unit Tests - Macro Generation - PASSED
-✅ Unit Tests - Role-Based Access - PASSED  
+✅ Unit Tests - Role-Based Access - PASSED
 ✅ Integration Tests - JavaScript Sync - PASSED
 ✅ UAT Tests - Complete UI Validation - PASSED
 📈 Validation Summary:
@@ -245,6 +268,7 @@ fi
 ```
 
 ### Failure Output Example:
+
 ```
 ❌ Integration Tests - JavaScript Sync - FAILED
 ❌ UAT Tests - Complete UI Validation - FAILED
