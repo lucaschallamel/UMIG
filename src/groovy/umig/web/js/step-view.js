@@ -8,6 +8,14 @@
  * - Comment management
  * - Status updates
  * - Email notifications
+ *
+ * US-036 DOM Robustness Improvements (August 2025):
+ * - Fixed .panel-header element lookup failures with defensive programming
+ * - Enhanced timing controls for debug function execution
+ * - Added safeQuerySelector() utility for robust DOM querying
+ * - Implemented smart polling for CSS debug function
+ * - Added comprehensive error logging with helpful user guidance
+ * - Improved graceful degradation when DOM elements are unavailable
  */
 
 /**
@@ -360,13 +368,15 @@ class StepViewSearchFilter {
     searchContainer.className = "step-search-container";
     searchContainer.innerHTML = this.getSearchHTML();
 
-    // Insert after step header - using new class names
+    // Insert after step header - using new class names with defensive programming
     const stepHeader = document.querySelector(
       ".panel-header, .step-view-header",
     );
     if (stepHeader) {
       stepHeader.insertAdjacentElement("afterend", searchContainer);
       this.attachSearchListeners();
+    } else {
+      console.warn("⚠️ StepView: Step header not found for search UI insertion. Search UI will be skipped.");
     }
   }
 
@@ -1058,7 +1068,10 @@ class StepViewPilotFeatures {
    */
   addBulkOperationsUI() {
     const instructionsSection = document.querySelector(".instructions-section");
-    if (!instructionsSection) return;
+    if (!instructionsSection) {
+      console.warn("⚠️ StepView: Instructions section not found for bulk operations UI. Features will be skipped.");
+      return;
+    }
 
     // Create bulk operations toolbar
     const bulkToolbar = document.createElement("div");
@@ -1128,7 +1141,10 @@ class StepViewPilotFeatures {
     const stepHeader = document.querySelector(
       ".panel-header, .step-view-header",
     );
-    if (!stepHeader) return;
+    if (!stepHeader) {
+      console.warn("⚠️ StepView: Step header not found for PILOT advanced controls. Controls will be skipped.");
+      return;
+    }
 
     // Add advanced controls panel
     const advancedControls = document.createElement("div");
@@ -2254,6 +2270,8 @@ class StepView {
     this.currentMigration = null;
     this.currentIteration = null;
     this.currentStepCode = null;
+    this.currentMigrationName = null;
+    this.currentIterationName = null;
 
     // Initialize search and filtering system
     // US-036: Search/filter functionality removed - not needed for single step view
@@ -2497,8 +2515,37 @@ class StepView {
     });
   }
 
+  async refreshStepDetails() {
+    // Refresh the current step details using cached parameters
+    if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
+      const container = document.querySelector('.step-view-container');
+      if (container) {
+        // Preserve the current step instance ID during refresh
+        const preservedStepInstanceId = this.currentStepInstanceId;
+        
+        await this.loadStepDetails(
+          this.currentMigrationName,
+          this.currentIterationName,
+          this.currentStepCode,
+          container
+        );
+        
+        // Restore the step instance ID if it was lost during refresh
+        if (!this.currentStepInstanceId && preservedStepInstanceId) {
+          this.currentStepInstanceId = preservedStepInstanceId;
+          console.warn('Restored step instance ID after refresh:', preservedStepInstanceId);
+        }
+      }
+    }
+  }
+
   async loadStepDetails(migrationName, iterationName, stepCode, container) {
     try {
+      // Store parameters for refresh functionality
+      this.currentMigrationName = migrationName;
+      this.currentIterationName = iterationName;
+      this.currentStepCode = stepCode;
+      
       // Show loading state
       container.innerHTML = `
                 <div class="aui-message aui-message-info">
@@ -2582,6 +2629,38 @@ class StepView {
     }
   }
 
+  /**
+   * Utility method to safely query DOM elements with defensive programming
+   * @param {string} selector - CSS selector
+   * @param {string} purpose - Description of what the element is needed for
+   * @returns {Element|null} - Found element or null
+   */
+  safeQuerySelector(selector, purpose = "unknown") {
+    const element = document.querySelector(selector);
+    if (!element) {
+      console.warn(`⚠️ StepView: Element not found for ${purpose}. Selector: ${selector}`);
+      console.log("💡 This may be expected if step data hasn't loaded yet or DOM hasn't fully rendered");
+    }
+    return element;
+  }
+
+  /**
+   * Check if StepView DOM is fully initialized
+   * @returns {boolean} - True if key elements exist
+   */
+  isDOMReady() {
+    const keyElements = [
+      document.querySelector(".step-details-panel"),
+      document.querySelector(".panel-header, .step-view-header"),
+    ];
+    
+    const readyState = keyElements.every(el => el !== null);
+    if (!readyState) {
+      console.log("📋 StepView DOM readiness check: Step content not yet fully loaded");
+    }
+    return readyState;
+  }
+
   renderStepView(stepData, container) {
     const summary = stepData.stepSummary || {};
     const instructions = stepData.instructions || [];
@@ -2632,6 +2711,14 @@ class StepView {
 
     // US-036: Remove search/filter initialization - not needed for single step view
     // this.searchFilter.initializeSearchUI(); // REMOVED
+    
+    // Trigger CSS debug after DOM is fully rendered (if available)
+    setTimeout(() => {
+      if (window.debugStepViewCSS && typeof window.debugStepViewCSS === 'function') {
+        console.log("🎯 Triggering CSS debug after DOM render completion");
+        window.debugStepViewCSS();
+      }
+    }, 100); // Small delay to ensure DOM painting is complete
   }
 
   renderStepSummary(summary) {
@@ -3466,10 +3553,12 @@ class StepView {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-Atlassian-Token": "no-check",
           },
+          credentials: "same-origin",
           body: JSON.stringify({
             body: commentText,
-            userId: this.userId,
+            // UserService on the backend will handle user resolution
           }),
         },
       );
@@ -3483,7 +3572,8 @@ class StepView {
       this.cache.clearCache();
       this.showNotification("Comment added successfully", "success");
 
-      // The real-time polling will pick up the change automatically
+      // Immediately refresh the step details to show the new comment
+      await this.refreshStepDetails();
     } catch (error) {
       console.error("Error adding comment:", error);
       this.showNotification("Failed to add comment", "error");
@@ -4056,10 +4146,16 @@ class StepView {
                         }
                     </span>
                 </div>
-                <div class="metadata-item teams-container">
-                    <div class="team-section">
-                        <span class="label">👥 Impacted Teams:</span>
-                        <span class="value">${impactedTeams.length > 0 ? impactedTeams.join(", ") : "None"}</span>
+                <div class="metadata-item teams-row">
+                    <div class="teams-inline-container">
+                        <div class="team-field">
+                            <span class="label">👥 Assigned Team:</span>
+                            <span class="value">${summary.AssignedTeam || "Unassigned"}</span>
+                        </div>
+                        <div class="team-field">
+                            <span class="label">👥 Impacted Teams:</span>
+                            <span class="value">${impactedTeams.length > 0 ? impactedTeams.join(", ") : "None"}</span>
+                        </div>
                     </div>
                 </div>
                 <div class="metadata-item">
@@ -4754,6 +4850,42 @@ style.textContent = `
         }
     }
     
+    /* Teams row styling - both team fields on same line */
+    .teams-inline-container {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: baseline;
+    }
+    
+    .team-field {
+        flex: 1;
+        min-width: 200px;
+        display: flex;
+        align-items: baseline;
+    }
+    
+    .team-field .label {
+        margin-right: 8px;
+        font-weight: 600;
+    }
+    
+    .team-field .value {
+        color: #6B778C;
+    }
+    
+    /* Mobile responsive - stack team fields vertically on small screens */
+    @media screen and (max-width: 767px) {
+        .teams-inline-container {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .team-field {
+            min-width: auto;
+        }
+    }
+    
     /* Dark mode support */
     @media (prefers-color-scheme: dark) {
         .panel-header, .step-view-header {
@@ -5017,17 +5149,17 @@ window.debugStepViewCSS = function () {
     console.error("❌ iteration-view.css link element NOT found");
   }
 
-  // Check key elements
+  // Check key elements with enhanced error handling
   const rootElement = document.getElementById("umig-step-view-root");
   const panelElement = document.querySelector(".step-details-panel");
-  const headerElement = document.querySelector(".panel-header");
+  const headerElement = document.querySelector(".panel-header, .step-view-header");
 
   if (rootElement) {
     console.log("✅ Root element found");
     const rootStyle = window.getComputedStyle(rootElement);
     console.log("📊 Root background:", rootStyle.background);
   } else {
-    console.error("❌ Root element NOT found");
+    console.warn("⚠️ Root element NOT found - StepView may not be fully initialized yet");
   }
 
   if (panelElement) {
@@ -5040,20 +5172,24 @@ window.debugStepViewCSS = function () {
     // Add temporary debug highlight
     panelElement.classList.add("debug-highlight");
     setTimeout(() => {
-      panelElement.classList.remove("debug-highlight");
+      if (panelElement.parentNode) { // Check if element still exists
+        panelElement.classList.remove("debug-highlight");
+      }
     }, 3000);
   } else {
-    console.error("❌ Panel element NOT found");
+    console.warn("⚠️ Panel element NOT found - Step data may not be loaded yet");
   }
 
   if (headerElement) {
-    console.log("✅ Header element found");
+    console.log("✅ Header element found (.panel-header or .step-view-header)");
     const headerStyle = window.getComputedStyle(headerElement);
     console.log("📊 Header color:", headerStyle.color);
     console.log("📊 Header font-size:", headerStyle.fontSize);
     console.log("📊 Header font-weight:", headerStyle.fontWeight);
+    console.log("📊 Header class:", headerElement.className);
   } else {
-    console.error("❌ Header element NOT found");
+    console.warn("⚠️ Header element NOT found - This is expected if step details haven't been loaded yet");
+    console.log("💡 Header elements are created dynamically when step data loads");
   }
 
   // Check CSS variables
@@ -5106,10 +5242,32 @@ if (
 // Initialize the step view
 window.stepView = new StepView();
 
-// Auto-run CSS debug after initialization
-setTimeout(() => {
-  if (window.debugStepViewCSS) {
-    console.log("🚀 Auto-running CSS debug...");
+// Smart CSS debug auto-run with better timing
+function smartDebugRun() {
+  if (!window.debugStepViewCSS) return;
+  
+  // Use StepView utility method if available, otherwise fallback to direct check
+  const isReady = window.stepView?.isDOMReady() || 
+                  document.querySelector(".step-details-panel, .panel-header");
+  
+  if (isReady) {
+    console.log("🚀 Auto-running CSS debug (DOM ready confirmed)...");
     window.debugStepViewCSS();
+  } else {
+    console.log("⏳ Deferring CSS debug - waiting for DOM to be ready...");
+    // Retry after another 2 seconds, up to 5 attempts
+    const currentAttempt = (smartDebugRun.attempts || 0) + 1;
+    smartDebugRun.attempts = currentAttempt;
+    
+    if (currentAttempt < 5) {
+      setTimeout(smartDebugRun, 2000);
+    } else {
+      console.log("⚠️ CSS debug timeout - running anyway for diagnostic purposes");
+      // Run anyway for basic diagnostics
+      window.debugStepViewCSS();
+    }
   }
-}, 2000);
+}
+
+// Start smart debug after initial delay
+setTimeout(smartDebugRun, 2000);

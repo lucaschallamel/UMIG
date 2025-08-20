@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('  height:', computedStyle.height);
             console.log('  overflow:', computedStyle.overflow);
         } else {
-            console.error('❌ .step-details-panel element not found!');
+            console.warn('⚠️ .step-details-panel element not found - this is expected until step details are loaded');
         }
         
         const panelHeader = document.querySelector('.panel-header');
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('  color:', headerStyle.color);
             console.log('  margin-bottom:', headerStyle.marginBottom);
         } else {
-            console.error('❌ .panel-header element not found!');
+            console.warn('⚠️ .panel-header element not found - this is expected until step details are loaded');
         }
         
         // Check for CSS variables
