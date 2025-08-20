@@ -17,7 +17,7 @@ import umig.repository.UserRepository
 
 // Get current user context
 def currentConfluenceUser = AuthenticatedUserThreadLocal.get() as ConfluenceUser
-def userRole = 'NORMAL'
+def userRole = null  // DEFAULT: null for unknown users - will be set only if user exists in UMIG DB
 def isAdmin = false
 def isPilot = false
 def userId = null
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         user: {
             id: ${userId ?: 'null'},
             username: '${username}',
-            role: '${userRole}',
+            role: ${userRole ? "'${userRole}'" : 'null'},
             isAdmin: ${isAdmin},
             isPilot: ${isPilot}
         },

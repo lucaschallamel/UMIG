@@ -1749,8 +1749,8 @@ class IterationView {
 
       this.showNotification(message, "success");
 
-      // 🆕 NEW: Synchronize runsheet pane
-      this.syncRunsheetStatus(stepId, newStatus, newStatusId);
+      // 🆕 NEW: Synchronize runsheet pane with DOM re-rendering delay
+      this.syncRunsheetStatusWithRetry(stepId, newStatus, newStatusId);
 
       // Log performance metrics
       if (result.responseTime) {
@@ -1785,22 +1785,69 @@ class IterationView {
   }
 
   /**
+   * Synchronize runsheet status with retry mechanism for DOM re-rendering
+   * Waits for DOM elements to be recreated after IterationView reload
+   * 
+   * @param {string} stepId - UUID of the step
+   * @param {string} newStatus - New status text (e.g., 'COMPLETED', 'FAILED')
+   * @param {string} newStatusId - New status ID for data attributes
+   */
+  syncRunsheetStatusWithRetry(stepId, newStatus, newStatusId) {
+    console.log(`🔄 syncRunsheetStatusWithRetry called: stepId=${stepId}, newStatus=${newStatus}, newStatusId=${newStatusId}`);
+    
+    const maxRetries = 10;
+    const retryInterval = 200; // 200ms intervals
+    let retryCount = 0;
+    
+    const attemptSync = () => {
+      retryCount++;
+      console.log(`🔄 Attempt ${retryCount}/${maxRetries}: Looking for DOM elements...`);
+      
+      // Check if DOM elements exist
+      const stepRow = document.querySelector(`[data-step="${stepId}"]`);
+      const allSteps = document.querySelectorAll('[data-step]');
+      
+      console.log(`🔍 DOM state: stepRow=${stepRow ? 'found' : 'null'}, totalSteps=${allSteps.length}`);
+      
+      if (stepRow) {
+        // DOM elements exist, proceed with sync
+        console.log(`✅ DOM elements found on attempt ${retryCount}, proceeding with sync`);
+        this.syncRunsheetStatus(stepId, newStatus, newStatusId);
+      } else if (retryCount < maxRetries) {
+        // DOM elements not ready yet, retry
+        console.log(`⏳ DOM not ready, retrying in ${retryInterval}ms... (attempt ${retryCount}/${maxRetries})`);
+        setTimeout(attemptSync, retryInterval);
+      } else {
+        // Max retries reached
+        console.warn(`⚠️ Failed to find DOM elements for step ${stepId} after ${maxRetries} attempts`);
+        console.warn(`🔍 Final DOM state: totalSteps=${allSteps.length}, available steps:`, Array.from(allSteps).map(s => s.getAttribute('data-step')));
+      }
+    };
+    
+    // Start the retry process
+    attemptSync();
+  }
+
+  /**
    * Synchronize status update in runsheet pane
    * Updates the runsheet table to reflect status changes made in the main panel
    */
   syncRunsheetStatus(stepId, newStatus, newStatusId) {
     // Find the step row using the same selector pattern as working _updateStepStatus method
     const stepRow = document.querySelector(`[data-step="${stepId}"]`);
+    
     if (stepRow) {
       const statusCell = stepRow.querySelector('.col-status');
+      
       if (statusCell) {
         // Update status display with existing color coding
-        statusCell.innerHTML = this.getStatusDisplay(newStatus);
+        const newStatusHTML = this.getStatusDisplay(newStatus);
+        statusCell.innerHTML = newStatusHTML;
         statusCell.setAttribute('data-status-id', newStatusId);
         
-        // 🔧 FIX: Clear any existing timeout for this specific step to prevent conflicts
+        // Clear any existing timeout for this specific step to prevent conflicts
         if (!this.stepTimeouts) {
-          this.stepTimeouts = new Map(); // Initialize step-specific timeout tracking
+          this.stepTimeouts = new Map();
         }
         
         // Clear existing timeout for this step if it exists
@@ -1811,7 +1858,7 @@ class IterationView {
           this.stepTimeouts.delete(stepId);
         }
         
-        // Visual feedback for recent change (safe to add even if already present)
+        // Visual feedback for recent change
         stepRow.classList.add('recently-updated');
         
         // Create new timeout for this specific step
