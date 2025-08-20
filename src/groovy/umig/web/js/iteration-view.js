@@ -518,13 +518,32 @@ class RealTimeSync {
       if (statusCell) {
         statusCell.innerHTML = this.iterationView.getStatusDisplay(newStatus);
 
+        // 🔧 FIX: Clear any existing timeout for this specific step to prevent conflicts
+        if (!this.iterationView.stepTimeouts) {
+          this.iterationView.stepTimeouts = new Map(); // Initialize step-specific timeout tracking
+        }
+        
+        // Clear existing timeout for this step if it exists
+        const existingTimeoutId = this.iterationView.stepTimeouts.get(stepId);
+        if (existingTimeoutId) {
+          clearTimeout(existingTimeoutId);
+          this.iterationView.activeTimeouts.delete(existingTimeoutId);
+          this.iterationView.stepTimeouts.delete(stepId);
+        }
+
         // Add visual indicator for recent change
         stepRow.classList.add("recently-updated");
+        
+        // Create new timeout for this specific step
         const timeoutId = setTimeout(() => {
           this.iterationView.activeTimeouts.delete(timeoutId);
+          this.iterationView.stepTimeouts.delete(stepId);
           stepRow.classList.remove("recently-updated");
         }, 5000);
+        
+        // Track timeout for cleanup (both global and step-specific)
         this.iterationView.activeTimeouts.add(timeoutId);
+        this.iterationView.stepTimeouts.set(stepId, timeoutId);
       }
     }
   }
@@ -536,13 +555,32 @@ class RealTimeSync {
       if (teamCell) {
         teamCell.textContent = newTeam;
 
+        // 🔧 FIX: Clear any existing timeout for this specific step to prevent conflicts
+        if (!this.iterationView.stepTimeouts) {
+          this.iterationView.stepTimeouts = new Map(); // Initialize step-specific timeout tracking
+        }
+        
+        // Clear existing timeout for this step if it exists
+        const existingTimeoutId = this.iterationView.stepTimeouts.get(stepId);
+        if (existingTimeoutId) {
+          clearTimeout(existingTimeoutId);
+          this.iterationView.activeTimeouts.delete(existingTimeoutId);
+          this.iterationView.stepTimeouts.delete(stepId);
+        }
+
         // Add visual indicator
         stepRow.classList.add("recently-updated");
+        
+        // Create new timeout for this specific step
         const timeoutId = setTimeout(() => {
           this.iterationView.activeTimeouts.delete(timeoutId);
+          this.iterationView.stepTimeouts.delete(stepId);
           stepRow.classList.remove("recently-updated");
         }, 5000);
+        
+        // Track timeout for cleanup (both global and step-specific)
         this.iterationView.activeTimeouts.add(timeoutId);
+        this.iterationView.stepTimeouts.set(stepId, timeoutId);
       }
     }
   }
@@ -1745,24 +1783,41 @@ class IterationView {
    * Updates the runsheet table to reflect status changes made in the main panel
    */
   syncRunsheetStatus(stepId, newStatus, newStatusId) {
-    // Find the step in the runsheet table
-    const runsheetRow = document.querySelector(`table.runsheet-table tr[data-step-id="${stepId}"]`);
-    if (runsheetRow) {
-      const statusCell = runsheetRow.querySelector('.status-cell, .col-status');
+    // Find the step row using the same selector pattern as working _updateStepStatus method
+    const stepRow = document.querySelector(`[data-step="${stepId}"]`);
+    if (stepRow) {
+      const statusCell = stepRow.querySelector('.col-status');
       if (statusCell) {
         // Update status display with existing color coding
         statusCell.innerHTML = this.getStatusDisplay(newStatus);
         statusCell.setAttribute('data-status-id', newStatusId);
         
-        // Visual feedback for recent change
-        runsheetRow.classList.add('recently-updated');
+        // 🔧 FIX: Clear any existing timeout for this specific step to prevent conflicts
+        if (!this.stepTimeouts) {
+          this.stepTimeouts = new Map(); // Initialize step-specific timeout tracking
+        }
+        
+        // Clear existing timeout for this step if it exists
+        const existingTimeoutId = this.stepTimeouts.get(stepId);
+        if (existingTimeoutId) {
+          clearTimeout(existingTimeoutId);
+          this.activeTimeouts.delete(existingTimeoutId);
+          this.stepTimeouts.delete(stepId);
+        }
+        
+        // Visual feedback for recent change (safe to add even if already present)
+        stepRow.classList.add('recently-updated');
+        
+        // Create new timeout for this specific step
         const timeoutId = setTimeout(() => {
           this.activeTimeouts.delete(timeoutId);
-          runsheetRow.classList.remove('recently-updated');
+          this.stepTimeouts.delete(stepId);
+          stepRow.classList.remove('recently-updated');
         }, 3000);
         
-        // Track timeout for cleanup
+        // Track timeout for cleanup (both global and step-specific)
         this.activeTimeouts.add(timeoutId);
+        this.stepTimeouts.set(stepId, timeoutId);
         
         console.log(`✅ Runsheet synchronized: Step ${stepId} status updated to ${newStatus}`);
       } else {
@@ -3519,6 +3574,12 @@ class IterationView {
     // Clear all active timeouts
     this.activeTimeouts.forEach((id) => clearTimeout(id));
     this.activeTimeouts.clear();
+
+    // 🔧 FIX: Clear step-specific timeouts if they exist
+    if (this.stepTimeouts) {
+      this.stepTimeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+      this.stepTimeouts.clear();
+    }
 
     // Clean up real-time sync if it exists
     if (this.realTimeSync) {
