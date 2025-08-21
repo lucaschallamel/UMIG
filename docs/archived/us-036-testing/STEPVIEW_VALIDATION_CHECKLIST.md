@@ -269,7 +269,7 @@ node scripts/test-stepview-validation.js --full --verbose
 
 ---
 
-**Validation Completed**: **_/_**/**\_ by: ****\_\_\_******  
+**Validation Completed**: **_/_**/**\_ by: \*\***\_\_\_**\*\***  
 **Quality Gate Status**: PASS ✅ / FAIL ❌  
 **Commit Approved**: YES ✅ / NO ❌
 

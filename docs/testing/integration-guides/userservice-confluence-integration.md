@@ -12,11 +12,13 @@ This guide documents the UserService integration that resolves authentication is
 ## Problem Statement
 
 **Before Integration:**
+
 - StepsApi required UMIG database user → Error 400 for 'admin' user
 - Confluence system users couldn't update step statuses
 - No graceful fallback for unknown users
 
 **After Integration:**
+
 - UserService provides intelligent fallback → Success with system user
 - Confluence system users work seamlessly
 - Proper audit trail maintained
@@ -24,6 +26,7 @@ This guide documents the UserService integration that resolves authentication is
 ## Architecture Solution
 
 ### UserService Flow
+
 1. Get Confluence user from `AuthenticatedUserThreadLocal`
 2. Check session cache for performance
 3. Try to find user in UMIG database
@@ -37,40 +40,46 @@ This guide documents the UserService integration that resolves authentication is
 
 ### Critical Test Cases
 
-| Scenario | Confluence User | Expected Behavior | Critical |
-|----------|----------------|-------------------|----------|
-| **Confluence Admin** | `admin` | Should use system user fallback (CSU or SYS) | ✅ YES |
-| **Known UMIG User** | `john.doe` | Should return actual UMIG user ID | No |
-| **Unknown Business User** | `jane.smith` | Should auto-create or use system fallback | No |
-| **Null/Anonymous** | `null` | Should handle gracefully with fallback | No |
+| Scenario                  | Confluence User | Expected Behavior                            | Critical |
+| ------------------------- | --------------- | -------------------------------------------- | -------- |
+| **Confluence Admin**      | `admin`         | Should use system user fallback (CSU or SYS) | ✅ YES   |
+| **Known UMIG User**       | `john.doe`      | Should return actual UMIG user ID            | No       |
+| **Unknown Business User** | `jane.smith`    | Should auto-create or use system fallback    | No       |
+| **Null/Anonymous**        | `null`          | Should handle gracefully with fallback       | No       |
 
 ### Key Features Verified
 
 #### 1. ✅ System User Fallback
+
 - 'admin' → CSU (Confluence System User) or SYS (System)
 - No authentication failure for Confluence system users
 
 #### 2. ✅ Auto-Creation for Business Users
+
 - New Confluence users can be auto-created in UMIG
 - Proper user code generation (e.g., JD1, JS2)
 
 #### 3. ✅ Session Caching
+
 - User lookups cached for performance
 - Reduces database queries during user session
 
 #### 4. ✅ Audit Trail Preservation
+
 - All operations logged with proper user context
 - Email notifications include userId reference
 
 ## Integration Points
 
 ### StepsApi Integration
+
 - `StepsApi.updateStepStatus()` - Uses `UserService.getCurrentUserContext()`
 - `StepsApi.openStep()` - Uses UserService for audit userId
 - `StepsApi.completeInstruction()` - Uses UserService for notifications
 - `StepsApi.uncompleteInstruction()` - Uses UserService for tracking
 
 ### Expected UI Behavior
+
 - ✅ Step status dropdown changes work for 'admin' user
 - ✅ No more Error 400 'User not found in system'
 - ✅ Email notifications sent with proper user context
@@ -102,11 +111,11 @@ This guide documents the UserService integration that resolves authentication is
 // Basic role detection validation
 function validateUserServiceIntegration() {
   const testCases = [
-    { user: 'admin', expectFallback: true },
-    { user: 'john.doe', expectFallback: false },
-    { user: null, expectFallback: true }
+    { user: "admin", expectFallback: true },
+    { user: "john.doe", expectFallback: false },
+    { user: null, expectFallback: true },
   ];
-  
+
   // Test each scenario...
 }
 ```
@@ -114,11 +123,13 @@ function validateUserServiceIntegration() {
 ## Security Considerations
 
 ### Access Control
+
 - System users get minimal necessary permissions
 - Fallback users cannot access sensitive operations
 - Audit trail maintains full traceability
 
 ### User Context
+
 - All operations attributed to appropriate user
 - System actions clearly identified in logs
 - No elevation of privileges through fallback mechanism
@@ -152,12 +163,14 @@ grep "session cache" application.log
 ## Future Enhancements
 
 ### Potential Improvements
+
 1. **Enhanced Auto-Creation**: More sophisticated business user detection
 2. **Role-Based Fallback**: Different system users based on operation type
 3. **Performance Metrics**: Detailed caching statistics
 4. **Administrative Interface**: Manage fallback user configurations
 
 ### Monitoring Recommendations
+
 - Track fallback user usage frequency
 - Monitor authentication failure rates
 - Alert on unexpected user mapping failures

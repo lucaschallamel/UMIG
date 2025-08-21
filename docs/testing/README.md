@@ -68,6 +68,7 @@ local-dev-setup/scripts/quality-check/
 ### US-036 Consolidation (August 2025)
 
 **Before (6 redundant files)**:
+
 - `US-036-testing-strategy-summary.md`
 - `STEPVIEW_IMMEDIATE_EXECUTION_GUIDE.md`
 - `STEPVIEW_QA_FRAMEWORK_SUMMARY.md`
@@ -77,6 +78,7 @@ local-dev-setup/scripts/quality-check/
 - **Problems**: 90% content overlap, confusing which to use, maintenance burden
 
 **After (1 comprehensive guide)**:
+
 - `US-036-comprehensive-testing-guide.md` - Single definitive testing resource
 - **Benefits**: Eliminated redundancy, single source of truth, actionable guidance
 

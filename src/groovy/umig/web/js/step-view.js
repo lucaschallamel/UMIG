@@ -376,7 +376,9 @@ class StepViewSearchFilter {
       stepHeader.insertAdjacentElement("afterend", searchContainer);
       this.attachSearchListeners();
     } else {
-      console.warn("⚠️ StepView: Step header not found for search UI insertion. Search UI will be skipped.");
+      console.warn(
+        "⚠️ StepView: Step header not found for search UI insertion. Search UI will be skipped.",
+      );
     }
   }
 
@@ -1069,7 +1071,9 @@ class StepViewPilotFeatures {
   addBulkOperationsUI() {
     const instructionsSection = document.querySelector(".instructions-section");
     if (!instructionsSection) {
-      console.warn("⚠️ StepView: Instructions section not found for bulk operations UI. Features will be skipped.");
+      console.warn(
+        "⚠️ StepView: Instructions section not found for bulk operations UI. Features will be skipped.",
+      );
       return;
     }
 
@@ -1126,11 +1130,16 @@ class StepViewPilotFeatures {
     const instructionsTable = instructionsSection.querySelector("table.aui");
     if (instructionsTable) {
       // Insert enable button before instructions table
-      instructionsTable.parentNode.insertBefore(enableBulkBtn, instructionsTable);
+      instructionsTable.parentNode.insertBefore(
+        enableBulkBtn,
+        instructionsTable,
+      );
       // Insert bulk toolbar before instructions table (after the button)
       instructionsTable.parentNode.insertBefore(bulkToolbar, instructionsTable);
     } else {
-      console.warn("⚠️ StepView: Instructions table not found for bulk operations UI");
+      console.warn(
+        "⚠️ StepView: Instructions table not found for bulk operations UI",
+      );
       return;
     }
 
@@ -1146,7 +1155,9 @@ class StepViewPilotFeatures {
       ".panel-header, .step-view-header",
     );
     if (!stepHeader) {
-      console.warn("⚠️ StepView: Step header not found for PILOT advanced controls. Controls will be skipped.");
+      console.warn(
+        "⚠️ StepView: Step header not found for PILOT advanced controls. Controls will be skipped.",
+      );
       return;
     }
 
@@ -2262,10 +2273,11 @@ class StepView {
       api: { baseUrl: "/rest/scriptrunner/latest/custom" },
     };
     this.currentStepInstanceId = null;
-    this.userRole = this.config.user?.role || null;  // null for unknown users, no fallback to NORMAL
+    this.userContext = null; // Full user context for email/audit operations
+    this.userRole = this.config.user?.role || null; // null for unknown users, no fallback to NORMAL
     this.isAdmin = this.config.user?.isAdmin || false;
     this.userId = this.config.user?.id || null;
-    
+
     // 🚨 CRITICAL RBAC DEBUG: Trace role detection flow
     console.log("🔍 StepView RBAC Debug: Role Detection Analysis");
     console.log("  📋 Raw config.user:", this.config.user);
@@ -2274,16 +2286,21 @@ class StepView {
     console.log("  🔑 userRole type:", typeof this.userRole);
     console.log("  ✅ isAdmin:", this.isAdmin);
     console.log("  ✅ userId:", this.userId);
-    
+
     // Static badge condition check
-    const shouldShowStaticBadge = this.userRole === null || this.userRole === undefined;
+    const shouldShowStaticBadge =
+      this.userRole === null || this.userRole === undefined;
     console.log("  🎨 Should show static badge:", shouldShowStaticBadge);
     console.log("  🎨 Static badge condition: userRole === null || undefined");
-    
+
     if (shouldShowStaticBadge) {
       console.log("  🏷️  RBAC Decision: Unknown user → Static badge only");
     } else {
-      console.log("  🎛️  RBAC Decision: Known user (" + this.userRole + ") → Dropdown controls");
+      console.log(
+        "  🎛️  RBAC Decision: Known user (" +
+          this.userRole +
+          ") → Dropdown controls",
+      );
     }
 
     // Initialize cache system for real-time synchronization
@@ -2320,7 +2337,7 @@ class StepView {
       "🔒 StepView: Initializing RBAC system for role:",
       this.userRole,
     );
-    
+
     try {
       // Get canonical permissions matrix from single source of truth
       this.permissions = this.getEmergencyPermissions();
@@ -2328,17 +2345,22 @@ class StepView {
       // 🔒 Freeze permissions object for immutability and security
       Object.freeze(this.permissions);
 
-      console.log("✅ RBAC: Permissions matrix initialized successfully with 11 features");
+      console.log(
+        "✅ RBAC: Permissions matrix initialized successfully with 11 features",
+      );
     } catch (error) {
       console.error("🚨 CRITICAL: RBAC initialization failed:", error);
-      
+
       // Emergency fallback - use method to ensure consistency
       try {
         this.permissions = this.getEmergencyPermissions();
         Object.freeze(this.permissions);
         console.warn("⚠️ RBAC: Emergency fallback permissions applied");
       } catch (fallbackError) {
-        console.error("💥 FATAL: Even emergency RBAC fallback failed:", fallbackError);
+        console.error(
+          "💥 FATAL: Even emergency RBAC fallback failed:",
+          fallbackError,
+        );
         // Last resort minimal permissions for unknown users
         this.permissions = {};
         Object.freeze(this.permissions);
@@ -2351,10 +2373,19 @@ class StepView {
     // Debug permission checks for unknown users - MOVED TO AFTER permissions initialization
     if (this.userRole === null || this.userRole === undefined) {
       console.log("🚨 RBAC Debug: Unknown user permission analysis:");
-      console.log("  🎛️  update_step_status:", this.hasPermission("update_step_status"));
-      console.log("  ✅  complete_instructions:", this.hasPermission("complete_instructions"));
+      console.log(
+        "  🎛️  update_step_status:",
+        this.hasPermission("update_step_status"),
+      );
+      console.log(
+        "  ✅  complete_instructions:",
+        this.hasPermission("complete_instructions"),
+      );
       console.log("  📝  add_comments:", this.hasPermission("add_comments"));
-      console.log("  🔧  advanced_controls:", this.hasPermission("advanced_controls"));
+      console.log(
+        "  🔧  advanced_controls:",
+        this.hasPermission("advanced_controls"),
+      );
       console.log("  📊  Expected: All false for unknown users");
     }
   }
@@ -2385,9 +2416,11 @@ class StepView {
    * @returns {boolean} - True if user has permission
    */
   hasPermission(feature) {
-    // 🛡️ DEFENSIVE: Ensure permissions object exists to prevent crashes  
-    if (!this.permissions || typeof this.permissions !== 'object') {
-      console.error('🚨 CRITICAL: permissions object is undefined - reinitializing RBAC system');
+    // 🛡️ DEFENSIVE: Ensure permissions object exists to prevent crashes
+    if (!this.permissions || typeof this.permissions !== "object") {
+      console.error(
+        "🚨 CRITICAL: permissions object is undefined - reinitializing RBAC system",
+      );
       this.initializeRBACSystem();
     }
 
@@ -2396,8 +2429,10 @@ class StepView {
 
     // 🚨 CRITICAL RBAC DEBUG: Log permission checks for unknown users
     if (this.userRole === null || this.userRole === undefined) {
-      console.log(`🔒 Permission Check: ${feature} for unknown user (${this.userRole}) → ${hasAccess}`);
-      console.log(`   Allowed roles: [${allowed.join(', ')}]`);
+      console.log(
+        `🔒 Permission Check: ${feature} for unknown user (${this.userRole}) → ${hasAccess}`,
+      );
+      console.log(`   Allowed roles: [${allowed.join(", ")}]`);
     }
 
     if (!hasAccess) {
@@ -2521,7 +2556,48 @@ class StepView {
     return [...this.securityLog];
   }
 
+  async loadUserContext() {
+    // Load full user context for email/audit operations (matches IterationView pattern)
+    try {
+      const username =
+        this.config.confluence?.username || this.config.user?.username;
+      if (!username) {
+        console.warn("No username available for user context loading");
+        this.userContext = { userId: this.userId, role: this.userRole };
+        return;
+      }
+
+      const response = await fetch(
+        `${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(username)}`,
+        {
+          headers: {
+            "X-Atlassian-Token": "no-check",
+          },
+          credentials: "same-origin",
+        },
+      );
+
+      if (response.ok) {
+        this.userContext = await response.json();
+        // Update local properties with context data
+        this.userRole = this.userContext.role || this.userRole;
+        this.isAdmin = this.userContext.isAdmin || this.isAdmin;
+        this.userId = this.userContext.userId || this.userId;
+        console.log("User context loaded successfully:", this.userContext);
+      } else {
+        console.warn("Failed to load user context, using fallback");
+        this.userContext = { userId: this.userId, role: this.userRole };
+      }
+    } catch (error) {
+      console.error("Error loading user context:", error);
+      this.userContext = { userId: this.userId, role: this.userRole };
+    }
+  }
+
   async init() {
+    // Load user context first for proper email/audit operations
+    await this.loadUserContext();
+
     const params = new URLSearchParams(window.location.search);
     const migrationName = params.get("mig");
     const iterationName = params.get("ite");
@@ -2592,25 +2668,76 @@ class StepView {
 
   async refreshStepDetails() {
     // Refresh the current step details using cached parameters
-    if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
-      const container = document.querySelector('.step-view-container');
+    if (
+      this.currentMigrationName &&
+      this.currentIterationName &&
+      this.currentStepCode
+    ) {
+      const container = document.querySelector(".step-view-container");
       if (container) {
         // Preserve the current step instance ID during refresh
         const preservedStepInstanceId = this.currentStepInstanceId;
-        
+
         await this.loadStepDetails(
           this.currentMigrationName,
           this.currentIterationName,
           this.currentStepCode,
-          container
+          container,
         );
-        
+
         // Restore the step instance ID if it was lost during refresh
         if (!this.currentStepInstanceId && preservedStepInstanceId) {
           this.currentStepInstanceId = preservedStepInstanceId;
-          console.warn('Restored step instance ID after refresh:', preservedStepInstanceId);
+          console.warn(
+            "Restored step instance ID after refresh:",
+            preservedStepInstanceId,
+          );
         }
       }
+    }
+  }
+
+  /**
+   * Simple refresh method that follows IterationView's proven pattern
+   * Reloads the current step view without complex parameter passing
+   */
+  async refreshCurrentStepView() {
+    try {
+      if (
+        !this.currentMigrationName ||
+        !this.currentIterationName ||
+        !this.currentStepCode
+      ) {
+        console.warn("refreshCurrentStepView: Missing required parameters");
+        return;
+      }
+
+      // Find the container (use same logic as loadStepDetails initialization)
+      const container =
+        document.querySelector(".step-details-panel") ||
+        document.querySelector(".step-view-container");
+
+      if (!container) {
+        console.warn("refreshCurrentStepView: No container found");
+        return;
+      }
+
+      // Clear cache to ensure fresh data
+      this.cache.clearCache();
+
+      // Use the standard loadStepDetails method with current parameters
+      await this.loadStepDetails(
+        this.currentMigrationName,
+        this.currentIterationName,
+        this.currentStepCode,
+        container,
+      );
+
+      // Re-attach comment listeners after refresh
+      this.attachCommentListeners();
+    } catch (error) {
+      console.error("Error refreshing step view:", error);
+      this.showNotification("Failed to refresh view", "error");
     }
   }
 
@@ -2618,7 +2745,12 @@ class StepView {
    * Load step details with fresh data (bypass cache) - replicates IterationView's working pattern
    * This method mimics how IterationView successfully refreshes comments after save
    */
-  async loadStepDetailsWithFreshData(migrationName, iterationName, stepCode, container) {
+  async loadStepDetailsWithFreshData(
+    migrationName,
+    iterationName,
+    stepCode,
+    container,
+  ) {
     try {
       // Show loading state like IterationView does
       container.innerHTML = `
@@ -2638,7 +2770,7 @@ class StepView {
             "X-Atlassian-Token": "no-check",
           },
           credentials: "same-origin",
-        }
+        },
       );
 
       if (!stepInstanceResponse.ok) {
@@ -2655,13 +2787,15 @@ class StepView {
       const transformedStepData = {
         stepSummary: stepData,
         migrations: await this.cache.getMigrations(),
-        currentStepInstanceId: this.currentStepInstanceId
+        currentStepInstanceId: this.currentStepInstanceId,
       };
 
       // Render the step view with fresh data (same pattern as normal load)
       this.renderStepView(transformedStepData, container);
-      
-      console.log("✅ Step details refreshed with fresh data - comments should be visible");
+
+      console.log(
+        "✅ Step details refreshed with fresh data - comments should be visible",
+      );
     } catch (error) {
       console.error("Error loading fresh step details:", error);
       container.innerHTML = `
@@ -2679,7 +2813,7 @@ class StepView {
       this.currentMigrationName = migrationName;
       this.currentIterationName = iterationName;
       this.currentStepCode = stepCode;
-      
+
       // Show loading state
       container.innerHTML = `
                 <div class="aui-message aui-message-info">
@@ -2772,8 +2906,12 @@ class StepView {
   safeQuerySelector(selector, purpose = "unknown") {
     const element = document.querySelector(selector);
     if (!element) {
-      console.warn(`⚠️ StepView: Element not found for ${purpose}. Selector: ${selector}`);
-      console.log("💡 This may be expected if step data hasn't loaded yet or DOM hasn't fully rendered");
+      console.warn(
+        `⚠️ StepView: Element not found for ${purpose}. Selector: ${selector}`,
+      );
+      console.log(
+        "💡 This may be expected if step data hasn't loaded yet or DOM hasn't fully rendered",
+      );
     }
     return element;
   }
@@ -2787,10 +2925,12 @@ class StepView {
       document.querySelector(".step-details-panel"),
       document.querySelector(".panel-header, .step-view-header"),
     ];
-    
-    const readyState = keyElements.every(el => el !== null);
+
+    const readyState = keyElements.every((el) => el !== null);
     if (!readyState) {
-      console.log("📋 StepView DOM readiness check: Step content not yet fully loaded");
+      console.log(
+        "📋 StepView DOM readiness check: Step content not yet fully loaded",
+      );
     }
     return readyState;
   }
@@ -2845,10 +2985,13 @@ class StepView {
 
     // US-036: Remove search/filter initialization - not needed for single step view
     // this.searchFilter.initializeSearchUI(); // REMOVED
-    
+
     // Trigger CSS debug after DOM is fully rendered (if available)
     setTimeout(() => {
-      if (window.debugStepViewCSS && typeof window.debugStepViewCSS === 'function') {
+      if (
+        window.debugStepViewCSS &&
+        typeof window.debugStepViewCSS === "function"
+      ) {
         console.log("🎯 Triggering CSS debug after DOM render completion");
         window.debugStepViewCSS();
       }
@@ -2889,7 +3032,7 @@ class StepView {
         <div class="step-summary-section">
           <div class="step-status-container" style="margin-bottom: 16px;">
             <label style="font-weight: 600; margin-bottom: 4px; display: block;">Quick Status Update:</label>
-            ${this.userRole === null || this.userRole === undefined ? statusDisplay : ''}
+            ${this.userRole === null || this.userRole === undefined ? statusDisplay : ""}
             <select id="step-status-dropdown-summary" class="status-select pilot-only" style="display: none;" data-current-status-id="${statusId}">
               <!-- Note: 'pilot-only' CSS class is historical - actual visibility controlled by update_step_status permission -->
               <!-- Will be populated dynamically -->
@@ -2980,12 +3123,22 @@ class StepView {
         (inst, index) => `
             <tr class="instruction-row ${inst.IsCompleted ? "completed" : ""}">
                 <td class="instruction-checkbox-cell">
-                    <input type="checkbox" 
-                           class="instruction-checkbox normal-user-action" 
-                           data-instruction-id="${inst.Id}"
-                           data-step-id="${this.currentStepInstanceId}"
-                           ${inst.IsCompleted ? "checked" : ""}
-                           ${this.userRole === "NORMAL" ? "" : 'style="display: none;"'}>
+                    ${
+                      this.hasPermission("complete_instructions")
+                        ? `
+                        <input type="checkbox" 
+                               class="instruction-checkbox normal-user-action" 
+                               data-instruction-id="${inst.Id}"
+                               data-step-id="${this.currentStepInstanceId}"
+                               ${inst.IsCompleted ? "checked" : ""}>
+                    `
+                        : `
+                        <span class="instruction-status-badge ${inst.IsCompleted ? "completed" : "pending"}" 
+                              title="${inst.IsCompleted ? "Instruction completed" : "Instruction pending"}">
+                            ${inst.IsCompleted ? "✓ DONE" : "○ NOT DONE"}
+                        </span>
+                    `
+                    }
                 </td>
                 <td class="instruction-order">${inst.Order}</td>
                 <td class="instruction-body">${this.escapeHtml(inst.Description)}</td>
@@ -3056,8 +3209,14 @@ class StepView {
                             <span class="comment-author">${this.escapeHtml(comment.author.name)}${teamName}</span>
                             <span class="comment-time">${timeAgo}</span>
                             <div class="comment-actions">
-                                <button class="btn-edit-comment pilot-only" data-comment-id="${comment.id}" title="Edit">✏️</button>
-                                <button class="btn-delete-comment admin-only" data-comment-id="${comment.id}" title="Delete">🗑️</button>
+                                ${
+                                  this.hasPermission("add_comments")
+                                    ? `
+                                    <button class="btn-edit-comment pilot-only" data-comment-id="${comment.id}" title="Edit">✏️</button>
+                                    <button class="btn-delete-comment admin-only" data-comment-id="${comment.id}" title="Delete">🗑️</button>
+                                `
+                                    : ""
+                                }
                             </div>
                         </div>
                         <div class="comment-body" id="comment-body-${comment.id}">${this.escapeHtml(comment.body)}</div>
@@ -3145,6 +3304,9 @@ class StepView {
     // Apply feature-specific permission controls
     this.applyFeaturePermissions();
 
+    // Add read-only banner for anonymous users (consistent with IterationView)
+    this.addReadOnlyBannerIfNeeded();
+
     console.log("🔒 StepView: RBAC controls applied successfully");
   }
 
@@ -3199,6 +3361,27 @@ class StepView {
         this.addRestrictedIndicator(button);
       }
     });
+  }
+
+  /**
+   * Add read-only banner for anonymous users (consistent with IterationView pattern)
+   */
+  addReadOnlyBannerIfNeeded() {
+    // Add banner only for anonymous/unknown users (null or undefined role)
+    if (this.userRole === null || this.userRole === undefined) {
+      const container = document.querySelector(".step-view-container");
+      if (container && !container.querySelector(".read-only-banner")) {
+        const banner = document.createElement("div");
+        banner.className = "read-only-banner";
+        banner.innerHTML = `
+          <div class="banner-content">
+            <span class="banner-icon">👁️</span>
+            <span class="banner-text">Read-Only Mode - Log in for edit access</span>
+          </div>
+        `;
+        container.insertBefore(banner, container.firstChild);
+      }
+    }
   }
 
   /**
@@ -3511,29 +3694,54 @@ class StepView {
   }
 
   attachCommentListeners() {
-    // Add comment button
+    // Add comment button - remove existing listeners first to prevent duplicates
     const addCommentBtn = document.getElementById("add-comment-btn");
     if (addCommentBtn) {
-      addCommentBtn.addEventListener("click", () => this.handleAddComment());
+      // Clone and replace to remove existing event listeners
+      const newAddCommentBtn = addCommentBtn.cloneNode(true);
+      addCommentBtn.parentNode.replaceChild(newAddCommentBtn, addCommentBtn);
+      // Re-select and add event listener
+      const refreshedAddCommentBtn = document.getElementById("add-comment-btn");
+      if (refreshedAddCommentBtn) {
+        refreshedAddCommentBtn.addEventListener("click", () =>
+          this.handleAddComment(),
+        );
+      }
     }
 
-    // Edit comment buttons
+    // Edit comment buttons - remove existing listeners first to prevent duplicates
     const editButtons = document.querySelectorAll(".btn-edit-comment");
     editButtons.forEach((btn) => {
+      // Clone and replace to remove existing event listeners
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+    });
+    // Re-select the new buttons and add event listeners
+    const newEditButtons = document.querySelectorAll(".btn-edit-comment");
+    newEditButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => this.handleEditComment(e));
     });
 
-    // Delete comment buttons
+    // Delete comment buttons - remove existing listeners first to prevent duplicates
     const deleteButtons = document.querySelectorAll(".btn-delete-comment");
     deleteButtons.forEach((btn) => {
+      // Clone and replace to remove existing event listeners
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+    });
+    // Re-select the new buttons and add event listeners
+    const newDeleteButtons = document.querySelectorAll(".btn-delete-comment");
+    newDeleteButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => this.handleDeleteComment(e));
     });
   }
 
   async handleStatusChange(event) {
     const newStatus = event.target.value;
-    console.log(`🔄 StepView: Handling status change to ${newStatus} for step ${this.currentStepCode}`);
-    
+    console.log(
+      `🔄 StepView: Handling status change to ${newStatus} for step ${this.currentStepCode}`,
+    );
+
     if (!this.currentStepInstanceId) {
       this.showNotification(
         "Unable to update status: No step instance ID",
@@ -3549,7 +3757,9 @@ class StepView {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
           },
+          credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
             statusId: parseInt(newStatus),
           }),
@@ -3559,6 +3769,8 @@ class StepView {
       if (!response.ok) {
         throw new Error(`Failed to update status: ${response.status}`);
       }
+
+      const result = await response.json();
 
       // Update the display
       const statusContainer = document.querySelector(".step-status-container");
@@ -3577,10 +3789,14 @@ class StepView {
       // Clear cache to force refresh on next poll
       this.cache.clearCache();
 
-      // Sync the runsheet status in the left panel  
+      // Sync the runsheet status in the left panel
       this.syncRunsheetStatus(this.currentStepCode, newStatus);
 
-      this.showNotification("Status updated successfully", "success");
+      // Show success notification with enhanced details (matching IterationView pattern)
+      const message = result.emailsSent
+        ? `Status updated to ${newStatus}. ${result.emailsSent} notifications sent.`
+        : `Status updated to ${newStatus}`;
+      this.showNotification(message, "success");
     } catch (error) {
       console.error("Error updating status:", error);
       this.showNotification("Failed to update status", "error");
@@ -3593,67 +3809,84 @@ class StepView {
    * @param {string} newStatusId - New status ID
    */
   syncRunsheetStatus(stepCode, newStatusId) {
-    console.log(`🔄 StepView: Syncing runsheet status for step ${stepCode} to status ${newStatusId}`);
-    
+    console.log(
+      `🔄 StepView: Syncing runsheet status for step ${stepCode} to status ${newStatusId}`,
+    );
+
     if (!stepCode || !newStatusId) {
-      console.warn("⚠️ StepView: Missing stepCode or newStatusId for runsheet sync");
+      console.warn(
+        "⚠️ StepView: Missing stepCode or newStatusId for runsheet sync",
+      );
       return;
     }
 
     try {
       // Find the step row in the runsheet table using data-step attribute
       const stepRow = document.querySelector(`[data-step="${stepCode}"]`);
-      
+
       if (!stepRow) {
         console.warn(`⚠️ StepView: No runsheet row found for step ${stepCode}`);
         return;
       }
 
       // Find the status cell within the row
-      const statusCell = stepRow.querySelector('.col-status');
-      
+      const statusCell = stepRow.querySelector(".col-status");
+
       if (!statusCell) {
-        console.warn(`⚠️ StepView: No status cell found in runsheet row for step ${stepCode}`);
+        console.warn(
+          `⚠️ StepView: No status cell found in runsheet row for step ${stepCode}`,
+        );
         return;
       }
 
       // Get the status display (badge) for the new status
       const statusDisplay = this.getStatusDisplayForRunsheet(newStatusId);
-      
+
       if (statusDisplay) {
         // Update the status cell content and classes
         statusCell.innerHTML = statusDisplay.text;
         statusCell.className = `col-status ${statusDisplay.cssClass}`;
-        
-        console.log(`✅ StepView: Successfully synced runsheet status for step ${stepCode}`);
+
+        console.log(
+          `✅ StepView: Successfully synced runsheet status for step ${stepCode}`,
+        );
       } else {
-        console.warn(`⚠️ StepView: Could not get status display for status ID ${newStatusId}`);
+        console.warn(
+          `⚠️ StepView: Could not get status display for status ID ${newStatusId}`,
+        );
       }
-      
     } catch (error) {
-      console.error(`❌ StepView: Error syncing runsheet status for step ${stepCode}:`, error);
+      console.error(
+        `❌ StepView: Error syncing runsheet status for step ${stepCode}:`,
+        error,
+      );
     }
   }
 
   /**
    * Get status display information for runsheet synchronization
-   * @param {string} statusId - Status ID  
+   * @param {string} statusId - Status ID
    * @returns {Object} Object with text and cssClass properties
    */
   getStatusDisplayForRunsheet(statusId) {
     // Map status IDs to runsheet display format
     const statusMap = {
-      '21': { text: 'Pending', cssClass: 'status-pending' },
-      '22': { text: 'In Progress', cssClass: 'status-progress' },  
-      '23': { text: 'Completed', cssClass: 'status-completed' },
-      '24': { text: 'Failed', cssClass: 'status-failed' },
-      '25': { text: 'Skipped', cssClass: 'status-skipped' },
-      '26': { text: 'Blocked', cssClass: 'status-blocked' }
+      21: { text: "Pending", cssClass: "status-pending" },
+      22: { text: "In Progress", cssClass: "status-progress" },
+      23: { text: "Completed", cssClass: "status-completed" },
+      24: { text: "Failed", cssClass: "status-failed" },
+      25: { text: "Skipped", cssClass: "status-skipped" },
+      26: { text: "Blocked", cssClass: "status-blocked" },
     };
 
     // Handle both string and numeric status IDs
     const normalizedStatusId = String(statusId);
-    return statusMap[normalizedStatusId] || { text: 'Unknown', cssClass: 'status-unknown' };
+    return (
+      statusMap[normalizedStatusId] || {
+        text: "Unknown",
+        cssClass: "status-unknown",
+      }
+    );
   }
 
   async handleInstructionToggle(event) {
@@ -3670,14 +3903,23 @@ class StepView {
     checkbox.disabled = true;
 
     try {
+      let result;
       if (isChecked) {
-        await this.completeInstruction(stepId, instructionId);
+        result = await this.completeInstruction(stepId, instructionId);
         checkbox.closest(".instruction-row")?.classList.add("completed");
-        this.showNotification("Instruction marked as complete", "success");
+        // Show notification with email count (matching IterationView pattern)
+        const message = result.emailsSent
+          ? `Instruction marked as complete. ${result.emailsSent} notifications sent.`
+          : "Instruction marked as complete";
+        this.showNotification(message, "success");
       } else {
-        await this.uncompleteInstruction(stepId, instructionId);
+        result = await this.uncompleteInstruction(stepId, instructionId);
         checkbox.closest(".instruction-row")?.classList.remove("completed");
-        this.showNotification("Instruction marked as incomplete", "success");
+        // Show notification with email count (matching IterationView pattern)
+        const message = result.emailsSent
+          ? `Instruction marked as incomplete. ${result.emailsSent} notifications sent.`
+          : "Instruction marked as incomplete";
+        this.showNotification(message, "success");
       }
 
       // Clear cache to force refresh on next poll
@@ -3697,9 +3939,11 @@ class StepView {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
         },
+        credentials: "same-origin", // Include cookies for authentication
         body: JSON.stringify({
-          userId: this.userId,
+          userId: this.userContext?.userId || this.userId || null,
         }),
       },
     );
@@ -3708,7 +3952,14 @@ class StepView {
       throw new Error(`Failed to complete instruction: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+
+    // Log email notification info (matching IterationView pattern)
+    if (result.emailsSent) {
+      console.log(`Email notifications sent: ${result.emailsSent}`);
+    }
+
+    return result;
   }
 
   async uncompleteInstruction(stepId, instructionId) {
@@ -3718,9 +3969,11 @@ class StepView {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-Atlassian-Token": "no-check", // Required for Confluence XSRF protection
         },
+        credentials: "same-origin", // Include cookies for authentication
         body: JSON.stringify({
-          userId: this.userId,
+          userId: this.userContext?.userId || this.userId || null,
         }),
       },
     );
@@ -3729,7 +3982,14 @@ class StepView {
       throw new Error(`Failed to uncomplete instruction: ${response.status}`);
     }
 
-    return response.json();
+    const result = await response.json();
+
+    // Log email notification info (matching IterationView pattern)
+    if (result.emailsSent) {
+      console.log(`Email notifications sent: ${result.emailsSent}`);
+    }
+
+    return result;
   }
 
   async handleAddComment() {
@@ -3779,18 +4039,9 @@ class StepView {
       // Clear the textarea
       textarea.value = "";
 
-      // Replicate IterationView's working pattern: direct refresh with fresh data
-      if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
-        const container = document.querySelector('.step-view-container');
-        if (container) {
-          // Force fresh data load (bypass cache) like IterationView does
-          await this.loadStepDetailsWithFreshData(
-            this.currentMigrationName,
-            this.currentIterationName,
-            this.currentStepCode,
-            container
-          );
-        }
+      // Follow IterationView's proven pattern: simple refresh using current step instance ID
+      if (this.currentStepInstanceId) {
+        await this.refreshCurrentStepView();
       }
 
       this.showNotification("Comment added successfully", "success");
@@ -3877,18 +4128,9 @@ class StepView {
         throw new Error(`Failed to update comment: ${response.status}`);
       }
 
-      // Replicate IterationView's working pattern: direct refresh with fresh data
-      if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
-        const container = document.querySelector('.step-view-container');
-        if (container) {
-          // Force fresh data load (bypass cache) like IterationView does
-          await this.loadStepDetailsWithFreshData(
-            this.currentMigrationName,
-            this.currentIterationName,
-            this.currentStepCode,
-            container
-          );
-        }
+      // Follow IterationView's proven pattern: simple refresh using current step instance ID
+      if (this.currentStepInstanceId) {
+        await this.refreshCurrentStepView();
       }
 
       this.showNotification("Comment updated successfully", "success");
@@ -3930,18 +4172,9 @@ class StepView {
             throw new Error(`Failed to delete comment: ${response.status}`);
           }
 
-          // Replicate IterationView's working pattern: direct refresh with fresh data
-          if (this.currentMigrationName && this.currentIterationName && this.currentStepCode) {
-            const container = document.querySelector('.step-view-container');
-            if (container) {
-              // Force fresh data load (bypass cache) like IterationView does
-              await this.loadStepDetailsWithFreshData(
-                this.currentMigrationName,
-                this.currentIterationName,
-                this.currentStepCode,
-                container
-              );
-            }
+          // Follow IterationView's proven pattern: simple refresh using current step instance ID
+          if (this.currentStepInstanceId) {
+            await this.refreshCurrentStepView();
           }
 
           this.showNotification("Comment deleted successfully", "success");
@@ -4177,8 +4410,8 @@ class StepView {
    */
   updateStaticStatusBadges() {
     // US-036: Update badges for all users (static badges are shown alongside dropdowns)
-    
-    console.log('🔄 StepView: Updating static badges for all users');
+
+    console.log("🔄 StepView: Updating static badges for all users");
 
     // Find all static status badges in the DOM (they have the status-badge class)
     const statusBadges = document.querySelectorAll(".status-badge");
@@ -4364,7 +4597,7 @@ class StepView {
                 <div class="metadata-item">
                     <span class="label">📊 STATUS:</span>
                     <span class="value">
-                        ${this.userRole === null || this.userRole === undefined ? statusDisplay : ''}
+                        ${this.userRole === null || this.userRole === undefined ? statusDisplay : ""}
                         <select id="step-status-dropdown" class="status-dropdown pilot-only" data-step-id="${summary.ID || stepData.stepCode}" data-current-status-id="${summary.StatusID || summary.Status || "21"}" style="padding: 2px 8px; border-radius: 3px; margin-left: 8px; display: none;">
                             <!-- Note: 'pilot-only' CSS class is historical - actual visibility controlled by update_step_status permission -->
                             <option value="">Loading...</option>
@@ -4498,8 +4731,14 @@ class StepView {
                         <span class="comment-author">${this.escapeHtml(comment.author?.name || "Unknown")}${teamName}</span>
                         <span class="comment-time">${relativeTime}</span>
                         <div class="comment-actions">
-                            <button class="btn-edit-comment" data-comment-id="${comment.id}" title="Edit">✏️</button>
-                            <button class="btn-delete-comment" data-comment-id="${comment.id}" title="Delete">🗑️</button>
+                            ${
+                              this.hasPermission("add_comments")
+                                ? `
+                                <button class="btn-edit-comment" data-comment-id="${comment.id}" title="Edit">✏️</button>
+                                <button class="btn-delete-comment" data-comment-id="${comment.id}" title="Delete">🗑️</button>
+                            `
+                                : ""
+                            }
                         </div>
                     </div>
                     <div class="comment-body" id="comment-body-${comment.id}">${this.escapeHtml(comment.body || "")}</div>
@@ -4817,6 +5056,56 @@ style.textContent = `
             width: 18px !important;
             height: 18px !important;
             margin-right: 8px;
+        }
+        
+        /* Read-only instruction status badges for anonymous users */
+        .instruction-status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 70px;
+        }
+        
+        .instruction-status-badge.completed {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .instruction-status-badge.pending {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #dee2e6;
+        }
+        
+        /* Read-only banner for anonymous users */
+        .read-only-banner {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .banner-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .banner-icon {
+            font-size: 18px;
+        }
+        
+        .banner-text {
+            font-weight: 500;
+            color: #856404;
+            font-size: 14px;
         }
         
         .instruction-order {
@@ -5385,26 +5674,41 @@ window.debugStepViewCSS = function () {
   console.log("🔍 StepView CSS Debug Helper");
   console.log("============================");
 
-  // Check if iteration-view.css is loaded
-  const iterationCSS = document.getElementById("iteration-view-css");
-  if (iterationCSS) {
-    console.log("✅ iteration-view.css link element found");
-    console.log("🔗 href:", iterationCSS.href);
+  // Check if step-view.css is loaded
+  const stepCSS = document.getElementById("step-view-css");
+  if (stepCSS) {
+    console.log("✅ step-view.css link element found");
+    console.log("🔗 href:", stepCSS.href);
   } else {
-    console.error("❌ iteration-view.css link element NOT found");
+    // Fallback: Check for iteration-view.css for backward compatibility
+    const iterationCSS = document.getElementById("iteration-view-css");
+    if (iterationCSS) {
+      console.log(
+        "⚠️ Using iteration-view.css (legacy) - consider updating to step-view.css",
+      );
+      console.log("🔗 href:", iterationCSS.href);
+    } else {
+      console.error(
+        "❌ Neither step-view.css nor iteration-view.css link element found",
+      );
+    }
   }
 
   // Check key elements with enhanced error handling
   const rootElement = document.getElementById("umig-step-view-root");
   const panelElement = document.querySelector(".step-details-panel");
-  const headerElement = document.querySelector(".panel-header, .step-view-header");
+  const headerElement = document.querySelector(
+    ".panel-header, .step-view-header",
+  );
 
   if (rootElement) {
     console.log("✅ Root element found");
     const rootStyle = window.getComputedStyle(rootElement);
     console.log("📊 Root background:", rootStyle.background);
   } else {
-    console.warn("⚠️ Root element NOT found - StepView may not be fully initialized yet");
+    console.warn(
+      "⚠️ Root element NOT found - StepView may not be fully initialized yet",
+    );
   }
 
   if (panelElement) {
@@ -5417,12 +5721,15 @@ window.debugStepViewCSS = function () {
     // Add temporary debug highlight
     panelElement.classList.add("debug-highlight");
     setTimeout(() => {
-      if (panelElement.parentNode) { // Check if element still exists
+      if (panelElement.parentNode) {
+        // Check if element still exists
         panelElement.classList.remove("debug-highlight");
       }
     }, 3000);
   } else {
-    console.warn("⚠️ Panel element NOT found - Step data may not be loaded yet");
+    console.warn(
+      "⚠️ Panel element NOT found - Step data may not be loaded yet",
+    );
   }
 
   if (headerElement) {
@@ -5433,8 +5740,12 @@ window.debugStepViewCSS = function () {
     console.log("📊 Header font-weight:", headerStyle.fontWeight);
     console.log("📊 Header class:", headerElement.className);
   } else {
-    console.warn("⚠️ Header element NOT found - This is expected if step details haven't been loaded yet");
-    console.log("💡 Header elements are created dynamically when step data loads");
+    console.warn(
+      "⚠️ Header element NOT found - This is expected if step details haven't been loaded yet",
+    );
+    console.log(
+      "💡 Header elements are created dynamically when step data loads",
+    );
   }
 
   // Check CSS variables
@@ -5490,11 +5801,12 @@ window.stepView = new StepView();
 // Smart CSS debug auto-run with better timing
 function smartDebugRun() {
   if (!window.debugStepViewCSS) return;
-  
+
   // Use StepView utility method if available, otherwise fallback to direct check
-  const isReady = window.stepView?.isDOMReady() || 
-                  document.querySelector(".step-details-panel, .panel-header");
-  
+  const isReady =
+    window.stepView?.isDOMReady() ||
+    document.querySelector(".step-details-panel, .panel-header");
+
   if (isReady) {
     console.log("🚀 Auto-running CSS debug (DOM ready confirmed)...");
     window.debugStepViewCSS();
@@ -5503,11 +5815,13 @@ function smartDebugRun() {
     // Retry after another 2 seconds, up to 5 attempts
     const currentAttempt = (smartDebugRun.attempts || 0) + 1;
     smartDebugRun.attempts = currentAttempt;
-    
+
     if (currentAttempt < 5) {
       setTimeout(smartDebugRun, 2000);
     } else {
-      console.log("⚠️ CSS debug timeout - running anyway for diagnostic purposes");
+      console.log(
+        "⚠️ CSS debug timeout - running anyway for diagnostic purposes",
+      );
       // Run anyway for basic diagnostics
       window.debugStepViewCSS();
     }

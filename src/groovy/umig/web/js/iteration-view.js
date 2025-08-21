@@ -462,7 +462,9 @@ class RealTimeSync {
     // 🔧 FIX: Disable API polling to non-existent /steps/updates endpoint
     // The endpoint doesn't exist and was causing continuous 404 errors every 2 seconds
     // TODO: Implement proper /steps/updates endpoint in StepsApi.groovy if real-time sync is needed
-    console.log("RealTimeSync: Polling disabled - no /steps/updates endpoint available");
+    console.log(
+      "RealTimeSync: Polling disabled - no /steps/updates endpoint available",
+    );
     return; // Skip API call to prevent 404 errors
 
     const filters = this.iterationView.getCurrentFilters();
@@ -528,7 +530,7 @@ class RealTimeSync {
         if (!this.iterationView.stepTimeouts) {
           this.iterationView.stepTimeouts = new Map(); // Initialize step-specific timeout tracking
         }
-        
+
         // Clear existing timeout for this step if it exists
         const existingTimeoutId = this.iterationView.stepTimeouts.get(stepId);
         if (existingTimeoutId) {
@@ -539,14 +541,14 @@ class RealTimeSync {
 
         // Add visual indicator for recent change
         stepRow.classList.add("recently-updated");
-        
+
         // Create new timeout for this specific step
         const timeoutId = setTimeout(() => {
           this.iterationView.activeTimeouts.delete(timeoutId);
           this.iterationView.stepTimeouts.delete(stepId);
           stepRow.classList.remove("recently-updated");
         }, 5000);
-        
+
         // Track timeout for cleanup (both global and step-specific)
         this.iterationView.activeTimeouts.add(timeoutId);
         this.iterationView.stepTimeouts.set(stepId, timeoutId);
@@ -565,7 +567,7 @@ class RealTimeSync {
         if (!this.iterationView.stepTimeouts) {
           this.iterationView.stepTimeouts = new Map(); // Initialize step-specific timeout tracking
         }
-        
+
         // Clear existing timeout for this step if it exists
         const existingTimeoutId = this.iterationView.stepTimeouts.get(stepId);
         if (existingTimeoutId) {
@@ -576,14 +578,14 @@ class RealTimeSync {
 
         // Add visual indicator
         stepRow.classList.add("recently-updated");
-        
+
         // Create new timeout for this specific step
         const timeoutId = setTimeout(() => {
           this.iterationView.activeTimeouts.delete(timeoutId);
           this.iterationView.stepTimeouts.delete(stepId);
           stepRow.classList.remove("recently-updated");
         }, 5000);
-        
+
         // Track timeout for cleanup (both global and step-specific)
         this.iterationView.activeTimeouts.add(timeoutId);
         this.iterationView.stepTimeouts.set(stepId, timeoutId);
@@ -1787,43 +1789,58 @@ class IterationView {
   /**
    * Synchronize runsheet status with retry mechanism for DOM re-rendering
    * Waits for DOM elements to be recreated after IterationView reload
-   * 
+   *
    * @param {string} stepId - UUID of the step
    * @param {string} newStatus - New status text (e.g., 'COMPLETED', 'FAILED')
    * @param {string} newStatusId - New status ID for data attributes
    */
   syncRunsheetStatusWithRetry(stepId, newStatus, newStatusId) {
-    console.log(`🔄 syncRunsheetStatusWithRetry called: stepId=${stepId}, newStatus=${newStatus}, newStatusId=${newStatusId}`);
-    
+    console.log(
+      `🔄 syncRunsheetStatusWithRetry called: stepId=${stepId}, newStatus=${newStatus}, newStatusId=${newStatusId}`,
+    );
+
     const maxRetries = 10;
     const retryInterval = 200; // 200ms intervals
     let retryCount = 0;
-    
+
     const attemptSync = () => {
       retryCount++;
-      console.log(`🔄 Attempt ${retryCount}/${maxRetries}: Looking for DOM elements...`);
-      
+      console.log(
+        `🔄 Attempt ${retryCount}/${maxRetries}: Looking for DOM elements...`,
+      );
+
       // Check if DOM elements exist
       const stepRow = document.querySelector(`[data-step="${stepId}"]`);
-      const allSteps = document.querySelectorAll('[data-step]');
-      
-      console.log(`🔍 DOM state: stepRow=${stepRow ? 'found' : 'null'}, totalSteps=${allSteps.length}`);
-      
+      const allSteps = document.querySelectorAll("[data-step]");
+
+      console.log(
+        `🔍 DOM state: stepRow=${stepRow ? "found" : "null"}, totalSteps=${allSteps.length}`,
+      );
+
       if (stepRow) {
         // DOM elements exist, proceed with sync
-        console.log(`✅ DOM elements found on attempt ${retryCount}, proceeding with sync`);
+        console.log(
+          `✅ DOM elements found on attempt ${retryCount}, proceeding with sync`,
+        );
         this.syncRunsheetStatus(stepId, newStatus, newStatusId);
       } else if (retryCount < maxRetries) {
         // DOM elements not ready yet, retry
-        console.log(`⏳ DOM not ready, retrying in ${retryInterval}ms... (attempt ${retryCount}/${maxRetries})`);
+        console.log(
+          `⏳ DOM not ready, retrying in ${retryInterval}ms... (attempt ${retryCount}/${maxRetries})`,
+        );
         setTimeout(attemptSync, retryInterval);
       } else {
         // Max retries reached
-        console.warn(`⚠️ Failed to find DOM elements for step ${stepId} after ${maxRetries} attempts`);
-        console.warn(`🔍 Final DOM state: totalSteps=${allSteps.length}, available steps:`, Array.from(allSteps).map(s => s.getAttribute('data-step')));
+        console.warn(
+          `⚠️ Failed to find DOM elements for step ${stepId} after ${maxRetries} attempts`,
+        );
+        console.warn(
+          `🔍 Final DOM state: totalSteps=${allSteps.length}, available steps:`,
+          Array.from(allSteps).map((s) => s.getAttribute("data-step")),
+        );
       }
     };
-    
+
     // Start the retry process
     attemptSync();
   }
@@ -1835,21 +1852,21 @@ class IterationView {
   syncRunsheetStatus(stepId, newStatus, newStatusId) {
     // Find the step row using the same selector pattern as working _updateStepStatus method
     const stepRow = document.querySelector(`[data-step="${stepId}"]`);
-    
+
     if (stepRow) {
-      const statusCell = stepRow.querySelector('.col-status');
-      
+      const statusCell = stepRow.querySelector(".col-status");
+
       if (statusCell) {
         // Update status display with existing color coding
         const newStatusHTML = this.getStatusDisplay(newStatus);
         statusCell.innerHTML = newStatusHTML;
-        statusCell.setAttribute('data-status-id', newStatusId);
-        
+        statusCell.setAttribute("data-status-id", newStatusId);
+
         // Clear any existing timeout for this specific step to prevent conflicts
         if (!this.stepTimeouts) {
           this.stepTimeouts = new Map();
         }
-        
+
         // Clear existing timeout for this step if it exists
         const existingTimeoutId = this.stepTimeouts.get(stepId);
         if (existingTimeoutId) {
@@ -1857,24 +1874,28 @@ class IterationView {
           this.activeTimeouts.delete(existingTimeoutId);
           this.stepTimeouts.delete(stepId);
         }
-        
+
         // Visual feedback for recent change
-        stepRow.classList.add('recently-updated');
-        
+        stepRow.classList.add("recently-updated");
+
         // Create new timeout for this specific step
         const timeoutId = setTimeout(() => {
           this.activeTimeouts.delete(timeoutId);
           this.stepTimeouts.delete(stepId);
-          stepRow.classList.remove('recently-updated');
+          stepRow.classList.remove("recently-updated");
         }, 3000);
-        
+
         // Track timeout for cleanup (both global and step-specific)
         this.activeTimeouts.add(timeoutId);
         this.stepTimeouts.set(stepId, timeoutId);
-        
-        console.log(`✅ Runsheet synchronized: Step ${stepId} status updated to ${newStatus}`);
+
+        console.log(
+          `✅ Runsheet synchronized: Step ${stepId} status updated to ${newStatus}`,
+        );
       } else {
-        console.warn(`⚠️ Runsheet sync: Status cell not found for step ${stepId}`);
+        console.warn(
+          `⚠️ Runsheet sync: Status cell not found for step ${stepId}`,
+        );
       }
     } else {
       console.warn(`⚠️ Runsheet sync: Row not found for step ${stepId}`);
