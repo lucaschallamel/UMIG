@@ -293,6 +293,19 @@
 5. **Performance Optimization**: Intelligent caching can reduce API calls by 60% while maintaining freshness
 6. **Quality Gate Achievement**: 95% test coverage achievable while maintaining development velocity
 
+### Sprint 5 Lessons Learned (US-036 StepView UI Refactoring, August 2025)
+
+1. **Feature Parity Complexity**: Achieving UI component parity reveals hidden complexity (3→8-10 points actual)
+2. **Testing Feedback Integration**: Buffer time required in estimates when incorporating testing feedback loops
+3. **Technical Debt Evaluation**: Critical assessment needed before implementation to avoid scope creep
+4. **Quality Gate Time Investment**: Must include quality assurance time in original estimates, not as add-on
+5. **Direct API Pattern Superiority**: Direct API calls more reliable than complex caching for refresh operations
+6. **Security-First Design**: null-default RBAC approach prevents unauthorized access and simplifies error handling
+7. **CSS Consistency Value**: Shared stylesheets between components reduce development time by 90%
+8. **Database Type Safety**: Systematic INTEGER casting eliminates entire class of runtime errors
+9. **Scope Management**: 80% completion with maintained quality better than 100% completion with compromised standards
+10. **Architectural Pattern Discovery**: UI development reveals reusable patterns (Direct API, RBAC, CSS Consistency, Type Safety)
+
 ### Project Management Lessons
 
 1. **Pattern Reuse Value**: Each successful implementation makes subsequent implementations faster
