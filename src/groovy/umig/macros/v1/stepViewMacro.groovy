@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cacheTimeout: 30000     // 30-second cache TTL
         },
         user: {
-            id: ${userId ?: 'null'},
+            id: ${userId != null ? userId : 'null'},
             username: '${username}',
             role: ${userRole ? "'${userRole}'" : 'null'},
             isAdmin: ${isAdmin},

@@ -24,7 +24,7 @@ Comprehensive QA validation framework for ensuring 100% visual consistency betwe
 9. [Database Validation Procedures](#database-validation-procedures)
 10. [API Endpoint Validation](#api-endpoint-validation)
 11. [Data Integrity Validation](#data-integrity-validation)
-12. [Session Handoff Validation](#session-handoff-validation)  
+12. [Session Handoff Validation](#session-handoff-validation)
 13. [Critical Issue Resolution Framework](#critical-issue-resolution-framework)
 14. [Security Validation](#security-validation)
 15. [Deployment Readiness Checklist](#deployment-readiness-checklist)
@@ -75,6 +75,7 @@ const StepViewValidationSuite = {
 **Rationale**: Complex step containing all UMIG data types (labels, teams, instructions, comments, hierarchical context)
 
 **BGO-002 Expected Data**:
+
 - **Step Code**: BGO-002
 - **Step Name**: "Step 2: placeat soleo succedo audentia voluptatem"
 - **Primary Team**: Electronics Squad
@@ -536,6 +537,7 @@ const actionButtonsValidation = [
 **Final Score**: ✅ **40/40 points (100%)**
 
 **Section Breakdown**:
+
 - Breadcrumb Navigation: 6/6 ✅
 - Step Header: 4/4 ✅
 - Status Information: 4/4 ✅
@@ -566,6 +568,7 @@ const actionButtonsValidation = [
 ### User Role Test Scenarios
 
 #### NORMAL User Testing
+
 ```bash
 # Test NORMAL user permissions
 URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=normal
@@ -579,6 +582,7 @@ URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=normal
 ```
 
 #### PILOT User Testing
+
 ```bash
 # Test PILOT user permissions
 URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=pilot
@@ -592,6 +596,7 @@ URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=pilot
 ```
 
 #### ADMIN User Testing
+
 ```bash
 # Test ADMIN user permissions
 URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=admin
@@ -607,6 +612,7 @@ URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002&role=admin
 ### RBAC Security Validation
 
 #### Unknown User Testing (Critical Security Test)
+
 ```bash
 # Test unknown Confluence user (no role parameter)
 URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002
@@ -619,6 +625,7 @@ URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002
 ```
 
 **Security Test Results**: ✅ **CRITICAL FIX VERIFIED**
+
 - Unknown users correctly get static badge only
 - No privilege escalation possible
 - Role-based controls properly enforced
@@ -630,14 +637,14 @@ URL: ?mig=TORONTO&ite=RUN1&stepid=BGO-002
 
 ### Response Time Requirements
 
-| Operation | Target | Actual | Status |
-|-----------|--------|--------|--------|
-| **API Response** | <1s | <500ms | ✅ Exceeds |
-| **Page Load** | <3s | 2.1s | ✅ Exceeds |
-| **Step Status Update** | <2s | 1.2s | ✅ Meets |
-| **Comment Addition** | <1s | 400ms | ✅ Exceeds |
-| **Search/Filter** | <2s | 800ms | ✅ Exceeds |
-| **Render Time** | <500ms | 380ms | ✅ Exceeds |
+| Operation              | Target | Actual | Status     |
+| ---------------------- | ------ | ------ | ---------- |
+| **API Response**       | <1s    | <500ms | ✅ Exceeds |
+| **Page Load**          | <3s    | 2.1s   | ✅ Exceeds |
+| **Step Status Update** | <2s    | 1.2s   | ✅ Meets   |
+| **Comment Addition**   | <1s    | 400ms  | ✅ Exceeds |
+| **Search/Filter**      | <2s    | 800ms  | ✅ Exceeds |
+| **Render Time**        | <500ms | 380ms  | ✅ Exceeds |
 
 ### Performance Testing Framework
 
@@ -672,19 +679,24 @@ const performanceTests = {
 ### Performance Optimization Results
 
 #### Smart Polling Implementation
+
 **Before Optimization**:
+
 - 2-second interval polling
 - ~1800 server calls per hour
 - Continuous UI updates regardless of data changes
 
 **After Optimization**:
-- 60-second interval polling  
+
+- 60-second interval polling
 - ~60 server calls per hour
 - Change detection prevents unnecessary UI updates
 - **97% reduction in server load** ✅
 
 #### Memory Management
+
 **Memory Usage Optimization**:
+
 - Session-level caching for user data
 - Efficient data structure usage
 - Proper cleanup of event listeners
@@ -703,7 +715,7 @@ npm run test:load
 # Memory usage analysis
 npm run analyze:memory
 
-# Response time benchmarking  
+# Response time benchmarking
 npm run benchmark:api
 ```
 
@@ -713,54 +725,55 @@ npm run benchmark:api
 
 ### Supported Browsers
 
-| Browser     | Version | Compatibility | Status | Notes |
-| ----------- | ------- | ------------- | ------ | ----- |
+| Browser     | Version | Compatibility | Status  | Notes                                    |
+| ----------- | ------- | ------------- | ------- | ---------------------------------------- |
 | **Chrome**  | 91+     | 100%          | ✅ PASS | Full compatibility, all features working |
-| **Firefox** | 88+     | 100%          | ✅ PASS | Complete support, no rendering issues |
-| **Safari**  | 14+     | 100%          | ✅ PASS | Perfect alignment, responsive design |
-| **Edge**    | 91+     | 100%          | ✅ PASS | Full feature parity with Chrome |
+| **Firefox** | 88+     | 100%          | ✅ PASS | Complete support, no rendering issues    |
+| **Safari**  | 14+     | 100%          | ✅ PASS | Perfect alignment, responsive design     |
+| **Edge**    | 91+     | 100%          | ✅ PASS | Full feature parity with Chrome          |
 
 ### Cross-Browser Validation
 
 #### Visual Consistency Testing
+
 ```javascript
 // Cross-browser validation suite
 const browserCompatibilityTests = {
   chrome: {
-    version: '91+',
-    features: ['all', 'dropdowns', 'modals', 'responsive'],
-    status: 'PASS',
-    notes: 'Reference browser - full compatibility'
+    version: "91+",
+    features: ["all", "dropdowns", "modals", "responsive"],
+    status: "PASS",
+    notes: "Reference browser - full compatibility",
   },
   firefox: {
-    version: '88+',
-    features: ['all', 'dropdowns', 'modals', 'responsive'],
-    status: 'PASS',
-    notes: 'All features working, consistent rendering'
+    version: "88+",
+    features: ["all", "dropdowns", "modals", "responsive"],
+    status: "PASS",
+    notes: "All features working, consistent rendering",
   },
   safari: {
-    version: '14+',
-    features: ['all', 'dropdowns', 'modals', 'responsive'],
-    status: 'PASS',
-    notes: 'Apple-specific optimizations applied'
+    version: "14+",
+    features: ["all", "dropdowns", "modals", "responsive"],
+    status: "PASS",
+    notes: "Apple-specific optimizations applied",
   },
   edge: {
-    version: '91+',
-    features: ['all', 'dropdowns', 'modals', 'responsive'],
-    status: 'PASS',
-    notes: 'Chromium-based, identical to Chrome'
-  }
+    version: "91+",
+    features: ["all", "dropdowns", "modals", "responsive"],
+    status: "PASS",
+    notes: "Chromium-based, identical to Chrome",
+  },
 };
 ```
 
 #### Responsive Design Testing
 
-| Screen Size | Resolution | Layout | Status | Notes |
-|-------------|------------|--------|--------|-------|
-| **Mobile** | 320-768px | Responsive | ✅ PASS | Mobile-optimized layout |
-| **Tablet** | 768-1024px | Adaptive | ✅ PASS | Tablet-friendly design |
-| **Desktop** | 1024px+ | Full | ✅ PASS | Desktop-first experience |
-| **Large Screen** | 1920px+ | Extended | ✅ PASS | High-resolution support |
+| Screen Size      | Resolution | Layout     | Status  | Notes                    |
+| ---------------- | ---------- | ---------- | ------- | ------------------------ |
+| **Mobile**       | 320-768px  | Responsive | ✅ PASS | Mobile-optimized layout  |
+| **Tablet**       | 768-1024px | Adaptive   | ✅ PASS | Tablet-friendly design   |
+| **Desktop**      | 1024px+    | Full       | ✅ PASS | Desktop-first experience |
+| **Large Screen** | 1920px+    | Extended   | ✅ PASS | High-resolution support  |
 
 ### Browser Testing Commands
 
@@ -800,7 +813,7 @@ visual_validation:
     - npm run test:visual-alignment
   artifacts:
     - test-results/visual-validation.xml
-  
+
 cross_role_testing:
   script:
     - npm run test:rbac
@@ -826,6 +839,7 @@ browser_compatibility:
 ### Test Automation Framework
 
 #### Automated Validation Execution
+
 ```javascript
 // Automated test execution for BGO-002
 async function executeBGO002ValidationSuite() {
@@ -896,6 +910,7 @@ function generateTestSummary(results) {
 ### Test Data Management
 
 #### Test Fixtures
+
 ```bash
 # Test data generation
 npm run generate-data:erase
@@ -911,6 +926,7 @@ groovy validate-bgo-002.groovy
 ```
 
 #### Test Environment Validation
+
 ```bash
 # Environment health check
 ./local-dev-setup/infrastructure/verify-provisioning.sh
@@ -929,6 +945,7 @@ npm run test:integration:auth
 ### Pre-Deployment Quality Gates
 
 #### Critical Quality Gates (Must Pass)
+
 - [ ] **Visual Validation**: 40/40 points passed ✅
 - [ ] **Cross-Role Testing**: All user roles validated ✅
 - [ ] **Performance Benchmarks**: All targets met ✅
@@ -938,20 +955,21 @@ npm run test:integration:auth
 
 #### Quality Metrics Dashboard
 
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
+| Metric                          | Value        | Target      | Status     |
+| ------------------------------- | ------------ | ----------- | ---------- |
 | **Visual Validation Pass Rate** | 40/40 (100%) | 38/40 (95%) | ✅ Exceeds |
-| **Cross-Role Functionality** | 6/6 (100%) | 5/6 (83%) | ✅ Exceeds |
-| **Performance Score** | 6/6 (100%) | 4/6 (67%) | ✅ Exceeds |
-| **Browser Compatibility** | 4/4 (100%) | 3/4 (75%) | ✅ Exceeds |
-| **Security Compliance** | 100% | 100% | ✅ Meets |
-| **Load Time** | 2.1s | <3s | ✅ Exceeds |
-| **Memory Usage** | 32MB | <50MB | ✅ Meets |
-| **API Response Time** | <500ms | <1s | ✅ Exceeds |
+| **Cross-Role Functionality**    | 6/6 (100%)   | 5/6 (83%)   | ✅ Exceeds |
+| **Performance Score**           | 6/6 (100%)   | 4/6 (67%)   | ✅ Exceeds |
+| **Browser Compatibility**       | 4/4 (100%)   | 3/4 (75%)   | ✅ Exceeds |
+| **Security Compliance**         | 100%         | 100%        | ✅ Meets   |
+| **Load Time**                   | 2.1s         | <3s         | ✅ Exceeds |
+| **Memory Usage**                | 32MB         | <50MB       | ✅ Meets   |
+| **API Response Time**           | <500ms       | <1s         | ✅ Exceeds |
 
 ### Success Criteria Definition
 
 #### Primary Success Criteria
+
 1. **Visual Consistency**: 100% alignment between IterationView and StepView ✅
 2. **Functional Parity**: All features work identically across components ✅
 3. **Role-Based Security**: RBAC implementation correctly enforced ✅
@@ -959,6 +977,7 @@ npm run test:integration:auth
 5. **Cross-Browser Support**: Consistent experience across all browsers ✅
 
 #### Secondary Success Criteria
+
 1. **Code Quality**: Clean, maintainable implementation ✅
 2. **Test Coverage**: Comprehensive automated test suite ✅
 3. **Documentation**: Complete QA framework documentation ✅
@@ -980,6 +999,7 @@ npm run test:integration:auth
 ### Automated Regression Testing
 
 #### Daily Validation Checks
+
 ```bash
 #!/bin/bash
 # Daily QA validation script
@@ -1005,6 +1025,7 @@ echo "All daily validation checks passed ✅"
 ```
 
 #### Weekly Comprehensive Testing
+
 ```bash
 #!/bin/bash
 # Weekly comprehensive validation
@@ -1032,71 +1053,73 @@ echo "Weekly comprehensive validation completed ✅"
 ### Continuous Monitoring
 
 #### Quality Monitoring Dashboard
+
 ```javascript
 // Quality monitoring configuration
 const qualityMonitoring = {
   metrics: {
     visualConsistency: {
       threshold: 95, // 38/40 minimum
-      alert: 'slack:#qa-alerts',
-      frequency: 'daily'
+      alert: "slack:#qa-alerts",
+      frequency: "daily",
     },
     performanceRegression: {
       threshold: 10, // 10% degradation
-      alert: 'slack:#performance-alerts',
-      frequency: 'hourly'
+      alert: "slack:#performance-alerts",
+      frequency: "hourly",
     },
     browserCompatibility: {
       threshold: 90, // 90% pass rate
-      alert: 'slack:#browser-alerts', 
-      frequency: 'weekly'
+      alert: "slack:#browser-alerts",
+      frequency: "weekly",
     },
     securityCompliance: {
       threshold: 100, // Must be 100%
-      alert: 'slack:#security-alerts',
-      frequency: 'daily'
-    }
+      alert: "slack:#security-alerts",
+      frequency: "daily",
+    },
   },
-  
+
   alerts: {
-    immediate: ['securityCompliance', 'criticalFailure'],
-    delayed: ['performanceRegression', 'browserCompatibility'],
-    scheduled: ['visualConsistency', 'weeklyReport']
-  }
+    immediate: ["securityCompliance", "criticalFailure"],
+    delayed: ["performanceRegression", "browserCompatibility"],
+    scheduled: ["visualConsistency", "weeklyReport"],
+  },
 };
 ```
 
 #### Regression Detection Algorithm
+
 ```javascript
 // Visual regression detection
 function detectVisualRegression(currentResults, baselineResults) {
   const regressions = [];
-  
+
   // Compare each validation point
   for (const section in currentResults) {
     const current = currentResults[section];
     const baseline = baselineResults[section];
-    
+
     current.forEach((test, index) => {
       const baselineTest = baseline[index];
-      
+
       if (test.passed !== baselineTest.passed) {
         regressions.push({
           section,
           test: test.id,
           description: test.description,
-          previousStatus: baselineTest.passed ? 'PASS' : 'FAIL',
-          currentStatus: test.passed ? 'PASS' : 'FAIL',
-          severity: determineSeverity(test.id)
+          previousStatus: baselineTest.passed ? "PASS" : "FAIL",
+          currentStatus: test.passed ? "PASS" : "FAIL",
+          severity: determineSeverity(test.id),
         });
       }
     });
   }
-  
+
   return {
     hasRegressions: regressions.length > 0,
     regressions,
-    summary: generateRegressionSummary(regressions)
+    summary: generateRegressionSummary(regressions),
   };
 }
 ```
@@ -1104,6 +1127,7 @@ function detectVisualRegression(currentResults, baselineResults) {
 ### Change Impact Assessment
 
 #### Pre-Deployment Validation
+
 ```bash
 # Pre-deployment regression check
 npm run validate:pre-deployment
@@ -1118,6 +1142,7 @@ npm run validate:pre-deployment
 ```
 
 #### Post-Deployment Monitoring
+
 ```bash
 # Post-deployment monitoring (first 24 hours)
 npm run monitor:post-deployment
@@ -1137,9 +1162,11 @@ npm run monitor:post-deployment
 ### Common Issues & Solutions
 
 #### Issue 1: Visual Inconsistencies
+
 **Symptoms**: StepView and IterationView display differently
 
 **Diagnosis**:
+
 ```bash
 # Check HTML structure alignment
 npm run test:stepview-alignment
@@ -1152,15 +1179,18 @@ grep -A 50 "doRenderStepDetails" src/groovy/umig/web/js/step-view.js
 ```
 
 **Resolution**:
+
 1. Verify HTML structure matches Phase 1 specification
 2. Ensure all required CSS classes are present
 3. Validate emoji icons in correct positions
 4. Check metadata item structure alignment
 
 #### Issue 2: BGO-002 Test Case Failures
+
 **Symptoms**: BGO-002 not displaying expected data
 
 **Diagnosis**:
+
 ```bash
 # Validate test data integrity
 groovy validate-bgo-002.groovy
@@ -1173,15 +1203,18 @@ npm run generate-data:erase
 ```
 
 **Resolution**:
+
 1. Ensure BGO-002 step exists in database
 2. Verify hierarchical context is complete
 3. Check team assignments and status values
 4. Validate labels and instructions data
 
 #### Issue 3: RBAC Permission Problems
+
 **Symptoms**: Users getting incorrect permissions
 
 **Diagnosis**:
+
 ```bash
 # Check user role detection logic
 grep -A 10 -B 5 "userRole" src/groovy/umig/web/js/step-view.js
@@ -1194,15 +1227,18 @@ grep -r "pilot-only" src/groovy/umig/web/js/
 ```
 
 **Resolution**:
+
 1. Verify role detection logic in stepViewMacro.groovy
 2. Ensure JavaScript role assignment is correct
 3. Validate static badge conditions for unknown users
 4. Test all role-based control scenarios
 
 #### Issue 4: Performance Degradation
+
 **Symptoms**: Slow page load or rendering
 
 **Diagnosis**:
+
 ```bash
 # Run performance benchmarks
 npm run benchmark:api
@@ -1215,6 +1251,7 @@ grep -A 20 "hasDataChanged" src/groovy/umig/web/js/step-view.js
 ```
 
 **Resolution**:
+
 1. Validate smart polling is functioning (60s intervals)
 2. Check for memory leaks or excessive DOM manipulation
 3. Ensure API response times are within targets
@@ -1223,6 +1260,7 @@ grep -A 20 "hasDataChanged" src/groovy/umig/web/js/step-view.js
 ### Emergency Procedures
 
 #### Immediate Issue Response
+
 1. **Identify Impact**: Visual, functional, performance, or security
 2. **Assess Severity**: Critical (P0), High (P1), Medium (P2), Low (P3)
 3. **Execute Response**: Immediate fix, rollback, or mitigation
@@ -1230,6 +1268,7 @@ grep -A 20 "hasDataChanged" src/groovy/umig/web/js/step-view.js
 5. **Document Issue**: Update troubleshooting guide
 
 #### Rollback Procedures
+
 ```bash
 # Emergency rollback steps
 
@@ -1250,18 +1289,21 @@ echo "US-036 emergency rollback completed - system stable" >> incident.log
 ### Support Resources
 
 #### Documentation References
+
 - **Implementation Guide**: `US-036-StepView-Complete-Implementation-Guide.md`
 - **Validation Framework**: This document (`US-036-QA-Validation-Framework.md`)
 - **API Documentation**: `docs/api/openapi.yaml`
 - **Solution Architecture**: `docs/solution-architecture.md`
 
 #### Test Resources
+
 - **Test Files**: `src/groovy/umig/tests/integration/`
 - **Validation Scripts**: `local-dev-setup/scripts/validation/`
 - **Test Fixtures**: `src/groovy/umig/tests/fixtures/`
 - **Performance Tools**: `local-dev-setup/scripts/performance/`
 
 #### Contact Information
+
 - **QA Team**: Internal escalation for validation issues
 - **Technical Lead**: Architecture and implementation questions
 - **Security Team**: RBAC and permission-related issues
@@ -1277,13 +1319,13 @@ echo "US-036 emergency rollback completed - system stable" >> incident.log
 
 **1. Hierarchical Context Resolution**
 
-*Problem*: Missing breadcrumb navigation data  
-*Solution*: Complete SQL join chain implementation
+_Problem_: Missing breadcrumb navigation data  
+_Solution_: Complete SQL join chain implementation
 
 ```sql
 -- Complete hierarchical joins
 LEFT JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
-LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id  
+LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
 LEFT JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
 LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
 LEFT JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
@@ -1295,21 +1337,21 @@ LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
 
 **2. Team Assignment Resolution**
 
-*Problem*: Broken SQL join causing NULL team names  
-*Solution*: Corrected foreign key relationship
+_Problem_: Broken SQL join causing NULL team names  
+_Solution_: Corrected foreign key relationship
 
 ```sql
 -- BEFORE (Broken)
 LEFT JOIN teams_tms tms ON :teamId = tms.tms_id
 
--- AFTER (Fixed)  
+-- AFTER (Fixed)
 LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
 ```
 
 **3. Status Name Resolution**
 
-*Problem*: Numeric status IDs instead of readable names  
-*Solution*: Added status table join
+_Problem_: Numeric status IDs instead of readable names  
+_Solution_: Added status table join
 
 ```sql
 -- Added status name resolution
@@ -1325,15 +1367,17 @@ LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
 **Root Cause**: Data generation logic resetting step numbering per phase instead of continuous numbering across all phases within a plan
 
 **Technical Fix**:
+
 ```javascript
 // BEFORE (Broken Logic)
 l + 1,  // Step numbering reset for each phase
 
-// AFTER (Fixed Logic)  
+// AFTER (Fixed Logic)
 planStepCounter++,  // Continuous numbering across all phases
 ```
 
 **Validation Results**:
+
 - ✅ Zero duplicate step codes system-wide (was 20)
 - ✅ Step numbering continuous across phases (1, 2, 3, 4, 5...)
 - ✅ UI consistency guaranteed between IterationView and StepView
@@ -1349,21 +1393,23 @@ planStepCounter++,  // Continuous numbering across all phases
 
 **Steps API**: `/rest/scriptrunner/latest/custom/steps/`
 
-| Endpoint Pattern | Method | Validation Status | Response Time |
-|------------------|--------|-------------------|---------------|
-| `/steps/instance/{code}` | GET | ✅ 100% Valid | <500ms |
-| `/steps/status/update` | PUT | ✅ Authenticated | <300ms |
-| `/steps/complete` | POST | ✅ Role-based | <400ms |
-| `/steps/comments` | POST/GET | ✅ Full CRUD | <200ms |
+| Endpoint Pattern         | Method   | Validation Status | Response Time |
+| ------------------------ | -------- | ----------------- | ------------- |
+| `/steps/instance/{code}` | GET      | ✅ 100% Valid     | <500ms        |
+| `/steps/status/update`   | PUT      | ✅ Authenticated  | <300ms        |
+| `/steps/complete`        | POST     | ✅ Role-based     | <400ms        |
+| `/steps/comments`        | POST/GET | ✅ Full CRUD      | <200ms        |
 
 #### Authentication and Security Validation
 
 **Required Headers**:
+
 - `X-Atlassian-Token: no-check`
 - `credentials: same-origin`
 - Basic authentication with Confluence credentials
 
 **Role-Based Access Control**:
+
 - **NORMAL**: Read access, status updates, instruction completion
 - **PILOT**: All NORMAL plus step blocking/unblocking
 - **ADMIN**: All PILOT plus advanced configuration
@@ -1385,6 +1431,7 @@ planStepCounter++,  // Continuous numbering across all phases
 **File**: `/local-dev-setup/scripts/generators/004_generate_canonical_plans.js`
 
 **Fixed Logic**:
+
 ```javascript
 // Plan-level step counter for uniqueness
 let planStepCounter = 1;
@@ -1403,7 +1450,7 @@ sequenceSteps.forEach((stepTemplate) => {
 SELECT step_code, iteration_id, COUNT(*) as duplicates
 FROM steps_instances_sti sti
 JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
-JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id  
+JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
 JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
 JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
 GROUP BY step_code, iteration_id
@@ -1426,27 +1473,31 @@ HAVING COUNT(*) > 1;
 #### UserService Pattern Implementation
 
 **Fallback Hierarchy**:
+
 ```
 Confluence User → Check UMIG Database
   ├─ Found → Use UMIG user ID
   └─ Not Found → Check user type
-      ├─ System User (admin, system) → Use CSU (Confluence System User)  
+      ├─ System User (admin, system) → Use CSU (Confluence System User)
       └─ Business User → Auto-create or use SYS fallback
 ```
 
 #### Session Handoff Critical Fixes
 
 **1. Error 400 Resolution**: "User not found in system"
-- *Root Cause*: Confluence system users don't exist in UMIG database
-- *Solution*: UserService with intelligent fallback mechanism
+
+- _Root Cause_: Confluence system users don't exist in UMIG database
+- _Solution_: UserService with intelligent fallback mechanism
 
 **2. Error 500 Resolution**: Multiple API issues
-- *Root Cause*: Missing helper methods, incorrect column names, missing team JOINs
-- *Solution*: Complete StepsApi.groovy and repository fixes
+
+- _Root Cause_: Missing helper methods, incorrect column names, missing team JOINs
+- _Solution_: Complete StepsApi.groovy and repository fixes
 
 **3. UI Display Bug**: Wrong team assignments
-- *Root Cause*: Missing team JOINs in instruction queries
-- *Solution*: Added team information to all instruction queries
+
+- _Root Cause_: Missing team JOINs in instruction queries
+- _Solution_: Added team information to all instruction queries
 
 ---
 
@@ -1462,6 +1513,7 @@ Confluence User → Check UMIG Database
 ### P0 Critical Issue Resolution: Duplicate Step Codes
 
 #### Issue Summary
+
 - **Problem**: IterationView and StepView showing different BGO-002 instances
 - **Root Cause**: Data generation creating 20 duplicate step codes system-wide
 - **Impact**: Complete UI consistency failure, user confusion
@@ -1470,22 +1522,26 @@ Confluence User → Check UMIG Database
 #### Resolution Methodology
 
 **1. Issue Identification**
+
 - User screenshots revealed data inconsistencies
 - Cross-component validation exposed deeper problems
 - Database analysis confirmed scope (20 duplicates)
 
-**2. Root Cause Analysis** 
+**2. Root Cause Analysis**
+
 - Traced to data generation script logic flaw
 - Step numbering reset per phase instead of continuous
 - Business rule violation: step codes not unique within iterations
 
 **3. Multi-Layer Fix Implementation**
+
 - **Data Layer**: Fixed step numbering logic in generation script
 - **API Layer**: Enhanced validation and error handling
-- **UI Layer**: Improved synchronization between components  
+- **UI Layer**: Improved synchronization between components
 - **Test Layer**: Comprehensive validation framework
 
 **4. Verification & Validation**
+
 - Database queries confirmed zero duplicates
 - UI consistency tests passed 100%
 - Performance impact minimal
@@ -1500,18 +1556,21 @@ Confluence User → Check UMIG Database
 #### Role-Based Access Control (RBAC)
 
 **User Roles**:
+
 - **NORMAL**: Read access, status updates, instruction completion
-- **PILOT**: All NORMAL permissions plus step blocking/unblocking  
+- **PILOT**: All NORMAL permissions plus step blocking/unblocking
 - **ADMIN**: All PILOT permissions plus advanced configuration
 
 #### Authentication Validation
 
 **Confluence Integration**:
+
 - Basic authentication with Confluence credentials
 - Session-based access control
 - Required security headers validation
 
 **Security Headers**:
+
 ```javascript
 headers: {
   'X-Atlassian-Token': 'no-check',  // CSRF protection
@@ -1525,13 +1584,15 @@ credentials: 'same-origin'           // Session sharing
 #### Input Validation
 
 **SQL Injection Prevention**:
+
 - Parameterized queries throughout
 - Input sanitization at API layer
 - Type safety enforcement with explicit casting
 
 **XSS Prevention**:
+
 - HTML content escaping in comments
-- Client-side input validation  
+- Client-side input validation
 - Server-side output encoding
 
 ---
@@ -1570,7 +1631,7 @@ credentials: 'same-origin'           // Session sharing
 - [ ] **Responsive Design**: Mobile and desktop layouts verified
 - [ ] **Accessibility**: WCAG compliance confirmed
 
-#### Performance Validation  
+#### Performance Validation
 
 - [ ] **Load Times**: <3 seconds achieved
 - [ ] **API Response**: <1 second achieved
@@ -1595,7 +1656,7 @@ curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/steps/instanc
 #### Emergency Rollback Triggers
 
 - **Critical Error Rate**: >5% error rate sustained for >5 minutes
-- **Performance Degradation**: >10 second response times  
+- **Performance Degradation**: >10 second response times
 - **Data Corruption**: Any data integrity issues detected
 - **Security Breach**: Any unauthorized access detected
 
@@ -1606,6 +1667,7 @@ curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/steps/instanc
 The US-036 QA Validation Framework provides comprehensive quality assurance coverage for the StepView UI refactoring project. With 100% success across all validation criteria, robust automated testing, and comprehensive regression prevention measures, this framework ensures ongoing quality and reliability.
 
 **Key Achievements**:
+
 - ✅ **40/40 validation points passed** (100% success rate)
 - ✅ **Complete cross-role testing** with security compliance
 - ✅ **Performance targets exceeded** across all metrics

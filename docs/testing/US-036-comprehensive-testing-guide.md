@@ -3,7 +3,7 @@
 **Date**: August 20, 2025  
 **Sprint**: Sprint 5 - Day 2  
 **Status**: Production Ready  
-**Validation Level**: Enterprise-Grade Comprehensive  
+**Validation Level**: Enterprise-Grade Comprehensive
 
 ## Executive Summary & Quick Reference
 
@@ -12,11 +12,13 @@ The US-036 StepView status display refactoring successfully eliminated redundant
 ### Implementation Overview
 
 **Core Logic**: Show static badge ONLY for users without formal roles
+
 ```javascript
 ${!["NORMAL", "PILOT", "ADMIN"].includes(this.userRole) ? statusDisplay : ''}
 ```
 
 **Key Files Modified**:
+
 - `/src/groovy/umig/web/js/step-view.js` - Lines 2758, 3940, 4127 (conditional rendering)
 - Role detection: `this.config.user?.role || "NORMAL"` with URL override support
 
@@ -34,7 +36,7 @@ cd local-dev-setup && npm start
 # Quick validation (5 minutes)
 npm run test:us036:quick
 
-# Comprehensive validation (15 minutes) 
+# Comprehensive validation (15 minutes)
 npm run test:us036
 
 # Full test suite with regression testing
@@ -45,12 +47,12 @@ npm run test:stepview:all
 
 Test the 4 critical scenarios using URL parameters:
 
-| Scenario | URL | Expected Result | Status |
-|----------|-----|-----------------|--------|
-| **ADMIN** | `?role=admin` | Dropdown only | ✅ Already confirmed |
-| **PILOT** | `?role=pilot` | Dropdown only | ⏳ Test now |
-| **NORMAL** | `?role=normal` | No controls | ⏳ Test now |
-| **DEFAULT** | No role param | Badge only | ⏳ **KEY TEST** |
+| Scenario    | URL            | Expected Result | Status               |
+| ----------- | -------------- | --------------- | -------------------- |
+| **ADMIN**   | `?role=admin`  | Dropdown only   | ✅ Already confirmed |
+| **PILOT**   | `?role=pilot`  | Dropdown only   | ⏳ Test now          |
+| **NORMAL**  | `?role=normal` | No controls     | ⏳ Test now          |
+| **DEFAULT** | No role param  | Badge only      | ⏳ **KEY TEST**      |
 
 ### Phase 2: Browser Console Validation (10 minutes)
 
@@ -59,17 +61,25 @@ Use these commands to validate DOM state:
 ```javascript
 // Quick role and badge check
 console.log("Role:", window.stepView?.userRole);
-console.log("Should show badge:", !["NORMAL", "PILOT", "ADMIN"].includes(window.stepView?.userRole));
+console.log(
+  "Should show badge:",
+  !["NORMAL", "PILOT", "ADMIN"].includes(window.stepView?.userRole),
+);
 
 // Count visible elements
-const badges = document.querySelectorAll('.status-badge:not([style*="display: none"])');
-const dropdowns = document.querySelectorAll('[id*="step-status-dropdown"]:not([style*="display: none"])');
+const badges = document.querySelectorAll(
+  '.status-badge:not([style*="display: none"])',
+);
+const dropdowns = document.querySelectorAll(
+  '[id*="step-status-dropdown"]:not([style*="display: none"])',
+);
 console.log(`Visible: ${badges.length} badges, ${dropdowns.length} dropdowns`);
 ```
 
 ### Phase 3: Edge Cases (5 minutes)
 
 Test invalid role scenarios:
+
 - `?role=guest` → Should show badge only
 - `?role=invalid` → Should show badge only
 
@@ -79,16 +89,16 @@ Test invalid role scenarios:
 
 **Total Coverage**: 65+ individual test scenarios across all aspects
 
-| Test Category | Test Count | Coverage | Status |
-|---------------|------------|----------|---------|
-| **Unit Tests** | 13 tests | HTML generation, Role logic | ✅ Complete |
-| **Integration Tests** | 7 tests | JavaScript-HTML sync, Config validation | ✅ Complete |
-| **UAT Tests** | 6 tests | End-to-end UI validation, Performance | ✅ Complete |
-| **Role-Based Tests** | 9 tests | NORMAL, PILOT, ADMIN access control | ✅ Complete |
-| **Email Compatibility Tests** | 12 tests | Cross-client rendering, Template validation | ✅ Integrated |
-| **Mobile Tests** | 15 tests | Device compatibility, Touch interaction | ✅ Integrated |
-| **Performance Tests** | 3 tests | Load time, Caching, Polling | ✅ Complete |
-| **Security Tests** | 5 tests | Role escalation prevention | ✅ Complete |
+| Test Category                 | Test Count | Coverage                                    | Status        |
+| ----------------------------- | ---------- | ------------------------------------------- | ------------- |
+| **Unit Tests**                | 13 tests   | HTML generation, Role logic                 | ✅ Complete   |
+| **Integration Tests**         | 7 tests    | JavaScript-HTML sync, Config validation     | ✅ Complete   |
+| **UAT Tests**                 | 6 tests    | End-to-end UI validation, Performance       | ✅ Complete   |
+| **Role-Based Tests**          | 9 tests    | NORMAL, PILOT, ADMIN access control         | ✅ Complete   |
+| **Email Compatibility Tests** | 12 tests   | Cross-client rendering, Template validation | ✅ Integrated |
+| **Mobile Tests**              | 15 tests   | Device compatibility, Touch interaction     | ✅ Integrated |
+| **Performance Tests**         | 3 tests    | Load time, Caching, Polling                 | ✅ Complete   |
+| **Security Tests**            | 5 tests    | Role escalation prevention                  | ✅ Complete   |
 
 ## 📧 Email Client Compatibility Testing
 
@@ -130,6 +140,7 @@ The StepView email template must render consistently across major email clients 
 ### Email Template Test Framework
 
 #### Template Variable Test Data
+
 ```javascript
 const emailTestData = {
   STEP_CODE: "DEC-001",
@@ -145,7 +156,7 @@ const emailTestData = {
   HAS_LABELS: true,
   LABELS: [
     { NAME: "Critical", COLOR: "#FF5630", TEXT_COLOR: "#FFFFFF" },
-    { NAME: "Database", COLOR: "#36B37E", TEXT_COLOR: "#FFFFFF" }
+    { NAME: "Database", COLOR: "#36B37E", TEXT_COLOR: "#FFFFFF" },
   ],
   HAS_INSTRUCTIONS: true,
   INSTRUCTIONS: [
@@ -153,15 +164,16 @@ const emailTestData = {
       ORDER: "1",
       DESCRIPTION: "Review current database performance metrics",
       DURATION: "10",
-      IS_COMPLETED: false
-    }
-  ]
+      IS_COMPLETED: false,
+    },
+  ],
 };
 ```
 
 #### Cross-Client Validation Tests
 
 **Content Integrity Validation**:
+
 1. Step summary information displays correctly
 2. Status badge shows proper color and text
 3. Instructions table maintains alignment
@@ -169,6 +181,7 @@ const emailTestData = {
 5. Footer links remain clickable
 
 **Self-Contained Validation**:
+
 1. Save email as HTML file
 2. Open in web browser without internet connection
 3. Verify all content renders correctly
@@ -178,20 +191,24 @@ const emailTestData = {
 ### Email Client Specific Testing
 
 #### Outlook Testing (OL-001: Basic Rendering)
+
 **Known Limitations**:
+
 - Limited CSS support
 - No background images
 - Inconsistent margin/padding
 - Float properties not supported
 
 **Critical Tests**:
+
 ```html
 <!--[if mso]>
   <style type="text/css">
     .email-header {
       background: #0052cc !important;
     }
-    table, td {
+    table,
+    td {
       border-collapse: collapse !important;
     }
     .status-badge {
@@ -202,8 +219,10 @@ const emailTestData = {
 ```
 
 #### Gmail Testing (GM-001: Web Interface)
+
 **Features**: Full CSS support, media queries
 **Mobile Responsive Test**:
+
 ```css
 @media screen and (max-width: 640px) {
   .email-container {
@@ -220,9 +239,11 @@ const emailTestData = {
 ```
 
 #### Apple Mail Testing (AP-001: macOS/iOS)
+
 **Engine**: WebKit
 **Features**: Excellent CSS support, smooth animations
 **Validation Points**:
+
 - Full template renders identically to web browsers
 - Dark Mode integration works seamlessly
 - Print functionality maintains formatting
@@ -230,11 +251,13 @@ const emailTestData = {
 ### Email Performance & Accessibility
 
 #### Performance Requirements
+
 - Email size: < 100KB total
 - Load time: < 3 seconds in all tested clients
 - Render time: < 2 seconds from open to display
 
 #### Accessibility Requirements
+
 - Contrast ratios: WCAG AA standards (4.5:1 minimum)
 - Screen reader: Proper heading structure and labels
 - High contrast: Usable in high contrast modes
@@ -249,12 +272,14 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 #### Required Mobile Test Devices
 
 **Physical Devices (Priority 1 - Critical)**
+
 - iPhone 13/14/15 (iOS 15+) - Safari
 - Samsung Galaxy S21/S22/S23 (Android 11+) - Chrome
 - iPad 9th/10th Generation (iPadOS 15+) - Safari
 - Google Pixel 6/7/8 (Android 12+) - Chrome
 
 **Browser Testing Matrix**
+
 - iOS Safari (Primary mobile browser)
 - Chrome Mobile (Android primary)
 - Samsung Internet (Samsung devices)
@@ -262,6 +287,7 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 - Edge Mobile (Enterprise environments)
 
 #### Responsive Design Breakpoints
+
 - **320px** - Small mobile phones (iPhone SE)
 - **375px** - Standard mobile phones (iPhone 12/13)
 - **414px** - Large mobile phones (iPhone 14 Plus)
@@ -271,30 +297,37 @@ The standalone StepView page must work seamlessly across mobile devices for exte
 ### Core Mobile Test Scenarios
 
 #### Mobile Navigation Tests (M-001: Direct URL Access)
+
 **Test URLs**:
+
 ```
 https://confluence.company.com/stepview.html?mig=migrationa&ite=run1&stepid=DEC-001&role=NORMAL
 https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-446655440000&role=PILOT
 ```
 
 **Performance Criteria**:
+
 - Page load time < 3 seconds on 3G network
 - First contentful paint < 2 seconds
 - Interactive elements respond within 100ms
 
 #### Touch Interaction Testing (M-003: Button Accessibility)
+
 **Touch Target Requirements**:
+
 - Minimum size: 44x44px (iOS Human Interface Guidelines)
 - Clear visual feedback on tap
 - No accidental activations
 
 **Elements to Test**:
+
 1. Instruction checkboxes
 2. Status dropdown (PILOT users)
 3. Action buttons (Email step, Refresh)
 4. Expandable sections
 
 #### Mobile Layout Adaptation (M-005: Layout Testing)
+
 **Testing Matrix**:
 | Screen Size | Device | Orientation | Priority |
 |-------------|---------|-------------|----------|
@@ -305,6 +338,7 @@ https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-4466
 | 1024px | iPad Pro | Landscape | Medium |
 
 **Layout Elements**:
+
 - Header section: Step title remains readable
 - Content sections: Summary grid becomes single column
 - Footer information: Contact info remains accessible
@@ -312,13 +346,16 @@ https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-4466
 ### Mobile Performance Testing
 
 #### Network Performance (M-007)
+
 **Network Conditions**:
+
 - 4G LTE (Good: 4G, 150ms RTT)
 - 3G (Regular: 3G, 300ms RTT)
 - Slow 3G (Slow: 3G, 2000ms RTT)
 - Offline (No connection)
 
 **Performance Metrics**:
+
 ```javascript
 // Performance targets
 - Time to First Byte (TTFB) < 800ms
@@ -329,7 +366,9 @@ https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-4466
 ```
 
 #### Mobile Memory & Battery (M-008)
+
 **Criteria**:
+
 - Memory usage < 50MB for page
 - No memory leaks during polling
 - Battery drain < 5% per hour of usage
@@ -338,7 +377,9 @@ https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-4466
 ### Mobile Accessibility Testing
 
 #### Screen Reader Support (M-012)
+
 **Testing Areas**:
+
 - iOS VoiceOver navigation
 - Android TalkBack navigation
 - Proper ARIA labels
@@ -348,12 +389,14 @@ https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-4466
 ### Device-Specific Mobile Tests
 
 #### iPhone/iPad Specific (iOS-001)
+
 - PWA installation prompts
 - Safari Reader mode compatibility
 - iOS share sheet integration
 - 3D Touch/Haptic Touch support
 
 #### Android Specific (AND-001)
+
 - Add to Home Screen functionality
 - Chrome Custom Tabs support
 - Android share intents
@@ -372,6 +415,7 @@ https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-4466
 ## 📧📱 Integrated Testing Commands
 
 ### Email & Mobile Test Commands
+
 ```bash
 # Email compatibility testing
 npm run test:stepview:email              # Complete email client testing
@@ -392,6 +436,7 @@ npm run test:stepview:email:mobile       # Email + Mobile integration
 ### Available Test Commands
 
 #### Core Test Suites
+
 ```bash
 # Comprehensive validation
 npm run test:stepview                    # Complete validation suite
@@ -417,6 +462,7 @@ npm run test:us036:quick               # Fast US-036 smoke test
 ```
 
 #### Role-Specific Testing
+
 ```bash
 node scripts/test-stepview-validation.js --role NORMAL
 node scripts/test-stepview-validation.js --role PILOT
@@ -427,13 +473,13 @@ node scripts/test-stepview-validation.js --role ADMIN
 
 ### Role Feature Matrix
 
-| Feature | NORMAL | PILOT | ADMIN | Validation Status |
-|---------|--------|--------|-------|------------------|
-| View Step Details | ✅ | ✅ | ✅ | ✅ Validated |
-| Update Status Button | ❌ | ✅ | ✅ | ✅ Validated |
-| Bulk Complete Instructions | ❌ | ❌ | ✅ | ✅ Validated |
-| Comment on Steps | ✅ | ✅ | ✅ | ✅ Validated |
-| Real-time Sync | ✅ | ✅ | ✅ | ✅ Validated |
+| Feature                    | NORMAL | PILOT | ADMIN | Validation Status |
+| -------------------------- | ------ | ----- | ----- | ----------------- |
+| View Step Details          | ✅     | ✅    | ✅    | ✅ Validated      |
+| Update Status Button       | ❌     | ✅    | ✅    | ✅ Validated      |
+| Bulk Complete Instructions | ❌     | ❌    | ✅    | ✅ Validated      |
+| Comment on Steps           | ✅     | ✅    | ✅    | ✅ Validated      |
+| Real-time Sync             | ✅     | ✅    | ✅    | ✅ Validated      |
 
 ### Security Validation Framework
 
@@ -464,7 +510,7 @@ node scripts/test-stepview-validation.js --role ADMIN
 const expectedClasses = [
   "step-details-container",
   "step-header",
-  "step-header-content", 
+  "step-header-content",
   "step-title-row",
   "status-badge",
   "step-meta",
@@ -484,6 +530,7 @@ const expectedClasses = [
 - **Border Radius**: 3px → 0px on mobile
 
 **Mobile Testing Scenarios**:
+
 - **Desktop**: 1920x1080 (standard)
 - **Tablet**: 768x1024 (iPad)
 - **Mobile**: 375x667 (iPhone)
@@ -500,16 +547,18 @@ const expectedClasses = [
 ### JavaScript Functionality Testing
 
 #### StepViewCache Integration
+
 ```javascript
 // Test Scenarios
 - Cache TTL: 30-second expiration ✅
-- Polling Interval: 2-second updates ✅ 
+- Polling Interval: 2-second updates ✅
 - Force Refresh: Cache bypass functionality ✅
 - Error Handling: Network failure scenarios ✅
 - Memory Management: Cache cleanup on navigation ✅
 ```
 
 #### User Context Validation
+
 ```javascript
 // Expected Configuration Structure
 window.UMIG_STEP_CONFIG = {
@@ -541,6 +590,7 @@ window.UMIG_STEP_CONFIG = {
 ### End-to-End User Journeys
 
 **Scenario 1: NORMAL User Step Review**
+
 ```
 1. Navigate to step page as NORMAL user
 2. Verify step details display correctly
@@ -551,6 +601,7 @@ Expected: Full read-only access with comments
 ```
 
 **Scenario 2: PILOT User Step Management**
+
 ```
 1. Navigate with ?role=PILOT parameter
 2. Verify "Update Status" button appears
@@ -561,6 +612,7 @@ Expected: Status management capabilities
 ```
 
 **Scenario 3: ADMIN User Full Control**
+
 ```
 1. Navigate with ?role=ADMIN parameter
 2. Verify all control buttons appear
@@ -575,6 +627,7 @@ Expected: Complete administrative control
 ### Common Issues & Solutions
 
 **Issue 1: Tests Not Finding Files**
+
 ```bash
 ls -la src/groovy/umig/macros/v1/stepViewMacro.groovy
 ls -la src/groovy/umig/web/js/step-view.js
@@ -582,6 +635,7 @@ ls -la src/groovy/umig/tests/unit/stepViewMacro*.groovy
 ```
 
 **Issue 2: Environment Not Running**
+
 ```bash
 cd local-dev-setup
 npm start
@@ -590,6 +644,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:8090  # Should return: 2
 ```
 
 **Issue 3: Database Connection Issues**
+
 ```bash
 npm run test:integration --quick
 # Regenerate data if needed:
@@ -597,6 +652,7 @@ npm run generate-data:erase
 ```
 
 **Issue 4: Email Template Rendering Problems**
+
 ```html
 <!-- Common Outlook fixes -->
 <!--[if mso]>
@@ -613,6 +669,7 @@ npm run generate-data:erase
 ```
 
 **Issue 5: Mobile Layout Problems**
+
 ```css
 /* Common mobile layout fixes */
 .stepview-standalone-container {
@@ -626,13 +683,15 @@ npm run generate-data:erase
 }
 
 /* iOS Safari fixes */
-input, textarea {
+input,
+textarea {
   font-size: 16px; /* Prevent zoom on focus */
   -webkit-appearance: none;
 }
 ```
 
 **Issue 6: Performance Issues on Mobile**
+
 ```javascript
 // Performance optimization techniques
 - Lazy load non-critical content
@@ -646,6 +705,7 @@ input, textarea {
 #### ✅ PASS Criteria (Required for Commit)
 
 **Core Functionality**
+
 - 100% test pass rate (0 failures)
 - Page load time <3 seconds
 - All role-based features working correctly
@@ -653,12 +713,14 @@ input, textarea {
 - No security vulnerabilities detected
 
 **Email Compatibility**
+
 - Email templates render correctly in Tier 1 clients (Outlook, Gmail, Apple Mail)
 - Self-contained HTML works without external resources
 - Print functionality works across all email clients
 - Dark mode support where available
 
-**Mobile Compatibility** 
+**Mobile Compatibility**
+
 - Mobile responsiveness confirmed on key devices (iPhone, Android, iPad)
 - Touch targets meet 44x44px minimum requirement
 - Performance targets met on 3G/4G networks
@@ -666,6 +728,7 @@ input, textarea {
 - Responsive design breakpoints function correctly
 
 **Integration & Design**
+
 - CSS alignment with IterationView achieved
 - All screenshots captured successfully
 - Performance benchmarks within acceptable ranges
@@ -673,6 +736,7 @@ input, textarea {
 #### ❌ FAIL Criteria (DO NOT COMMIT)
 
 **Core Issues**
+
 - Any test failures detected
 - Page load time exceeds 3 seconds
 - Role-based access control not working
@@ -681,12 +745,14 @@ input, textarea {
 - Security vulnerabilities found
 
 **Email Issues**
+
 - Email templates broken in major clients (Outlook/Gmail)
 - External resource dependencies detected
 - Print output unprofessional or broken
 - Accessibility violations in email content
 
 **Mobile Issues**
+
 - Mobile layout broken or non-responsive
 - Touch interactions not working properly
 - Performance below acceptable thresholds on mobile
@@ -700,6 +766,7 @@ input, textarea {
 **Location**: `/src/groovy/umig/tests/uat/screenshots/`
 
 **Screenshots Generated**:
+
 - `stepview-initial-load.png` - Initial page state
 - `stepview-container.png` - Main container structure
 - `stepview-header.png` - Header and status elements
@@ -764,7 +831,7 @@ fi
 ```
 🚀 StepView UI Refactoring Validation - US-036 Phase 2
 ✅ Unit Tests - Macro Generation - PASSED
-✅ Unit Tests - Role-Based Access - PASSED  
+✅ Unit Tests - Role-Based Access - PASSED
 ✅ Integration Tests - JavaScript Sync - PASSED
 ✅ UAT Tests - Complete UI Validation - PASSED
 📈 Validation Summary:
@@ -794,7 +861,7 @@ fi
 ### Current Status: PRODUCTION READY ✅
 
 - **Implementation**: ✅ COMPLETE
-- **Testing**: ✅ VALIDATED  
+- **Testing**: ✅ VALIDATED
 - **Documentation**: ✅ COMPREHENSIVE
 - **Integration**: ✅ SEAMLESS
 - **Quality Gates**: ✅ ENFORCED
@@ -811,7 +878,7 @@ fi
 ### Monitoring & Maintenance
 
 1. **Performance Monitoring**: Set up alerts for role detection issues
-2. **User Documentation**: Update guides for role-based behavior  
+2. **User Documentation**: Update guides for role-based behavior
 3. **CI/CD Integration**: Add tests to automated pipeline
 4. **Regression Protection**: Maintain test suite for future changes
 
@@ -829,7 +896,7 @@ fi
 
 ### Success Indicators
 
-- ✅ All automated logic tests passed  
+- ✅ All automated logic tests passed
 - ✅ ADMIN role behavior confirmed working
 - ✅ Comprehensive testing framework ready
 - ⏳ Awaiting validation of PILOT, NORMAL, and DEFAULT user scenarios
@@ -849,19 +916,20 @@ fi
 This guide now provides **complete US-036 testing coverage** with consolidated content from:
 
 **Original Testing Files Integrated**:
+
 1. ✅ **US-036 Core Testing Guide** (Original foundation)
 2. ✅ **Email Compatibility Tests** (672 lines → Integrated into Email Client Testing section)
 3. ✅ **Mobile Testing Scenarios** (620 lines → Integrated into Mobile Testing Framework section)
 
 **Total Testing Scenarios**: **65+ individual test cases** covering:
 
-| Testing Domain | Coverage | Key Features |
-|----------------|----------|--------------|
-| **Core UI** | Role-based access control, DOM synchronization | 13 unit + 7 integration + 6 UAT tests |
-| **Email Compatibility** | 15+ email clients, cross-client rendering | Outlook, Gmail, Apple Mail validation |
-| **Mobile Experience** | Touch interaction, responsive design | iPhone, Android, iPad compatibility |
-| **Performance** | Load times, memory usage, network efficiency | 3G/4G testing, Core Web Vitals |
-| **Security** | Role escalation prevention, URL parameter security | RBAC validation, XSS prevention |
+| Testing Domain          | Coverage                                           | Key Features                          |
+| ----------------------- | -------------------------------------------------- | ------------------------------------- |
+| **Core UI**             | Role-based access control, DOM synchronization     | 13 unit + 7 integration + 6 UAT tests |
+| **Email Compatibility** | 15+ email clients, cross-client rendering          | Outlook, Gmail, Apple Mail validation |
+| **Mobile Experience**   | Touch interaction, responsive design               | iPhone, Android, iPad compatibility   |
+| **Performance**         | Load times, memory usage, network efficiency       | 3G/4G testing, Core Web Vitals        |
+| **Security**            | Role escalation prevention, URL parameter security | RBAC validation, XSS prevention       |
 
 ### Integration Benefits
 
@@ -873,6 +941,7 @@ This guide now provides **complete US-036 testing coverage** with consolidated c
 ### Next Steps for File Cleanup
 
 **Recommended Actions**:
+
 1. ✅ **Keep** `/docs/testing/US-036-comprehensive-testing-guide.md` (Updated master document)
 2. 🗑️ **Archive** `/src/groovy/umig/tests/email-compatibility-tests.md` (Content integrated)
 3. 🗑️ **Archive** `/src/groovy/umig/tests/mobile-test-scenarios.md` (Content integrated)
