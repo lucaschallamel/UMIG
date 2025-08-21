@@ -2,6 +2,7 @@ package umig.repository
 
 import umig.utils.DatabaseUtil
 import umig.utils.AuthenticationService
+import umig.repository.AuditLogRepository
 import java.util.UUID
 import java.sql.SQLException
 import groovy.sql.Sql
@@ -464,7 +465,18 @@ class InstructionRepository {
         
         DatabaseUtil.withSql { sql ->
             try {
-                return sql.executeUpdate('''
+                // First, get the step instance ID for audit logging
+                def stepInfo = sql.firstRow('''
+                    SELECT sti_id 
+                    FROM instructions_instance_ini 
+                    WHERE ini_id = :iniId AND ini_is_completed = false
+                ''', [iniId: iniId])
+                
+                if (!stepInfo) {
+                    return 0 // Instruction not found or already completed
+                }
+                
+                def affectedRows = sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
                     SET 
                         ini_is_completed = true,
@@ -474,6 +486,21 @@ class InstructionRepository {
                         updated_by = :updatedBy
                     WHERE ini_id = :iniId AND ini_is_completed = false
                 ''', [iniId: iniId, userId: userId, updatedBy: AuthenticationService.getSystemUser()])
+                
+                // Log to audit trail if update was successful
+                if (affectedRows > 0) {
+                    try {
+                        println "InstructionRepository: Attempting to log instruction completion audit for iniId=${iniId}, userId=${userId}, stepId=${stepInfo.sti_id}"
+                        AuditLogRepository.logInstructionCompleted(sql, userId, iniId, stepInfo.sti_id as UUID)
+                        println "InstructionRepository: Successfully logged instruction completion audit for iniId=${iniId}"
+                    } catch (Exception auditError) {
+                        // Audit logging failure shouldn't break the main flow
+                        println "InstructionRepository: Failed to log instruction completion audit - ${auditError.message}"
+                        auditError.printStackTrace()
+                    }
+                }
+                
+                return affectedRows
             } catch (SQLException e) {
                 if (e.getSQLState() == '23503') {
                     throw new IllegalArgumentException("User does not exist", e)
@@ -495,7 +522,18 @@ class InstructionRepository {
         
         DatabaseUtil.withSql { sql ->
             try {
-                return sql.executeUpdate('''
+                // First, get the step instance ID and current user for audit logging
+                def instructionInfo = sql.firstRow('''
+                    SELECT sti_id, usr_id_completed_by 
+                    FROM instructions_instance_ini 
+                    WHERE ini_id = :iniId AND ini_is_completed = true
+                ''', [iniId: iniId])
+                
+                if (!instructionInfo) {
+                    return 0 // Instruction not found or not completed
+                }
+                
+                def affectedRows = sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
                     SET 
                         ini_is_completed = false,
@@ -505,6 +543,23 @@ class InstructionRepository {
                         updated_by = :updatedBy
                     WHERE ini_id = :iniId AND ini_is_completed = true
                 ''', [iniId: iniId, updatedBy: AuthenticationService.getSystemUser()])
+                
+                // Log to audit trail if update was successful
+                if (affectedRows > 0) {
+                    try {
+                        // Use the original completing user ID or null if system uncompleted
+                        def auditUserId = instructionInfo.usr_id_completed_by as Integer
+                        println "InstructionRepository: Attempting to log instruction uncompletion audit for iniId=${iniId}, auditUserId=${auditUserId}, stepId=${instructionInfo.sti_id}"
+                        AuditLogRepository.logInstructionUncompleted(sql, auditUserId, iniId, instructionInfo.sti_id as UUID)
+                        println "InstructionRepository: Successfully logged instruction uncompletion audit for iniId=${iniId}"
+                    } catch (Exception auditError) {
+                        // Audit logging failure shouldn't break the main flow
+                        println "InstructionRepository: Failed to log instruction uncompletion audit - ${auditError.message}"
+                        auditError.printStackTrace()
+                    }
+                }
+                
+                return affectedRows
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to uncomplete instruction ${iniId}", e)
             }
@@ -526,9 +581,18 @@ class InstructionRepository {
             try {
                 sql.withTransaction {
                     def affectedRows = 0
+                    def auditEntries = []
                     
                     // Get system user from AuthenticationService
                     def systemUser = AuthenticationService.getSystemUser()
+                    
+                    // First, get step instance IDs for instructions that will be completed for audit logging
+                    def placeholdersForAudit = iniIds.collect { '?' }.join(',')
+                    def stepInfos = sql.rows("""
+                        SELECT ini_id, sti_id 
+                        FROM instructions_instance_ini 
+                        WHERE ini_id IN (${placeholdersForAudit}) AND ini_is_completed = false
+                    """.toString(), iniIds)
                     
                     // Process in batches of 100 to avoid parameter limits
                     iniIds.collate(100).each { batch ->
@@ -550,6 +614,26 @@ class InstructionRepository {
                         """.toString(), allParams)
                         
                         affectedRows = affectedRows + updateCount
+                    }
+                    
+                    // Log audit entries for successfully completed instructions
+                    if (affectedRows > 0) {
+                        try {
+                            println "InstructionRepository: Attempting to log bulk instruction completion audit for ${stepInfos.size()} instructions"
+                            stepInfos.each { stepInfo ->
+                                try {
+                                    println "InstructionRepository: Logging bulk completion for iniId=${stepInfo.ini_id}, userId=${userId}, stepId=${stepInfo.sti_id}"
+                                    AuditLogRepository.logInstructionCompleted(sql, userId, stepInfo.ini_id as UUID, stepInfo.sti_id as UUID)
+                                } catch (Exception auditError) {
+                                    println "InstructionRepository: Failed to log individual bulk instruction completion audit for ${stepInfo.ini_id} - ${auditError.message}"
+                                    auditError.printStackTrace()
+                                }
+                            }
+                        } catch (Exception auditError) {
+                            // Audit logging failure shouldn't break the main flow
+                            println "InstructionRepository: Failed to log bulk instruction completion audit - ${auditError.message}"
+                            auditError.printStackTrace()
+                        }
                     }
                     
                     return affectedRows

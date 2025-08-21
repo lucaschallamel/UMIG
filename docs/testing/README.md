@@ -30,6 +30,13 @@ This directory contains the consolidated testing documentation for the UMIG proj
    - Cross-platform testing approach
    - **Use this for**: Running tests via NPM commands
 
+4. **[GROOVY_TYPE_CHECKING_TROUBLESHOOTING_GUIDE.md](./GROOVY_TYPE_CHECKING_TROUBLESHOOTING_GUIDE.md)** ⭐ **NEW**
+   - **CRITICAL**: ScriptRunner Groovy type checking troubleshooting guide
+   - Real root causes vs common misconceptions (destructuring, closures, casting)
+   - Proven solutions library with before/after code examples
+   - ScriptRunner-specific considerations and troubleshooting checklist
+   - **Use this for**: Resolving "Failed type checking" warnings in ScriptRunner Groovy files
+
 ### Archives
 
 Historical validation reports and documentation from completed work:
@@ -128,5 +135,5 @@ local-dev-setup/scripts/quality-check/
 
 ---
 
-_Last Updated: 2025-08-20_  
-_Post US-036 Testing Documentation Consolidation_
+_Last Updated: 2025-08-21_  
+_Post ScriptRunner Type Checking Troubleshooting Guide Addition_

@@ -57,7 +57,7 @@ Validate that status display shows correctly based on user roles:
 **Results**:
 
 - Status: [ ] PASS [ ] FAIL
-- Notes: **************\_\_\_\_**************
+- Notes: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***
 
 ---
 
@@ -81,7 +81,7 @@ Validate that status display shows correctly based on user roles:
 **Results**:
 
 - Status: [ ] PASS [ ] FAIL
-- Notes: **************\_\_\_\_**************
+- Notes: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***
 
 ---
 
@@ -130,9 +130,9 @@ badges.forEach((badge, i) => {
 
 - Status: [ ] PASS [ ] FAIL
 - Badge visible: [ ] YES [ ] NO
-- Badge text: **************\_\_\_\_**************
-- Badge color: **************\_\_\_\_**************
-- Console messages: **************\_\_\_\_**************
+- Badge text: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***
+- Badge color: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***
+- Console messages: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***
 
 ---
 
@@ -155,7 +155,7 @@ badges.forEach((badge, i) => {
 **Results**:
 
 - Status: [ ] PASS [ ] FAIL
-- Notes: **************\_\_\_\_**************
+- Notes: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***
 
 ---
 
@@ -238,7 +238,7 @@ if (visibleBadges > 0 && visibleDropdowns > 0) {
 - [ ] Badge not showing for non-formal roles
 - [ ] Dropdown not showing for formal roles
 - [ ] Console errors or warnings
-- [ ] Other: **************\_\_\_\_**************
+- [ ] Other: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***
 
 ### Overall Status
 
@@ -297,6 +297,6 @@ location.reload(); // Refresh page
 ---
 
 **Testing Complete**: **_/_**/**\_**  
-**Tester**: **************\_\_\_\_**************  
-**Environment**: **************\_\_\_\_**************  
+**Tester**: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***  
+**Environment**: **\*\***\*\***\*\***\_\_\_\_**\*\***\*\***\*\***  
 **Overall Result**: [ ] PASSED [ ] FAILED [ ] NEEDS REVIEW

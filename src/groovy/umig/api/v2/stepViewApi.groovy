@@ -1,10 +1,10 @@
 package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
-import umig.repository.StepRepository
-import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
+import umig.repository.StepRepository
+import umig.utils.DatabaseUtil
 
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
@@ -13,7 +13,15 @@ import java.util.UUID
 
 @BaseScript CustomEndpointDelegate delegate
 
-final StepRepository stepRepository = new StepRepository()
+// NOTE: The "Failed type checking" warning at line 1 is an inherent ScriptRunner limitation.
+// It occurs because Groovy's static type checker runs before the @BaseScript transformation
+// is applied, so it cannot resolve CustomEndpointDelegate methods. This warning is harmless
+// and should be ignored - the script functions correctly in production.
+
+// Lazy load repository to avoid class loading issues
+final Closure<StepRepository> getStepRepository = { ->
+    return new StepRepository()
+}
 
 /**
  * Step View API - Returns step instance data for standalone step view
@@ -45,8 +53,10 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
         }
         
         try {
-            def (sttCode, stmNumberStr) = stepCode.toUpperCase().tokenize('-')
-            def stmNumber = stmNumberStr as Integer
+            final List<String> parts = stepCode.toUpperCase().tokenize('-')
+            final String sttCode = parts[0]
+            final String stmNumberStr = parts[1]
+            final Integer stmNumber = stmNumberStr as Integer
             
             // Find the active step instance for this step code
             def stepInstance = DatabaseUtil.withSql { sql ->
@@ -108,7 +118,7 @@ stepViewApi(httpMethod: "GET", groups: ["confluence-users", "confluence-administ
             }
             
             // Use the same method as iteration view to get complete step details
-            def stepDetails = stepRepository.findStepInstanceDetailsById(UUID.fromString(stepInstance['sti_id'] as String))
+            def stepDetails = getStepRepository().findStepInstanceDetailsById(UUID.fromString(stepInstance['sti_id'] as String))
             
             if (!stepDetails) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

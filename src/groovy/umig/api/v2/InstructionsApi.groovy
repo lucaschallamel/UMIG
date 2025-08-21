@@ -10,11 +10,15 @@ import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
 
 import javax.servlet.http.HttpServletRequest
+import groovy.json.JsonException
+import java.sql.SQLException
+import java.util.UUID
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
-import java.util.UUID
-import java.sql.SQLException
 
+/**
+ * Instructions API - REST endpoint for instruction management
+ */
 @BaseScript CustomEndpointDelegate delegate
 
 final InstructionRepository instructionRepository = new InstructionRepository()
@@ -89,9 +93,9 @@ private Response handleAnalyticsProgressRequest(MultivaluedMap queryParams) {
  * Returns completion statistics based on migration, team, or iteration filters
  */
 private Response handleAnalyticsCompletionRequest(MultivaluedMap queryParams) {
-    def migrationId = queryParams.getFirst("migrationId")
-    def teamId = queryParams.getFirst("teamId")
-    def iterationId = queryParams.getFirst("iterationId")
+    def migrationId = queryParams.getFirst("migrationId") as String
+    def teamId = queryParams.getFirst("teamId") as String
+    def iterationId = queryParams.getFirst("iterationId") as String
     
     if (migrationId) {
         return handleCompletionByMigration(migrationId)
@@ -136,8 +140,8 @@ private Response handleInstanceDetailsRequest(String instanceId) {
  * Filters instructions by step master ID or step instance ID
  */
 private Response handleInstructionsFilterRequest(MultivaluedMap queryParams) {
-    def stepId = queryParams.getFirst("stepId")
-    def stepInstanceId = queryParams.getFirst("stepInstanceId")
+    def stepId = queryParams.getFirst("stepId") as String
+    def stepInstanceId = queryParams.getFirst("stepInstanceId") as String
     
     if (stepId) {
         return handleInstructionsByStepId(stepId)
@@ -157,25 +161,25 @@ private Map extractHierarchicalFilters(MultivaluedMap queryParams) {
     def filters = [:]
     
     if (queryParams.getFirst("migrationId")) {
-        filters.migrationId = queryParams.getFirst("migrationId")
+        filters.migrationId = queryParams.getFirst("migrationId") as String
     }
     if (queryParams.getFirst("iterationId")) {
-        filters.iterationId = queryParams.getFirst("iterationId")
+        filters.iterationId = queryParams.getFirst("iterationId") as String
     }
     if (queryParams.getFirst("planInstanceId")) {
-        filters.planInstanceId = queryParams.getFirst("planInstanceId")
+        filters.planInstanceId = queryParams.getFirst("planInstanceId") as String
     }
     if (queryParams.getFirst("sequenceInstanceId")) {
-        filters.sequenceInstanceId = queryParams.getFirst("sequenceInstanceId")
+        filters.sequenceInstanceId = queryParams.getFirst("sequenceInstanceId") as String
     }
     if (queryParams.getFirst("phaseInstanceId")) {
-        filters.phaseInstanceId = queryParams.getFirst("phaseInstanceId")
+        filters.phaseInstanceId = queryParams.getFirst("phaseInstanceId") as String
     }
     if (queryParams.getFirst("stepInstanceId")) {
-        filters.stepInstanceId = queryParams.getFirst("stepInstanceId")
+        filters.stepInstanceId = queryParams.getFirst("stepInstanceId") as String
     }
     if (queryParams.getFirst("teamId")) {
-        filters.teamId = queryParams.getFirst("teamId")
+        filters.teamId = queryParams.getFirst("teamId") as String
     }
     
     return filters
@@ -955,6 +959,7 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
  * Supports drag-and-drop reordering functionality
  */
 reorder(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    
     try {
         // Parse request body
         def requestData = [:]
@@ -1014,7 +1019,8 @@ reorder(httpMethod: "POST", groups: ["confluence-users", "confluence-administrat
  * Supports project management and reporting needs
  */
 timeline(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def iterationId = queryParams.getFirst("iterationId")
+    
+    def iterationId = queryParams.getFirst("iterationId") as String
     
     if (!iterationId) {
         return Response.status(Response.Status.BAD_REQUEST)

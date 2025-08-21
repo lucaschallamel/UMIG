@@ -24,9 +24,11 @@ class AuditLogRepository {
      * @param subject Email subject
      * @param templateId Email template used
      * @param additionalData Additional context data
+     * @param entityType Entity type (defaults to STEP_INSTANCE for backward compatibility)
      */
     static void logEmailSent(Sql sql, Integer userId, UUID entityId, List<String> recipients, 
-                            String subject, UUID templateId, Map additionalData = [:]) {
+                            String subject, UUID templateId, Map additionalData = [:], 
+                            String entityType = 'STEP_INSTANCE') {
         try {
             def details = [
                 recipients: recipients,
@@ -42,7 +44,7 @@ class AuditLogRepository {
             """, [
                 userId,
                 entityId,
-                'STEP_INSTANCE',
+                entityType,
                 'EMAIL_SENT',
                 JsonOutput.toJson(details)
             ])
@@ -62,9 +64,10 @@ class AuditLogRepository {
      * @param recipients List of intended email recipients
      * @param subject Email subject
      * @param errorMessage Error message
+     * @param entityType Entity type (defaults to STEP_INSTANCE for backward compatibility)
      */
     static void logEmailFailed(Sql sql, Integer userId, UUID entityId, List<String> recipients, 
-                              String subject, String errorMessage) {
+                              String subject, String errorMessage, String entityType = 'STEP_INSTANCE') {
         try {
             def details = [
                 recipients: recipients,
@@ -80,7 +83,7 @@ class AuditLogRepository {
             """, [
                 userId,
                 entityId,
-                'STEP_INSTANCE',
+                entityType,
                 'EMAIL_FAILED',
                 JsonOutput.toJson(details)
             ])
@@ -137,12 +140,16 @@ class AuditLogRepository {
      */
     static void logInstructionCompleted(Sql sql, Integer userId, UUID instructionInstanceId, UUID stepInstanceId) {
         try {
+            println "AuditLogRepository.logInstructionCompleted: Starting with userId=${userId}, instructionId=${instructionInstanceId}, stepId=${stepInstanceId}"
+            
             def details = [
                 step_instance_id: stepInstanceId.toString(),
                 completion_timestamp: new Date().format('yyyy-MM-dd HH:mm:ss')
             ]
             
-            sql.execute("""
+            println "AuditLogRepository.logInstructionCompleted: About to execute INSERT with details: ${JsonOutput.toJson(details)}"
+            
+            def result = sql.execute("""
                 INSERT INTO audit_log_aud (
                     usr_id, aud_entity_id, aud_entity_type, aud_action, aud_details
                 ) VALUES (?, ?, ?, ?, ?::jsonb)
@@ -150,12 +157,55 @@ class AuditLogRepository {
                 userId,
                 instructionInstanceId,
                 'INSTRUCTION_INSTANCE',
-                'COMPLETED',
+                'INSTRUCTION_COMPLETED',
                 JsonOutput.toJson(details)
             ])
             
+            println "AuditLogRepository.logInstructionCompleted: Successfully executed INSERT, result=${result}"
+            
         } catch (Exception e) {
             println "AuditLogRepository: Error logging instruction completion - ${e.message}"
+            e.printStackTrace()
+            // Don't throw - audit logging failure shouldn't break the main flow
+        }
+    }
+    
+    /**
+     * Log instruction incompletion (uncomplete)
+     * 
+     * @param sql Database connection
+     * @param userId User who uncompleted the instruction (optional - may be system)
+     * @param instructionInstanceId Instruction instance ID
+     * @param stepInstanceId Related step instance ID
+     */
+    static void logInstructionUncompleted(Sql sql, Integer userId, UUID instructionInstanceId, UUID stepInstanceId) {
+        try {
+            println "AuditLogRepository.logInstructionUncompleted: Starting with userId=${userId}, instructionId=${instructionInstanceId}, stepId=${stepInstanceId}"
+            
+            def details = [
+                step_instance_id: stepInstanceId.toString(),
+                uncomplete_timestamp: new Date().format('yyyy-MM-dd HH:mm:ss')
+            ]
+            
+            println "AuditLogRepository.logInstructionUncompleted: About to execute INSERT with details: ${JsonOutput.toJson(details)}"
+            
+            def result = sql.execute("""
+                INSERT INTO audit_log_aud (
+                    usr_id, aud_entity_id, aud_entity_type, aud_action, aud_details
+                ) VALUES (?, ?, ?, ?, ?::jsonb)
+            """, [
+                userId,
+                instructionInstanceId,
+                'INSTRUCTION_INSTANCE',
+                'INSTRUCTION_UNCOMPLETED',
+                JsonOutput.toJson(details)
+            ])
+            
+            println "AuditLogRepository.logInstructionUncompleted: Successfully executed INSERT, result=${result}"
+            
+        } catch (Exception e) {
+            println "AuditLogRepository: Error logging instruction incompletion - ${e.message}"
+            e.printStackTrace()
             // Don't throw - audit logging failure shouldn't break the main flow
         }
     }

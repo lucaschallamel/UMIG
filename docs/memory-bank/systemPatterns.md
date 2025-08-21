@@ -859,17 +859,17 @@ class BaseTestRunner {
 async loadStepDetailsWithFreshData(migrationName, iterationName, stepCode, container) {
   const response = await fetch(
     `/rest/scriptrunner/latest/custom/steps/instance/${encodeURIComponent(this.currentStepInstanceId)}`,
-    { 
-      method: "GET", 
-      headers: { "Content-Type": "application/json" }, 
-      credentials: "same-origin" 
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin"
     }
   );
-  
+
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  
+
   const freshData = await response.json();
   this.renderStepDetails(freshData, container);
   return freshData;
@@ -877,6 +877,7 @@ async loadStepDetailsWithFreshData(migrationName, iterationName, stepCode, conta
 ```
 
 **Benefits**:
+
 - **Cache Bypass**: Eliminates stale data issues in complex UI interactions
 - **Real-time Updates**: Immediate reflection of backend changes
 - **Error Resilience**: Robust error handling with clear failure modes
@@ -905,6 +906,7 @@ try {
 ```
 
 **Security Benefits**:
+
 - **Principle of Least Privilege**: Unknown users get no permissions
 - **Error Resilience**: Failed role lookups default to most restrictive
 - **Clear Security Model**: null = no access, explicit role = granted permissions
@@ -917,23 +919,24 @@ try {
 
 ```javascript
 // CSS class reuse pattern for visual consistency
-const commentElement = document.createElement('div');
-commentElement.className = 'comment-item'; // Shared class from iteration-view.css
+const commentElement = document.createElement("div");
+commentElement.className = "comment-item"; // Shared class from iteration-view.css
 
 // Grey background styling with consistent spacing
 commentElement.innerHTML = `
   <div class="comment-header" style="background-color: #f5f5f5; padding: 8px; border-radius: 4px;">
     <div class="comment-content">${escapeHtml(comment.content)}</div>
     <div class="comment-actions">
-      ${this.userRole !== null ? this.renderEditDeleteButtons(comment.id) : ''}
+      ${this.userRole !== null ? this.renderEditDeleteButtons(comment.id) : ""}
     </div>
   </div>
 `;
 ```
 
 **Design Benefits**:
+
 - **Visual Consistency**: Identical appearance across different UI components
-- **Maintenance Efficiency**: Single source of truth for styling updates  
+- **Maintenance Efficiency**: Single source of truth for styling updates
 - **User Experience**: Familiar interface patterns reduce cognitive load
 - **Development Speed**: Reuse reduces custom CSS development time
 
@@ -958,7 +961,7 @@ if (userIdString != null && !userIdString.isEmpty()) {
 def updateUserComment(Integer userId, String commentContent) {
   DatabaseUtil.withSql { sql ->
     sql.executeUpdate("""
-      UPDATE comments 
+      UPDATE comments
       SET content = :content, updated_at = NOW()
       WHERE user_id = :userId
     """, [content: commentContent, userId: userId]) // userId guaranteed INTEGER
@@ -967,6 +970,7 @@ def updateUserComment(Integer userId, String commentContent) {
 ```
 
 **Reliability Benefits**:
+
 - **Runtime Error Prevention**: Eliminates ClassCastException and type mismatch errors
 - **Database Integrity**: Consistent INTEGER types prevent constraint violations
 - **Error Messages**: Clear validation messages for debugging and user feedback
@@ -981,31 +985,39 @@ def updateUserComment(Integer userId, String commentContent) {
 // Feature parity analysis workflow for UI components
 class FeatureParityAnalyzer {
   constructor(sourceComponent, targetComponent) {
-    this.source = sourceComponent;      // IterationView (reference)
-    this.target = targetComponent;      // StepView (to be enhanced)
+    this.source = sourceComponent; // IterationView (reference)
+    this.target = targetComponent; // StepView (to be enhanced)
   }
 
   analyzeFeatureGaps() {
     const sourceFeatures = this.extractFeatures(this.source);
     const targetFeatures = this.extractFeatures(this.target);
-    
+
     return {
-      missing: sourceFeatures.filter(f => !targetFeatures.includes(f)),
+      missing: sourceFeatures.filter((f) => !targetFeatures.includes(f)),
       different: this.compareImplementations(sourceFeatures, targetFeatures),
-      recommendations: this.generateImplementationPlan()
+      recommendations: this.generateImplementationPlan(),
     };
   }
-  
+
   generateImplementationPlan() {
     // Prioritize by user impact and technical complexity
     return this.featureGaps
-      .sort((a, b) => (a.userImpact * a.implementationRisk) - (b.userImpact * b.implementationRisk))
-      .map(gap => ({ feature: gap, approach: this.recommendImplementation(gap) }));
+      .sort(
+        (a, b) =>
+          a.userImpact * a.implementationRisk -
+          b.userImpact * b.implementationRisk,
+      )
+      .map((gap) => ({
+        feature: gap,
+        approach: this.recommendImplementation(gap),
+      }));
   }
 }
 ```
 
 **Implementation Benefits**:
+
 - **Systematic Coverage**: Ensures no functionality gaps between components
 - **Risk Assessment**: Prioritizes implementation based on impact and complexity
 - **Quality Assurance**: Validates feature equivalence through testing
