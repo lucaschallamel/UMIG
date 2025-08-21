@@ -249,6 +249,11 @@ class StepRepository {
     Map updateStepInstanceStatusWithNotification(UUID stepInstanceId, Integer statusId, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
+                println "StepRepository.updateStepInstanceStatusWithNotification called:"
+                println "  - stepInstanceId: ${stepInstanceId}"
+                println "  - statusId: ${statusId}"
+                println "  - userId: ${userId}"
+                
                 // Validate status exists and get status name
                 def status = sql.firstRow("SELECT sts_id, sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'", 
                     [statusId: statusId])
@@ -256,6 +261,8 @@ class StepRepository {
                 if (!status) {
                     return [success: false, error: "Invalid status ID: ${statusId}"]
                 }
+                
+                println "  - Status name: ${status.sts_name}"
                 
                 def statusName = status.sts_name
                 

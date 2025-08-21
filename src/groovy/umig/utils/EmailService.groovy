@@ -117,7 +117,16 @@ class EmailService {
     static void sendInstructionCompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
+                // Debug logging
+                println "EmailService.sendInstructionCompletedNotification called:"
+                println "  - Instruction: ${instruction?.ini_name}"
+                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Teams count: ${teams?.size()}"
+                println "  - UserId: ${userId}"
+                
                 def recipients = extractTeamEmails(teams)
+                
+                println "  - Recipients extracted: ${recipients}"
                 
                 if (!recipients) {
                     println "EmailService: No recipients found for instruction ${instruction.ini_name}"
@@ -276,12 +285,23 @@ class EmailService {
                                                  String oldStatus, String newStatus, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
+                // Debug logging
+                println "EmailService.sendStepStatusChangedNotification called:"
+                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Old Status: ${oldStatus}"
+                println "  - New Status: ${newStatus}"
+                println "  - Teams count: ${teams?.size()}"
+                println "  - UserId: ${userId}"
+                println "  - Teams details: ${teams}"
+                
                 // Include cutover team in recipients
                 def allTeams = new ArrayList(teams)
                 if (cutoverTeam) {
                     allTeams.add(cutoverTeam)
                 }
                 def recipients = extractTeamEmails(allTeams)
+                
+                println "  - Recipients extracted: ${recipients}"
                 
                 if (!recipients) {
                     println "EmailService: No recipients found for step status change ${stepInstance.sti_name}"
@@ -310,7 +330,9 @@ class EmailService {
                 def processedBody = processTemplate(template.emt_body_html as String, variables)
                 
                 // Send email
+                println "  - About to send email with subject: ${processedSubject}"
                 def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                println "  - Email sent result: ${emailSent}"
                 
                 // Log the notification
                 if (emailSent) {

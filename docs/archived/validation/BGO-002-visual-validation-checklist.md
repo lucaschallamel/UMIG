@@ -126,8 +126,8 @@ Compare these specific elements between the two views:
 ## 📊 Validation Summary
 
 **Total Checks**: 40  
-**Passed**: **_  
-**Failed**: _**  
+**Passed**: **\_  
+**Failed**: \_**  
 **Success Rate**: \_\_\_%
 
 **Overall Assessment**: [ ] PASS | [ ] FAIL
@@ -141,7 +141,7 @@ Compare these specific elements between the two views:
 
 ## ✍️ Sign-off
 
-**Validated By**: ********\_********  
-**Date**: ********\_********  
-**Role**: ********\_********  
+**Validated By**: **\*\*\*\***\_**\*\*\*\***  
+**Date**: **\*\*\*\***\_**\*\*\*\***  
+**Role**: **\*\*\*\***\_**\*\*\*\***  
 **Environment**: Development

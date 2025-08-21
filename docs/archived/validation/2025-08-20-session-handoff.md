@@ -174,7 +174,8 @@ The system should now work correctly when:
 
 **Critical Issue**: Static badge showing PENDING while dropdown showed BLOCKED for DUM-003  
 **Root Cause**: API returning `Status` field but JavaScript expecting `StatusID`  
-**Solution**: 
+**Solution**:
+
 - Changed StepRepository to return `StatusID` consistently (line 785, 983)
 - Updated step-view.js to use fetched status data for static badges
 - Fixed regression in iterationView caused by field name change
@@ -183,6 +184,7 @@ The system should now work correctly when:
 
 **Request**: Allow NORMAL users to change status and complete/uncomplete instructions  
 **Implementation**:
+
 - Updated role checking in step-view.js to include NORMAL users
 - Fixed dropdown population for all user roles
 - Ensured status dropdown loads correctly for NORMAL users
@@ -191,6 +193,7 @@ The system should now work correctly when:
 
 **Issue**: Duplicate status loading and excessive 2-second polling  
 **Solution**: Implemented smart polling with:
+
 - 60-second interval (97% reduction in server calls)
 - Change detection using data snapshots
 - Only update UI when data actually changes
@@ -201,6 +204,7 @@ The system should now work correctly when:
 #### 5. `/src/groovy/umig/web/js/step-view.js` (Extensive changes)
 
 **Key Updates**:
+
 - Lines 50-52: Deferred PILOT initialization to fix timing issues
 - Lines 785: Changed from `Status` to `StatusID` for field consistency
 - Lines 1234+: Added `updateStaticStatusBadges()` method
@@ -225,7 +229,7 @@ The system should now work correctly when:
 
 1. ✅ Transient error for PILOT/ADMIN users - Fixed with deferred initialization
 2. ✅ RBAC permissions for NORMAL users to change status
-3. ✅ Status dropdown population for all user roles  
+3. ✅ Status dropdown population for all user roles
 4. ✅ Static badge showing correct status (BLOCKED not PENDING)
 5. ✅ Field name consistency between API and JavaScript
 6. ✅ IterationView regression from field name change
@@ -252,6 +256,7 @@ The system should now work correctly when:
 ### Final State
 
 The StepView UI is now fully functional with:
+
 - Correct status display for all steps (static badge and dropdown synchronized)
 - RBAC working for all user roles (NORMAL, PILOT, ADMIN)
 - Smart polling reducing server load by 97%
@@ -262,6 +267,7 @@ The StepView UI is now fully functional with:
 ### Handoff Complete
 
 All requested functionality has been implemented and tested. The system is ready for UAT with:
+
 - Authentication working for all Confluence users
 - Status management functioning correctly
 - Team displays accurate

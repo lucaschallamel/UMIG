@@ -632,6 +632,93 @@ body {
   margin-bottom: var(--spacing-sm);
 }
 
+/* =================================================================== */
+/* CONFLUENCE NIGHT MODE FIX - FORCE WHITE BACKGROUND FOR INSTRUCTIONS */
+/* =================================================================== */
+
+/* Force white background for instructions section regardless of Confluence theme */
+.instructions-section {
+  background-color: #ffffff !important;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+/* Force white background and proper contrast for AUI tables in instructions */
+.instructions-section table.aui,
+.instructions-section .aui,
+.instructions-section table {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Force white background for table headers */
+.instructions-section table.aui thead,
+.instructions-section table.aui thead th,
+.instructions-section .aui thead,
+.instructions-section .aui thead th {
+  background-color: #f4f5f7 !important;
+  color: #172b4d !important;
+}
+
+/* Force white background for table body and cells */
+.instructions-section table.aui tbody,
+.instructions-section table.aui tbody tr,
+.instructions-section table.aui tbody td,
+.instructions-section .aui tbody,
+.instructions-section .aui tbody tr,
+.instructions-section .aui tbody td {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Force white background for instruction rows */
+.instructions-section .instruction-row {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Hover state for instruction rows with proper contrast */
+.instructions-section .instruction-row:hover {
+  background-color: #f4f5f7 !important;
+  color: #172b4d !important;
+}
+
+/* Completed instruction rows with light green background */
+.instructions-section .instruction-row.completed {
+  background-color: #e8f5e8 !important;
+  color: #172b4d !important;
+}
+
+/* Force proper styling for instruction checkboxes */
+.instructions-section .instruction-checkbox {
+  background-color: #ffffff !important;
+  border: 2px solid #dfe1e6 !important;
+}
+
+/* Ensure text in instruction cells is always dark and readable */
+.instructions-section .instruction-body,
+.instructions-section .instruction-order,
+.instructions-section .instruction-duration {
+  color: #172b4d !important;
+}
+
+/* Override any Confluence dark theme inheritance */
+body[data-theme="dark"] .instructions-section,
+body.dark-theme .instructions-section,
+.confluence-dark-theme .instructions-section,
+[data-color-mode="dark"] .instructions-section {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Ensure headings in instructions remain visible */
+.instructions-section h3,
+.instructions-section h4 {
+  color: #172b4d !important;
+  background-color: transparent !important;
+}
+
 .instructions-table {
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
@@ -1366,4 +1453,240 @@ body {
     animation: none;
     border-top-color: var(--color-primary);
   }
+}
+
+/* Night Mode Fix - Force white background for instructions section */
+body[data-theme="dark"] .instructions-section,
+body.dark-theme .instructions-section,
+body.confluence-dark-theme .instructions-section {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Ensure instructions table stays white in all dark themes */
+body[data-theme="dark"] .instructions-section table.aui,
+body.dark-theme .instructions-section table.aui,
+body.confluence-dark-theme .instructions-section table.aui {
+  background-color: #ffffff !important;
+}
+
+/* Instructions table cells stay white in dark mode */
+body[data-theme="dark"] .instructions-section table.aui th,
+body[data-theme="dark"] .instructions-section table.aui td,
+body.dark-theme .instructions-section table.aui th,
+body.dark-theme .instructions-section table.aui td,
+body.confluence-dark-theme .instructions-section table.aui th,
+body.confluence-dark-theme .instructions-section table.aui td {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border-color: #dfe1e6 !important;
+}
+
+/* Hover effects still work in dark mode */
+body[data-theme="dark"] .instructions-section .instruction-row:hover,
+body.dark-theme .instructions-section .instruction-row:hover,
+body.confluence-dark-theme .instructions-section .instruction-row:hover {
+  background-color: #f4f5f7 !important;
+}
+
+/* Completed instruction rows maintain light green background */
+body[data-theme="dark"] .instructions-section .instruction-row.completed,
+body.dark-theme .instructions-section .instruction-row.completed,
+body.confluence-dark-theme .instructions-section .instruction-row.completed {
+  background-color: #e3fcef !important;
+}
+
+/* Ensure checkboxes are visible in dark mode with grey background */
+body[data-theme="dark"] .instructions-section .instruction-checkbox,
+body.dark-theme .instructions-section .instruction-checkbox,
+body.confluence-dark-theme .instructions-section .instruction-checkbox {
+  opacity: 1 !important;
+  background-color: #f4f5f7 !important;
+  border: 2px solid #dfe1e6 !important;
+}
+
+/* =================================================================== */
+/* CONFLUENCE NIGHT MODE FIX - FORCE WHITE BACKGROUND FOR COMMENTS   */
+/* =================================================================== */
+
+/* Force white background for comments section regardless of Confluence theme */
+.comments-section {
+  background-color: #ffffff !important;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+/* Force white background for individual comment containers */
+.comments-section .comment {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Force white background for comment add textarea and all input fields */
+.comments-section textarea,
+.comments-section .comment-form textarea,
+.comments-section input[type="text"],
+.comments-section input[type="email"],
+.comments-section .aui-field-textarea textarea {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Force white background for comment edit mode textareas */
+.comments-section .comment-edit textarea,
+.comments-section .comment-body textarea,
+.comments-section .edit-comment-form textarea {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Force proper styling for comment headers and metadata */
+.comments-section .comment-header,
+.comments-section .comment-author,
+.comments-section .comment-time {
+  background-color: transparent !important;
+  color: #172b4d !important;
+}
+
+/* Force white background for comment body content including edit mode */
+.comments-section .comment-body,
+.comments-section .comment-content,
+.comments-section .comment-text {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Ensure comment action buttons remain visible */
+.comments-section .comment-actions button,
+.comments-section .btn-edit-comment,
+.comments-section .btn-delete-comment {
+  background-color: transparent !important;
+  color: #172b4d !important;
+}
+
+/* Override any Confluence dark theme inheritance for comments */
+body[data-theme="dark"] .comments-section,
+body.dark-theme .comments-section,
+body.confluence-dark-theme .comments-section,
+[data-color-mode="dark"] .comments-section {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Night mode fix for comment containers */
+body[data-theme="dark"] .comments-section .comment,
+body.dark-theme .comments-section .comment,
+body.confluence-dark-theme .comments-section .comment {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border-color: var(--color-border) !important;
+}
+
+/* Night mode fix for all comment textareas and input fields */
+body[data-theme="dark"] .comments-section textarea,
+body[data-theme="dark"] .comments-section .comment-form textarea,
+body[data-theme="dark"] .comments-section input[type="text"],
+body[data-theme="dark"] .comments-section input[type="email"],
+body.dark-theme .comments-section textarea,
+body.dark-theme .comments-section .comment-form textarea,
+body.dark-theme .comments-section input[type="text"],
+body.dark-theme .comments-section input[type="email"],
+body.confluence-dark-theme .comments-section textarea,
+body.confluence-dark-theme .comments-section .comment-form textarea,
+body.confluence-dark-theme .comments-section input[type="text"],
+body.confluence-dark-theme .comments-section input[type="email"] {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Night mode fix for comment edit mode textareas */
+body[data-theme="dark"] .comments-section .comment-edit textarea,
+body[data-theme="dark"] .comments-section .comment-body textarea,
+body[data-theme="dark"] .comments-section .edit-comment-form textarea,
+body.dark-theme .comments-section .comment-edit textarea,
+body.dark-theme .comments-section .comment-body textarea,
+body.dark-theme .comments-section .edit-comment-form textarea,
+body.confluence-dark-theme .comments-section .comment-edit textarea,
+body.confluence-dark-theme .comments-section .comment-body textarea,
+body.confluence-dark-theme .comments-section .edit-comment-form textarea {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Night mode fix for comment body content including edit mode */
+body[data-theme="dark"] .comments-section .comment-body,
+body[data-theme="dark"] .comments-section .comment-content,
+body[data-theme="dark"] .comments-section .comment-text,
+body.dark-theme .comments-section .comment-body,
+body.dark-theme .comments-section .comment-content,
+body.dark-theme .comments-section .comment-text,
+body.confluence-dark-theme .comments-section .comment-body,
+body.confluence-dark-theme .comments-section .comment-content,
+body.confluence-dark-theme .comments-section .comment-text {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+}
+
+/* Ensure comment headers and metadata stay readable in dark mode */
+body[data-theme="dark"] .comments-section .comment-header,
+body[data-theme="dark"] .comments-section .comment-author,
+body[data-theme="dark"] .comments-section .comment-time,
+body.dark-theme .comments-section .comment-header,
+body.dark-theme .comments-section .comment-author,
+body.dark-theme .comments-section .comment-time,
+body.confluence-dark-theme .comments-section .comment-header,
+body.confluence-dark-theme .comments-section .comment-author,
+body.confluence-dark-theme .comments-section .comment-time {
+  color: #172b4d !important;
+  background-color: transparent !important;
+}
+
+/* Night mode fix for comment action buttons */
+body[data-theme="dark"] .comments-section .comment-actions button,
+body[data-theme="dark"] .comments-section .btn-edit-comment,
+body[data-theme="dark"] .comments-section .btn-delete-comment,
+body.dark-theme .comments-section .comment-actions button,
+body.dark-theme .comments-section .btn-edit-comment,
+body.dark-theme .comments-section .btn-delete-comment,
+body.confluence-dark-theme .comments-section .comment-actions button,
+body.confluence-dark-theme .comments-section .btn-edit-comment,
+body.confluence-dark-theme .comments-section .btn-delete-comment {
+  color: #172b4d !important;
+  background-color: transparent !important;
+}
+
+/* Force white background for any AUI form elements in comments */
+body[data-theme="dark"] .comments-section .aui-field-textarea,
+body[data-theme="dark"] .comments-section .aui-field-textarea textarea,
+body.dark-theme .comments-section .aui-field-textarea,
+body.dark-theme .comments-section .aui-field-textarea textarea,
+body.confluence-dark-theme .comments-section .aui-field-textarea,
+body.confluence-dark-theme .comments-section .aui-field-textarea textarea {
+  background-color: #ffffff !important;
+  color: #172b4d !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Ensure comment section headings remain visible */
+.comments-section h3,
+.comments-section h4 {
+  color: #172b4d !important;
+  background-color: transparent !important;
+}
+
+/* Night mode fix for comment section headings */
+body[data-theme="dark"] .comments-section h3,
+body[data-theme="dark"] .comments-section h4,
+body.dark-theme .comments-section h3,
+body.dark-theme .comments-section h4,
+body.confluence-dark-theme .comments-section h3,
+body.confluence-dark-theme .comments-section h4 {
+  color: #172b4d !important;
+  background-color: transparent !important;
 }
