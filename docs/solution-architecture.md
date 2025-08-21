@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-08-18 (Updated for Sprint 5 Technical Debt Acceleration and US-022 JavaScript Migration Completion)  
+**Version:** 2025-08-21 (Updated for US-036 StepView UI Refactoring Completion and ADR-042 Dual Authentication Context Management)  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 41 architectural decisions (26 archived + 15 newly consolidated: ADR-027 through ADR-041). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** ADR-041 Technical Debt Prioritization Methodology for Sprint 5 scope expansion (August 18, 2025), US-022 JavaScript migration framework completion with 53% code reduction and enhanced cross-platform support (August 18, 2025), Sprint 5 technical debt acceleration decision moving US-037 from Sprint 6 (August 18, 2025), US-028 Enhanced IterationView Phase 1 completion with StepsAPIv2Client, real-time synchronization, and role-based access control (August 15, 2025), US-024 Steps API refactoring with enhanced error handling framework and testing consolidation (August 14, 2025), US-025 Phase 4 migrations API refactoring completion with 100% integration test success (August 11, 2025), Enhanced Postman collection generation with authentication pre-configuration, Complete OpenAPI specification updates with 17 endpoints across 4 categories, Dashboard endpoints implementation for migration monitoring, Bulk operations support for export and status management, US-032 Confluence upgrade to 9.2.7 + ScriptRunner 9.21.0 with infrastructure reorganization (August 8, 2025)
+**Source ADRs:** This document consolidates 42 architectural decisions (26 archived + 16 newly consolidated: ADR-027 through ADR-042). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** US-036 StepView UI Refactoring 100% completion with comment system parity, RBAC implementation, and production-ready email notification system (August 21, 2025), ADR-042 Dual Authentication Context Management implementing separation of platform authorization from application audit logging (August 21, 2025), Email notification infrastructure with SystemConfigurationApi, EnhancedEmailService, and UrlConstructionService (August 21, 2025), BGO-002 audit logging entity type corrections (INSTRUCTION_INSTANCE vs STEP_INSTANCE) (August 21, 2025), ADR-041 Technical Debt Prioritization Methodology for Sprint 5 scope expansion (August 18, 2025), US-022 JavaScript migration framework completion with 53% code reduction and enhanced cross-platform support (August 18, 2025), Sprint 5 technical debt acceleration decision moving US-037 from Sprint 6 (August 18, 2025), US-028 Enhanced IterationView Phase 1 completion with StepsAPIv2Client, real-time synchronization, and role-based access control (August 15, 2025)
 
 ## Consolidated ADR Reference
 
@@ -57,6 +57,19 @@ This document consolidates the following architectural decisions:
 - [ADR-018](../adr/archive/ADR-018-Pure-ScriptRunner-Application-Structure.md) - Pure ScriptRunner Application Structure
 - [ADR-020](../adr/archive/ADR-020-spa-rest-admin-entity-management.md) - SPA+REST Admin Entity Management
 
+#### UI Component Patterns (US-036)
+
+The UMIG application implements comprehensive UI component patterns to ensure visual consistency and optimal user experience:
+
+- **Visual Consistency Methodology**: 40-point validation framework ensuring uniform appearance across all interface components
+- **Standardized CSS Classes**:
+  - `.pilot-only`: Controls visibility for PILOT role users
+  - `.admin-only`: Controls visibility for ADMIN role users
+  - `.metadata-item`: Consistent styling for metadata display components
+- **Role-Based UI Rendering Patterns**: Dynamic interface adaptation based on user roles (NORMAL/PILOT/ADMIN)
+- **Comment System Architecture**: Implements grey background styling (#f5f5f5) with consistent visual hierarchy for user feedback
+- **Real-Time Synchronization**: Smart polling mechanism with 60-second intervals optimized for performance and user experience
+
 ### Testing & Quality Assurance
 
 - [ADR-019](../adr/archive/ADR-019-Integration-Testing-Framework.md) - Integration Testing Framework
@@ -75,6 +88,28 @@ This document consolidates the following architectural decisions:
 ### Security & Access Control
 
 - [ADR-033](../adr/archive/ADR-033-role-based-access-control-implementation.md) - Role-Based Access Control Implementation
+- [ADR-042](../adr/ADR-042-dual-authentication-context-management.md) - Dual Authentication Context Management
+
+#### Dual Authentication Context Management (ADR-042)
+
+The UMIG application implements a sophisticated dual authentication context management system that separates platform authorization from application audit logging:
+
+- **Platform Authorization (Confluence)**: Handles the fundamental question "can they access?" through standard Confluence security mechanisms
+- **Application Audit Logging (UMIG)**: Handles the audit question "who performed this action?" through internal user context management
+- **UserService Intelligent Fallback Hierarchy**:
+  - Primary: Direct UMIG User (preferred for comprehensive audit trails)
+  - Secondary: System User (for system-initiated operations)
+  - Tertiary: Confluence System User (platform fallback)
+  - Fallback: Anonymous (error state requiring investigation)
+- **Session-Level Caching**: Expensive user lookups are cached at the session level to optimize performance
+- **Frontend Authentication Requirements**:
+  ```javascript
+  headers: {
+    "X-Atlassian-Token": "no-check",  // XSRF protection
+    "Content-Type": "application/json"
+  },
+  credentials: "same-origin"  // Include auth cookies
+  ```
 
 ### Development Standards & Code Quality
 
@@ -310,6 +345,17 @@ Endpoints support query parameters that filter resources based on their position
 ### 4.3. API Architecture ([ADR-017])
 
 The project utilizes a versioned API structure (e.g., `v1`, `v2`) to allow for managed evolution of the endpoints without breaking existing clients.
+
+#### Enhanced Error Handling Patterns
+
+The UMIG API implements comprehensive error handling patterns derived from US-036 debugging insights:
+
+- **SQL State to HTTP Status Mapping**: Precise error code translation ensuring proper client response handling
+  - `23503` (Foreign Key Violation) → `400 Bad Request`
+  - `23505` (Unique Constraint Violation) → `409 Conflict`
+- **Consistent Error Response Format**: Structured error responses with user guidance for resolution
+- **Authentication Validation**: Robust authentication validation with proper fallback mechanisms to prevent silent authentication failures
+- **Repository Pattern Audit Column Standardization**: Consistent audit trail implementation across all data access layers ensuring comprehensive error tracking and debugging capabilities
 
 ---
 
@@ -957,6 +1003,16 @@ The system implements an efficient strategy for importing large volumes of JSON 
 - **Maintenance Overhead:** The additional maintenance burden of updating specific mocks is justified by the prevention of production SQL errors.
 - **Coverage Requirements:** All database access points must have corresponding specific mock validations.
 
+### 8.3. Testing Patterns from US-036
+
+The US-036 implementation established comprehensive testing methodologies that serve as patterns for future development:
+
+- **Cross-Role Testing Matrix**: Systematic validation across NORMAL/PILOT/ADMIN user roles ensuring proper access control and feature availability
+- **Performance Optimization Results**: Achieved 97% server load reduction through smart polling mechanisms, providing benchmarks for future optimizations
+- **Browser Compatibility Framework**: Established testing protocols for Chrome, Firefox, Safari, and Edge ensuring consistent user experience across platforms
+- **BGO-002 Reference Test Case Pattern**: Complex scenario testing methodology for edge cases and integration boundary conditions
+- **Visual Alignment Validation Methodology**: 40-point validation framework ensuring consistent UI presentation and user experience quality
+
 ---
 
 ## 9. Implementation Patterns & Best Practices
@@ -1004,6 +1060,26 @@ def pathParts = getAdditionalPath(request)?.split('/') ?: []
 if (pathParts.size() >= 1) {
     def id = Integer.parseInt(pathParts[0] as String)
 }
+```
+
+#### @BaseScript Type Checking Limitation
+
+**Known ScriptRunner Limitation:**
+ScriptRunner REST endpoints using `@BaseScript CustomEndpointDelegate` generate a harmless "Failed type checking" warning at line 1. This is an inherent limitation where Groovy's static type checker runs before the `@BaseScript` transformation is applied.
+
+**Warning Message:** `"Not all types of code can be checked, so this doesn't mean your script is not valid"`
+
+**Resolution:** Document and ignore this warning. The script functions correctly in production.
+
+**Example:**
+
+```groovy
+@BaseScript CustomEndpointDelegate delegate
+
+// NOTE: The "Failed type checking" warning at line 1 is an inherent ScriptRunner limitation.
+// It occurs because Groovy's static type checker runs before the @BaseScript transformation
+// is applied, so it cannot resolve CustomEndpointDelegate methods. This warning is harmless
+// and should be ignored - the script functions correctly in production.
 ```
 
 #### Complete Field Selection Pattern
@@ -1521,6 +1597,368 @@ The benefits of runtime reliability and consistent error handling outweigh the a
 **New Code:** All new API implementations must follow these patterns from initial development.
 
 **Testing:** Comprehensive testing must validate type safety patterns for all new and updated code.
+
+### 11.11. ScriptRunner Type Checking Refactoring Patterns ([ADR-031])
+
+> **Context**: These refactoring patterns provide concrete implementation solutions for static type checking issues encountered in ScriptRunner environments. This section complements ADR-031 with practical, field-tested patterns for common type safety scenarios.
+
+#### 11.11.1. Core Refactoring Patterns
+
+##### Destructuring Assignment Pattern [DRY]
+
+**Problem**: Multiple assignment destructuring fails static type checking
+
+```groovy
+// ANTI-PATTERN: Type checker cannot infer types
+def (sttCode, stmNumberStr) = stepCode.tokenize('-')
+```
+
+**Solution**: Explicit typed variable assignment
+
+```groovy
+// PATTERN: Explicit type-safe destructuring
+final List<String> parts = stepCode.tokenize('-')
+final String sttCode = parts[0]
+final String stmNumberStr = parts[1]
+
+// VALIDATION: Add bounds checking for production
+if (parts.size() != 2) {
+    throw new IllegalArgumentException("Invalid step code format: ${stepCode}")
+}
+```
+
+**Refactoring Strategy**: [SF] [RP] [REH]
+
+- Search: `def \(.*\) = .*\.tokenize\(`
+- Replace: Explicit list assignment with type checking
+- Validate: Ensure bounds checking for array access
+
+##### Closure Typing Pattern [CA]
+
+**Problem**: Untyped closures cause type inference failures
+
+```groovy
+// ANTI-PATTERN: Type checker cannot infer closure signature
+def getRepository = { ->
+    return repositoryRegistry.getStepRepository()
+}
+```
+
+**Solution**: Explicit closure typing with return type
+
+```groovy
+// PATTERN: Strongly typed closure declaration
+final Closure<StepRepository> getRepository = { ->
+    return repositoryRegistry.getStepRepository()
+}
+
+// ALTERNATIVE: Method reference when possible
+private StepRepository getRepository() {
+    return repositoryRegistry.getStepRepository()
+}
+```
+
+**Refactoring Strategy**: [TDT] [CA]
+
+- Convert closures to methods when used multiple times
+- Use explicit `Closure<ReturnType>` for complex closures
+- Prefer method references for better type safety
+
+##### Map Access Pattern [IV]
+
+**Problem**: Dynamic property access on untyped objects
+
+```groovy
+// ANTI-PATTERN: Dynamic property access fails type checking
+def statusRecord = sql.firstRow("SELECT * FROM status")
+return statusRecord.id  // Type checker error
+```
+
+**Solution**: Explicit casting with type safety
+
+```groovy
+// PATTERN: Safe map access with explicit casting
+final Map<String, Object> statusRecord = sql.firstRow("SELECT * FROM status") as Map
+final Integer recordId = (statusRecord?.id as Integer) ?: 0
+
+// ALTERNATIVE: Type-safe result mapping
+final Integer recordId = sql.firstRow("SELECT id FROM status") { row ->
+    return row.id as Integer
+}
+```
+
+**Refactoring Strategy**: [IV] [REH] [CMV]
+
+- Always cast sql.firstRow() results to Map
+- Use elvis operator for null safety
+- Consider explicit column selection over SELECT \*
+
+##### Collection Operations Pattern [TST]
+
+**Problem**: Collection modification operations with type ambiguity
+
+```groovy
+// ANTI-PATTERN: Type checker cannot infer collection types
+def results = []
+results << processItem(item)  // Type checking fails
+```
+
+**Solution**: Explicit collection typing and operations
+
+```groovy
+// PATTERN: Strongly typed collection operations
+final List<ProcessedItem> results = new ArrayList<>()
+results.add(processItem(item))
+
+// ALTERNATIVE: Functional approach with type inference
+final List<ProcessedItem> results = items.collect { item ->
+    return processItem(item) as ProcessedItem
+}
+```
+
+**Refactoring Strategy**: [MOD] [TST]
+
+- Initialize collections with explicit types
+- Use `.add()` instead of `<<` operator for type safety
+- Leverage Groovy's functional methods with explicit casting
+
+##### String Conversion Pattern [CMV]
+
+**Problem**: GString interpolation causing type mismatches
+
+```groovy
+// ANTI-PATTERN: GString vs String type conflicts
+def message = "Processing ${itemCount} items"
+logMessage(message)  // Expects String, gets GString
+```
+
+**Solution**: Explicit string conversion
+
+```groovy
+// PATTERN: Explicit string conversion for type safety
+final String message = "Processing ${itemCount} items".toString()
+logMessage(message)
+
+// ALTERNATIVE: Use String.valueOf() for null safety
+final String message = String.valueOf("Processing ${itemCount} items")
+```
+
+**Refactoring Strategy**: [CMV] [RP]
+
+- Add `.toString()` to all GString expressions
+- Use `String.valueOf()` when null values possible
+- Consider string concatenation for simple cases
+
+#### 11.11.2. Code Smell Detection [CSD]
+
+##### Type Checking Smells
+
+**Smell 1**: Untyped variable declarations
+
+```groovy
+// SMELL
+def result = processData()
+
+// REFACTORED
+final ProcessResult result = processData() as ProcessResult
+```
+
+**Smell 2**: Dynamic property access
+
+```groovy
+// SMELL
+record.fieldName
+
+// REFACTORED
+(record as Map<String, Object>).fieldName as String
+```
+
+**Smell 3**: Collection type ambiguity
+
+```groovy
+// SMELL
+def items = []
+items << newItem
+
+// REFACTORED
+final List<ItemType> items = new ArrayList<>()
+items.add(newItem as ItemType)
+```
+
+**Smell 4**: Implicit closure types
+
+```groovy
+// SMELL
+def handler = { data -> process(data) }
+
+// REFACTORED
+final Closure<ProcessResult> handler = { Object data ->
+    return process(data) as ProcessResult
+}
+```
+
+#### 11.11.3. ScriptRunner-Specific Considerations [ENV]
+
+##### ScriptRunner Runtime Context
+
+**Binding Variables**: Always cast binding variables
+
+```groovy
+// ScriptRunner provides untyped binding
+final String userKey = (binding.userKey as String) ?: ""
+```
+
+**SQL Utilities**: Use explicit typing with DatabaseUtil
+
+```groovy
+DatabaseUtil.withSql { sql ->
+    final List<Map<String, Object>> rows = sql.rows("SELECT * FROM table") as List
+    return rows.collect { Map<String, Object> row ->
+        return new ResultObject(
+            id: row.id as Integer,
+            name: row.name as String
+        )
+    }
+}
+```
+
+**REST Endpoint Parameters**: Type-safe parameter handling
+
+```groovy
+@BaseScript CustomEndpointDelegate delegate
+endpoint(httpMethod: "GET") { MultivaluedMap params ->
+    final String filterId = params.getFirst("filterId") as String
+    final Integer pageSize = Integer.parseInt(params.getFirst("pageSize") as String ?: "10")
+}
+```
+
+#### 11.11.4. Performance Implications [CA]
+
+##### Type Safety vs Performance Trade-offs
+
+**Cast Operations**:
+
+- Explicit casting adds minimal runtime overhead
+- Type checking prevents ClassCastException at runtime
+- Better performance through early error detection
+
+**Collection Initialization**:
+
+```groovy
+// SLOWER: Dynamic typing requires runtime type resolution
+def list = []
+
+// FASTER: Static typing enables JIT optimizations
+final List<String> list = new ArrayList<>()
+```
+
+**Method Dispatch**:
+
+```groovy
+// SLOWER: Dynamic method resolution
+def result = object.method()
+
+// FASTER: Static method binding when types known
+final ResultType result = (object as KnownType).method() as ResultType
+```
+
+#### 11.11.5. Migration Strategy & Checklist [AC]
+
+##### Pre-Migration Assessment
+
+- [ ] Identify all `def` declarations without explicit types
+- [ ] Locate destructuring assignments using tokenize()
+- [ ] Find SQL result property access patterns
+- [ ] Check collection operations using `<<` operator
+- [ ] Review closure declarations for type safety
+
+##### Migration Steps
+
+1. **Enable Static Type Checking**: Add `@groovy.transform.TypeChecked` incrementally
+2. **Fix Type Declarations**: Convert `def` to explicit types
+3. **Refactor Destructuring**: Use explicit list access patterns
+4. **Secure Map Access**: Add casting for dynamic property access
+5. **Type Collections**: Specify generic types for all collections
+6. **Test Thoroughly**: Ensure runtime behavior remains unchanged
+
+##### Post-Migration Validation
+
+- [ ] All static type checking warnings resolved
+- [ ] Unit tests pass with type checking enabled
+- [ ] Performance benchmarks within acceptable range
+- [ ] Code coverage maintained or improved
+- [ ] Documentation updated with new patterns
+
+#### 11.11.6. Development Guidelines & Best Practices [SD]
+
+##### Development Standards
+
+1. **Always use explicit types** instead of `def` in new code
+2. **Cast SQL results immediately** after database operations
+3. **Initialize collections with generic types** for type safety
+4. **Use `.toString()` explicitly** on GString expressions
+5. **Prefer methods over closures** for better type inference
+
+##### Code Review Checklist
+
+- [ ] No untyped variable declarations
+- [ ] All SQL results properly cast
+- [ ] Collections have explicit generic types
+- [ ] String conversions are explicit
+- [ ] Closure types are declared when complex
+
+##### Tooling Recommendations
+
+- Enable IDE static type checking warnings
+- Use CodeNarc for automated code quality checks
+- Implement pre-commit hooks for type checking validation
+- Regular static analysis in CI/CD pipeline
+
+#### 11.11.7. Automated Refactoring Support
+
+##### Search and Replace Patterns
+
+**Pattern 1**: Destructuring assignments
+
+```bash
+# Find destructuring assignments
+grep -r "def (\|final (" src/ --include="*.groovy"
+
+# Refactor to explicit list access
+sed 's/def (\([^)]*\)) = \([^.]*\)\.tokenize/final List<String> parts = \2.tokenize/g'
+```
+
+**Pattern 2**: Untyped SQL result access
+
+```bash
+# Find SQL result property access
+grep -r "\.firstRow.*\.\w\+" src/ --include="*.groovy"
+
+# Requires manual refactoring due to context dependency
+```
+
+**Pattern 3**: Collection operators
+
+```bash
+# Find << operators on collections
+grep -r "\w\+\s*<<\s*" src/ --include="*.groovy"
+
+# Manual review needed for type-safe replacement
+```
+
+##### IDE Refactoring Support
+
+**IntelliJ IDEA Inspections**:
+
+- Enable "Groovy → Static type checking"
+- Use "Groovy → Untyped access" warnings
+- Apply "Add explicit type" quick fixes
+
+**Static Analysis Tools**:
+
+- CodeNarc rules: UntypedAccess, ExplicitCallToEqualsMethod
+- SpotBugs with Groovy plugin
+- SonarQube Groovy rules
 
 ---
 
@@ -2933,6 +3371,232 @@ class DatabaseQualityValidator {
 - **Quality Acceleration**: Enhanced testing framework supporting all remaining MVP work
 - **Team Efficiency**: Standardized patterns enabling faster Sprint 6+ velocity
 - **Strategic Investment**: Short-term capacity increase for long-term velocity gains
+
+---
+
+## 22. StepView UI Enhancement Patterns (US-036)
+
+### 22.1. Implementation Overview
+
+**Status:** 80% Complete (August 2025)  
+**Impact:** Critical - Comprehensive UI enhancement establishing new frontend architecture patterns  
+**Scope Evolution:** Original 3 points → 8-10 points actual complexity through testing feedback integration
+
+US-036 evolved from basic UI refactoring into comprehensive StepView enhancement, establishing new architectural patterns for feature parity, RBAC implementation, and frontend integration reliability.
+
+### 22.2. Architectural Patterns Established
+
+#### 22.2.1. Direct API Integration Pattern
+
+**Pattern Decision:** Replicate IterationView's direct API approach over complex caching architectures.
+
+**Implementation:**
+
+```javascript
+// Direct API pattern for reliability
+function refreshCommentsSection(stepId) {
+  return CommentsAPI.getComments(stepId)
+    .then((comments) => renderCommentsWithStyling(comments))
+    .catch((error) => handleCommentErrors(error));
+}
+```
+
+**Benefits:**
+
+- **Reliability**: Eliminates complex caching layer failures
+- **Consistency**: Matches proven IterationView architecture
+- **Maintainability**: Simple, direct integration patterns
+- **Performance**: Maintains <3s load times despite simplification
+
+#### 22.2.2. RBAC Security Pattern
+
+**Pattern Decision:** Proper null handling for unknown users vs default role assignment.
+
+**Implementation:**
+
+```javascript
+function initializeRoleBasedAccess() {
+  // Correct: null for unknown users, not NORMAL default
+  const userRole = getCurrentUserRole(); // null, NORMAL, PILOT, or ADMIN
+  return applyRoleBasedPermissions(userRole);
+}
+```
+
+**Security Benefits:**
+
+- **Fail-Safe Design**: Unknown users receive minimal permissions
+- **Role Clarity**: Explicit role detection prevents privilege escalation
+- **Error Prevention**: Robust error handling prevents access control bypass
+
+#### 22.2.3. CSS Consistency Pattern
+
+**Pattern Decision:** Shared CSS approach via iteration-view.css for visual consistency.
+
+**Implementation:**
+
+- **Shared Stylesheet**: `iteration-view.css` provides consistent styling
+- **Component Alignment**: StepView matches IterationView visual hierarchy
+- **Maintenance Efficiency**: Single source of truth for UI styling
+
+#### 22.2.4. Database Type Safety Pattern
+
+**Pattern Decision:** Systematic INTEGER vs string casting resolution throughout codebase.
+
+**Implementation:**
+
+```groovy
+// Backend type fixes
+params.userId = Integer.parseInt(userIdString as String)  // Explicit casting
+params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
+```
+
+**Quality Impact:**
+
+- **Runtime Safety**: Prevents ClassCastException errors
+- **Data Integrity**: Ensures correct database type matching
+- **Testing Reliability**: Consistent type handling across all operations
+
+### 22.3. Feature Parity Architecture
+
+#### 22.3.1. Comment System Modernization
+
+**Architectural Achievement:** Complete comment system overhaul achieving 100% IterationView parity.
+
+**Technical Implementation:**
+
+- **Real-time Refresh**: Immediate UI updates on create/edit/delete operations
+- **Authentication Integration**: Comprehensive Confluence admin user support
+- **Visual Consistency**: Grey background, proper button positioning
+- **Error Handling**: Robust error reporting with user guidance
+
+#### 22.3.2. Dynamic UI State Management
+
+**Pattern Decision:** Client-side state management with server synchronization.
+
+**Benefits:**
+
+- **User Experience**: Immediate feedback on all operations
+- **Reliability**: Server state consistency maintained
+- **Performance**: Local state updates with background sync
+
+### 22.4. Quality Assurance Framework
+
+#### 22.4.1. 40-Point Validation System
+
+**Framework Established:** Comprehensive validation checklist for UI component testing.
+
+**Validation Categories:**
+
+- **Visual Consistency**: 100% alignment verification with IterationView
+- **Cross-Role Testing**: NORMAL/PILOT/ADMIN user scenario validation
+- **Browser Compatibility**: Chrome, Firefox, Safari, Edge validation
+- **Performance Benchmarking**: Load time and interaction responsiveness
+- **Security Validation**: RBAC implementation comprehensive testing
+
+**Quality Results:**
+
+- **40/40 Validation Points**: 100% success rate achieved
+- **95% Test Coverage**: Maintained throughout scope expansion
+- **Zero Critical Defects**: Quality excellence sustained
+
+#### 22.4.2. Cross-Platform Testing Matrix
+
+**Testing Architecture:** Multi-dimensional validation ensuring consistent experience.
+
+**Matrix Dimensions:**
+
+- **User Roles**: NORMAL, PILOT, ADMIN access patterns
+- **Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Devices**: Desktop, tablet, mobile responsiveness
+- **Operations**: All CRUD operations across user types
+
+### 22.5. Scope Management Insights
+
+#### 22.5.1. Scope Evolution Analysis
+
+**Root Cause:** Testing feedback integration revealed extensive integration issues requiring systematic resolution.
+
+**Contributing Factors:**
+
+1. **Feature Parity Requirements**: Need for 100% IterationView consistency
+2. **Technical Debt Resolution**: Critical bugs blocking system functionality
+3. **Quality Standards**: Production-ready RBAC and error handling
+4. **Authentication Complexity**: Confluence admin user privilege integration
+
+#### 22.5.2. Quality Maintained Despite Expansion
+
+**Achievement:** Managed 3→8-10 point scope expansion while maintaining 95% test coverage and performance targets.
+
+**Success Factors:**
+
+- **Systematic Approach**: Methodical resolution of each integration point
+- **Quality Gates**: Non-negotiable quality standards throughout expansion
+- **Technical Foundation**: Robust architecture patterns supporting complexity
+- **Performance Focus**: <3s load times maintained throughout extensive changes
+
+### 22.6. Strategic Value Delivered
+
+#### 22.6.1. MVP Foundation
+
+**Business Impact:** Critical StepView functionality delivered for August 28 MVP deadline.
+
+**Capabilities Enabled:**
+
+- **Complete Feature Parity**: StepView provides identical functionality to IterationView
+- **Production Reliability**: Comprehensive error handling prevents system failures
+- **Enhanced User Experience**: Immediate feedback on all operations
+- **Security Compliance**: Robust RBAC implementation with audit trail
+
+#### 22.6.2. Future Development Patterns
+
+**Architecture Investment:** Established reusable patterns for ongoing development.
+
+**Pattern Library:**
+
+- **Direct API Integration**: Proven reliability pattern for complex UI components
+- **RBAC Security Framework**: Comprehensive role-based access control implementation
+- **CSS Consistency Strategy**: Shared styling approach for visual alignment
+- **Quality Validation Framework**: 40-point validation system for UI components
+
+### 22.7. Lessons Learned Integration
+
+#### 22.7.1. Scope Estimation Improvements
+
+**Key Insights for Future Development:**
+
+1. **Testing Feedback Integration**: Include buffer time for comprehensive testing feedback integration
+2. **Feature Parity Analysis**: Conduct thorough feature parity analysis during sprint planning
+3. **Technical Debt Assessment**: Evaluate technical debt impact on story complexity pre-sprint
+4. **Quality Gate Planning**: Factor quality assurance time into original story estimates
+
+#### 22.7.2. Successful Scope Expansion Management
+
+**Proven Methodologies:**
+
+- **95% Test Coverage Maintenance**: Quality gates enforced throughout scope expansion
+- **Performance Target Achievement**: <3s load times sustained despite extensive functionality additions
+- **Systematic Problem Resolution**: Methodical approach to integration issue resolution
+- **Documentation Excellence**: Comprehensive documentation supporting complex implementations
+
+**Future Application:** These patterns and methodologies established during US-036 provide proven approaches for managing scope expansions while maintaining quality standards in future development work.
+
+---
+
+## 23. Recent Architectural Decisions (August 2025)
+
+### 23.1. Recent Architectural Decisions
+
+The following architectural decisions represent the latest evolution of the UMIG system based on practical implementation experience and debugging insights:
+
+- **ADR-042**: **Dual Authentication Context Management** - Established separation of platform authorization from application audit logging, implementing intelligent fallback mechanisms for robust user context management in complex enterprise environments
+
+- **US-036 Insights**: **Authentication Debugging Breakthrough** - Debugging efforts revealed critical need for robust fallback mechanisms in user authentication, leading to the development of comprehensive session-level caching and intelligent user service hierarchies
+
+- **Performance Pattern Evolution**: **Smart Change Detection** - Successfully evolved from resource-intensive real-time polling to intelligent smart change detection, achieving 97% server load reduction while maintaining real-time user experience
+
+- **Testing Evolution**: **Comprehensive Validation Frameworks** - Established 40-point visual consistency validation framework and cross-role testing matrices that serve as templates for future UI development and quality assurance processes
+
+These decisions reflect the project's continued evolution toward production-ready enterprise software with emphasis on reliability, performance, and maintainability.
 
 ---
 

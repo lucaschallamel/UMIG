@@ -242,7 +242,7 @@ const getCursorPaginatedSteps = async (cursor, limit = 50) => {
     `/steps?cursor=${cursor}&limit=${limit}&direction=next`,
     {
       headers: {
-        Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
+        Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || "admin:admin")}`,
         "Content-Type": "application/json",
       },
     },
@@ -306,7 +306,7 @@ async function performBulkStepUpdate(updates) {
       const response = await fetch("/steps/bulk/update", {
         method: "PUT",
         headers: {
-          Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
+          Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || "admin:admin")}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ updates: batch }),
@@ -347,7 +347,7 @@ async function streamingExport(migrationIds, format = "csv") {
   const response = await fetch("/migrations/bulk/export", {
     method: "POST",
     headers: {
-      Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
+      Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || "admin:admin")}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -392,7 +392,7 @@ const cacheHeaders = {
 const getCachedMigrations = async () => {
   const response = await fetch("/migrations", {
     headers: {
-      Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
+      Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || "admin:admin")}`,
       "If-None-Match": localStorage.getItem("migrations-etag"),
     },
   });
@@ -1027,7 +1027,7 @@ async function loadTest() {
             `http://localhost:8090/rest/scriptrunner/latest/custom/umig${endpoint}`,
             {
               headers: {
-                Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
+                Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || "admin:admin")}`,
               },
             },
           );

@@ -2,6 +2,8 @@
 
 **UMIG Project | Sprint 5: August 18-22, 2025**
 
+> **Important Note**: Email content features originally in this story have been carved out to **US-039: Enhanced Email Notifications**. This includes PDF export for emails, print-friendly views for email content, and mobile-responsive email templates with full step content and instructions.
+
 ## Story Metadata
 
 - **Story ID**: US-036
@@ -397,10 +399,10 @@ The existing `step-view.js` (968 lines) provides a comprehensive standalone step
    - Phase-level navigation with step context
    - Breadcrumb navigation with clickable elements
 
-3. **Export and Documentation Features**
-   - PDF export for step details with formatting
-   - Print-friendly view with optimized layout
-   - Step data export in CSV/JSON formats
+3. **Export and Documentation Features** _(Note: Email content export moved to US-039)_
+   - ~~PDF export for step details with formatting~~ → Moved to US-039
+   - ~~Print-friendly view with optimized layout~~ → Moved to US-039
+   - Step data export in CSV/JSON formats (local use only)
    - Step template creation from existing steps
 
 4. **Advanced Management (ADMIN Users)**

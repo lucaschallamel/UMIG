@@ -4,6 +4,7 @@ import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.StepRepository
 import umig.repository.StatusRepository
 import umig.repository.UserRepository
+import umig.service.UserService
 import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 import java.util.UUID
+import java.sql.SQLException
 
 /**
  * Steps API - repositories instantiated within methods to avoid class loading issues
@@ -282,7 +284,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             def masterSteps
             
             // Check if migrationId is provided as query parameter
-            def migrationId = queryParams.getFirst("migrationId")
+            def migrationId = queryParams.getFirst("migrationId") as String
             if (migrationId) {
                 try {
                     def migUuid = UUID.fromString(migrationId as String)
@@ -323,7 +325,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /steps/summary - return dashboard summary metrics
     if (pathParts.size() == 1 && pathParts[0] == 'summary') {
         try {
-            def migrationId = queryParams.getFirst("migrationId")
+            def migrationId = queryParams.getFirst("migrationId") as String
             if (!migrationId) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "migrationId parameter is required for summary"]).toString())
@@ -346,7 +348,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /steps/progress - return progress tracking data  
     if (pathParts.size() == 1 && pathParts[0] == 'progress') {
         try {
-            def migrationId = queryParams.getFirst("migrationId")
+            def migrationId = queryParams.getFirst("migrationId") as String
             if (!migrationId) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "migrationId parameter is required for progress tracking"]).toString())
@@ -580,6 +582,12 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     def getStepRepository = { ->
         return new StepRepository()
     }
+    def getStatusRepository = { ->
+        return new StatusRepository()
+    }
+    def getUserRepository = { ->
+        return new UserRepository()
+    }
     
     // Enhanced error handling with SQL state mapping and context - inline
     def handleError = { Exception e, String context ->
@@ -647,9 +655,30 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     .build()
             }
             
+            // Validate statusId using database
+            StatusRepository statusRepository = getStatusRepository()
             if (!statusId) {
+                def validStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = validStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "statusId is required"]).toString())
+                    .entity(new JsonBuilder([
+                        error: "statusId is required", 
+                        validOptions: statusOptions
+                    ]).toString())
+                    .build()
+            }
+            
+            // Validate status ID against database - single source of truth
+            if (!statusRepository.isValidStatusId(statusId, 'Step')) {
+                def validStatusIds = statusRepository.getValidStatusIds('Step')
+                def availableStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = availableStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([
+                        error: "Invalid statusId '${statusId}' for Step entities",
+                        validStatusIds: validStatusIds,
+                        validOptions: statusOptions
+                    ]).toString())
                     .build()
             }
             
@@ -828,26 +857,74 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             // Parse request body with type safety
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def newStatus = requestData.status as String
-            def userId = requestData.userId as Integer
+            def statusId = requestData.statusId as Integer
             
-            if (!newStatus || newStatus.trim().isEmpty()) {
+            // Get user context using UserService for intelligent fallback handling
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                def userId = userContext.userId
+                
+                // Log the user context for debugging
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi: Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userId})"
+                }
+            } catch (Exception e) {
+                // If UserService fails, fall back to null userId (acceptable for repository)
+                println "StepsApi: UserService failed (${e.message}), proceeding with null userId for audit"
+                userContext = [userId: null, confluenceUsername: "unknown"]
+            }
+            
+            Integer userId = userContext?.userId as Integer
+            
+            // BACKWARD COMPATIBILITY: Support legacy status field for gradual migration
+            StatusRepository statusRepository = getStatusRepository()
+            if (!statusId && requestData.status) {
+                // Convert status name to ID using database lookup for backward compatibility
+                def statusName = (requestData.status as String).toUpperCase()
+                def statusRecord = statusRepository.findStatusByNameAndType(statusName, 'Step')
+                
+                if (statusRecord) {
+                    statusId = (statusRecord as Map).id as Integer
+                } else {
+                    def availableStatuses = statusRepository.findStatusesByType('Step')
+                    def statusNames = availableStatuses.collect { Map it -> it.name }.join(', ')
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([
+                            error: "Invalid status name '${statusName}'. Use statusId instead, or valid status names: ${statusNames}"
+                        ]).toString())
+                        .build()
+                }
+            }
+            
+            if (!statusId) {
+                def validStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = validStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Missing or empty required field: status"]).toString())
+                    .entity(new JsonBuilder([
+                        error: "Missing required field: statusId", 
+                        validOptions: statusOptions
+                    ]).toString())
                     .build()
             }
             
-            // Validate status value - these match the status_sts table
-            def validStatuses = ['PENDING', 'TODO', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'BLOCKED', 'CANCELLED']
-            if (!validStatuses.contains(newStatus.toUpperCase())) {
+            // Validate status ID against database - single source of truth
+            if (!statusRepository.isValidStatusId(statusId, 'Step')) {
+                def validStatusIds = statusRepository.getValidStatusIds('Step')
+                def availableStatuses = statusRepository.findStatusesByType('Step')
+                def statusOptions = availableStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid status. Must be one of: ${validStatuses.join(', ')}"]).toString())
+                    .entity(new JsonBuilder([
+                        error: "Invalid statusId '${statusId}' for Step entities",
+                        validStatusIds: validStatusIds,
+                        validOptions: statusOptions
+                    ]).toString())
                     .build()
             }
             
             // Update step status and send notifications
             StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, newStatus, userId)
+            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, statusId, userId)
             def result = repositoryResult as Map
             
             if ((result.success as Boolean)) {
@@ -855,7 +932,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                     success: true,
                     message: "Step status updated successfully",
                     stepInstanceId: stepInstanceId,
-                    newStatus: newStatus,
+                    statusId: statusId,
                     emailsSent: result.emailsSent ?: 0
                 ]).toString()).build()
             } else {
@@ -894,6 +971,12 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     // Lazy load repositories to avoid class loading issues
     def getStepRepository = { ->
         return new StepRepository()
+    }
+    def getStatusRepository = { ->
+        return new StatusRepository()
+    }
+    def getUserRepository = { ->
+        return new UserRepository()
     }
     
     // Enhanced error handling with SQL state mapping and context - inline
@@ -952,7 +1035,19 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            def userId = requestData.userId as Integer
+            // Get user context using UserService
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (open): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
+                }
+            } catch (Exception e) {
+                println "StepsApi (open): UserService failed (${e.message}), using null userId"
+                userContext = [userId: null]
+            }
+            
+            Integer userId = userContext?.userId as Integer
             
             // Mark step as opened and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -993,7 +1088,19 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            def userId = requestData.userId as Integer
+            // Get user context using UserService
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (complete): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
+                }
+            } catch (Exception e) {
+                println "StepsApi (complete): UserService failed (${e.message}), using null userId"
+                userContext = [userId: null]
+            }
+            
+            Integer userId = userContext?.userId as Integer
             
             // Complete instruction and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1039,7 +1146,19 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             }
             
-            def userId = requestData.userId as Integer
+            // Get user context using UserService
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (incomplete): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
+                }
+            } catch (Exception e) {
+                println "StepsApi (incomplete): UserService failed (${e.message}), using null userId"
+                userContext = [userId: null]
+            }
+            
+            Integer userId = userContext?.userId as Integer
             
             // Mark instruction as incomplete and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1219,7 +1338,23 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             // Parse request body
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def commentBody = requestData.body as String
-            def userId = requestData.userId as Integer ?: 1 // Default to user 1 for now
+            
+            // Get user context using UserService for intelligent fallback handling
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                
+                // Log the user context for debugging
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (POST /comments): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userContext.userId})"
+                }
+            } catch (Exception e) {
+                // If UserService fails, fall back to null userId (acceptable for repository)
+                println "StepsApi (POST /comments): UserService failed (${e.message}), proceeding with null userId for audit"
+                userContext = [userId: null, confluenceUsername: "unknown"]
+            }
+            
+            Integer userId = userContext?.userId as Integer
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -1241,6 +1376,8 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                 .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
                 .build()
         } catch (Exception e) {
+            println "ERROR in comments POST endpoint: ${e.message}"
+            e.printStackTrace()
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(new JsonBuilder([error: "Failed to create comment: ${e.message}"]).toString())
                 .build()
@@ -1283,7 +1420,23 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             // Parse request body
             def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
             def commentBody = requestData.body as String
-            def userId = requestData.userId as Integer ?: 1 // Default to user 1 for now
+            
+            // Get user context using UserService for intelligent fallback handling
+            def userContext
+            try {
+                userContext = UserService.getCurrentUserContext()
+                
+                // Log the user context for debugging
+                if (userContext.isSystemUser || userContext.fallbackReason) {
+                    println "StepsApi (PUT /comments): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}' (userId: ${userContext.userId})"
+                }
+            } catch (Exception e) {
+                // If UserService fails, fall back to null userId (acceptable for repository)
+                println "StepsApi (PUT /comments): UserService failed (${e.message}), proceeding with null userId for audit"
+                userContext = [userId: null, confluenceUsername: "unknown"]
+            }
+            
+            Integer userId = userContext?.userId as Integer
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -1342,7 +1495,7 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
     if (pathParts.size() == 1) {
         try {
             def commentId = Integer.parseInt(pathParts[0])
-            def userId = 1 // Default to user 1 for now
+            Integer userId = 1 // Default to user 1 for now
             
             StepRepository stepRepository = getStepRepository()
             def success = stepRepository.deleteComment(commentId, userId)
@@ -1376,5 +1529,30 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
             example: "DELETE /rest/scriptrunner/latest/custom/comments/123"
         ]).toString())
         .build()
+}
+
+// Helper method to get current user from Confluence context
+private def getCurrentUser() {
+    try {
+        return com.atlassian.confluence.user.AuthenticatedUserThreadLocal.get()
+    } catch (Exception e) {
+        log.warn("StepsApi: Could not get current user", e)
+        return null
+    }
+}
+
+// Helper method to get UserRepository instance
+private def getUserRepository() {
+    return new UserRepository()
+}
+
+// Helper method to get StatusRepository instance
+private def getStatusRepository() {
+    return new StatusRepository()
+}
+
+// Helper method to get StepRepository instance
+private def getStepRepository() {
+    return new StepRepository()
 }
 

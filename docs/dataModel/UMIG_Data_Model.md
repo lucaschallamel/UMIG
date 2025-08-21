@@ -1,16 +1,42 @@
-# UMIG Data Model
+# UMIG Data Model - Schema Specification
 
-This document provides a comprehensive, layered, and field-level overview of the Unified Migration (UMIG) data model. It is the central reference for developers, architects, and maintainers.
+This document provides the pure schema specification for the Unified Migration (UMIG) data model, including table definitions, relationships, constraints, and basic structural information. For implementation patterns, query optimization, and best practices, see [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md).
+
+**Document Status**: ✅ Production Ready | **Last Updated**: August 2025 | **Version**: 2.1  
+**Consolidated Sources**: System Configuration Schema, Instructions Schema Documentation, Database Migrations
+
+**Related Documentation**:
+
+- [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md) - Implementation patterns, performance optimization, and best practices
+- [System Configuration Schema](../database/system-configuration-schema.md) - Detailed configuration management schema
+- [Solution Architecture](../solution-architecture.md) - Overall system architecture and design decisions
 
 ---
 
-## 1. Core Design Philosophy
+## 1. Data Model Overview
 
-UMIG is built on:
+### 1.1. Architecture Pattern
 
-- **Separation of Canonical (Master) vs. Instance (Execution) Entities**
-- **Normalized, auditable, and extensible schema**
-- **Explicit support for many-to-many relationships via join tables**
+UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
+
+- **Masters**: Define reusable templates and playbooks (e.g., `steps_master_stm`)
+- **Instances**: Track real-world executions (e.g., `steps_instance_sti`)
+- **Associations**: Many-to-many relationships via join tables
+
+### 1.2. Data Hierarchy
+
+**Strategic**: Migrations → Iterations → Teams → Users → Environments → Applications  
+**Canonical**: Plans → Sequences → Phases → Steps → Instructions → Controls  
+**Instance**: Plan Instances → Sequence Instances → Phase Instances → Step Instances → Instruction Instances → Control Instances  
+**Support**: Labels, Comments, Audit Logs, System Configuration
+
+### 1.3. Key Design Principles
+
+- Normalized schema with explicit foreign key relationships
+- Standardized audit fields across all tables (migrations 016 & 017)
+- Environment-aware configuration management
+- Centralized status management with color coding
+- UUID primary keys for business entities, INT for reference data
 
 ---
 
@@ -78,6 +104,45 @@ UMIG is built on:
 - **app_name** (VARCHAR)
 - **app_description** (TEXT)
 
+### 2.8. System Configuration (`system_configuration_scf`)
+
+**Purpose**: Centralized configuration management for runtime settings, Confluence macro locations, and environment-specific parameters.
+
+- **scf_id** (UUID, PK): Unique configuration identifier
+- **env_id** (INT, FK → environments_env): Environment association
+- **scf_key** (VARCHAR, unique per environment): Configuration key
+- **scf_category** (VARCHAR): MACRO_LOCATION, API_CONFIG, SYSTEM_SETTING
+- **scf_value** (TEXT): Configuration value (supports all data types)
+- **scf_description** (TEXT): Human-readable description
+- **scf_is_active** (BOOLEAN, DEFAULT TRUE): Enable/disable configuration
+- **scf_is_system_managed** (BOOLEAN, DEFAULT FALSE): System vs user managed
+- **scf_data_type** (VARCHAR, DEFAULT 'STRING'): STRING, INTEGER, BOOLEAN, JSON, URL
+- **scf_validation_pattern** (VARCHAR): Regex validation pattern
+- **created_by**, **created_at**, **updated_by**, **updated_at**: Standard audit fields
+
+**Constraints**:
+
+- Unique constraint on (env_id, scf_key)
+- Foreign key to environments_env
+
+**Key Configuration Categories**:
+
+- **MACRO_LOCATION**: Confluence deployment settings (space keys, page IDs, base URLs)
+- **API_CONFIG**: Runtime settings (rate limiting, timeouts, retry configuration)
+- **SYSTEM_SETTING**: General system configuration (debug mode, maintenance status, cache settings)
+
+### 2.9. System Configuration History (`system_configuration_history_sch`)
+
+**Purpose**: Audit trail for all configuration changes with comprehensive change tracking.
+
+- **sch_id** (UUID, PK): History record identifier
+- **scf_id** (UUID, FK → system_configuration_scf): Configuration reference
+- **sch_old_value** (TEXT): Previous value (NULL for CREATE)
+- **sch_new_value** (TEXT): New value
+- **sch_change_reason** (VARCHAR): Human-readable reason
+- **sch_change_type** (VARCHAR): CREATE, UPDATE, DELETE, ACTIVATE, DEACTIVATE
+- **created_by**, **created_at**: Standard audit fields
+
 ---
 
 ## 3. Canonical (Master) Layer
@@ -132,25 +197,49 @@ UMIG is built on:
 
 ### 3.6. Instructions (`instructions_master_inm`)
 
-Master instruction templates that define procedural steps within migration phases.
+**Purpose**: Master instruction templates that define procedural steps within migration phases. Instructions represent the granular, actionable tasks that must be completed within each step of a migration sequence.
 
 - **inm_id** (UUID, PK): Unique instruction identifier
-- **stm_id** (UUID, FK → steps_master_stm): Parent step master
-- **tms_id** (INT, FK → teams_tms, nullable): Responsible team
-- **ctm_id** (UUID, FK → controls_master_ctm, nullable): Associated control point
-- **inm_order** (INT): Order/sequence within the step
-- **inm_body** (TEXT): Detailed instruction content/steps
+- **stm_id** (UUID, FK → steps_master_stm): Parent step master (REQUIRED)
+- **tms_id** (INT, FK → teams_tms, nullable): Responsible team (OPTIONAL)
+- **ctm_id** (UUID, FK → controls_master_ctm, nullable): Associated control point (OPTIONAL)
+- **inm_order** (INT): Order/sequence within the step (REQUIRED)
+- **inm_body** (TEXT): Detailed instruction content/steps (supports markdown formatting)
 - **inm_duration_minutes** (INT, nullable): Estimated duration in minutes
 - **created_at** (TIMESTAMPTZ): Creation timestamp - Added in migration 016
 - **created_by** (VARCHAR(255)): User trigram or system identifier - Added in migration 016
 - **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp - Added in migration 016
 - **updated_by** (VARCHAR(255), nullable): User trigram who last updated - Added in migration 016
 
-**Relationships:**
+**Schema Constraints**:
+
+```sql
+CREATE TABLE instructions_master_inm (
+    inm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stm_id UUID NOT NULL,
+    tms_id INTEGER,
+    ctm_id UUID,
+    inm_order INTEGER NOT NULL,
+    inm_body TEXT,
+    inm_duration_minutes INTEGER,
+    CONSTRAINT fk_inm_stm_stm_id FOREIGN KEY (stm_id) REFERENCES steps_master_stm(stm_id),
+    CONSTRAINT fk_inm_tms_tms_id FOREIGN KEY (tms_id) REFERENCES teams_tms(tms_id),
+    CONSTRAINT fk_inm_ctm_ctm_id FOREIGN KEY (ctm_id) REFERENCES controls_master_ctm(ctm_id)
+);
+```
+
+**Data Characteristics**:
+
+- **Volume**: ~14,430 instructions across all steps
+- **Pattern**: Canonical master/instance separation following UMIG standards
+- **Integration**: Full integration with team assignment and control point validation
+
+**Relationships**:
 
 - Many instructions can belong to one step master
 - Instructions can optionally be assigned to a team
 - Instructions can optionally reference a control point for validation
+- Order values should be unique within step scope for proper sequencing
 
 ### 3.7. Labels (`labels_lbl`)
 
@@ -218,11 +307,11 @@ Master instruction templates that define procedural steps within migration phase
 
 ### 4.5. Instruction Instance (`instructions_instance_ini`)
 
-Execution instances of instruction templates created when step instances are instantiated.
+**Purpose**: Execution instances of instruction templates created when step instances are instantiated. Runtime instances with completion tracking and audit trail.
 
 - **ini_id** (UUID, PK): Unique instruction instance identifier
-- **sti_id** (UUID, FK → steps_instance_sti): Parent step instance
-- **inm_id** (UUID, FK → instructions_master_inm): Source master instruction
+- **sti_id** (UUID, FK → steps_instance_sti): Parent step instance (REQUIRED)
+- **inm_id** (UUID, FK → instructions_master_inm): Source master instruction (REQUIRED)
 - **tms_id** (INT, nullable): Assigned team (copied from master) - Added in migration 010
 - **cti_id** (UUID, nullable): Associated control instance - Added in migration 010
 - **ini_order** (INT): Instance order (copied from master) - Added in migration 010
@@ -236,17 +325,41 @@ Execution instances of instruction templates created when step instances are ins
 - **updated_at** (TIMESTAMPTZ, nullable): Last update timestamp - Added in migration 016
 - **updated_by** (VARCHAR(255), nullable): User trigram who last updated - Added in migration 016
 
-**Full Attribute Instantiation Pattern:**
-All master instruction attributes are copied to instances during creation to preserve historical accuracy and allow for instance-specific overrides without affecting the master template.
+**Schema Constraints**:
 
-**Simplified Status Model:**
-Uses boolean `ini_is_completed` instead of complex status enumeration for clear binary state management - instruction is either completed or not completed.
+```sql
+CREATE TABLE instructions_instance_ini (
+    ini_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sti_id UUID NOT NULL,
+    inm_id UUID NOT NULL,
+    ini_is_completed BOOLEAN DEFAULT FALSE,
+    ini_completed_at TIMESTAMPTZ,
+    usr_id_completed_by INTEGER,
+    CONSTRAINT fk_ini_sti_sti_id FOREIGN KEY (sti_id) REFERENCES steps_instance_sti(sti_id),
+    CONSTRAINT fk_ini_inm_inm_id FOREIGN KEY (inm_id) REFERENCES instructions_master_inm(inm_id),
+    CONSTRAINT fk_ini_usr_usr_id_completed_by FOREIGN KEY (usr_id_completed_by) REFERENCES users_usr(usr_id)
+);
+```
 
-**Relationships:**
+**Full Attribute Instantiation Pattern (Migration 010)**:
+All master instruction attributes are copied to instances during creation to preserve historical accuracy and allow for instance-specific overrides without affecting the master template. This follows ADR-029 pattern.
+
+**Simplified Status Model**:
+Uses boolean `ini_is_completed` instead of complex status enumeration for clear binary state management - instruction is either completed or not completed. This avoids the complexity of state machines while providing clear completion tracking.
+
+**Data Characteristics**:
+
+- **Volume**: ~14,430 instruction instances (1:1 with masters for active migrations)
+- **Query Pattern**: Primarily hierarchical lookups by step instance
+- **Expected Load**: Read-heavy with periodic completion updates
+- **Completion Tracking**: Timestamp and user ID for audit trail
+
+**Relationships**:
 
 - Each instruction instance belongs to exactly one step instance
 - Each instruction instance is created from exactly one master instruction
-- Multiple instances can be created from the same master instruction
+- Multiple instances can be created from the same master instruction (for different iterations)
+- Completion user tracking for accountability
 
 ### 4.6. Control Instance (`controls_instance_cti`)
 
@@ -736,321 +849,73 @@ erDiagram
 
 ---
 
-## 7. Audit Fields Standardization (US-002b & US-002d)
+## 8. Migration References
 
-### Standard Audit Fields Pattern
+**Data Characteristics**:
 
-All tables in the UMIG database now follow a standardized audit fields pattern (migrations 016 & 017):
+- **Volume**: ~14,430 instruction instances (1:1 with masters for active migrations)
+- **Scale**: 5 migrations, 30 iterations, 5 plans → 13 sequences → 43 phases → 1,443+ step instances
+- **Pattern**: Canonical (master) vs Instance (execution) entity separation
 
-#### Core Audit Fields
+**Key Migration Points**:
+
+- **Migration 010**: Full attribute replication to instance tables (ADR-029)
+- **Migration 015**: Centralized status management with color coding
+- **Migration 016**: Standardized audit fields across all tables
+- **Migration 017**: Tiered audit strategy for association tables
+
+For query patterns, performance optimization, and implementation guidance, see [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md).
+
+---
+
+## 9. Audit Fields Standardization
+
+All tables in the UMIG database follow a standardized audit fields pattern (migrations 016 & 017):
+
+### Core Audit Fields
 
 - **created_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
 - **created_at** (TIMESTAMPTZ): Timestamp when the record was created
 - **updated_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
 - **updated_at** (TIMESTAMPTZ): Timestamp when the record was last updated (auto-updated via trigger)
 
-#### Audit Field Values (US-002d)
+### Tables with Audit Fields
 
-The `created_by` and `updated_by` fields store the following values:
+**Master Tables**: sequences_master_sqm, phases_master_phm, steps_master_stm, controls_master_ctm, instructions_master_inm
 
-- **User trigram**: The 3-character `usr_code` from the `users_usr` table (e.g., 'JDS' for John Doe Smith)
-- **'system'**: For operations performed by the system or background processes
-- **'generator'**: For data created by data generation scripts
-- **'migration'**: For data created or modified during database migrations
+**Instance Tables**: sequences_instance_sqi, phases_instance_phi, steps_instance_sti, controls_instance_cti, instructions_instance_ini
 
-A helper function `get_user_code(user_email VARCHAR)` is available to retrieve user trigrams from email addresses.
+**Reference Tables**: teams_tms, applications_app, environments_env, roles_rls, environment_roles_enr, step_types_stt, iteration_types_itt, status_sts, email_templates_emt
 
-#### Tables with Audit Fields
+**Association Tables**: Tiered audit strategy (Tier 1: Full audit, Tier 2: Minimal audit, Tier 3: No audit)
 
-The following tables have been standardized with the audit fields pattern:
+### Automatic Triggers
 
-**Master Tables:**
+All tables have PostgreSQL triggers that automatically update `updated_at` on any UPDATE operation.
 
-- sequences_master_sqm, phases_master_phm, steps_master_stm
-- controls_master_ctm, instructions_master_inm
-
-**Instance Tables:**
-
-- sequences_instance_sqi, phases_instance_phi, steps_instance_sti
-- controls_instance_cti, instructions_instance_ini
-
-**Reference Tables:**
-
-- teams_tms, applications_app, environments_env
-- roles_rls, environment_roles_enr, step_types_stt
-- iteration_types_itt, status_sts, email_templates_emt
-
-**Special Cases:**
-
-- **users_usr**: Has created_at/updated_at from migration 012, added created_by/updated_by in migration 016
-- **labels_lbl**: Already had created_by as INTEGER (user reference), only added updated_by/updated_at
-
-#### Automatic Update Triggers
-
-All tables with audit fields have PostgreSQL triggers that automatically update the `updated_at` timestamp on any UPDATE operation using the `update_updated_at_column()` function.
-
-#### Association Tables Audit Strategy (US-002d)
-
-Association (join) tables follow a tiered audit approach based on business criticality:
-
-**Tier 1 - Critical Associations (Full Audit)**
-
-- `teams_tms_x_users_usr`: User-team assignments (created_at, created_by as VARCHAR)
-- `environment_roles_enr_x_users_usr`: User-role assignments (when created)
-- **Rationale**: These track access control and organizational structure changes
-
-**Tier 2 - Standard Associations (Minimal Audit)**
-
-- `teams_tms_x_applications_app`: Team-application links (created_at only)
-- `labels_lbl_x_steps_master_stm`: Label-step associations (created_at, created_by)
-- `labels_lbl_x_applications_app`: Label-application associations (created_at, created_by)
-- `labels_lbl_x_controls_master_ctm`: Label-control associations (created_at, created_by)
-- **Rationale**: These provide basic tracking without over-engineering
-
-**Tier 3 - Simple Associations (No Audit)**
-
-- `environments_env_x_applications_app`: Environment-application links
-- `environments_env_x_iterations_ite`: Environment-iteration links
-- `steps_master_stm_x_iteration_types_itt`: Step-iteration type links
-- `steps_master_stm_x_teams_tms_impacted`: Step-impacted teams links
-- **Rationale**: These are pure many-to-many relationships with minimal change tracking needs
-
-#### Performance Indexes
-
-Audit field indexes have been created for common query patterns:
-
-- Master tables: Composite index on (created_by, created_at)
-- Instance tables: Composite index on (created_by, created_at)
-- Frequently queried reference tables: Index on created_at
-
----
-
-## 8. Recent Changes & Migration Notes
-
-### 2025-08-14: US-024 Steps API Refactoring and Database Quality Enhancement
-
-- **Steps API Enhancement**: Complete refactoring of Steps API with enhanced error handling
-- **Comments System Integration**: Improved comments system with better validation
-- **DatabaseQualityValidator**: Implemented comprehensive database validation framework
-- **Type Safety Improvements**: Enhanced ADR-031 compliance across all repository methods
-- **Performance Optimizations**: Improved query performance and hierarchical filtering patterns
-
-### 2025-08-04: Audit Fields Standardization (US-002b & US-002d)
-
-- **Migration 016**: Standardized audit fields across all 25+ tables
-- **Migration 017**: Standardized association table audit fields using tiered approach
-- **Key Design Decisions (US-002d)**:
-  - Use user trigrams (usr_code) instead of user IDs for audit fields
-  - Implement tiered audit strategy for association tables based on business criticality
-  - Convert existing INTEGER created_by fields to VARCHAR(255) for consistency
-- **Trigger Function**: Reused `update_updated_at_column()` function from migration 012
-- **Helper Function**: Added `get_user_code(user_email)` for retrieving user trigrams
-- **Special Cases**:
-  - Converted teams_tms_x_users_usr and labels_lbl_x_steps_master_stm from INTEGER to VARCHAR created_by
-  - Added created_at to teams_tms_x_applications_app for Tier 2 audit tracking
-- **Performance**: Added indexes for common audit field query patterns
-- **Generator Updates**: Updated all data generators to populate audit fields with 'generator'
-
-### 2025-07-15: Teams Association Management and Environment Search Enhancement
-
-- **Teams Association APIs**: Implemented comprehensive team-application association management:
-  - Enhanced `teams_tms_x_applications_app` join table utilization for team-application relationships
-  - Added application association endpoints for add/remove functionality in admin interface
-  - Improved team management with user and application association modals
-- **Environment Search Enhancement**: Added full-stack search functionality for environments:
-  - Enhanced EnvironmentsApi with search, pagination, and sorting parameters
-  - Fixed GString SQL type inference issues with proper parameterized query patterns
-  - Added EntityConfig support for environment search filtering
-- **User Status Management**: Enhanced user management with active status filtering:
-  - Migration 011: Added `usr_active` boolean field with NOT NULL constraint and TRUE default
-  - Migration 012: Added `created_at` and `updated_at` audit timestamp fields with automatic triggers
-  - Index created on `usr_active` for performance optimization
-  - Extended Users API with active parameter for filtering active/inactive users
-- **Modal Consistency**: Standardized modal UI patterns across Teams and Environments with consistent AUI styling
-- **State Management**: Fixed sort field persistence bugs and confirmation dialog regressions
-
-### 2025-07-10: Hierarchical Filtering and Labels Implementation
-
-- **Fixed Type System Issues**: Resolved Groovy static type checking errors in StepRepository
-- **Corrected Field References**: Fixed master vs instance ID filtering patterns
-- **Enhanced Labels Integration**: Added proper many-to-many label-step relationship handling
-- **Database Field Selection**: Ensured all referenced fields are included in SQL queries
-
-### 2025-07-04: Full Attribute Replication (Migration 010)
-
-- **Instance Tables Enhancement**: Added full attribute replication to all instance tables:
-  - `sequences_instance_sqi`: Added `sqi_name`, `sqi_description`, `sqi_order`, `predecessor_sqi_id`
-  - `phases_instance_phi`: Added `phi_order`, `phi_name`, `phi_description`, `predecessor_phi_id`
-  - `steps_instance_sti`: Added `sti_name`, `sti_description`, `sti_duration_minutes`, `sti_id_predecessor`, `enr_id_target`
-  - `instructions_instance_ini`: Added `ini_order`, `ini_body`, `ini_duration_minutes`, `tms_id`, `cti_id`
-  - `controls_instance_cti`: Added `cti_order`, `cti_name`, `cti_description`, `cti_type`, `cti_is_critical`, `cti_code`
-- **Override Capability**: Enables per-instance overrides, auditability, and future promotion capabilities
-- **See**: [ADR-029](../adr/ADR-029-full-attribute-instantiation-instance-tables.md) for design rationale
-
-### 2025-07-02: Labels and Team Membership
-
-- **Labels System**: Created `labels_lbl` table with migration-scoped labels
-- **Step-Label Association**: Added `labels_lbl_x_steps_master_stm` join table for step labeling
-- **Application Labels**: Added `labels_lbl_x_applications_app` for application labeling
-- **Team Membership Refactor**: Introduced `teams_tms_x_users_usr` for N-N user-team membership
-- **Schema Cleanup**: Dropped `tms_id` column from `users_usr` table
-- **Comments System**: Added `step_pilot_comments_spc` and `step_instance_comments_sic` tables
-
-### 2025-06-24: Controls Enhancement
-
-- **Control Codes**: Added `ctm_code` field to `controls_master_ctm` for business identifiers
-- **Label-Control Association**: Added `labels_lbl_x_controls_master_ctm` join table
-
-All changes are reflected in this document and the ERD.
-
----
-
-## 9. Implementation Patterns & Best Practices
-
-### 9.1. Type Safety in Repository Methods
-
-All repository methods must use explicit type casting when handling query parameters:
-
-```groovy
-// CORRECT - Explicit casting for type safety
-if (filters.migrationId) {
-    query += ' AND mig.mig_id = :migrationId'
-    params.migrationId = UUID.fromString(filters.migrationId as String)
-}
-
-if (filters.teamId) {
-    query += ' AND stm.tms_id_owner = :teamId'
-    params.teamId = Integer.parseInt(filters.teamId as String)
-}
-```
-
-### 9.2. Master vs Instance ID Filtering
-
-Always use instance IDs for hierarchical filtering to ensure correct step retrieval:
-
-```groovy
-// CORRECT - filters by instance IDs
-query += ' AND pli.pli_id = :planId'     // plan instance
-query += ' AND sqi.sqi_id = :sequenceId' // sequence instance
-query += ' AND phi.phi_id = :phaseId'    // phase instance
-
-// INCORRECT - filters by master IDs (will miss steps)
-query += ' AND plm.plm_id = :planId'     // plan master
-```
-
-### 9.3. Complete Field Selection
-
-All SQL queries must include ALL fields referenced in result mapping:
-
-```groovy
-// CORRECT - includes stm.stm_id for mapping
-SELECT sti.sti_id, stm.stm_id, stm.stt_code, stm.stm_number, ...
-
-// INCORRECT - missing stm.stm_id causes "No such property" error
-SELECT sti.sti_id, stm.stt_code, stm.stm_number, ...
-```
-
-### 9.4. Many-to-Many Relationship Handling
-
-Handle optional many-to-many relationships gracefully:
-
-```groovy
-// Graceful label fetching with error handling
-def stepLabels = []
-try {
-    def stmId = step.stmId instanceof UUID ? step.stmId : UUID.fromString(step.stmId.toString())
-    stepLabels = stepRepository.findLabelsByStepId(stmId)
-} catch (Exception e) {
-    stepLabels = [] // Continue with empty labels if fetching fails
-}
-```
-
-### 9.5. Active User Filtering Pattern
-
-Handle active status filtering with proper validation:
-
-```groovy
-// Active filter parameter validation
-Boolean activeFilter = null
-if (active) {
-    if (active.toString().toLowerCase() in ['true', 'false']) {
-        activeFilter = Boolean.parseBoolean(active as String)
-    } else {
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder([error: "Invalid active parameter. Must be true or false"]).toString()).build()
-    }
-}
-
-// Apply active filter in WHERE clause
-if (activeFilter != null) {
-    whereConditions.add("u.usr_active = :activeFilter")
-    params.activeFilter = activeFilter
-}
-```
-
-### 9.6. Audit Fields Handling Pattern
-
-Properly manage audit fields in create and update operations:
-
-```groovy
-// CREATE operation - set all audit fields
-def currentUserCode = getUserCode(currentUserEmail) ?: 'system'  // Get trigram
-def now = new Timestamp(System.currentTimeMillis())
-
-params.created_by = currentUserCode  // User trigram (e.g., 'JDS')
-params.created_at = now
-params.updated_by = currentUserCode  // User trigram
-params.updated_at = now  // Will be auto-updated by trigger on subsequent updates
-
-// UPDATE operation - only set updated_by (updated_at handled by trigger)
-params.updated_by = currentUserCode  // User trigram
-// updated_at is automatically set by PostgreSQL trigger
-
-// Helper function to get user trigram from email
-def getUserCode(String email) {
-    def result = DatabaseUtil.withSql { sql ->
-        sql.firstRow('SELECT usr_code FROM users_usr WHERE usr_email = ?', [email])
-    }
-    return result?.usr_code ?: 'system'
-}
-
-// Utility class usage (AuditFieldsUtil.groovy - if created)
-import umig.utils.AuditFieldsUtil
-
-// For create operations
-def auditFields = AuditFieldsUtil.getCreateAuditFields(currentUserCode)
-params.putAll(auditFields)
-
-// For update operations
-def updateFields = AuditFieldsUtil.getUpdateAuditFields(currentUserCode)
-params.putAll(updateFields)
-
-// Association table audit patterns
-// Tier 1 - Critical (full audit)
-sql.execute("""
-    INSERT INTO teams_tms_x_users_usr (tms_id, usr_id, created_at, created_by)
-    VALUES (?, ?, CURRENT_TIMESTAMP, ?)
-""", [teamId, userId, currentUserCode])
-
-// Tier 2 - Standard (minimal audit)
-sql.execute("""
-    INSERT INTO teams_tms_x_applications_app (tms_id, app_id, created_at)
-    VALUES (?, ?, CURRENT_TIMESTAMP)
-""", [teamId, appId])
-
-// Tier 3 - Simple (no audit)
-sql.execute("""
-    INSERT INTO environments_env_x_applications_app (env_id, app_id)
-    VALUES (?, ?)
-""", [envId, appId])
-```
+For detailed audit field implementation patterns and usage guidance, see [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md).
 
 ---
 
 ## 10. References & Further Reading
 
-- [ADR-029: Full Attribute Instantiation Instance Tables](../adr/ADR-029-full-attribute-instantiation-instance-tables.md)
-- [ADR-031: Groovy Type Safety and Filtering Patterns](../adr/ADR-031-groovy-type-safety-and-filtering-patterns.md)
-- [ADR-022: User-Team N-N Relationship](../adr/ADR-022-user-team-nn-relationship.md)
-- [Solution Architecture Documentation](../solution-architecture.md)
-- [Project README](../../README.md)
+### Related Documentation
+
+- **[UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md)** - Complete implementation patterns, query optimization, performance guidelines, and best practices
+- [ADR-029: Full Attribute Instantiation Instance Tables](../adr/ADR-029-full-attribute-instantiation-instance-tables.md) - Design rationale for instance table denormalization
+- [ADR-031: Groovy Type Safety and Filtering Patterns](../adr/ADR-031-groovy-type-safety-and-filtering-patterns.md) - Type safety implementation standards
+- [ADR-022: User-Team N-N Relationship](../adr/ADR-022-user-team-nn-relationship.md) - Team membership architecture decisions
+- [Solution Architecture Documentation](../solution-architecture.md) - Overall system architecture and 40+ consolidated ADRs
+
+### Schema-Specific Documentation
+
+- [System Configuration Schema](../database/system-configuration-schema.md) - Detailed configuration management implementation
+- [Instructions Schema Documentation](./instructions-schema-documentation.md) - Production-ready instructions implementation
+
+### API Documentation & Testing
+
+- [OpenAPI Specification](../api/openapi.yaml) - Complete API documentation
+- [SystemConfigurationApi Reference](../../src/groovy/umig/api/v2/SystemConfigurationApi.groovy)
+- [SystemConfigurationRepository](../../src/groovy/umig/repository/SystemConfigurationRepository.groovy)
+- [Database Quality Validation](../testing/QUALITY_CHECK_PROCEDURES.md)
+- [Testing Framework Documentation](../testing/README.md)

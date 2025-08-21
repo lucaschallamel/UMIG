@@ -20,7 +20,9 @@ const axios = require("axios");
 // Configuration
 const CONFIG = {
   openApiPath: "./openapi.yaml",
-  baseUrl: process.env.UMIG_BASE_URL || "http://localhost:8090/rest/scriptrunner/latest/custom/umig",
+  baseUrl:
+    process.env.UMIG_BASE_URL ||
+    "http://localhost:8090/rest/scriptrunner/latest/custom/umig",
   timeout: parseInt(process.env.UMIG_TIMEOUT) || 10000,
   maxRetries: parseInt(process.env.UMIG_MAX_RETRIES) || 3,
   outputPath: process.env.UMIG_OUTPUT_PATH || "./validation-report.json",
@@ -190,7 +192,8 @@ class EndpointValidator {
 
     try {
       // Test endpoint availability
-      const authHeader = "Basic " + Buffer.from(CONFIG.credentials).toString("base64");
+      const authHeader =
+        "Basic " + Buffer.from(CONFIG.credentials).toString("base64");
       const response = await this.axiosInstance({
         method: method.toLowerCase(),
         url,
@@ -236,7 +239,8 @@ class EndpointValidator {
     }
 
     try {
-      const authHeader = "Basic " + Buffer.from(CONFIG.credentials).toString("base64");
+      const authHeader =
+        "Basic " + Buffer.from(CONFIG.credentials).toString("base64");
       const response = await this.axiosInstance({
         method: method.toLowerCase(),
         url: `${this.baseUrl}${endpoint}`,
@@ -287,7 +291,8 @@ class EndpointValidator {
       });
 
       // Test with invalid authentication
-      const invalidAuthHeader = "Basic " + Buffer.from("invalid:invalid").toString("base64");
+      const invalidAuthHeader =
+        "Basic " + Buffer.from("invalid:invalid").toString("base64");
       const invalidAuthResponse = await this.axiosInstance({
         method: method.toLowerCase(),
         url: `${this.baseUrl}${endpoint}`,
@@ -298,7 +303,8 @@ class EndpointValidator {
       });
 
       // Test with valid authentication
-      const validAuthHeader = "Basic " + Buffer.from(CONFIG.credentials).toString("base64");
+      const validAuthHeader =
+        "Basic " + Buffer.from(CONFIG.credentials).toString("base64");
       const validAuthResponse = await this.axiosInstance({
         method: method.toLowerCase(),
         url: `${this.baseUrl}${endpoint}`,

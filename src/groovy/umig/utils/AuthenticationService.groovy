@@ -5,6 +5,8 @@ import com.atlassian.user.User
 import com.onresolve.scriptrunner.runner.customisers.WithPlugin
 import com.onresolve.scriptrunner.runner.ScriptRunnerImpl
 import groovy.transform.CompileStatic
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import javax.servlet.http.HttpServletRequest
 
 /**
@@ -14,6 +16,8 @@ import javax.servlet.http.HttpServletRequest
 @WithPlugin("com.atlassian.confluence.plugins.confluence-software-project")
 @CompileStatic
 class AuthenticationService {
+    
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class)
     
     private static final String DEFAULT_SYSTEM_USER = "system"
     private static final String ANONYMOUS_USER = "anonymous"

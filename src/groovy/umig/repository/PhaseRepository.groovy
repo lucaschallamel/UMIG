@@ -486,7 +486,7 @@ class PhaseRepository {
                     }
                     
                     // Resolve status string to status ID
-                    def statusName = overrides.phi_status ?: 'PLANNING'
+                    String statusName = (overrides.phi_status ?: 'PLANNING') as String
                     def statusId = resolvePhaseStatusId(sql, statusName)
                     
                     def instanceData = [
