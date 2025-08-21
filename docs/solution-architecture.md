@@ -1,9 +1,9 @@
 # UMIG Solution Architecture & Design
 
-**Version:** 2025-08-18 (Updated for Sprint 5 Technical Debt Acceleration and US-022 JavaScript Migration Completion)  
+**Version:** 2025-08-21 (Updated for US-036 StepView UI Refactoring Completion and ADR-042 Dual Authentication Context Management)  
 **Maintainers:** UMIG Project Team  
-**Source ADRs:** This document consolidates 41 architectural decisions (26 archived + 15 newly consolidated: ADR-027 through ADR-041). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
-**Latest Updates:** ADR-041 Technical Debt Prioritization Methodology for Sprint 5 scope expansion (August 18, 2025), US-022 JavaScript migration framework completion with 53% code reduction and enhanced cross-platform support (August 18, 2025), Sprint 5 technical debt acceleration decision moving US-037 from Sprint 6 (August 18, 2025), US-028 Enhanced IterationView Phase 1 completion with StepsAPIv2Client, real-time synchronization, and role-based access control (August 15, 2025), US-024 Steps API refactoring with enhanced error handling framework and testing consolidation (August 14, 2025), US-025 Phase 4 migrations API refactoring completion with 100% integration test success (August 11, 2025), Enhanced Postman collection generation with authentication pre-configuration, Complete OpenAPI specification updates with 17 endpoints across 4 categories, Dashboard endpoints implementation for migration monitoring, Bulk operations support for export and status management, US-032 Confluence upgrade to 9.2.7 + ScriptRunner 9.21.0 with infrastructure reorganization (August 8, 2025)
+**Source ADRs:** This document consolidates 42 architectural decisions (26 archived + 16 newly consolidated: ADR-027 through ADR-042). For full historical context, see the original ADRs in `/docs/adr/archive/`.  
+**Latest Updates:** US-036 StepView UI Refactoring 100% completion with comment system parity, RBAC implementation, and production-ready email notification system (August 21, 2025), ADR-042 Dual Authentication Context Management implementing separation of platform authorization from application audit logging (August 21, 2025), Email notification infrastructure with SystemConfigurationApi, EnhancedEmailService, and UrlConstructionService (August 21, 2025), BGO-002 audit logging entity type corrections (INSTRUCTION_INSTANCE vs STEP_INSTANCE) (August 21, 2025), ADR-041 Technical Debt Prioritization Methodology for Sprint 5 scope expansion (August 18, 2025), US-022 JavaScript migration framework completion with 53% code reduction and enhanced cross-platform support (August 18, 2025), Sprint 5 technical debt acceleration decision moving US-037 from Sprint 6 (August 18, 2025), US-028 Enhanced IterationView Phase 1 completion with StepsAPIv2Client, real-time synchronization, and role-based access control (August 15, 2025)
 
 ## Consolidated ADR Reference
 
@@ -62,9 +62,9 @@ This document consolidates the following architectural decisions:
 The UMIG application implements comprehensive UI component patterns to ensure visual consistency and optimal user experience:
 
 - **Visual Consistency Methodology**: 40-point validation framework ensuring uniform appearance across all interface components
-- **Standardized CSS Classes**: 
+- **Standardized CSS Classes**:
   - `.pilot-only`: Controls visibility for PILOT role users
-  - `.admin-only`: Controls visibility for ADMIN role users  
+  - `.admin-only`: Controls visibility for ADMIN role users
   - `.metadata-item`: Consistent styling for metadata display components
 - **Role-Based UI Rendering Patterns**: Dynamic interface adaptation based on user roles (NORMAL/PILOT/ADMIN)
 - **Comment System Architecture**: Implements grey background styling (#f5f5f5) with consistent visual hierarchy for user feedback
@@ -88,6 +88,7 @@ The UMIG application implements comprehensive UI component patterns to ensure vi
 ### Security & Access Control
 
 - [ADR-033](../adr/archive/ADR-033-role-based-access-control-implementation.md) - Role-Based Access Control Implementation
+- [ADR-042](../adr/ADR-042-dual-authentication-context-management.md) - Dual Authentication Context Management
 
 #### Dual Authentication Context Management (ADR-042)
 
@@ -1690,7 +1691,7 @@ final Integer recordId = sql.firstRow("SELECT id FROM status") { row ->
 
 - Always cast sql.firstRow() results to Map
 - Use elvis operator for null safety
-- Consider explicit column selection over SELECT *
+- Consider explicit column selection over SELECT \*
 
 ##### Collection Operations Pattern [TST]
 

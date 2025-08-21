@@ -399,7 +399,7 @@ The existing `step-view.js` (968 lines) provides a comprehensive standalone step
    - Phase-level navigation with step context
    - Breadcrumb navigation with clickable elements
 
-3. **Export and Documentation Features** *(Note: Email content export moved to US-039)*
+3. **Export and Documentation Features** _(Note: Email content export moved to US-039)_
    - ~~PDF export for step details with formatting~~ → Moved to US-039
    - ~~Print-friendly view with optimized layout~~ → Moved to US-039
    - Step data export in CSV/JSON formats (local use only)

@@ -140,6 +140,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 **Key Changes**:
 
 1. **Enhanced Email Templates**:
+
    ```html
    <!-- Mobile-responsive HTML email templates with table-based layouts -->
    <!-- Inlined CSS for maximum email client compatibility -->
@@ -147,6 +148,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
    ```
 
 2. **Content Formatting Service**:
+
    ```groovy
    // Implement step content formatting for email rendering
    // HTML sanitization and security validation
@@ -155,6 +157,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
    ```
 
 3. **Mobile-Responsive Layout**:
+
    ```css
    /* Responsive design using media queries and table-based layouts */
    /* Touch-friendly button sizing and spacing */
@@ -177,6 +180,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 **Key Changes**:
 
 1. **StepsApi.groovy Enhancement**:
+
    ```groovy
    // Replace standard email service calls with enhanced content-aware versions
    // Extract migration and iteration context from step hierarchy
@@ -185,6 +189,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
    ```
 
 2. **Content Retrieval Logic**:
+
    ```groovy
    // Implement comprehensive step data retrieval including instructions
    // Format instruction content for email rendering with HTML safety
@@ -283,6 +288,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 ## Dependencies
 
 ### Prerequisites
+
 - ✅ **system_configuration_scf table**: Created and populated with environment configurations
 - ✅ **UrlConstructionService**: Implemented and tested
 - ✅ **EnhancedEmailService**: Implemented with URL integration capabilities
@@ -290,10 +296,12 @@ The scope expansion recognizes that modern users often work primarily from mobil
 - ✅ **Database schema**: Liquibase migrations completed
 
 ### Parallel Work
+
 - **US-031**: Admin GUI Complete Integration (will provide configuration management interface)
 - **US-033**: Main Dashboard UI (may benefit from email notification status monitoring)
 
 ### Follow-up Stories
+
 - **Analytics Dashboard**: Email notification performance and click-through metrics
 - **Advanced Notifications**: Additional notification types with URL integration
 - **Mobile Optimization**: Mobile-specific email templates and responsive URL handling
@@ -399,6 +407,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 ## Definition of Done
 
 ### Content Rendering Development Complete
+
 - [ ] Mobile-responsive HTML email templates implemented with table-based layouts
 - [ ] Step content formatting service implemented with HTML sanitization
 - [ ] Complete step information rendering (name, status, description, instructions)
@@ -407,6 +416,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 - [ ] Template variable enhancement for step metadata and content
 
 ### API Integration Development Complete
+
 - [ ] StepsApi.groovy enhanced with content-aware email notification calls
 - [ ] Complete step and instruction data retrieval from database
 - [ ] Migration and iteration context extraction implemented
@@ -415,6 +425,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 - [ ] Graceful fallback mechanisms implemented for content retrieval failures
 
 ### Testing Complete
+
 - [ ] Unit tests achieving >95% coverage for content formatting and rendering code
 - [ ] Integration tests validating end-to-end email notification flow with full content
 - [ ] Email client compatibility tests across mobile and desktop platforms
@@ -424,6 +435,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 - [ ] Plain text fallback validation for text-only email clients
 
 ### Admin Interface Complete
+
 - [ ] System configuration management added to Admin GUI
 - [ ] Email template preview functionality with sample step content
 - [ ] Mobile/desktop view toggle for template testing
@@ -432,6 +444,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 - [ ] Health check dashboard with content retrieval performance metrics
 
 ### Production Ready
+
 - [ ] Production environment configurations validated and updated
 - [ ] Step and instruction content retrieval performance validated in production
 - [ ] Mobile-responsive email delivery tested across different email clients
@@ -440,6 +453,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 - [ ] Rollback procedures documented and tested
 
 ### Quality Assurance
+
 - [ ] Code review completed focusing on content security and mobile compatibility
 - [ ] Performance benchmarking completed with full content payload across environments
 - [ ] Cross-platform email client compatibility validated (8+ clients tested)
@@ -449,6 +463,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 - [ ] Documentation updated including content rendering specifications
 
 ### User Acceptance
+
 - [ ] UAT completed with migration team members across multiple devices
 - [ ] Email content readability validated on mobile devices
 - [ ] Full step information accessibility confirmed without Confluence navigation
@@ -463,7 +478,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
 The following components are already implemented and tested:
 
 1. **Database Schema**: system_configuration_scf table with environment configurations
-2. **URL Construction**: UrlConstructionService with security validation and caching  
+2. **URL Construction**: UrlConstructionService with security validation and caching
 3. **Enhanced Email Service**: EnhancedEmailService with URL integration capabilities
 4. **Basic Email Templates**: Updated templates supporting URL variables (requires mobile enhancement)
 5. **Documentation**: Comprehensive deployment guide and architecture documentation

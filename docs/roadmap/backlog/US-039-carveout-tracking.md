@@ -11,17 +11,20 @@ Email content features originally planned in US-036 (StepView UI Refactoring) ha
 ## Features Moved from US-036 to US-039
 
 ### 1. Email Content Export Features
+
 - **PDF export for step details** - Now part of US-039 Phase 0 (email template enhancement)
 - **Print-friendly view with optimized layout** - Transformed into mobile-responsive email templates
 - **Step data export for email distribution** - Incorporated into comprehensive email content
 
 ### 2. Mobile-Responsive Email Templates
+
 - **Complete step details rendering** in email body
 - **All detailed instructions** (excluding comments) formatted for email
 - **Mobile-friendly responsive design** (320px-1024px width support)
 - **Cross-platform email client compatibility** (8+ email clients)
 
 ### 3. Content Formatting Features
+
 - **HTML sanitization** for security while preserving formatting
 - **Progressive enhancement** with plain text fallbacks
 - **Touch-friendly interfaces** for mobile email clients
@@ -30,11 +33,13 @@ Email content features originally planned in US-036 (StepView UI Refactoring) ha
 ## Scope Impact
 
 ### US-036 (StepView UI Refactoring)
+
 - **Original Points**: 3 points
 - **Remaining Scope**: 3 points (unchanged, focused on UI within Confluence)
 - **Status**: Email export features removed, focus on in-app experience
 
 ### US-039 (Enhanced Email Notifications)
+
 - **Original Points**: 3 points (clickable links only)
 - **Updated Points**: 5 points (full step content + clickable links)
 - **New Effort**: 34 hours (increased from 22 hours)
@@ -43,13 +48,16 @@ Email content features originally planned in US-036 (StepView UI Refactoring) ha
 ## Technical Changes
 
 ### New Phase 0 Added to US-039
+
 **Email Template Enhancement** (12 hours)
+
 - Mobile-responsive HTML templates
 - Content formatting service implementation
 - Template variable enhancement for step metadata
 - Cross-client compatibility testing
 
 ### API Integration Updates
+
 - Enhanced data retrieval for complete step content
 - Instruction formatting for email rendering
 - Security validation for HTML content
