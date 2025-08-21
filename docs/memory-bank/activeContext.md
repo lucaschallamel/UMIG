@@ -166,6 +166,7 @@
    - Comment API endpoint URLs fixed
 
 **Architectural Patterns Established**:
+
 - **Direct API Integration Pattern**: Bypass caching for reliability
 - **RBAC Security Pattern**: null handling for unknown users
 - **CSS Consistency Pattern**: Shared stylesheets approach
@@ -176,6 +177,7 @@
 **Files Modified**: step-view.js (500+ lines), stepViewMacro.groovy, StepsApi.groovy, StepRepository.groovy
 
 **Remaining Work (20%)**:
+
 - Final integration testing across all user roles
 - Mobile responsiveness validation
 - Performance optimization review

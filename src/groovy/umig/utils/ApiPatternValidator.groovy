@@ -24,7 +24,7 @@ class ApiPatternValidator {
      * @return ValidationResult with compliance status and recommendations
      */
     static Map validateApiPattern(String apiFilePath) {
-        def validationResult = [
+        Map<String, Object> validationResult = [
             compliant: true,
             score: 0,
             maxScore: 0,
@@ -55,19 +55,25 @@ class ApiPatternValidator {
             validateSecurityGroups(apiContent, validationResult)
             
             // Calculate compliance score
-            validationResult.score = validationResult.patterns.values().sum { it ? 1 : 0 }
-            validationResult.compliant = (validationResult.score >= validationResult.maxScore * 0.9)
+            Map<String, Boolean> patterns = validationResult.patterns as Map<String, Boolean>
+            validationResult.score = patterns.values().sum { it ? 1 : 0 } as Integer
+            Integer score = validationResult.score as Integer
+            Integer maxScore = validationResult.maxScore as Integer
+            BigDecimal threshold = maxScore * 0.9
+            validationResult.compliant = (score >= threshold)
             
         } catch (Exception e) {
             validationResult.compliant = false
-            validationResult.issues << "Failed to validate API: ${e.message}"
+            List<String> issues = validationResult.issues as List<String>
+            issues.add("Failed to validate API: ${e.message}".toString())
         }
         
         return validationResult
     }
     
     private static void validateHttpMethods(String apiContent, Map validationResult) {
-        validationResult.maxScore += 4
+        Integer currentMaxScore = validationResult.maxScore as Integer
+        validationResult.maxScore = currentMaxScore + 4
         
         REQUIRED_HTTP_METHODS.each { method ->
             def pattern = Pattern.compile("${Pattern.quote(method.toLowerCase())}\\s*:\\s*[\"']${method}[\"']")
@@ -75,22 +81,27 @@ class ApiPatternValidator {
                 validationResult.patterns["${method}_method"] = true
             } else {
                 validationResult.patterns["${method}_method"] = false
-                validationResult.issues << "Missing ${method} method implementation"
-                validationResult.recommendations << "Add ${method} method following PlansApi pattern"
+                List<String> issues = validationResult.issues as List<String>
+                issues.add("Missing ${method} method implementation".toString())
+                List<String> recommendations = validationResult.recommendations as List<String>
+                recommendations.add("Add ${method} method following PlansApi pattern".toString())
             }
         }
     }
     
     private static void validateEndpointStructure(String apiContent, Map validationResult) {
-        validationResult.maxScore += 6
+        Integer currentMaxScore = validationResult.maxScore as Integer
+        validationResult.maxScore = currentMaxScore + 6
         
         // Check for path parsing
         if (apiContent.contains("getAdditionalPath(request)?.tokenize('/')")) {
             validationResult.patterns["path_parsing"] = true
         } else {
             validationResult.patterns["path_parsing"] = false
-            validationResult.issues << "Missing standard path parsing logic"
-            validationResult.recommendations << "Implement getAdditionalPath(request)?.tokenize('/') pattern"
+            List<String> issues = validationResult.issues as List<String>
+            issues << "Missing standard path parsing logic"
+            List<String> recommendations = validationResult.recommendations as List<String>
+            recommendations << "Implement getAdditionalPath(request)?.tokenize('/') pattern"
         }
         
         // Check for master/instance pattern
@@ -98,8 +109,10 @@ class ApiPatternValidator {
             validationResult.patterns["master_instance_pattern"] = true
         } else {
             validationResult.patterns["master_instance_pattern"] = false
-            validationResult.issues << "Missing master/instance endpoint pattern"
-            validationResult.recommendations << "Implement master/instance URL pattern like PlansApi"
+            List<String> issues = validationResult.issues as List<String>
+            issues.add("Missing master/instance endpoint pattern")
+            List<String> recommendations = validationResult.recommendations as List<String>
+            recommendations.add("Implement master/instance URL pattern like PlansApi")
         }
         
         // Check for consolidated API approach
@@ -107,8 +120,10 @@ class ApiPatternValidator {
             validationResult.patterns["consolidated_approach"] = true
         } else {
             validationResult.patterns["consolidated_approach"] = false
-            validationResult.issues << "Not following consolidated API approach"
-            validationResult.recommendations << "Implement consolidated master/instance pattern"
+            List<String> issues = validationResult.issues as List<String>
+            issues.add("Not following consolidated API approach")
+            List<String> recommendations = validationResult.recommendations as List<String>
+            recommendations.add("Implement consolidated master/instance pattern")
         }
         
         // Check for status update pattern
@@ -116,8 +131,9 @@ class ApiPatternValidator {
             validationResult.patterns["status_update_pattern"] = true
         } else {
             validationResult.patterns["status_update_pattern"] = false
-            validationResult.issues << "Missing status update endpoint pattern"
-            validationResult.recommendations << "Add /{id}/status endpoint for status updates"
+            (validationResult.issues as List<String>).add("Missing status update endpoint pattern")
+            List<String> recommendations = validationResult.recommendations as List<String>
+            recommendations.add("Add /{id}/status endpoint for status updates")
         }
         
         // Check for filtering support
@@ -125,8 +141,9 @@ class ApiPatternValidator {
             validationResult.patterns["filtering_support"] = true
         } else {
             validationResult.patterns["filtering_support"] = false
-            validationResult.issues << "Missing hierarchical filtering support"
-            validationResult.recommendations << "Implement query parameter filtering like PlansApi"
+            (validationResult.issues as List<String>).add("Missing hierarchical filtering support")
+            List<String> recommendations = validationResult.recommendations as List<String>
+            recommendations.add("Implement query parameter filtering like PlansApi")
         }
         
         // Check for proper JSON responses
@@ -134,13 +151,15 @@ class ApiPatternValidator {
             validationResult.patterns["json_responses"] = true
         } else {
             validationResult.patterns["json_responses"] = false
-            validationResult.issues << "Missing proper JSON response formatting"
-            validationResult.recommendations << "Use JsonBuilder with application/json headers"
+            (validationResult.issues as List<String>).add("Missing proper JSON response formatting")
+            List<String> recommendations = validationResult.recommendations as List<String>
+            recommendations.add("Use JsonBuilder with application/json headers")
         }
     }
     
     private static void validateRepositoryPattern(String apiContent, Map validationResult) {
-        validationResult.maxScore += 3
+        Integer currentMaxScore = validationResult.maxScore as Integer
+        validationResult.maxScore = currentMaxScore + 3
         
         // Check for lazy repository loading (ScriptRunner pattern)
         if (apiContent.contains("def get") && apiContent.contains("Repository()") && 
@@ -148,8 +167,8 @@ class ApiPatternValidator {
             validationResult.patterns["lazy_repository_loading"] = true
         } else {
             validationResult.patterns["lazy_repository_loading"] = false
-            validationResult.issues << "Missing lazy repository loading pattern"
-            validationResult.recommendations << "Implement lazy repository loading for ScriptRunner compatibility"
+            (validationResult.issues as List<String>).add("Missing lazy repository loading pattern")
+            (validationResult.recommendations as List<String>).add("Implement lazy repository loading for ScriptRunner compatibility")
         }
         
         // Check for repository method usage
@@ -158,8 +177,8 @@ class ApiPatternValidator {
             validationResult.patterns["repository_methods"] = true
         } else {
             validationResult.patterns["repository_methods"] = false
-            validationResult.issues << "Missing repository method calls"
-            validationResult.recommendations << "Use repository methods for data access"
+            (validationResult.issues as List<String>).add("Missing repository method calls")
+            (validationResult.recommendations as List<String>).add("Use repository methods for data access")
         }
         
         // Check for transaction handling
@@ -167,21 +186,22 @@ class ApiPatternValidator {
             validationResult.patterns["transaction_handling"] = true
         } else {
             validationResult.patterns["transaction_handling"] = false
-            validationResult.issues << "Missing transaction handling"
-            validationResult.recommendations << "Use DatabaseUtil.withSql for transaction safety"
+            (validationResult.issues as List<String>).add("Missing transaction handling")
+            (validationResult.recommendations as List<String>).add("Use DatabaseUtil.withSql for transaction safety")
         }
     }
     
     private static void validateErrorHandling(String apiContent, Map validationResult) {
-        validationResult.maxScore += 4
+        Integer currentMaxScore = validationResult.maxScore as Integer
+        validationResult.maxScore = currentMaxScore + 4
         
         // Check for try-catch blocks
         if (apiContent.contains("try {") && apiContent.contains("} catch")) {
             validationResult.patterns["exception_handling"] = true
         } else {
             validationResult.patterns["exception_handling"] = false
-            validationResult.issues << "Missing exception handling"
-            validationResult.recommendations << "Add try-catch blocks for all operations"
+            (validationResult.issues as List<String>).add("Missing exception handling")
+            (validationResult.recommendations as List<String>).add("Add try-catch blocks for all operations")
         }
         
         // Check for proper HTTP status codes
@@ -189,8 +209,8 @@ class ApiPatternValidator {
             validationResult.patterns["http_status_codes"] = true
         } else {
             validationResult.patterns["http_status_codes"] = false
-            validationResult.issues << "Missing proper HTTP status codes"
-            validationResult.recommendations << "Use appropriate HTTP status codes (404, 500, etc.)"
+            (validationResult.issues as List<String>).add("Missing proper HTTP status codes")
+            (validationResult.recommendations as List<String>).add("Use appropriate HTTP status codes (404, 500, etc.)")
         }
         
         // Check for error message structure
@@ -198,8 +218,8 @@ class ApiPatternValidator {
             validationResult.patterns["error_message_structure"] = true
         } else {
             validationResult.patterns["error_message_structure"] = false
-            validationResult.issues << "Missing structured error messages"
-            validationResult.recommendations << "Use structured error responses with error and details fields"
+            (validationResult.issues as List<String>).add("Missing structured error messages")
+            (validationResult.recommendations as List<String>).add("Use structured error responses with error and details fields")
         }
         
         // Check for logging
@@ -207,21 +227,22 @@ class ApiPatternValidator {
             validationResult.patterns["error_logging"] = true
         } else {
             validationResult.patterns["error_logging"] = false
-            validationResult.issues << "Missing error logging"
-            validationResult.recommendations << "Add log.error statements for exception handling"
+            (validationResult.issues as List<String>).add("Missing error logging")
+            (validationResult.recommendations as List<String>).add("Add log.error statements for exception handling")
         }
     }
     
     private static void validateTypeSafety(String apiContent, Map validationResult) {
-        validationResult.maxScore += 3
+        Integer currentMaxScore = validationResult.maxScore as Integer
+        validationResult.maxScore = currentMaxScore + 3
         
         // Check for UUID casting (ADR-031)
         if (apiContent.contains("UUID.fromString") && apiContent.contains("as String")) {
             validationResult.patterns["uuid_type_safety"] = true
         } else {
             validationResult.patterns["uuid_type_safety"] = false
-            validationResult.issues << "Missing UUID type safety casting"
-            validationResult.recommendations << "Use UUID.fromString(param as String) for all UUID parameters"
+            (validationResult.issues as List<String>).add("Missing UUID type safety casting")
+            (validationResult.recommendations as List<String>).add("Use UUID.fromString(param as String) for all UUID parameters")
         }
         
         // Check for Integer casting
@@ -229,8 +250,8 @@ class ApiPatternValidator {
             validationResult.patterns["integer_type_safety"] = true
         } else {
             validationResult.patterns["integer_type_safety"] = false
-            validationResult.issues << "Missing Integer type safety casting"
-            validationResult.recommendations << "Use Integer.parseInt(param as String) for integer parameters"
+            (validationResult.issues as List<String>).add("Missing Integer type safety casting")
+            (validationResult.recommendations as List<String>).add("Use Integer.parseInt(param as String) for integer parameters")
         }
         
         // Check for explicit casting pattern
@@ -238,21 +259,22 @@ class ApiPatternValidator {
             validationResult.patterns["explicit_casting"] = true
         } else {
             validationResult.patterns["explicit_casting"] = false
-            validationResult.issues << "Missing explicit type casting"
-            validationResult.recommendations << "Use explicit casting (as String, as Integer) for all parameters"
+            (validationResult.issues as List<String>).add("Missing explicit type casting")
+            (validationResult.recommendations as List<String>).add("Use explicit casting (as String, as Integer) for all parameters")
         }
     }
     
     private static void validateSecurityGroups(String apiContent, Map validationResult) {
-        validationResult.maxScore += 2
+        Integer currentMaxScore = validationResult.maxScore as Integer
+        validationResult.maxScore = currentMaxScore + 2
         
         // Check for security groups
         if (apiContent.contains('groups: ["confluence-users"]')) {
             validationResult.patterns["user_security_groups"] = true
         } else {
             validationResult.patterns["user_security_groups"] = false
-            validationResult.issues << "Missing user security groups"
-            validationResult.recommendations << 'Add groups: ["confluence-users"] to all user endpoints'
+            (validationResult.issues as List<String>).add("Missing user security groups")
+            (validationResult.recommendations as List<String>).add('Add groups: ["confluence-users"] to all user endpoints')
         }
         
         // Check for admin security groups
@@ -260,8 +282,8 @@ class ApiPatternValidator {
             validationResult.patterns["admin_security_groups"] = true
         } else {
             validationResult.patterns["admin_security_groups"] = false
-            validationResult.issues << "Missing admin security groups for DELETE operations"
-            validationResult.recommendations << 'Add groups: ["confluence-administrators"] to DELETE endpoints'
+            (validationResult.issues as List<String>).add("Missing admin security groups for DELETE operations")
+            (validationResult.recommendations as List<String>).add('Add groups: ["confluence-administrators"] to DELETE endpoints')
         }
     }
     
@@ -269,7 +291,7 @@ class ApiPatternValidator {
      * Generates a compliance report for multiple APIs
      */
     static Map generateComplianceReport(List<String> apiFiles) {
-        def report = [
+        Map<String, Object> report = [
             totalAPIs: apiFiles.size(),
             compliantAPIs: 0,
             averageScore: 0,
@@ -277,22 +299,32 @@ class ApiPatternValidator {
             apiResults: [:]
         ]
         
-        def totalScore = 0
+        Integer totalScore = 0
         
         apiFiles.each { apiFile ->
-            def validation = validateApiPattern(apiFile)
+            Map validation = validateApiPattern(apiFile)
             report.apiResults[apiFile] = validation
             
             if (validation.compliant) {
-                report.compliantAPIs++
+                Integer currentCompliant = report.compliantAPIs as Integer
+                report.compliantAPIs = currentCompliant + 1
             }
             
-            totalScore += (validation.score / validation.maxScore) * 100
-            report.overallIssues.addAll(validation.issues)
+            Integer validationScore = validation.score as Integer
+            Integer validationMaxScore = validation.maxScore as Integer
+            BigDecimal scorePercentage = (validationScore / validationMaxScore) * 100
+            totalScore = totalScore + scorePercentage.intValue()
+            List<String> overallIssues = report.overallIssues as List<String>
+            List<String> validationIssues = validation.issues as List<String>
+            overallIssues.addAll(validationIssues)
         }
         
-        report.averageScore = Math.round(totalScore / apiFiles.size())
-        report.complianceRate = Math.round((report.compliantAPIs / report.totalAPIs) * 100)
+        BigDecimal avgScore = totalScore / apiFiles.size()
+        report.averageScore = Math.round(avgScore.doubleValue())
+        Integer compliantAPIs = report.compliantAPIs as Integer
+        Integer totalAPIs = report.totalAPIs as Integer
+        BigDecimal compliancePercentage = (compliantAPIs / totalAPIs) * 100
+        report.complianceRate = Math.round(compliancePercentage.doubleValue())
         
         return report
     }

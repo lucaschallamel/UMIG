@@ -260,12 +260,14 @@ The UMIG API documentation underwent comprehensive security remediation to elimi
 #### Key Security Improvements
 
 **1. Credential Management Security**
+
 - ✅ **Eliminated hardcoded credentials**: All base64-encoded and plaintext credentials removed from committed code
 - ✅ **Environment variable pattern**: Implemented `UMIG_AUTH_CREDENTIALS` environment variable for secure authentication
 - ✅ **Development fallback**: Safe defaults maintained for local development (`admin:admin`)
 - ✅ **Production ready**: Supports secure credential injection via secret management systems
 
 **2. CDN Security Enhancement**
+
 - ✅ **SRI integrity hashes**: All external CDN resources (Swagger UI, etc.) now include integrity verification
 - ✅ **CORS configuration**: Proper crossorigin attributes prevent CDN-based attacks
 - ✅ **Version pinning**: Dependencies locked to specific versions for stability
@@ -273,12 +275,14 @@ The UMIG API documentation underwent comprehensive security remediation to elimi
 **3. Secure Authentication Patterns**
 
 JavaScript pattern for API clients:
+
 ```javascript
 const credentials = process.env.UMIG_AUTH_CREDENTIALS || "admin:admin";
 const authHeader = "Basic " + Buffer.from(credentials).toString("base64");
 ```
 
 Shell script pattern for testing:
+
 ```bash
 -H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
 ```
@@ -295,11 +299,13 @@ The API uses environment variables for secure configuration. Reference `.env.exa
 #### Security Best Practices
 
 **Development Teams**:
+
 - Configure local environments using `.env.example` as reference
 - Never commit credentials to version control
 - Use environment variables for all authentication
 
 **Production Deployment**:
+
 - Configure environment variables in deployment system
 - Implement proper secret management (Azure Key Vault, AWS Secrets Manager)
 - Establish credential rotation policies

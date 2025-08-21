@@ -3737,9 +3737,15 @@ class StepView {
   }
 
   async handleStatusChange(event) {
-    const newStatus = event.target.value;
+    const newStatusId = event.target.value;
+    // Get the status name from the selected option's data attribute
+    const selectedOption = event.target.options[event.target.selectedIndex];
+    const newStatusName =
+      selectedOption.getAttribute("data-status-name") ||
+      selectedOption.textContent;
+
     console.log(
-      `🔄 StepView: Handling status change to ${newStatus} for step ${this.currentStepCode}`,
+      `🔄 StepView: Handling status change to ${newStatusName} (ID: ${newStatusId}) for step ${this.currentStepCode}`,
     );
 
     if (!this.currentStepInstanceId) {
@@ -3761,7 +3767,7 @@ class StepView {
           },
           credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
-            statusId: parseInt(newStatus),
+            statusId: parseInt(newStatusId),
           }),
         },
       );
@@ -3790,12 +3796,12 @@ class StepView {
       this.cache.clearCache();
 
       // Sync the runsheet status in the left panel
-      this.syncRunsheetStatus(this.currentStepCode, newStatus);
+      this.syncRunsheetStatus(this.currentStepCode, newStatusName);
 
       // Show success notification with enhanced details (matching IterationView pattern)
       const message = result.emailsSent
-        ? `Status updated to ${newStatus}. ${result.emailsSent} notifications sent.`
-        : `Status updated to ${newStatus}`;
+        ? `Status updated to ${newStatusName}. ${result.emailsSent} notifications sent.`
+        : `Status updated to ${newStatusName}`;
       this.showNotification(message, "success");
     } catch (error) {
       console.error("Error updating status:", error);

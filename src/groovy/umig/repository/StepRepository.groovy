@@ -2,6 +2,10 @@ package umig.repository
 
 import umig.utils.DatabaseUtil
 import umig.utils.EmailService
+import umig.utils.AuthenticationService
+// Note: Audit logging is temporarily disabled
+// import umig.repository.InstructionRepository  // Not used
+// import umig.repository.AuditLogRepository      // Temporarily disabled
 import java.util.UUID
 import groovy.sql.Sql
 
@@ -292,7 +296,7 @@ class StepRepository {
                 def oldStatusId = stepInstance.sti_status
                 
                 // Get old status name for notification
-                def oldStatus = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :statusId", [statusId: oldStatusId])?.sts_name
+                def oldStatus = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :oldStatusId", [oldStatusId: oldStatusId])?.sts_name
                 
                 // Update the status with audit fields
                 def updateCount = sql.executeUpdate('''
@@ -320,7 +324,7 @@ class StepRepository {
                     teams, 
                     cutoverTeam as Map,
                     oldStatus as String, 
-                    statusName,
+                    statusName as String,
                     userId
                 )
                 
@@ -455,17 +459,49 @@ class StepRepository {
                     return [success: false, error: "Step instance not found"]
                 }
                 
-                // Mark instruction as completed
+                // Complete instruction directly with audit logging
                 def updateCount = sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
-                    SET ini_is_completed = true,
+                    SET 
+                        ini_is_completed = true,
                         ini_completed_at = CURRENT_TIMESTAMP,
-                        usr_id_completed_by = :userId
-                    WHERE ini_id = :instructionId
-                ''', [userId: userId, instructionId: instructionId])
+                        usr_id_completed_by = :userId,
+                        updated_at = CURRENT_TIMESTAMP,
+                        updated_by = :updatedBy
+                    WHERE ini_id = :iniId AND ini_is_completed = false
+                ''', [iniId: instructionId, userId: userId, updatedBy: AuthenticationService.getSystemUser()])
                 
                 if (updateCount != 1) {
                     return [success: false, error: "Failed to complete instruction"]
+                }
+                
+                // Log to audit trail if update was successful
+                try {
+                    println "StepRepository: Attempting to log instruction completion audit for iniId=${instructionId}, userId=${userId}, stepId=${stepInstanceId}"
+                    
+                    // Inline audit logging to avoid class loading issues
+                    def auditDetails = groovy.json.JsonOutput.toJson([
+                        step_instance_id: stepInstanceId.toString(),
+                        completion_timestamp: new Date().format('yyyy-MM-dd HH:mm:ss')
+                    ])
+                    
+                    sql.execute("""
+                        INSERT INTO audit_log_aud (
+                            usr_id, aud_action, aud_entity_type, aud_entity_id, aud_details
+                        ) VALUES (?, ?, ?, ?, ?::jsonb)
+                    """, [
+                        userId,
+                        'INSTRUCTION_COMPLETED',
+                        'INSTRUCTION_INSTANCE',
+                        instructionId,
+                        auditDetails
+                    ])
+                    
+                    println "StepRepository: Successfully logged instruction completion audit for iniId=${instructionId}"
+                } catch (Exception auditError) {
+                    // Audit logging failure shouldn't break the main flow
+                    println "StepRepository: Failed to log instruction completion audit - ${auditError.message}"
+                    auditError.printStackTrace()
                 }
                 
                 // Get teams for notification - including instruction team
@@ -545,17 +581,58 @@ class StepRepository {
                     return [success: false, error: "Step instance not found"]
                 }
                 
-                // Mark instruction as incomplete
+                // Uncomplete instruction directly with audit logging
+                // First, get the current user info for audit logging
+                def instructionInfo = sql.firstRow('''
+                    SELECT usr_id_completed_by 
+                    FROM instructions_instance_ini 
+                    WHERE ini_id = :iniId AND ini_is_completed = true
+                ''', [iniId: instructionId])
+                
                 def updateCount = sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
-                    SET ini_is_completed = false,
+                    SET 
+                        ini_is_completed = false,
                         ini_completed_at = NULL,
-                        usr_id_completed_by = NULL
-                    WHERE ini_id = :instructionId
-                ''', [instructionId: instructionId])
+                        usr_id_completed_by = NULL,
+                        updated_at = CURRENT_TIMESTAMP,
+                        updated_by = :updatedBy
+                    WHERE ini_id = :iniId AND ini_is_completed = true
+                ''', [iniId: instructionId, updatedBy: AuthenticationService.getSystemUser()])
                 
                 if (updateCount != 1) {
                     return [success: false, error: "Failed to mark instruction as incomplete"]
+                }
+                
+                // Log to audit trail if update was successful
+                try {
+                    // Use the original completing user ID or provided userId for audit logging
+                    def auditUserId = instructionInfo?.usr_id_completed_by as Integer ?: userId
+                    println "StepRepository: Attempting to log instruction uncompletion audit for iniId=${instructionId}, auditUserId=${auditUserId}, stepId=${stepInstanceId}"
+                    
+                    // Inline audit logging to avoid class loading issues
+                    def auditDetails = groovy.json.JsonOutput.toJson([
+                        step_instance_id: stepInstanceId.toString(),
+                        uncomplete_timestamp: new Date().format('yyyy-MM-dd HH:mm:ss')
+                    ])
+                    
+                    sql.execute("""
+                        INSERT INTO audit_log_aud (
+                            usr_id, aud_action, aud_entity_type, aud_entity_id, aud_details
+                        ) VALUES (?, ?, ?, ?, ?::jsonb)
+                    """, [
+                        auditUserId,
+                        'INSTRUCTION_UNCOMPLETED',
+                        'INSTRUCTION_INSTANCE',
+                        instructionId,
+                        auditDetails
+                    ])
+                    
+                    println "StepRepository: Successfully logged instruction uncompletion audit for iniId=${instructionId}"
+                } catch (Exception auditError) {
+                    // Audit logging failure shouldn't break the main flow
+                    println "StepRepository: Failed to log instruction uncompletion audit - ${auditError.message}"
+                    auditError.printStackTrace()
                 }
                 
                 // Get teams for notification - including instruction team

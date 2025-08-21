@@ -1006,6 +1006,26 @@ if (pathParts.size() >= 1) {
 }
 ```
 
+#### @BaseScript Type Checking Limitation
+
+**Known ScriptRunner Limitation:**
+ScriptRunner REST endpoints using `@BaseScript CustomEndpointDelegate` generate a harmless "Failed type checking" warning at line 1. This is an inherent limitation where Groovy's static type checker runs before the `@BaseScript` transformation is applied.
+
+**Warning Message:** `"Not all types of code can be checked, so this doesn't mean your script is not valid"`
+
+**Resolution:** Document and ignore this warning. The script functions correctly in production.
+
+**Example:**
+
+```groovy
+@BaseScript CustomEndpointDelegate delegate
+
+// NOTE: The "Failed type checking" warning at line 1 is an inherent ScriptRunner limitation.
+// It occurs because Groovy's static type checker runs before the @BaseScript transformation
+// is applied, so it cannot resolve CustomEndpointDelegate methods. This warning is harmless
+// and should be ignored - the script functions correctly in production.
+```
+
 #### Complete Field Selection Pattern
 
 **Critical Rule:** Always include ALL fields referenced in result mapping in the SELECT clause:
@@ -2953,16 +2973,18 @@ US-036 evolved from basic UI refactoring into comprehensive StepView enhancement
 **Pattern Decision:** Replicate IterationView's direct API approach over complex caching architectures.
 
 **Implementation:**
+
 ```javascript
 // Direct API pattern for reliability
 function refreshCommentsSection(stepId) {
-    return CommentsAPI.getComments(stepId)
-        .then(comments => renderCommentsWithStyling(comments))
-        .catch(error => handleCommentErrors(error));
+  return CommentsAPI.getComments(stepId)
+    .then((comments) => renderCommentsWithStyling(comments))
+    .catch((error) => handleCommentErrors(error));
 }
 ```
 
 **Benefits:**
+
 - **Reliability**: Eliminates complex caching layer failures
 - **Consistency**: Matches proven IterationView architecture
 - **Maintainability**: Simple, direct integration patterns
@@ -2973,15 +2995,17 @@ function refreshCommentsSection(stepId) {
 **Pattern Decision:** Proper null handling for unknown users vs default role assignment.
 
 **Implementation:**
+
 ```javascript
 function initializeRoleBasedAccess() {
-    // Correct: null for unknown users, not NORMAL default
-    const userRole = getCurrentUserRole(); // null, NORMAL, PILOT, or ADMIN
-    return applyRoleBasedPermissions(userRole);
+  // Correct: null for unknown users, not NORMAL default
+  const userRole = getCurrentUserRole(); // null, NORMAL, PILOT, or ADMIN
+  return applyRoleBasedPermissions(userRole);
 }
 ```
 
 **Security Benefits:**
+
 - **Fail-Safe Design**: Unknown users receive minimal permissions
 - **Role Clarity**: Explicit role detection prevents privilege escalation
 - **Error Prevention**: Robust error handling prevents access control bypass
@@ -2991,6 +3015,7 @@ function initializeRoleBasedAccess() {
 **Pattern Decision:** Shared CSS approach via iteration-view.css for visual consistency.
 
 **Implementation:**
+
 - **Shared Stylesheet**: `iteration-view.css` provides consistent styling
 - **Component Alignment**: StepView matches IterationView visual hierarchy
 - **Maintenance Efficiency**: Single source of truth for UI styling
@@ -3000,6 +3025,7 @@ function initializeRoleBasedAccess() {
 **Pattern Decision:** Systematic INTEGER vs string casting resolution throughout codebase.
 
 **Implementation:**
+
 ```groovy
 // Backend type fixes
 params.userId = Integer.parseInt(userIdString as String)  // Explicit casting
@@ -3007,6 +3033,7 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 ```
 
 **Quality Impact:**
+
 - **Runtime Safety**: Prevents ClassCastException errors
 - **Data Integrity**: Ensures correct database type matching
 - **Testing Reliability**: Consistent type handling across all operations
@@ -3018,7 +3045,8 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Architectural Achievement:** Complete comment system overhaul achieving 100% IterationView parity.
 
 **Technical Implementation:**
-- **Real-time Refresh**: Immediate UI updates on create/edit/delete operations  
+
+- **Real-time Refresh**: Immediate UI updates on create/edit/delete operations
 - **Authentication Integration**: Comprehensive Confluence admin user support
 - **Visual Consistency**: Grey background, proper button positioning
 - **Error Handling**: Robust error reporting with user guidance
@@ -3028,6 +3056,7 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Pattern Decision:** Client-side state management with server synchronization.
 
 **Benefits:**
+
 - **User Experience**: Immediate feedback on all operations
 - **Reliability**: Server state consistency maintained
 - **Performance**: Local state updates with background sync
@@ -3039,13 +3068,15 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Framework Established:** Comprehensive validation checklist for UI component testing.
 
 **Validation Categories:**
+
 - **Visual Consistency**: 100% alignment verification with IterationView
-- **Cross-Role Testing**: NORMAL/PILOT/ADMIN user scenario validation  
+- **Cross-Role Testing**: NORMAL/PILOT/ADMIN user scenario validation
 - **Browser Compatibility**: Chrome, Firefox, Safari, Edge validation
 - **Performance Benchmarking**: Load time and interaction responsiveness
 - **Security Validation**: RBAC implementation comprehensive testing
 
 **Quality Results:**
+
 - **40/40 Validation Points**: 100% success rate achieved
 - **95% Test Coverage**: Maintained throughout scope expansion
 - **Zero Critical Defects**: Quality excellence sustained
@@ -3055,6 +3086,7 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Testing Architecture:** Multi-dimensional validation ensuring consistent experience.
 
 **Matrix Dimensions:**
+
 - **User Roles**: NORMAL, PILOT, ADMIN access patterns
 - **Browsers**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 - **Devices**: Desktop, tablet, mobile responsiveness
@@ -3067,8 +3099,9 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Root Cause:** Testing feedback integration revealed extensive integration issues requiring systematic resolution.
 
 **Contributing Factors:**
+
 1. **Feature Parity Requirements**: Need for 100% IterationView consistency
-2. **Technical Debt Resolution**: Critical bugs blocking system functionality  
+2. **Technical Debt Resolution**: Critical bugs blocking system functionality
 3. **Quality Standards**: Production-ready RBAC and error handling
 4. **Authentication Complexity**: Confluence admin user privilege integration
 
@@ -3077,6 +3110,7 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Achievement:** Managed 3→8-10 point scope expansion while maintaining 95% test coverage and performance targets.
 
 **Success Factors:**
+
 - **Systematic Approach**: Methodical resolution of each integration point
 - **Quality Gates**: Non-negotiable quality standards throughout expansion
 - **Technical Foundation**: Robust architecture patterns supporting complexity
@@ -3089,6 +3123,7 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Business Impact:** Critical StepView functionality delivered for August 28 MVP deadline.
 
 **Capabilities Enabled:**
+
 - **Complete Feature Parity**: StepView provides identical functionality to IterationView
 - **Production Reliability**: Comprehensive error handling prevents system failures
 - **Enhanced User Experience**: Immediate feedback on all operations
@@ -3099,6 +3134,7 @@ params.stepId = UUID.fromString(stepIdString as String)   // UUID handling
 **Architecture Investment:** Established reusable patterns for ongoing development.
 
 **Pattern Library:**
+
 - **Direct API Integration**: Proven reliability pattern for complex UI components
 - **RBAC Security Framework**: Comprehensive role-based access control implementation
 - **CSS Consistency Strategy**: Shared styling approach for visual alignment

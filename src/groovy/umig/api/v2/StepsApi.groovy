@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 import java.util.UUID
+import java.sql.SQLException
 
 /**
  * Steps API - repositories instantiated within methods to avoid class loading issues
@@ -283,7 +284,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             def masterSteps
             
             // Check if migrationId is provided as query parameter
-            def migrationId = queryParams.getFirst("migrationId")
+            def migrationId = queryParams.getFirst("migrationId") as String
             if (migrationId) {
                 try {
                     def migUuid = UUID.fromString(migrationId as String)
@@ -324,7 +325,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /steps/summary - return dashboard summary metrics
     if (pathParts.size() == 1 && pathParts[0] == 'summary') {
         try {
-            def migrationId = queryParams.getFirst("migrationId")
+            def migrationId = queryParams.getFirst("migrationId") as String
             if (!migrationId) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "migrationId parameter is required for summary"]).toString())
@@ -347,7 +348,7 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /steps/progress - return progress tracking data  
     if (pathParts.size() == 1 && pathParts[0] == 'progress') {
         try {
-            def migrationId = queryParams.getFirst("migrationId")
+            def migrationId = queryParams.getFirst("migrationId") as String
             if (!migrationId) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "migrationId parameter is required for progress tracking"]).toString())
@@ -658,7 +659,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             StatusRepository statusRepository = getStatusRepository()
             if (!statusId) {
                 def validStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = validStatuses.collect { "${it.id}=${it.name}" }.join(', ')
+                def statusOptions = validStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "statusId is required", 
@@ -671,7 +672,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             if (!statusRepository.isValidStatusId(statusId, 'Step')) {
                 def validStatusIds = statusRepository.getValidStatusIds('Step')
                 def availableStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = availableStatuses.collect { "${it.id}=${it.name}" }.join(', ')
+                def statusOptions = availableStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "Invalid statusId '${statusId}' for Step entities",
@@ -874,7 +875,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                 userContext = [userId: null, confluenceUsername: "unknown"]
             }
             
-            def userId = userContext?.userId
+            Integer userId = userContext?.userId as Integer
             
             // BACKWARD COMPATIBILITY: Support legacy status field for gradual migration
             StatusRepository statusRepository = getStatusRepository()
@@ -884,10 +885,10 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
                 def statusRecord = statusRepository.findStatusByNameAndType(statusName, 'Step')
                 
                 if (statusRecord) {
-                    statusId = statusRecord.id as Integer
+                    statusId = (statusRecord as Map).id as Integer
                 } else {
                     def availableStatuses = statusRepository.findStatusesByType('Step')
-                    def statusNames = availableStatuses.collect { it.name }.join(', ')
+                    def statusNames = availableStatuses.collect { Map it -> it.name }.join(', ')
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([
                             error: "Invalid status name '${statusName}'. Use statusId instead, or valid status names: ${statusNames}"
@@ -898,7 +899,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             if (!statusId) {
                 def validStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = validStatuses.collect { "${it.id}=${it.name}" }.join(', ')
+                def statusOptions = validStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "Missing required field: statusId", 
@@ -911,7 +912,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             if (!statusRepository.isValidStatusId(statusId, 'Step')) {
                 def validStatusIds = statusRepository.getValidStatusIds('Step')
                 def availableStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = availableStatuses.collect { "${it.id}=${it.name}" }.join(', ')
+                def statusOptions = availableStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "Invalid statusId '${statusId}' for Step entities",
@@ -1046,7 +1047,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 userContext = [userId: null]
             }
             
-            def userId = userContext?.userId
+            Integer userId = userContext?.userId as Integer
             
             // Mark step as opened and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1099,7 +1100,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 userContext = [userId: null]
             }
             
-            def userId = userContext?.userId
+            Integer userId = userContext?.userId as Integer
             
             // Complete instruction and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1157,7 +1158,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 userContext = [userId: null]
             }
             
-            def userId = userContext?.userId
+            Integer userId = userContext?.userId as Integer
             
             // Mark instruction as incomplete and send notifications
             StepRepository stepRepository = getStepRepository()
@@ -1353,7 +1354,7 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                 userContext = [userId: null, confluenceUsername: "unknown"]
             }
             
-            def userId = userContext?.userId
+            Integer userId = userContext?.userId as Integer
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -1435,7 +1436,7 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
                 userContext = [userId: null, confluenceUsername: "unknown"]
             }
             
-            def userId = userContext?.userId
+            Integer userId = userContext?.userId as Integer
             
             if (!commentBody || commentBody.trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -1494,7 +1495,7 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
     if (pathParts.size() == 1) {
         try {
             def commentId = Integer.parseInt(pathParts[0])
-            def userId = 1 // Default to user 1 for now
+            Integer userId = 1 // Default to user 1 for now
             
             StepRepository stepRepository = getStepRepository()
             def success = stepRepository.deleteComment(commentId, userId)
