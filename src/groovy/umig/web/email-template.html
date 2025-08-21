@@ -1,0 +1,752 @@
+<!doctype html>
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:v="urn:schemas-microsoft-com:vml"
+  xmlns:o="urn:schemas-microsoft-com:office:office"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <meta
+      name="format-detection"
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
+
+    <title>{{STEP_CODE}} - {{STEP_NAME}} | UMIG Step Details</title>
+
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:AllowPNG />
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+
+    <style>
+      /* Email-safe CSS reset */
+      html, body, table, tbody, tr, td, div, p, ul, ol, li, h1, h2, h3, h4, h5, h6 {
+          margin: 0 !important;
+          padding: 0 !important;
+          border: 0 !important;
+      }
+
+      /* Outlook font fallbacks */
+      * {
+          font-family: 'Segoe UI', Tahoma, Verdana, Arial, sans-serif !important;
+      }
+
+      /* Base styles for all email clients */
+      body {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+          -webkit-font-smoothing: antialiased !important;
+          background-color: #f5f6f7 !important;
+      }
+
+      /* Prevent WebKit and Windows mobile changing default text sizes */
+      body, table, td, p, a, li, blockquote {
+          -webkit-text-size-adjust: 100% !important;
+          -ms-text-size-adjust: 100% !important;
+      }
+
+      /* Remove spacing between tables in Outlook 2007 and up */
+      table, td {
+          mso-table-lspace: 0pt !important;
+          mso-table-rspace: 0pt !important;
+      }
+
+      /* Allow smoother rendering of resized image in Internet Explorer */
+      img {
+          -ms-interpolation-mode: bicubic !important;
+          border: 0 !important;
+          outline: none !important;
+          text-decoration: none !important;
+      }
+
+      /* Container styles */
+      .email-container {
+          max-width: 640px !important;
+          margin: 0 auto !important;
+          background-color: #ffffff !important;
+      }
+
+      /* Header styles */
+      .email-header {
+          background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important;
+          color: #ffffff !important;
+          padding: 32px 24px !important;
+          text-align: center !important;
+      }
+
+      .email-header h1 {
+          font-size: 28px !important;
+          font-weight: 600 !important;
+          line-height: 1.2 !important;
+          margin: 0 0 12px 0 !important;
+          color: #ffffff !important;
+      }
+
+      .email-breadcrumb {
+          font-size: 14px !important;
+          opacity: 0.9 !important;
+          line-height: 1.4 !important;
+          color: #ffffff !important;
+      }
+
+      .email-generation-info {
+          font-size: 12px !important;
+          opacity: 0.8 !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid rgba(255,255,255,0.2) !important;
+          color: #ffffff !important;
+      }
+
+      /* Content area */
+      .email-content {
+          padding: 32px 24px !important;
+      }
+
+      /* Section styles */
+      .email-section {
+          margin-bottom: 32px !important;
+          background-color: #f8f9fa !important;
+          border: 1px solid #e5e8ec !important;
+          border-radius: 8px !important;
+          padding: 24px !important;
+      }
+
+      .section-title {
+          font-size: 20px !important;
+          font-weight: 600 !important;
+          color: #172B4D !important;
+          margin: 0 0 16px 0 !important;
+          line-height: 1.2 !important;
+      }
+
+      /* Summary grid - mobile-responsive */
+      .summary-grid {
+          width: 100% !important;
+      }
+
+      .summary-item {
+          padding: 12px 0 !important;
+          border-bottom: 1px solid #e5e8ec !important;
+      }
+
+      .summary-item:last-child {
+          border-bottom: none !important;
+      }
+
+      .summary-label {
+          font-weight: 600 !important;
+          color: #6B778C !important;
+          font-size: 14px !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+          margin-bottom: 4px !important;
+      }
+
+      .summary-value {
+          font-size: 16px !important;
+          color: #172B4D !important;
+          line-height: 1.4 !important;
+      }
+
+      /* Status styling */
+      .status-badge {
+          display: inline-block !important;
+          padding: 6px 12px !important;
+          border-radius: 4px !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          color: #ffffff !important;
+      }
+
+      .status-pending { background-color: #6554C0 !important; }
+      .status-todo { background-color: #0052CC !important; }
+      .status-in-progress { background-color: #FF8B00 !important; }
+      .status-completed { background-color: #36B37E !important; }
+      .status-failed { background-color: #FF5630 !important; }
+      .status-blocked { background-color: #FF5630 !important; }
+      .status-cancelled { background-color: #6B778C !important; }
+
+      /* Description box */
+      .description-box {
+          background-color: #ffffff !important;
+          border: 1px solid #e5e8ec !important;
+          border-radius: 4px !important;
+          padding: 16px !important;
+          margin-top: 12px !important;
+          line-height: 1.5 !important;
+          color: #172B4D !important;
+      }
+
+      /* Labels */
+      .label-container {
+          margin-top: 12px !important;
+      }
+
+      .label {
+          display: inline-block !important;
+          padding: 6px 12px !important;
+          margin: 0 8px 8px 0 !important;
+          border-radius: 16px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+      }
+
+      /* Instructions table */
+      .instructions-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          background-color: #ffffff !important;
+          border: 1px solid #e5e8ec !important;
+          border-radius: 4px !important;
+          overflow: hidden !important;
+      }
+
+      .instructions-table th {
+          background-color: #f8f9fa !important;
+          color: #6B778C !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          padding: 12px !important;
+          text-align: left !important;
+          border-bottom: 1px solid #e5e8ec !important;
+      }
+
+      .instructions-table td {
+          padding: 12px !important;
+          font-size: 14px !important;
+          color: #172B4D !important;
+          border-bottom: 1px solid #f4f5f7 !important;
+          vertical-align: top !important;
+      }
+
+      .instructions-table tr:last-child td {
+          border-bottom: none !important;
+      }
+
+      .instruction-completed {
+          background-color: #e3fcef !important;
+      }
+
+      .instruction-completed .instruction-text {
+          text-decoration: line-through !important;
+          opacity: 0.7 !important;
+      }
+
+      .completion-badge {
+          display: inline-block !important;
+          width: 18px !important;
+          height: 18px !important;
+          border-radius: 50% !important;
+          text-align: center !important;
+          line-height: 18px !important;
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          color: #ffffff !important;
+      }
+
+      .completion-badge.completed {
+          background-color: #36B37E !important;
+      }
+
+      .completion-badge.pending {
+          background-color: #6B778C !important;
+      }
+
+      /* Teams list */
+      .teams-list {
+          list-style: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+      }
+
+      .team-item {
+          background-color: #ffffff !important;
+          border: 1px solid #e5e8ec !important;
+          border-radius: 4px !important;
+          padding: 12px 16px !important;
+          margin-bottom: 8px !important;
+          font-weight: 500 !important;
+          color: #172B4D !important;
+      }
+
+      /* Comments */
+      .comment {
+          background-color: #ffffff !important;
+          border: 1px solid #e5e8ec !important;
+          border-radius: 8px !important;
+          padding: 16px !important;
+          margin-bottom: 16px !important;
+      }
+
+      .comment:last-child {
+          margin-bottom: 0 !important;
+      }
+
+      .comment-header {
+          font-size: 14px !important;
+          color: #6B778C !important;
+          margin-bottom: 8px !important;
+          font-weight: 500 !important;
+      }
+
+      .comment-author {
+          color: #172B4D !important;
+          font-weight: 600 !important;
+      }
+
+      .comment-time {
+          color: #6B778C !important;
+      }
+
+      .comment-body {
+          color: #172B4D !important;
+          line-height: 1.5 !important;
+          white-space: pre-wrap !important;
+      }
+
+      /* Footer */
+      .email-footer {
+          background-color: #f8f9fa !important;
+          border-top: 1px solid #e5e8ec !important;
+          padding: 24px !important;
+          text-align: center !important;
+          color: #6B778C !important;
+          font-size: 14px !important;
+          line-height: 1.5 !important;
+      }
+
+      .footer-links {
+          margin: 16px 0 !important;
+      }
+
+      .footer-links a {
+          color: #0052CC !important;
+          text-decoration: none !important;
+          margin: 0 12px !important;
+      }
+
+      .footer-disclaimer {
+          font-size: 12px !important;
+          color: #6B778C !important;
+          margin-top: 16px !important;
+          padding-top: 16px !important;
+          border-top: 1px solid #e5e8ec !important;
+      }
+
+      /* Mobile-specific styles */
+      @media screen and (max-width: 640px) {
+          .email-container {
+              width: 100% !important;
+              max-width: 100% !important;
+          }
+
+          .email-header {
+              padding: 24px 16px !important;
+          }
+
+          .email-header h1 {
+              font-size: 24px !important;
+          }
+
+          .email-content {
+              padding: 24px 16px !important;
+          }
+
+          .email-section {
+              padding: 16px !important;
+              margin-bottom: 24px !important;
+          }
+
+          .section-title {
+              font-size: 18px !important;
+          }
+
+          .instructions-table th,
+          .instructions-table td {
+              padding: 8px !important;
+              font-size: 12px !important;
+          }
+
+          .email-footer {
+              padding: 16px !important;
+          }
+
+          .footer-links a {
+              display: block !important;
+              margin: 8px 0 !important;
+          }
+      }
+
+      /* Dark mode support for supported clients */
+      @media (prefers-color-scheme: dark) {
+          .email-container {
+              background-color: #2a2a2a !important;
+          }
+
+          .email-section {
+              background-color: #3a3a3a !important;
+              border-color: #555555 !important;
+          }
+
+          .section-title,
+          .summary-value,
+          .instructions-table td,
+          .comment-author,
+          .comment-body {
+              color: #ffffff !important;
+          }
+
+          .summary-label,
+          .comment-header,
+          .comment-time {
+              color: #cccccc !important;
+          }
+
+          .instructions-table,
+          .description-box,
+          .comment,
+          .team-item {
+              background-color: #2a2a2a !important;
+              border-color: #555555 !important;
+          }
+
+          .instructions-table th {
+              background-color: #3a3a3a !important;
+          }
+      }
+
+      /* Print styles */
+      @media print {
+          body {
+              background-color: #ffffff !important;
+          }
+
+          .email-container {
+              max-width: none !important;
+              box-shadow: none !important;
+          }
+
+          .email-header {
+              background: #ffffff !important;
+              color: #000000 !important;
+              border-bottom: 2px solid #000000 !important;
+          }
+
+          .email-header h1,
+          .email-breadcrumb,
+          .email-generation-info {
+              color: #000000 !important;
+          }
+
+          .status-badge {
+              background-color: #000000 !important;
+              color: #ffffff !important;
+          }
+
+          .email-footer {
+              border-top: 1px solid #000000 !important;
+          }
+      }
+
+      /* Outlook-specific fixes */
+      <!--[if mso]>
+      .email-container {
+          width: 640px !important;
+      }
+
+      .status-badge {
+          border: 1px solid #000000 !important;
+      }
+      <![endif]-->
+    </style>
+
+    <!--[if mso]>
+      <style type="text/css">
+        .email-header {
+          background: #0052cc !important;
+        }
+
+        table,
+        td {
+          border-collapse: collapse !important;
+        }
+
+        .instructions-table {
+          border-spacing: 0 !important;
+        }
+      </style>
+    <![endif]-->
+  </head>
+  <body role="article" aria-label="UMIG Step Details Email">
+    <div role="main">
+      <!-- Email container -->
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        width="100%"
+        style="background-color: #f5f6f7"
+      >
+        <tr>
+          <td align="center" valign="top" style="padding: 20px">
+            <div class="email-container">
+              <!-- Header -->
+              <div class="email-header">
+                <h1>📋 {{STEP_CODE}} - {{STEP_NAME}}</h1>
+                <div class="email-breadcrumb">
+                  {{MIGRATION_NAME}} › {{ITERATION_NAME}} › {{PLAN_NAME}} ›
+                  {{SEQUENCE_NAME}} › {{PHASE_NAME}}
+                </div>
+                <div class="email-generation-info">
+                  Generated on {{GENERATION_DATE}} at {{GENERATION_TIME}} by
+                  {{SENDER_NAME}}
+                  <br />
+                  <small
+                    >This email contains complete step details for offline
+                    viewing</small
+                  >
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div class="email-content">
+                <!-- Step Summary Section -->
+                <div class="email-section">
+                  <h2 class="section-title">📊 Step Summary</h2>
+                  <table
+                    class="summary-grid"
+                    cellspacing="0"
+                    cellpadding="0"
+                    border="0"
+                    width="100%"
+                  >
+                    <tr>
+                      <td class="summary-item">
+                        <div class="summary-label">Status</div>
+                        <div class="summary-value">
+                          <span class="status-badge status-{{STATUS_CLASS}}"
+                            >{{STEP_STATUS}}</span
+                          >
+                        </div>
+                      </td>
+                    </tr>
+                    {{#STEP_DURATION}}
+                    <tr>
+                      <td class="summary-item">
+                        <div class="summary-label">Duration</div>
+                        <div class="summary-value">
+                          {{STEP_DURATION}} minute{{STEP_DURATION_PLURAL}}
+                        </div>
+                      </td>
+                    </tr>
+                    {{/STEP_DURATION}} {{#ASSIGNED_TEAM}}
+                    <tr>
+                      <td class="summary-item">
+                        <div class="summary-label">Assigned Team</div>
+                        <div class="summary-value">{{ASSIGNED_TEAM}}</div>
+                      </td>
+                    </tr>
+                    {{/ASSIGNED_TEAM}} {{#PREDECESSOR_CODE}}
+                    <tr>
+                      <td class="summary-item">
+                        <div class="summary-label">Predecessor</div>
+                        <div class="summary-value">
+                          {{PREDECESSOR_CODE}}{{#PREDECESSOR_NAME}}:
+                          {{PREDECESSOR_NAME}}{{/PREDECESSOR_NAME}}
+                        </div>
+                      </td>
+                    </tr>
+                    {{/PREDECESSOR_CODE}} {{#TARGET_ENVIRONMENT}}
+                    <tr>
+                      <td class="summary-item">
+                        <div class="summary-label">Environment</div>
+                        <div class="summary-value">{{TARGET_ENVIRONMENT}}</div>
+                      </td>
+                    </tr>
+                    {{/TARGET_ENVIRONMENT}}
+                  </table>
+
+                  {{#STEP_DESCRIPTION}}
+                  <div class="summary-label" style="margin-top: 16px">
+                    Description
+                  </div>
+                  <div class="description-box">{{STEP_DESCRIPTION}}</div>
+                  {{/STEP_DESCRIPTION}}
+                </div>
+
+                <!-- Labels Section -->
+                {{#HAS_LABELS}}
+                <div class="email-section">
+                  <h2 class="section-title">🏷️ Labels</h2>
+                  <div class="label-container">
+                    {{#LABELS}}
+                    <span
+                      class="label"
+                      style="background-color: {{COLOR}}; color: {{TEXT_COLOR}};"
+                      >{{NAME}}</span
+                    >
+                    {{/LABELS}}
+                  </div>
+                </div>
+                {{/HAS_LABELS}}
+
+                <!-- Instructions Section -->
+                <div class="email-section">
+                  <h2 class="section-title">
+                    📝 Instructions ({{INSTRUCTIONS_COUNT}})
+                  </h2>
+                  {{#HAS_INSTRUCTIONS}}
+                  <table
+                    class="instructions-table"
+                    cellspacing="0"
+                    cellpadding="0"
+                    border="0"
+                    width="100%"
+                  >
+                    <thead>
+                      <tr>
+                        <th width="60">Status</th>
+                        <th width="60">Order</th>
+                        <th>Instruction</th>
+                        <th width="80">Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{#INSTRUCTIONS}}
+                      <tr
+                        class="{{#IS_COMPLETED}}instruction-completed{{/IS_COMPLETED}}"
+                      >
+                        <td>
+                          <span
+                            class="completion-badge {{#IS_COMPLETED}}completed{{/IS_COMPLETED}}{{^IS_COMPLETED}}pending{{/IS_COMPLETED}}"
+                          >
+                            {{#IS_COMPLETED}}✓{{/IS_COMPLETED}}{{^IS_COMPLETED}}○{{/IS_COMPLETED}}
+                          </span>
+                        </td>
+                        <td>{{ORDER}}</td>
+                        <td
+                          class="{{#IS_COMPLETED}}instruction-text{{/IS_COMPLETED}}"
+                        >
+                          {{DESCRIPTION}}
+                        </td>
+                        <td>
+                          {{#DURATION}}{{DURATION}}
+                          min{{/DURATION}}{{^DURATION}}-{{/DURATION}}
+                        </td>
+                      </tr>
+                      {{/INSTRUCTIONS}}
+                    </tbody>
+                  </table>
+                  {{/HAS_INSTRUCTIONS}} {{^HAS_INSTRUCTIONS}}
+                  <p
+                    style="
+                      text-align: center;
+                      color: #6b778c;
+                      font-style: italic;
+                      padding: 20px;
+                    "
+                  >
+                    No instructions defined for this step.
+                  </p>
+                  {{/HAS_INSTRUCTIONS}}
+                </div>
+
+                <!-- Impacted Teams Section -->
+                {{#HAS_IMPACTED_TEAMS}}
+                <div class="email-section">
+                  <h2 class="section-title">👥 Impacted Teams</h2>
+                  <ul class="teams-list">
+                    {{#IMPACTED_TEAMS}}
+                    <li class="team-item">{{NAME}}</li>
+                    {{/IMPACTED_TEAMS}}
+                  </ul>
+                </div>
+                {{/HAS_IMPACTED_TEAMS}}
+
+                <!-- Comments Section -->
+                <div class="email-section">
+                  <h2 class="section-title">
+                    💬 Comments ({{COMMENTS_COUNT}})
+                  </h2>
+                  {{#HAS_COMMENTS}} {{#COMMENTS}}
+                  <div class="comment">
+                    <div class="comment-header">
+                      <span class="comment-author"
+                        >{{AUTHOR_NAME}}{{#AUTHOR_TEAM}}
+                        ({{AUTHOR_TEAM}}){{/AUTHOR_TEAM}}</span
+                      >
+                      <span class="comment-time"> • {{TIME_AGO}}</span>
+                    </div>
+                    <div class="comment-body">{{BODY}}</div>
+                  </div>
+                  {{/COMMENTS}} {{/HAS_COMMENTS}} {{^HAS_COMMENTS}}
+                  <p
+                    style="
+                      text-align: center;
+                      color: #6b778c;
+                      font-style: italic;
+                      padding: 20px;
+                    "
+                  >
+                    No comments yet.
+                  </p>
+                  {{/HAS_COMMENTS}}
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="email-footer">
+                <div style="margin-bottom: 16px">
+                  <strong>UMIG - Unified Migration Implementation Guide</strong>
+                </div>
+
+                <div class="footer-links">
+                  {{#CONFLUENCE_URL}}
+                  <a href="{{CONFLUENCE_URL}}">View in Confluence</a>
+                  {{/CONFLUENCE_URL}} {{#STANDALONE_URL}}
+                  <a href="{{STANDALONE_URL}}">View Standalone Page</a>
+                  {{/STANDALONE_URL}} {{#HELP_URL}}
+                  <a href="{{HELP_URL}}">Help & Documentation</a>
+                  {{/HELP_URL}}
+                </div>
+
+                <div style="font-size: 12px; color: #6b778c">
+                  This step is part of the
+                  <strong>{{MIGRATION_NAME}}</strong> migration project.
+                  <br />
+                  For questions or support, please contact your project team.
+                </div>
+
+                <div class="footer-disclaimer">
+                  <strong>Important:</strong> This email contains a snapshot of
+                  step details as of {{GENERATION_DATE}}. For the most current
+                  information, please visit the live system. This email is
+                  intended for project team members and authorized stakeholders
+                  only.
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

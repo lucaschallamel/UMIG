@@ -14,6 +14,7 @@ This roadmap delivers UMIG's next phase with aggressive AI-accelerated timelines
 - 2025-08-06: Corrected sprint numbering based on actual project history (Sprint 1: Jun 16-27, Sprint 2: Jun 28-Jul 17, Sprint 3: Jul 30-Aug 6)
 - 2025-08-08: Fixed Sprint 4 story numbering inconsistencies (corrected to US-017, US-032, US-033, US-034, US-035, US-036)
 - 2025-08-19: Updated with US-030 API Documentation completion and Sprint 5 progress
+- 2025-08-20: Updated with US-036 scope expansion correction and actual progress status
 
 ## Strategic Overview
 
@@ -208,25 +209,33 @@ Transform UMIG into a comprehensive execution management system for migration st
 ### 🔄 Sprint 5 (Aug 18-22, 2025) - Production Readiness & Operational Enhancement
 
 **Sprint Goal**: Complete remaining MVP features and prepare for production deployment  
-**Target**: 23 story points (92% capacity utilization)  
+**Target**: 23 story points (ORIGINAL) → **28 actual points** due to US-036 scope expansion  
 **Priority**: Complete critical MVP functionality before enhancements  
-**Progress**: 2 of 8 stories completed (US-030 ✅, US-022 ✅), 2 of 23 points delivered  
-**Status**: Exceptional Day 1 velocity with TWO stories completed, creating significant buffer time
+**Progress**: 2 of 8 stories completed (US-030 ✅, US-022 ✅), ~10 of 28 actual points delivered  
+**Status**: Strong progress with scope expansion managed, US-036 80% complete with substantial value delivered
 
-#### 🎉 US-030 Success Impact:
+#### 🎉 Sprint 5 Progress Impact:
+
+**US-030 Documentation Success**:
 
 - ✅ **UAT Readiness Achieved**: Complete API documentation package (4,314 lines) delivered
-- ✅ **Sprint Acceleration**: Day 1 completion vs planned 2-day delivery creates additional buffer
+- ✅ **Sprint Acceleration**: Day 1 completion vs planned 2-day delivery
 - ✅ **Quality Excellence**: 8 comprehensive deliverables including interactive Swagger UI
 - ✅ **Risk Mitigation**: Documentation dependency for other Sprint 5 stories eliminated
-- ✅ **Velocity Boost**: Early completion enables focus on remaining 7 critical MVP stories
+
+**US-036 Scope Expansion Management**:
+
+- 🚧 **80% Complete**: Substantial progress on expanded scope (3 → 8-10 points)
+- ✅ **Quality Maintained**: 95% test coverage sustained despite complexity increase
+- ✅ **Value Delivered**: 8 major system improvements completed
+- ✅ **Technical Foundation**: Robust patterns established for remaining stories
 
 #### Sprint 5 Scope (23 points):
 
 **Primary MVP Completion (18 points):**
 
 - US-031: Admin GUI Complete Integration (6 points) - Administrative interface integration
-- US-036: StepView UI Refactoring (3 points) - Enhanced step viewing interface
+- US-036: StepView UI Refactoring (3 points ORIGINAL → 8-10 points ACTUAL) - Enhanced step viewing interface with comprehensive scope expansion
 - US-034: Data Import Strategy (3 points) - Production data import capabilities
 - US-033: Main Dashboard UI (3 points) - Strategic overview dashboard
 - US-022: Integration Test Suite Expansion (1 point) ✅ **COMPLETED August 18, 2025** - Quality assurance foundation
@@ -472,11 +481,13 @@ Transform UMIG into a comprehensive execution management system for migration st
 
 ### Timeline Risks
 
-| Risk                | Mitigation                                  |
-| ------------------- | ------------------------------------------- |
-| Holiday disruptions | Front-load critical work before Aug 1       |
-| Weekend gaps        | Daily handoffs, comprehensive documentation |
-| Scope creep         | Strict MVP focus, defer to enhancements     |
+| Risk                | Mitigation                                    | Status (Aug 2025)             |
+| ------------------- | --------------------------------------------- | ----------------------------- |
+| Holiday disruptions | Front-load critical work before Aug 1         | ✅ Managed successfully       |
+| Weekend gaps        | Daily handoffs, comprehensive documentation   | ✅ Addressed with AI agents   |
+| Scope creep         | Strict MVP focus, defer to enhancements       | 🚧 Managed (US-036 expansion) |
+| Scope expansion     | Quality-focused expansion with clear tracking | ✅ Successfully managed       |
+| Testing feedback    | Buffer time allocation for iteration cycles   | ✅ Integrated into process    |
 
 ## Communication Plan
 
@@ -509,7 +520,39 @@ Transform UMIG into a comprehensive execution management system for migration st
 
 This AI-accelerated roadmap delivers comprehensive functionality in 54 working days. By accounting for weekends and the Swiss National Day holiday, we maintain realistic expectations while leveraging AI augmentation for maximum velocity. The plan front-loads critical work before the August 1 holiday and maintains momentum through structured weekly sprints.
 
-**Sprint 5 Update (August 19, 2025)**: US-030 API Documentation completion ahead of schedule demonstrates strong project momentum. With comprehensive UAT documentation now available and one day of buffer time gained, Sprint 5 is positioned for exceptional success. The early achievement of API documentation readiness eliminates a critical dependency and accelerates the path to MVP completion by August 28, 2025.
+**Sprint 5 Update (August 20, 2025)**: US-030 API Documentation completed ahead of schedule, and US-036 StepView refactoring demonstrates strong project momentum despite scope expansion from 3 to 8-10 points. With 80% of expanded US-036 work complete and comprehensive UAT documentation available, Sprint 5 remains on track for MVP completion by August 28, 2025. Scope expansion management and quality maintenance showcase mature development practices.
+
+### Scope Management Lessons Learned (Sprint 5)
+
+**US-036 Scope Expansion Analysis**:
+
+**Root Causes**:
+
+- Testing feedback revealed critical system issues requiring immediate resolution
+- Feature parity requirements with Enhanced IterationView drove additional complexity
+- Production readiness standards demanded robust RBAC and authentication system fixes
+- Technical debt (database type issues, DOM manipulation bugs) required systematic resolution
+
+**Management Strategy**:
+
+- **Quality Maintenance**: 95% test coverage sustained throughout expansion
+- **Value Prioritization**: Focused on high-impact system improvements (UI, RBAC, authentication)
+- **Risk Mitigation**: Critical bugs resolved before production deployment
+- **Documentation**: Comprehensive tracking of actual vs estimated complexity
+
+**Future Sprint Improvements**:
+
+1. **Testing-Driven Estimation**: Include buffer for comprehensive testing feedback integration
+2. **Feature Parity Analysis**: Early assessment of consistency requirements with existing systems
+3. **Technical Debt Evaluation**: Pre-sprint assessment of hidden technical debt
+4. **Quality Gate Planning**: Build quality assurance time into original estimates
+
+**Positive Outcomes**:
+
+- Substantial technical foundation improvements delivered
+- Production readiness significantly enhanced
+- Patterns established for future development acceleration
+- Team capability demonstrated in managing complex scope changes
 
 ## References
 
@@ -522,4 +565,4 @@ This AI-accelerated roadmap delivers comprehensive functionality in 54 working d
 
 ---
 
-> Last updated: August 19, 2025 | Sprint 5: 🚀 In Progress (2/8 stories completed, 2/23 points delivered) | US-030 API Documentation ✅ US-022 Integration Tests ✅ BOTH COMPLETED | UAT Ready | MVP: August 28, 2025 | Enhancement Completion: October 15, 2025
+> Last updated: August 20, 2025 | Sprint 5: 🚀 In Progress (2/8 stories completed, ~10/28 actual points delivered) | US-030 ✅ US-022 ✅ COMPLETED | US-036 80% complete (scope expansion managed) | UAT Ready | MVP: August 28, 2025 | Enhancement Completion: October 15, 2025

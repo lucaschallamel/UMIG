@@ -8,24 +8,41 @@ This directory contains the consolidated testing documentation for the UMIG proj
 
 ### Core Documentation
 
-1. **[TESTING_FRAMEWORK.md](./TESTING_FRAMEWORK.md)**
+1. **[TESTING_GUIDE.md](./TESTING_GUIDE.md)**
    - Complete testing framework overview
    - Script descriptions and usage
    - Coverage details
    - Troubleshooting guide
    - **Use this for**: Understanding the testing structure and how to run tests
 
-2. **[QUALITY_CHECK_PROCEDURES.md](./QUALITY_CHECK_PROCEDURES.md)**
-   - Generic, reusable validation procedures
-   - Phase-based testing approach
-   - Decision criteria and reporting templates
-   - **Use this for**: Planning and executing quality validation for any component
+2. **[US-036-comprehensive-testing-guide.md](./US-036-comprehensive-testing-guide.md)**
+   - **UPDATED**: Comprehensive StepView testing guide with 40-point validation framework
+   - Executive summary and quick reference
+   - Complete testing framework and validation procedures
+   - **NEW**: 40-point validation checklist for UI component testing
+   - **NEW**: Cross-role testing matrix (NORMAL/PILOT/ADMIN users)
+   - Role-based access control testing
+   - Performance and security validation
+   - **Use this for**: All US-036 StepView testing and validation with quality assurance framework
+
+3. **[NPM_COMMANDS_REFERENCE.md](./NPM_COMMANDS_REFERENCE.md)**
+   - NPM-based testing commands reference
+   - Cross-platform testing approach
+   - **Use this for**: Running tests via NPM commands
+
+4. **[GROOVY_TYPE_CHECKING_TROUBLESHOOTING_GUIDE.md](./GROOVY_TYPE_CHECKING_TROUBLESHOOTING_GUIDE.md)** ⭐ **NEW**
+   - **CRITICAL**: ScriptRunner Groovy type checking troubleshooting guide
+   - Real root causes vs common misconceptions (destructuring, closures, casting)
+   - Proven solutions library with before/after code examples
+   - ScriptRunner-specific considerations and troubleshooting checklist
+   - **Use this for**: Resolving "Failed type checking" warnings in ScriptRunner Groovy files
 
 ### Archives
 
 Historical validation reports and documentation from completed work:
 
 - `archives/US-024-VALIDATION-REPORT.md` - StepsAPI refactoring validation results
+- `../archived/us-036-testing/` - **NEW**: US-036 StepView testing documentation (6 consolidated files)
 
 ## Quick Start
 
@@ -55,18 +72,27 @@ local-dev-setup/scripts/quality-check/
 
 ## Documentation Consolidation Results
 
-### Before (6 files)
+### US-036 Consolidation (August 2025)
 
-- 3 execution plan documents (redundant)
-- 2 consolidation strategy documents (overlapping)
-- 1 validation report (historical)
-- **Problems**: 80% content duplication, unclear which to use, maintenance burden
+**Before (6 redundant files)**:
 
-### After (2 active + archives)
+- `US-036-testing-strategy-summary.md`
+- `STEPVIEW_IMMEDIATE_EXECUTION_GUIDE.md`
+- `STEPVIEW_QA_FRAMEWORK_SUMMARY.md`
+- `STEPVIEW_QA_FRAMEWORK.md`
+- `StepView_StatusDropdown_QA_ValidationReport.md`
+- `STEPVIEW_VALIDATION_CHECKLIST.md`
+- **Problems**: 90% content overlap, confusing which to use, maintenance burden
 
-- 1 comprehensive framework guide
-- 1 reusable procedures template
-- Archives for historical reference
+**After (1 comprehensive guide)**:
+
+- `US-036-comprehensive-testing-guide.md` - Single definitive testing resource
+- **Benefits**: Eliminated redundancy, single source of truth, actionable guidance
+
+### Previous US-024 Consolidation
+
+- Consolidated 8 test scripts into 4 essential ones
+- Reduced 6 documents into 2 active + archives
 - **Benefits**: No duplication, clear purpose, easy maintenance
 
 ## What Changed in US-024
@@ -109,5 +135,5 @@ local-dev-setup/scripts/quality-check/
 
 ---
 
-_Last Updated: 2025-08-14_  
-_Post US-024 Consolidation_
+_Last Updated: 2025-08-21_  
+_Post ScriptRunner Type Checking Troubleshooting Guide Addition_

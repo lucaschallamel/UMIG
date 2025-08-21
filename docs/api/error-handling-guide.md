@@ -558,7 +558,7 @@ async function callUmigApi(endpoint, options) {
     const response = await fetch(endpoint, {
       ...options,
       headers: {
-        Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || 'admin:admin')}`,
+        Authorization: `Basic ${btoa(process.env.UMIG_AUTH_CREDENTIALS || "admin:admin")}`,
         "Content-Type": "application/json",
         ...options.headers,
       },

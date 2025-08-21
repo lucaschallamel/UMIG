@@ -72,7 +72,7 @@ SELECT
 FROM steps_master_stm stm
 ```
 
-✅ **Result**: Successfully generates step codes (e.g., "AUT-001: Step name") for dropdown lists
+✅ **Result**: Successfully generates step codes (e.g., "BGO-002: Step name") for dropdown lists
 
 **Step Instance Details** (GET /steps/instance/{id} equivalent):
 
@@ -199,7 +199,7 @@ created_at: 2025-08-14 06:26:24.119746
 | --------------------- | ------- | ----------------------------- |
 | Referential integrity | ✅ PASS | No orphaned records           |
 | Data completeness     | ✅ PASS | All required fields populated |
-| Step code generation  | ✅ PASS | Format: "AUT-001: Step name"  |
+| Step code generation  | ✅ PASS | Format: "BGO-002: Step name"  |
 | Status relationships  | ✅ PASS | All steps have valid statuses |
 | Team assignments      | ✅ PASS | Team references validated     |
 

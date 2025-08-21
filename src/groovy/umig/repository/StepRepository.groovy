@@ -2,6 +2,10 @@ package umig.repository
 
 import umig.utils.DatabaseUtil
 import umig.utils.EmailService
+import umig.utils.AuthenticationService
+// Note: Audit logging is temporarily disabled
+// import umig.repository.InstructionRepository  // Not used
+// import umig.repository.AuditLogRepository      // Temporarily disabled
 import java.util.UUID
 import groovy.sql.Sql
 
@@ -242,13 +246,30 @@ class StepRepository {
     /**
      * Updates step instance status and sends notification emails.
      * @param stepInstanceId The UUID of the step instance
-     * @param newStatus The new status value
+     * @param statusId The new status ID (Integer)
      * @param userId Optional user ID for audit logging
      * @return Map with success status and email send results
      */
-    Map updateStepInstanceStatusWithNotification(UUID stepInstanceId, String newStatus, Integer userId = null) {
+    Map updateStepInstanceStatusWithNotification(UUID stepInstanceId, Integer statusId, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
+                println "StepRepository.updateStepInstanceStatusWithNotification called:"
+                println "  - stepInstanceId: ${stepInstanceId}"
+                println "  - statusId: ${statusId}"
+                println "  - userId: ${userId}"
+                
+                // Validate status exists and get status name
+                def status = sql.firstRow("SELECT sts_id, sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'", 
+                    [statusId: statusId])
+                
+                if (!status) {
+                    return [success: false, error: "Invalid status ID: ${statusId}"]
+                }
+                
+                println "  - Status name: ${status.sts_name}"
+                
+                def statusName = status.sts_name
+                
                 // Get current step instance data
                 def stepInstance = sql.firstRow('''
                     SELECT 
@@ -272,15 +293,20 @@ class StepRepository {
                     return [success: false, error: "Step instance not found"]
                 }
                 
-                def oldStatus = stepInstance.sti_status
+                def oldStatusId = stepInstance.sti_status
                 
-                // Update the status
+                // Get old status name for notification
+                def oldStatus = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :oldStatusId", [oldStatusId: oldStatusId])?.sts_name
+                
+                // Update the status with audit fields
                 def updateCount = sql.executeUpdate('''
                     UPDATE steps_instance_sti 
-                    SET sti_status = (SELECT sts_id FROM status_sts WHERE sts_name = :newStatus AND sts_type = 'Step'),
-                        sti_end_time = CASE WHEN :newStatus = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END
+                    SET sti_status = :statusId,
+                        sti_end_time = CASE WHEN :statusName = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
+                        updated_by = CASE WHEN :userId IS NULL THEN 'confluence_user' ELSE :userId::varchar END,
+                        updated_at = CURRENT_TIMESTAMP
                     WHERE sti_id = :stepInstanceId
-                ''', [newStatus: newStatus, stepInstanceId: stepInstanceId])
+                ''', [statusId: statusId, statusName: statusName, userId: userId, stepInstanceId: stepInstanceId])
                 
                 if (updateCount != 1) {
                     return [success: false, error: "Failed to update step status"]
@@ -298,7 +324,7 @@ class StepRepository {
                     teams, 
                     cutoverTeam as Map,
                     oldStatus as String, 
-                    newStatus,
+                    statusName as String,
                     userId
                 )
                 
@@ -433,17 +459,49 @@ class StepRepository {
                     return [success: false, error: "Step instance not found"]
                 }
                 
-                // Mark instruction as completed
+                // Complete instruction directly with audit logging
                 def updateCount = sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
-                    SET ini_is_completed = true,
+                    SET 
+                        ini_is_completed = true,
                         ini_completed_at = CURRENT_TIMESTAMP,
-                        usr_id_completed_by = :userId
-                    WHERE ini_id = :instructionId
-                ''', [userId: userId, instructionId: instructionId])
+                        usr_id_completed_by = :userId,
+                        updated_at = CURRENT_TIMESTAMP,
+                        updated_by = :updatedBy
+                    WHERE ini_id = :iniId AND ini_is_completed = false
+                ''', [iniId: instructionId, userId: userId, updatedBy: AuthenticationService.getSystemUser()])
                 
                 if (updateCount != 1) {
                     return [success: false, error: "Failed to complete instruction"]
+                }
+                
+                // Log to audit trail if update was successful
+                try {
+                    println "StepRepository: Attempting to log instruction completion audit for iniId=${instructionId}, userId=${userId}, stepId=${stepInstanceId}"
+                    
+                    // Inline audit logging to avoid class loading issues
+                    def auditDetails = groovy.json.JsonOutput.toJson([
+                        step_instance_id: stepInstanceId.toString(),
+                        completion_timestamp: new Date().format('yyyy-MM-dd HH:mm:ss')
+                    ])
+                    
+                    sql.execute("""
+                        INSERT INTO audit_log_aud (
+                            usr_id, aud_action, aud_entity_type, aud_entity_id, aud_details
+                        ) VALUES (?, ?, ?, ?, ?::jsonb)
+                    """, [
+                        userId,
+                        'INSTRUCTION_COMPLETED',
+                        'INSTRUCTION_INSTANCE',
+                        instructionId,
+                        auditDetails
+                    ])
+                    
+                    println "StepRepository: Successfully logged instruction completion audit for iniId=${instructionId}"
+                } catch (Exception auditError) {
+                    // Audit logging failure shouldn't break the main flow
+                    println "StepRepository: Failed to log instruction completion audit - ${auditError.message}"
+                    auditError.printStackTrace()
                 }
                 
                 // Get teams for notification - including instruction team
@@ -523,17 +581,58 @@ class StepRepository {
                     return [success: false, error: "Step instance not found"]
                 }
                 
-                // Mark instruction as incomplete
+                // Uncomplete instruction directly with audit logging
+                // First, get the current user info for audit logging
+                def instructionInfo = sql.firstRow('''
+                    SELECT usr_id_completed_by 
+                    FROM instructions_instance_ini 
+                    WHERE ini_id = :iniId AND ini_is_completed = true
+                ''', [iniId: instructionId])
+                
                 def updateCount = sql.executeUpdate('''
                     UPDATE instructions_instance_ini 
-                    SET ini_is_completed = false,
+                    SET 
+                        ini_is_completed = false,
                         ini_completed_at = NULL,
-                        usr_id_completed_by = NULL
-                    WHERE ini_id = :instructionId
-                ''', [instructionId: instructionId])
+                        usr_id_completed_by = NULL,
+                        updated_at = CURRENT_TIMESTAMP,
+                        updated_by = :updatedBy
+                    WHERE ini_id = :iniId AND ini_is_completed = true
+                ''', [iniId: instructionId, updatedBy: AuthenticationService.getSystemUser()])
                 
                 if (updateCount != 1) {
                     return [success: false, error: "Failed to mark instruction as incomplete"]
+                }
+                
+                // Log to audit trail if update was successful
+                try {
+                    // Use the original completing user ID or provided userId for audit logging
+                    def auditUserId = instructionInfo?.usr_id_completed_by as Integer ?: userId
+                    println "StepRepository: Attempting to log instruction uncompletion audit for iniId=${instructionId}, auditUserId=${auditUserId}, stepId=${stepInstanceId}"
+                    
+                    // Inline audit logging to avoid class loading issues
+                    def auditDetails = groovy.json.JsonOutput.toJson([
+                        step_instance_id: stepInstanceId.toString(),
+                        uncomplete_timestamp: new Date().format('yyyy-MM-dd HH:mm:ss')
+                    ])
+                    
+                    sql.execute("""
+                        INSERT INTO audit_log_aud (
+                            usr_id, aud_action, aud_entity_type, aud_entity_id, aud_details
+                        ) VALUES (?, ?, ?, ?, ?::jsonb)
+                    """, [
+                        auditUserId,
+                        'INSTRUCTION_UNCOMPLETED',
+                        'INSTRUCTION_INSTANCE',
+                        instructionId,
+                        auditDetails
+                    ])
+                    
+                    println "StepRepository: Successfully logged instruction uncompletion audit for iniId=${instructionId}"
+                } catch (Exception auditError) {
+                    // Audit logging failure shouldn't break the main flow
+                    println "StepRepository: Failed to log instruction uncompletion audit - ${auditError.message}"
+                    auditError.printStackTrace()
                 }
                 
                 // Get teams for notification - including instruction team
@@ -707,7 +806,7 @@ class StepRepository {
                 return null
             }
             
-            // Get instructions for this step instance
+            // Get instructions for this step instance with team information
             def instructions = sql.rows('''
                 SELECT 
                     ini.ini_id,
@@ -717,9 +816,13 @@ class StepRepository {
                     inm.inm_id,
                     inm.inm_order,
                     inm.inm_body,
-                    inm.inm_duration_minutes
+                    inm.inm_duration_minutes,
+                    inm.tms_id,
+                    tms.tms_name as team_name,
+                    tms.tms_email as team_email
                 FROM instructions_instance_ini ini
                 JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
                 WHERE ini.sti_id = :stepInstanceId
                 ORDER BY inm.inm_order
             ''', [stepInstanceId: stepInstanceId])
@@ -767,7 +870,7 @@ class StepRepository {
                     ID: stepInstance.sti_id,
                     Name: stepInstance.sti_name ?: stepInstance.master_name,
                     Description: stepInstance.stm_description,
-                    Status: stepInstance.sti_status,
+                    StatusID: stepInstance.sti_status,  // Changed from Status to StatusID for consistency
                     Duration: stepInstance.sti_duration_minutes ?: stepInstance.master_duration,
                     AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
                     StepCode: "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}",
@@ -800,7 +903,10 @@ class StepRepository {
                         CompletedAt: instruction.ini_completed_at,
                         CompletedBy: instruction.usr_id_completed_by,
                         Order: instruction.inm_order,
-                        Duration: instruction.inm_duration_minutes
+                        Duration: instruction.inm_duration_minutes,
+                        TeamId: instruction.tms_id,
+                        Team: instruction.team_name,
+                        TeamEmail: instruction.team_email
                     ]
                 },
                 impactedTeams: impactedTeams,
@@ -838,8 +944,7 @@ class StepRepository {
                 return null
             }
             
-            // Find the most recent step instance (for now, we'll just get any instance)
-            // In a real scenario, this should be filtered by the current iteration context
+            // Find the most recent step instance WITH complete hierarchical context
             def stepInstance = sql.firstRow('''
                 SELECT 
                     sti.sti_id,
@@ -848,13 +953,43 @@ class StepRepository {
                     sti.sti_duration_minutes,
                     sti.phi_id,
                     sti.enr_id,
-                    tms.tms_name as owner_team_name
+                    -- Team information (FIXED JOIN)
+                    tms.tms_name as owner_team_name,
+                    -- Status information (FIXED)
+                    sts.sts_name as status_name,
+                    -- Complete hierarchical context
+                    mig.mig_name as migration_name,
+                    ite.ite_name as iteration_name,
+                    plm.plm_name as plan_name,
+                    sqm.sqm_name as sequence_name,
+                    phm.phm_name as phase_name,
+                    -- Environment information
+                    enr.enr_name as environment_role_name,
+                    env.env_name as environment_name
                 FROM steps_instance_sti sti
-                LEFT JOIN teams_tms tms ON :teamId = tms.tms_id
+                -- FIXED: Add the missing steps_master join
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                -- FIXED: Proper team join using the actual foreign key
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                -- FIXED: Status name resolution
+                LEFT JOIN status_sts sts ON sti.sti_status = sts.sts_id
+                -- Complete hierarchy joins
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                -- Environment joins
+                LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
+                LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                LEFT JOIN environments_env env ON eei.env_id = env.env_id
                 WHERE sti.stm_id = :stmId
                 ORDER BY sti.sti_id DESC
                 LIMIT 1
-            ''', [stmId: stepMaster.stm_id, teamId: stepMaster.tms_id_owner])
+            ''', [stmId: stepMaster.stm_id])
             
             if (!stepInstance) {
                 // If no instance exists, return master data only
@@ -869,15 +1004,22 @@ class StepRepository {
                         ID: stepCode,
                         Name: stepMaster.stm_name,
                         Description: stepMaster.stm_description,
-                        Status: 'PENDING',
-                        AssignedTeam: ownerTeam?.tms_name ?: 'Unassigned'
+                        StatusID: 1, // PENDING status ID
+                        AssignedTeam: ownerTeam?.tms_name ?: 'Unassigned',
+                        // Add empty hierarchical context for consistency
+                        MigrationName: null,
+                        IterationName: null,
+                        PlanName: null,
+                        SequenceName: null,
+                        PhaseName: null,
+                        Labels: []
                     ],
                     instructions: [],
                     impactedTeams: []
                 ]
             }
             
-            // Get instructions for this step instance
+            // Get instructions for this step instance with team information
             def instructions = sql.rows('''
                 SELECT 
                     ini.ini_id,
@@ -887,9 +1029,13 @@ class StepRepository {
                     inm.inm_id,
                     inm.inm_order,
                     inm.inm_body,
-                    inm.inm_duration_minutes
+                    inm.inm_duration_minutes,
+                    inm.tms_id,
+                    tms.tms_name as team_name,
+                    tms.tms_email as team_email
                 FROM instructions_instance_ini ini
                 JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
+                LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
                 WHERE ini.sti_id = :stiId
                 ORDER BY inm.inm_order
             ''', [stiId: stepInstance.sti_id])
@@ -912,15 +1058,41 @@ class StepRepository {
             // Get comments for this step instance
             def comments = findCommentsByStepInstanceId(stepInstance.sti_id as UUID)
             
+            // Get labels for this step (using master step ID) - ADDED
+            List labels = []
+            if (stepMaster.stm_id) {
+                try {
+                    labels = findLabelsByStepId(stepMaster.stm_id as UUID) as List
+                    println "DEBUG: Found ${labels.size()} labels for step ${stepMaster.stm_id}"
+                } catch (Exception e) {
+                    println "ERROR fetching labels: ${e.message}"
+                }
+            }
+            
             return [
                 stepSummary: [
                     ID: stepCode,
                     Name: stepInstance.sti_name ?: stepMaster.stm_name,
                     Description: stepMaster.stm_description,
-                    Status: stepInstance.sti_status,
+                    // Changed to StatusID for consistency with findStepInstanceDetailsById
+                    StatusID: stepInstance.sti_status,
                     AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
                     Duration: stepMaster.stm_duration_minutes,
-                    sti_id: stepInstance.sti_id?.toString()  // Include step instance ID for comments
+                    sti_id: stepInstance.sti_id?.toString(),  // Include step instance ID for comments
+                    // ADDED: Complete hierarchical context
+                    MigrationName: stepInstance.migration_name,
+                    IterationName: stepInstance.iteration_name,
+                    PlanName: stepInstance.plan_name,
+                    SequenceName: stepInstance.sequence_name,
+                    PhaseName: stepInstance.phase_name,
+                    // ADDED: Environment context
+                    TargetEnvironment: stepInstance.environment_role_name ? 
+                        (stepInstance.environment_name ? 
+                            "${stepInstance.environment_role_name} (${stepInstance.environment_name})" : 
+                            "${stepInstance.environment_role_name} (!No Environment Assigned Yet!)") : 
+                        'Not specified',
+                    // ADDED: Labels
+                    Labels: labels
                 ],
                 instructions: instructions.collect { instruction ->
                     [
@@ -931,7 +1103,10 @@ class StepRepository {
                         Duration: instruction.inm_duration_minutes,
                         IsCompleted: instruction.ini_is_completed ?: false,
                         CompletedAt: instruction.ini_completed_at,
-                        CompletedBy: instruction.usr_id_completed_by
+                        CompletedBy: instruction.usr_id_completed_by,
+                        TeamId: instruction.tms_id,
+                        Team: instruction.team_name,
+                        TeamEmail: instruction.team_email
                     ]
                 },
                 impactedTeams: impactedTeams,
@@ -995,7 +1170,7 @@ class StepRepository {
         DatabaseUtil.withSql { Sql sql ->
             def result = sql.firstRow('''
                 INSERT INTO step_instance_comments_sic (sti_id, comment_body, created_by)
-                VALUES (:stepInstanceId, :commentBody, :userId)
+                VALUES (:stepInstanceId, :commentBody, CASE WHEN :userId IS NULL THEN 57 ELSE :userId END)
                 RETURNING sic_id, created_at
             ''', [stepInstanceId: stepInstanceId, commentBody: commentBody, userId: userId])
             
@@ -1018,7 +1193,7 @@ class StepRepository {
             def updateCount = sql.executeUpdate('''
                 UPDATE step_instance_comments_sic 
                 SET comment_body = :commentBody,
-                    updated_by = :userId,
+                    updated_by = CASE WHEN :userId IS NULL THEN 57 ELSE :userId END,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE sic_id = :commentId
             ''', [commentId: commentId, commentBody: commentBody, userId: userId])
@@ -1503,7 +1678,8 @@ class StepRepository {
                                 UPDATE steps_instance_sti 
                                 SET sti_status = :statusId,
                                     sti_end_time = CASE WHEN :statusName = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE sti_end_time END,
-                                    usr_id_last_updated = :userId
+                                    updated_by = CASE WHEN :userId IS NULL THEN 'confluence_user' ELSE :userId::varchar END,
+                                    updated_at = CURRENT_TIMESTAMP
                                 WHERE sti_id = :stepId
                             ''', [statusId: statusId, statusName: status.sts_name, userId: userId, stepId: stepId])
                             

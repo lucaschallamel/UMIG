@@ -62,10 +62,17 @@ class EmailService {
                     return
                 }
                 
-                // Prepare template variables
+                // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     stepInstance: stepInstance,
-                    stepUrl: "${baseUrl}/display/SPACE/IterationView?stepId=${stepInstance.sti_id}"
+                    stepUrl: "${baseUrl}/display/SPACE/IterationView?stepId=${stepInstance.sti_id}",
+                    // Additional variables that templates might expect
+                    openedBy: getUsernameById(sql, userId ?: 0),
+                    openedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    migrationCode: stepInstance?.migration_name ?: '',
+                    iterationCode: stepInstance?.iteration_name ?: '',
+                    hasStepViewUrl: true,  // This one has a URL
+                    stepViewUrl: "${baseUrl}/display/SPACE/IterationView?stepId=${stepInstance.sti_id}"
                 ]
                 
                 // Process template
@@ -117,7 +124,16 @@ class EmailService {
     static void sendInstructionCompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
+                // Debug logging
+                println "EmailService.sendInstructionCompletedNotification called:"
+                println "  - Instruction: ${instruction?.ini_name}"
+                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Teams count: ${teams?.size()}"
+                println "  - UserId: ${userId}"
+                
                 def recipients = extractTeamEmails(teams)
+                
+                println "  - Recipients extracted: ${recipients}"
                 
                 if (!recipients) {
                     println "EmailService: No recipients found for instruction ${instruction.ini_name}"
@@ -131,12 +147,17 @@ class EmailService {
                     return
                 }
                 
-                // Prepare template variables
+                // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     instruction: instruction,
                     stepInstance: stepInstance,
                     completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
-                    completedBy: getUsernameById(sql, userId)
+                    completedBy: getUsernameById(sql, userId),
+                    // Additional variables that templates might expect
+                    migrationCode: stepInstance?.migration_name ?: '',
+                    iterationCode: stepInstance?.iteration_name ?: '',
+                    hasStepViewUrl: false,  // For now, disable URL until we implement proper URL generation
+                    stepViewUrl: ''  // Empty for now
                 ]
                 
                 // Process template
@@ -159,7 +180,8 @@ class EmailService {
                             notification_type: 'INSTRUCTION_COMPLETED',
                             instruction_name: instruction.ini_name,
                             step_name: stepInstance.sti_name
-                        ]
+                        ],
+                        'INSTRUCTION_INSTANCE'  // Specify entity type for instruction actions
                     )
                 }
                 
@@ -177,7 +199,8 @@ class EmailService {
                         UUID.fromString(instruction.ini_id as String),
                         extractTeamEmails(teams),
                         "[UMIG] Instruction Completed: ${instruction.ini_name}",
-                        e.message
+                        e.message,
+                        'INSTRUCTION_INSTANCE'  // Specify entity type for instruction actions
                     )
                 }
             }
@@ -191,7 +214,17 @@ class EmailService {
     static void sendInstructionUncompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
+                // Debug logging
+                println "EmailService.sendInstructionUncompletedNotification called:"
+                println "  - Instruction: ${instruction?.ini_name}"
+                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Teams count: ${teams?.size()}"
+                println "  - UserId: ${userId}"
+                println "  - StepInstance keys: ${stepInstance?.keySet()}"
+                
                 def recipients = extractTeamEmails(teams)
+                
+                println "  - Recipients extracted: ${recipients}"
                 
                 if (!recipients) {
                     println "EmailService: No recipients found for instruction ${instruction.ini_name}"
@@ -200,27 +233,41 @@ class EmailService {
                 
                 // Get email template
                 def template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_UNCOMPLETED')
+                println "  - INSTRUCTION_UNCOMPLETED template found: ${template != null}"
                 if (!template) {
                     // Fallback to INSTRUCTION_COMPLETED template if UNCOMPLETED doesn't exist
                     template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
+                    println "  - Fallback to INSTRUCTION_COMPLETED template found: ${template != null}"
                     if (!template) {
                         println "EmailService: No active template found for INSTRUCTION_UNCOMPLETED or INSTRUCTION_COMPLETED"
                         return
                     }
                 }
+                println "  - Using template type: ${template.emt_type}"
                 
-                // Prepare template variables
+                // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     instruction: instruction,
                     stepInstance: stepInstance,
-                    uncompletedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
-                    uncompletedBy: getUsernameById(sql, userId),
-                    actionType: 'uncompleted' // To differentiate in template
+                    completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),  // Use completedAt for template compatibility
+                    completedBy: getUsernameById(sql, userId),  // Use completedBy for template compatibility
+                    actionType: 'uncompleted', // To differentiate in template
+                    // Additional variables that templates might expect
+                    migrationCode: stepInstance?.migration_name ?: '',
+                    iterationCode: stepInstance?.iteration_name ?: '',
+                    hasStepViewUrl: false,  // For now, disable URL until we implement proper URL generation
+                    stepViewUrl: ''  // Empty for now
                 ]
                 
                 // Process template
+                println "  - Processing template with variables: ${variables.keySet()}"
+                println "  - Template subject: ${template.emt_subject}"
+                
                 def processedSubject = processTemplate(template.emt_subject as String, variables)
+                println "  - Subject processed successfully"
+                
                 def processedBody = processTemplate(template.emt_body_html as String, variables)
+                println "  - Body processed successfully"
                 
                 // Modify subject if using the completed template as fallback
                 if (template.emt_type == 'INSTRUCTION_COMPLETED') {
@@ -228,7 +275,9 @@ class EmailService {
                 }
                 
                 // Send email
+                println "  - About to send email with subject: ${processedSubject}"
                 def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                println "  - Email sent result: ${emailSent}"
                 
                 // Log the notification
                 if (emailSent) {
@@ -243,7 +292,8 @@ class EmailService {
                             notification_type: 'INSTRUCTION_UNCOMPLETED',
                             instruction_name: instruction.ini_name,
                             step_name: stepInstance.sti_name
-                        ]
+                        ],
+                        'INSTRUCTION_INSTANCE'  // Specify entity type for instruction actions
                     )
                 }
                 
@@ -261,7 +311,8 @@ class EmailService {
                         UUID.fromString(instruction.ini_id as String),
                         extractTeamEmails(teams),
                         "[UMIG] Instruction Uncompleted: ${instruction.ini_name}",
-                        e.message
+                        e.message,
+                        'INSTRUCTION_INSTANCE'  // Specify entity type for instruction actions
                     )
                 }
             }
@@ -276,12 +327,23 @@ class EmailService {
                                                  String oldStatus, String newStatus, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
+                // Debug logging
+                println "EmailService.sendStepStatusChangedNotification called:"
+                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Old Status: ${oldStatus}"
+                println "  - New Status: ${newStatus}"
+                println "  - Teams count: ${teams?.size()}"
+                println "  - UserId: ${userId}"
+                println "  - Teams details: ${teams}"
+                
                 // Include cutover team in recipients
                 def allTeams = new ArrayList(teams)
                 if (cutoverTeam) {
                     allTeams.add(cutoverTeam)
                 }
                 def recipients = extractTeamEmails(allTeams)
+                
+                println "  - Recipients extracted: ${recipients}"
                 
                 if (!recipients) {
                     println "EmailService: No recipients found for step status change ${stepInstance.sti_name}"
@@ -295,14 +357,19 @@ class EmailService {
                     return
                 }
                 
-                // Prepare template variables
+                // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     stepInstance: stepInstance,
                     oldStatus: oldStatus,
                     newStatus: newStatus,
                     statusColor: getStatusColor(newStatus),
                     changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
-                    changedBy: getUsernameById(sql, userId)
+                    changedBy: getUsernameById(sql, userId),
+                    // Additional variables that templates might expect
+                    migrationCode: stepInstance?.migration_name ?: '',
+                    iterationCode: stepInstance?.iteration_name ?: '',
+                    hasStepViewUrl: false,  // For now, disable URL until we implement proper URL generation
+                    stepViewUrl: ''  // Empty for now
                 ]
                 
                 // Process template
@@ -310,7 +377,9 @@ class EmailService {
                 def processedBody = processTemplate(template.emt_body_html as String, variables)
                 
                 // Send email
+                println "  - About to send email with subject: ${processedSubject}"
                 def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                println "  - Email sent result: ${emailSent}"
                 
                 // Log the notification
                 if (emailSent) {
@@ -374,7 +443,7 @@ class EmailService {
      * @param body HTML email body
      * @return True if email was sent successfully
      */
-    private static boolean sendEmail(List<String> recipients, String subject, String body) {
+    static boolean sendEmail(List<String> recipients, String subject, String body) {
         try {
             // Remove any null or empty email addresses
             def validRecipients = recipients.findAll { it && it.trim() }
@@ -498,7 +567,15 @@ class EmailService {
             return template.make(variables).toString()
         } catch (Exception e) {
             println "EmailService: Template processing error - ${e.message}"
-            throw new RuntimeException("Failed to process email template", e)
+            println "EmailService: Template variables provided: ${variables.keySet()}"
+            println "EmailService: Template text length: ${templateText?.length() ?: 0}"
+            if (templateText && templateText.length() > 100) {
+                println "EmailService: Template preview: ${templateText.substring(0, 100)}..."
+            } else {
+                println "EmailService: Full template: ${templateText}"
+            }
+            e.printStackTrace()
+            throw new RuntimeException("Failed to process email template: ${e.message}", e)
         }
     }
     

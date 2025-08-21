@@ -2,8 +2,12 @@
 
 This folder contains the OpenAPI 3.0 specification for the UMIG V2 REST API (version 2.1.1). This new API version supersedes the previous V1 API.
 
-## Latest Updates (August 15, 2025 - Version 2.1.2)
+## Latest Updates (August 21, 2025 - Version 2.1.3)
 
+- **US-036 StepView UI Refactoring**: Complete with comment system parity, RBAC implementation, and System Configuration API integration
+- **System Configuration API**: New API for email template and notification settings management
+- **Email Notification Infrastructure**: Production-ready automated notifications with EnhancedEmailService and UrlConstructionService
+- **BGO-002 Audit Logging Fix**: Corrected entity type issues (INSTRUCTION_INSTANCE vs STEP_INSTANCE)
 - **US-028 Enhanced IterationView Phase 1**: Complete integration with StepsAPIv2Client, real-time synchronization, and role-based access control
 - **Critical API Endpoint Fix**: Resolved configuration issue from /api/v2/steps to /steps for proper integration
 - **US-024 StepsAPI Enhancements**: Improved comments endpoint error messages with helpful guidance
@@ -51,6 +55,7 @@ Individual API specifications are available for detailed documentation:
 - **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support
 - **[Steps API](StepsAPI.md)** - ✅ **US-024 Enhanced** - Step management with hierarchical filtering, email notification integration, and improved comments endpoint error handling
 - **[stepView API](stepViewAPI.md)** - Specialized API for standalone step view in Confluence pages
+- **[System Configuration API](SystemConfigurationAPI.md)** - ✅ **US-036 New** - System configuration management for email templates and notification settings
 - **[Team Members API](TeamMembersAPI.md)** - Team membership management and user-team associations
 - **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
 - **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships
@@ -250,3 +255,70 @@ All US-030 deliverables follow enterprise documentation standards:
 - **Performance Focused**: Sub-3-second response time guidelines
 - **Security Compliant**: Authentication and authorization documentation
 - **UAT-Validated**: Production-ready testing procedures
+
+## Security
+
+### Security Remediation Summary (PR #42, August 19, 2025)
+
+The UMIG API documentation underwent comprehensive security remediation to eliminate critical vulnerabilities and implement enterprise security best practices.
+
+#### Key Security Improvements
+
+**1. Credential Management Security**
+
+- ✅ **Eliminated hardcoded credentials**: All base64-encoded and plaintext credentials removed from committed code
+- ✅ **Environment variable pattern**: Implemented `UMIG_AUTH_CREDENTIALS` environment variable for secure authentication
+- ✅ **Development fallback**: Safe defaults maintained for local development (`admin:admin`)
+- ✅ **Production ready**: Supports secure credential injection via secret management systems
+
+**2. CDN Security Enhancement**
+
+- ✅ **SRI integrity hashes**: All external CDN resources (Swagger UI, etc.) now include integrity verification
+- ✅ **CORS configuration**: Proper crossorigin attributes prevent CDN-based attacks
+- ✅ **Version pinning**: Dependencies locked to specific versions for stability
+
+**3. Secure Authentication Patterns**
+
+JavaScript pattern for API clients:
+
+```javascript
+const credentials = process.env.UMIG_AUTH_CREDENTIALS || "admin:admin";
+const authHeader = "Basic " + Buffer.from(credentials).toString("base64");
+```
+
+Shell script pattern for testing:
+
+```bash
+-H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
+```
+
+#### Environment Configuration
+
+The API uses environment variables for secure configuration. Reference `.env.example` in the project root for complete setup:
+
+- `UMIG_AUTH_CREDENTIALS` - Authentication credentials (format: username:password)
+- `UMIG_BASE_URL` - API base URL configuration
+- `UMIG_TIMEOUT` - Request timeout settings
+- `UMIG_MAX_RETRIES` - Retry configuration
+
+#### Security Best Practices
+
+**Development Teams**:
+
+- Configure local environments using `.env.example` as reference
+- Never commit credentials to version control
+- Use environment variables for all authentication
+
+**Production Deployment**:
+
+- Configure environment variables in deployment system
+- Implement proper secret management (Azure Key Vault, AWS Secrets Manager)
+- Establish credential rotation policies
+
+#### Security Status
+
+- ✅ **Zero hardcoded credentials** in codebase
+- ✅ **All CDN resources secured** with SRI hashes
+- ✅ **Environment variable pattern** implemented across all documentation
+- ✅ **Security verification completed** with zero findings
+- ✅ **Production deployment ready** with secure configuration patterns

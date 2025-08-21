@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.MultivaluedMap
 import javax.servlet.http.HttpServletRequest
 import java.util.UUID
+import java.sql.SQLException
 
 /**
  * Plans API - repositories instantiated within methods to avoid class loading issues

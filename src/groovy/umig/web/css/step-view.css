@@ -1,0 +1,749 @@
+/* ==========================================================================
+   StepView Styles
+   Dedicated styles for the UMIG StepView component
+   Extracted and optimized from iteration-view.css for US-036 StepView UI refactoring
+   
+   This file contains styles specific to the StepView interface including:
+   - Instructions section and table styling
+   - Comments section functionality
+   - Status management system
+   - Night mode/dark theme compatibility
+   - Step-specific animations and interactions
+   ========================================================================== */
+
+/* Variables & Custom Properties */
+:root {
+  /* StepView-specific color variables */
+  --step-instruction-bg: #ffffff;
+  --step-instruction-text: #172b4d;
+  --step-instruction-border: #dfe1e6;
+  --step-instruction-hover: #f4f5f7;
+  --step-instruction-completed: #e8f5e8;
+
+  --step-comment-bg: #ffffff;
+  --step-comment-text: #172b4d;
+  --step-comment-border: #dfe1e6;
+
+  /* Status colors */
+  --status-pending-bg: rgba(101, 84, 192, 0.1);
+  --status-pending-text: #6554c0;
+  --status-progress-bg: rgba(0, 101, 255, 0.1);
+  --status-progress-text: #0065ff;
+  --status-completed-bg: rgba(0, 135, 90, 0.1);
+  --status-completed-text: #00875a;
+  --status-failed-bg: rgba(222, 53, 11, 0.1);
+  --status-failed-text: #de350b;
+  --status-todo-bg: #1e3a8a;
+  --status-todo-text: #ffffff;
+  --status-blocked-bg: #fef3c7;
+  --status-blocked-text: #f97316;
+  --status-cancelled-bg: #000000;
+  --status-cancelled-text: #ffffff;
+
+  /* Animation and interaction */
+  --step-transition: all 0.2s ease;
+  --step-border-radius: 4px;
+  --step-spacing-xs: 4px;
+  --step-spacing-sm: 8px;
+  --step-spacing-md: 16px;
+  --step-spacing-lg: 24px;
+}
+
+/* ==========================================================================
+   Base Step Styles
+   ========================================================================== */
+
+.step-breadcrumb {
+  font-size: 12px;
+  color: #6b778c;
+  margin: 8px 0 16px 0;
+  padding: 8px 12px;
+  background-color: #f4f5f7;
+  border-radius: var(--step-border-radius);
+  line-height: 1.5;
+}
+
+.step-key-info {
+  display: flex;
+  gap: var(--step-spacing-lg);
+  margin-bottom: var(--step-spacing-md);
+  padding: var(--step-spacing-sm) var(--step-spacing-md);
+  background-color: #f4f5f7;
+  border-left: 4px solid #0052cc;
+  border-radius: var(--step-border-radius);
+}
+
+.breadcrumb-item {
+  color: #42526e;
+  font-weight: 500;
+}
+
+.breadcrumb-separator {
+  color: #97a0af;
+  margin: 0 6px;
+  font-weight: 300;
+}
+
+/* ==========================================================================
+   Instructions Section
+   ========================================================================== */
+
+.instructions-section {
+  margin-bottom: var(--step-spacing-lg);
+  background-color: var(--step-instruction-bg) !important;
+  padding: var(--step-spacing-md);
+  border-radius: var(--step-border-radius);
+  border: 1px solid var(--step-instruction-border);
+}
+
+.instructions-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5e6c84;
+  margin-bottom: var(--step-spacing-sm);
+  background-color: transparent !important;
+}
+
+/* Instructions Table Structure */
+.instructions-table {
+  border: 1px solid var(--step-instruction-border);
+  border-radius: var(--step-border-radius);
+  overflow: hidden;
+}
+
+.instructions-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 80px 80px 40px;
+  gap: var(--step-spacing-sm);
+  background: #f4f5f7;
+  padding: var(--step-spacing-sm) var(--step-spacing-md);
+  font-weight: 600;
+  color: #5e6c84;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.instruction-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 80px 80px 40px;
+  gap: var(--step-spacing-sm);
+  padding: var(--step-spacing-sm) var(--step-spacing-md);
+  border-bottom: 1px solid var(--step-instruction-border);
+  align-items: center;
+  background-color: var(--step-instruction-bg) !important;
+  color: var(--step-instruction-text) !important;
+  transition: var(--step-transition);
+}
+
+.instruction-row:last-child {
+  border-bottom: none;
+}
+
+.instruction-row:hover {
+  background-color: var(--step-instruction-hover) !important;
+  color: var(--step-instruction-text) !important;
+}
+
+.instruction-row.completed {
+  background-color: var(--step-instruction-completed) !important;
+  color: var(--step-instruction-text) !important;
+  opacity: 0.7;
+}
+
+.instruction-row.completed .col-instruction {
+  text-decoration: line-through;
+  color: #6b778c;
+}
+
+/* Instruction Row Columns */
+.col-num {
+  font-weight: 600;
+  color: #0052cc;
+  text-align: center;
+}
+
+.col-instruction {
+  font-weight: 500;
+}
+
+.col-control {
+  font-family: monospace;
+  font-size: 12px;
+  color: #5e6c84;
+}
+
+.col-duration {
+  font-size: 12px;
+  color: #5e6c84;
+  text-align: right;
+}
+
+.col-complete {
+  text-align: center;
+}
+
+/* Instruction text content styling */
+.instruction-body,
+.instruction-order,
+.instruction-duration {
+  color: var(--step-instruction-text) !important;
+}
+
+/* Instruction Checkbox Styling */
+.instruction-checkbox {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  transition: var(--step-transition);
+  background-color: var(--step-instruction-bg) !important;
+  border: 2px solid var(--step-instruction-border) !important;
+}
+
+.instruction-checkbox:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.instruction-checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.instruction-checkbox:checked {
+  accent-color: #00875a;
+}
+
+/* Force white background for AUI tables in instructions */
+.instructions-section table.aui,
+.instructions-section .aui,
+.instructions-section table {
+  background-color: var(--step-instruction-bg) !important;
+  color: var(--step-instruction-text) !important;
+}
+
+.instructions-section table.aui thead,
+.instructions-section table.aui thead th,
+.instructions-section .aui thead,
+.instructions-section .aui thead th {
+  background-color: #f4f5f7 !important;
+  color: var(--step-instruction-text) !important;
+}
+
+.instructions-section table.aui tbody,
+.instructions-section table.aui tbody tr,
+.instructions-section table.aui tbody td,
+.instructions-section .aui tbody,
+.instructions-section .aui tbody tr,
+.instructions-section .aui tbody td {
+  background-color: var(--step-instruction-bg) !important;
+  color: var(--step-instruction-text) !important;
+}
+
+/* ==========================================================================
+   Comments Section
+   ========================================================================== */
+
+.comments-section {
+  margin-bottom: var(--step-spacing-lg);
+  background-color: var(--step-comment-bg) !important;
+  padding: var(--step-spacing-md);
+  border-radius: var(--step-border-radius);
+  border: 1px solid var(--step-comment-border);
+}
+
+.comments-section h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5e6c84;
+  margin-bottom: var(--step-spacing-sm);
+  background-color: transparent !important;
+}
+
+.comments-list {
+  margin-bottom: var(--step-spacing-md);
+}
+
+.comment {
+  background: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+  border: 1px solid var(--step-comment-border) !important;
+  border-radius: var(--step-border-radius);
+  padding: var(--step-spacing-sm) var(--step-spacing-md);
+  margin-bottom: var(--step-spacing-sm);
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--step-spacing-xs);
+  position: relative;
+  background-color: transparent !important;
+  color: var(--step-comment-text) !important;
+}
+
+.comment-actions {
+  display: flex;
+  gap: var(--step-spacing-xs);
+}
+
+.comment-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 12px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  color: var(--step-comment-text) !important;
+  background-color: transparent !important;
+}
+
+.comment-actions button:hover {
+  opacity: 1;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #0052cc;
+  font-size: 12px;
+  background-color: transparent !important;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #6b778c;
+  background-color: transparent !important;
+}
+
+.comment-body,
+.comment-content,
+.comment-text {
+  font-size: 14px;
+  color: var(--step-comment-text) !important;
+  background-color: var(--step-comment-bg) !important;
+  line-height: 1.5;
+}
+
+.no-comments {
+  text-align: center;
+  color: #6b778c;
+  font-style: italic;
+  padding: var(--step-spacing-lg) 0;
+}
+
+.btn-edit-comment,
+.btn-delete-comment {
+  opacity: 0.6;
+  color: var(--step-comment-text) !important;
+  background-color: transparent !important;
+}
+
+.comment:hover .btn-edit-comment,
+.comment:hover .btn-delete-comment {
+  opacity: 1;
+}
+
+/* Comment Form Styling */
+.comment-form textarea,
+.comment-edit textarea,
+.comment-body textarea,
+.edit-comment-form textarea {
+  width: 100%;
+  border-radius: var(--step-border-radius);
+  border: 1px solid var(--step-comment-border);
+  padding: var(--step-spacing-xs);
+  font-size: 14px;
+  margin-bottom: var(--step-spacing-xs);
+  resize: vertical;
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+}
+
+.comment-form button {
+  background: #0052cc;
+  color: #fff;
+  border: none;
+  border-radius: var(--step-border-radius);
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.comment-form button:hover {
+  background: #0747a6;
+}
+
+/* AUI form elements in comments */
+.comments-section .aui-field-textarea,
+.comments-section .aui-field-textarea textarea,
+.comments-section input[type="text"],
+.comments-section input[type="email"] {
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+  border: 1px solid var(--step-comment-border) !important;
+}
+
+/* ==========================================================================
+   Status System
+   ========================================================================== */
+
+/* Status dropdown styling */
+.status-dropdown {
+  border: 1px solid #dfe1e6;
+  border-radius: var(--step-border-radius);
+  font-size: 12px;
+  font-weight: 600;
+  transition: var(--step-transition);
+  cursor: pointer;
+  min-width: 120px;
+  border: 2px solid transparent;
+}
+
+.status-dropdown:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.status-dropdown:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+.status-dropdown option {
+  background-color: white;
+  color: #172b4d;
+  padding: 4px 8px;
+}
+
+/* Status color classes */
+.status-pending {
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border-radius: var(--step-border-radius);
+  padding: 2px 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-in-progress {
+  background: var(--status-progress-bg);
+  color: var(--status-progress-text);
+  border-radius: var(--step-border-radius);
+  padding: 2px 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-completed {
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
+  border-radius: var(--step-border-radius);
+  padding: 2px 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-blocked {
+  background: var(--status-failed-bg);
+  color: var(--status-failed-text);
+  border-radius: var(--step-border-radius);
+  padding: 2px 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-todo {
+  background: var(--status-todo-bg);
+  color: var(--status-todo-text);
+  border-radius: var(--step-border-radius);
+  padding: 2px 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-failed {
+  background: var(--status-failed-bg);
+  color: var(--status-failed-text);
+  border-radius: var(--step-border-radius);
+  padding: 2px 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.status-cancelled {
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border-radius: var(--step-border-radius);
+  padding: 2px 8px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* Optimistic update styling */
+.optimistic-update {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+
+.optimistic-update::after {
+  content: "⏳";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   Night Mode / Dark Theme Support
+   ========================================================================== */
+
+/* Instructions section dark mode overrides */
+body[data-theme="dark"] .instructions-section,
+body.dark-theme .instructions-section,
+body.confluence-dark-theme .instructions-section,
+[data-color-mode="dark"] .instructions-section {
+  background-color: var(--step-instruction-bg) !important;
+  color: var(--step-instruction-text) !important;
+}
+
+body[data-theme="dark"] .instructions-section table.aui,
+body.dark-theme .instructions-section table.aui,
+body.confluence-dark-theme .instructions-section table.aui {
+  background-color: var(--step-instruction-bg) !important;
+}
+
+body[data-theme="dark"] .instructions-section table.aui th,
+body[data-theme="dark"] .instructions-section table.aui td,
+body.dark-theme .instructions-section table.aui th,
+body.dark-theme .instructions-section table.aui td,
+body.confluence-dark-theme .instructions-section table.aui th,
+body.confluence-dark-theme .instructions-section table.aui td {
+  background-color: var(--step-instruction-bg) !important;
+  color: var(--step-instruction-text) !important;
+  border-color: var(--step-instruction-border) !important;
+}
+
+body[data-theme="dark"] .instructions-section .instruction-row:hover,
+body.dark-theme .instructions-section .instruction-row:hover,
+body.confluence-dark-theme .instructions-section .instruction-row:hover {
+  background-color: var(--step-instruction-hover) !important;
+}
+
+body[data-theme="dark"] .instructions-section .instruction-row.completed,
+body.dark-theme .instructions-section .instruction-row.completed,
+body.confluence-dark-theme .instructions-section .instruction-row.completed {
+  background-color: #e3fcef !important;
+}
+
+body[data-theme="dark"] .instructions-section .instruction-checkbox,
+body.dark-theme .instructions-section .instruction-checkbox,
+body.confluence-dark-theme .instructions-section .instruction-checkbox {
+  opacity: 1 !important;
+  background-color: #f4f5f7 !important;
+  border: 2px solid var(--step-instruction-border) !important;
+}
+
+body[data-theme="dark"] .instructions-section h3,
+body[data-theme="dark"] .instructions-section h4,
+body.dark-theme .instructions-section h3,
+body.dark-theme .instructions-section h4,
+body.confluence-dark-theme .instructions-section h3,
+body.confluence-dark-theme .instructions-section h4 {
+  color: var(--step-instruction-text) !important;
+  background-color: transparent !important;
+}
+
+/* Comments section dark mode overrides */
+body[data-theme="dark"] .comments-section,
+body.dark-theme .comments-section,
+body.confluence-dark-theme .comments-section,
+[data-color-mode="dark"] .comments-section {
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+}
+
+body[data-theme="dark"] .comments-section .comment,
+body.dark-theme .comments-section .comment,
+body.confluence-dark-theme .comments-section .comment {
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+  border-color: var(--step-comment-border) !important;
+}
+
+body[data-theme="dark"] .comments-section textarea,
+body[data-theme="dark"] .comments-section .comment-form textarea,
+body[data-theme="dark"] .comments-section input[type="text"],
+body[data-theme="dark"] .comments-section input[type="email"],
+body.dark-theme .comments-section textarea,
+body.dark-theme .comments-section .comment-form textarea,
+body.dark-theme .comments-section input[type="text"],
+body.dark-theme .comments-section input[type="email"],
+body.confluence-dark-theme .comments-section textarea,
+body.confluence-dark-theme .comments-section .comment-form textarea,
+body.confluence-dark-theme .comments-section input[type="text"],
+body.confluence-dark-theme .comments-section input[type="email"] {
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+  border: 1px solid var(--step-comment-border) !important;
+}
+
+body[data-theme="dark"] .comments-section .comment-edit textarea,
+body[data-theme="dark"] .comments-section .comment-body textarea,
+body[data-theme="dark"] .comments-section .edit-comment-form textarea,
+body.dark-theme .comments-section .comment-edit textarea,
+body.dark-theme .comments-section .comment-body textarea,
+body.dark-theme .comments-section .edit-comment-form textarea,
+body.confluence-dark-theme .comments-section .comment-edit textarea,
+body.confluence-dark-theme .comments-section .comment-body textarea,
+body.confluence-dark-theme .comments-section .edit-comment-form textarea {
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+  border: 1px solid var(--step-comment-border) !important;
+}
+
+body[data-theme="dark"] .comments-section .comment-body,
+body[data-theme="dark"] .comments-section .comment-content,
+body[data-theme="dark"] .comments-section .comment-text,
+body.dark-theme .comments-section .comment-body,
+body.dark-theme .comments-section .comment-content,
+body.dark-theme .comments-section .comment-text,
+body.confluence-dark-theme .comments-section .comment-body,
+body.confluence-dark-theme .comments-section .comment-content,
+body.confluence-dark-theme .comments-section .comment-text {
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+}
+
+body[data-theme="dark"] .comments-section .comment-header,
+body[data-theme="dark"] .comments-section .comment-author,
+body[data-theme="dark"] .comments-section .comment-time,
+body.dark-theme .comments-section .comment-header,
+body.dark-theme .comments-section .comment-author,
+body.dark-theme .comments-section .comment-time,
+body.confluence-dark-theme .comments-section .comment-header,
+body.confluence-dark-theme .comments-section .comment-author,
+body.confluence-dark-theme .comments-section .comment-time {
+  color: var(--step-comment-text) !important;
+  background-color: transparent !important;
+}
+
+body[data-theme="dark"] .comments-section .comment-actions button,
+body[data-theme="dark"] .comments-section .btn-edit-comment,
+body[data-theme="dark"] .comments-section .btn-delete-comment,
+body.dark-theme .comments-section .comment-actions button,
+body.dark-theme .comments-section .btn-edit-comment,
+body.dark-theme .comments-section .btn-delete-comment,
+body.confluence-dark-theme .comments-section .comment-actions button,
+body.confluence-dark-theme .comments-section .btn-edit-comment,
+body.confluence-dark-theme .comments-section .btn-delete-comment {
+  color: var(--step-comment-text) !important;
+  background-color: transparent !important;
+}
+
+body[data-theme="dark"] .comments-section .aui-field-textarea,
+body[data-theme="dark"] .comments-section .aui-field-textarea textarea,
+body.dark-theme .comments-section .aui-field-textarea,
+body.dark-theme .comments-section .aui-field-textarea textarea,
+body.confluence-dark-theme .comments-section .aui-field-textarea,
+body.confluence-dark-theme .comments-section .aui-field-textarea textarea {
+  background-color: var(--step-comment-bg) !important;
+  color: var(--step-comment-text) !important;
+  border: 1px solid var(--step-comment-border) !important;
+}
+
+body[data-theme="dark"] .comments-section h3,
+body[data-theme="dark"] .comments-section h4,
+body.dark-theme .comments-section h3,
+body.dark-theme .comments-section h4,
+body.confluence-dark-theme .comments-section h3,
+body.confluence-dark-theme .comments-section h4 {
+  color: var(--step-comment-text) !important;
+  background-color: transparent !important;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .instructions-header,
+  .instruction-row {
+    grid-template-columns: 30px 1fr 60px 60px 30px;
+    gap: var(--step-spacing-xs);
+    padding: var(--step-spacing-xs) var(--step-spacing-sm);
+  }
+
+  .step-key-info {
+    flex-direction: column;
+    gap: var(--step-spacing-sm);
+  }
+
+  .comment-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--step-spacing-xs);
+  }
+
+  .comment-actions {
+    align-self: flex-end;
+  }
+}
+
+/* ==========================================================================
+   Animations & Transitions
+   ========================================================================== */
+
+/* Fade in animation for new instructions */
+@keyframes fadeInInstruction {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.instruction-row.new {
+  animation: fadeInInstruction 0.3s ease-out;
+}
+
+/* Pulse animation for completed instructions */
+@keyframes pulseComplete {
+  0% {
+    background-color: var(--step-instruction-completed);
+  }
+  50% {
+    background-color: rgba(0, 135, 90, 0.3);
+  }
+  100% {
+    background-color: var(--step-instruction-completed);
+  }
+}
+
+.instruction-row.just-completed {
+  animation: pulseComplete 0.6s ease-in-out;
+}
+
+/* Smooth transitions for status changes */
+.status-dropdown {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .instruction-row,
+  .status-dropdown,
+  .instruction-checkbox {
+    animation: none;
+    transition: none;
+  }
+}
