@@ -247,9 +247,9 @@ If issues arise:
 
 ## Approval & Sign-off
 
-**Plan Approved By**: ********\_********  
-**Technical Lead**: ********\_********  
-**QA Lead**: ********\_********  
+**Plan Approved By**: **\*\*\*\***\_**\*\*\*\***  
+**Technical Lead**: **\*\*\*\***\_**\*\*\*\***  
+**QA Lead**: **\*\*\*\***\_**\*\*\*\***  
 **Date**: August 19, 2025
 
 ---
