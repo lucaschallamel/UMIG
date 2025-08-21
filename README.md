@@ -20,7 +20,7 @@ UMIG addresses the critical need for structured, auditable, and collaborative ma
 - **Hierarchical Implementation Plans**: Structured organization of migrations → iterations → plans → sequences → phases → steps → instructions
 - **Real-time Collaboration**: Multi-user environment with role-based access and team management
 - **Status Tracking**: Complete audit trail of execution progress with commenting system
-- **Email Notifications**: Automated notifications for step status changes with template management
+- **Email Notifications**: Production-ready automated notifications with system configuration and template management
 - **Interactive Runsheets**: Dynamic, filterable views for live cutover event management
 - **Responsive Design**: Mobile-friendly interface for field operations
 - **Pure ScriptRunner Integration**: Native Confluence plugin architecture
@@ -59,6 +59,7 @@ UMIG/
 │           │       ├── InstructionsApi.groovy
 │           │       ├── PlansApi.groovy
 │           │       ├── SequencesApi.groovy
+│           │       ├── SystemConfigurationApi.groovy  # Configuration management
 │           │       ├── TeamMembersApi.groovy
 │           │       ├── TeamsApi.groovy
 │           │       ├── UsersApi.groovy
@@ -82,6 +83,7 @@ UMIG/
 │           │   ├── SequenceRepository.groovy
 │           │   ├── StepRepository.groovy
 │           │   ├── StepTypeRepository.groovy
+│           │   ├── SystemConfigurationRepository.groovy # Configuration management
 │           │   ├── TeamMembersRepository.groovy
 │           │   ├── TeamRepository.groovy
 │           │   └── UserRepository.groovy
@@ -107,7 +109,11 @@ UMIG/
 │           │   ├── archived-shell-scripts/ # Deprecated shell scripts (archived)
 │           │   └── grab-postgres-jdbc.groovy
 │           ├── utils/                # Utility classes
-│           │   └── DatabaseUtil.groovy
+│           │   ├── DatabaseUtil.groovy
+│           │   ├── EmailService.groovy
+│           │   ├── EnhancedEmailService.groovy    # Email notification system
+│           │   ├── StepNotificationIntegration.groovy # Cross-system integration
+│           │   └── UrlConstructionService.groovy  # Dynamic URL generation
 │           └── web/                  # Frontend assets
 │               ├── README.md         # Web assets documentation
 │               ├── css/              # Stylesheets
@@ -130,8 +136,9 @@ UMIG/
 │                   ├── step-view.js
 │                   └── umig-ip-macro.js
 ├── docs/                             # Comprehensive documentation
-│   ├── adr/                          # Architecture Decision Records
-│   │   ├── archive/                  # All ADRs now consolidated in solution-architecture.md
+│   ├── adr/                          # Architecture Decision Records (42 ADRs)
+│   │   ├── archive/                  # Historical ADRs (most consolidated in solution-architecture.md)
+│   │   ├── ADR-042-dual-authentication-context-management.md # Active ADR
 │   │   └── template.md               # ADR template
 │   ├── api/                          # API documentation & OpenAPI spec
 │   │   ├── README.md                 # API documentation
@@ -141,7 +148,8 @@ UMIG/
 │   │       ├── README.md             # Postman documentation
 │   │       └── UMIG_API_V2_Collection.postman_collection.json
 │   ├── dataModel/                    # Database schema & ERD
-│   │   └── README.md                 # Comprehensive data model documentation
+│   │   ├── UMIG_Data_Model.md        # Pure schema specification
+│   │   └── UMIG_DB_Best_Practices.md # Implementation patterns and best practices
 │   ├── devJournal/                   # Sprint reviews & development notes
 │   │   ├── README.md                 # Development journal index
 │   │   ├── devJournalEntryTemplate.md
@@ -448,6 +456,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - **Instructions API**: Instruction template and execution management
 - **Steps API**: Complete step lifecycle management with performance optimization
 - **Controls API**: Quality gate and control point management system
+- **System Configuration API**: Runtime configuration management with audit trail
 
 ### User Interface Components
 
@@ -472,14 +481,14 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - Core REST APIs: ✅ All Complete (100% finished)
 - Integration Test Expansion: ✅ Complete (US-022 - 95%+ coverage achieved)
 - API Documentation: ✅ Complete (US-030 - 100% comprehensive documentation)
-- StepView UI Refactoring: ✅ 80% Complete (US-036 - Comprehensive scope expansion completed)
+- StepView UI Refactoring: ✅ Complete (US-036 - Email notification system, RBAC, and comment system implemented)
 - Admin GUI Integration: 🚧 In Progress - All entity types with cross-module synchronization
 - Data Import Strategy: 🚧 Planned - CSV/Excel import with validation
 - Enhanced UIs: 🚧 In Progress - IterationView Phases 2-3 enhancements
 - UAT Preparation: 🚧 In Progress - Performance validation and deployment readiness
 
-**Sprint Status**: 2 of 8 stories complete, ~10 of 28 actual points delivered  
-**Key Achievement**: US-036 scope expansion (3→8-10 points) managed with 95% test coverage maintained  
+**Sprint Status**: 3 of 8 stories complete, 12 of 23 actual points delivered  
+**Key Achievement**: US-036 comprehensive completion with email notification system, dual authentication, and enhanced RBAC  
 **Timeline**: MVP delivery target August 28, 2025
 
 ### Step View System

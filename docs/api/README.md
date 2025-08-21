@@ -2,8 +2,12 @@
 
 This folder contains the OpenAPI 3.0 specification for the UMIG V2 REST API (version 2.1.1). This new API version supersedes the previous V1 API.
 
-## Latest Updates (August 15, 2025 - Version 2.1.2)
+## Latest Updates (August 21, 2025 - Version 2.1.3)
 
+- **US-036 StepView UI Refactoring**: Complete with comment system parity, RBAC implementation, and System Configuration API integration
+- **System Configuration API**: New API for email template and notification settings management
+- **Email Notification Infrastructure**: Production-ready automated notifications with EnhancedEmailService and UrlConstructionService
+- **BGO-002 Audit Logging Fix**: Corrected entity type issues (INSTRUCTION_INSTANCE vs STEP_INSTANCE)
 - **US-028 Enhanced IterationView Phase 1**: Complete integration with StepsAPIv2Client, real-time synchronization, and role-based access control
 - **Critical API Endpoint Fix**: Resolved configuration issue from /api/v2/steps to /steps for proper integration
 - **US-024 StepsAPI Enhancements**: Improved comments endpoint error messages with helpful guidance
@@ -51,6 +55,7 @@ Individual API specifications are available for detailed documentation:
 - **[Sequences API](SequencesAPI.md)** - Sequence management with ordering and dependency support
 - **[Steps API](StepsAPI.md)** - ✅ **US-024 Enhanced** - Step management with hierarchical filtering, email notification integration, and improved comments endpoint error handling
 - **[stepView API](stepViewAPI.md)** - Specialized API for standalone step view in Confluence pages
+- **[System Configuration API](SystemConfigurationAPI.md)** - ✅ **US-036 New** - System configuration management for email templates and notification settings
 - **[Team Members API](TeamMembersAPI.md)** - Team membership management and user-team associations
 - **[Teams API](TeamsAPI.md)** - Team management with hierarchical filtering
 - **[Users API](UsersAPI.md)** - User management with authentication, roles, and team memberships

@@ -114,17 +114,17 @@ def updateConfigurationValue(UUID scfId, String newValue, String updatedBy, Stri
         def currentConfig = sql.firstRow("""
             SELECT scf_value FROM system_configuration_scf WHERE scf_id = ?
         """, [scfId])
-        
+
         // Update configuration
         sql.executeUpdate("""
-            UPDATE system_configuration_scf 
+            UPDATE system_configuration_scf
             SET scf_value = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP
             WHERE scf_id = ?
         """, [newValue, updatedBy, scfId])
-        
+
         // Insert history record
         sql.executeUpdate("""
-            INSERT INTO system_configuration_history_sch 
+            INSERT INTO system_configuration_history_sch
             (scf_id, sch_old_value, sch_new_value, sch_change_reason, sch_change_type, created_by)
             VALUES (?, ?, ?, ?, 'UPDATE', ?)
         """, [scfId, currentConfig.scf_value, newValue, changeReason, updatedBy])
@@ -183,7 +183,7 @@ CREATE INDEX idx_scf_created_at ON system_configuration_scf(created_at);
 #### ✅ **COMPLETED IMPROVEMENTS**
 
 1. **✅ Audit Fields Standardization**: Migration 016 successfully implemented consistent audit fields across all 25+ tables
-2. **✅ Status Management**: Migration 015 implemented centralized status table with proper constraints  
+2. **✅ Status Management**: Migration 015 implemented centralized status table with proper constraints
 3. **✅ Type Safety**: ADR-031 patterns fully implemented across all repository methods
 4. **✅ Association Table Strategy**: Migration 017 implemented tiered audit approach for join tables
 
@@ -196,17 +196,19 @@ The instance tables use denormalization by design for specific business requirem
 ```sql
 -- Example: sequences_instance_sqi includes override fields
 sqi_name         -- Can override sqm_name from master
-sqi_description  -- Can override sqm_description from master  
+sqi_description  -- Can override sqm_description from master
 sqi_order        -- Can override sqm_order from master
 ```
 
-**Rationale**: 
+**Rationale**:
+
 - Enables per-instance overrides for execution flexibility
 - Preserves historical accuracy during migrations
 - Supports auditability of changes over time
 - Allows future promotion of instance changes to master
 
 **Trade-offs Accepted**:
+
 - Data redundancy vs. operational flexibility
 - Storage overhead vs. query simplicity
 - Synchronization complexity vs. historical preservation
@@ -214,15 +216,18 @@ sqi_order        -- Can override sqm_order from master
 #### Tiered Audit Strategy for Association Tables
 
 **Tier 1 - Critical Associations (Full Audit)**:
+
 - `teams_tms_x_users_usr`: User-team assignments (created_at, created_by as VARCHAR)
 - **Rationale**: Access control and organizational structure changes require full tracking
 
 **Tier 2 - Standard Associations (Minimal Audit)**:
+
 - `teams_tms_x_applications_app`: Team-application links (created_at only)
 - `labels_lbl_x_*`: Label associations (created_at, created_by)
 - **Rationale**: Basic tracking without over-engineering
 
 **Tier 3 - Simple Associations (No Audit)**:
+
 - `environments_env_x_applications_app`: Environment-application links
 - **Rationale**: Pure many-to-many relationships with minimal change tracking needs
 
@@ -235,8 +240,8 @@ sqi_order        -- Can override sqm_order from master
 def getConfigValue(String key, Integer envId) {
     return DatabaseUtil.withSql { sql ->
         sql.firstRow("""
-            SELECT scf_value, scf_data_type 
-            FROM system_configuration_scf 
+            SELECT scf_value, scf_data_type
+            FROM system_configuration_scf
             WHERE scf_key = ? AND env_id = ? AND scf_is_active = true
         """, [key, envId])
     }
@@ -268,14 +273,16 @@ def validateConfigurationValue(String value, String dataType, String validationP
 #### Query Pattern Optimization
 
 **DO: Use hierarchical filtering with instance IDs**
+
 ```groovy
 // CORRECT - filters by instance IDs for proper hierarchical navigation
 query += ' AND pli.pli_id = :planId'     // plan instance
-query += ' AND sqi.sqi_id = :sequenceId' // sequence instance  
+query += ' AND sqi.sqi_id = :sequenceId' // sequence instance
 query += ' AND phi.phi_id = :phaseId'    // phase instance
 ```
 
 **DON'T: Use master IDs for instance queries**
+
 ```groovy
 // INCORRECT - filters by master IDs (will miss steps)
 query += ' AND plm.plm_id = :planId'     // plan master
@@ -323,7 +330,7 @@ ALTER TABLE steps_master_stm ADD COLUMN stm_is_latest BOOLEAN DEFAULT TRUE;
 ```sql
 -- Verify all instances have master references
 SELECT COUNT(*) FROM instructions_instance_ini ini
-LEFT JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id  
+LEFT JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
 WHERE inm.inm_id IS NULL;
 
 -- Check completion consistency
@@ -331,8 +338,8 @@ SELECT COUNT(*) FROM instructions_instance_ini
 WHERE ini_is_completed = true AND ini_completed_at IS NULL;
 
 -- Validate configuration data types
-SELECT scf_key, scf_value, scf_data_type 
-FROM system_configuration_scf 
+SELECT scf_key, scf_value, scf_data_type
+FROM system_configuration_scf
 WHERE scf_data_type = 'INTEGER' AND scf_value !~ '^[0-9]+$';
 ```
 
@@ -652,18 +659,23 @@ All changes are reflected in this document and the main data model specification
 Based on the comprehensive analysis in [normalization-recommendations.md](./normalization-recommendations.md), a 4-phase implementation approach was originally recommended:
 
 #### Phase 1: Add Audit Fields (Week 1)
+
 **Scope**: Standardize audit fields across all 25+ tables
+
 - Create Liquibase migration to add audit fields to all tables
 - Set default values for existing records ('system', 'generator', 'migration')
 - Update all repository classes to handle audit fields
 - Modify APIs to populate audit fields with user trigrams
 
-**Risk Mitigation**: 
+**Risk Mitigation**:
+
 - Transaction-based migration with rollback capability
 - Comprehensive validation queries post-migration
 
-#### Phase 2: Normalize Instance Tables (Week 2)  
+#### Phase 2: Normalize Instance Tables (Week 2)
+
 **Scope**: Address data duplication in instance tables
+
 - Create override tables for instance-specific changes
 - Migrate existing override data to new normalized structure
 - Update repository methods to handle proper joins
@@ -672,14 +684,18 @@ Based on the comprehensive analysis in [normalization-recommendations.md](./norm
 **Key Decision**: ADR-029 pattern was retained by design for operational flexibility
 
 #### Phase 3: Implement Status Management (Week 3)
+
 **Scope**: Replace VARCHAR status with proper status tables
+
 - Create status_types and status_transitions tables
 - Migrate existing status values to centralized system
 - Update APIs to use status tables for validation
 - Implement status transition validation logic
 
 #### Phase 4: Testing & Validation (Week 4)
+
 **Scope**: Comprehensive validation and performance testing
+
 - Full API regression testing with normalized structure
 - Performance testing and benchmarking
 - Data integrity validation across all tables
@@ -698,20 +714,23 @@ Based on the comprehensive analysis in [normalization-recommendations.md](./norm
 **Issue**: Application cannot find required configuration settings
 
 **Diagnostic Steps**:
+
 1. Verify environment ID and configuration key
 2. Check `scf_is_active` status
 3. Validate environment exists in `environments_env`
 
 **Debug Query**:
+
 ```sql
 -- Find all configurations for environment
-SELECT scf_key, scf_value, scf_is_active, scf_category 
-FROM system_configuration_scf 
-WHERE env_id = ? 
+SELECT scf_key, scf_value, scf_is_active, scf_category
+FROM system_configuration_scf
+WHERE env_id = ?
 ORDER BY scf_category, scf_key;
 ```
 
 **Common Solutions**:
+
 - Activate disabled configuration: `UPDATE system_configuration_scf SET scf_is_active = true WHERE scf_key = ? AND env_id = ?`
 - Create missing configuration via SystemConfigurationApi or repository
 - Verify environment ID matches actual environment table entries
@@ -721,24 +740,27 @@ ORDER BY scf_category, scf_key;
 **Issue**: Configuration updates fail due to validation errors
 
 **Diagnostic Steps**:
+
 1. Review `scf_data_type` and `scf_validation_pattern`
 2. Test validation patterns with sample data
 3. Check for special characters in values
 
 **Debug Queries**:
+
 ```sql
 -- Check configuration data type and pattern
-SELECT scf_key, scf_data_type, scf_validation_pattern, scf_value 
-FROM system_configuration_scf 
+SELECT scf_key, scf_data_type, scf_validation_pattern, scf_value
+FROM system_configuration_scf
 WHERE scf_key = ? AND env_id = ?;
 
 -- Find configurations with invalid data types
-SELECT scf_key, scf_value, scf_data_type 
-FROM system_configuration_scf 
+SELECT scf_key, scf_value, scf_data_type
+FROM system_configuration_scf
 WHERE scf_data_type = 'INTEGER' AND scf_value !~ '^[0-9]+$';
 ```
 
 **Common Solutions**:
+
 - Update validation pattern to match actual data requirements
 - Convert data type if pattern is correct but type is wrong
 - Clean data values to match expected format
@@ -748,20 +770,23 @@ WHERE scf_data_type = 'INTEGER' AND scf_value !~ '^[0-9]+$';
 **Issue**: Confluence macros not loading or displaying incorrect data
 
 **Diagnostic Steps**:
+
 1. Verify macro-specific configurations exist
 2. Check Confluence connectivity
 3. Validate page ID and space key format
 
 **Debug Query**:
+
 ```sql
 -- Get all Confluence macro configurations
-SELECT scf_key, scf_value 
-FROM system_configuration_scf 
+SELECT scf_key, scf_value
+FROM system_configuration_scf
 WHERE env_id = ? AND scf_category = 'MACRO_LOCATION' AND scf_is_active = true
 ORDER BY scf_key;
 ```
 
 **Common Solutions**:
+
 - Verify base URL accessibility: Test `stepview.confluence.base.url`
 - Validate page exists: Check `stepview.confluence.page.id`
 - Confirm space permissions: Verify `stepview.confluence.space.key`
@@ -773,11 +798,12 @@ ORDER BY scf_key;
 **Issue**: Instance records missing master references
 
 **Health Check Query**:
+
 ```sql
 -- Verify all instances have master references
 SELECT 'instructions' as table_name, COUNT(*) as orphaned_records
 FROM instructions_instance_ini ini
-LEFT JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id  
+LEFT JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
 WHERE inm.inm_id IS NULL
 
 UNION ALL
@@ -789,6 +815,7 @@ WHERE stm.stm_id IS NULL;
 ```
 
 **Resolution Steps**:
+
 1. Identify orphaned instance records
 2. Either restore missing master records or clean up orphaned instances
 3. Implement referential integrity constraints if missing
@@ -798,6 +825,7 @@ WHERE stm.stm_id IS NULL;
 **Issue**: Completion flags inconsistent with timestamps
 
 **Health Check Query**:
+
 ```sql
 -- Check completion consistency
 SELECT COUNT(*) as inconsistent_records
@@ -812,13 +840,14 @@ WHERE ini_is_completed = false AND ini_completed_at IS NOT NULL;
 ```
 
 **Resolution**:
+
 ```sql
 -- Fix completion timestamp inconsistencies
-UPDATE instructions_instance_ini 
-SET ini_completed_at = CURRENT_TIMESTAMP 
+UPDATE instructions_instance_ini
+SET ini_completed_at = CURRENT_TIMESTAMP
 WHERE ini_is_completed = true AND ini_completed_at IS NULL;
 
-UPDATE instructions_instance_ini 
+UPDATE instructions_instance_ini
 SET ini_is_completed = false, usr_id_completed_by = NULL
 WHERE ini_is_completed = false AND ini_completed_at IS NOT NULL;
 ```
@@ -828,9 +857,10 @@ WHERE ini_is_completed = false AND ini_completed_at IS NOT NULL;
 **Issue**: Missing or inconsistent audit field data
 
 **Health Check Queries**:
+
 ```sql
 -- Check for missing audit field data
-SELECT table_name, 
+SELECT table_name,
        COUNT(*) FILTER (WHERE created_by IS NULL OR created_by = '') as missing_created_by,
        COUNT(*) FILTER (WHERE created_at IS NULL) as missing_created_at,
        COUNT(*) FILTER (WHERE updated_by IS NULL OR updated_by = '') as missing_updated_by
@@ -850,26 +880,29 @@ GROUP BY table_name;
 **Issue**: Slow query performance on large configuration datasets
 
 **Diagnostic Queries**:
+
 ```sql
 -- Check configuration query performance
-EXPLAIN ANALYZE 
-SELECT scf_key, scf_value 
-FROM system_configuration_scf 
+EXPLAIN ANALYZE
+SELECT scf_key, scf_value
+FROM system_configuration_scf
 WHERE env_id = 1 AND scf_category = 'MACRO_LOCATION' AND scf_is_active = true;
 
 -- Monitor index usage
 SELECT schemaname, tablename, attname, n_distinct, correlation
-FROM pg_stats 
-WHERE tablename = 'system_configuration_scf' 
+FROM pg_stats
+WHERE tablename = 'system_configuration_scf'
 ORDER BY n_distinct DESC;
 ```
 
 **Optimization Solutions**:
+
 1. **Index Monitoring**: Ensure proper index usage
+
 ```sql
 -- Verify essential indexes exist
-SELECT indexname, indexdef 
-FROM pg_indexes 
+SELECT indexname, indexdef
+FROM pg_indexes
 WHERE tablename = 'system_configuration_scf';
 ```
 
@@ -882,10 +915,12 @@ WHERE tablename = 'system_configuration_scf';
 **Issue**: Multiple database round trips for related data
 
 **Detection Pattern**:
+
 - Monitor database logs for repeated similar queries
 - Profile API response times for endpoints returning lists
 
 **Common Solutions**:
+
 - Use JOIN queries instead of separate lookups
 - Implement eager loading in repository methods
 - Cache frequently accessed reference data
@@ -897,21 +932,25 @@ WHERE tablename = 'system_configuration_scf';
 Based on the detailed migration strategy from normalization analysis:
 
 **Phase 1: Audit Fields Implementation (Week 1)**
+
 - **Risk**: Existing data may have NULL audit fields
 - **Mitigation**: Set reasonable defaults during migration
 - **Validation**: Run audit field health checks post-migration
 
-**Phase 2: Instance Table Normalization (Week 2)**  
+**Phase 2: Instance Table Normalization (Week 2)**
+
 - **Risk**: Data duplication and synchronization issues
 - **Mitigation**: Implement transaction-based migration with rollback capability
 - **Validation**: Compare data before/after migration
 
 **Phase 3: Status Management Enhancement (Week 3)**
+
 - **Risk**: Invalid status transitions during cutover
 - **Mitigation**: Implement gradual status table adoption
 - **Validation**: Verify all status values map correctly
 
 **Phase 4: Testing & Validation (Week 4)**
+
 - **Focus**: Comprehensive API and data integrity testing
 - **Tools**: Automated test suite execution
 - **Validation**: Performance benchmarking against baseline
@@ -921,19 +960,21 @@ Based on the detailed migration strategy from normalization analysis:
 #### Configuration Validation on Startup
 
 **Startup Health Check Script**:
+
 ```sql
 -- Essential configuration validation
-SELECT 
+SELECT
     'Missing MACRO_LOCATION configs' as check_type,
     env_id,
     COUNT(*) as config_count
-FROM system_configuration_scf 
+FROM system_configuration_scf
 WHERE scf_category = 'MACRO_LOCATION' AND scf_is_active = true
 GROUP BY env_id
 HAVING COUNT(*) < 4; -- Expecting 4 macro location configs per environment
 ```
 
 **Implementation**:
+
 - Execute during application startup
 - Log warnings for missing configurations
 - Fail startup for critical missing configurations
@@ -943,34 +984,38 @@ HAVING COUNT(*) < 4; -- Expecting 4 macro location configs per environment
 **Regular Maintenance Tasks**:
 
 1. **Configuration Cleanup**:
+
 ```sql
 -- Find unused configurations (no access in 90 days)
 SELECT scf_key, scf_category, created_at
 FROM system_configuration_scf
-WHERE scf_is_active = false 
+WHERE scf_is_active = false
   AND updated_at < CURRENT_DATE - INTERVAL '90 days';
 ```
 
 2. **History Table Pruning**:
+
 ```sql
 -- Remove configuration history older than 1 year
-DELETE FROM system_configuration_history_sch 
+DELETE FROM system_configuration_history_sch
 WHERE created_at < CURRENT_DATE - INTERVAL '1 year';
 ```
 
 3. **Performance Monitoring**:
+
 ```sql
 -- Monitor configuration query patterns
-SELECT query, mean_exec_time, calls 
-FROM pg_stat_statements 
-WHERE query LIKE '%system_configuration_scf%' 
-ORDER BY mean_exec_time DESC 
+SELECT query, mean_exec_time, calls
+FROM pg_stat_statements
+WHERE query LIKE '%system_configuration_scf%'
+ORDER BY mean_exec_time DESC
 LIMIT 10;
 ```
 
 #### Monitoring Alerts
 
 **Key Metrics to Monitor**:
+
 - Configuration lookup response times (< 50ms target)
 - Failed validation attempts (should be minimal)
 - Missing critical configurations (should be 0)
@@ -978,6 +1023,7 @@ LIMIT 10;
 - Query performance degradation
 
 **Alert Thresholds**:
+
 - Configuration response time > 100ms
 - More than 5 validation failures per minute
 - Any missing MACRO_LOCATION configurations
@@ -988,6 +1034,7 @@ LIMIT 10;
 #### Configuration Rollback
 
 **Immediate Rollback Process**:
+
 1. Identify problematic configuration change via history table
 2. Retrieve previous value from `system_configuration_history_sch`
 3. Execute rollback update with proper audit trail
@@ -995,13 +1042,13 @@ LIMIT 10;
 ```sql
 -- Rollback configuration to previous value
 WITH previous_value AS (
-    SELECT sch_old_value 
-    FROM system_configuration_history_sch 
-    WHERE scf_id = ? 
-    ORDER BY created_at DESC 
+    SELECT sch_old_value
+    FROM system_configuration_history_sch
+    WHERE scf_id = ?
+    ORDER BY created_at DESC
     LIMIT 1
 )
-UPDATE system_configuration_scf 
+UPDATE system_configuration_scf
 SET scf_value = (SELECT sch_old_value FROM previous_value),
     updated_by = 'emergency_rollback',
     updated_at = CURRENT_TIMESTAMP
@@ -1011,12 +1058,14 @@ WHERE scf_id = ?;
 #### Database Recovery Procedures
 
 **Data Corruption Recovery**:
+
 1. Identify affected tables via integrity checks
 2. Restore from latest backup if available
 3. Re-run data validation queries
 4. Verify application functionality
 
 **Reference Integrity Repair**:
+
 1. Run comprehensive integrity check queries
 2. Identify and document all integrity violations
 3. Repair or clean up orphaned records
@@ -1027,6 +1076,7 @@ WHERE scf_id = ?;
 ## 8. References & Further Reading
 
 ### Core Documentation
+
 - [UMIG_Data_Model.md](./UMIG_Data_Model.md) - Pure schema specification and table definitions
 - [ADR-029: Full Attribute Instantiation Instance Tables](../adr/ADR-029-full-attribute-instantiation-instance-tables.md)
 - [ADR-031: Groovy Type Safety and Filtering Patterns](../adr/ADR-031-groovy-type-safety-and-filtering-patterns.md)
@@ -1035,16 +1085,19 @@ WHERE scf_id = ?;
 - [Project README](../../README.md)
 
 ### Schema-Specific Documentation
+
 - [System Configuration Schema](../database/system-configuration-schema.md) - Detailed configuration management implementation
-- [Instructions Schema Documentation](./instructions-schema-documentation.md) - Production-ready instructions implementation  
+- [Instructions Schema Documentation](./instructions-schema-documentation.md) - Production-ready instructions implementation
 - [Normalization Recommendations](./normalization-recommendations.md) - Historical analysis and best practices
 
 ### API Documentation
+
 - [SystemConfigurationApi Reference](../../src/groovy/umig/api/v2/SystemConfigurationApi.groovy)
 - [SystemConfigurationRepository](../../src/groovy/umig/repository/SystemConfigurationRepository.groovy)
 - [OpenAPI Specification](../api/openapi.yaml)
 
 ### Testing & Validation
+
 - [SystemConfigurationRepositoryTest](../../src/groovy/umig/tests/unit/SystemConfigurationRepositoryTest.groovy)
 - [Instructions API Integration Tests](../../src/groovy/umig/tests/integration/)
 - [Database Quality Validation](../testing/QUALITY_CHECK_PROCEDURES.md)

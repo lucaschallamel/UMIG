@@ -6,6 +6,7 @@ This document provides the pure schema specification for the Unified Migration (
 **Consolidated Sources**: System Configuration Schema, Instructions Schema Documentation, Database Migrations
 
 **Related Documentation**:
+
 - [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md) - Implementation patterns, performance optimization, and best practices
 - [System Configuration Schema](../database/system-configuration-schema.md) - Detailed configuration management schema
 - [Solution Architecture](../solution-architecture.md) - Overall system architecture and design decisions
@@ -19,7 +20,7 @@ This document provides the pure schema specification for the Unified Migration (
 UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 
 - **Masters**: Define reusable templates and playbooks (e.g., `steps_master_stm`)
-- **Instances**: Track real-world executions (e.g., `steps_instance_sti`)  
+- **Instances**: Track real-world executions (e.g., `steps_instance_sti`)
 - **Associations**: Many-to-many relationships via join tables
 
 ### 1.2. Data Hierarchy
@@ -32,7 +33,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 ### 1.3. Key Design Principles
 
 - Normalized schema with explicit foreign key relationships
-- Standardized audit fields across all tables (migrations 016 & 017)  
+- Standardized audit fields across all tables (migrations 016 & 017)
 - Environment-aware configuration management
 - Centralized status management with color coding
 - UUID primary keys for business entities, INT for reference data
@@ -108,7 +109,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 **Purpose**: Centralized configuration management for runtime settings, Confluence macro locations, and environment-specific parameters.
 
 - **scf_id** (UUID, PK): Unique configuration identifier
-- **env_id** (INT, FK → environments_env): Environment association 
+- **env_id** (INT, FK → environments_env): Environment association
 - **scf_key** (VARCHAR, unique per environment): Configuration key
 - **scf_category** (VARCHAR): MACRO_LOCATION, API_CONFIG, SYSTEM_SETTING
 - **scf_value** (TEXT): Configuration value (supports all data types)
@@ -120,10 +121,12 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **created_by**, **created_at**, **updated_by**, **updated_at**: Standard audit fields
 
 **Constraints**:
+
 - Unique constraint on (env_id, scf_key)
 - Foreign key to environments_env
 
 **Key Configuration Categories**:
+
 - **MACRO_LOCATION**: Confluence deployment settings (space keys, page IDs, base URLs)
 - **API_CONFIG**: Runtime settings (rate limiting, timeouts, retry configuration)
 - **SYSTEM_SETTING**: General system configuration (debug mode, maintenance status, cache settings)
@@ -209,6 +212,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **updated_by** (VARCHAR(255), nullable): User trigram who last updated - Added in migration 016
 
 **Schema Constraints**:
+
 ```sql
 CREATE TABLE instructions_master_inm (
     inm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -225,11 +229,13 @@ CREATE TABLE instructions_master_inm (
 ```
 
 **Data Characteristics**:
+
 - **Volume**: ~14,430 instructions across all steps
 - **Pattern**: Canonical master/instance separation following UMIG standards
 - **Integration**: Full integration with team assignment and control point validation
 
 **Relationships**:
+
 - Many instructions can belong to one step master
 - Instructions can optionally be assigned to a team
 - Instructions can optionally reference a control point for validation
@@ -320,6 +326,7 @@ CREATE TABLE instructions_master_inm (
 - **updated_by** (VARCHAR(255), nullable): User trigram who last updated - Added in migration 016
 
 **Schema Constraints**:
+
 ```sql
 CREATE TABLE instructions_instance_ini (
     ini_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -341,12 +348,14 @@ All master instruction attributes are copied to instances during creation to pre
 Uses boolean `ini_is_completed` instead of complex status enumeration for clear binary state management - instruction is either completed or not completed. This avoids the complexity of state machines while providing clear completion tracking.
 
 **Data Characteristics**:
+
 - **Volume**: ~14,430 instruction instances (1:1 with masters for active migrations)
 - **Query Pattern**: Primarily hierarchical lookups by step instance
 - **Expected Load**: Read-heavy with periodic completion updates
 - **Completion Tracking**: Timestamp and user ID for audit trail
 
 **Relationships**:
+
 - Each instruction instance belongs to exactly one step instance
 - Each instruction instance is created from exactly one master instruction
 - Multiple instances can be created from the same master instruction (for different iterations)
@@ -843,11 +852,13 @@ erDiagram
 ## 8. Migration References
 
 **Data Characteristics**:
+
 - **Volume**: ~14,430 instruction instances (1:1 with masters for active migrations)
 - **Scale**: 5 migrations, 30 iterations, 5 plans → 13 sequences → 43 phases → 1,443+ step instances
 - **Pattern**: Canonical (master) vs Instance (execution) entity separation
 
 **Key Migration Points**:
+
 - **Migration 010**: Full attribute replication to instance tables (ADR-029)
 - **Migration 015**: Centralized status management with color coding
 - **Migration 016**: Standardized audit fields across all tables
@@ -865,7 +876,7 @@ All tables in the UMIG database follow a standardized audit fields pattern (migr
 
 - **created_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
 - **created_at** (TIMESTAMPTZ): Timestamp when the record was created
-- **updated_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'  
+- **updated_by** (VARCHAR(255)): User trigram (usr_code), 'system', 'generator', or 'migration'
 - **updated_at** (TIMESTAMPTZ): Timestamp when the record was last updated (auto-updated via trigger)
 
 ### Tables with Audit Fields
@@ -889,6 +900,7 @@ For detailed audit field implementation patterns and usage guidance, see [UMIG_D
 ## 10. References & Further Reading
 
 ### Related Documentation
+
 - **[UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md)** - Complete implementation patterns, query optimization, performance guidelines, and best practices
 - [ADR-029: Full Attribute Instantiation Instance Tables](../adr/ADR-029-full-attribute-instantiation-instance-tables.md) - Design rationale for instance table denormalization
 - [ADR-031: Groovy Type Safety and Filtering Patterns](../adr/ADR-031-groovy-type-safety-and-filtering-patterns.md) - Type safety implementation standards
@@ -896,10 +908,12 @@ For detailed audit field implementation patterns and usage guidance, see [UMIG_D
 - [Solution Architecture Documentation](../solution-architecture.md) - Overall system architecture and 40+ consolidated ADRs
 
 ### Schema-Specific Documentation
+
 - [System Configuration Schema](../database/system-configuration-schema.md) - Detailed configuration management implementation
-- [Instructions Schema Documentation](./instructions-schema-documentation.md) - Production-ready instructions implementation  
+- [Instructions Schema Documentation](./instructions-schema-documentation.md) - Production-ready instructions implementation
 
 ### API Documentation & Testing
+
 - [OpenAPI Specification](../api/openapi.yaml) - Complete API documentation
 - [SystemConfigurationApi Reference](../../src/groovy/umig/api/v2/SystemConfigurationApi.groovy)
 - [SystemConfigurationRepository](../../src/groovy/umig/repository/SystemConfigurationRepository.groovy)

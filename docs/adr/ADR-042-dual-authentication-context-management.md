@@ -1,9 +1,11 @@
 # ADR-042: Dual Authentication Context Management
 
 ## Status
+
 Accepted
 
 ## Date
+
 2025-08-21
 
 ## Context
@@ -56,7 +58,7 @@ The system will attempt user identification in this order:
 ```groovy
 class UserService {
     private static final String CACHE_KEY_PREFIX = "user_context_"
-    
+
     static Map<String, Object> getUserContextWithFallback(String preferredUserId = null) {
         // 1. Try preferred user (from frontend)
         if (preferredUserId) {
@@ -65,7 +67,7 @@ class UserService {
                 return createUserContext(directUser, 'DIRECT')
             }
         }
-        
+
         // 2. Try current Confluence user context
         def confluenceUser = getCurrentConfluenceUser()
         if (confluenceUser) {
@@ -76,16 +78,16 @@ class UserService {
                 return createSystemUserContext(confluenceUser, 'SYS')
             }
         }
-        
+
         // 3. Confluence system user fallback
         if (confluenceUser) {
             return createSystemUserContext(confluenceUser, 'CSU')
         }
-        
+
         // 4. Anonymous fallback
         return createAnonymousContext()
     }
-    
+
     private static Map<String, Object> createUserContext(Map user, String contextType) {
         return [
             userId: user.usr_id,
@@ -96,7 +98,7 @@ class UserService {
             auditIdentifier: user.usr_username
         ]
     }
-    
+
     private static Map<String, Object> createSystemUserContext(def confluenceUser, String contextType) {
         return [
             userId: null,
@@ -107,7 +109,7 @@ class UserService {
             auditIdentifier: "SYSTEM(${confluenceUser.name})"
         ]
     }
-    
+
     private static Map<String, Object> createAnonymousContext() {
         return [
             userId: null,
@@ -130,17 +132,17 @@ steps(httpMethod: "PUT", groups: ["confluence-users"]) { request, binding ->
     try {
         def requestData = request.contentAsObject
         def preferredUserId = requestData.userId as String
-        
+
         // Get user context with fallback
         def userContext = UserService.getUserContextWithFallback(preferredUserId)
-        
+
         // Perform operation
         def result = StepRepository.updateStep(
             requestData.stepId as String,
             requestData,
             userContext.auditIdentifier
         )
-        
+
         // Log audit information
         AuditLogRepository.logAction([
             action: 'STEP_UPDATE',
@@ -149,9 +151,9 @@ steps(httpMethod: "PUT", groups: ["confluence-users"]) { request, binding ->
             auditIdentifier: userContext.auditIdentifier,
             contextType: userContext.contextType
         ])
-        
+
         return Response.ok(result).build()
-        
+
     } catch (Exception e) {
         log.error("Error updating step with authentication context", e)
         return Response.status(500)
@@ -166,30 +168,30 @@ steps(httpMethod: "PUT", groups: ["confluence-users"]) { request, binding ->
 ```javascript
 // Frontend components should provide user context when available
 class StepsAPIv2Client {
-    async updateStep(stepId, updateData) {
-        // Include user context if available
-        const payload = {
-            ...updateData,
-            userId: this.currentUser?.userId || null
-        };
-        
-        const response = await fetch(`/steps/${stepId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to update step: ${response.status}`);
-        }
-        
-        return response.json();
+  async updateStep(stepId, updateData) {
+    // Include user context if available
+    const payload = {
+      ...updateData,
+      userId: this.currentUser?.userId || null,
+    };
+
+    const response = await fetch(`/steps/${stepId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update step: ${response.status}`);
     }
-    
-    // Method to set current user context
-    setCurrentUser(userContext) {
-        this.currentUser = userContext;
-    }
+
+    return response.json();
+  }
+
+  // Method to set current user context
+  setCurrentUser(userContext) {
+    this.currentUser = userContext;
+  }
 }
 ```
 
@@ -201,11 +203,11 @@ class AuditLogRepository {
         DatabaseUtil.withSql { sql ->
             sql.executeInsert("""
                 INSERT INTO audit_log_aul (
-                    aul_id, aul_action, aul_entity_id, 
+                    aul_id, aul_action, aul_entity_id,
                     aul_user_id, aul_audit_identifier, aul_context_type,
                     aul_timestamp, aul_details
                 ) VALUES (
-                    gen_random_uuid(), ?, ?, 
+                    gen_random_uuid(), ?, ?,
                     ?, ?, ?,
                     NOW(), ?
                 )
@@ -224,13 +226,13 @@ class AuditLogRepository {
 
 ## Context Types
 
-| Type | Description | User ID | Audit Identifier | Use Case |
-|------|-------------|---------|------------------|----------|
-| `DIRECT` | Direct UMIG user with full profile | UUID | username | Normal operations |
-| `UMIG_REGISTERED` | Confluence user registered in UMIG | UUID | username | Standard user actions |
-| `SYS` | Confluence user, not in UMIG | null | SYSTEM(username) | External user access |
-| `CSU` | Confluence system context | null | CSU(username) | System operations |
-| `ANONYMOUS` | No user identification | null | ANONYMOUS | Fallback scenarios |
+| Type              | Description                        | User ID | Audit Identifier | Use Case              |
+| ----------------- | ---------------------------------- | ------- | ---------------- | --------------------- |
+| `DIRECT`          | Direct UMIG user with full profile | UUID    | username         | Normal operations     |
+| `UMIG_REGISTERED` | Confluence user registered in UMIG | UUID    | username         | Standard user actions |
+| `SYS`             | Confluence user, not in UMIG       | null    | SYSTEM(username) | External user access  |
+| `CSU`             | Confluence system context          | null    | CSU(username)    | System operations     |
+| `ANONYMOUS`       | No user identification             | null    | ANONYMOUS        | Fallback scenarios    |
 
 ## Consequences
 
@@ -279,4 +281,4 @@ class AuditLogRepository {
 
 ---
 
-*This ADR addresses the authentication context management challenges discovered during US-036 implementation and provides a robust foundation for future authentication-related development.*
+_This ADR addresses the authentication context management challenges discovered during US-036 implementation and provides a robust foundation for future authentication-related development._
