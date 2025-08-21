@@ -16,12 +16,14 @@ This directory contains the consolidated testing documentation for the UMIG proj
    - **Use this for**: Understanding the testing structure and how to run tests
 
 2. **[US-036-comprehensive-testing-guide.md](./US-036-comprehensive-testing-guide.md)**
-   - **NEW**: Consolidated US-036 StepView testing guide
+   - **UPDATED**: Comprehensive StepView testing guide with 40-point validation framework
    - Executive summary and quick reference
    - Complete testing framework and validation procedures
+   - **NEW**: 40-point validation checklist for UI component testing
+   - **NEW**: Cross-role testing matrix (NORMAL/PILOT/ADMIN users)
    - Role-based access control testing
    - Performance and security validation
-   - **Use this for**: All US-036 StepView testing and validation
+   - **Use this for**: All US-036 StepView testing and validation with quality assurance framework
 
 3. **[NPM_COMMANDS_REFERENCE.md](./NPM_COMMANDS_REFERENCE.md)**
    - NPM-based testing commands reference

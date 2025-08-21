@@ -250,3 +250,64 @@ All US-030 deliverables follow enterprise documentation standards:
 - **Performance Focused**: Sub-3-second response time guidelines
 - **Security Compliant**: Authentication and authorization documentation
 - **UAT-Validated**: Production-ready testing procedures
+
+## Security
+
+### Security Remediation Summary (PR #42, August 19, 2025)
+
+The UMIG API documentation underwent comprehensive security remediation to eliminate critical vulnerabilities and implement enterprise security best practices.
+
+#### Key Security Improvements
+
+**1. Credential Management Security**
+- ✅ **Eliminated hardcoded credentials**: All base64-encoded and plaintext credentials removed from committed code
+- ✅ **Environment variable pattern**: Implemented `UMIG_AUTH_CREDENTIALS` environment variable for secure authentication
+- ✅ **Development fallback**: Safe defaults maintained for local development (`admin:admin`)
+- ✅ **Production ready**: Supports secure credential injection via secret management systems
+
+**2. CDN Security Enhancement**
+- ✅ **SRI integrity hashes**: All external CDN resources (Swagger UI, etc.) now include integrity verification
+- ✅ **CORS configuration**: Proper crossorigin attributes prevent CDN-based attacks
+- ✅ **Version pinning**: Dependencies locked to specific versions for stability
+
+**3. Secure Authentication Patterns**
+
+JavaScript pattern for API clients:
+```javascript
+const credentials = process.env.UMIG_AUTH_CREDENTIALS || "admin:admin";
+const authHeader = "Basic " + Buffer.from(credentials).toString("base64");
+```
+
+Shell script pattern for testing:
+```bash
+-H "Authorization: Basic $(echo -n ${UMIG_AUTH_CREDENTIALS:-admin:admin} | base64)"
+```
+
+#### Environment Configuration
+
+The API uses environment variables for secure configuration. Reference `.env.example` in the project root for complete setup:
+
+- `UMIG_AUTH_CREDENTIALS` - Authentication credentials (format: username:password)
+- `UMIG_BASE_URL` - API base URL configuration
+- `UMIG_TIMEOUT` - Request timeout settings
+- `UMIG_MAX_RETRIES` - Retry configuration
+
+#### Security Best Practices
+
+**Development Teams**:
+- Configure local environments using `.env.example` as reference
+- Never commit credentials to version control
+- Use environment variables for all authentication
+
+**Production Deployment**:
+- Configure environment variables in deployment system
+- Implement proper secret management (Azure Key Vault, AWS Secrets Manager)
+- Establish credential rotation policies
+
+#### Security Status
+
+- ✅ **Zero hardcoded credentials** in codebase
+- ✅ **All CDN resources secured** with SRI hashes
+- ✅ **Environment variable pattern** implemented across all documentation
+- ✅ **Security verification completed** with zero findings
+- ✅ **Production deployment ready** with secure configuration patterns

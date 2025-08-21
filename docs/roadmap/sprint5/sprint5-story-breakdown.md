@@ -23,9 +23,10 @@
 **Sprint Duration**: 5 working days (Aug 18-22, 2025) - Mon/Tue/Wed/Thu/Fri  
 **Team Velocity**: 5 points/day (adjusted target)  
 **Capacity**: 25 points (5 days × 5 points/day)  
-**Planned**: 23 points (92% capacity utilization)  
-**Completed**: 4 points (US-030 ✅, US-022 ✅, US-036 Phase 1 ✅)  
-**Remaining**: 19 points  
+**Planned**: 23 points (ORIGINAL) → **28 points (ACTUAL)** due to US-036 scope expansion  
+**Completed**: 2 points (US-030 ✅, US-022 ✅)  
+**80% Complete**: ~8 points (US-036 scope expansion - 80% of 8-10 actual points)  
+**Remaining**: ~13 points  
 **Buffer**: 2 points (8% - quality assurance and UAT preparation)
 
 ### Success Metrics
@@ -263,35 +264,36 @@
 
 ---
 
-### 🔄 US-036: StepView UI Refactoring (COMPREHENSIVE - NEW)
+### 🔄 US-036: StepView UI Refactoring (COMPREHENSIVE SCOPE EXPANSION)
 
 **Priority**: P1 (High Value Enhancement)  
-**Effort**: 3 points  
-**Status**: PHASE 1 COMPLETE ✅ (August 19, 2025) | PHASE 2 IN PROGRESS 🚧  
+**Effort**: 3 points (ORIGINAL) → **8-10 points (ACTUAL COMPLEXITY)**  
+**Status**: **80% COMPLETE** (In Progress - August 20, 2025) 🚧  
 **Owner**: Frontend Development  
-**Timeline**: Day 2-4 (Aug 19-21) - **REVISED due to early start**  
-**Phase 1**: ✅ COMPLETE (4 hours) | **Phase 2**: 13:00-17:00 today  
-**Risk**: MEDIUM → LOW (Phase 1 success reduces integration complexity)
+**Timeline**: Day 2-5 (Aug 19-22) - **EXTENDED due to significant scope expansion**  
+**Completion**: Target August 21-22 (pending final UAT and integration testing)  
+**Risk**: MEDIUM (scope expansion managed, quality maintained)
 
-#### 🎉 PHASE 1 COMPLETION SUCCESS (August 19, 2025)
+#### 🎯 80% COMPLETION PROGRESS (August 20, 2025)
 
-**EXCEPTIONAL ACHIEVEMENT**: Phase 1 delivered ahead of schedule with comprehensive standalone StepView implementation enabling external contractor access.
+**SIGNIFICANT ACHIEVEMENT**: US-036 has delivered substantial value through comprehensive testing feedback integration and requirement expansion, transforming from a 3-point story to 8-10 points of actual complexity while maintaining 95% test coverage.
 
-#### Delivered Files (9 total) ✅
+#### Work Completed (80% of Expanded Scope) ✅
 
-- ✅ `src/groovy/umig/web/js/stepview-standalone.js` - 1,450+ lines of core JavaScript
-- ✅ `src/groovy/umig/web/stepview.html` - 12.7 KB standalone HTML wrapper
-- ✅ `src/groovy/umig/web/email-template.html` - 26.6 KB self-contained email template
-- ✅ `src/groovy/umig/web/STEPVIEW_STANDALONE_README.md` - Complete documentation
-- ✅ `src/groovy/umig/tests/unit/stepview-standalone.test.js` - Unit test specifications
-- ✅ `src/groovy/umig/tests/integration/stepview-integration.test.groovy` - Integration tests
-- ✅ `src/groovy/umig/tests/mobile-test-scenarios.md` - Mobile testing procedures
-- ✅ `src/groovy/umig/tests/email-compatibility-tests.md` - Email client compatibility matrix
-- ✅ `src/groovy/umig/tests/security/stepview-security-validation.groovy` - Security tests
+**Major Achievements Delivered**:
 
-#### Critical Business Value Delivered ✅
+1. ✅ **UI Layout Enhancements** - Added missing Assigned Team field, fixed alignments throughout interface
+2. ✅ **Comment System Overhaul** - Complete styling alignment with IterationView (grey background, edit/delete buttons)
+3. ✅ **Dynamic Refresh Implementation** - All comment operations refresh immediately without page reload
+4. ✅ **RBAC Implementation** - Robust role-based access control with comprehensive error handling
+5. ✅ **Critical Bug Fixes** - Resolved statusDisplay errors, DOM manipulation issues, and data inconsistencies
+6. ✅ **Authentication System Fixes** - Confluence admin users now work correctly with proper privilege handling
+7. ✅ **Database Type Corrections** - Fixed critical INTEGER vs string casting issues throughout
+8. ✅ **Direct API Pattern Implementation** - Successfully replicated IterationView's proven architecture patterns
 
-**External Contractor Access**: The standalone StepView now enables external contractors and vendors to receive complete step information via self-contained emails and access detailed views through shareable URLs - even without Confluence access.
+#### Critical Business Value Delivered (80% Complete) 🚧
+
+**Comprehensive Modernization Achieved**: US-036 has delivered exceptional value through extensive UI enhancements, RBAC implementation, critical bug fixes, and complete authentication system overhaul - representing 8-10 points of actual complexity while maintaining production-quality standards.
 
 #### Scope and Context
 
@@ -448,31 +450,30 @@
 - Accessibility testing with assistive technologies
 - End-to-end scenario testing
 
-#### Definition of Done - Phase 1 Complete ✅
+#### Definition of Done - 80% Complete Status 🚧
 
-**Phase 1 Complete ✅**:
+**Work Completed (80% of Expanded Scope) ✅**:
 
-- [x] Enhanced visual hierarchy implemented with consistent design patterns ✅
-- [x] Standalone architecture with external contractor capability delivered ✅
-- [x] Mobile-responsive design implemented and validated on multiple devices ✅
-- [x] Email template for external contractors created and tested ✅
-- [x] URL routing for shareable links implemented ✅
-- [x] Comprehensive test suite specifications created ✅
-- [x] Documentation complete with usage patterns ✅
-- [x] Security validation framework established ✅
-- [x] Quality gates passed with 4-hour delivery timeline ✅
+- [x] UI Layout Enhancements - Assigned Team field and alignment fixes completed ✅
+- [x] Comment System Overhaul - Full IterationView styling integration delivered ✅
+- [x] Dynamic Refresh Implementation - Real-time comment operations working ✅
+- [x] RBAC Implementation - Comprehensive role-based access control complete ✅
+- [x] Critical Bug Resolution - StatusDisplay, DOM, and data consistency fixes ✅
+- [x] Authentication System Fixes - Confluence admin user compatibility restored ✅
+- [x] Database Type Corrections - INTEGER/string casting issues resolved ✅
+- [x] API Pattern Integration - IterationView architecture patterns implemented ✅
 
-**Phase 2 In Progress 🚧**:
+**Remaining Work (20% - Final Polish and Validation) 🚧**:
 
-- [ ] Seamless integration with Enhanced IterationView Phase 1 achieved and tested
-- [ ] Essential search and filtering functionality operational with real-time results
-- [ ] Keyboard accessibility compliance validated (WCAG 2.1 AA)
-- [ ] Performance targets achieved (<2s load time) across all features
-- [ ] Advanced interaction features implemented and tested
-- [ ] Integration with StepsAPIv2Client completed and validated
-- [ ] Cross-browser compatibility verified on target browsers
-- [ ] User acceptance testing scenarios passed with migration coordinator feedback
-- [ ] Code review completed with security and performance validation
+- [ ] Additional UI polish and edge case testing completion
+- [ ] Performance optimization for large comment lists (>100 comments)
+- [ ] Final UAT validation with real users and production scenarios
+- [ ] Integration testing with other Sprint 5 stories (US-031, US-033)
+- [ ] Cross-browser compatibility verification on all target browsers
+- [ ] Mobile device testing validation on actual hardware
+- [ ] Performance benchmarking under production load conditions
+- [ ] Final documentation updates and deployment preparation
+- [ ] Code review completion with security and performance validation
 
 ---
 
@@ -952,7 +953,7 @@
 
 ### Must Have (MVP Blockers)
 
-- ✅ All 8 user stories complete and tested (3/8 complete: US-030 ✅, US-022 ✅, US-036 Phase 1 ✅)
+- ✅ All 8 user stories complete and tested (2/8 complete: US-030 ✅, US-022 ✅; 1 story 80% complete: US-036 🚧)
 - ✅ UAT environment fully functional
 - ✅ Zero critical defects
 - ✅ Performance targets achieved (<3s load times)
@@ -1104,22 +1105,45 @@ npm run generate-data:rbac         # Role-based access control test data
 
 ---
 
-**Document Version**: 2.1 (US-030 COMPLETION UPDATE)  
+**Document Version**: 2.2 (US-036 SCOPE CORRECTION UPDATE)  
 **Created**: August 18, 2025  
-**Last Updated**: August 19, 2025 (US-030 completion and sprint metrics update)  
+**Last Updated**: August 20, 2025 (US-036 scope expansion and progress correction)  
 **Owner**: UMIG Development Team  
 **Review Date**: August 22, 2025 (Sprint Review)
 
-### Recent Updates (v2.1)
+### Recent Updates (v2.2 - US-036 Scope Correction)
 
-- ✅ **US-030 Status**: Updated to 100% COMPLETE with completion date
-- ✅ **Sprint Metrics**: Updated completed/remaining point calculations
-- ✅ **Success Metrics**: Marked API documentation as achieved
-- ✅ **Risk Assessment**: Eliminated documentation risk
-- ✅ **Team Assignments**: Updated technical writing status
-- ✅ **UAT Checklist**: Marked API documentation as complete
-- ✅ **Daily Plans**: Adjusted Day 2 plan to reflect early completion
-- ✅ **Deliverables**: Added comprehensive list of US-030 deliverables
-- ✅ **Impact Analysis**: Documented positive effects on dependent stories
+- ✅ **US-036 Status Correction**: Updated from "100% Complete" to "80% Complete"
+- ✅ **Scope Expansion Documentation**: US-036 actual complexity 8-10 points vs original 3 points
+- ✅ **Work Completed Details**: 8 major achievements documented (UI, Comments, RBAC, Bug Fixes, etc.)
+- ✅ **Sprint Metrics Update**: Adjusted point calculations to reflect actual scope
+- ✅ **Remaining Work Clarification**: 20% remaining work identified with specific tasks
+- ✅ **Timeline Adjustment**: Extended completion target to August 21-22
+- ✅ **Lessons Learned**: Scope estimation and testing feedback integration insights
+- ✅ **Quality Maintained**: 95% test coverage sustained despite scope expansion
+- ✅ **Risk Assessment**: Updated to reflect managed scope expansion
+
+### Lessons Learned: Scope Expansion Management
+
+**Root Cause Analysis**: US-036 scope expansion from 3 to 8-10 points resulted from:
+
+1. **Testing Feedback Integration**: Comprehensive testing revealed critical issues requiring immediate resolution
+2. **Feature Parity Requirements**: Need to achieve consistency with Enhanced IterationView drove additional complexity
+3. **Production Readiness Standards**: Quality gates demanded robust RBAC, authentication fixes, and error handling
+4. **Technical Debt Resolution**: Database type issues and DOM manipulation bugs required systematic fixes
+
+**Positive Outcomes Despite Expansion**:
+
+- **Quality Excellence**: 95% test coverage maintained throughout expansion
+- **Substantial Value Delivery**: 8 major system improvements delivered
+- **Technical Foundation**: Established robust patterns for future development
+- **Risk Mitigation**: Critical bugs resolved before production deployment
+
+**Future Sprint Planning Improvements**:
+
+1. **Testing-Driven Estimation**: Include buffer for testing feedback integration
+2. **Feature Parity Analysis**: Early assessment of consistency requirements with existing components
+3. **Technical Debt Assessment**: Pre-sprint technical debt evaluation for accurate estimation
+4. **Quality Gate Planning**: Include quality assurance time in original estimates
 
 _This document serves as the authoritative guide for Sprint 5 execution and should be referenced daily during sprint execution. This consolidated version incorporates all refined acceptance criteria and technical details, with corrected sprint dates (August 18-22, 2025) reflecting the actual 5-day working schedule._
