@@ -139,13 +139,13 @@ return """
                             <li><a href="#" class="nav-item" data-section="migrations" data-entity="migrations">
                                 <span class="item-icon">🚀</span> Migrations
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="master-plans" data-entity="plansmaster">
+                            <li><a href="#" class="nav-item" data-section="master-plans" data-entity="plans">
                                 <span class="item-icon">📑</span> Master Plans
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="master-sequences" data-entity="sequencesmaster">
+                            <li><a href="#" class="nav-item" data-section="master-sequences" data-entity="sequences">
                                 <span class="item-icon">🔗</span> Master Sequences
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="master-phases" data-entity="phasesmaster">
+                            <li><a href="#" class="nav-item" data-section="master-phases" data-entity="phases">
                                 <span class="item-icon">⏱️</span> Master Phases
                             </a></li>
                             <li><a href="#" class="nav-item" data-section="master-steps" data-entity="steps-master">
@@ -167,13 +167,13 @@ return """
                             <li><a href="#" class="nav-item" data-section="iterations" data-entity="iterations">
                                 <span class="item-icon">🔄</span> Iterations
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="plans" data-entity="plansinstance">
+                            <li><a href="#" class="nav-item" data-section="plans" data-entity="plans">
                                 <span class="item-icon">📋</span> Plans
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="sequences" data-entity="sequencesinstance">
+                            <li><a href="#" class="nav-item" data-section="sequences" data-entity="sequences">
                                 <span class="item-icon">🔗</span> Sequences
                             </a></li>
-                            <li><a href="#" class="nav-item" data-section="phases" data-entity="phasesinstance">
+                            <li><a href="#" class="nav-item" data-section="phases" data-entity="phases">
                                 <span class="item-icon">⏱️</span> Phases
                             </a></li>
                             <li><a href="#" class="nav-item" data-section="steps" data-entity="steps-instance">
@@ -248,8 +248,8 @@ return """
                                 </div>
                                 <div class="filter-controls">
                                     <button class="btn-filter" id="filterBtn">Filter</button>
-                                    <button class="btn-export" id="exportBtn">Export</button>
-                                    <button class="btn-bulk" id="bulkActionsBtn" disabled>Bulk Actions</button>
+                                    <button class="btn-export" id="exportBtn" style="display: none;">Export</button>
+                                    <button class="btn-bulk" id="bulkActionsBtn" disabled style="display: none;">Bulk Actions</button>
                                 </div>
                             </div>
                         </div>
@@ -379,6 +379,7 @@ return """
 <link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css">
 
 <!-- Load JavaScript modules in dependency order -->
+<script src="${webResourcesPath}/js/StatusColorService.js?v=${System.currentTimeMillis()}"></script>
 <script src="${webResourcesPath}/js/EntityConfig.js?v=${System.currentTimeMillis()}"></script>
 <script src="${webResourcesPath}/js/UiUtils.js?v=${System.currentTimeMillis()}"></script>
 <script src="${webResourcesPath}/js/AdminGuiState.js?v=${System.currentTimeMillis()}"></script>
@@ -391,6 +392,7 @@ return """
 <!-- Debug script to help troubleshoot -->
 <script>
 console.log('UMIG Admin GUI Debug Info:');
+console.log('- StatusColorService loaded:', !!window.StatusColorService);
 console.log('- EntityConfig loaded:', !!window.EntityConfig);
 console.log('- UiUtils loaded:', !!window.UiUtils);
 console.log('- AdminGuiState loaded:', !!window.AdminGuiState);

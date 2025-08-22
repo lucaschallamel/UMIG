@@ -21,12 +21,35 @@ The Phases API provides critical quality gate management for migration execution
 - **Override Capability:** Emergency override for blocked control points with audit trail
 - **Hierarchical Filtering:** Deep filtering through migration → iteration → plan → sequence → phase hierarchy
 
+## 1.2. Enhanced Features (Repository Layer)
+
+The Phases API has been significantly enhanced with advanced repository capabilities:
+
+### Admin GUI Support
+- **Pagination & Sorting:** Full pagination support with configurable page size (1-100 items)
+- **Advanced Filtering:** Filter by status, owner team, search terms, and date ranges
+- **Computed Fields:** Automatic calculation of `step_count` and `instance_count` for each phase
+- **Status Metadata:** Rich status information including colors, descriptions, and type classifications
+- **Relationship Enrichment:** Automatic inclusion of parent sequence, plan, and team information
+
+### Flexible Status Handling
+- **String Status Input:** Accept status names like 'PLANNING', 'IN_PROGRESS', 'COMPLETED'
+- **Integer Status Input:** Traditional numeric status IDs for backward compatibility
+- **Automatic Resolution:** Repository automatically resolves string names to appropriate IDs
+- **Validation:** Comprehensive status validation with specific error messages
+
+### PostgreSQL Optimization
+- **Type Casting:** Proper PostgreSQL type casting with `::text` for date fields
+- **SQL State Mapping:** Advanced error handling with SQL state codes (23503→400, 23505→409)
+- **Date Compatibility:** Enhanced date parsing supporting multiple formats (YYYY-MM-DD, ISO datetime)
+- **Performance Optimization:** Optimized queries with proper JOINs and computed field calculations
+
 ## 2. Endpoints
 
 | Method                        | Path                                          | Description                                         |
 | ----------------------------- | --------------------------------------------- | --------------------------------------------------- |
 | **Master Phase Management**   |                                               |                                                     |
-| GET                           | `/phases/master`                              | Get all master phases with optional filtering       |
+| GET                           | `/phases/master`                              | Get all master phases with Admin GUI pagination, filtering, sorting, and computed fields |
 | GET                           | `/phases/master/{phm_id}`                     | Get a specific master phase by ID                   |
 | POST                          | `/phases/master`                              | Create a new master phase                           |
 | PUT                           | `/phases/master/{phm_id}`                     | Update an existing master phase                     |
@@ -64,9 +87,38 @@ The Phases API provides critical quality gate management for migration execution
 
 #### GET /phases/master
 
+**Legacy Parameters (Backward Compatibility):**
 | Name       | Type | Required | Description                                |
 | ---------- | ---- | -------- | ------------------------------------------ |
 | sequenceId | UUID | No       | Filter master phases by sequence master ID |
+
+**Admin GUI Parameters (Enhanced Features):**
+| Name           | Type         | Required | Default     | Description                                      |
+| -------------- | ------------ | -------- | ----------- | ------------------------------------------------ |
+| page           | Integer      | No       | 1           | Page number for pagination (1-based)             |
+| size           | Integer      | No       | 50          | Number of items per page (1-100)                |
+| sort           | String       | No       | phm_name    | Field to sort by: phm_id, phm_name, phm_status, created_at, updated_at, step_count, instance_count |
+| direction      | String       | No       | asc         | Sort direction: asc, desc                        |
+| status         | String/Array | No       | -           | Filter by status name(s). Single value or array |
+| ownerId        | String       | No       | -           | Filter by owner team ID (through plan master)   |
+| search         | String       | No       | -           | Search in phase name and description             |
+| startDateFrom  | Date         | No       | -           | Filter by creation date from (YYYY-MM-DD)       |
+| startDateTo    | Date         | No       | -           | Filter by creation date to (YYYY-MM-DD)         |
+
+**Enhanced Response Structure:**
+The Admin GUI endpoint returns a structured response with pagination metadata:
+```json
+{
+  "data": [/* array of master phases with computed fields */],
+  "pagination": {
+    "page": 1,
+    "size": 50,
+    "total": 123,
+    "totalPages": 3
+  },
+  "filters": {/* applied filters for reference */}
+}
+```
 
 #### GET /phases/instance
 
@@ -147,17 +199,34 @@ The Phases API provides critical quality gate management for migration execution
 }
 ```
 
-- **Example:**
+- **Examples:**
 
+**Using String Status (Recommended):**
 ```json
 {
   "phm_id": "123e4567-e89b-12d3-a456-426614174000",
   "sqi_id": "456e7890-e89b-12d3-a456-426614174001",
   "phi_name": "Production Pre-Migration Verification",
+  "phi_status": "PLANNING",
+  "phi_order": 1
+}
+```
+
+**Using Integer Status (Backward Compatibility):**
+```json
+{
+  "phm_id": "123e4567-e89b-12d3-a456-426614174000",
+  "sqi_id": "456e7890-e89b-12d3-a456-426614174001",
+  "phi_name": "Production Pre-Migration Verification",  
   "phi_status": 5,
   "phi_order": 1
 }
 ```
+
+**Supported Status Values:**
+- String names: `PLANNING`, `IN_PROGRESS`, `COMPLETED`, `ON_HOLD`, `CANCELLED`
+- Integer IDs: Numeric values from `status_sts` table
+- Repository automatically resolves string names to appropriate IDs
 
 #### PUT /phases/instance/{phi_id} - Update Phase Instance
 
@@ -310,13 +379,13 @@ The Phases API provides critical quality gate management for migration execution
 
 - **Status Code:** 200
 - **Content-Type:** application/json
-- **Schema:**
 
+**Legacy Response (without pagination):**
 ```json
 [
   {
     "phm_id": "UUID string",
-    "sqm_id": "UUID string",
+    "sqm_id": "UUID string", 
     "phm_name": "string",
     "phm_description": "string",
     "phm_order": "integer",
@@ -325,6 +394,52 @@ The Phases API provides critical quality gate management for migration execution
     "created_by": "integer"
   }
 ]
+```
+
+**Enhanced Response (Admin GUI with pagination and computed fields):**
+```json
+{
+  "data": [
+    {
+      "phm_id": "123e4567-e89b-12d3-a456-426614174000",
+      "sqm_id": "456e7890-e89b-12d3-a456-426614174001",
+      "phm_name": "Pre-Migration Validation",
+      "phm_description": "Comprehensive validation before migration starts",
+      "phm_order": 1,
+      "predecessor_phm_id": null,
+      // Computed fields
+      "step_count": 15,
+      "instance_count": 42,
+      // Status metadata
+      "phm_status": "ACTIVE",
+      "statusMetadata": {
+        "sts_id": 1,
+        "sts_name": "ACTIVE", 
+        "sts_color": "#28a745",
+        "sts_type": "Phase"
+      },
+      // Enriched relationship data
+      "sqm_name": "Infrastructure Setup",
+      "plm_name": "Data Center Migration",
+      "tms_name": "Platform Team",
+      // Audit fields
+      "created_at": "2025-01-15T10:30:00Z",
+      "created_by": 1001,
+      "updated_at": "2025-02-20T14:45:00Z", 
+      "updated_by": 1002
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "size": 50,
+    "total": 123,
+    "totalPages": 3
+  },
+  "filters": {
+    "status": ["ACTIVE"],
+    "search": "validation"
+  }
+}
 ```
 
 #### GET /phases/master/{phm_id} - Get Master Phase Details
@@ -832,38 +947,132 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 }
 ```
 
-## 14. Error Handling
+## 14. Error Handling & PostgreSQL Compatibility
 
-### 14.1. SQL Error Mapping
+### 14.1. Enhanced SQL Error Mapping
 
-- **23503 (Foreign Key):** 400 Bad Request - Invalid reference
-- **23505 (Unique Violation):** 409 Conflict - Duplicate entry
-- **23514 (Check Constraint):** 400 Bad Request - Invalid data
+The Phases API implements comprehensive PostgreSQL error handling with specific SQL State mappings:
 
-### 14.2. Common Error Scenarios
+- **23503 (Foreign Key Violation):** 400 Bad Request - Invalid reference to parent entity
+- **23505 (Unique Constraint Violation):** 409 Conflict - Duplicate entry detected  
+- **23514 (Check Constraint Violation):** 400 Bad Request - Data validation failure
+- **Other SQL Errors:** 500 Internal Server Error - Database-level issues
 
-- **Invalid UUID:** 400 Bad Request with format error
-- **Missing Dependencies:** 404 Not Found for referenced entities
-- **Constraint Violations:** 409 Conflict for business rule violations
+### 14.2. PostgreSQL Compatibility Features
+
+#### Type Casting & Date Handling
+```sql
+-- Enhanced date casting for PostgreSQL compatibility
+SELECT phi_start_time::text, phi_end_time::text 
+FROM phases_instance_phi
+WHERE phi_id = ?
+```
+
+#### Status Resolution Process
+1. **String Input:** `"PLANNING"` → Repository queries `status_sts` table
+2. **ID Resolution:** Finds matching `sts_id` for `sts_name = 'PLANNING'` and `sts_type = 'Phase'`
+3. **Validation:** Returns specific error if status name is invalid
+4. **Fallback:** Uses default status if resolution fails
+
+#### Date Format Support
+- **YYYY-MM-DD:** Standard date format
+- **ISO DateTime:** Full timestamp with timezone
+- **Flexible Parsing:** Automatic format detection
+- **PostgreSQL Conversion:** Proper casting to `java.sql.Date` and `java.sql.Timestamp`
+
+### 14.3. Enhanced Error Scenarios
+
+#### Status Resolution Errors
+```json
+{
+  "error": "Invalid status name 'INVALID_STATUS' for Phase entity type",
+  "code": 400
+}
+```
+
+#### PostgreSQL Constraint Violations  
+```json
+{
+  "error": "Foreign key constraint violation: Referenced sequence does not exist",
+  "sqlState": "23503",
+  "code": 400
+}
+```
+
+#### Type Casting Errors
+```json
+{
+  "error": "Invalid UUID format for parameter phm_id: 'not-a-uuid'",
+  "code": 400
+}
+```
+
+#### Date Parsing Errors
+```json
+{
+  "error": "Invalid date format. Use YYYY-MM-DD or ISO datetime",
+  "code": 400
+}
+```
 
 ## 15. Best Practices
 
 ### 15.1. API Usage
 
 1. **Always use instance IDs** for hierarchical filtering
-2. **Validate control points** before phase progression
+2. **Validate control points** before phase progression  
 3. **Document override reasons** thoroughly for audit compliance
 4. **Use bulk operations** for multiple phase reordering
 5. **Check progress regularly** during phase execution
 
-### 15.2. Error Recovery
+### 15.2. Enhanced Features Usage
+
+#### Admin GUI Integration
+```bash
+# Get paginated master phases with computed fields
+GET /phases/master?page=1&size=25&sort=step_count&direction=desc&status=ACTIVE
+
+# Advanced filtering with search
+GET /phases/master?search=validation&ownerId=5&startDateFrom=2025-01-01&startDateTo=2025-12-31
+```
+
+#### Flexible Status Handling  
+```bash
+# Create phase instance with string status (recommended)
+POST /phases/instance
+{
+  "phm_id": "123e4567-e89b-12d3-a456-426614174000",
+  "sqi_id": "456e7890-e89b-12d3-a456-426614174001",
+  "phi_status": "PLANNING"
+}
+
+# Update phase with different status format
+PUT /phases/instance/789abc12-f34e-45f6-c890-648736396222
+{
+  "phi_status": "IN_PROGRESS"  // Repository resolves to appropriate ID
+}
+```
+
+#### PostgreSQL Optimization
+```bash
+# Repository automatically handles type casting and date parsing
+POST /phases/instance  
+{
+  "phm_id": "123e4567-e89b-12d3-a456-426614174000",
+  "sqi_id": "456e7890-e89b-12d3-a456-426614174001", 
+  "phi_status": "PLANNING",
+  "phi_start_time": "2025-08-01T10:00:00"  // Automatic PostgreSQL conversion
+}
+```
+
+### 15.3. Error Recovery
 
 1. **Retry transient errors** with exponential backoff
 2. **Validate prerequisites** before creating phase instances
 3. **Handle constraint violations** gracefully with user feedback
 4. **Log override actions** for compliance and troubleshooting
 
-### 15.3. Performance Optimization
+### 15.4. Performance Optimization
 
 1. **Use specific filters** to reduce data transfer
 2. **Batch control point updates** when possible
@@ -969,6 +1178,12 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 - **Audit Integration**: All operations integrate with audit logging
 
 ## 21. Changelog
+
+- **Date:** 2025-08-22
+- **Change:** Updated Phases API documentation with enhanced repository capabilities
+- **Author:** Claude AI Assistant  
+- **Version:** 2.1.0
+- **Details:** Added Admin GUI support documentation, flexible status handling patterns, PostgreSQL compatibility features, computed fields (step_count, instance_count), status metadata enrichment, enhanced error handling with SQL State codes, and comprehensive examples of repository capabilities
 
 - **Date:** 2025-08-04
 - **Change:** Enhanced comprehensive Phases API documentation with 19 endpoints

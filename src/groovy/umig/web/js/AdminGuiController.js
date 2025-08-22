@@ -212,8 +212,16 @@
       // Filter controls
       this.bindFilterEvents();
 
+      // Bulk actions (only bind if bulk actions are enabled)
+      if (window.EntityConfig && window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+        this.bindBulkActionsEvents();
+      }
+
       // Initialize search clear button visibility
       this.updateSearchClearButton();
+
+      // Initialize feature flag-based UI visibility
+      this.updateFeatureFlagUI();
     },
 
     /**
@@ -233,6 +241,337 @@
           this.loadCurrentSection();
         });
       });
+    },
+
+    /**
+     * Bind bulk actions events
+     */
+    bindBulkActionsEvents: function () {
+      // Only bind if bulk actions are enabled via feature flag
+      if (!window.EntityConfig || !window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+        return;
+      }
+      
+      const bulkActionsBtn = document.getElementById("bulkActionsBtn");
+      if (bulkActionsBtn) {
+        bulkActionsBtn.addEventListener("click", () => {
+          this.showBulkActionsMenu();
+        });
+      }
+    },
+
+    /**
+     * Show bulk actions menu
+     */
+    showBulkActionsMenu: function () {
+      // Early return if bulk actions are disabled
+      if (!window.EntityConfig || !window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+        return;
+      }
+      
+      const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
+      const selectedRows = state.selectedRows || new Set();
+      const currentEntity = state.currentEntity || "users";
+      
+      if (selectedRows.size === 0) {
+        if (window.UiUtils) {
+          window.UiUtils.showNotification("No items selected", "warning");
+        }
+        return;
+      }
+
+      // Define bulk actions for different entities
+      const bulkActions = this.getBulkActionsForEntity(currentEntity);
+      
+      if (bulkActions.length === 0) {
+        if (window.UiUtils) {
+          window.UiUtils.showNotification("No bulk actions available for this entity", "info");
+        }
+        return;
+      }
+
+      this.showBulkActionsDialog(bulkActions, selectedRows, currentEntity);
+    },
+
+    /**
+     * Get bulk actions for entity
+     * @param {string} entityType - Entity type
+     * @returns {Array} Array of bulk actions
+     */
+    getBulkActionsForEntity: function (entityType) {
+      // Try to get bulk actions from EntityConfig first
+      if (window.EntityConfig) {
+        const configActions = window.EntityConfig.getEntityBulkActions(entityType);
+        if (configActions.length > 0) {
+          return configActions;
+        }
+      }
+
+      // Fallback to default actions
+      const defaultActions = {
+        users: [
+          {
+            id: "activate",
+            label: "Activate Users",
+            icon: "✅",
+            requiresInput: false
+          },
+          {
+            id: "deactivate",
+            label: "Deactivate Users", 
+            icon: "❌",
+            requiresInput: false
+          }
+        ],
+        default: [
+          {
+            id: "export_selected",
+            label: "Export Selected",
+            icon: "📄",
+            requiresInput: false
+          }
+        ]
+      };
+
+      return defaultActions[entityType] || defaultActions.default;
+    },
+
+    /**
+     * Show bulk actions dialog
+     * @param {Array} actions - Available actions
+     * @param {Set} selectedRows - Selected row IDs
+     * @param {string} entityType - Entity type
+     */
+    showBulkActionsDialog: function (actions, selectedRows, entityType) {
+      const selectedCount = selectedRows.size;
+      
+      // Create modal content
+      let modalContent = `
+        <div class="bulk-actions-dialog">
+          <p><strong>${selectedCount} item(s) selected</strong></p>
+          <div class="bulk-actions-list">
+      `;
+
+      actions.forEach(action => {
+        modalContent += `
+          <div class="bulk-action-item" data-action="${action.id}">
+            <span class="action-icon">${action.icon}</span>
+            <span class="action-label">${action.label}</span>
+          </div>
+        `;
+      });
+
+      modalContent += `
+          </div>
+        </div>
+      `;
+
+      // Use a simple dropdown approach since showCustomDialog doesn't exist
+      // Create a temporary dropdown menu
+      const bulkActionsBtn = document.getElementById("bulkActionsButton");
+      if (bulkActionsBtn) {
+        // Remove any existing dropdown
+        const existingDropdown = document.querySelector('.bulk-actions-dropdown');
+        if (existingDropdown) {
+          existingDropdown.remove();
+        }
+        
+        // Create dropdown menu
+        const dropdown = document.createElement('div');
+        dropdown.className = 'bulk-actions-dropdown aui-dropdown2';
+        dropdown.style.position = 'absolute';
+        dropdown.style.zIndex = '1000';
+        dropdown.style.background = 'white';
+        dropdown.style.border = '1px solid #ccc';
+        dropdown.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+        dropdown.style.padding = '10px';
+        dropdown.style.minWidth = '200px';
+        
+        // Position below button
+        const rect = bulkActionsBtn.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 5) + 'px';
+        dropdown.style.left = rect.left + 'px';
+        
+        dropdown.innerHTML = `
+          <div style="margin-bottom: 10px; font-weight: bold;">
+            ${selectedCount} item(s) selected
+          </div>
+          ${actions.map(action => `
+            <div class="bulk-action-option" data-action="${action.id}" 
+                 style="padding: 5px 10px; cursor: pointer; hover: background-color: #f0f0f0;">
+              ${action.icon} ${action.label}
+            </div>
+          `).join('')}
+        `;
+        
+        document.body.appendChild(dropdown);
+        
+        // Add click handlers
+        dropdown.querySelectorAll('.bulk-action-option').forEach(option => {
+          option.addEventListener('click', (e) => {
+            const actionId = e.currentTarget.dataset.action;
+            const action = actions.find(a => a.id === actionId);
+            if (action) {
+              this.executeBulkAction(action, selectedRows, entityType);
+            }
+            dropdown.remove();
+          });
+          
+          // Add hover effect
+          option.addEventListener('mouseenter', (e) => {
+            e.currentTarget.style.backgroundColor = '#f0f0f0';
+          });
+          option.addEventListener('mouseleave', (e) => {
+            e.currentTarget.style.backgroundColor = 'white';
+          });
+        });
+        
+        // Close dropdown on outside click
+        setTimeout(() => {
+          document.addEventListener('click', function closeDropdown(e) {
+            if (!dropdown.contains(e.target) && e.target !== bulkActionsBtn) {
+              dropdown.remove();
+              document.removeEventListener('click', closeDropdown);
+            }
+          });
+        }, 100);
+      } else {
+        // Fallback to basic prompt
+        const actionLabels = actions.map(a => `${a.icon} ${a.label}`).join('\n');
+        const result = confirm(`Select bulk action for ${selectedCount} items:\n\n${actionLabels}\n\nProceed with first action?`);
+        if (result && actions.length > 0) {
+          this.executeBulkAction(actions[0], selectedRows, entityType);
+        }
+      }
+    },
+
+    /**
+     * Execute bulk action
+     * @param {Object} action - Action to execute
+     * @param {Set} selectedRows - Selected row IDs
+     * @param {string} entityType - Entity type
+     */
+    executeBulkAction: function (action, selectedRows, entityType) {
+      const selectedCount = selectedRows.size;
+      
+      // Generate confirm message
+      let confirmMessage = action.confirmMessage || 
+        `Are you sure you want to perform "${action.label}" on ${selectedCount} selected item(s)?`;
+      
+      if (confirmMessage.includes('{count}')) {
+        confirmMessage = confirmMessage.replace('{count}', selectedCount);
+      }
+
+      // Show confirmation
+      if (window.UiUtils) {
+        window.UiUtils.showConfirmDialog(
+          confirmMessage,
+          () => {
+            this.performBulkAction(action, Array.from(selectedRows), entityType);
+          }
+        );
+      } else {
+        if (confirm(confirmMessage)) {
+          this.performBulkAction(action, Array.from(selectedRows), entityType);
+        }
+      }
+    },
+
+    /**
+     * Perform the actual bulk action
+     * @param {Object} action - Action to perform
+     * @param {Array} selectedIds - Selected item IDs
+     * @param {string} entityType - Entity type
+     */
+    performBulkAction: function (action, selectedIds, entityType) {
+      // For now, implement basic actions
+      switch (action.id) {
+        case "update_status":
+          this.performBulkStatusUpdate(selectedIds, entityType);
+          break;
+        case "export_selected":
+          this.performBulkExport(selectedIds, entityType);
+          break;
+        case "activate":
+          this.performBulkActivation(selectedIds, entityType, true);
+          break;
+        case "deactivate":
+          this.performBulkActivation(selectedIds, entityType, false);
+          break;
+        default:
+          if (window.UiUtils) {
+            window.UiUtils.showNotification(`Bulk action '${action.label}' not yet implemented`, "info");
+          }
+      }
+    },
+
+    /**
+     * Perform bulk status update
+     * @param {Array} selectedIds - Selected item IDs
+     * @param {string} entityType - Entity type
+     */
+    performBulkStatusUpdate: function (selectedIds, entityType) {
+      // This would need to be implemented with proper API calls
+      console.log("Bulk status update for", entityType, selectedIds);
+      
+      if (window.UiUtils) {
+        window.UiUtils.showNotification(
+          `Bulk status update initiated for ${selectedIds.length} ${entityType}`,
+          "info"
+        );
+      }
+
+      // Clear selection after action
+      if (window.AdminGuiState) {
+        window.AdminGuiState.selection.clearSelection();
+      }
+
+      // Refresh the table
+      this.loadCurrentSection();
+    },
+
+    /**
+     * Perform bulk export
+     * @param {Array} selectedIds - Selected item IDs
+     * @param {string} entityType - Entity type
+     */
+    performBulkExport: function (selectedIds, entityType) {
+      console.log("Bulk export for", entityType, selectedIds);
+      
+      if (window.UiUtils) {
+        window.UiUtils.showNotification(
+          `Exporting ${selectedIds.length} ${entityType}...`,
+          "info"
+        );
+      }
+
+      // This would trigger a download or export process
+      // For now, just log the action
+    },
+
+    /**
+     * Perform bulk activation/deactivation
+     * @param {Array} selectedIds - Selected item IDs  
+     * @param {string} entityType - Entity type
+     * @param {boolean} activate - Whether to activate (true) or deactivate (false)
+     */
+    performBulkActivation: function (selectedIds, entityType, activate) {
+      console.log(`Bulk ${activate ? 'activation' : 'deactivation'} for`, entityType, selectedIds);
+      
+      if (window.UiUtils) {
+        window.UiUtils.showNotification(
+          `${activate ? 'Activating' : 'Deactivating'} ${selectedIds.length} ${entityType}...`,
+          "info"
+        );
+      }
+
+      // Clear selection after action
+      if (window.AdminGuiState) {
+        window.AdminGuiState.selection.clearSelection();
+      }
+
+      // Refresh the table
+      this.loadCurrentSection();
     },
 
     /**
@@ -312,6 +651,35 @@
           searchClearBtn.style.display = "block";
         } else {
           searchClearBtn.style.display = "none";
+        }
+      }
+    },
+
+    /**
+     * Update UI visibility based on feature flags
+     */
+    updateFeatureFlagUI: function () {
+      if (!window.EntityConfig) {
+        return;
+      }
+
+      // Show/hide Export button based on feature flag
+      const exportBtn = document.getElementById("exportBtn");
+      if (exportBtn) {
+        if (window.EntityConfig.getFeatureFlag('enableExportButton')) {
+          exportBtn.style.display = "inline-block";
+        } else {
+          exportBtn.style.display = "none";
+        }
+      }
+
+      // Show/hide Bulk Actions button based on feature flag
+      const bulkActionsBtn = document.getElementById("bulkActionsBtn");
+      if (bulkActionsBtn) {
+        if (window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+          bulkActionsBtn.style.display = "inline-block";
+        } else {
+          bulkActionsBtn.style.display = "none";
         }
       }
     },
@@ -557,10 +925,13 @@
 
       const mainContent = document.getElementById("mainContent");
       if (mainContent && window.UiUtils) {
+        const self = this;
         window.UiUtils.showError(
           mainContent,
           `Failed to load ${entityType}. ${error.message}`,
-          () => this.loadEntityData(entityType),
+          function() { 
+            self.loadEntityData(entityType); 
+          }
         );
       }
     },

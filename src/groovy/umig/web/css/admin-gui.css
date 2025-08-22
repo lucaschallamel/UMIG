@@ -969,3 +969,81 @@
   color: var(--text-secondary);
   font-style: italic;
 }
+
+/* Date/Time Picker Styles */
+.date-time-picker-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.date-time-picker-group input[type="date"],
+.date-time-picker-group input[type="time"] {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.date-time-picker-group input[type="date"]:focus,
+.date-time-picker-group input[type="time"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+.date-time-picker-group input[type="date"] {
+  min-width: 160px;
+}
+
+.date-time-picker-group input[type="time"] {
+  min-width: 120px;
+}
+
+/* Date picker icon enhancement for webkit browsers */
+.date-time-picker-group input[type="date"]::-webkit-calendar-picker-indicator,
+.date-time-picker-group input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 2px;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+.date-time-picker-group input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.date-time-picker-group input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  background-color: var(--bg-secondary);
+}
+
+/* Error states */
+.date-time-picker-group input.error {
+  border-color: var(--danger-color);
+  background-color: #fff5f5;
+}
+
+.field-error.date-range-error {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--danger-color);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .date-time-picker-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .date-time-picker-group input[type="date"],
+  .date-time-picker-group input[type="time"] {
+    min-width: auto;
+    width: 100%;
+  }
+}

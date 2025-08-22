@@ -69,7 +69,139 @@ class StepRepository {
                 FROM steps_master_stm stm
                 JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
                 ORDER BY stm.stt_code, stm.stm_number
-            ''')
+            ''')        }
+    }
+
+    /**
+     * Finds master steps with pagination, sorting, and filtering for Admin GUI
+     * @param filters Map of filter parameters
+     * @param pageNumber Page number (1-based)
+     * @param pageSize Number of items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Map with data, pagination info, and filters
+     */
+    def findMasterStepsWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = []
+            
+            // Build dynamic WHERE clause
+            if (filters.status) {
+                if (filters.status instanceof List) {
+                    def placeholders = filters.status.collect { '?' }.join(', ')
+                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
+                    params.addAll(filters.status)
+                } else {
+                    whereConditions << "s.sts_name = ?"
+                    params << filters.status
+                }
+            }
+            
+            // Owner ID filtering (phases own steps via phm_id)
+            if (filters.ownerId) {
+                whereConditions << "stm.phm_id = ?"
+                params << UUID.fromString(filters.ownerId as String)
+            }
+            
+            // Search functionality
+            if (filters.search) {
+                whereConditions << "(stm.stm_name ILIKE ? OR stm.stm_description ILIKE ?)"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
+            }
+            
+            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
+            
+            // Count query
+            def countQuery = """
+                SELECT COUNT(DISTINCT stm.stm_id) as total
+                FROM steps_master_stm stm
+                JOIN status_sts s ON stm.stm_status = s.sts_id
+                ${whereClause}
+            """
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Validate sort field
+            def allowedSortFields = ['stm_id', 'stm_name', 'stm_status', 'created_at', 'updated_at', 'instruction_count', 'instance_count']
+            if (!sortField || !allowedSortFields.contains(sortField)) {
+                sortField = 'stm_name'
+            }
+            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+            
+            // Data query with computed fields
+            def offset = (pageNumber - 1) * pageSize
+            def dataQuery = """
+                SELECT DISTINCT stm.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       COALESCE(instruction_counts.instruction_count, 0) as instruction_count,
+                       COALESCE(instance_counts.instance_count, 0) as instance_count
+                FROM steps_master_stm stm
+                JOIN status_sts s ON stm.stm_status = s.sts_id
+                LEFT JOIN (
+                    SELECT stm_id, COUNT(*) as instruction_count
+                    FROM instructions_master_inm
+                    GROUP BY stm_id
+                ) instruction_counts ON stm.stm_id = instruction_counts.stm_id
+                LEFT JOIN (
+                    SELECT stm_id, COUNT(*) as instance_count
+                    FROM steps_instance_sti
+                    GROUP BY stm_id
+                ) instance_counts ON stm.stm_id = instance_counts.stm_id
+                ${whereClause}
+                ORDER BY ${['instruction_count', 'instance_count'].contains(sortField) ? sortField : 'stm.' + sortField} ${sortDirection}
+                LIMIT ${pageSize} OFFSET ${offset}
+            """
+            
+            def steps = sql.rows(dataQuery, params)
+            def enrichedSteps = steps.collect { enrichMasterStepWithStatusMetadata(it) }
+            
+            return [
+                data: enrichedSteps,
+                pagination: [
+                    page: pageNumber,
+                    size: pageSize,
+                    total: totalCount,
+                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+                ],
+                filters: filters
+            ]
+        }
+    }
+
+    /**
+     * Enriches step data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing step and status data
+     * @return Enhanced step map with statusMetadata
+     */
+    private Map enrichMasterStepWithStatusMetadata(Map row) {
+        return [
+            stm_id: row.stm_id,
+            // Core step fields
+            stm_name: row.stm_name,
+            stm_description: row.stm_description,
+            stm_status: row.sts_name, // Backward compatibility
+            // Audit fields (consistent across all entities)
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            // Computed fields from joins
+            instruction_count: row.instruction_count ?: 0,
+            instance_count: row.instance_count ?: 0,
+            // Enhanced status metadata (consistent across all entities)
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
+    }
+
+    /**
         }
     }
 

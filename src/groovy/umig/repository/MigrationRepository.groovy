@@ -2,23 +2,47 @@ package umig.repository
 
 import umig.utils.DatabaseUtil
 import java.util.UUID
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Repository class for managing Migration data.
  * Handles all database operations for the migrations_mig table.
  */
 class MigrationRepository {
+    private static final Logger log = LoggerFactory.getLogger(MigrationRepository.class)
     /**
      * Retrieves all migrations from the database.
      * @return A list of maps, where each map is a migration.
      */
     def findAllMigrations() {
         DatabaseUtil.withSql { sql ->
-            return sql.rows("""
-                SELECT mig_id, usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date, mig_business_cutover_date, created_by, created_at, updated_by, updated_at
-                FROM migrations_mig
-                ORDER BY mig_name
+            def migrations = sql.rows("""
+                SELECT m.mig_id, m.usr_id_owner, m.mig_name, m.mig_description, m.mig_status, m.mig_type, 
+                       m.mig_start_date, m.mig_end_date, m.mig_business_cutover_date, 
+                       m.created_by, m.created_at, m.updated_by, m.updated_at,
+                       s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       COALESCE(iteration_counts.iteration_count, 0) as iteration_count,
+                       COALESCE(plan_counts.plan_count, 0) as plan_count
+                FROM migrations_mig m
+                JOIN status_sts s ON m.mig_status = s.sts_id
+                LEFT JOIN (
+                    SELECT mig_id, COUNT(*) as iteration_count
+                    FROM iterations_ite
+                    GROUP BY mig_id
+                ) iteration_counts ON m.mig_id = iteration_counts.mig_id
+                LEFT JOIN (
+                    SELECT ite.mig_id, COUNT(DISTINCT ite.plm_id) as plan_count
+                    FROM iterations_ite ite
+                    GROUP BY ite.mig_id
+                ) plan_counts ON m.mig_id = plan_counts.mig_id
+                ORDER BY m.mig_name
             """)
+            
+            // Enrich with status metadata
+            return migrations.collect { row ->
+                return enrichMigrationWithStatusMetadata(row)
+            }
         }
     }
 
@@ -38,21 +62,33 @@ class MigrationRepository {
             pageSize = Math.min(100, Math.max(1, pageSize))
             
             // Allowed sort fields for security
-            def allowedSortFields = ['mig_id', 'mig_name', 'mig_description', 'mig_status', 'mig_type', 'mig_start_date', 'mig_end_date', 'created_at', 'updated_at']
+            def allowedSortFields = ['mig_id', 'mig_name', 'mig_description', 'mig_status', 'mig_type', 'mig_start_date', 'mig_end_date', 'created_at', 'updated_at', 'iteration_count', 'plan_count']
             if (!sortField || !allowedSortFields.contains(sortField)) {
                 sortField = 'mig_name'
             }
             
             sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
             
-            // Build base query with optional search
+            // Build base query with optional search and computed counts
             def baseQuery = """
                 SELECT m.mig_id, m.usr_id_owner, m.mig_name, m.mig_description, m.mig_status, m.mig_type, 
                        m.mig_start_date, m.mig_end_date, m.mig_business_cutover_date, 
                        m.created_by, m.created_at, m.updated_by, m.updated_at,
-                       s.sts_id, s.sts_name, s.sts_color, s.sts_type
+                       s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       COALESCE(iteration_counts.iteration_count, 0) as iteration_count,
+                       COALESCE(plan_counts.plan_count, 0) as plan_count
                 FROM migrations_mig m
                 JOIN status_sts s ON m.mig_status = s.sts_id
+                LEFT JOIN (
+                    SELECT mig_id, COUNT(*) as iteration_count
+                    FROM iterations_ite
+                    GROUP BY mig_id
+                ) iteration_counts ON m.mig_id = iteration_counts.mig_id
+                LEFT JOIN (
+                    SELECT ite.mig_id, COUNT(DISTINCT ite.plm_id) as plan_count
+                    FROM iterations_ite ite
+                    GROUP BY ite.mig_id
+                ) plan_counts ON m.mig_id = plan_counts.mig_id
             """
             
             def whereClause = ""
@@ -64,7 +100,12 @@ class MigrationRepository {
             }
             
             // Count total records
-            def countQuery = "SELECT COUNT(*) as total FROM migrations_mig m ${whereClause}"
+            def countQuery = """
+                SELECT COUNT(DISTINCT m.mig_id) as total
+                FROM migrations_mig m
+                JOIN status_sts s ON m.mig_status = s.sts_id
+                ${whereClause}
+            """
             def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
             
             // Calculate pagination
@@ -75,7 +116,7 @@ class MigrationRepository {
             def dataQuery = """
                 ${baseQuery}
                 ${whereClause}
-                ORDER BY m.${sortField} ${sortDirection}
+                ORDER BY ${['iteration_count', 'plan_count'].contains(sortField) ? sortField : 'm.' + sortField} ${sortDirection}
                 LIMIT ${pageSize}
                 OFFSET ${offset}
             """
@@ -113,11 +154,30 @@ class MigrationRepository {
      */
     def findMigrationById(UUID migrationId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
-                SELECT mig_id, usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date, mig_business_cutover_date, created_by, created_at, updated_by, updated_at
-                FROM migrations_mig
-                WHERE mig_id = :migrationId
+            def migration = sql.firstRow("""
+                SELECT m.mig_id, m.usr_id_owner, m.mig_name, m.mig_description, m.mig_status, m.mig_type, 
+                       m.mig_start_date, m.mig_end_date, m.mig_business_cutover_date, 
+                       m.created_by, m.created_at, m.updated_by, m.updated_at,
+                       s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       COALESCE(iteration_counts.iteration_count, 0) as iteration_count,
+                       COALESCE(plan_counts.plan_count, 0) as plan_count
+                FROM migrations_mig m
+                JOIN status_sts s ON m.mig_status = s.sts_id
+                LEFT JOIN (
+                    SELECT mig_id, COUNT(*) as iteration_count
+                    FROM iterations_ite
+                    GROUP BY mig_id
+                ) iteration_counts ON m.mig_id = iteration_counts.mig_id
+                LEFT JOIN (
+                    SELECT ite.mig_id, COUNT(DISTINCT ite.plm_id) as plan_count
+                    FROM iterations_ite ite
+                    GROUP BY ite.mig_id
+                ) plan_counts ON m.mig_id = plan_counts.mig_id
+                WHERE m.mig_id = :migrationId
             """, [migrationId: migrationId])
+            
+            // If found, enrich with status metadata
+            return migration ? enrichMigrationWithStatusMetadata(migration) : null
         }
     }
 
@@ -274,6 +334,9 @@ class MigrationRepository {
             created_at: row.created_at,
             updated_by: row.updated_by,
             updated_at: row.updated_at,
+            // Computed fields from joins
+            iteration_count: row.iteration_count ?: 0,
+            plan_count: row.plan_count ?: 0,
             // Enhanced status metadata
             statusMetadata: [
                 id: row.sts_id,
@@ -552,8 +615,8 @@ class MigrationRepository {
             
             if (filters.search) {
                 whereConditions << "(m.mig_name ILIKE ? OR m.mig_description ILIKE ?)"
-                params << "%${filters.search}%"
-                params << "%${filters.search}%"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
             }
             
             if (filters.startDateFrom && filters.startDateTo) {
@@ -574,20 +637,32 @@ class MigrationRepository {
             def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
             
             // Validate sort field
-            def allowedSortFields = ['mig_id', 'mig_name', 'mig_status', 'mig_start_date', 'mig_end_date', 'created_at']
+            def allowedSortFields = ['mig_id', 'mig_name', 'mig_status', 'mig_start_date', 'mig_end_date', 'created_at', 'updated_at', 'iteration_count', 'plan_count']
             if (!sortField || !allowedSortFields.contains(sortField)) {
                 sortField = 'mig_name'
             }
             sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
             
-            // Data query
+            // Data query with computed fields
             def offset = (pageNumber - 1) * pageSize
             def dataQuery = """
-                SELECT DISTINCT m.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type
+                SELECT DISTINCT m.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       COALESCE(iteration_counts.iteration_count, 0) as iteration_count,
+                       COALESCE(plan_counts.plan_count, 0) as plan_count
                 FROM migrations_mig m
                 JOIN status_sts s ON m.mig_status = s.sts_id
+                LEFT JOIN (
+                    SELECT mig_id, COUNT(*) as iteration_count
+                    FROM iterations_ite
+                    GROUP BY mig_id
+                ) iteration_counts ON m.mig_id = iteration_counts.mig_id
+                LEFT JOIN (
+                    SELECT ite.mig_id, COUNT(DISTINCT ite.plm_id) as plan_count
+                    FROM iterations_ite ite
+                    GROUP BY ite.mig_id
+                ) plan_counts ON m.mig_id = plan_counts.mig_id
                 ${whereClause}
-                ORDER BY m.${sortField} ${sortDirection}
+                ORDER BY ${['iteration_count', 'plan_count'].contains(sortField) ? sortField : 'm.' + sortField} ${sortDirection}
                 LIMIT ${pageSize} OFFSET ${offset}
             """
             
@@ -624,7 +699,7 @@ class MigrationRepository {
                 // First validate the new status exists
                 def statusRow = sql.firstRow("""
                     SELECT sts_id FROM status_sts 
-                    WHERE sts_name = ? AND sts_type = 'migration'
+                    WHERE sts_name = ? AND sts_type = 'Migration'
                 """, [newStatus])
                 
                 if (!statusRow) {
@@ -722,7 +797,7 @@ class MigrationRepository {
                 SELECT s.sts_name, s.sts_color, COUNT(m.mig_id) as count
                 FROM status_sts s
                 LEFT JOIN migrations_mig m ON m.mig_status = s.sts_id
-                WHERE s.sts_type = 'migration'
+                WHERE s.sts_type = 'Migration'
                 GROUP BY s.sts_id, s.sts_name, s.sts_color
                 ORDER BY s.sts_name
             """)
@@ -911,7 +986,7 @@ class MigrationRepository {
         DatabaseUtil.withSql { sql ->
             def statusRow = sql.firstRow("""
                 SELECT sts_id FROM status_sts 
-                WHERE sts_name = ? AND sts_type = 'migration'
+                WHERE sts_name = ? AND sts_type = 'Migration'
             """, [status])
             
             if (!statusRow) {
@@ -1005,10 +1080,59 @@ class MigrationRepository {
      */
     def create(Map migrationData) {
         DatabaseUtil.withSql { sql ->
-            // Set default status if not provided
-            if (!migrationData.mig_status) {
+            log.info("MigrationRepository.create() - Input data: ${migrationData}")
+            
+            // Validate required fields
+            if (!migrationData.mig_name && !migrationData.name) {
+                log.error("MigrationRepository.create() - Missing migration name in data: ${migrationData}")
+                throw new IllegalArgumentException("Migration name is required")
+            }
+            
+            // Handle status - can be either a string name or an integer ID
+            def statusId = null
+            def statusValue = migrationData.mig_status ?: migrationData.status
+            log.debug("MigrationRepository.create() - Processing status value: ${statusValue} (type: ${statusValue?.getClass()?.simpleName})")
+            
+            if (statusValue) {
+                // Check if it's a string (status name) or integer (status ID)
+                if (statusValue instanceof String) {
+                    // Look up the status ID by name
+                    def statusRow = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_name = :statusName AND sts_type = 'Migration'",
+                        [statusName: statusValue]
+                    )
+                    if (!statusRow) {
+                        log.error("MigrationRepository.create() - Invalid status name '${statusValue}'. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Migration\'').collect { it.sts_name }}")
+                        throw new IllegalArgumentException("Invalid status name: ${statusValue}. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Migration\'').collect { it.sts_name }.join(', ')}")
+                    }
+                    statusId = statusRow.sts_id
+                    log.debug("MigrationRepository.create() - Resolved status '${statusValue}' to ID: ${statusId}")
+                } else {
+                    // It's already an integer ID - validate it exists
+                    statusId = statusValue as Integer
+                    def statusExists = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Migration'",
+                        [statusId: statusId]
+                    )
+                    if (!statusExists) {
+                        log.error("MigrationRepository.create() - Invalid status ID: ${statusId}")
+                        throw new IllegalArgumentException("Invalid status ID: ${statusId}")
+                    }
+                    log.debug("MigrationRepository.create() - Validated status ID: ${statusId}")
+                }
+            } else {
+                // Set default status if not provided
                 def defaultStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Migration'")
-                migrationData.mig_status = defaultStatus?.sts_id ?: 1
+                if (!defaultStatus) {
+                    // Try alternative default status names
+                    defaultStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name IN ('Planning', 'Draft', 'New') AND sts_type = 'Migration' ORDER BY sts_name LIMIT 1")
+                    if (!defaultStatus) {
+                        log.error("MigrationRepository.create() - No default status found. Available migration statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Migration\'').collect { it.sts_name }}")
+                        throw new IllegalArgumentException("No default status found in database. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Migration\'').collect { it.sts_name }.join(', ')}")
+                    }
+                }
+                statusId = defaultStatus.sts_id
+                log.info("MigrationRepository.create() - Using default status: ${defaultStatus.sts_name} (ID: ${statusId})")
             }
             
             // Generate UUID for the new migration
@@ -1026,24 +1150,113 @@ class MigrationRepository {
                 )
             """
             
+            // Handle owner - default to system user if not provided
+            def ownerId = null
+            if (migrationData.usr_id_owner) {
+                ownerId = migrationData.usr_id_owner as Integer
+                // Validate that the owner exists
+                def ownerExists = sql.firstRow("SELECT usr_id FROM users_usr WHERE usr_id = ?", [ownerId])
+                if (!ownerExists) {
+                    log.error("MigrationRepository.create() - Invalid owner ID: ${ownerId}")
+                    throw new IllegalArgumentException("Invalid owner ID: ${ownerId}. User does not exist.")
+                }
+                log.debug("MigrationRepository.create() - Using provided owner ID: ${ownerId}")
+            } else {
+                // Get default system user - prefer admin, then any active user
+                def systemUser = sql.firstRow("SELECT usr_id, usr_name FROM users_usr WHERE usr_is_admin = true AND usr_active = true LIMIT 1")
+                if (!systemUser) {
+                    // If no admin exists, get any active user
+                    systemUser = sql.firstRow("SELECT usr_id, usr_name FROM users_usr WHERE usr_active = true LIMIT 1")
+                }
+                if (!systemUser) {
+                    // Last resort - get any user
+                    systemUser = sql.firstRow("SELECT usr_id, usr_name FROM users_usr LIMIT 1")
+                }
+                if (!systemUser) {
+                    log.error("MigrationRepository.create() - No users exist in the system")
+                    throw new IllegalArgumentException("No users exist in the system. Cannot create migration without owner.")
+                }
+                ownerId = systemUser.usr_id
+                log.info("MigrationRepository.create() - Auto-assigned owner: ${systemUser.usr_name} (ID: ${ownerId})")
+            }
+            
+            // Parse dates if they're strings
+            def parseDate = { dateValue ->
+                if (!dateValue) return null
+                if (dateValue instanceof java.sql.Date || dateValue instanceof java.sql.Timestamp) return dateValue
+                if (dateValue instanceof Date) {
+                    return new java.sql.Date(dateValue.time)
+                }
+                if (dateValue instanceof String) {
+                    try {
+                        def parsedDate = Date.parse('yyyy-MM-dd', dateValue)
+                        return new java.sql.Date(parsedDate.time)
+                    } catch (Exception e) {
+                        // Try ISO format with time
+                        try {
+                            def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss", dateValue)
+                            return new java.sql.Timestamp(parsedDate.time)
+                        } catch (Exception e2) {
+                            try {
+                                def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS", dateValue)
+                                return new java.sql.Timestamp(parsedDate.time)
+                            } catch (Exception e3) {
+                                log.warn("MigrationRepository.create() - Failed to parse date string: ${dateValue}")
+                                return null
+                            }
+                        }
+                    }
+                }
+                return null
+            }
+            
             def params = [
                 mig_id: migrationId,
-                usr_id_owner: migrationData.usr_id_owner as Integer,
+                usr_id_owner: ownerId,
                 mig_name: (migrationData.mig_name ?: migrationData.name).toString(),
                 mig_description: (migrationData.mig_description ?: migrationData.description) as String,
-                mig_status: (migrationData.mig_status ?: migrationData.status) as Integer,
-                mig_type: (migrationData.mig_type ?: migrationData.type ?: 'MIGRATION') as String,
-                mig_start_date: migrationData.mig_start_date ?: migrationData.startDate,
-                mig_end_date: migrationData.mig_end_date ?: migrationData.endDate,
-                mig_business_cutover_date: migrationData.mig_business_cutover_date ?: migrationData.businessCutoverDate,
+                mig_status: statusId,
+                mig_type: (migrationData.mig_type ?: migrationData.type ?: 'MIGRATION').toString(),
+                mig_start_date: parseDate(migrationData.mig_start_date ?: migrationData.startDate),
+                mig_end_date: parseDate(migrationData.mig_end_date ?: migrationData.endDate),
+                mig_business_cutover_date: parseDate(migrationData.mig_business_cutover_date ?: migrationData.businessCutoverDate),
                 created_by: (migrationData.created_by ?: 'system') as String,
                 updated_by: (migrationData.updated_by ?: 'system') as String
             ]
             
-            sql.executeInsert(insertQuery, params)
-            
-            // Return the newly created migration
-            return findMigrationById(migrationId)
+            try {
+                log.info("MigrationRepository.create() - Executing insert with params: ${params.findAll { k, v -> k != 'mig_description' }}")
+                def insertResult = sql.executeInsert(insertQuery, params)
+                log.info("MigrationRepository.create() - Insert result: ${insertResult}")
+                
+                // Return the newly created migration
+                def createdMigration = findMigrationById(migrationId)
+                log.info("MigrationRepository.create() - Successfully created migration: ${createdMigration?.mig_id}")
+                return createdMigration
+            } catch (java.sql.SQLException e) {
+                log.error("MigrationRepository.create() - SQL Exception. SQL State: ${e.SQLState}, Error Code: ${e.errorCode}, Message: ${e.message}. Params: ${params}", e)
+                
+                // Provide specific error messages for common SQL errors
+                if (e.SQLState == '23503') {
+                    if (e.message?.contains('usr_id_owner')) {
+                        throw new IllegalArgumentException("Invalid owner user ID ${params.usr_id_owner} - user does not exist")
+                    } else if (e.message?.contains('mig_status')) {
+                        throw new IllegalArgumentException("Invalid status ID ${params.mig_status} - status does not exist")
+                    }
+                    throw new IllegalArgumentException("Foreign key constraint violation: ${e.message}")
+                } else if (e.SQLState == '23505') {
+                    if (e.message?.contains('mig_name')) {
+                        throw new IllegalArgumentException("A migration with the name '${params.mig_name}' already exists")
+                    }
+                    throw new IllegalArgumentException("Unique constraint violation: ${e.message}")
+                } else if (e.SQLState == '23502') {
+                    throw new IllegalArgumentException("Missing required field: ${e.message}")
+                }
+                throw e
+            } catch (Exception e) {
+                log.error("MigrationRepository.create() - Unexpected error during migration creation. Params: ${params}", e)
+                throw e
+            }
         }
     }
     
@@ -1055,6 +1268,8 @@ class MigrationRepository {
      */
     def update(UUID migrationId, Map migrationData) {
         DatabaseUtil.withSql { sql ->
+            log.info("MigrationRepository.update() - Updating migration ${migrationId} with data: ${migrationData}")
+            
             // Build dynamic update query based on provided fields
             def updateFields = []
             Map<String, Object> params = [mig_id: migrationId]
@@ -1070,27 +1285,95 @@ class MigrationRepository {
             }
             if (migrationData.containsKey('mig_status') || migrationData.containsKey('status')) {
                 updateFields << "mig_status = :mig_status"
-                params.mig_status = (migrationData.mig_status ?: migrationData.status) as Integer
+                def statusValue = migrationData.mig_status ?: migrationData.status
+                log.debug("MigrationRepository.update() - Processing status update: ${statusValue} (type: ${statusValue?.getClass()?.simpleName})")
+                
+                // Handle both string names and integer IDs
+                if (statusValue instanceof String) {
+                    // Look up the status ID by name
+                    def statusRow = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_name = :statusName AND sts_type = 'Migration'",
+                        [statusName: statusValue]
+                    )
+                    if (!statusRow) {
+                        log.error("MigrationRepository.update() - Invalid status name '${statusValue}'. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Migration\'').collect { it.sts_name }}")
+                        throw new IllegalArgumentException("Invalid status name: ${statusValue}. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Migration\'').collect { it.sts_name }.join(', ')}")
+                    }
+                    params.mig_status = statusRow.sts_id
+                    log.debug("MigrationRepository.update() - Resolved status '${statusValue}' to ID: ${statusRow.sts_id}")
+                } else {
+                    // It's already an integer ID - validate it exists
+                    def statusId = statusValue as Integer
+                    def statusExists = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Migration'",
+                        [statusId: statusId]
+                    )
+                    if (!statusExists) {
+                        log.error("MigrationRepository.update() - Invalid status ID: ${statusId}")
+                        throw new IllegalArgumentException("Invalid status ID: ${statusId}")
+                    }
+                    params.mig_status = statusId
+                    log.debug("MigrationRepository.update() - Validated status ID: ${statusId}")
+                }
             }
             if (migrationData.containsKey('mig_type') || migrationData.containsKey('type')) {
                 updateFields << "mig_type = :mig_type"
                 params.mig_type = (migrationData.mig_type ?: migrationData.type) as String
             }
+            // Date parsing helper function (same as create method)
+            def parseDate = { dateValue ->
+                if (dateValue == null) return null
+                if (dateValue instanceof String) {
+                    try {
+                        def parsedDate = Date.parse('yyyy-MM-dd', dateValue)
+                        return new java.sql.Date(parsedDate.time)
+                    } catch (Exception e) {
+                        try {
+                            def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss", dateValue)
+                            return new java.sql.Timestamp(parsedDate.time)
+                        } catch (Exception e2) {
+                            try {
+                                def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS", dateValue)
+                                return new java.sql.Timestamp(parsedDate.time)
+                            } catch (Exception e3) {
+                                log.warn("MigrationRepository.update() - Failed to parse date string: ${dateValue}, using as-is")
+                                return dateValue // Let database handle it
+                            }
+                        }
+                    }
+                }
+                return dateValue // Already a Date object or other type
+            }
+            
             if (migrationData.containsKey('mig_start_date') || migrationData.containsKey('startDate')) {
                 updateFields << "mig_start_date = :mig_start_date"
-                params.mig_start_date = migrationData.mig_start_date ?: migrationData.startDate
+                def rawDate = migrationData.mig_start_date ?: migrationData.startDate
+                params.mig_start_date = parseDate(rawDate)
+                log.debug("MigrationRepository.update() - Parsed start date: ${rawDate} -> ${params.mig_start_date}")
             }
             if (migrationData.containsKey('mig_end_date') || migrationData.containsKey('endDate')) {
                 updateFields << "mig_end_date = :mig_end_date"
-                params.mig_end_date = migrationData.mig_end_date ?: migrationData.endDate
+                def rawDate = migrationData.mig_end_date ?: migrationData.endDate
+                params.mig_end_date = parseDate(rawDate)
+                log.debug("MigrationRepository.update() - Parsed end date: ${rawDate} -> ${params.mig_end_date}")
             }
             if (migrationData.containsKey('mig_business_cutover_date') || migrationData.containsKey('businessCutoverDate')) {
                 updateFields << "mig_business_cutover_date = :mig_business_cutover_date"
-                params.mig_business_cutover_date = migrationData.mig_business_cutover_date ?: migrationData.businessCutoverDate
+                def rawDate = migrationData.mig_business_cutover_date ?: migrationData.businessCutoverDate
+                params.mig_business_cutover_date = parseDate(rawDate)
+                log.debug("MigrationRepository.update() - Parsed business cutover date: ${rawDate} -> ${params.mig_business_cutover_date}")
             }
             if (migrationData.containsKey('usr_id_owner') || migrationData.containsKey('ownerId')) {
                 updateFields << "usr_id_owner = :usr_id_owner"
-                params.usr_id_owner = (migrationData.usr_id_owner ?: migrationData.ownerId) as Integer
+                def ownerId = (migrationData.usr_id_owner ?: migrationData.ownerId) as Integer
+                // Validate that the owner exists
+                def ownerExists = sql.firstRow("SELECT usr_id FROM users_usr WHERE usr_id = ?", [ownerId])
+                if (!ownerExists) {
+                    log.error("MigrationRepository.update() - Invalid owner ID: ${ownerId}")
+                    throw new IllegalArgumentException("Invalid owner ID: ${ownerId}. User does not exist.")
+                }
+                params.usr_id_owner = ownerId
+                log.debug("MigrationRepository.update() - Updating owner to ID: ${ownerId}")
             }
             
             // Always update the updated_at and updated_by fields
@@ -1108,12 +1391,42 @@ class MigrationRepository {
                 WHERE mig_id = :mig_id
             """
             
-            def rowsUpdated = sql.executeUpdate(updateQuery, params)
-            
-            if (rowsUpdated > 0) {
-                return findMigrationById(migrationId)
+            try {
+                log.info("MigrationRepository.update() - Executing update query with params: ${params.findAll { k, v -> k != 'mig_description' }}")
+                def rowsUpdated = sql.executeUpdate(updateQuery, params)
+                log.info("MigrationRepository.update() - Updated ${rowsUpdated} rows for migration ${migrationId}")
+                
+                if (rowsUpdated > 0) {
+                    def updatedMigration = findMigrationById(migrationId)
+                    log.info("MigrationRepository.update() - Successfully updated migration: ${migrationId}")
+                    return updatedMigration
+                }
+                log.warn("MigrationRepository.update() - No rows updated for migration ${migrationId} - migration may not exist")
+                return null
+            } catch (java.sql.SQLException e) {
+                log.error("MigrationRepository.update() - SQL Exception. SQL State: ${e.SQLState}, Error Code: ${e.errorCode}, Message: ${e.message}. Params: ${params}", e)
+                
+                // Provide specific error messages for common SQL errors
+                if (e.SQLState == '23503') {
+                    if (e.message?.contains('usr_id_owner')) {
+                        throw new IllegalArgumentException("Invalid owner user ID ${params.usr_id_owner} - user does not exist")
+                    } else if (e.message?.contains('mig_status')) {
+                        throw new IllegalArgumentException("Invalid status ID ${params.mig_status} - status does not exist")
+                    }
+                    throw new IllegalArgumentException("Foreign key constraint violation: ${e.message}")
+                } else if (e.SQLState == '23505') {
+                    if (e.message?.contains('mig_name')) {
+                        throw new IllegalArgumentException("A migration with the name '${params.mig_name}' already exists")
+                    }
+                    throw new IllegalArgumentException("Unique constraint violation: ${e.message}")
+                } else if (e.SQLState == '23502') {
+                    throw new IllegalArgumentException("Missing required field: ${e.message}")
+                }
+                throw e
+            } catch (Exception e) {
+                log.error("MigrationRepository.update() - Unexpected error during migration update. Params: ${params}", e)
+                throw e
             }
-            return null
         }
     }
     

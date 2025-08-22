@@ -15,7 +15,10 @@ import java.util.UUID
 
 @BaseScript CustomEndpointDelegate delegate
 
-final ControlRepository controlRepository = new ControlRepository()
+// Repository accessor using closure pattern for proper scoping
+def getControlRepository = { ->
+    return new ControlRepository()
+}
 
 /**
  * Handles error responses with proper SQL state mapping
@@ -86,6 +89,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
         // GET /controls/master/{ctm_id} - get specific master control
         if (pathParts.size() == 2 && pathParts[0] == 'master') {
             def controlId = UUID.fromString(pathParts[1] as String)
+            def controlRepository = getControlRepository()
             def control = controlRepository.findMasterControlById(controlId)
             
             if (!control) {
@@ -97,19 +101,9 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
             return buildSuccessResponse(control)
         }
         
-        // GET /controls/master with optional filtering
+        // GET /controls/master with optional filtering - Admin GUI support
         if (pathParts.size() == 1 && pathParts[0] == 'master') {
-            def controls
-            
-            // Filter by phase ID if provided
-            if (queryParams.getFirst("phaseId")) {
-                def phaseId = UUID.fromString(queryParams.getFirst("phaseId") as String)
-                controls = controlRepository.findMasterControlsByPhaseId(phaseId)
-            } else {
-                controls = controlRepository.findAllMasterControls()
-            }
-            
-            return buildSuccessResponse(controls)
+            return handleMasterControlsRequest(queryParams)
         }
         
         // ==================== INSTANCE CONTROL GET OPERATIONS ====================
@@ -117,6 +111,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
         // GET /controls/instance/{cti_id} - get specific control instance
         if (pathParts.size() == 2 && pathParts[0] == 'instance') {
             def instanceId = UUID.fromString(pathParts[1] as String)
+            def controlRepository = getControlRepository()
             def instance = controlRepository.findControlInstanceById(instanceId)
             
             if (!instance) {
@@ -161,6 +156,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
                 filters.statusId = queryParams.getFirst("statusId") as String
             }
             
+            def controlRepository = getControlRepository()
             def instances = controlRepository.findControlInstances(filters)
             return buildSuccessResponse(instances)
         }
@@ -170,6 +166,7 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
         // GET /controls/{phi_id}/progress - get phase control progress
         if (pathParts.size() == 2 && pathParts[1] == 'progress') {
             def phaseId = UUID.fromString(pathParts[0] as String)
+            def controlRepository = getControlRepository()
             def progress = controlRepository.calculatePhaseControlProgress(phaseId)
             
             return buildSuccessResponse(progress)
@@ -228,6 +225,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             controlData['ctm_code'] = requestData['ctm_code'] as String
             controlData['ctm_order'] = requestData['ctm_order'] as Integer
             
+            def controlRepository = getControlRepository()
             def masterControl = controlRepository.createMasterControl(controlData)
             
             return Response.status(Response.Status.CREATED)
@@ -265,6 +263,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             overrides['cti_code'] = requestData['cti_code'] as String
             
             // Create single control instance from master control
+            def controlRepository = getControlRepository()
             def instance = controlRepository.createControlInstance(masterControlId, phaseInstanceId, overrides)
             
             return Response.status(Response.Status.CREATED)
@@ -308,6 +307,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                     data['ctm_code'] = controlData['ctm_code'] as String
                     data['ctm_order'] = controlData['ctm_order'] as Integer
                     
+                    def controlRepository = getControlRepository()
                     def masterControl = controlRepository.createMasterControl(data)
                     if (masterControl) {
                         createdControls.add(masterControl)
@@ -365,6 +365,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             overrides['usr_id_it_validator'] = requestData['usr_id_it_validator'] as Integer
             overrides['usr_id_biz_validator'] = requestData['usr_id_biz_validator'] as Integer
             
+            def controlRepository = getControlRepository()
             def controlInstance = controlRepository.createControlInstance(
                 UUID.fromString(requestData['ctm_id'] as String),
                 UUID.fromString(requestData['phi_id'] as String),
@@ -414,6 +415,7 @@ controls(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
                     overrides['usr_id_it_validator'] = instanceData['usr_id_it_validator'] as Integer
                     overrides['usr_id_biz_validator'] = instanceData['usr_id_biz_validator'] as Integer
                     
+                    def controlRepository = getControlRepository()
                     def controlInstance = controlRepository.createControlInstance(
                         UUID.fromString(instanceData['ctm_id'] as String),
                         UUID.fromString(instanceData['phi_id'] as String),
@@ -495,6 +497,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
                 controlOrder[UUID.fromString(controlId as String)] = (index as Integer) + 1
             }
             
+            def controlRepository = getControlRepository()
             def result = controlRepository.reorderMasterControls(
                 UUID.fromString(requestData['phm_id'] as String),
                 controlOrder
@@ -523,6 +526,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             updateData['ctm_is_critical'] = requestData['ctm_is_critical'] as Boolean
             updateData['ctm_code'] = requestData['ctm_code'] as String
             
+            def controlRepository = getControlRepository()
             def result = controlRepository.updateMasterControl(controlId, updateData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
@@ -552,6 +556,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             def updateData = [:]
             updateData['cti_status'] = requestData['cti_status'] as String
             
+            def controlRepository = getControlRepository()
             def result = controlRepository.updateControlInstance(controlId, updateData)
             
             return Response.status(Response.Status.NO_CONTENT).build()
@@ -575,6 +580,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             validationData['usr_id_it_validator'] = requestData['usr_id_it_validator'] as Integer
             validationData['usr_id_biz_validator'] = requestData['usr_id_biz_validator'] as Integer
             
+            def controlRepository = getControlRepository()
             def result = controlRepository.validateControl(controlId, validationData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
@@ -599,6 +605,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
                     .build()
             }
             
+            def controlRepository = getControlRepository()
             def result = controlRepository.overrideControl(
                 controlId,
                 requestData['reason'] as String,
@@ -632,6 +639,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             updateData['usr_id_it_validator'] = requestData['usr_id_it_validator'] as Integer
             updateData['usr_id_biz_validator'] = requestData['usr_id_biz_validator'] as Integer
             
+            def controlRepository = getControlRepository()
             def result = controlRepository.updateControlInstance(controlId, updateData)
             
             return Response.ok(new JsonBuilder(result).toString()).build()
@@ -659,6 +667,7 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             validationData['usr_id_it_validator'] = requestData['usr_id_it_validator'] as Integer
             validationData['usr_id_biz_validator'] = requestData['usr_id_biz_validator'] as Integer
             
+            def controlRepository = getControlRepository()
             def result = controlRepository.validateAllPhaseControls(
                 UUID.fromString(requestData['phi_id'] as String),
                 validationData
@@ -691,6 +700,7 @@ controls(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
         // DELETE /controls/master/{ctm_id} - delete master control
         if (pathParts.size() == 2 && pathParts[0] == 'master') {
             def controlId = UUID.fromString(pathParts[1] as String)
+            def controlRepository = getControlRepository()
             def result = controlRepository.deleteMasterControl(controlId)
             
             if (result) {
@@ -705,6 +715,7 @@ controls(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
         // DELETE /controls/instance/{cti_id} - delete control instance
         if (pathParts.size() == 2 && pathParts[0] == 'instance') {
             def instanceId = UUID.fromString(pathParts[1] as String)
+            def controlRepository = getControlRepository()
             def result = controlRepository.deleteControlInstance(instanceId)
             
             if (result) {
@@ -722,5 +733,78 @@ controls(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
             
     } catch (Exception e) {
         return handleError(e)
+    }
+}/**
+ * Additional methods for ControlsApi.groovy to support Admin GUI functionality.
+ * These methods should be copied and pasted into the main ControlsApi.groovy file.
+ */
+
+/**
+ * Handles GET requests for master controls with Admin GUI support.
+ * Provides filtering, pagination, sorting, and computed fields.
+ * @param queryParams Query parameters from the request
+ * @return Response with paginated and filtered master controls data
+ */
+def handleMasterControlsRequest(MultivaluedMap queryParams) {
+    try {
+        def filters = [:]
+        def pageNumber = 1
+        def pageSize = 50
+        def sortField = null
+        def sortDirection = 'asc'
+
+        // Extract query parameters
+        queryParams.keySet().each { param ->
+            def value = queryParams.getFirst(param)
+            switch (param) {
+                case 'page':
+                    pageNumber = Integer.parseInt(value as String)
+                    break
+                case 'size':
+                    pageSize = Integer.parseInt(value as String)
+                    break
+                case 'sort':
+                    sortField = value as String
+                    break
+                case 'direction':
+                    sortDirection = value as String
+                    break
+                default:
+                    filters[param] = value
+            }
+        }
+
+        // Validate sort field
+        def allowedSortFields = ['ctm_id', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count']
+        if (sortField && !allowedSortFields.contains(sortField)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())
+                .build()
+        }
+
+        def controlRepository = getControlRepository()
+        def result = controlRepository.findMasterControlsWithFilters(filters as Map, pageNumber as int, pageSize as int, sortField as String, sortDirection as String)
+        return Response.ok(new JsonBuilder(result).toString()).build()
+    } catch (SQLException e) {
+        def statusCode = mapSqlStateToHttpStatus(e.getSQLState())
+        return Response.status(statusCode)
+            .entity(new JsonBuilder([error: e.message, code: statusCode]).toString())
+            .build()
+    } catch (Exception e) {
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([error: "Internal server error", code: 500]).toString())
+            .build()
+    }
+}
+
+/**
+ * Maps SQL state codes to appropriate HTTP status codes
+ */
+private static int mapSqlStateToHttpStatus(String sqlState) {
+    switch (sqlState) {
+        case '23503': return 400 // Foreign key violation
+        case '23505': return 409 // Unique violation
+        case '23514': return 400 // Check constraint violation
+        default: return 500     // General server error
     }
 }
