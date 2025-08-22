@@ -171,13 +171,54 @@
      */
     navigation: {
       /**
+       * Map navigation sections to entity configurations
+       * @param {string} section - Section name from navigation
+       * @returns {string} Entity configuration key
+       */
+      mapSectionToEntity: function (section) {
+        // Mapping for navigation data-section to EntityConfig keys
+        const sectionMapping = {
+          // Basic entities (direct mapping)
+          'users': 'users',
+          'teams': 'teams',
+          'environments': 'environments',
+          'applications': 'applications',
+          'labels': 'labels',
+          
+          // Migration-related entities (direct mapping)
+          'migrations': 'migrations',
+          
+          // Instance entities (navigation uses different names)
+          'plans': 'plans',
+          'sequences': 'sequences',
+          'phases': 'phases',
+          'steps': 'instructions', // Steps section shows instructions
+          
+          // Master entities (for future use)
+          'master-plans': 'plansmaster',
+          'master-sequences': 'sequencesmaster',
+          'master-phases': 'phasesmaster',
+          'master-steps': 'steps-master',
+          'master-controls': 'controls-master',
+          
+          // Other entities
+          'iterations': 'iterations',
+          'controls': 'controls-instance',
+          'audit-logs': 'audit-logs',
+        };
+        
+        return sectionMapping[section] || section;
+      },
+
+      /**
        * Set current section
        * @param {string} section - Section name
        */
       setCurrentSection: function (section) {
+        const entityKey = this.mapSectionToEntity(section);
         AdminGuiState.updateState({
           currentSection: section,
-          currentEntity: section,
+          currentEntity: entityKey,
           currentPage: 1,
           searchTerm: "",
           sortField: null,

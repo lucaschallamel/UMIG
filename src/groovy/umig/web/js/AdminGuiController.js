@@ -266,11 +266,50 @@
     },
 
     /**
+     * Map data-entity values to EntityConfig keys
+     * @param {string} entity - Entity value from data-entity attribute
+     * @returns {string} EntityConfig key
+     */
+    mapEntityToConfig: function (entity) {
+      // Mapping for navigation data-entity to EntityConfig keys
+      const entityMapping = {
+        // Direct mappings (no change needed)
+        'users': 'users',
+        'teams': 'teams',
+        'environments': 'environments',
+        'applications': 'applications',
+        'labels': 'labels',
+        'migrations': 'migrations',
+        
+        // Instance entity mappings (navigation uses different names)
+        'plansinstance': 'plans',
+        'sequencesinstance': 'sequences',
+        'phasesinstance': 'phases',
+        'steps-instance': 'instructions', // Steps section shows instructions
+        
+        // Master entity mappings
+        'plansmaster': 'plansmaster',
+        'sequencesmaster': 'sequencesmaster',
+        'phasesmaster': 'phasesmaster',
+        'steps-master': 'steps-master',
+        'controls-master': 'controls-master',
+        
+        // Other entities
+        'iterations': 'iterations',
+        'controls-instance': 'controls-instance',
+        'audit-logs': 'audit-logs',
+      };
+      
+      return entityMapping[entity] || entity;
+    },
+
+    /**
      * Handle navigation
      * @param {HTMLElement} navItem - Navigation item element
      */
     handleNavigation: function (navItem) {
       const section = navItem.dataset.section;
+      const entity = navItem.dataset.entity; // Get entity if specified
       if (!section) return;
 
       // Update active navigation
@@ -281,7 +320,22 @@
 
       // Update state
       if (window.AdminGuiState) {
-        window.AdminGuiState.navigation.setCurrentSection(section);
+        // If entity is explicitly specified, map it to correct EntityConfig key
+        if (entity) {
+          const entityKey = this.mapEntityToConfig(entity);
+          window.AdminGuiState.updateState({
+            currentSection: section,
+            currentEntity: entityKey,
+            currentPage: 1,
+            searchTerm: "",
+            sortField: null,
+            sortDirection: "asc",
+            selectedRows: new Set(),
+            filters: {},
+          });
+        } else {
+          window.AdminGuiState.navigation.setCurrentSection(section);
+        }
       }
 
       // Load section
