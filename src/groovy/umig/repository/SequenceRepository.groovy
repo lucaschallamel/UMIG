@@ -182,7 +182,10 @@ class SequenceRepository {
             // Data query with computed fields
             def offset = (pageNumber - 1) * pageSize
             def dataQuery = """
-                SELECT DISTINCT sqm.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                SELECT DISTINCT sqm.sqm_id, sqm.plm_id, sqm.sqm_name, sqm.sqm_description, 
+                       sqm.sqm_order, sqm.predecessor_sqm_id, sqm.created_by, sqm.created_at, 
+                       sqm.updated_by, sqm.updated_at,
+                       s.sts_id, s.sts_name, s.sts_color, s.sts_type,
                        plm.plm_name, plm.tms_id, tms.tms_name,
                        COALESCE(phase_counts.phase_count, 0) as phase_count,
                        COALESCE(instance_counts.instance_count, 0) as instance_count
@@ -475,7 +478,9 @@ class SequenceRepository {
                     sqi.sqi_description,
                     sqi.sqi_order,
                     sqi.predecessor_sqi_id,
+                    sqi.created_by,
                     sqi.created_at,
+                    sqi.updated_by,
                     sqi.updated_at,
                     sqm.sqm_name as master_name,
                     sqm.sqm_description as master_description,
@@ -489,6 +494,7 @@ class SequenceRepository {
                     sts.sts_id,
                     sts.sts_name,
                     sts.sts_color,
+                    sts.sts_type,
                     pred.sqi_name as predecessor_name
                 FROM sequences_instance_sqi sqi
                 JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
@@ -574,6 +580,7 @@ class SequenceRepository {
                     sts.sts_id,
                     sts.sts_name,
                     sts.sts_color,
+                    sts.sts_type,
                     pred.sqi_name as predecessor_name
                 FROM sequences_instance_sqi sqi
                 JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
