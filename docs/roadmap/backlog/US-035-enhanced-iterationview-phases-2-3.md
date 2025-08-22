@@ -3,15 +3,15 @@
 ## Story Metadata
 
 **Story ID**: US-035  
-**Epic**: Sprint 5 Enhancements  
-**Sprint**: 5 (August 18-22, 2025)  
-**Priority**: P2 (Enhancement)  
+**Epic**: Enhanced IterationView Enhancement  
+**Sprint**: Backlog (Moved from Sprint 5 - August 19, 2025)  
+**Priority**: P2 (Enhancement - Post-MVP)  
 **Effort**: 1 point  
-**Status**: 0% (Phase 1 complete)  
-**Timeline**: Day 5 (Aug 22)  
+**Status**: Backlog (Phase 1 complete, Phases 2-3 deferred)  
+**Timeline**: Future Sprint (Post-MVP)  
 **Owner**: Frontend Development  
 **Dependencies**: Enhanced IterationView Phase 1 complete (resolved), StepsAPIv2Client available (resolved)  
-**Risk**: LOW (enhancement features)
+**Risk**: LOW (enhancement features, non-critical for MVP)
 
 ## User Story
 

@@ -23,11 +23,11 @@
 **Sprint Duration**: 5 working days (Aug 18-22, 2025) - Mon/Tue/Wed/Thu/Fri  
 **Team Velocity**: 5 points/day (adjusted target)  
 **Capacity**: 25 points (5 days × 5 points/day)  
-**Planned**: 23 points (ORIGINAL) → **28 points (ACTUAL)** due to US-036 scope expansion  
+**Planned**: 19 points (REVISED DOWN) - US-033 descoped on Day 5 for critical MVP focus  
 **Completed**: 2 points (US-030 ✅, US-022 ✅)  
 **80% Complete**: ~8 points (US-036 scope expansion - 80% of 8-10 actual points)  
-**Remaining**: ~13 points  
-**Buffer**: 2 points (8% - quality assurance and UAT preparation)
+**Remaining**: ~9 points (US-031: 6 points, US-034: 3 points)  
+**Buffer**: 6 points (32% - enhanced focus through strategic descoping)
 
 ### Success Metrics
 
@@ -41,7 +41,7 @@
 
 ---
 
-## Story Breakdown (Priority Order) - 8 Stories Total
+## Story Breakdown (Priority Order) - 6 Stories Total (US-033 Descoped to Backlog)
 
 ### 🚀 US-022: Integration Test Expansion
 
@@ -532,60 +532,6 @@
 
 ---
 
-### ⭐ US-035: Enhanced IterationView Phases 2-3
-
-**Priority**: P2 (Enhancement)  
-**Effort**: 1 point  
-**Status**: 0% (Phase 1 complete)  
-**Owner**: Frontend Development  
-**Timeline**: Day 5 (Aug 22)
-
-#### User Story
-
-**As a** migration coordinator  
-**I want** advanced IterationView features  
-**So that** I can manage complex migrations with maximum efficiency
-
-#### Acceptance Criteria
-
-1. ✅ **AC-035.1**: Implement advanced filtering and grouping options
-2. ✅ **AC-035.2**: Add real-time collaboration features
-3. ✅ **AC-035.3**: Create customizable dashboard views
-4. ✅ **AC-035.4**: Implement export functionality (PDF/Excel)
-5. ✅ **AC-035.5**: Add timeline and Gantt chart visualizations
-6. ✅ **AC-035.6**: Create advanced reporting capabilities
-7. ✅ **AC-035.7**: Implement notification and alert system
-
-#### Technical Requirements
-
-- Extend existing IterationView components
-- Implement advanced visualization libraries
-- Create export service integration
-- Add real-time WebSocket communication
-- Implement notification framework
-
-#### Dependencies
-
-- ✅ Enhanced IterationView Phase 1 complete (resolved)
-- ✅ StepsAPIv2Client available (resolved)
-
-#### Testing Requirements
-
-- Advanced feature testing
-- Export functionality validation
-- Real-time collaboration testing
-- Performance testing with complex views
-
-#### Definition of Done
-
-- [ ] Phase 2-3 features implemented
-- [ ] Export functionality working
-- [ ] Real-time features validated
-- [ ] Performance targets achieved
-- [ ] User documentation updated
-
----
-
 ### 🧪 US-037: Integration Testing Framework Standardization
 
 **Priority**: P3 (Technical Debt)  
@@ -674,101 +620,19 @@
 
 ---
 
-### 🏠 US-033: Main Dashboard UI (REFINED)
+### 📝 US-033: Main Dashboard UI - DESCOPED TO BACKLOG
 
-**Priority**: P2 (Final MVP Component)  
-**Effort**: 3 points (REDUCED from 5 - simplified scope as suggested)  
-**Status**: 0% (planned)  
-**Owner**: Frontend Development  
-**Timeline**: Day 5 (Aug 22)  
-**Risk**: MEDIUM → LOW (simplified scope reduces complexity)
+**Status**: ❌ **DESCOPED** from Sprint 5 on August 22, 2025 (Day 5)  
+**Rationale**: Strategic descoping to maintain focus on critical MVP components (US-031 and US-034)  
+**New Location**: `/docs/roadmap/backlog/US-033-main-dashboard-ui.md`  
+**Future Priority**: P2 for post-MVP release  
+**Points Saved**: 3 points (enables enhanced focus on US-031 + US-034 completion)
 
-#### Scope Simplification for MVP
+**Critical MVP Components Prioritized**:
+- ✅ US-031 (Admin GUI Complete Integration) - 6 points, essential for MVP
+- ✅ US-034 (Data Import Strategy) - 3 points, migration enablement required
 
-**REMOVED from original scope**:
-
-- Complex widget customization features
-- Advanced analytics and metrics visualization
-- Real-time collaboration features
-- Timeline and Gantt chart visualizations
-
-**FOCUSED MVP scope**:
-
-- Fixed layout with essential widgets only
-- Core system status and navigation
-- Basic migration overview
-- Simple metrics display
-
-#### Refined User Story
-
-**As a** UMIG user  
-**I want** a streamlined main dashboard with essential system overview and navigation  
-**So that** I can quickly access key system functions and monitor migration status efficiently
-
-#### Simplified Acceptance Criteria (Essential Only)
-
-1. ✅ **AC-033.1**: **Fixed Layout with Essential Widgets** (SIMPLIFIED)
-   - Fixed 3-column layout with defined widget placement
-   - Migration Status Overview widget (left column)
-   - Quick Actions widget (center column)
-   - System Health widget (right column)
-2. ✅ **AC-033.2**: **Migration Status Overview Widget** (CORE FEATURE)
-   - Total migrations count with status breakdown
-   - Active, Completed, Planned, Blocked migration counts
-   - Click-through navigation to filtered migration lists
-   - Real-time updates (30-second refresh)
-3. ✅ **AC-033.3**: **Quick Navigation Actions** (ESSENTIAL)
-   - "Create New Migration" primary action button
-   - "Manage Teams" secondary action
-   - "Admin GUI" link for administrators
-   - Role-based action visibility
-4. ✅ **AC-033.4**: **System Health Monitoring** (OPERATIONAL)
-   - Database connection status indicator
-   - API endpoints health status
-   - Last update timestamp
-   - Color-coded status indicators (Green/Yellow/Red)
-5. ✅ **AC-033.5**: **Integration with Existing Navigation** (CRITICAL)
-   - Seamless navigation with consistent header/navigation
-   - Maintain user session state across interface transitions
-   - Implement breadcrumb navigation for context
-6. ✅ **AC-033.6**: **Performance and Loading Optimization** (QUALITY GATE)
-   - <2s initial load time for complete dashboard
-   - Progressive loading for non-critical widgets
-   - Skeleton loading states for all widgets
-   - Graceful error handling with retry mechanisms
-
-#### Technical Requirements (Simplified)
-
-- **Streamlined Architecture**: Fixed three-widget dashboard with no customization
-- **API Integration**: Simplified endpoints for migration counts and system health
-- **Performance**: Progressive loading and skeleton states
-- **Integration**: Consistent navigation with Admin GUI and IterationView
-
-#### Dependencies
-
-- ✅ All APIs complete (resolved)
-- ✅ Admin GUI integration complete (US-031)
-- ✅ Enhanced IterationView patterns established
-- User authentication framework
-
-#### Testing Requirements (Focused)
-
-- **Component Testing**: Individual widget functionality and layout responsiveness
-- **Integration Testing**: Navigation flow and authentication testing
-- **Performance Testing**: Load time benchmarking and error handling validation
-- **User Testing**: Dashboard usability and workflow validation
-
-#### Definition of Done (Simplified)
-
-- [ ] Fixed three-column layout implemented and responsive
-- [ ] Migration Status Overview widget functional with real-time updates
-- [ ] Quick Actions widget implemented with role-based visibility
-- [ ] System Health widget operational with status indicators
-- [ ] Integration with existing navigation completed
-- [ ] Performance targets achieved (<2s load time)
-- [ ] Error handling and loading states implemented
-- [ ] Cross-browser compatibility validated
-- [ ] User acceptance testing scenarios passed
+**Impact**: Descoping US-033 provides 32% buffer capacity (6 points) for Day 5 execution, ensuring successful completion of core MVP functionality without compromising quality.
 
 ---
 
@@ -814,16 +678,17 @@
 - **Deliverables**: Admin GUI 70% done, Import design complete, StepView 100% complete ✅
 - **Daily Standup**: Focus on GUI completion and import implementation
 
-### Day 5 (Friday, August 22) - Integration Completion & Sprint Completion
+### Day 5 (Friday, August 22) - CRITICAL MVP COMPLETION & FOCUSED DELIVERY
 
-**Focus**: Complete major integrations and prepare for UAT
+**Focus**: Complete essential MVP components with enhanced focus through strategic descoping
 
-- ✅ **Morning**: Complete US-031 (Admin GUI Integration) + US-034 (Data Import) - 4 points
-- ✅ **Afternoon**: Complete US-033 (Main Dashboard UI) + US-035 (IterationView P2-3) - 4 points
-- ✅ **Tail End**: US-037 (Integration Testing Framework Standardization) - 5 points (technical debt)
-- **Deliverables**: All stories complete (US-036 already done ✅), UAT environment ready, technical debt addressed
-- **Sprint Review**: Demonstrate MVP completion including early StepView success
-- **Sprint Retrospective**: Capture lessons learned from exceptional velocity
+- ✅ **Morning**: Complete US-031 (Admin GUI Integration) - 6 points (PRIORITY 1)
+- ✅ **Afternoon**: Complete US-034 (Data Import Strategy) - 3 points (PRIORITY 2)
+- ✅ **Tail End**: US-037 (Integration Testing Framework Standardization) - 5 points (technical debt - if time permits)
+- **US-033 DESCOPED**: Moved to backlog to ensure successful completion of critical MVP components
+- **Deliverables**: Core MVP stories complete (US-031 ✅, US-034 ✅, US-036 already done ✅), UAT environment ready, enhanced buffer for quality
+- **Sprint Review**: Demonstrate MVP completion with focus on core functionality
+- **Sprint Retrospective**: Capture lessons learned from strategic descoping and focus management
 
 ---
 
@@ -881,9 +746,9 @@
 
 ### Frontend Development Team
 
-- **Primary**: US-031 (Admin GUI Integration)
-- **Secondary**: US-036 (StepView UI Refactoring)
-- **Final**: US-033 (Main Dashboard UI), US-035 (IterationView Phases 2-3)
+- **Primary**: US-031 (Admin GUI Integration) - CRITICAL MVP COMPONENT
+- **Secondary**: US-036 (StepView UI Refactoring) - 80% COMPLETE
+- **Day 5 Focus**: US-031 completion with enhanced quality through strategic descoping
 
 ### Backend Development Team
 
@@ -953,13 +818,13 @@
 
 ### Must Have (MVP Blockers)
 
-- ✅ All 8 user stories complete and tested (2/8 complete: US-030 ✅, US-022 ✅; 1 story 80% complete: US-036 🚧)
+- ✅ All 6 core user stories complete and tested (2/6 complete: US-030 ✅, US-022 ✅; 1 story 80% complete: US-036 🚧; US-033 descoped ❌)
 - ✅ UAT environment fully functional
 - ✅ Zero critical defects
 - ✅ Performance targets achieved (<3s load times)
 - ✅ API documentation 100% complete ✅ US-030 ACHIEVED
 - ✅ Integration test coverage >95%
-- ✅ Testing framework standardization complete
+- ✅ Core MVP functionality complete (US-031 Admin GUI + US-034 Data Import) - CRITICAL
 
 ### Should Have (Quality Targets)
 
@@ -971,14 +836,14 @@
 
 ### Could Have (Enhancement Opportunities)
 
-- ✅ Advanced reporting features (US-035)
+- ✅ Advanced reporting features (deferred to post-MVP)
 - ✅ Enhanced visualizations
 - ✅ Performance optimization beyond targets
 - ✅ Additional automation features
 
 ### Sprint Success Definition
 
-**MVP Ready**: All core functionality complete, tested, and ready for production deployment with zero critical defects, full UAT readiness, and standardized testing framework reducing technical debt.
+**MVP Ready**: All core functionality complete (US-031 Admin GUI + US-034 Data Import + US-036 StepView), tested, and ready for production deployment with zero critical defects, full UAT readiness, and standardized testing framework reducing technical debt. US-033 strategically descoped to ensure successful completion of critical MVP components.
 
 ---
 
@@ -1105,13 +970,23 @@ npm run generate-data:rbac         # Role-based access control test data
 
 ---
 
-**Document Version**: 2.2 (US-036 SCOPE CORRECTION UPDATE)  
+**Document Version**: 2.3 (US-033 DESCOPING FOR MVP FOCUS)  
 **Created**: August 18, 2025  
-**Last Updated**: August 20, 2025 (US-036 scope expansion and progress correction)  
+**Last Updated**: August 22, 2025 (US-033 strategic descoping for critical MVP completion)  
 **Owner**: UMIG Development Team  
 **Review Date**: August 22, 2025 (Sprint Review)
 
-### Recent Updates (v2.2 - US-036 Scope Correction)
+### Recent Updates (v2.3 - US-033 Strategic Descoping)
+
+- ❌ **US-033 Descoped to Backlog**: Main Dashboard UI moved from Sprint 5 to backlog on Day 5 (August 22, 2025)
+- ✅ **Strategic Focus Enhancement**: Sprint points reduced from 22 to 19 to enable 32% buffer capacity (6 points)
+- ✅ **Critical MVP Prioritization**: US-031 (Admin GUI) and US-034 (Data Import) identified as essential MVP components
+- ✅ **Quality Assurance Buffer**: Enhanced focus time for critical components completion and testing
+- ✅ **Sprint Success Redefinition**: Core MVP functionality prioritized over comprehensive feature set
+- ✅ **Team Assignment Updates**: Frontend team fully focused on US-031 completion with enhanced quality
+- ✅ **Risk Mitigation**: Descoping reduces Day 5 execution risk from HIGH to MEDIUM through focused delivery
+
+### Previous Updates (v2.2 - US-036 Scope Correction)
 
 - ✅ **US-036 Status Correction**: Updated from "100% Complete" to "80% Complete"
 - ✅ **Scope Expansion Documentation**: US-036 actual complexity 8-10 points vs original 3 points
