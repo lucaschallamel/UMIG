@@ -3,15 +3,23 @@
 ## Story Metadata
 
 **Story ID**: US-033  
-**Epic**: Sprint 5 MVP Components  
-**Sprint**: 5 (August 18-22, 2025)  
-**Priority**: P2 (Final MVP Component)  
+**Epic**: Backlog - Future MVP Components  
+**Sprint**: BACKLOG (Descoped from Sprint 5 on August 22, 2025)  
+**Priority**: P2 (Future Release Component)  
 **Effort**: 3 points (REDUCED from 5 - simplified scope)  
-**Status**: 0% (planned)  
-**Timeline**: Day 5 (Aug 22)  
+**Status**: 0% (backlog - descoped on Day 5 to focus on critical MVP components)  
+**Timeline**: Future Sprint  
 **Owner**: Frontend Development  
 **Dependencies**: All APIs complete (resolved), Admin GUI integration complete (US-031)  
-**Risk**: MEDIUM → LOW (simplified scope reduces complexity)
+**Risk**: LOW (simplified scope reduces complexity when implemented)
+
+## Descoping Note (August 22, 2025)
+
+**Descoped from Sprint 5** to maintain focus on critical MVP components:
+- US-031 (Admin GUI Complete Integration) - 6 points, critical for MVP
+- US-034 (Data Import Strategy) - 3 points, migration enablement required
+
+**Rationale**: With US-036 scope expansion to 8-10 points and the need to complete US-031 and US-034 on Day 5, US-033 was strategically descoped to ensure successful completion of core MVP functionality.
 
 ## Description
 
