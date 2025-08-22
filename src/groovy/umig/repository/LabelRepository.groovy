@@ -121,8 +121,6 @@ class LabelRepository {
                     l.created_at,
                     l.created_by,
                     m.mig_name,
-                    u.usr_first_name,
-                    u.usr_last_name,
                     COALESCE(app_counts.app_count, 0)::INTEGER AS application_count,
                     COALESCE(step_counts.step_count, 0)::INTEGER AS step_count
             """
@@ -130,7 +128,6 @@ class LabelRepository {
             def fromClause = """
                 FROM labels_lbl l
                 LEFT JOIN migrations_mig m ON l.mig_id = m.mig_id
-                LEFT JOIN users_usr u ON l.created_by = u.usr_id
                 LEFT JOIN (
                     SELECT lbl_id, COUNT(*)::INTEGER AS app_count
                     FROM labels_lbl_x_applications_app
@@ -202,7 +199,6 @@ class LabelRepository {
                     mig_name: row.mig_name,
                     created_at: row.created_at,
                     created_by: row.created_by,
-                    created_by_name: row.usr_first_name ? "${row.usr_first_name} ${row.usr_last_name}" : null,
                     application_count: row.application_count,
                     step_count: row.step_count
                 ]

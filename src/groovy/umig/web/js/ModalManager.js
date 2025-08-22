@@ -54,6 +54,13 @@
           this.closeModal();
         }
       });
+
+      // Date/time picker events
+      document.addEventListener("change", (e) => {
+        if (e.target.matches("input[type='date']") || e.target.matches("input[type='time']")) {
+          this.handleDateTimeChange(e);
+        }
+      });
     },
 
     /**
@@ -432,7 +439,7 @@
       // Show ALL fields in view modal, not just readonly/computed ones
       entityConfig.fields.forEach((field) => {
         const value = entity[field.key];
-        const formattedValue = this.formatFieldValue(value, field);
+        const formattedValue = this.formatFieldValue(value, field, entity, entityConfig);
 
         detailsHtml += `
                     <div class="detail-field">
@@ -611,6 +618,52 @@
           fieldHtml += `<input type="color" id="${field.key}" name="${field.key}" value="${value || "#000000"}" ${required}>`;
           break;
 
+        case "date":
+          // Convert ISO datetime to date-only format for HTML5 date input
+          let dateValue = "";
+          if (value) {
+            try {
+              const dateObj = new Date(value);
+              if (!isNaN(dateObj.getTime())) {
+                dateValue = dateObj.toISOString().split('T')[0];
+              }
+            } catch (e) {
+              console.warn(`Invalid date value for ${field.key}:`, value);
+            }
+          }
+          fieldHtml += `
+            <div class="date-time-picker-group">
+              <input type="date" id="${field.key}_date" name="${field.key}_date" value="${dateValue}" ${required}>
+              <input type="time" id="${field.key}_time" name="${field.key}_time" value="00:00" ${required}>
+              <input type="hidden" id="${field.key}" name="${field.key}" value="${value || ''}">
+            </div>`;
+          break;
+
+        case "datetime":
+          // For datetime fields, use a similar approach but show both date and time
+          let dtValue = "";
+          let dtDate = "";
+          let dtTime = "00:00";
+          if (value) {
+            try {
+              const dateObj = new Date(value);
+              if (!isNaN(dateObj.getTime())) {
+                dtDate = dateObj.toISOString().split('T')[0];
+                dtTime = dateObj.toTimeString().substring(0, 5);
+                dtValue = value;
+              }
+            } catch (e) {
+              console.warn(`Invalid datetime value for ${field.key}:`, value);
+            }
+          }
+          fieldHtml += `
+            <div class="date-time-picker-group">
+              <input type="date" id="${field.key}_date" name="${field.key}_date" value="${dtDate}" ${required}>
+              <input type="time" id="${field.key}_time" name="${field.key}_time" value="${dtTime}" ${required}>
+              <input type="hidden" id="${field.key}" name="${field.key}" value="${dtValue}">
+            </div>`;
+          break;
+
         default:
           fieldHtml += `<input type="text" id="${field.key}" name="${field.key}" value="${value}" ${required} ${maxLength}>`;
       }
@@ -711,6 +764,87 @@
     },
 
     /**
+     * Handle date/time picker changes
+     * Combines date and time inputs into a single ISO datetime value
+     * @param {Event} e - Change event
+     */
+    handleDateTimeChange: function (e) {
+      const input = e.target;
+      const fieldName = input.name.replace(/_date$|_time$/, '');
+      
+      // Find the corresponding date/time inputs and hidden field
+      const dateInput = document.getElementById(`${fieldName}_date`);
+      const timeInput = document.getElementById(`${fieldName}_time`);
+      const hiddenInput = document.getElementById(fieldName);
+      
+      if (dateInput && timeInput && hiddenInput) {
+        const dateValue = dateInput.value;
+        const timeValue = timeInput.value || '00:00';
+        
+        if (dateValue) {
+          // Combine date and time into ISO format
+          const isoValue = `${dateValue}T${timeValue}:00`;
+          hiddenInput.value = isoValue;
+          
+          // Validate date ranges for migration start/end dates
+          this.validateDateRange();
+        } else {
+          hiddenInput.value = '';
+        }
+      }
+    },
+
+    /**
+     * Validate date ranges (e.g., end date must be after start date)
+     */
+    validateDateRange: function () {
+      const startDateInput = document.getElementById('mig_start_date');
+      const endDateInput = document.getElementById('mig_end_date');
+      
+      if (startDateInput && endDateInput) {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (startDate && endDate && endDate <= startDate) {
+          this.showDateRangeError(endDateInput, 'End date must be after start date');
+          return false;
+        } else {
+          this.clearDateRangeError(endDateInput);
+          return true;
+        }
+      }
+      return true;
+    },
+
+    /**
+     * Show date range validation error
+     * @param {HTMLElement} field - Field element
+     * @param {string} message - Error message
+     */
+    showDateRangeError: function (field, message) {
+      this.clearDateRangeError(field);
+      
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'field-error date-range-error';
+      errorDiv.textContent = message;
+      
+      field.parentNode.appendChild(errorDiv);
+      field.classList.add('error');
+    },
+
+    /**
+     * Clear date range validation error
+     * @param {HTMLElement} field - Field element
+     */
+    clearDateRangeError: function (field) {
+      const existingError = field.parentNode.querySelector('.date-range-error');
+      if (existingError) {
+        existingError.remove();
+      }
+      field.classList.remove('error');
+    },
+
+    /**
      * Handle save entity
      */
     handleSaveEntity: function () {
@@ -770,6 +904,11 @@
           isValid = false;
         }
       });
+
+      // Date range validation
+      if (!this.validateDateRange()) {
+        isValid = false;
+      }
 
       return isValid;
     },
@@ -994,9 +1133,14 @@
      * @param {Object} field - Field configuration
      * @returns {string} Formatted value
      */
-    formatFieldValue: function (value, field) {
+    formatFieldValue: function (value, field, entity = null, entityConfig = null) {
       if (value === null || value === undefined) {
         return "";
+      }
+
+      // Check for custom renderers first - these override default formatting
+      if (entityConfig?.customRenderers?.[field.key]) {
+        return entityConfig.customRenderers[field.key](value, entity);
       }
 
       switch (field.type) {
@@ -1009,15 +1153,6 @@
             ? window.UiUtils.formatDate(value, false)
             : value;
         case "color":
-          // Use custom renderer if available, otherwise display color with swatch
-          const entityConfig = window.EntityConfig
-            ? window.EntityConfig.getEntity(
-                window.AdminGuiState?.getState()?.currentEntity,
-              )
-            : null;
-          if (entityConfig?.customRenderers?.[field.key]) {
-            return entityConfig.customRenderers[field.key](value);
-          }
           return `<span class="aui-label" style="background-color: ${value}; color: ${window.UiUtils?.getContrastColor(value) || "#000000"};">${value}</span>`;
         default:
           return value.toString();

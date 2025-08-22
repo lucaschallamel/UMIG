@@ -84,19 +84,50 @@ phases(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
             return Response.ok(new JsonBuilder(phase).toString()).build()
         }
         
-        // GET /phases/master with optional filtering
+        // GET /phases/master - return master phases with Admin GUI support
         if (pathParts.size() == 1 && pathParts[0] == 'master') {
-            def phases
-            
-            // Filter by sequence ID if provided
-            if (queryParams.getFirst("sequenceId")) {
-                def sequenceId = UUID.fromString(queryParams.getFirst("sequenceId") as String)
-                phases = phaseRepository.findMasterPhasesBySequenceId(sequenceId)
-            } else {
-                phases = phaseRepository.findAllMasterPhases()
+            try {
+                def filters = [:]
+                def pageNumber = 1
+                def pageSize = 50
+                def sortField = null
+                def sortDirection = 'asc'
+
+                // Extract query parameters
+                queryParams.keySet().each { param ->
+                    def value = queryParams.getFirst(param)
+                    switch (param) {
+                        case 'page':
+                            pageNumber = Integer.parseInt(value as String)
+                            break
+                        case 'size':
+                            pageSize = Integer.parseInt(value as String)
+                            break
+                        case 'sort':
+                            sortField = value as String
+                            break
+                        case 'direction':
+                            sortDirection = value as String
+                            break
+                        default:
+                            filters[param] = value
+                    }
+                }
+
+                // Validate sort field
+                def allowedSortFields = ['phm_id', 'phm_name', 'phm_status', 'created_at', 'updated_at', 'step_count', 'instance_count']
+                if (sortField && !allowedSortFields.contains(sortField)) {
+                    return Response.status(400)
+                        .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())
+                        .build()
+                }
+
+                def result = phaseRepository.findMasterPhasesWithFilters(filters as Map, pageNumber as int, pageSize as int, sortField as String, sortDirection as String)
+                return Response.ok(new JsonBuilder(result).toString()).build()
+                
+            } catch (Exception e) {
+                return handleError(e)
             }
-            
-            return Response.ok(new JsonBuilder(phases).toString()).build()
         }
         
         // ==================== INSTANCE PHASE GET OPERATIONS ====================

@@ -13,6 +13,111 @@ class PlanRepository {
     // ==================== MASTER PLAN OPERATIONS ====================
     
     /**
+     * Finds master plans with advanced filtering, pagination, sorting, and computed fields.
+     * @param filters Map containing optional filters (status, teamId, search, startDateFrom, startDateTo)
+     * @param pageNumber Page number (1-based, default: 1)
+     * @param pageSize Number of items per page (1-100, default: 50)
+     * @param sortField Field to sort by (default: plm_name)
+     * @param sortDirection Sort direction: 'asc' or 'desc' (default: 'asc')
+     * @return Map with data array, pagination metadata, and applied filters
+     */
+    def findMasterPlansWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = []
+            
+            // Build dynamic WHERE clause
+            if (filters.status) {
+                if (filters.status instanceof List) {
+                    def placeholders = filters.status.collect { '?' }.join(', ')
+                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
+                    params.addAll(filters.status)
+                } else {
+                    whereConditions << "s.sts_name = ?"
+                    params << filters.status
+                }
+            }
+            
+            if (filters.teamId) {
+                whereConditions << "p.tms_id = ?"
+                params << Integer.parseInt(filters.teamId as String)
+            }
+            
+            if (filters.search) {
+                whereConditions << "(p.plm_name ILIKE ? OR p.plm_description ILIKE ?)"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
+            }
+            
+            if (filters.startDateFrom && filters.startDateTo) {
+                whereConditions << "p.created_at BETWEEN ? AND ?"
+                params << filters.startDateFrom
+                params << filters.startDateTo
+            }
+            
+            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
+            
+            // Count query
+            def countQuery = """
+                SELECT COUNT(DISTINCT p.plm_id) as total
+                FROM plans_master_plm p
+                JOIN status_sts s ON p.plm_status = s.sts_id
+                ${whereClause}
+            """
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Validate sort field
+            def allowedSortFields = ['plm_id', 'plm_name', 'plm_status', 'created_at', 'updated_at', 'sequence_count', 'instance_count']
+            if (!sortField || !allowedSortFields.contains(sortField)) {
+                sortField = 'plm_name'
+            }
+            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+            
+            // Data query with computed fields
+            def offset = (pageNumber - 1) * pageSize
+            def dataQuery = """
+                SELECT DISTINCT p.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       t.tms_name,
+                       COALESCE(sequence_counts.sequence_count, 0) as sequence_count,
+                       COALESCE(instance_counts.instance_count, 0) as instance_count
+                FROM plans_master_plm p
+                JOIN status_sts s ON p.plm_status = s.sts_id
+                LEFT JOIN teams_tms t ON p.tms_id = t.tms_id
+                LEFT JOIN (
+                    SELECT plm_id, COUNT(*) as sequence_count
+                    FROM sequences_master_sqm
+                    GROUP BY plm_id
+                ) sequence_counts ON p.plm_id = sequence_counts.plm_id
+                LEFT JOIN (
+                    SELECT plm_id, COUNT(*) as instance_count
+                    FROM plans_instance_pli
+                    GROUP BY plm_id
+                ) instance_counts ON p.plm_id = instance_counts.plm_id
+                ${whereClause}
+                ORDER BY ${['sequence_count', 'instance_count'].contains(sortField) ? sortField : 'p.' + sortField} ${sortDirection}
+                LIMIT ${pageSize} OFFSET ${offset}
+            """
+            
+            def plans = sql.rows(dataQuery, params)
+            def enrichedPlans = plans.collect { enrichMasterPlanWithStatusMetadata(it) }
+            
+            return [
+                data: enrichedPlans,
+                pagination: [
+                    page: pageNumber,
+                    size: pageSize,
+                    total: totalCount,
+                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+                ],
+                filters: filters
+            ]
+        }
+    }
+    
+    /**
      * Retrieves all master plans with status and team information.
      * @return List of master plans with enriched status metadata
      */
@@ -514,6 +619,9 @@ class PlanRepository {
             updated_by: row.updated_by,
             updated_at: row.updated_at,
             tms_name: row.tms_name,
+            // Computed fields from joins
+            sequence_count: row.sequence_count ?: 0,
+            instance_count: row.instance_count ?: 0,
             // Enhanced status metadata
             statusMetadata: [
                 id: row.sts_id,

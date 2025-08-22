@@ -3768,6 +3768,7 @@ class StepView {
           credentials: "same-origin", // Include cookies for authentication
           body: JSON.stringify({
             statusId: parseInt(newStatusId),
+            userId: this.userContext?.userId || this.userId || null,
           }),
         },
       );
@@ -4033,7 +4034,7 @@ class StepView {
           credentials: "same-origin",
           body: JSON.stringify({
             body: commentText,
-            // UserService on the backend will handle user resolution
+            userId: this.userContext?.userId || this.userId || null,
           }),
         },
       );

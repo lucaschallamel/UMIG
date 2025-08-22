@@ -126,6 +126,150 @@ class ControlRepository {
     }
     
     /**
+     * Finds master controls with Admin GUI support - filtering, pagination, sorting, and computed fields.
+     * Following the proven template pattern for consistent Admin GUI integration.
+     * @param filters Map containing optional filters (status, search, ownerId, etc.)
+     * @param pageNumber Page number for pagination (default: 1)
+     * @param pageSize Items per page (default: 50, max: 100)
+     * @param sortField Field to sort by (default: ctm_name)
+     * @param sortDirection Sort direction - 'asc' or 'desc' (default: 'asc')
+     * @return Map containing data, pagination info, and applied filters
+     */
+    def findMasterControlsWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = []
+            
+            // Build dynamic WHERE clause
+            if (filters.status) {
+                if (filters.status instanceof List) {
+                    def placeholders = filters.status.collect { '?' }.join(', ')
+                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
+                    params.addAll(filters.status)
+                } else {
+                    whereConditions << "s.sts_name = ?"
+                    params << filters.status
+                }
+            }
+            
+            // Phase ID filtering (controls belong to phases)
+            if (filters.phaseId) {
+                whereConditions << "e.phm_id = ?"
+                params << UUID.fromString(filters.phaseId as String)
+            }
+            
+            // Search functionality (control name and description)
+            if (filters.search) {
+                whereConditions << "(e.ctm_name ILIKE ? OR e.ctm_description ILIKE ?)"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
+            }
+            
+            // Critical controls only filter
+            if (filters.criticalOnly) {
+                whereConditions << "e.ctm_is_critical = ?"
+                params << true
+            }
+            
+            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
+            
+            // Count query
+            def countQuery = """
+                SELECT COUNT(DISTINCT e.ctm_id) as total
+                FROM controls_master_ctm e
+                LEFT JOIN status_sts s ON e.ctm_status = s.sts_id
+                ${whereClause}
+            """
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Validate sort field
+            def allowedSortFields = ['ctm_id', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count']
+            if (!sortField || !allowedSortFields.contains(sortField)) {
+                sortField = 'ctm_name'
+            }
+            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+            
+            // Data query with computed fields
+            def offset = (pageNumber - 1) * pageSize
+            def dataQuery = """
+                SELECT DISTINCT e.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       phm.phm_name,
+                       COALESCE(instance_counts.instance_count, 0) as instance_count,
+                       COALESCE(validation_counts.validation_count, 0) as validation_count
+                FROM controls_master_ctm e
+                LEFT JOIN status_sts s ON e.ctm_status = s.sts_id
+                LEFT JOIN phases_master_phm phm ON e.phm_id = phm.phm_id
+                LEFT JOIN (
+                    SELECT ctm_id, COUNT(*) as instance_count
+                    FROM controls_instance_cti
+                    GROUP BY ctm_id
+                ) instance_counts ON e.ctm_id = instance_counts.ctm_id
+                LEFT JOIN (
+                    SELECT ctm_id, COUNT(CASE WHEN cti_status IN (
+                        SELECT sts_id FROM status_sts WHERE sts_name IN ('PASSED', 'FAILED') AND sts_type = 'Control'
+                    ) THEN 1 END) as validation_count
+                    FROM controls_instance_cti
+                    GROUP BY ctm_id
+                ) validation_counts ON e.ctm_id = validation_counts.ctm_id
+                ${whereClause}
+                ORDER BY ${['instance_count', 'validation_count'].contains(sortField) ? sortField : 'e.' + sortField} ${sortDirection}
+                LIMIT ${pageSize} OFFSET ${offset}
+            """
+            
+            def controls = sql.rows(dataQuery, params)
+            def enrichedControls = controls.collect { enrichMasterControlWithStatusMetadata(it) }
+            
+            return [
+                data: enrichedControls,
+                pagination: [
+                    page: pageNumber,
+                    size: pageSize,
+                    total: totalCount,
+                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+                ],
+                filters: filters
+            ]
+        }
+    }
+    
+    /**
+     * Enriches master control data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing control and status data
+     * @return Enhanced control map with statusMetadata
+     */
+    private Map enrichMasterControlWithStatusMetadata(Map row) {
+        return [
+            ctm_id: row.ctm_id,
+            phm_id: row.phm_id,
+            ctm_order: row.ctm_order,
+            ctm_name: row.ctm_name,
+            ctm_description: row.ctm_description,
+            ctm_type: row.ctm_type,
+            ctm_is_critical: row.ctm_is_critical,
+            ctm_code: row.ctm_code,
+            ctm_status: row.sts_name, // Backward compatibility
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            phm_name: row.phm_name,
+            // Computed fields from joins
+            instance_count: row.instance_count ?: 0,
+            validation_count: row.validation_count ?: 0,
+            // Enhanced status metadata (consistent across all entities)
+            statusMetadata: row.sts_id ? [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ] : null
+        ]
+    }
+    
+    /**
      * Creates a new master control.
      * @param controlData Map containing control data (phm_id, ctm_name, ctm_description, ctm_type, ctm_is_critical, ctm_code, ctm_order)
      * @return Map containing the created control or null on failure

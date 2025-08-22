@@ -1,15 +1,22 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.1.1
+  version: 2.2.0
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
 
+    **Version 2.2.0 - August 22, 2025:**
+    **Migration API Enhanced:** POST /migrations now supports flexible status handling (string names OR integer IDs),
+    automatic owner assignment with intelligent fallback, and enhanced date parsing (YYYY-MM-DD or ISO datetime).
+    **Error Handling:** Comprehensive validation with specific error messages for all failure scenarios.
+    **Backward Compatibility:** All existing API usage continues to work unchanged.
+    **Implementation Status:** All documented features are fully implemented and tested.
+    
+    **Previous Updates:**
     **US-024 Complete:** Enhanced StepsAPI with improved comments endpoint error handling.
-    **Latest:** Comments endpoints now return helpful error messages with usage guidance instead of generic responses.
     **Features:** RESTful sub-resource pattern for comments with clear documentation and practical examples.
     **Validation:** HTTP Basic Auth, SQL state mappings (23503→400, 23505→409) confirmed.
 servers:
@@ -390,6 +397,30 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateMigrationRequest"
+            examples:
+              minimal:
+                summary: Minimal request (required fields only)
+                value:
+                  mig_name: "Data Center Migration Q3 2025"
+              stringStatus:
+                summary: Full request with string status
+                value:
+                  mig_name: "Data Center Migration Q3 2025"
+                  mig_description: "Migration of all core services to new data center."
+                  mig_status: "IN_PROGRESS"
+                  mig_start_date: "2025-07-01"
+                  mig_end_date: "2025-09-30"
+                  mig_business_cutover_date: "2025-08-15T14:30:00"
+                  mig_type: "Infrastructure"
+                  usr_id_owner: 123
+              integerStatus:
+                summary: Request with integer status
+                value:
+                  mig_name: "Application Modernization"
+                  mig_description: "Modernizing legacy applications."
+                  mig_status: 2
+                  mig_start_date: "2025-08-01T08:00:00"
+                  mig_type: "Application"
       responses:
         "201":
           description: Migration created successfully
@@ -398,11 +429,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/Migration"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: Bad Request - Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidStatus:
+                  summary: Invalid status name
+                  value:
+                    error: "Invalid status name: INVALID_STATUS"
+                missingName:
+                  summary: Missing required field
+                  value:
+                    error: "Migration name is required"
+                invalidDate:
+                  summary: Invalid date format
+                  value:
+                    error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+                invalidJson:
+                  summary: Invalid JSON
+                  value:
+                    error: "Invalid JSON format in request body"
         "409":
-          $ref: "#/components/responses/Conflict"
+          description: Conflict - Constraint violations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                duplicateName:
+                  summary: Duplicate migration name
+                  value:
+                    error: "A migration with this name already exists"
+                invalidOwner:
+                  summary: Invalid owner ID
+                  value:
+                    error: "Invalid owner user ID - user does not exist"
         "500":
-          $ref: "#/components/responses/InternalServerError"
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                noUsers:
+                  summary: No users in system
+                  value:
+                    error: "No users exist in the system. Cannot create migration without owner."
+                defaultStatus:
+                  summary: Missing default status
+                  value:
+                    error: "Default PLANNING status for Migration not found in database"
 
   /migrations/{id}:
     get:
@@ -3675,7 +3753,7 @@ paths:
       tags:
         - Plans
       summary: Update plan instance status
-      description: Updates the status of a plan instance.
+      description: Updates the status of a plan instance. Supports flexible status input - accepts either status names (strings) or status IDs (integers) for enhanced usability and PostgreSQL compatibility.
       operationId: updatePlanInstanceStatus
       parameters:
         - name: id
@@ -3695,8 +3773,17 @@ paths:
                 - statusId
               properties:
                 statusId:
-                  type: integer
-                  description: New status ID
+                  oneOf:
+                    - type: string
+                      description: Status name (e.g., "PLANNING", "ACTIVE", "COMPLETED")
+                    - type: integer
+                      description: Status ID (references status_sts table)
+                  description: New status - accepts either status name (string) or status ID (integer) for flexible input handling
+                  examples:
+                    - "PLANNING"
+                    - "ACTIVE" 
+                    - 1
+                    - 2
       responses:
         "200":
           description: Status updated successfully
@@ -4123,26 +4210,129 @@ paths:
     get:
       tags:
         - Phases
-      summary: Get all master phases
-      description: Retrieves all master phase templates with optional sequence filtering.
+      summary: Get all master phases with advanced filtering and pagination
+      description: |
+        Retrieves all master phase templates with comprehensive filtering, pagination, sorting, and computed fields.
+        Supports Admin GUI with enhanced status metadata, relationship data, and performance optimization.
+        
+        **Enhanced Features:**
+        - Computed fields (step_count, instance_count)
+        - Status metadata with colors and descriptions
+        - Flexible pagination and sorting
+        - Advanced filtering by status, owner, date range, and search
+        - PostgreSQL-optimized queries with proper type casting
       operationId: getMasterPhases
       parameters:
+        # Legacy parameter for backward compatibility
         - name: sequenceId
           in: query
           required: false
           schema:
             type: string
             format: uuid
-          description: Filter by sequence master ID
+          description: Filter by sequence master ID (legacy parameter)
+        # Admin GUI pagination parameters
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Number of items per page
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [phm_id, phm_name, phm_status, created_at, updated_at, step_count, instance_count]
+            default: phm_name
+          description: Field to sort by
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort direction
+        # Advanced filtering parameters
+        - name: status
+          in: query
+          required: false
+          schema:
+            oneOf:
+              - type: string
+              - type: array
+                items:
+                  type: string
+          description: Filter by status name(s). Can be single value or array
+          example: ["ACTIVE", "PLANNING"]
+        - name: ownerId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by owner team ID (through plan master relationship)
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search in phase name and description
+        - name: startDateFrom
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by creation date from (YYYY-MM-DD)
+        - name: startDateTo
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Filter by creation date to (YYYY-MM-DD)
       responses:
         "200":
-          description: A list of master phases
+          description: Master phases with pagination and metadata
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MasterPhase"
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MasterPhase"
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                        description: Current page number
+                      size:
+                        type: integer
+                        description: Items per page
+                      total:
+                        type: integer
+                        description: Total number of items
+                      totalPages:
+                        type: integer
+                        description: Total number of pages
+                  filters:
+                    type: object
+                    description: Applied filters for reference
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -5261,6 +5451,20 @@ components:
         updated_at:
           type: string
           format: date-time
+        created_by:
+          type: string
+          description: Username of the user who created the migration
+        updated_by:
+          type: string
+          description: Username of the user who last updated the migration
+        iteration_count:
+          type: integer
+          description: Count of iterations associated with the migration
+          readOnly: true
+        plan_count:
+          type: integer
+          description: Count of distinct plans associated with the migration via iterations
+          readOnly: true
         statusMetadata:
           $ref: "#/components/schemas/StatusMetadata"
 
@@ -5272,21 +5476,51 @@ components:
         mig_name:
           type: string
           minLength: 1
+          description: Name of the migration (required)
+          example: "Data Center Migration Q3 2025"
         mig_description:
           type: string
+          description: Detailed description of the migration
+          example: "Migration of all core services to new data center."
+        mig_status:
+          oneOf:
+            - type: string
+              enum: ["PLANNING", "IN_PROGRESS", "COMPLETED", "ON_HOLD", "CANCELLED"]
+              description: Status as string name
+              example: "PLANNING"
+            - type: integer
+              enum: [1, 2, 3, 4, 5]
+              description: Status as integer ID (1=PLANNING, 2=IN_PROGRESS, 3=COMPLETED, 4=ON_HOLD, 5=CANCELLED)
+              example: 1
+          description: Migration status - accepts either string name or integer ID. Defaults to PLANNING if not provided.
         mig_start_date:
           type: string
-          format: date
+          description: Start date - supports both YYYY-MM-DD and YYYY-MM-DDTHH:mm:ss formats
+          example: "2025-07-01"
         mig_end_date:
           type: string
-          format: date
+          description: End date - supports both YYYY-MM-DD and YYYY-MM-DDTHH:mm:ss formats
+          example: "2025-09-30"
         mig_business_cutover_date:
           type: string
-          format: date
+          description: Business cutover date - supports both YYYY-MM-DD and YYYY-MM-DDTHH:mm:ss formats
+          example: "2025-08-15T14:30:00"
         mig_type:
           type: string
+          description: Type of migration (defaults to 'MIGRATION')
+          example: "Infrastructure"
         usr_id_owner:
           type: integer
+          description: Owner user ID (optional - auto-assigned using admin → active → any user fallback if not provided)
+          example: 123
+        created_by:
+          type: string
+          description: Username of the user creating the migration (auto-populated if not provided)
+          example: "admin"
+        updated_by:
+          type: string
+          description: Username of the user creating the migration (auto-populated if not provided)
+          example: "admin"
 
     UpdateMigrationRequest:
       type: object
@@ -5311,6 +5545,9 @@ components:
           type: integer
         mig_status:
           type: integer
+        updated_by:
+          type: string
+          description: Username of the user updating the migration (auto-populated if not provided)
 
     StatusMetadata:
       type: object
@@ -7107,8 +7344,17 @@ components:
           type: string
           description: Description of the plan
         plm_status:
-          type: string
-          description: Initial status of the master plan
+          oneOf:
+            - type: string
+              description: Status name (e.g., "PLANNING", "ACTIVE", "COMPLETED")
+            - type: integer
+              description: Status ID (references status_sts table)
+          description: Initial status of the master plan - accepts either status name (string) or status ID (integer) for flexible input handling
+          examples:
+            - "PLANNING"
+            - "ACTIVE"
+            - 1
+            - 2
 
     MasterPlanUpdate:
       type: object
@@ -7123,8 +7369,17 @@ components:
           type: string
           description: Description of the plan
         plm_status:
-          type: string
-          description: Status of the master plan
+          oneOf:
+            - type: string
+              description: Status name (e.g., "PLANNING", "ACTIVE", "COMPLETED")
+            - type: integer
+              description: Status ID (references status_sts table)
+          description: Status of the master plan - accepts either status name (string) or status ID (integer) for flexible input handling
+          examples:
+            - "PLANNING"
+            - "ACTIVE"
+            - 1
+            - 2
 
     PlanInstance:
       type: object
@@ -7157,8 +7412,12 @@ components:
           type: string
           description: Description of the plan instance
         pli_status:
-          type: integer
-          description: Current status of the plan instance (foreign key to status_sts table)
+          oneOf:
+            - type: string
+              description: Status name (e.g., "PLANNING", "ACTIVE", "COMPLETED")
+            - type: integer
+              description: Status ID (references status_sts table)
+          description: Current status of the plan instance - accepts either status name (string) or status ID (integer) for flexible input handling
         sts_id:
           type: integer
           description: Status ID
@@ -7236,8 +7495,12 @@ components:
           type: string
           description: Description of the plan instance
         pli_status:
-          type: integer
-          description: Status of the plan instance (foreign key to status_sts table)
+          oneOf:
+            - type: string
+              description: Status name (e.g., "PLANNING", "ACTIVE", "COMPLETED")
+            - type: integer
+              description: Status ID (references status_sts table)
+          description: Status of the plan instance - accepts either status name (string) or status ID (integer) for flexible input handling
         usr_id_owner:
           type: integer
           description: ID of the user who owns this instance
@@ -7303,9 +7566,7 @@ components:
       type: object
       required:
         - plm_id
-        - tms_id
         - sqm_name
-        - sqm_status
       properties:
         plm_id:
           type: string
@@ -7313,7 +7574,7 @@ components:
           description: ID of the master plan this sequence belongs to
         tms_id:
           type: integer
-          description: ID of the team that owns this sequence
+          description: ID of the team that owns this sequence (auto-assigned from plan if not provided)
         sqm_name:
           type: string
           description: Name of the master sequence
@@ -7322,10 +7583,39 @@ components:
           description: Description of the sequence
         sqm_order:
           type: integer
-          description: Display order within the plan
+          description: Display order within the plan (auto-assigned as next available if not provided)
         sqm_status:
-          type: string
-          description: Initial status of the master sequence
+          oneOf:
+            - type: string
+              description: Status name (e.g., "DRAFT", "ACTIVE", "INACTIVE")
+            - type: integer
+              description: Status ID (foreign key to status_sts table)
+          example: "DRAFT"
+          description: Initial status of the master sequence - accepts both string names and integer IDs
+        planned_start_date:
+          oneOf:
+            - type: string
+              format: date
+              description: Date in YYYY-MM-DD format
+            - type: string
+              format: date-time
+              description: ISO 8601 datetime string
+            - type: string
+              description: Flexible date format (DD/MM/YYYY, MM-DD-YYYY, etc.)
+          example: "2025-03-15"
+          description: Planned start date - supports multiple date formats with automatic conversion
+        planned_end_date:
+          oneOf:
+            - type: string
+              format: date
+              description: Date in YYYY-MM-DD format
+            - type: string
+              format: date-time
+              description: ISO 8601 datetime string
+            - type: string
+              description: Flexible date format (DD/MM/YYYY, MM-DD-YYYY, etc.)
+          example: "2025-03-20"
+          description: Planned end date - supports multiple date formats with automatic conversion
 
     UpdateSequenceOrderRequest:
       type: object
@@ -7381,8 +7671,13 @@ components:
           type: integer
           description: Display order within the plan instance
         sqi_status:
-          type: integer
-          description: Current status of the sequence instance (foreign key to status_sts table)
+          oneOf:
+            - type: string
+              description: Status name (e.g., "DRAFT", "ACTIVE", "IN_PROGRESS", "COMPLETED")
+            - type: integer
+              description: Status ID (foreign key to status_sts table)
+          example: "IN_PROGRESS"
+          description: Current status - accepts both string names and integer IDs for flexible input
         sts_id:
           type: integer
           description: Status ID
@@ -7417,7 +7712,27 @@ components:
         updated_at:
           type: string
           format: date-time
-          description: Last update timestamp
+          description: Last update timestamp (PostgreSQL timestamp type)
+        phase_count:
+          type: integer
+          description: Number of phases in this sequence instance (computed field)
+        step_count:
+          type: integer
+          description: Total number of steps across all phases (computed field)
+        actual_start_date:
+          type: string
+          format: date
+          description: Actual start date (PostgreSQL date type)
+        actual_end_date:
+          type: string
+          format: date
+          description: Actual end date (PostgreSQL date type)
+        completion_percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Completion percentage based on completed steps (computed field)
 
     CreateSequenceInstanceRequest:
       type: object
@@ -7443,6 +7758,38 @@ components:
         sqi_description:
           type: string
           description: Override description for the sequence instance (optional)
+        sqi_status:
+          oneOf:
+            - type: string
+              description: Status name (e.g., "DRAFT", "ACTIVE", "IN_PROGRESS", "COMPLETED")
+            - type: integer
+              description: Status ID (foreign key to status_sts table)
+          example: "DRAFT"
+          description: Initial status - accepts both string names and integer IDs for flexible assignment
+        actual_start_date:
+          oneOf:
+            - type: string
+              format: date
+              description: Date in YYYY-MM-DD format
+            - type: string
+              format: date-time
+              description: ISO 8601 datetime string
+            - type: string
+              description: Flexible date format (DD/MM/YYYY, MM-DD-YYYY, etc.)
+          example: "2025-03-15"
+          description: Actual start date - supports multiple date formats with automatic conversion
+        actual_end_date:
+          oneOf:
+            - type: string
+              format: date
+              description: Date in YYYY-MM-DD format
+            - type: string
+              format: date-time
+              description: ISO 8601 datetime string
+            - type: string
+              description: Flexible date format (DD/MM/YYYY, MM-DD-YYYY, etc.)
+          example: "2025-03-20"
+          description: Actual end date - supports multiple date formats with automatic conversion
 
     User:
       type: object
@@ -7909,6 +8256,50 @@ components:
           format: uuid
           nullable: true
           description: ID of the predecessor master phase
+        # Computed fields (available in Admin GUI responses)
+        step_count:
+          type: integer
+          description: Number of steps associated with this master phase
+          readOnly: true
+        instance_count:
+          type: integer
+          description: Number of phase instances created from this master phase
+          readOnly: true
+        # Status information with metadata
+        phm_status:
+          type: string
+          description: Status of the master phase (typically 'ACTIVE')
+          readOnly: true
+        statusMetadata:
+          type: object
+          readOnly: true
+          properties:
+            sts_id:
+              type: integer
+              description: Status ID
+            sts_name:
+              type: string
+              description: Status name
+            sts_color:
+              type: string
+              description: Status display color for UI
+            sts_type:
+              type: string
+              description: Status type ('Phase')
+        # Enriched relationship data (when available)
+        sqm_name:
+          type: string
+          description: Name of the parent sequence
+          readOnly: true
+        plm_name:
+          type: string
+          description: Name of the parent plan
+          readOnly: true
+        tms_name:
+          type: string
+          description: Name of the associated team
+          readOnly: true
+        # Audit fields
         created_at:
           type: string
           format: date-time
@@ -8140,8 +8531,16 @@ components:
           type: string
           description: Description override for the phase instance
         phi_status:
-          type: string
-          description: Initial status of the phase instance
+          oneOf:
+            - type: string
+              description: Status name (e.g., 'PLANNING', 'IN_PROGRESS', 'COMPLETED')
+            - type: integer
+              description: Status ID (numeric identifier)
+          description: |
+            Initial status of the phase instance. Supports flexible input:
+            - String names: 'PLANNING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'CANCELLED'
+            - Integer IDs: Numeric status identifiers from status_sts table
+            Repository automatically resolves string names to appropriate IDs.
         phi_order:
           type: integer
           description: Display order within the sequence instance
@@ -8160,8 +8559,16 @@ components:
           type: string
           description: Description of the phase instance
         phi_status:
-          type: string
-          description: Status of the phase instance
+          oneOf:
+            - type: string
+              description: Status name (e.g., 'PLANNING', 'IN_PROGRESS', 'COMPLETED')
+            - type: integer
+              description: Status ID (numeric identifier)
+          description: |
+            Status of the phase instance. Supports flexible input:
+            - String names: 'PLANNING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'CANCELLED'
+            - Integer IDs: Numeric status identifiers from status_sts table
+            Repository automatically resolves string names to appropriate IDs.
         phi_order:
           type: integer
           description: Display order within the sequence instance
@@ -8271,7 +8678,9 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
     BadRequest:
-      description: Invalid input, object invalid. Common causes include invalid UUID format, invalid pagination parameters, invalid date format, or search term too long.
+      description: |
+        Invalid input, object invalid. Common causes include invalid UUID format, invalid pagination parameters, 
+        invalid date format, or search term too long. Also includes PostgreSQL constraint violations and data validation errors.
       content:
         application/json:
           schema:
@@ -8293,6 +8702,25 @@ components:
               summary: Search term too long
               value:
                 error: "Search term too long (max 100 characters)"
+            # PostgreSQL-specific error examples
+            foreignKeyViolation:
+              summary: Foreign key constraint violation (SQL State 23503)
+              value:
+                error: "Foreign key constraint violation: Referenced sequence does not exist"
+                sqlState: "23503"
+            checkConstraintViolation:
+              summary: Check constraint violation (SQL State 23514)
+              value:
+                error: "Check constraint violation: Invalid date range - end date must be after start date"
+                sqlState: "23514"
+            invalidStatusName:
+              summary: Invalid status name resolution
+              value:
+                error: "Invalid status name 'INVALID_STATUS' for Phase entity type"
+            typeCastingError:
+              summary: PostgreSQL type casting error
+              value:
+                error: "Invalid UUID format for parameter phm_id: 'not-a-uuid'"
     Conflict:
       description: |
         The request could not be completed due to a conflict with the current state of the resource. 

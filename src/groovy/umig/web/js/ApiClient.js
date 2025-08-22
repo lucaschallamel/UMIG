@@ -798,6 +798,18 @@
       getAll: function (params = {}) {
         return ApiClient.entities.getAll("migrations", params);
       },
+      getById: function (id) {
+        return ApiClient.entities.getById("migrations", id);
+      },
+      create: function (data) {
+        return ApiClient.entities.create("migrations", data);
+      },
+      update: function (id, data) {
+        return ApiClient.entities.update("migrations", id, data);
+      },
+      delete: function (id) {
+        return ApiClient.entities.delete("migrations", id);
+      },
     },
 
     /**

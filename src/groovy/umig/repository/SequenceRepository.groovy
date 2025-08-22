@@ -110,6 +110,118 @@ class SequenceRepository {
     }
     
     /**
+     * Finds master sequences with advanced filtering, pagination, and computed fields for Admin GUI.
+     * Implements the proven pattern from migrations entity with sequence-specific relationships.
+     * @param filters Map containing optional filters (status, ownerId, search, startDateFrom, startDateTo)
+     * @param pageNumber Page number (1-based, default: 1)
+     * @param pageSize Items per page (1-100, default: 50)
+     * @param sortField Field to sort by (default: sqm_name)
+     * @param sortDirection Sort direction (asc/desc, default: asc)
+     * @return Map containing data, pagination info, and applied filters
+     */
+    def findMasterSequencesWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = []
+            
+            // Build dynamic WHERE clause
+            if (filters.status) {
+                if (filters.status instanceof List) {
+                    def placeholders = filters.status.collect { '?' }.join(', ')
+                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
+                    params.addAll(filters.status)
+                } else {
+                    whereConditions << "s.sts_name = ?"
+                    params << filters.status
+                }
+            }
+            
+            // Owner ID filtering (team-based ownership through plan)
+            if (filters.ownerId) {
+                whereConditions << "plm.tms_id = ?"
+                params << Integer.parseInt(filters.ownerId as String)
+            }
+            
+            // Search functionality across name and description
+            if (filters.search) {
+                whereConditions << "(sqm.sqm_name ILIKE ? OR sqm.sqm_description ILIKE ?)"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
+            }
+            
+            // Date range filtering on creation date
+            if (filters.startDateFrom && filters.startDateTo) {
+                whereConditions << "sqm.created_at BETWEEN ? AND ?"
+                params << filters.startDateFrom
+                params << filters.startDateTo
+            }
+            
+            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
+            
+            // Count query
+            def countQuery = """
+                SELECT COUNT(DISTINCT sqm.sqm_id) as total
+                FROM sequences_master_sqm sqm
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN status_sts s ON s.sts_name = 'ACTIVE' AND s.sts_type = 'Sequence'
+                ${whereClause}
+            """
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Validate sort field
+            def allowedSortFields = ['sqm_id', 'sqm_name', 'sqm_status', 'created_at', 'updated_at', 'phase_count', 'instance_count']
+            if (!sortField || !allowedSortFields.contains(sortField)) {
+                sortField = 'sqm_name'
+            }
+            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+            
+            // Data query with computed fields
+            def offset = (pageNumber - 1) * pageSize
+            def dataQuery = """
+                SELECT DISTINCT sqm.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       plm.plm_name, plm.tms_id, tms.tms_name,
+                       COALESCE(phase_counts.phase_count, 0) as phase_count,
+                       COALESCE(instance_counts.instance_count, 0) as instance_count
+                FROM sequences_master_sqm sqm
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN status_sts s ON s.sts_name = 'ACTIVE' AND s.sts_type = 'Sequence'
+                LEFT JOIN (
+                    SELECT sqm_id, COUNT(*) as phase_count
+                    FROM phases_master_phm
+                    GROUP BY sqm_id
+                ) phase_counts ON sqm.sqm_id = phase_counts.sqm_id
+                LEFT JOIN (
+                    SELECT sqm_id, COUNT(*) as instance_count
+                    FROM sequences_instance_sqi
+                    GROUP BY sqm_id
+                ) instance_counts ON sqm.sqm_id = instance_counts.sqm_id
+                ${whereClause}
+                ORDER BY ${['phase_count', 'instance_count'].contains(sortField) ? sortField : 'sqm.' + sortField} ${sortDirection}
+                LIMIT ${pageSize} OFFSET ${offset}
+            """
+            
+            def sequences = sql.rows(dataQuery, params)
+            def enrichedSequences = sequences.collect { enrichMasterSequenceWithStatusMetadata(it) }
+            
+            return [
+                data: enrichedSequences,
+                pagination: [
+                    page: pageNumber,
+                    size: pageSize,
+                    total: totalCount,
+                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+                ],
+                filters: filters
+            ]
+        }
+    }
+    
+    /**
      * Creates a new master sequence.
      * @param sequenceData Map containing sequence data (plm_id, sqm_name, sqm_description, sqm_order, predecessor_sqm_id)
      * @return Map containing the created sequence or null on failure
@@ -1016,5 +1128,41 @@ class SequenceRepository {
         }
         
         return (defaultStatus?.sts_id as Integer) ?: 1 // Ultimate fallback
+    }
+
+    /**
+     * Enriches master sequence data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing master sequence and status data
+     * @return Enhanced master sequence map with statusMetadata and computed fields
+     */
+    private Map enrichMasterSequenceWithStatusMetadata(Map row) {
+        return [
+            sqm_id: row.sqm_id,
+            plm_id: row.plm_id,
+            sqm_name: row.sqm_name,
+            sqm_description: row.sqm_description,
+            sqm_order: row.sqm_order,
+            predecessor_sqm_id: row.predecessor_sqm_id,
+            sqm_status: row.sts_name ?: 'ACTIVE', // Backward compatibility - master sequences use ACTIVE status
+            // Audit fields (consistent across all entities)
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            // Plan and team details
+            plm_name: row.plm_name,
+            tms_id: row.tms_id,
+            tms_name: row.tms_name,
+            // Computed fields from joins (sequence-specific relationships)
+            phase_count: row.phase_count ?: 0,
+            instance_count: row.instance_count ?: 0,
+            // Enhanced status metadata (consistent across all entities)
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
     }
 }
