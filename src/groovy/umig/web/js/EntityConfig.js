@@ -365,30 +365,124 @@
       permissions: ["superadmin"],
     },
 
-    migrations: {
-      name: "Migrations",
-      description: "Manage migration projects and their configurations",
+    iterations: {
+      name: "Iterations",
+      description: "Manage iteration instances for migrations",
       fields: [
-        { key: "mig_id", label: "ID", type: "text", readonly: true },
+        { key: "iti_id", label: "Iteration ID", type: "text", readonly: true },
+        { key: "iti_name", label: "Iteration Name", type: "text", required: true },
+        { key: "iti_description", label: "Description", type: "textarea" },
+        { key: "iti_number", label: "Iteration Number", type: "number", required: true },
+        { key: "iti_start_date", label: "Start Date", type: "date", required: true },
+        { key: "iti_end_date", label: "End Date", type: "date", required: true },
         {
-          key: "mig_name",
-          label: "Migration Name",
-          type: "text",
-          required: true,
-          maxLength: 100,
-        },
-        { key: "mig_description", label: "Description", type: "textarea" },
-        {
-          key: "mig_status",
-          label: "Status",
+          key: "mig_id",
+          label: "Migration ID",
           type: "select",
           required: true,
+          entityType: "migrations",
+          displayField: "mig_name",
+          valueField: "mig_id",
+        },
+        {
+          key: "mig_name",
+          label: "Migration",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        { key: "iti_status", label: "Status", type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
-            { value: "ACTIVE", label: "Active" },
+            { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" },
-          ],
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
+        },
+        {
+          key: "step_count",
+          label: "Steps",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "created_at",
+          label: "Created",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated",
+          type: "datetime",
+          readonly: true,
+        },
+      ],
+      tableColumns: [
+        "iti_id",
+        "iti_name",
+        "iti_number",
+        "mig_name",
+        "iti_start_date",
+        "iti_end_date",
+        "iti_status",
+        "step_count",
+      ],
+      sortMapping: {
+        iti_id: "iti_id",
+        iti_name: "iti_name",
+        iti_number: "iti_number",
+        mig_name: "mig_name",
+        iti_start_date: "iti_start_date",
+        iti_end_date: "iti_end_date",
+        iti_status: "iti_status",
+        step_count: "step_count",
+      },
+      filters: [
+        {
+          key: "migrationId",
+          label: "Migration",
+          type: "select",
+          endpoint: "/migrations",
+          valueField: "mig_id",
+          textField: "mig_name",
+          placeholder: "All Migrations",
+        },
+      ],
+      permissions: ["pilot"],
+    },
+
+    migrations: {
+      name: "Migrations",
+      description: "Manage migration events and their configurations",
+      fields: [
+        { key: "mig_id", label: "Migration ID", type: "text", readonly: true },
+        { key: "mig_name", label: "Migration Name", type: "text", required: true },
+        { key: "mig_description", label: "Description", type: "textarea" },
+        { key: "mig_start_date", label: "Start Date", type: "datetime", required: true },
+        { key: "mig_end_date", label: "End Date", type: "datetime", required: true },
+        { key: "mig_status", label: "Status", type: "select", 
+          options: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
+        },
+        {
+          key: "iteration_count",
+          label: "Iterations",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "plan_count",
+          label: "Plans",
+          type: "number",
+          readonly: true,
+          computed: true,
         },
         {
           key: "created_at",
@@ -406,51 +500,131 @@
       tableColumns: [
         "mig_id",
         "mig_name",
-        "mig_description",
+        "mig_start_date",
+        "mig_end_date",
         "mig_status",
-        "created_at",
+        "iteration_count",
+        "plan_count",
       ],
       sortMapping: {
         mig_id: "mig_id",
         mig_name: "mig_name",
-        mig_description: "mig_description",
+        mig_start_date: "mig_start_date",
+        mig_end_date: "mig_end_date",
         mig_status: "mig_status",
+        iteration_count: "iteration_count",
+        plan_count: "plan_count",
         created_at: "created_at",
+        updated_at: "updated_at",
       },
       filters: [],
-      permissions: ["superadmin"],
+      customRenderers: {
+        mig_id: function (value, row) {
+          if (!value) return "";
+          // Create a clickable link that triggers the view action
+          return `<a href="#" class="migration-id-link btn-table-action" data-action="view" data-id="${value}" style="color: #205081; text-decoration: none; cursor: pointer;" title="View migration details">${value}</a>`;
+        },
+        mig_status: function (value, row) {
+          // Handle both status objects and numeric values
+          let statusName, statusColor;
+          
+          console.log('mig_status renderer called with value:', value, 'row:', row);
+          
+          // First check if statusMetadata is available in row
+          if (row && row.statusMetadata) {
+            statusName = row.statusMetadata.name;
+            statusColor = row.statusMetadata.color;
+          }
+          // Check if value is the status string directly
+          else if (typeof value === 'string') {
+            statusName = value;
+            // Check if we have statusMetadata in row for color
+            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+              statusColor = row.statusMetadata.color;
+            }
+          }
+          // Legacy handling for object status values
+          else if (typeof value === 'object' && value !== null) {
+            statusName = value.sts_name || value.name;
+            statusColor = value.sts_color || value.color;
+          }
+          // Check for legacy status fields in row
+          else if (row && row.sts_name) {
+            statusName = row.sts_name;
+            statusColor = row.sts_color;
+          } else {
+            // Fallback
+            statusName = value || "Unknown";
+            statusColor = null;
+          }
+          
+          console.log('Using statusName:', statusName, 'statusColor:', statusColor);
+          
+          // Convert status name to display format
+          const displayName = statusName ? statusName.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
+          
+          // If we have a color, use it directly
+          if (statusColor) {
+            const textColor = window.UiUtils ? window.UiUtils.getContrastingTextColor(statusColor) : "#ffffff";
+            return `<span class="status-badge" data-status="${statusName}" data-entity-type="Migration" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
+          }
+          
+          // Otherwise, create badge with data attributes for async color application
+          return `<span class="status-badge" data-status="${statusName}" data-entity-type="Migration" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
+        }
+      },
+      permissions: ["admin"],
+      bulkActions: [
+        {
+          id: "update_status",
+          label: "Update Status",
+          icon: "🔄",
+          requiresInput: true,
+          inputType: "select",
+          inputOptions: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
+        },
+        {
+          id: "export_selected",
+          label: "Export Selected",
+          icon: "📄",
+          requiresInput: false
+        }
+      ],
     },
 
     plans: {
       name: "Plans",
-      description: "Manage plan instances and their configurations",
+      description: "Manage master plans and plan instances for migrations",
       fields: [
-        { key: "pli_id", label: "ID", type: "text", readonly: true },
-        {
-          key: "pli_name",
-          label: "Plan Name",
-          type: "text",
-          required: true,
-          maxLength: 100,
-        },
-        { key: "pli_description", label: "Description", type: "textarea" },
-        {
-          key: "pli_status",
-          label: "Status",
-          type: "select",
-          required: true,
+        { key: "plm_id", label: "Plan ID", type: "text", readonly: true },
+        { key: "plm_name", label: "Plan Name", type: "text", required: true },
+        { key: "plm_description", label: "Description", type: "textarea" },
+        { key: "plm_status", label: "Status", type: "select", 
           options: [
-            { value: "DRAFT", label: "Draft" },
-            { value: "ACTIVE", label: "Active" },
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" },
-          ],
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
         },
         {
-          key: "ite_id",
-          label: "Iteration ID",
-          type: "text",
-          required: true,
+          key: "sequence_count",
+          label: "Sequences",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "instance_count",
+          label: "Instances",
+          type: "number",
+          readonly: true,
+          computed: true,
         },
         {
           key: "created_at",
@@ -466,41 +640,113 @@
         },
       ],
       tableColumns: [
-        "pli_id",
-        "pli_name",
-        "pli_description",
-        "pli_status",
-        "ite_id",
+        "plm_id",
+        "plm_name",
+        "plm_status",
+        "sequence_count",
+        "instance_count",
       ],
       sortMapping: {
-        pli_id: "pli_id",
-        pli_name: "pli_name",
-        pli_description: "pli_description",
-        pli_status: "pli_status",
-        ite_id: "ite_id",
+        plm_id: "plm_id",
+        plm_name: "plm_name",
+        plm_status: "plm_status",
+        sequence_count: "sequence_count",
+        instance_count: "instance_count",
+        created_at: "created_at",
+        updated_at: "updated_at",
       },
       filters: [],
+      customRenderers: {
+        // Clickable ID pattern
+        plm_id: function (value, row) {
+          if (!value) return "";
+          return `<a href="#" class="plan-id-link btn-table-action" data-action="view" data-id="${value}" 
+                    style="color: #205081; text-decoration: none; cursor: pointer;" 
+                    title="View plan details">${value}</a>`;
+        },
+        // Status with color pattern
+        plm_status: function (value, row) {
+          let statusName, statusColor;
+          
+          console.log('plm_status renderer called with value:', value, 'row:', row);
+          
+          // Enhanced status metadata handling
+          if (row && row.statusMetadata) {
+            statusName = row.statusMetadata.name;
+            statusColor = row.statusMetadata.color;
+          } else if (typeof value === 'string') {
+            statusName = value;
+            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+              statusColor = row.statusMetadata.color;
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            statusName = value.sts_name || value.name;
+            statusColor = value.sts_color || value.color;
+          } else if (row && row.sts_name) {
+            statusName = row.sts_name;
+            statusColor = row.sts_color;
+          } else {
+            statusName = value || "Unknown";
+            statusColor = "#999999";
+          }
+
+          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        }
+      },
+      // Feature flags to disable bulk operations
+      featureFlags: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false
+      },
       permissions: ["superadmin"],
     },
 
     sequences: {
       name: "Sequences",
-      description: "Manage sequence instances within plans",
+      description: "Manage master sequences and sequence instances within plans",
       fields: [
-        { key: "sqi_id", label: "ID", type: "text", readonly: true },
-        {
-          key: "sqi_name",
-          label: "Sequence Name",
-          type: "text",
-          required: true,
-          maxLength: 100,
+        { key: "sqm_id", label: "Master Sequence ID", type: "number", readonly: true },
+        { key: "sqm_name", label: "Sequence Name", type: "text", required: true },
+        { key: "sqm_description", label: "Description", type: "textarea" },
+        { key: "sqm_status", label: "Status", type: "select", 
+          options: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
         },
-        { key: "sqi_description", label: "Description", type: "textarea" },
+        { key: "sqm_order", label: "Order", type: "number", required: true },
         {
-          key: "pli_id",
+          key: "plm_id",
           label: "Plan ID",
-          type: "text",
+          type: "select",
           required: true,
+          entityType: "plans",
+          displayField: "plm_name",
+          valueField: "plm_id",
+        },
+        {
+          key: "plm_name",
+          label: "Plan",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "phase_count",
+          label: "Phases",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "instance_count",
+          label: "Instances",
+          type: "number",
+          readonly: true,
+          computed: true,
         },
         {
           key: "created_at",
@@ -516,60 +762,109 @@
         },
       ],
       tableColumns: [
-        "sqi_id",
-        "sqi_name",
-        "sqi_description",
-        "pli_id",
+        "sqm_id",
+        "sqm_name",
+        "sqm_status",
+        "phase_count",
+        "instance_count",
       ],
       sortMapping: {
-        sqi_id: "sqi_id",
-        sqi_name: "sqi_name",
-        sqi_description: "sqi_description",
-        pli_id: "pli_id",
+        sqm_id: "sqm_id",
+        sqm_name: "sqm_name",
+        sqm_status: "sqm_status",
+        phase_count: "phase_count",
+        instance_count: "instance_count",
+        created_at: "created_at",
+        updated_at: "updated_at",
       },
       filters: [
         {
           key: "planId",
           label: "Plan",
           type: "select",
-          endpoint: "/api/v2/plans",
-          valueField: "pli_id",
-          textField: "pli_name",
+          endpoint: "/plans",
+          valueField: "plm_id",
+          textField: "plm_name",
           placeholder: "All Plans",
         },
       ],
       permissions: ["superadmin"],
+      customRenderers: {
+        // Clickable ID pattern
+        sqm_id: function (value, row) {
+          if (!value) return "";
+          return `<a href="#" class="sequence-id-link btn-table-action" data-action="view" data-id="${value}" 
+                    style="color: #205081; text-decoration: none; cursor: pointer;" 
+                    title="View sequence details">${value}</a>`;
+        },
+        // Status with color pattern  
+        sqm_status: function (value, row) {
+          let statusName, statusColor;
+          
+          console.log('sqm_status renderer called with value:', value, 'row:', row);
+          
+          // Enhanced status metadata handling
+          if (row && row.statusMetadata) {
+            statusName = row.statusMetadata.name;
+            statusColor = row.statusMetadata.color;
+          } else if (typeof value === 'string') {
+            statusName = value;
+            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+              statusColor = row.statusMetadata.color;
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            statusName = value.sts_name || value.name;
+            statusColor = value.sts_color || value.color;
+          } else if (row && row.sts_name) {
+            statusName = row.sts_name;
+            statusColor = row.sts_color;
+          } else {
+            statusName = value || "Unknown";
+            statusColor = "#999999";
+          }
+
+          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        }
+      },
+      // Feature flags to disable bulk operations
+      featureFlags: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false
+      }
     },
 
     phases: {
       name: "Phases",
-      description: "Manage phase instances within sequences",
+      description: "Manage phase events and their configurations",
       fields: [
-        { key: "phi_id", label: "ID", type: "text", readonly: true },
-        {
-          key: "phi_name",
-          label: "Phase Name",
-          type: "text",
-          required: true,
-          maxLength: 100,
+        { key: "phm_id", label: "Phase ID", type: "text", readonly: true },
+        { key: "phm_name", label: "Phase Name", type: "text", required: true },
+        { key: "phm_description", label: "Description", type: "textarea" },
+        { key: "phm_status", label: "Status", type: "select", 
+          options: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
         },
-        { key: "phi_description", label: "Description", type: "textarea" },
+        // Computed fields pattern
         {
-          key: "phi_start_date",
-          label: "Start Date",
-          type: "datetime",
+          key: "step_count",
+          label: "Steps",
+          type: "number",
+          readonly: true,
+          computed: true,
         },
         {
-          key: "phi_end_date",
-          label: "End Date",
-          type: "datetime",
+          key: "instance_count", 
+          label: "Instances",
+          type: "number",
+          readonly: true,
+          computed: true,
         },
-        {
-          key: "sqi_id",
-          label: "Sequence ID",
-          type: "text",
-          required: true,
-        },
+        // Audit fields (consistent across all entities)
         {
           key: "created_at",
           label: "Created",
@@ -578,65 +873,211 @@
         },
         {
           key: "updated_at",
-          label: "Updated",
+          label: "Updated", 
           type: "datetime",
           readonly: true,
         },
       ],
       tableColumns: [
-        "phi_id",
-        "phi_name",
-        "phi_description",
-        "phi_start_date",
-        "phi_end_date",
-        "sqi_id",
+        "phm_id",
+        "phm_name",
+        "phm_status",
+        "step_count",
+        "instance_count",
       ],
       sortMapping: {
-        phi_id: "phi_id",
-        phi_name: "phi_name",
-        phi_description: "phi_description",
-        phi_start_date: "phi_start_date",
-        phi_end_date: "phi_end_date",
-        sqi_id: "sqi_id",
+        phm_id: "phm_id",
+        phm_name: "phm_name",
+        phm_status: "phm_status",
+        step_count: "step_count",
+        instance_count: "instance_count",
+        created_at: "created_at",
+        updated_at: "updated_at",
       },
-      filters: [
+      filters: [],
+      customRenderers: {
+        // Clickable ID pattern
+        phm_id: function (value, row) {
+          if (!value) return "";
+          return `<a href="#" class="phase-id-link btn-table-action" data-action="view" data-id="${value}" 
+                    style="color: #205081; text-decoration: none; cursor: pointer;" 
+                    title="View phase details">${value}</a>`;
+        },
+        // Status with color pattern
+        phm_status: function (value, row) {
+          let statusName, statusColor;
+          
+          console.log('phm_status renderer called with value:', value, 'row:', row);
+          
+          // Enhanced status metadata handling
+          if (row && row.statusMetadata) {
+            statusName = row.statusMetadata.name;
+            statusColor = row.statusMetadata.color;
+          } else if (typeof value === 'string') {
+            statusName = value;
+            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+              statusColor = row.statusMetadata.color;
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            statusName = value.sts_name || value.name;
+            statusColor = value.sts_color || value.color;
+          } else if (row && row.sts_name) {
+            statusName = row.sts_name;
+            statusColor = row.sts_color;
+          } else {
+            statusName = value || "Unknown";
+            statusColor = "#999999";
+          }
+
+          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        }
+      },
+      // Feature flags to disable bulk operations
+      featureFlags: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false
+      },
+      permissions: ["superadmin"],
+    },
+    steps: {
+      name: "Steps",
+      description: "Manage step events and their configurations",
+      fields: [
+        { key: "stm_id", label: "Step ID", type: "text", readonly: true },
+        { key: "stm_name", label: "Step Name", type: "text", required: true },
+        { key: "stm_description", label: "Description", type: "textarea" },
+        { key: "stm_status", label: "Status", type: "select", 
+          options: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
+        },
+        // Computed fields pattern
         {
-          key: "sequenceId",
-          label: "Sequence",
-          type: "select",
-          endpoint: "/api/v2/sequences",
-          valueField: "sqi_id",
-          textField: "sqi_name",
-          placeholder: "All Sequences",
+          key: "instruction_count",
+          label: "Instructions",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "instance_count", 
+          label: "Instances",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        // Audit fields (consistent across all entities)
+        {
+          key: "created_at",
+          label: "Created",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated", 
+          type: "datetime",
+          readonly: true,
         },
       ],
+      tableColumns: [
+        "stm_id",
+        "stm_name",
+        "stm_status",
+        "instruction_count",
+        "instance_count",
+      ],
+      sortMapping: {
+        stm_id: "stm_id",
+        stm_name: "stm_name",
+        stm_status: "stm_status",
+        instruction_count: "instruction_count",
+        instance_count: "instance_count",
+        created_at: "created_at",
+        updated_at: "updated_at",
+      },
+      filters: [],
+      customRenderers: {
+        // Clickable ID pattern
+        stm_id: function (value, row) {
+          if (!value) return "";
+          return `<a href="#" class="step-id-link btn-table-action" data-action="view" data-id="${value}" 
+                    style="color: #205081; text-decoration: none; cursor: pointer;" 
+                    title="View step details">${value}</a>`;
+        },
+        // Status with color pattern
+        stm_status: function (value, row) {
+          let statusName, statusColor;
+          
+          console.log('stm_status renderer called with value:', value, 'row:', row);
+          
+          // Enhanced status metadata handling
+          if (row && row.statusMetadata) {
+            statusName = row.statusMetadata.name;
+            statusColor = row.statusMetadata.color;
+          } else if (typeof value === 'string') {
+            statusName = value;
+            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+              statusColor = row.statusMetadata.color;
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            statusName = value.sts_name || value.name;
+            statusColor = value.sts_color || value.color;
+          } else if (row && row.sts_name) {
+            statusName = row.sts_name;
+            statusColor = row.sts_color;
+          } else {
+            statusName = value || "Unknown";
+            statusColor = "#999999";
+          }
+
+          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        }
+      },
+      // Feature flags to disable bulk operations
+      featureFlags: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false
+      },
       permissions: ["superadmin"],
     },
 
     instructions: {
       name: "Instructions",
-      description: "Manage step instructions and their ordering",
+      description: "Manage instruction events and their configurations",
       fields: [
-        { key: "ini_id", label: "ID", type: "text", readonly: true },
-        {
-          key: "ini_text",
-          label: "Instruction Text",
-          type: "textarea",
-          required: true,
+        { key: "inm_id", label: "Instruction ID", type: "text", readonly: true },
+        { key: "inm_name", label: "Instruction Name", type: "text", required: true },
+        { key: "inm_description", label: "Description", type: "textarea" },
+        { key: "inm_status", label: "Status", type: "select", 
+          options: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
         },
+        // Computed fields pattern
         {
-          key: "ini_order",
-          label: "Order",
+          key: "instance_count",
+          label: "Instances",
           type: "number",
-          required: true,
-          min: 1,
+          readonly: true,
+          computed: true,
         },
         {
-          key: "sti_id",
-          label: "Step ID",
-          type: "text",
-          required: true,
+          key: "control_count", 
+          label: "Controls",
+          type: "number",
+          readonly: true,
+          computed: true,
         },
+        // Audit fields (consistent across all entities)
         {
           key: "created_at",
           label: "Created",
@@ -645,34 +1086,187 @@
         },
         {
           key: "updated_at",
-          label: "Updated",
+          label: "Updated", 
           type: "datetime",
           readonly: true,
         },
       ],
       tableColumns: [
-        "ini_id",
-        "ini_text",
-        "ini_order",
-        "sti_id",
+        "inm_id",
+        "inm_name",
+        "inm_status",
+        "instance_count",
+        "control_count",
       ],
       sortMapping: {
-        ini_id: "ini_id",
-        ini_text: "ini_text",
-        ini_order: "ini_order",
-        sti_id: "sti_id",
+        inm_id: "inm_id",
+        inm_name: "inm_name",
+        inm_status: "inm_status",
+        instance_count: "instance_count",
+        control_count: "control_count",
+        created_at: "created_at",
+        updated_at: "updated_at",
       },
-      filters: [
+      filters: [],
+      customRenderers: {
+        // Clickable ID pattern
+        inm_id: function (value, row) {
+          if (!value) return "";
+          return `<a href="#" class="instruction-id-link btn-table-action" data-action="view" data-id="${value}" 
+                    style="color: #205081; text-decoration: none; cursor: pointer;" 
+                    title="View instruction details">${value}</a>`;
+        },
+        // Status with color pattern
+        inm_status: function (value, row) {
+          let statusName, statusColor;
+          
+          console.log('inm_status renderer called with value:', value, 'row:', row);
+          
+          // Enhanced status metadata handling
+          if (row && row.statusMetadata) {
+            statusName = row.statusMetadata.name;
+            statusColor = row.statusMetadata.color;
+          } else if (typeof value === 'string') {
+            statusName = value;
+            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+              statusColor = row.statusMetadata.color;
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            statusName = value.sts_name || value.name;
+            statusColor = value.sts_color || value.color;
+          } else if (row && row.sts_name) {
+            statusName = row.sts_name;
+            statusColor = row.sts_color;
+          } else {
+            statusName = value || "Unknown";
+            statusColor = "#999999";
+          }
+
+          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        }
+      },
+      // Feature flags to disable bulk operations
+      featureFlags: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false
+      },
+      permissions: ["superadmin"],
+    },
+
+    controls: {
+      name: "Controls",
+      description: "Manage control events and their configurations",
+      fields: [
+        { key: "ctm_id", label: "Control ID", type: "text", readonly: true },
+        { key: "ctm_name", label: "Control Name", type: "text", required: true },
+        { key: "ctm_description", label: "Description", type: "textarea" },
+        { key: "ctm_type", label: "Control Type", type: "text" },
+        { key: "ctm_is_critical", label: "Critical", type: "boolean" },
+        { key: "ctm_order", label: "Order", type: "number", required: true },
+        { key: "ctm_status", label: "Status", type: "select", 
+          options: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" }
+          ]
+        },
+        // Computed fields pattern
         {
-          key: "stepId",
-          label: "Step",
-          type: "select",
-          endpoint: "/api/v2/steps",
-          valueField: "sti_id",
-          textField: "sti_name",
-          placeholder: "All Steps",
+          key: "instance_count",
+          label: "Instances",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "validation_count", 
+          label: "Validations",
+          type: "number",
+          readonly: true,
+          computed: true,
+        },
+        // Audit fields (consistent across all entities)
+        {
+          key: "created_at",
+          label: "Created",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated", 
+          type: "datetime",
+          readonly: true,
         },
       ],
+      tableColumns: [
+        "ctm_id",
+        "ctm_name",
+        "ctm_type",
+        "ctm_is_critical",
+        "ctm_status",
+        "instance_count",
+        "validation_count",
+      ],
+      sortMapping: {
+        ctm_id: "ctm_id",
+        ctm_name: "ctm_name",
+        ctm_description: "ctm_description",
+        ctm_type: "ctm_type",
+        ctm_is_critical: "ctm_is_critical",
+        ctm_order: "ctm_order",
+        ctm_status: "ctm_status",
+        instance_count: "instance_count",
+        validation_count: "validation_count",
+        created_at: "created_at",
+        updated_at: "updated_at",
+      },
+      filters: [],
+      customRenderers: {
+        // Clickable ID pattern
+        ctm_id: function (value, row) {
+          if (!value) return "";
+          return `<a href="#" class="control-id-link btn-table-action" data-action="view" data-id="${value}" 
+                    style="color: #205081; text-decoration: none; cursor: pointer;" 
+                    title="View control details">${value}</a>`;
+        },
+        // Status with color pattern
+        ctm_status: function (value, row) {
+          let statusName, statusColor;
+          
+          console.log('ctm_status renderer called with value:', value, 'row:', row);
+          
+          // Enhanced status metadata handling
+          if (row && row.statusMetadata) {
+            statusName = row.statusMetadata.name;
+            statusColor = row.statusMetadata.color;
+          } else if (typeof value === 'string') {
+            statusName = value;
+            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+              statusColor = row.statusMetadata.color;
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            statusName = value.sts_name || value.name;
+            statusColor = value.sts_color || value.color;
+          } else if (row && row.sts_name) {
+            statusName = row.sts_name;
+            statusColor = row.sts_color;
+          } else {
+            statusName = value || "Unknown";
+            statusColor = "#999999";
+          }
+
+          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        }
+      },
+      // Feature flags to disable bulk operations
+      featureFlags: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false
+      },
       permissions: ["superadmin"],
     },
   };
@@ -688,12 +1282,28 @@
       iterations: "/iterations",
       labels: "/labels",
       migrations: "/migrations",
-      plans: "/api/v2/plans",
-      sequences: "/api/v2/sequences",
-      phases: "/api/v2/phases",
-      instructions: "/api/v2/instructions",
+      plans: "/plans",
+      sequences: "/sequences",
+      phases: "/phases",
+      steps: "/steps",
+      instructions: "/instructions",
+      controls: "/controls",
       stepView: "/stepViewApi",
     },
+  };
+
+  // Feature flags configuration
+  const FEATURE_FLAGS = {
+    // Export and bulk functionality features
+    enableExportButton: false,        // Set to true to show Export button
+    enableBulkActions: false,         // Set to true to show Bulk Actions button  
+    enableRowSelection: false,        // Set to true to show selection checkboxes
+    enableSelectAll: false,           // Set to true to show select-all checkbox
+    
+    // Additional feature flags for future use
+    enableAdvancedFilters: true,      // Advanced filtering capabilities
+    enableRealTimeSync: true,         // Real-time data synchronization
+    enableTableActions: true,         // Individual row actions (view, edit, delete)
   };
 
   // Entity configuration utility functions
@@ -776,6 +1386,44 @@
     getEntityFilters: function (entityName) {
       const entity = this.getEntity(entityName);
       return entity ? entity.filters || [] : [];
+    },
+
+    /**
+     * Get entity bulk actions
+     * @param {string} entityName - The name of the entity
+     * @returns {Array} Bulk action configurations
+     */
+    getEntityBulkActions: function (entityName) {
+      const entity = this.getEntity(entityName);
+      return entity ? entity.bulkActions || [] : [];
+    },
+
+    /**
+     * Get feature flag value
+     * @param {string} flagName - The name of the feature flag
+     * @returns {boolean} Feature flag value
+     */
+    getFeatureFlag: function (flagName) {
+      return FEATURE_FLAGS[flagName] || false;
+    },
+
+    /**
+     * Get all feature flags
+     * @returns {Object} All feature flags
+     */
+    getAllFeatureFlags: function () {
+      return FEATURE_FLAGS;
+    },
+
+    /**
+     * Set feature flag value (for runtime configuration)
+     * @param {string} flagName - The name of the feature flag
+     * @param {boolean} value - The value to set
+     */
+    setFeatureFlag: function (flagName, value) {
+      if (FEATURE_FLAGS.hasOwnProperty(flagName)) {
+        FEATURE_FLAGS[flagName] = value;
+      }
     },
   };
 

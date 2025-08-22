@@ -73,8 +73,9 @@
      * @param {Function} retryCallback - Optional retry callback
      */
     showError: function (container, message, retryCallback = null) {
+      const retryButtonId = retryCallback ? this.generateId() : null;
       const retryButton = retryCallback
-        ? `<button class="btn-primary" onclick="(${retryCallback.toString()})()">Try Again</button>`
+        ? `<button class="btn-primary" id="${retryButtonId}">Try Again</button>`
         : "";
 
       const errorHtml = `
@@ -86,6 +87,14 @@
                 </div>
             `;
       container.innerHTML = errorHtml;
+
+      // Bind retry callback if provided
+      if (retryCallback && retryButtonId) {
+        const retryBtn = document.getElementById(retryButtonId);
+        if (retryBtn) {
+          retryBtn.addEventListener("click", retryCallback);
+        }
+      }
     },
 
     /**
@@ -101,9 +110,10 @@
       actionText = null,
       actionCallback = null,
     ) {
+      const actionButtonId = actionText && actionCallback ? this.generateId() : null;
       const actionButton =
         actionText && actionCallback
-          ? `<button class="btn-primary" onclick="(${actionCallback.toString()})()">${actionText}</button>`
+          ? `<button class="btn-primary" id="${actionButtonId}">${actionText}</button>`
           : "";
 
       const emptyHtml = `
@@ -115,6 +125,14 @@
                 </div>
             `;
       container.innerHTML = emptyHtml;
+
+      // Bind action callback if provided
+      if (actionCallback && actionButtonId) {
+        const actionBtn = document.getElementById(actionButtonId);
+        if (actionBtn) {
+          actionBtn.addEventListener("click", actionCallback);
+        }
+      }
     },
 
     /**
@@ -153,15 +171,47 @@
     },
 
     /**
-     * Format status for display
+     * Format status for display with dynamic colors from database
      * @param {string} status - The status value
+     * @param {string} entityType - The entity type (optional, defaults to "Step")
+     * @param {string} color - Pre-fetched color (optional)
      * @returns {string} HTML string with status badge
      */
-    formatStatus: function (status) {
+    formatStatus: function (status, entityType = "Step", color = null) {
       if (!status) return "";
 
+      // If color is provided, use it directly
+      if (color) {
+        const textColor = this.getContrastingTextColor(color);
+        return `<span class="status-badge" data-status="${status}" style="background-color: ${color}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${status}</span>`;
+      }
+
+      // Otherwise, create badge with data-status attribute for async color application
       const statusClass = `status-${status.toLowerCase()}`;
-      return `<span class="status-badge ${statusClass}">${status}</span>`;
+      return `<span class="status-badge ${statusClass}" data-status="${status}" data-entity-type="${entityType}">${status}</span>`;
+    },
+
+    /**
+     * Calculate contrasting text color (white or black) based on background
+     * @param {string} hexColor - Hex color code
+     * @returns {string} "#ffffff" or "#000000"
+     */
+    getContrastingTextColor: function(hexColor) {
+      if (!hexColor) return "#ffffff";
+      
+      // Remove # if present
+      const hex = hexColor.replace("#", "");
+      
+      // Convert to RGB
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      
+      // Calculate luminance
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      
+      // Return white for dark backgrounds, black for light
+      return luminance > 0.5 ? "#000000" : "#ffffff";
     },
 
     /**
@@ -390,9 +440,9 @@
       const hex = hexColor.replace("#", "");
 
       // Convert to RGB
-      const r = parseInt(hex.substr(0, 2), 16);
-      const g = parseInt(hex.substr(2, 2), 16);
-      const b = parseInt(hex.substr(4, 2), 16);
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
 
       // Calculate luminance using W3C formula
       const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;

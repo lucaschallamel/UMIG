@@ -6,6 +6,7 @@ import umig.repository.AuditLogRepository
 import java.util.UUID
 import java.sql.SQLException
 import groovy.sql.Sql
+import groovy.sql.GroovyRowResult
 
 /**
  * Repository for INSTRUCTION master and instance data following UMIG patterns.
@@ -90,6 +91,155 @@ class InstructionRepository {
                 throw new RuntimeException("Failed to find master instruction ${inmId}", e)
             }
         }
+    }
+
+    /**
+     * Finds instruction masters with filters - alias for consistency with Admin GUI patterns.
+     * @param filters Map of filter criteria
+     * @param pageNumber Page number (1-based)
+     * @param pageSize Number of items per page (max 100)
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Map with data, pagination info, and applied filters
+     */
+    def findInstructionMastersWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        return findMasterInstructionsWithFilters(filters, pageNumber, pageSize, sortField, sortDirection)
+    }
+
+    /**
+     * Finds master instructions with filters, pagination, sorting, and computed fields for Admin GUI.
+     * @param filters Map of filter criteria
+     * @param pageNumber Page number (1-based)
+     * @param pageSize Number of items per page (max 100)
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Map with data, pagination info, and applied filters
+     */
+    def findMasterInstructionsWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = []
+            
+            // Build dynamic WHERE clause
+            if (filters.status) {
+                if (filters.status instanceof List) {
+                    def placeholders = filters.status.collect { '?' }.join(', ')
+                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
+                    params.addAll(filters.status)
+                } else {
+                    whereConditions << "s.sts_name = ?"
+                    params << filters.status
+                }
+            }
+            
+            // Owner ID filtering
+            if (filters.ownerId) {
+                whereConditions << "e.usr_id_owner = ?"
+                params << Integer.parseInt(filters.ownerId as String)
+            }
+            
+            // Search functionality
+            if (filters.search) {
+                whereConditions << "(e.inm_name ILIKE ? OR e.inm_description ILIKE ?)"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
+            }
+            
+            // Date range filtering
+            if (filters.startDateFrom && filters.startDateTo) {
+                whereConditions << "e.inm_start_date BETWEEN ? AND ?"
+                params << filters.startDateFrom
+                params << filters.startDateTo
+            }
+            
+            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
+            
+            // Count query
+            def countQuery = """
+                SELECT COUNT(DISTINCT e.inm_id) as total
+                FROM instructions_master_inm e
+                JOIN status_sts s ON e.inm_status = s.sts_id
+                ${whereClause}
+            """
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Validate sort field
+            def allowedSortFields = ['inm_id', 'inm_name', 'inm_status', 'created_at', 'updated_at', 'instance_count', 'control_count']
+            if (!sortField || !allowedSortFields.contains(sortField)) {
+                sortField = 'inm_name'
+            }
+            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+            
+            // Data query with computed fields
+            def offset = (pageNumber - 1) * pageSize
+            def dataQuery = """
+                SELECT DISTINCT e.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       COALESCE(instance_counts.instance_count, 0) as instance_count,
+                       COALESCE(control_counts.control_count, 0) as control_count
+                FROM instructions_master_inm e
+                JOIN status_sts s ON e.inm_status = s.sts_id
+                LEFT JOIN (
+                    SELECT inm_id, COUNT(*) as instance_count
+                    FROM instructions_instance_ini
+                    GROUP BY inm_id
+                ) instance_counts ON e.inm_id = instance_counts.inm_id
+                LEFT JOIN (
+                    SELECT inm_id, COUNT(DISTINCT cnm_id) as control_count
+                    FROM controls_cnm
+                    GROUP BY inm_id
+                ) control_counts ON e.inm_id = control_counts.inm_id
+                ${whereClause}
+                ORDER BY ${['instance_count', 'control_count'].contains(sortField) ? sortField : 'e.' + sortField} ${sortDirection}
+                LIMIT ${pageSize} OFFSET ${offset}
+            """
+            
+            def entities = sql.rows(dataQuery, params)
+            def enrichedEntities = entities.collect { enrichMasterInstructionWithStatusMetadata(it) }
+            
+            return [
+                data: enrichedEntities,
+                pagination: [
+                    page: pageNumber,
+                    size: pageSize,
+                    total: totalCount,
+                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+                ],
+                filters: filters
+            ]
+        }
+    }
+
+    /**
+     * Enriches instruction data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing instruction and status data
+     * @return Enhanced instruction map with statusMetadata
+     */
+    private Map enrichMasterInstructionWithStatusMetadata(Map row) {
+        return [
+            inm_id: row.inm_id,
+            // Core entity fields
+            inm_name: row.inm_name,
+            inm_description: row.inm_description,
+            inm_status: row.sts_name, // Backward compatibility
+            // Audit fields
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            // Computed fields from joins
+            instance_count: row.instance_count ?: 0,
+            control_count: row.control_count ?: 0,
+            // Enhanced status metadata
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
     }
 
     /**
@@ -490,8 +640,9 @@ class InstructionRepository {
                 // Log to audit trail if update was successful
                 if (affectedRows > 0) {
                     try {
-                        println "InstructionRepository: Attempting to log instruction completion audit for iniId=${iniId}, userId=${userId}, stepId=${stepInfo.sti_id}"
-                        AuditLogRepository.logInstructionCompleted(sql, userId, iniId, stepInfo.sti_id as UUID)
+                        def stepInfoRow = stepInfo as groovy.sql.GroovyRowResult
+                        println "InstructionRepository: Attempting to log instruction completion audit for iniId=${iniId}, userId=${userId}, stepId=${stepInfoRow.sti_id}"
+                        AuditLogRepository.logInstructionCompleted(sql, userId, iniId, stepInfoRow.sti_id as UUID)
                         println "InstructionRepository: Successfully logged instruction completion audit for iniId=${iniId}"
                     } catch (Exception auditError) {
                         // Audit logging failure shouldn't break the main flow
@@ -548,9 +699,10 @@ class InstructionRepository {
                 if (affectedRows > 0) {
                     try {
                         // Use the original completing user ID or null if system uncompleted
-                        def auditUserId = instructionInfo.usr_id_completed_by as Integer
-                        println "InstructionRepository: Attempting to log instruction uncompletion audit for iniId=${iniId}, auditUserId=${auditUserId}, stepId=${instructionInfo.sti_id}"
-                        AuditLogRepository.logInstructionUncompleted(sql, auditUserId, iniId, instructionInfo.sti_id as UUID)
+                        def instructionInfoRow = instructionInfo as groovy.sql.GroovyRowResult
+                        def auditUserId = instructionInfoRow.usr_id_completed_by as Integer
+                        println "InstructionRepository: Attempting to log instruction uncompletion audit for iniId=${iniId}, auditUserId=${auditUserId}, stepId=${instructionInfoRow.sti_id}"
+                        AuditLogRepository.logInstructionUncompleted(sql, auditUserId, iniId, instructionInfoRow.sti_id as UUID)
                         println "InstructionRepository: Successfully logged instruction uncompletion audit for iniId=${iniId}"
                     } catch (Exception auditError) {
                         // Audit logging failure shouldn't break the main flow
@@ -588,11 +740,12 @@ class InstructionRepository {
                     
                     // First, get step instance IDs for instructions that will be completed for audit logging
                     def placeholdersForAudit = iniIds.collect { '?' }.join(',')
-                    def stepInfos = sql.rows("""
+                    def stepInfosQuery = """
                         SELECT ini_id, sti_id 
                         FROM instructions_instance_ini 
                         WHERE ini_id IN (${placeholdersForAudit}) AND ini_is_completed = false
-                    """.toString(), iniIds)
+                    """.toString()
+                    def stepInfos = sql.rows(stepInfosQuery, iniIds as List<Object>)
                     
                     // Process in batches of 100 to avoid parameter limits
                     iniIds.collate(100).each { batch ->
@@ -619,8 +772,9 @@ class InstructionRepository {
                     // Log audit entries for successfully completed instructions
                     if (affectedRows > 0) {
                         try {
-                            println "InstructionRepository: Attempting to log bulk instruction completion audit for ${stepInfos.size()} instructions"
-                            stepInfos.each { stepInfo ->
+                            def stepInfosList = stepInfos as List<GroovyRowResult>
+                            println "InstructionRepository: Attempting to log bulk instruction completion audit for ${stepInfosList.size()} instructions"
+                            stepInfosList.each { GroovyRowResult stepInfo ->
                                 try {
                                     println "InstructionRepository: Logging bulk completion for iniId=${stepInfo.ini_id}, userId=${userId}, stepId=${stepInfo.sti_id}"
                                     AuditLogRepository.logInstructionCompleted(sql, userId, stepInfo.ini_id as UUID, stepInfo.sti_id as UUID)
@@ -762,9 +916,10 @@ class InstructionRepository {
                         stm.stm_name, COALESCE(ini.ini_order, inm.inm_order)
                 """, queryParams)
                 
-                // Calculate summary statistics
-                def total = instructions.size()
-                def completed = instructions.count { it.ini_is_completed }
+                // Calculate summary statistics  
+                def instructionsList = instructions as List<GroovyRowResult>
+                def total = instructionsList.size()
+                def completed = instructionsList.count { GroovyRowResult row -> row.ini_is_completed as Boolean }
                 def pending = total - completed
                 
                 return [

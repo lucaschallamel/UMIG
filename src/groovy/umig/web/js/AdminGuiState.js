@@ -226,6 +226,13 @@
           selectedRows: new Set(),
           filters: {},
         });
+
+        // Update UI after section change
+        setTimeout(() => {
+          if (window.TableManager && window.TableManager.updateSelectionUI) {
+            window.TableManager.updateSelectionUI();
+          }
+        }, 100);
       },
 
       /**

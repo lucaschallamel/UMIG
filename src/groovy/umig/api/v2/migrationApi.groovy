@@ -255,17 +255,11 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
                         .entity(new JsonBuilder([error: "Migration not found"]).toString())
                         .build()
                 }
-                // Add status metadata if status field is present
-                Map<String, Object> migrationMap = migration as Map<String, Object>
-                if (migrationMap.mig_status) {
-                    def statusMetadata = migrationRepository.getStatusMetadata(migrationMap.mig_status as Integer)
-                    if (statusMetadata) {
-                        migrationMap.statusMetadata = statusMetadata
-                    }
-                }
+                // Status metadata is already included by the repository's enrichMigrationWithStatusMetadata
                 return Response.ok(new JsonBuilder(migration).toString()).build()
             } catch (IllegalArgumentException iae) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(new JsonBuilder([error: "Invalid migration UUID"]).toString()).build()
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid migration UUID"]).toString()).build()
             }
         } else if (!pathParts) {
             // GET /migrations with query parameters
@@ -325,7 +319,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
             String sortDirection = 'asc'
             
             if (sort) {
-                def allowedSortFields = ['mig_name', 'mig_status', 'created_at', 'updated_at', 'mig_start_date', 'mig_end_date']
+                def allowedSortFields = ['mig_id', 'mig_name', 'mig_status', 'created_at', 'updated_at', 'mig_start_date', 'mig_end_date', 'iteration_count', 'plan_count']
                 if (allowedSortFields.contains(sort as String)) {
                     sortField = sort as String
                 } else {
@@ -447,24 +441,38 @@ migrations(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap qu
         // Create new migration
         if (!pathParts) {
             Map migrationData = new JsonSlurper().parseText(body) as Map
+            log.info("POST /migrations - Creating migration with data: ${migrationData}")
             
             // Validate required fields
-            if (!migrationData.mig_name) {
+            if (!migrationData.mig_name && !migrationData.name) {
+                log.warn("POST /migrations - Missing migration name. Data: ${migrationData}")
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Migration name is required"]).toString())
                     .build()
             }
             
-            def newMigration = migrationRepository.create(migrationData)
-            
-            if (newMigration) {
-                return Response.status(Response.Status.CREATED)
-                    .entity(new JsonBuilder(newMigration).toString())
+            try {
+                Map newMigration = migrationRepository.create(migrationData) as Map
+                log.info("POST /migrations - Successfully created migration: ${newMigration?.mig_id}")
+                
+                if (newMigration) {
+                    return Response.status(Response.Status.CREATED)
+                        .entity(new JsonBuilder(newMigration).toString())
+                        .build()
+                } else {
+                    log.error("POST /migrations - Repository returned null for migration creation")
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity(new JsonBuilder([error: "Failed to create migration - no data returned"]).toString())
+                        .build()
+                }
+            } catch (IllegalArgumentException e) {
+                log.error("POST /migrations - Validation error: ${e.message}", e)
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: e.message]).toString())
                     .build()
-            } else {
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new JsonBuilder([error: "Failed to create migration"]).toString())
-                    .build()
+            } catch (Exception e) {
+                log.error("POST /migrations - Unexpected error during creation: ${e.message}", e)
+                throw e // Let the outer catch handle SQL exceptions
             }
         }
         
@@ -550,20 +558,35 @@ migrations(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap que
             try {
                 migrationId = UUID.fromString(pathParts[0])
             } catch (IllegalArgumentException e) {
+                log.warn("PUT /migrations - Invalid UUID format: ${pathParts[0]}")
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Invalid migration UUID"]).toString())
                     .build()
             }
             
             Map migrationData = new JsonSlurper().parseText(body) as Map
-            def updatedMigration = migrationRepository.update(migrationId, migrationData)
+            log.info("PUT /migrations/${migrationId} - Updating with data: ${migrationData}")
             
-            if (updatedMigration) {
-                return Response.ok(new JsonBuilder(updatedMigration).toString()).build()
-            } else {
-                return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Migration not found"]).toString())
+            try {
+                def updatedMigration = migrationRepository.update(migrationId, migrationData)
+                
+                if (updatedMigration) {
+                    log.info("PUT /migrations/${migrationId} - Successfully updated migration")
+                    return Response.ok(new JsonBuilder(updatedMigration).toString()).build()
+                } else {
+                    log.warn("PUT /migrations/${migrationId} - Migration not found")
+                    return Response.status(Response.Status.NOT_FOUND)
+                        .entity(new JsonBuilder([error: "Migration not found"]).toString())
+                        .build()
+                }
+            } catch (IllegalArgumentException e) {
+                log.error("PUT /migrations/${migrationId} - Validation error: ${e.message}", e)
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: e.message]).toString())
                     .build()
+            } catch (Exception e) {
+                log.error("PUT /migrations/${migrationId} - Unexpected error during update: ${e.message}", e)
+                throw e // Let the outer catch handle SQL exceptions
             }
         }
         

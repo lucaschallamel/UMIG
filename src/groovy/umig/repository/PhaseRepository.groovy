@@ -50,6 +50,120 @@ class PhaseRepository {
     }
     
     /**
+     * Finds master phases with advanced filtering, pagination, and computed fields for Admin GUI.
+     * Implements the proven pattern from migrations and sequences entities with phase-specific relationships.
+     * @param filters Map containing optional filters (status, ownerId, search, startDateFrom, startDateTo)
+     * @param pageNumber Page number (1-based, default: 1)
+     * @param pageSize Items per page (1-100, default: 50)
+     * @param sortField Field to sort by (default: phm_name)
+     * @param sortDirection Sort direction (asc/desc, default: asc)
+     * @return Map containing data, pagination info, and applied filters
+     */
+    def findMasterPhasesWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = []
+            
+            // Build dynamic WHERE clause
+            if (filters.status) {
+                if (filters.status instanceof List) {
+                    def placeholders = filters.status.collect { '?' }.join(', ')
+                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
+                    params.addAll(filters.status)
+                } else {
+                    whereConditions << "s.sts_name = ?"
+                    params << filters.status
+                }
+            }
+            
+            // Owner ID filtering (team-based ownership through sequence and plan)
+            if (filters.ownerId) {
+                whereConditions << "plm.tms_id = ?"
+                params << Integer.parseInt(filters.ownerId as String)
+            }
+            
+            // Search functionality across name and description
+            if (filters.search) {
+                whereConditions << "(phm.phm_name ILIKE ? OR phm.phm_description ILIKE ?)"
+                params << "%${filters.search}%".toString()
+                params << "%${filters.search}%".toString()
+            }
+            
+            // Date range filtering on creation date
+            if (filters.startDateFrom && filters.startDateTo) {
+                whereConditions << "phm.created_at BETWEEN ? AND ?"
+                params << filters.startDateFrom
+                params << filters.startDateTo
+            }
+            
+            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
+            
+            // Count query
+            def countQuery = """
+                SELECT COUNT(DISTINCT phm.phm_id) as total
+                FROM phases_master_phm phm
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN status_sts s ON s.sts_name = 'ACTIVE' AND s.sts_type = 'Phase'
+                ${whereClause}
+            """
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Validate sort field
+            def allowedSortFields = ['phm_id', 'phm_name', 'phm_status', 'created_at', 'updated_at', 'step_count', 'instance_count']
+            if (!sortField || !allowedSortFields.contains(sortField)) {
+                sortField = 'phm_name'
+            }
+            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+            
+            // Data query with computed fields
+            def offset = (pageNumber - 1) * pageSize
+            def dataQuery = """
+                SELECT DISTINCT phm.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                       sqm.sqm_name, sqm.sqm_id, plm.plm_name, plm.tms_id, tms.tms_name,
+                       COALESCE(step_counts.step_count, 0) as step_count,
+                       COALESCE(instance_counts.instance_count, 0) as instance_count
+                FROM phases_master_phm phm
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN status_sts s ON s.sts_name = 'ACTIVE' AND s.sts_type = 'Phase'
+                LEFT JOIN (
+                    SELECT phm_id, COUNT(*) as step_count
+                    FROM steps_master_stm
+                    GROUP BY phm_id
+                ) step_counts ON phm.phm_id = step_counts.phm_id
+                LEFT JOIN (
+                    SELECT phm_id, COUNT(*) as instance_count
+                    FROM phases_instance_phi
+                    GROUP BY phm_id
+                ) instance_counts ON phm.phm_id = instance_counts.phm_id
+                ${whereClause}
+                ORDER BY ${['step_count', 'instance_count'].contains(sortField) ? sortField : 'phm.' + sortField} ${sortDirection}
+                LIMIT ${pageSize} OFFSET ${offset}
+            """
+            
+            def phases = sql.rows(dataQuery, params)
+            def enrichedPhases = phases.collect { enrichMasterPhaseWithStatusMetadata(it) }
+            
+            return [
+                data: enrichedPhases,
+                pagination: [
+                    page: pageNumber,
+                    size: pageSize,
+                    total: totalCount,
+                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+                ],
+                filters: filters
+            ]
+        }
+    }
+    
+    /**
      * Finds master phases filtered by sequence ID.
      * @param sequenceId The UUID of the master sequence
      * @return List of phases belonging to the sequence
@@ -1230,5 +1344,43 @@ class PhaseRepository {
             // If any exception in status resolution, fall back to default
             return getDefaultPhaseInstanceStatusId(sql)
         }
+    }
+    
+    /**
+     * Enriches master phase data with status metadata while maintaining backward compatibility.
+     * @param row Database row containing master phase and status data
+     * @return Enhanced master phase map with statusMetadata and computed fields
+     */
+    private Map enrichMasterPhaseWithStatusMetadata(Map row) {
+        return [
+            phm_id: row.phm_id,
+            sqm_id: row.sqm_id,
+            phm_name: row.phm_name,
+            phm_description: row.phm_description,
+            phm_order: row.phm_order,
+            predecessor_phm_id: row.predecessor_phm_id,
+            phm_status: row.sts_name ?: 'ACTIVE', // Backward compatibility - master phases use ACTIVE status
+            // Audit fields (consistent across all entities)
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            // Sequence and plan details
+            sqm_name: row.sqm_name,
+            sqm_id: row.sqm_id,
+            plm_name: row.plm_name,
+            tms_id: row.tms_id,
+            tms_name: row.tms_name,
+            // Computed fields from joins (phase-specific relationships)
+            step_count: row.step_count ?: 0,
+            instance_count: row.instance_count ?: 0,
+            // Enhanced status metadata (consistent across all entities)
+            statusMetadata: [
+                id: row.sts_id,
+                name: row.sts_name,
+                color: row.sts_color,
+                type: row.sts_type
+            ]
+        ]
     }
 }
