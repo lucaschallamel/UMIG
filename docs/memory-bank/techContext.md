@@ -1,8 +1,9 @@
 # Technology Context
 
-**Last Updated**: 21 August 2025, 21:30 GMT  
+**Last Updated**: 22 August 2025, 18:30 GMT  
 **Current Platform**: Confluence 9.2.7 + ScriptRunner 9.21.0  
-**Sprint 5 Achievement**: US-036 100% COMPLETE with comprehensive email notification infrastructure, system configuration management, git disaster recovery (53,826→51 files), audit logging entity type fixes, and testing framework modernization
+**Sprint 5 Achievement**: US-022, US-030, US-036 100% COMPLETE; US-031 Day 2/3 complete with authentication blocker identified  
+**Critical Issue**: HTTP 401 authentication failure affecting all ScriptRunner REST endpoints - investigation ongoing
 
 ## 1. Approved Core Technologies
 
@@ -429,3 +430,112 @@ docs/
 - **Email Template System**: Database-driven templates with dynamic content
 - **Repository Efficiency**: 99.9% file reduction enhancing development experience
 - **Testing Framework**: Standardized, cross-platform test execution
+
+## 13. ScriptRunner Authentication Investigation (August 22, 2025)
+
+### HTTP 401 Authentication Blocker
+
+**Issue**: All ScriptRunner REST endpoints returning HTTP 401 "Basic Authentication Failure - Reason : AUTHENTICATED_FAILED"
+
+**Affected Systems**:
+- **Admin GUI Integration**: Cannot validate endpoint functionality
+- **Integration Testing**: All API tests failing with authentication errors
+- **Development Workflow**: Blocking completion of US-031 Admin GUI Complete Integration
+
+### Investigation Status
+
+**Credentials Verified**:
+- **Primary**: admin:Spaceop!13 (from .env file)
+- **Fallback**: admin:admin (default Confluence credentials)
+- **Verification**: Both credentials confirmed through .env loading and manual testing
+
+**Testing Methods Applied**:
+```bash
+# Method 1: curl command line testing
+curl -u admin:Spaceop!13 "http://localhost:8090/rest/scriptrunner/latest/custom/users"
+# Result: HTTP 401 "Basic Authentication Failure"
+
+# Method 2: Groovy integration test
+AdminGuiAllEndpointsTest.groovy with environment credential loading
+# Result: All 13 endpoints return HTTP 401
+
+# Method 3: Browser-based testing
+Direct browser access with authentication prompts
+# Result: Same authentication failure
+```
+
+**Infrastructure Verification**:
+- **Container Status**: Confluence container restarted successfully
+- **Service Health**: http://localhost:8090 accessible, Confluence UI functional
+- **Database**: PostgreSQL connection successful, data properly seeded
+- **Previous Success**: Same setup worked successfully in Sprint 4 sessions
+
+### Root Cause Analysis
+
+**Working Theory**:
+ScriptRunner may require active Confluence session authentication rather than HTTP Basic Auth for REST endpoints
+
+**Evidence**:
+- **Basic Auth Standard**: HTTP Basic authentication should work for REST APIs
+- **Session Dependency**: ScriptRunner endpoints may require browser session cookies
+- **User Configuration**: Local Confluence user may need specific ScriptRunner permissions
+- **Platform Version**: Confluence 9.2.7 + ScriptRunner 9.21.0 may have changed auth requirements
+
+### Investigation Actions Required
+
+**Next Session Priorities**:
+1. **Session Authentication Testing**: Login through Confluence UI, then test API endpoints
+2. **User Permission Verification**: Check ScriptRunner-specific user permissions and roles
+3. **ScriptRunner Configuration**: Review ScriptRunner plugin settings for API authentication
+4. **Container Logs**: Examine Confluence logs for specific authentication error details
+5. **Alternative Approaches**: 
+   - SessionManager.getSessionAuthToken() pattern
+   - Confluence API key generation if available
+   - ScriptRunner documentation for authentication changes
+
+**Workaround Strategy**:
+If authentication cannot be resolved quickly:
+- Complete manual endpoint registration (phases, controls) through UI
+- Document Admin GUI functionality through UI walkthrough
+- Plan authentication resolution for post-MVP deployment
+
+### Technical Impact Assessment
+
+**Sprint 5 Impact**:
+- **US-031 Progress**: Technical implementation 85% complete, validation blocked
+- **Timeline Risk**: Authentication resolution required for integration completion
+- **MVP Delivery**: Core functionality demonstrable through UI, API integration pending
+- **Quality Assurance**: Cannot complete comprehensive endpoint validation without auth resolution
+
+**Knowledge Gap**:
+- **ScriptRunner Auth Evolution**: Authentication requirements may have changed in recent versions
+- **Development Environment**: Local setup may need authentication configuration updates
+- **API Endpoint Security**: ScriptRunner REST endpoints may have enhanced security requirements
+
+### Resolution Framework
+
+**Systematic Approach**:
+1. **Documentation Review**: Check ScriptRunner 9.21.0 authentication documentation
+2. **Community Resources**: Research ScriptRunner authentication best practices
+3. **Alternative Configuration**: Test different authentication approaches
+4. **Confluence Admin**: Verify user permissions and ScriptRunner settings
+5. **Container Reset**: Complete environment rebuild if configuration issues persist
+
+**Success Criteria**:
+- All 13 Admin GUI endpoints return HTTP 200 responses
+- AdminGuiAllEndpointsTest.groovy passes with 100% success rate
+- Admin GUI integration validation completed
+- US-031 Admin GUI Complete Integration achieves 100% completion
+
+### Pattern Application for Future Development
+
+**Authentication Debugging Pattern**:
+This investigation establishes systematic approach for ScriptRunner authentication issues:
+1. **Credential Verification**: Always verify .env loading and credential accuracy
+2. **Multi-Method Testing**: Test authentication through curl, integration tests, and browser
+3. **Infrastructure Validation**: Confirm container health and service accessibility
+4. **Session vs Basic Auth**: Understand authentication method requirements
+5. **Version Impact Analysis**: Consider platform upgrade impacts on authentication
+6. **Documentation Review**: Always check latest version documentation for auth changes
+
+**This authentication investigation pattern will be valuable for future ScriptRunner development and troubleshooting scenarios.**
