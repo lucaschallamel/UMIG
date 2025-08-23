@@ -45,6 +45,12 @@ class AdminGuiAllEndpointsTest {
     static final String AUTH_USERNAME = ENV.getProperty('POSTMAN_AUTH_USERNAME', 'admin')
     static final String AUTH_PASSWORD = ENV.getProperty('POSTMAN_AUTH_PASSWORD', 'admin')
     
+    static {
+        println "Debug: AUTH_USERNAME = ${AUTH_USERNAME}"
+        println "Debug: AUTH_PASSWORD = ${AUTH_PASSWORD}"
+        println "Debug: ENV loaded ${ENV.size()} properties"
+    }
+    
     // Database configuration
     static final String DB_URL = "jdbc:postgresql://localhost:5432/umig_app_db"
     static final String DB_USER = ENV.getProperty('UMIG_DB_USER', 'umig_app_user')
