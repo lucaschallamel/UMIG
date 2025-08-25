@@ -18,6 +18,57 @@ async function eraseUsersTable(client) {
 }
 
 /**
+ * Creates the ADM superadmin user with fixed credentials.
+ * This user is essential for Admin GUI authentication.
+ * @param {object} client - The PostgreSQL client.
+ * @param {object} rolesMap - Map of role codes to role IDs.
+ */
+async function createAdmUser(client, rolesMap) {
+  console.log("  - Creating ADM superadmin user...");
+
+  const adminRoleId = rolesMap["ADMIN"];
+  if (!adminRoleId) {
+    throw new Error("ADMIN role not found - required for ADM user creation");
+  }
+
+  const query = `
+    INSERT INTO users_usr (
+      usr_code, usr_first_name, usr_last_name, usr_email, 
+      usr_is_admin, rls_id, usr_active, created_by, created_at, updated_by, updated_at
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    ON CONFLICT (usr_code) 
+    DO UPDATE SET 
+      usr_is_admin = EXCLUDED.usr_is_admin,
+      usr_active = EXCLUDED.usr_active,
+      rls_id = EXCLUDED.rls_id,
+      updated_by = EXCLUDED.updated_by,
+      updated_at = EXCLUDED.updated_at;
+  `;
+
+  try {
+    await client.query(query, [
+      "ADM", // usr_code - fixed for authentication
+      "System", // usr_first_name
+      "Administrator", // usr_last_name
+      "admin@system.local", // usr_email
+      true, // usr_is_admin - superadmin flag
+      adminRoleId, // rls_id - ADMIN role
+      true, // usr_active - always active
+      "generator", // created_by
+      new Date(), // created_at
+      "generator", // updated_by
+      new Date(), // updated_at
+    ]);
+
+    console.log("    ✅ ADM superadmin user created/updated successfully");
+  } catch (error) {
+    console.error(`    ❌ Failed to create ADM user: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
  * Main function to generate different types of users.
  * @param {object} config - The main configuration object.
  * @param {object} options - Generation options, e.g., { reset: boolean }.
@@ -47,6 +98,9 @@ async function generateUsers(config, options = {}) {
       `Required roles (${requiredRoleNames.join(", ")}) not found in database.`,
     );
   }
+
+  // First, ensure the ADM superadmin user exists
+  await createAdmUser(client, rolesMap);
 
   for (const type in userTypes) {
     const count = userTypes[type].COUNT;

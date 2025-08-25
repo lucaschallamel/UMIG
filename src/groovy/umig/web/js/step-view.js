@@ -3464,7 +3464,7 @@ class StepView {
     try {
       console.log(
         "📊 StepView: Fetching statuses from:",
-        `${this.config.api.baseUrl}/statuses/step`,
+        `${this.config.api.baseUrl}/status?entityType=Step`,
       );
       console.log(
         "📊 StepView: Current Status (raw):",
@@ -3473,7 +3473,9 @@ class StepView {
         typeof currentStatus,
       );
 
-      const response = await fetch(`${this.config.api.baseUrl}/statuses/step`);
+      const response = await fetch(
+        `${this.config.api.baseUrl}/status?entityType=Step`,
+      );
 
       if (!response.ok) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);

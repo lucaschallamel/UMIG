@@ -482,14 +482,37 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 - Integration Test Expansion: ✅ Complete (US-022 - 95%+ coverage achieved)
 - API Documentation: ✅ Complete (US-030 - 100% comprehensive documentation)
 - StepView UI Refactoring: ✅ Complete (US-036 - Email notification system, RBAC, and comment system implemented)
-- Admin GUI Integration: 🚧 In Progress - All entity types with cross-module synchronization
+- Admin GUI Integration: 🚧 **Day 2/3 COMPLETE** - 11/13 entities functional, authentication blocker identified
 - Data Import Strategy: 🚧 Planned - CSV/Excel import with validation
 - Enhanced UIs: 🚧 In Progress - IterationView Phases 2-3 enhancements
 - UAT Preparation: 🚧 In Progress - Performance validation and deployment readiness
 
-**Sprint Status**: 3 of 8 stories complete, 12 of 23 actual points delivered  
-**Key Achievement**: US-036 comprehensive completion with email notification system, dual authentication, and enhanced RBAC  
-**Timeline**: MVP delivery target August 28, 2025
+**Sprint Status**: 3 of 8 stories complete, US-031 Day 2/3 complete with major technical achievements  
+**Key Achievement**: 11/13 Admin GUI entities functional, comprehensive integration test suite, 3 new critical ADRs (043, 044, 047)  
+**Critical Issue**: HTTP 401 authentication blocker isolated with actionable investigation steps  
+**Timeline**: On track for MVP delivery August 28, 2025 with core functionality demonstrable
+
+### 🔴 Current Critical Issues (Sprint 5 Day 3 - August 25, 2025)
+
+#### **Authentication Blocker - HTTP 401 Unauthorized**
+
+- **Status**: CRITICAL - All Admin GUI API endpoints returning 401
+- **Impact**: Cannot validate complete Admin GUI integration despite technical completion
+- **Root Cause**: ScriptRunner authentication context requires investigation
+- **Progress**: Issue isolated, credentials verified (admin:Spaceop!13)
+- **New ADRs Created**: ADR-043, ADR-044, ADR-047 document mandatory patterns for authentication and endpoint registration
+- **Next Steps**:
+  - Investigate ScriptRunner session-based vs Basic Auth requirements
+  - Verify Confluence user configuration and permissions
+  - Test UI-based authentication approach as alternative
+  - Implement patterns from new ADRs
+
+#### **Manual Endpoint Registration Pending**
+
+- **Status**: BLOCKED by authentication issue
+- **Scope**: 2/13 endpoints (phases, controls) require ScriptRunner UI registration
+- **Documentation**: Comprehensive registration guide created (`docs/technical/ENDPOINT_REGISTRATION_GUIDE.md`)
+- **Solution Framework**: ADR-044 provides mandatory endpoint registration patterns
 
 ### Step View System
 
@@ -543,6 +566,9 @@ The **Iteration View** is the primary runsheet interface for cutover events:
 5. **Security**: Include `groups: ["confluence-users"]` on all endpoints
 6. **Type Safety**: Use explicit casting (`as String`, `as UUID`) for all parameter conversions
 7. **Hierarchical Filtering**: Use instance IDs (pli_id, sqi_id, phi_id) not master IDs
+8. **Authentication Context**: Dual authentication support (ADR-043)
+9. **Endpoint Registration**: Mandatory ScriptRunner UI registration (ADR-044)
+10. **PostgreSQL Patterns**: Production-ready connection pooling (ADR-047)
 
 ### Code Quality Standards
 

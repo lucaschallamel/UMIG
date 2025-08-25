@@ -205,12 +205,21 @@ class MigrationRepository {
      */
     def findIterationById(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
-                SELECT ite_id, mig_id, plm_id, itt_code, ite_name, ite_description, ite_status,
-                       ite_static_cutover_date, ite_dynamic_cutover_date, created_by, created_at, updated_by, updated_at
-                FROM iterations_ite
-                WHERE ite_id = :iterationId
+            def iteration = sql.firstRow("""
+                SELECT ite.ite_id, ite.mig_id, ite.plm_id, ite.itt_code, ite.ite_name, ite.ite_description, ite.ite_status,
+                       ite.ite_static_cutover_date, ite.ite_dynamic_cutover_date, ite.created_by, ite.created_at, ite.updated_by, ite.updated_at,
+                       mig.mig_name as migration_name,
+                       plm.plm_name as master_plan_name,
+                       s.sts_id, s.sts_name, s.sts_color, s.sts_type
+                FROM iterations_ite ite
+                LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                LEFT JOIN plans_master_plm plm ON ite.plm_id = plm.plm_id
+                LEFT JOIN status_sts s ON ite.ite_status = s.sts_id
+                WHERE ite.ite_id = :iterationId
             """, [iterationId: iterationId])
+            
+            // If found, enrich with status metadata
+            return iteration ? enrichIterationWithStatusMetadata(iteration) : null
         }
     }
     /**
@@ -367,6 +376,9 @@ class MigrationRepository {
             created_at: row.created_at,
             updated_by: row.updated_by,
             updated_at: row.updated_at,
+            // Additional computed fields
+            migration_name: row.migration_name,
+            master_plan_name: row.master_plan_name,
             // Enhanced status metadata
             statusMetadata: [
                 id: row.sts_id,
@@ -744,7 +756,7 @@ class MigrationRepository {
             def placeholders = migrationIds.collect { '?' }.join(', ')
             
             def query = """
-                SELECT m.*, s.sts_name as status_name, u.usr_name as owner_name
+                SELECT m.*, s.sts_name as status_name, CONCAT(u.usr_first_name, ' ', u.usr_last_name) as owner_name
                 FROM migrations_mig m
                 LEFT JOIN status_sts s ON m.mig_status = s.sts_id
                 LEFT JOIN users_usr u ON m.usr_id_owner = u.usr_id
@@ -1135,6 +1147,14 @@ class MigrationRepository {
                 log.info("MigrationRepository.create() - Using default status: ${defaultStatus.sts_name} (ID: ${statusId})")
             }
             
+            // Validate mig_type
+            def migType = migrationData.mig_type ?: migrationData.type
+            def validTypes = ['EXTERNAL', 'INTERNAL', 'MAINTENANCE', 'ROLLBACK']
+            if (migType && !validTypes.contains(migType)) {
+                log.error("MigrationRepository.create() - Invalid mig_type '${migType}'. Valid types: ${validTypes}")
+                throw new IllegalArgumentException("Invalid migration type: ${migType}. Valid types: ${validTypes.join(', ')}")
+            }
+            
             // Generate UUID for the new migration
             def migrationId = UUID.randomUUID()
             
@@ -1163,21 +1183,21 @@ class MigrationRepository {
                 log.debug("MigrationRepository.create() - Using provided owner ID: ${ownerId}")
             } else {
                 // Get default system user - prefer admin, then any active user
-                def systemUser = sql.firstRow("SELECT usr_id, usr_name FROM users_usr WHERE usr_is_admin = true AND usr_active = true LIMIT 1")
+                def systemUser = sql.firstRow("SELECT usr_id, usr_first_name, usr_last_name FROM users_usr WHERE usr_is_admin = true AND usr_active = true LIMIT 1")
                 if (!systemUser) {
                     // If no admin exists, get any active user
-                    systemUser = sql.firstRow("SELECT usr_id, usr_name FROM users_usr WHERE usr_active = true LIMIT 1")
+                    systemUser = sql.firstRow("SELECT usr_id, usr_first_name, usr_last_name FROM users_usr WHERE usr_active = true LIMIT 1")
                 }
                 if (!systemUser) {
                     // Last resort - get any user
-                    systemUser = sql.firstRow("SELECT usr_id, usr_name FROM users_usr LIMIT 1")
+                    systemUser = sql.firstRow("SELECT usr_id, usr_first_name, usr_last_name FROM users_usr LIMIT 1")
                 }
                 if (!systemUser) {
                     log.error("MigrationRepository.create() - No users exist in the system")
                     throw new IllegalArgumentException("No users exist in the system. Cannot create migration without owner.")
                 }
                 ownerId = systemUser.usr_id
-                log.info("MigrationRepository.create() - Auto-assigned owner: ${systemUser.usr_name} (ID: ${ownerId})")
+                log.info("MigrationRepository.create() - Auto-assigned owner: ${systemUser.usr_first_name} ${systemUser.usr_last_name} (ID: ${ownerId})")
             }
             
             // Parse dates if they're strings
@@ -1216,7 +1236,7 @@ class MigrationRepository {
                 mig_name: (migrationData.mig_name ?: migrationData.name).toString(),
                 mig_description: (migrationData.mig_description ?: migrationData.description) as String,
                 mig_status: statusId,
-                mig_type: (migrationData.mig_type ?: migrationData.type ?: 'MIGRATION').toString(),
+                mig_type: (migrationData.mig_type ?: migrationData.type ?: 'EXTERNAL').toString(),
                 mig_start_date: parseDate(migrationData.mig_start_date ?: migrationData.startDate),
                 mig_end_date: parseDate(migrationData.mig_end_date ?: migrationData.endDate),
                 mig_business_cutover_date: parseDate(migrationData.mig_business_cutover_date ?: migrationData.businessCutoverDate),
@@ -1231,7 +1251,7 @@ class MigrationRepository {
                 
                 // Return the newly created migration
                 def createdMigration = findMigrationById(migrationId)
-                log.info("MigrationRepository.create() - Successfully created migration: ${createdMigration?.mig_id}")
+                log.info("MigrationRepository.create() - Successfully created migration: ${(createdMigration as Map)?.mig_id}")
                 return createdMigration
             } catch (java.sql.SQLException e) {
                 log.error("MigrationRepository.create() - SQL Exception. SQL State: ${e.SQLState}, Error Code: ${e.errorCode}, Message: ${e.message}. Params: ${params}", e)
@@ -1439,6 +1459,461 @@ class MigrationRepository {
         DatabaseUtil.withSql { sql ->
             def deleteQuery = "DELETE FROM migrations_mig WHERE mig_id = ?"
             def rowsDeleted = sql.executeUpdate(deleteQuery, [migrationId])
+            return rowsDeleted > 0
+        }
+    }
+    
+    // ========== ITERATION MANAGEMENT METHODS ==========
+    
+    /**
+     * Find all iterations with filters and pagination support.
+     * @param filters Map containing optional filters (search, migrationId, etc.)
+     * @param page Page number (1-based)
+     * @param size Number of records per page
+     * @param sortField Field to sort by
+     * @param sortDirection 'asc' or 'desc'
+     * @return Map containing data array and pagination metadata
+     */
+    def findIterationsWithFilters(Map filters = [:], int page = 1, int size = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            // Build the WHERE clause dynamically
+            def whereClauses = []
+            def params = [:]
+            
+            if (filters.search) {
+                whereClauses << "(ite.ite_name ILIKE :search OR ite.ite_description ILIKE :search)"
+                params.search = "%${filters.search}%"
+            }
+            
+            if (filters.migrationId) {
+                whereClauses << "ite.mig_id = :migrationId"
+                params.migrationId = filters.migrationId
+            }
+            
+            def whereClause = whereClauses.empty ? "" : "WHERE " + whereClauses.join(" AND ")
+            
+            // Build ORDER BY clause
+            def orderBy = ""
+            if (sortField) {
+                def direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+                // Handle special fields that are not prefixed with ite. table
+                if (sortField == 'migration_name') {
+                    orderBy = "ORDER BY migration_name ${direction}"
+                } else if (sortField == 'master_plan_name') {
+                    orderBy = "ORDER BY master_plan_name ${direction}"
+                } else {
+                    orderBy = "ORDER BY ite.${sortField} ${direction}"
+                }
+            } else {
+                // Default stable sort: migration name first, then iteration ID for consistency
+                orderBy = "ORDER BY migration_name ASC, ite.ite_id ASC"
+            }
+            
+            // Count total records for pagination
+            def countQuery = """
+                SELECT COUNT(*) as total
+                FROM iterations_ite ite
+                LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                ${whereClause}
+            """
+            
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Calculate pagination
+            def offset = (page - 1) * size
+            def totalPages = (int) Math.ceil((double) totalCount / (double) size)
+            
+            // Main query with joins for additional context
+            def dataQuery = """
+                SELECT ite.ite_id, ite.mig_id, ite.plm_id, ite.itt_code, ite.ite_name, ite.ite_description, 
+                       ite.ite_status, ite.ite_static_cutover_date, ite.ite_dynamic_cutover_date,
+                       ite.created_by, ite.created_at, ite.updated_by, ite.updated_at,
+                       mig.mig_name as migration_name,
+                       plm.plm_name as master_plan_name,
+                       s.sts_id, s.sts_name, s.sts_color, s.sts_type
+                FROM iterations_ite ite
+                LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                LEFT JOIN plans_master_plm plm ON ite.plm_id = plm.plm_id
+                LEFT JOIN status_sts s ON ite.ite_status = s.sts_id
+                ${whereClause}
+                ${orderBy}
+                LIMIT :limit OFFSET :offset
+            """
+            
+            params.limit = size
+            params.offset = offset
+            
+            def iterations = sql.rows(dataQuery, params)
+            
+            // Enrich iterations with status metadata
+            def enrichedIterations = iterations.collect { row ->
+                return enrichIterationWithStatusMetadata(row)
+            }
+            
+            return [
+                data: enrichedIterations,
+                pagination: [
+                    page: page,
+                    size: size,
+                    total: totalCount,
+                    totalPages: totalPages
+                ]
+            ]
+        }
+    }
+    
+    /**
+     * Creates a new iteration.
+     * @param iterationData Map containing iteration data
+     * @return Map representing the created iteration
+     */
+    def createIteration(Map iterationData) {
+        DatabaseUtil.withSql { sql ->
+            log.info("MigrationRepository.createIteration() - Input data: ${iterationData}")
+            
+            def iterationId = UUID.randomUUID()
+            def currentTime = new Date()
+            def createdBy = "system" // You might want to get this from context
+            
+            // Validate required fields first
+            if (!iterationData.ite_name && !iterationData.name) {
+                log.error("MigrationRepository.createIteration() - Missing iteration name in data: ${iterationData}")
+                throw new IllegalArgumentException("Iteration name is required")
+            }
+            if (!iterationData.mig_id && !iterationData.migrationId) {
+                log.error("MigrationRepository.createIteration() - Missing migration ID in data: ${iterationData}")
+                throw new IllegalArgumentException("Migration ID is required")
+            }
+            
+            // Handle status - convert string name to ID if needed (following migration pattern)
+            def statusId = null
+            def statusValue = iterationData.ite_status ?: iterationData.status
+            log.debug("MigrationRepository.createIteration() - Processing status value: ${statusValue} (type: ${statusValue?.getClass()?.simpleName})")
+            
+            if (statusValue) {
+                // Check if it's a string (status name) or integer (status ID)
+                if (statusValue instanceof String) {
+                    // Look up the status ID by name
+                    def statusRow = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_name = :statusName AND sts_type = 'Iteration'",
+                        [statusName: statusValue]
+                    )
+                    if (!statusRow) {
+                        log.error("MigrationRepository.createIteration() - Invalid status name '${statusValue}'. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Iteration\'').collect { it.sts_name }}")
+                        throw new IllegalArgumentException("Invalid status name: ${statusValue}. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Iteration\'').collect { it.sts_name }.join(', ')}")
+                    }
+                    statusId = statusRow.sts_id
+                    log.debug("MigrationRepository.createIteration() - Resolved status '${statusValue}' to ID: ${statusId}")
+                } else {
+                    // It's already an integer ID - validate it exists
+                    statusId = statusValue as Integer
+                    def statusExists = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Iteration'",
+                        [statusId: statusId]
+                    )
+                    if (!statusExists) {
+                        log.error("MigrationRepository.createIteration() - Invalid status ID: ${statusId}")
+                        throw new IllegalArgumentException("Invalid status ID: ${statusId}")
+                    }
+                    log.debug("MigrationRepository.createIteration() - Validated status ID: ${statusId}")
+                }
+            } else {
+                // Set default status if not provided
+                def defaultStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'DRAFT' AND sts_type = 'Iteration'")
+                if (!defaultStatus) {
+                    // Try alternative default status names
+                    defaultStatus = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name IN ('Draft', 'New', 'Planning') AND sts_type = 'Iteration' ORDER BY sts_name LIMIT 1")
+                    if (!defaultStatus) {
+                        log.error("MigrationRepository.createIteration() - No default status found. Available iteration statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Iteration\'').collect { it.sts_name }}")
+                        throw new IllegalArgumentException("No default status found in database. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Iteration\'').collect { it.sts_name }.join(', ')}")
+                    }
+                }
+                statusId = defaultStatus.sts_id
+                log.info("MigrationRepository.createIteration() - Using default status ID: ${statusId}")
+            }
+            
+            // Parse dates properly (following migration pattern)
+            def parseDate = { dateValue ->
+                if (!dateValue) return null
+                if (dateValue instanceof java.sql.Date || dateValue instanceof java.sql.Timestamp) return dateValue
+                if (dateValue instanceof Date) {
+                    return new java.sql.Date(dateValue.time)
+                }
+                if (dateValue instanceof String) {
+                    try {
+                        def parsedDate = Date.parse('yyyy-MM-dd', dateValue)
+                        return new java.sql.Date(parsedDate.time)
+                    } catch (Exception e) {
+                        // Try ISO format with time
+                        try {
+                            def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss", dateValue)
+                            return new java.sql.Timestamp(parsedDate.time)
+                        } catch (Exception e2) {
+                            try {
+                                def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS", dateValue)
+                                return new java.sql.Timestamp(parsedDate.time)
+                            } catch (Exception e3) {
+                                log.warn("MigrationRepository.createIteration() - Failed to parse date string: ${dateValue}")
+                                return null
+                            }
+                        }
+                    }
+                }
+                return null
+            }
+            
+            // Map field names with proper type casting (ADR-031)
+            def iteData = [
+                ite_id: iterationId,
+                mig_id: UUID.fromString((iterationData.mig_id ?: iterationData.migrationId) as String),
+                plm_id: iterationData.plm_id ? UUID.fromString(iterationData.plm_id as String) : null,
+                itt_code: iterationData.itt_code ? (iterationData.itt_code as String) : null,
+                ite_name: (iterationData.ite_name ?: iterationData.name) as String,
+                ite_description: (iterationData.ite_description ?: iterationData.description) as String,
+                ite_status: statusId,
+                ite_static_cutover_date: parseDate(iterationData.ite_static_cutover_date ?: iterationData.staticCutoverDate),
+                ite_dynamic_cutover_date: parseDate(iterationData.ite_dynamic_cutover_date ?: iterationData.dynamicCutoverDate),
+                created_by: createdBy as String,
+                created_at: currentTime,
+                updated_by: createdBy as String,
+                updated_at: currentTime
+            ]
+            
+            def insertQuery = """
+                INSERT INTO iterations_ite (
+                    ite_id, mig_id, plm_id, itt_code, ite_name, ite_description, ite_status,
+                    ite_static_cutover_date, ite_dynamic_cutover_date, created_by, created_at, updated_by, updated_at
+                ) VALUES (
+                    :ite_id, :mig_id, :plm_id, :itt_code, :ite_name, :ite_description, :ite_status,
+                    :ite_static_cutover_date, :ite_dynamic_cutover_date, :created_by, :created_at, :updated_by, :updated_at
+                )
+            """
+            
+            try {
+                log.info("MigrationRepository.createIteration() - Executing insert with params: ${iteData.findAll { k, v -> k != 'ite_description' }}")
+                def rowsInserted = sql.executeUpdate(insertQuery, iteData)
+                log.info("MigrationRepository.createIteration() - Insert result: ${rowsInserted} rows")
+                
+                if (rowsInserted > 0) {
+                    def createdIteration = findIterationById(iterationId)
+                    log.info("MigrationRepository.createIteration() - Successfully created iteration: ${iterationId}")
+                    return createdIteration
+                } else {
+                    log.error("MigrationRepository.createIteration() - No rows inserted")
+                    throw new RuntimeException("Failed to create iteration - no rows inserted")
+                }
+            } catch (java.sql.SQLException e) {
+                log.error("MigrationRepository.createIteration() - SQL Exception. SQL State: ${e.SQLState}, Error Code: ${e.errorCode}, Message: ${e.message}. Params: ${iteData}", e)
+                
+                // Provide specific error messages for common SQL errors
+                if (e.SQLState == '23503') {
+                    if (e.message?.contains('mig_id')) {
+                        throw new IllegalArgumentException("Invalid migration ID ${iteData.mig_id} - migration does not exist")
+                    } else if (e.message?.contains('ite_status')) {
+                        throw new IllegalArgumentException("Invalid status ID ${iteData.ite_status} - status does not exist")
+                    }
+                    throw new IllegalArgumentException("Foreign key constraint violation: ${e.message}")
+                } else if (e.SQLState == '23505') {
+                    if (e.message?.contains('ite_name')) {
+                        throw new IllegalArgumentException("An iteration with the name '${iteData.ite_name}' already exists")
+                    }
+                    throw new IllegalArgumentException("Unique constraint violation: ${e.message}")
+                } else if (e.SQLState == '23502') {
+                    throw new IllegalArgumentException("Missing required field: ${e.message}")
+                }
+                throw e
+            } catch (Exception e) {
+                log.error("MigrationRepository.createIteration() - Unexpected error during iteration creation. Params: ${iteData}", e)
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * Updates an iteration.
+     * @param iterationId The UUID of the iteration to update
+     * @param iterationData Map containing updated iteration data
+     * @return Map representing the updated iteration, or null if not found
+     */
+    def updateIteration(UUID iterationId, Map iterationData) {
+        DatabaseUtil.withSql { sql ->
+            log.info("MigrationRepository.updateIteration() - Updating iteration ${iterationId} with data: ${iterationData}")
+            
+            def updateFields = []
+            def params = [ite_id: iterationId] as Map<String, Object>
+            def updatedBy = "system" // You might want to get this from context
+            def currentTime = new Date()
+            
+            // Add updated_at and updated_by to all updates
+            updateFields << "updated_at = :updated_at"
+            updateFields << "updated_by = :updated_by"
+            params.updated_at = new java.sql.Timestamp(currentTime.time) // Convert java.util.Date to java.sql.Timestamp
+            params.updated_by = updatedBy as String
+            
+            // Parse dates properly (same logic as createIteration)
+            def parseDate = { dateValue ->
+                if (!dateValue) return null
+                if (dateValue instanceof java.sql.Date || dateValue instanceof java.sql.Timestamp) return dateValue
+                if (dateValue instanceof Date) {
+                    return new java.sql.Date(dateValue.time)
+                }
+                if (dateValue instanceof String) {
+                    try {
+                        def parsedDate = Date.parse('yyyy-MM-dd', dateValue)
+                        return new java.sql.Date(parsedDate.time)
+                    } catch (Exception e) {
+                        // Try ISO format with time
+                        try {
+                            def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss", dateValue)
+                            return new java.sql.Timestamp(parsedDate.time)
+                        } catch (Exception e2) {
+                            try {
+                                def parsedDate = Date.parse("yyyy-MM-dd'T'HH:mm:ss.SSS", dateValue)
+                                return new java.sql.Timestamp(parsedDate.time)
+                            } catch (Exception e3) {
+                                log.warn("MigrationRepository.updateIteration() - Failed to parse date string: ${dateValue}, using as-is")
+                                return dateValue // Let database handle it
+                            }
+                        }
+                    }
+                }
+                return dateValue // Already a Date object or other type
+            }
+            
+            // Build dynamic update based on provided fields with proper type casting (ADR-031)
+            if (iterationData.ite_name || iterationData.name) {
+                updateFields << "ite_name = :ite_name"
+                params.ite_name = (iterationData.ite_name ?: iterationData.name) as String
+                log.debug("MigrationRepository.updateIteration() - Updating name to: ${params.ite_name}")
+            }
+            
+            if (iterationData.ite_description || iterationData.description) {
+                updateFields << "ite_description = :ite_description"
+                params.ite_description = (iterationData.ite_description ?: iterationData.description) as String
+                log.debug("MigrationRepository.updateIteration() - Updating description")
+            }
+            
+            // Handle status properly - convert string to ID if needed
+            if (iterationData.ite_status || iterationData.status) {
+                updateFields << "ite_status = :ite_status"
+                def statusValue = iterationData.ite_status ?: iterationData.status
+                log.debug("MigrationRepository.updateIteration() - Processing status update: ${statusValue} (type: ${statusValue?.getClass()?.simpleName})")
+                
+                // Handle both string names and integer IDs
+                if (statusValue instanceof String) {
+                    // Look up the status ID by name
+                    def statusRow = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_name = :statusName AND sts_type = 'Iteration'",
+                        [statusName: statusValue]
+                    )
+                    if (!statusRow) {
+                        log.error("MigrationRepository.updateIteration() - Invalid status name '${statusValue}'. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Iteration\'').collect { it.sts_name }}")
+                        throw new IllegalArgumentException("Invalid status name: ${statusValue}. Available statuses: ${sql.rows('SELECT sts_name FROM status_sts WHERE sts_type = \'Iteration\'').collect { it.sts_name }.join(', ')}")
+                    }
+                    params.ite_status = statusRow.sts_id
+                    log.debug("MigrationRepository.updateIteration() - Resolved status '${statusValue}' to ID: ${statusRow.sts_id}")
+                } else {
+                    // It's already an integer ID - validate it exists
+                    def statusId = statusValue as Integer
+                    def statusExists = sql.firstRow(
+                        "SELECT sts_id FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Iteration'",
+                        [statusId: statusId]
+                    )
+                    if (!statusExists) {
+                        log.error("MigrationRepository.updateIteration() - Invalid status ID: ${statusId}")
+                        throw new IllegalArgumentException("Invalid status ID: ${statusId}")
+                    }
+                    params.ite_status = statusId
+                    log.debug("MigrationRepository.updateIteration() - Validated status ID: ${statusId}")
+                }
+            }
+            
+            if (iterationData.ite_static_cutover_date || iterationData.staticCutoverDate) {
+                updateFields << "ite_static_cutover_date = :ite_static_cutover_date"
+                def rawDate = iterationData.ite_static_cutover_date ?: iterationData.staticCutoverDate
+                params.ite_static_cutover_date = parseDate(rawDate)
+                log.debug("MigrationRepository.updateIteration() - Parsed static cutover date: ${rawDate} -> ${params.ite_static_cutover_date}")
+            }
+            
+            if (iterationData.ite_dynamic_cutover_date || iterationData.dynamicCutoverDate) {
+                updateFields << "ite_dynamic_cutover_date = :ite_dynamic_cutover_date"
+                def rawDate = iterationData.ite_dynamic_cutover_date ?: iterationData.dynamicCutoverDate
+                params.ite_dynamic_cutover_date = parseDate(rawDate)
+                log.debug("MigrationRepository.updateIteration() - Parsed dynamic cutover date: ${rawDate} -> ${params.ite_dynamic_cutover_date}")
+            }
+            
+            if (iterationData.itt_code) {
+                updateFields << "itt_code = :itt_code"
+                params.itt_code = iterationData.itt_code ? (iterationData.itt_code as String) : null
+                log.debug("MigrationRepository.updateIteration() - Updating itt_code to: ${params.itt_code}")
+            }
+            
+            if (iterationData.plm_id) {
+                updateFields << "plm_id = :plm_id"
+                params.plm_id = iterationData.plm_id ? UUID.fromString(iterationData.plm_id as String) : null
+                log.debug("MigrationRepository.updateIteration() - Updating plm_id to: ${params.plm_id}")
+            }
+            
+            if (updateFields.size() <= 2) { // Only updated_at and updated_by
+                log.warn("MigrationRepository.updateIteration() - No fields to update for iteration ${iterationId}")
+                return findIterationById(iterationId) // Return existing iteration
+            }
+            
+            def updateQuery = """
+                UPDATE iterations_ite 
+                SET ${updateFields.join(', ')}
+                WHERE ite_id = :ite_id
+            """
+            
+            try {
+                log.info("MigrationRepository.updateIteration() - Executing update query with params: ${params.findAll { k, v -> k != 'ite_description' }}")
+                def rowsUpdated = sql.executeUpdate(updateQuery, params)
+                log.info("MigrationRepository.updateIteration() - Updated ${rowsUpdated} rows for iteration ${iterationId}")
+                
+                if (rowsUpdated > 0) {
+                    def updatedIteration = findIterationById(iterationId)
+                    log.info("MigrationRepository.updateIteration() - Successfully updated iteration: ${iterationId}")
+                    return updatedIteration
+                } else {
+                    log.warn("MigrationRepository.updateIteration() - No rows updated for iteration ${iterationId} - iteration may not exist")
+                    return null // Iteration not found
+                }
+            } catch (java.sql.SQLException e) {
+                log.error("MigrationRepository.updateIteration() - SQL Exception. SQL State: ${e.SQLState}, Error Code: ${e.errorCode}, Message: ${e.message}. Params: ${params}", e)
+                
+                // Provide specific error messages for common SQL errors
+                if (e.SQLState == '23503') {
+                    if (e.message?.contains('plm_id')) {
+                        throw new IllegalArgumentException("Invalid plan ID ${params.plm_id} - plan does not exist")
+                    } else if (e.message?.contains('ite_status')) {
+                        throw new IllegalArgumentException("Invalid status ID ${params.ite_status} - status does not exist")
+                    }
+                    throw new IllegalArgumentException("Foreign key constraint violation: ${e.message}")
+                } else if (e.SQLState == '23505') {
+                    if (e.message?.contains('ite_name')) {
+                        throw new IllegalArgumentException("An iteration with the name '${params.ite_name}' already exists")
+                    }
+                    throw new IllegalArgumentException("Unique constraint violation: ${e.message}")
+                } else if (e.SQLState == '23502') {
+                    throw new IllegalArgumentException("Missing required field: ${e.message}")
+                }
+                throw e
+            } catch (Exception e) {
+                log.error("MigrationRepository.updateIteration() - Unexpected error during iteration update. Params: ${params}", e)
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * Deletes an iteration.
+     * @param iterationId The UUID of the iteration to delete
+     * @return true if deleted, false if not found
+     */
+    def deleteIteration(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM iterations_ite WHERE ite_id = ?"
+            def rowsDeleted = sql.executeUpdate(deleteQuery, [iterationId])
             return rowsDeleted > 0
         }
     }

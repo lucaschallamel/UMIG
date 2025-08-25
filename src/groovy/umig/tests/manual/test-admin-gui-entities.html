@@ -1,55 +1,56 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>Admin GUI Entity Test</title>
     <script src="../../web/js/EntityConfig.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <h1>EntityConfig Test</h1>
     <div id="output"></div>
-    
+
     <script>
-        // Test if EntityConfig loads properly
-        if (typeof EntityConfig !== 'undefined') {
-            const entities = EntityConfig.getAllEntities();
-            const output = document.getElementById('output');
-            
-            // Check for our new entities
-            const newEntities = ['plans', 'sequences', 'phases'];
-            let html = '<h2>New Entities Status:</h2><ul>';
-            
-            newEntities.forEach(entityName => {
-                const entity = entities[entityName];
-                if (entity) {
-                    html += `<li style="color: green;">✓ ${entityName}: ${entity.name} - ${entity.description}</li>`;
-                    html += `<ul>`;
-                    html += `<li>Fields: ${entity.fields.length}</li>`;
-                    html += `<li>Table Columns: ${entity.tableColumns.join(', ')}</li>`;
-                    html += `<li>Filters: ${entity.filters ? entity.filters.length : 0}</li>`;
-                    html += `</ul>`;
-                } else {
-                    html += `<li style="color: red;">✗ ${entityName}: NOT FOUND</li>`;
-                }
-            });
-            
-            html += '</ul>';
-            
-            // Show API endpoints
-            const apiConfig = EntityConfig.getApiConfig();
-            html += '<h2>API Endpoints:</h2><ul>';
-            ['plans', 'sequences', 'phases'].forEach(endpoint => {
-                if (apiConfig.endpoints[endpoint]) {
-                    html += `<li style="color: green;">✓ ${endpoint}: ${apiConfig.endpoints[endpoint]}</li>`;
-                } else {
-                    html += `<li style="color: red;">✗ ${endpoint}: NOT CONFIGURED</li>`;
-                }
-            });
-            html += '</ul>';
-            
-            output.innerHTML = html;
-        } else {
-            document.getElementById('output').innerHTML = '<p style="color: red;">EntityConfig not loaded!</p>';
-        }
+      // Test if EntityConfig loads properly
+      if (typeof EntityConfig !== "undefined") {
+        const entities = EntityConfig.getAllEntities();
+        const output = document.getElementById("output");
+
+        // Check for our new entities
+        const newEntities = ["plans", "sequences", "phases"];
+        let html = "<h2>New Entities Status:</h2><ul>";
+
+        newEntities.forEach((entityName) => {
+          const entity = entities[entityName];
+          if (entity) {
+            html += `<li style="color: green;">✓ ${entityName}: ${entity.name} - ${entity.description}</li>`;
+            html += `<ul>`;
+            html += `<li>Fields: ${entity.fields.length}</li>`;
+            html += `<li>Table Columns: ${entity.tableColumns.join(", ")}</li>`;
+            html += `<li>Filters: ${entity.filters ? entity.filters.length : 0}</li>`;
+            html += `</ul>`;
+          } else {
+            html += `<li style="color: red;">✗ ${entityName}: NOT FOUND</li>`;
+          }
+        });
+
+        html += "</ul>";
+
+        // Show API endpoints
+        const apiConfig = EntityConfig.getApiConfig();
+        html += "<h2>API Endpoints:</h2><ul>";
+        ["plans", "sequences", "phases"].forEach((endpoint) => {
+          if (apiConfig.endpoints[endpoint]) {
+            html += `<li style="color: green;">✓ ${endpoint}: ${apiConfig.endpoints[endpoint]}</li>`;
+          } else {
+            html += `<li style="color: red;">✗ ${endpoint}: NOT CONFIGURED</li>`;
+          }
+        });
+        html += "</ul>";
+
+        output.innerHTML = html;
+      } else {
+        document.getElementById("output").innerHTML =
+          '<p style="color: red;">EntityConfig not loaded!</p>';
+      }
     </script>
-</body>
+  </body>
 </html>

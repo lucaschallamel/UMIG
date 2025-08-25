@@ -100,7 +100,7 @@ plans(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
 
             // Validate sort field
-            def allowedSortFields = ['plm_id', 'plm_name', 'plm_status', 'created_at', 'updated_at', 'sequence_count', 'instance_count']
+            def allowedSortFields = ['plm_id', 'plm_name', 'plm_status', 'created_at', 'updated_at', 'sequence_count', 'instance_count', 'tms_name']
             if (sortField && !allowedSortFields.contains(sortField)) {
                 return Response.status(400)
                     .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())
@@ -279,6 +279,11 @@ plans(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "Missing required fields: ${missingFields.join(', ')}"]).toString())
                     .build()
+            }
+            
+            // Type safety: Convert tms_id to integer (ADR-031)
+            if (requestData.tms_id) {
+                requestData.tms_id = Integer.parseInt(requestData.tms_id as String)
             }
             
             // Create master plan

@@ -57,7 +57,10 @@
 
       // Date/time picker events
       document.addEventListener("change", (e) => {
-        if (e.target.matches("input[type='date']") || e.target.matches("input[type='time']")) {
+        if (
+          e.target.matches("input[type='date']") ||
+          e.target.matches("input[type='time']")
+        ) {
           this.handleDateTimeChange(e);
         }
       });
@@ -425,6 +428,33 @@
             `;
 
       document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+      // Apply status colors after modal is rendered
+      this.waitForModal("viewModal", 2000)
+        .then((modal) => {
+          if (window.StatusColorService) {
+            console.log("✅ Applying status colors to view modal");
+            // Map entityType to status entity type
+            const statusEntityTypeMap = {
+              migrations: "Migration",
+              iterations: "Iteration",
+              plans: "Plan",
+              sequences: "Sequence",
+              phases: "Phase",
+              steps: "Step",
+              instructions: "Instruction",
+            };
+            const statusEntityType =
+              statusEntityTypeMap[entityType] || entityType;
+            window.StatusColorService.applyStatusColors(
+              modal,
+              statusEntityType,
+            );
+          }
+        })
+        .catch((error) => {
+          console.warn("View modal not ready for status colors:", error);
+        });
     },
 
     /**
@@ -436,15 +466,43 @@
     buildEntityDetails: function (entity, entityConfig) {
       let detailsHtml = '<div class="entity-details">';
 
-      // Show ALL fields in view modal, not just readonly/computed ones
+      // Use modalFields if configured, otherwise use all fields
+      const fieldsToShow =
+        entityConfig.modalFields || entityConfig.fields.map((f) => f.key);
+      const fieldLookup = {};
       entityConfig.fields.forEach((field) => {
+        fieldLookup[field.key] = field;
+      });
+
+      fieldsToShow.forEach((fieldKey) => {
+        const field = fieldLookup[fieldKey];
+        if (!field) {
+          console.warn(
+            `Field ${fieldKey} not found in entity configuration for ${entityConfig.name}`,
+          );
+          return;
+        }
+
+        // Skip fields marked as hideInView in VIEW mode
+        if (field.hideInView === true) {
+          console.log(
+            `Skipping field ${fieldKey} in VIEW mode (hideInView: true)`,
+          );
+          return;
+        }
+
         const value = entity[field.key];
-        const formattedValue = this.formatFieldValue(value, field, entity, entityConfig);
+        const formattedValue = this.formatFieldValue(
+          value,
+          field,
+          entity,
+          entityConfig,
+        );
 
         detailsHtml += `
                     <div class="detail-field">
                         <label>${field.label}:</label>
-                        <span>${formattedValue}</span>
+                        <div class="field-value">${formattedValue}</div>
                     </div>
                 `;
       });
@@ -460,15 +518,32 @@
      * @param {boolean} isCreate - Whether this is create mode
      */
     showEntityForm: function (data, entityType, isCreate) {
+      console.log(
+        `🔧 showEntityForm called: entityType=${entityType}, isCreate=${isCreate}, hasData=${!!data}`,
+      );
+
       const entityConfig = window.EntityConfig
         ? window.EntityConfig.getEntity(entityType)
         : null;
       if (!entityConfig) {
-        console.error("Entity configuration not found:", entityType);
+        console.error("❌ Entity configuration not found:", entityType);
+        console.log(
+          "Available entity types:",
+          window.EntityConfig
+            ? Object.keys(window.EntityConfig.entities || {})
+            : "EntityConfig not loaded",
+        );
         return;
       }
 
+      console.log(`✅ Entity config loaded for: ${entityConfig.name}`);
+
       const formHtml = this.buildEntityForm(data, entityConfig, isCreate);
+      if (!formHtml) {
+        console.error("❌ Form HTML generation failed for entity:", entityType);
+        return;
+      }
+
       const modalTitle = isCreate
         ? `Add ${entityConfig.name.slice(0, -1)}`
         : `Edit ${entityConfig.name.slice(0, -1)}`;
@@ -493,15 +568,87 @@
                 </div>
             `;
 
-      document.body.insertAdjacentHTML("beforeend", modalHtml);
-
-      // Set form data if editing
-      if (data && !isCreate) {
-        this.setFormData(data, entityConfig);
+      // Remove any existing modals to prevent conflicts
+      const existingModal = document.getElementById("editModal");
+      if (existingModal) {
+        console.log("Removing existing modal to prevent conflicts");
+        existingModal.remove();
       }
 
-      // Populate entity-type selects
-      this.populateEntityTypeSelects(entityConfig, data);
+      // Insert modal HTML
+      try {
+        document.body.insertAdjacentHTML("beforeend", modalHtml);
+        console.log(`📋 Modal HTML inserted for entity: ${entityConfig.name}`);
+      } catch (error) {
+        console.error("❌ Failed to insert modal HTML:", error);
+        if (window.UiUtils) {
+          window.UiUtils.showNotification(
+            "Error: Failed to create modal",
+            "error",
+          );
+        }
+        return;
+      }
+
+      // Wait for modal to be properly inserted and rendered in DOM
+      this.waitForModal("editModal", 5000)
+        .then((modal) => {
+          console.log(`✅ Modal ready for entity: ${entityConfig.name}`);
+
+          // Additional check for form element
+          const form = modal.querySelector("#entityForm");
+          if (!form) {
+            console.error(
+              "Form not found in modal - DOM may not be fully ready",
+            );
+            return;
+          }
+
+          console.log(
+            `=== Initializing modal for entity: ${entityConfig.name} ===`,
+          );
+          console.log(
+            "Modal fields to render:",
+            entityConfig.modalFields || entityConfig.fields?.map((f) => f.key),
+          );
+
+          try {
+            this.populateEntityTypeSelects(entityConfig, data);
+          } catch (error) {
+            console.error("Error populating entity type selects:", error);
+          }
+
+          // Set form data if editing - moved here to ensure DOM is ready
+          if (data && !isCreate) {
+            console.log(`=== Setting form data for ${entityConfig.name} ===`);
+            console.log("Data being set:", data);
+            try {
+              this.setFormData(data, entityConfig);
+            } catch (error) {
+              console.error("Error setting form data:", error);
+            }
+            // Add debugging for datetime fields
+            console.log(
+              "Setting form data for datetime fields:",
+              this.debugDatetimeFields(data, entityConfig),
+            );
+          }
+
+          // Setup field dependencies after everything is populated
+          this.setupFieldDependencies(entityConfig, data);
+        })
+        .catch((error) => {
+          console.error(
+            "Modal readiness timeout - DOM may not be ready:",
+            error,
+          );
+          if (window.UiUtils) {
+            window.UiUtils.showNotification(
+              "Error: Modal failed to load properly",
+              "error",
+            );
+          }
+        });
     },
 
     /**
@@ -514,15 +661,37 @@
     buildEntityForm: function (data, entityConfig, isCreate) {
       let formHtml = '<form id="entityForm">';
 
-      // Add hidden ID field for updates
-      if (!isCreate && data) {
-        // Find the primary key field (usually the first field)
-        const idField = entityConfig.fields[0];
-        if (idField && data[idField.key]) {
-          // Use the actual field key (e.g., usr_id, tms_id, etc.) instead of generic 'id'
-          formHtml += `<input type="hidden" name="${idField.key}" value="${data[idField.key]}">`;
+      // Use modalFields if configured, otherwise use all fields
+      const fieldsToProcess =
+        entityConfig.modalFields || entityConfig.fields.map((f) => f.key);
+      const fieldLookup = {};
+      entityConfig.fields.forEach((field) => {
+        fieldLookup[field.key] = field;
+      });
+
+      // Debug logging for migrations and iterations entities
+      if (
+        entityConfig.name === "Migrations" ||
+        entityConfig.name === "Iterations"
+      ) {
+        console.log(`=== ${entityConfig.name} Modal Debug ===`);
+        console.log("Entity config:", entityConfig);
+        console.log("Data received:", data);
+        console.log("Fields to process:", fieldsToProcess);
+        console.log("Field lookup:", fieldLookup);
+        console.log("Is create mode:", isCreate);
+
+        // Specific debugging for status fields
+        if (entityConfig.name === "Iterations" && data) {
+          console.log("Iterations status field data:", {
+            ite_status: data.ite_status,
+            statusType: typeof data.ite_status,
+            allDataKeys: Object.keys(data),
+          });
         }
       }
+
+      // Readonly fields are now included as visible disabled fields in the form
 
       // Add association management for environments (only when editing)
       if (entityConfig.name === "Environments" && data && !isCreate) {
@@ -541,10 +710,34 @@
                 `;
       }
 
-      // Add form fields
-      entityConfig.fields.forEach((field) => {
-        if (!field.readonly && !field.computed) {
-          formHtml += this.buildFormField(field, data);
+      // Add visible form fields (respecting modalFields configuration)
+      fieldsToProcess.forEach((fieldKey) => {
+        const field = fieldLookup[fieldKey];
+        if (
+          entityConfig.name === "Migrations" ||
+          entityConfig.name === "Iterations"
+        ) {
+          console.log(`Processing field ${fieldKey}:`, {
+            field: field,
+            exists: !!field,
+            type: field?.type,
+            computed: field?.computed,
+            readonly: field?.readonly,
+            dataValue: data?.[fieldKey],
+            hasOptions: !!field?.options,
+            options: field?.options,
+          });
+        }
+        if (field && !field.computed) {
+          // Skip fields marked as hideInEdit in EDIT mode
+          if (!isCreate && field.hideInEdit === true) {
+            console.log(
+              `Skipping field ${fieldKey} in EDIT mode (hideInEdit: true)`,
+            );
+            return;
+          }
+          // Include readonly fields as visible disabled fields, and editable fields as normal
+          formHtml += this.buildFormField(field, data, isCreate);
         }
       });
 
@@ -556,35 +749,47 @@
      * Build form field HTML
      * @param {Object} field - Field configuration
      * @param {Object} data - Entity data
+     * @param {boolean} isCreate - Whether this is create mode (affects readonly field handling)
      * @returns {string} Field HTML
      */
-    buildFormField: function (field, data) {
+    buildFormField: function (field, data, isCreate) {
       const value = data ? data[field.key] : "";
-      const required = field.required ? "required" : "";
+      const required = field.required && !field.readonly ? "required" : "";
       const maxLength = field.maxLength ? `maxlength="${field.maxLength}"` : "";
+      const disabled = field.readonly ? "disabled" : "";
+      const readonlyClass = field.readonly ? " readonly-field" : "";
 
-      let fieldHtml = `<div class="form-group">`;
-      fieldHtml += `<label for="${field.key}">${field.label}${field.required ? " *" : ""}</label>`;
+      let fieldHtml = `<div class="form-group${readonlyClass}">`;
+      fieldHtml += `<label for="${field.key}">${field.label}${field.required && !field.readonly ? " *" : ""}</label>`;
 
       switch (field.type) {
         case "text":
         case "email":
-          fieldHtml += `<input type="${field.type}" id="${field.key}" name="${field.key}" value="${value}" ${required} ${maxLength}>`;
+          fieldHtml += `<input type="${field.type}" id="${field.key}" name="${field.key}" value="${value}" ${required} ${maxLength} ${disabled}>`;
           break;
 
         case "textarea":
-          fieldHtml += `<textarea id="${field.key}" name="${field.key}" ${required} ${maxLength}>${value}</textarea>`;
+          fieldHtml += `<textarea id="${field.key}" name="${field.key}" ${required} ${maxLength} ${disabled}>${value}</textarea>`;
           break;
 
         case "boolean":
           const checked =
             value === true || value === "true" || value === 1 ? "checked" : "";
-          fieldHtml += `<label class="checkbox-label"><input type="checkbox" id="${field.key}" name="${field.key}" ${checked}> ${field.label}</label>`;
+          fieldHtml += `<label class="checkbox-label"><input type="checkbox" id="${field.key}" name="${field.key}" ${checked} ${disabled}> ${field.label}</label>`;
           break;
 
         case "select":
-          fieldHtml += `<select id="${field.key}" name="${field.key}" ${required}>`;
+          fieldHtml += `<select id="${field.key}" name="${field.key}" ${required} ${disabled}>`;
           if (field.options) {
+            console.log(
+              `Building select field ${field.key} with value:`,
+              value,
+              "and options:",
+              field.options.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+              })),
+            );
             field.options.forEach((option) => {
               const selected =
                 value === option.value ||
@@ -592,6 +797,15 @@
                   ? "selected"
                   : "";
               const optionValue = option.value === null ? "" : option.value;
+              if (selected) {
+                console.log(
+                  `Pre-selecting option for ${field.key}:`,
+                  option.value,
+                  "(",
+                  option.label,
+                  ")",
+                );
+              }
               fieldHtml += `<option value="${optionValue}" ${selected}>${option.label}</option>`;
             });
           } else if (field.entityType) {
@@ -604,18 +818,18 @@
           if (field.entityType) {
             // Replace the select opening tag to add data attributes
             fieldHtml = fieldHtml.replace(
-              `<select id="${field.key}"`,
-              `<select id="${field.key}" data-entity-type="${field.entityType}" data-display-field="${field.displayField}" data-value-field="${field.valueField}"`,
+              `<select id="${field.key}" name="${field.key}" ${required} ${disabled}>`,
+              `<select id="${field.key}" name="${field.key}" ${required} ${disabled} data-entity-type="${field.entityType}" data-display-field="${field.displayField}" data-value-field="${field.valueField}">`,
             );
           }
           break;
 
         case "number":
-          fieldHtml += `<input type="number" id="${field.key}" name="${field.key}" value="${value}" ${required}>`;
+          fieldHtml += `<input type="number" id="${field.key}" name="${field.key}" value="${value}" ${required} ${disabled}>`;
           break;
 
         case "color":
-          fieldHtml += `<input type="color" id="${field.key}" name="${field.key}" value="${value || "#000000"}" ${required}>`;
+          fieldHtml += `<input type="color" id="${field.key}" name="${field.key}" value="${value || "#000000"}" ${required} ${disabled}>`;
           break;
 
         case "date":
@@ -625,17 +839,15 @@
             try {
               const dateObj = new Date(value);
               if (!isNaN(dateObj.getTime())) {
-                dateValue = dateObj.toISOString().split('T')[0];
+                dateValue = dateObj.toISOString().split("T")[0];
               }
             } catch (e) {
               console.warn(`Invalid date value for ${field.key}:`, value);
             }
           }
           fieldHtml += `
-            <div class="date-time-picker-group">
-              <input type="date" id="${field.key}_date" name="${field.key}_date" value="${dateValue}" ${required}>
-              <input type="time" id="${field.key}_time" name="${field.key}_time" value="00:00" ${required}>
-              <input type="hidden" id="${field.key}" name="${field.key}" value="${value || ''}">
+            <div class="date-picker-group">
+              <input type="date" id="${field.key}" name="${field.key}" value="${dateValue}" ${required} ${disabled}>
             </div>`;
           break;
 
@@ -648,8 +860,9 @@
             try {
               const dateObj = new Date(value);
               if (!isNaN(dateObj.getTime())) {
-                dtDate = dateObj.toISOString().split('T')[0];
-                dtTime = dateObj.toTimeString().substring(0, 5);
+                dtDate = dateObj.toISOString().split("T")[0];
+                // Use UTC time instead of local time to match backend format
+                dtTime = `${dateObj.getUTCHours().toString().padStart(2, "0")}:${dateObj.getUTCMinutes().toString().padStart(2, "0")}`;
                 dtValue = value;
               }
             } catch (e) {
@@ -658,14 +871,14 @@
           }
           fieldHtml += `
             <div class="date-time-picker-group">
-              <input type="date" id="${field.key}_date" name="${field.key}_date" value="${dtDate}" ${required}>
-              <input type="time" id="${field.key}_time" name="${field.key}_time" value="${dtTime}" ${required}>
+              <input type="date" id="${field.key}_date" name="${field.key}_date" value="${dtDate}" ${required} ${disabled}>
+              <input type="time" id="${field.key}_time" name="${field.key}_time" value="${dtTime}" ${required} ${disabled}>
               <input type="hidden" id="${field.key}" name="${field.key}" value="${dtValue}">
             </div>`;
           break;
 
         default:
-          fieldHtml += `<input type="text" id="${field.key}" name="${field.key}" value="${value}" ${required} ${maxLength}>`;
+          fieldHtml += `<input type="text" id="${field.key}" name="${field.key}" value="${value}" ${required} ${maxLength} ${disabled}>`;
       }
 
       if (field.maxLength) {
@@ -685,71 +898,712 @@
       const form = document.getElementById("entityForm");
       if (!form) return;
 
+      console.log(
+        `setFormData called for ${entityConfig.name} with data:`,
+        data,
+      );
+
       entityConfig.fields.forEach((field) => {
         const input = form.querySelector(`[name="${field.key}"]`);
         if (input && data[field.key] !== undefined) {
+          console.log(
+            `Setting field ${field.key} (type: ${field.type}) with value:`,
+            data[field.key],
+          );
+
           if (field.type === "boolean") {
             input.checked = data[field.key];
+          } else if (field.type === "select" && field.entityType) {
+            // Skip entity-type select fields - they are handled by populateSelectField
+            // which includes pre-selection logic. Setting input.value here would
+            // interfere with the async option population.
+            console.log(
+              `Skipping entity-type select field ${field.key} - handled by populateSelectField`,
+            );
+          } else if (field.type === "select" && field.options) {
+            // Handle static select fields (with predefined options)
+            const currentValue = data[field.key];
+            console.log(
+              `Processing static select field ${field.key} with current value:`,
+              currentValue,
+              "and available options:",
+              field.options.map((opt) => opt.value),
+            );
+
+            // Check if the current value exists as an option
+            const matchingOption = field.options.find(
+              (opt) => opt.value === currentValue,
+            );
+            if (matchingOption) {
+              input.value = currentValue;
+              console.log(
+                `Set static select field ${field.key} to matching option:`,
+                currentValue,
+              );
+            } else {
+              console.warn(
+                `No matching option found for ${field.key} with value:`,
+                currentValue,
+                "Available options:",
+                field.options.map((opt) => opt.value),
+              );
+              // Set to empty string if no match found
+              input.value = "";
+            }
+
+            // Verify the selection was actually set
+            setTimeout(() => {
+              const verifyInput = document.getElementById(field.key);
+              if (verifyInput) {
+                console.log(
+                  `Verification - ${field.key} current selectedIndex:`,
+                  verifyInput.selectedIndex,
+                  "value:",
+                  verifyInput.value,
+                  "expected:",
+                  currentValue,
+                );
+                // If the value didn't stick, try setting it again
+                if (verifyInput.value !== currentValue && matchingOption) {
+                  console.log(
+                    `Re-attempting to set ${field.key} to:`,
+                    currentValue,
+                  );
+                  verifyInput.value = currentValue;
+                }
+              }
+            }, 50);
+          } else if (field.type === "datetime") {
+            // Handle datetime fields specially - populate date and time inputs
+            const value = data[field.key];
+            input.value = value || "";
+
+            console.log(
+              `Processing datetime field ${field.key} with value:`,
+              value,
+            );
+
+            if (value) {
+              try {
+                const dateObj = new Date(value);
+                if (!isNaN(dateObj.getTime())) {
+                  console.log(
+                    `Valid date object created for ${field.key}:`,
+                    dateObj.toISOString(),
+                  );
+
+                  // Populate the date input
+                  const dateInput = document.getElementById(
+                    `${field.key}_date`,
+                  );
+                  if (dateInput) {
+                    const utcDate = dateObj.toISOString().split("T")[0];
+                    dateInput.value = utcDate;
+                    console.log(
+                      `Set date input ${field.key}_date to:`,
+                      utcDate,
+                      "(input value now:",
+                      dateInput.value,
+                      ")",
+                    );
+                  } else {
+                    console.warn(
+                      `Date input element ${field.key}_date not found in DOM`,
+                    );
+                  }
+
+                  // Populate the time input using UTC time to match backend format
+                  const timeInput = document.getElementById(
+                    `${field.key}_time`,
+                  );
+                  if (timeInput) {
+                    const utcTime = `${dateObj.getUTCHours().toString().padStart(2, "0")}:${dateObj.getUTCMinutes().toString().padStart(2, "0")}`;
+                    timeInput.value = utcTime;
+                    console.log(
+                      `Set time input ${field.key}_time to:`,
+                      utcTime,
+                      "(UTC hours:",
+                      dateObj.getUTCHours(),
+                      "minutes:",
+                      dateObj.getUTCMinutes(),
+                      ") (input value now:",
+                      timeInput.value,
+                      ")",
+                    );
+                  } else {
+                    console.warn(
+                      `Time input element ${field.key}_time not found in DOM`,
+                    );
+                  }
+                } else {
+                  console.warn(
+                    `Invalid date object created from ${field.key}:`,
+                    value,
+                    "-> NaN time",
+                  );
+                }
+              } catch (e) {
+                console.warn(
+                  `Exception processing datetime value for ${field.key}:`,
+                  value,
+                  e,
+                );
+              }
+            } else {
+              console.log(`No value provided for datetime field ${field.key}`);
+            }
+          } else if (field.type === "date") {
+            // Handle date fields specially - extract date portion from datetime string
+            const value = data[field.key];
+            if (value) {
+              try {
+                // Extract date portion from datetime string (e.g., "2025-05-15T00:00:00+0000" -> "2025-05-15")
+                const dateMatch = value.match(/^(\d{4}-\d{2}-\d{2})/);
+                if (dateMatch) {
+                  input.value = dateMatch[1];
+                } else {
+                  // Fallback: try to parse as Date and extract date portion
+                  const dateObj = new Date(value);
+                  if (!isNaN(dateObj.getTime())) {
+                    input.value = dateObj.toISOString().split("T")[0];
+                  } else {
+                    console.warn(
+                      `Could not parse date value for ${field.key}:`,
+                      value,
+                    );
+                    input.value = "";
+                  }
+                }
+              } catch (e) {
+                console.warn(
+                  `Exception processing date value for ${field.key}:`,
+                  value,
+                  e,
+                );
+                input.value = "";
+              }
+            } else {
+              input.value = "";
+            }
           } else {
             input.value = data[field.key] || "";
+            console.log(`Set field ${field.key} to:`, input.value);
           }
+        } else if (input && data[field.key] === undefined) {
+          console.log(
+            `Field ${field.key} has undefined value in data, skipping`,
+          );
+        } else if (!input) {
+          console.warn(`Input element not found for field: ${field.key}`);
         }
       });
+    },
+
+    /**
+     * Debug datetime fields to understand what values are being set
+     * @param {Object} data - Entity data
+     * @param {Object} entityConfig - Entity configuration
+     * @returns {Object} Debug information
+     */
+    debugDatetimeFields: function (data, entityConfig) {
+      const debugInfo = {};
+      entityConfig.fields.forEach((field) => {
+        if (field.type === "datetime" && data[field.key]) {
+          const value = data[field.key];
+          const dateObj = new Date(value);
+          const dateInput = document.getElementById(`${field.key}_date`);
+          const timeInput = document.getElementById(`${field.key}_time`);
+
+          debugInfo[field.key] = {
+            originalValue: value,
+            parsedDate: dateObj.toISOString(),
+            utcDate: dateObj.toISOString().split("T")[0],
+            utcTime: `${dateObj.getUTCHours().toString().padStart(2, "0")}:${dateObj.getUTCMinutes().toString().padStart(2, "0")}`,
+            dateInputExists: !!dateInput,
+            timeInputExists: !!timeInput,
+            dateInputValue: dateInput ? dateInput.value : "N/A",
+            timeInputValue: timeInput ? timeInput.value : "N/A",
+          };
+        }
+      });
+      return debugInfo;
     },
 
     /**
      * Populate entity-type selects with data from API
      * @param {Object} entityConfig - Entity configuration
      * @param {Object} data - Current entity data (for pre-selection)
+     * @param {Object} filterParams - Optional filter parameters for dependent fields
      */
-    populateEntityTypeSelects: function (entityConfig, data) {
-      if (!entityConfig || !entityConfig.fields) return;
+    populateEntityTypeSelects: function (
+      entityConfig,
+      data,
+      filterParams = {},
+    ) {
+      if (!entityConfig || !entityConfig.fields) {
+        console.warn("populateEntityTypeSelects: No entity config or fields");
+        return;
+      }
 
-      entityConfig.fields.forEach((field) => {
-        if (field.type === "select" && field.entityType) {
-          const select = document.getElementById(field.key);
-          if (!select) return;
+      console.log(
+        "populateEntityTypeSelects: Processing entity",
+        entityConfig.name,
+      );
 
-          // Load data from API
-          if (window.ApiClient && window.ApiClient.entities) {
-            window.ApiClient.entities
-              .getAll(field.entityType)
-              .then((response) => {
-                // Handle different response formats
-                let items = [];
-                if (Array.isArray(response)) {
-                  items = response;
-                } else if (response.content) {
-                  items = response.content;
-                } else if (response.items) {
-                  items = response.items;
+      // Process fields that don't depend on others first
+      const independentFields = entityConfig.fields.filter(
+        (field) =>
+          field.type === "select" && field.entityType && !field.dependsOn,
+      );
+
+      // Process dependent fields second
+      const dependentFields = entityConfig.fields.filter(
+        (field) =>
+          field.type === "select" && field.entityType && field.dependsOn,
+      );
+
+      console.log(
+        `Found ${independentFields.length} independent fields and ${dependentFields.length} dependent fields for entity: ${entityConfig.name}`,
+      );
+      console.log(
+        "Independent fields:",
+        independentFields.map((f) => f.key),
+      );
+      console.log(
+        "Dependent fields:",
+        dependentFields.map((f) => f.key),
+      );
+
+      // Process independent fields first
+      independentFields.forEach((field) => {
+        this.populateSelectField(field, data, {}).catch((error) => {
+          console.error(
+            `Failed to populate independent field ${field.key}:`,
+            error,
+          );
+        });
+      });
+
+      // Process dependent fields with proper filtering
+      dependentFields.forEach((field) => {
+        // Check if we have data for the parent field
+        let fieldFilterParams = { ...filterParams };
+
+        if (
+          data &&
+          field.dependsOn &&
+          data[field.dependsOn] &&
+          !fieldFilterParams[field.filterField]
+        ) {
+          // Use the parent field value from existing data for initial filtering
+          fieldFilterParams[field.filterField] = data[field.dependsOn];
+          console.log(
+            `Using parent field ${field.dependsOn} value '${data[field.dependsOn]}' for filtering ${field.key}`,
+          );
+        }
+
+        this.populateSelectField(field, data, fieldFilterParams).catch(
+          (error) => {
+            console.error(
+              `Failed to populate dependent field ${field.key}:`,
+              error,
+            );
+          },
+        );
+      });
+    },
+
+    /**
+     * Populate a single select field with data from API
+     * @param {Object} field - Field configuration
+     * @param {Object} data - Current entity data (for pre-selection)
+     * @param {Object} filterParams - Filter parameters for dependent fields
+     */
+    populateSelectField: function (field, data, filterParams = {}) {
+      console.log(
+        `Processing select field: ${field.key} with entityType: ${field.entityType}`,
+      );
+
+      const select = document.getElementById(field.key);
+      if (!select) {
+        console.warn(
+          `Select element not found for field: ${field.key} - skipping gracefully. This may be expected if the field is only shown in certain modes (view vs edit).`,
+        );
+
+        // Debug: List all select elements in the modal to help troubleshooting
+        const allSelects = document.querySelectorAll("#editModal select");
+        const selectIds = Array.from(allSelects)
+          .map((s) => s.id)
+          .filter((id) => id);
+        console.log(
+          `Available select elements in modal: [${selectIds.join(", ")}]`,
+        );
+
+        // Gracefully resolve instead of rejecting to prevent cascading failures
+        return Promise.resolve();
+      }
+
+      // Check if this is a dependent field and if parent has a value
+      if (field.dependsOn) {
+        const parentField = document.getElementById(field.dependsOn);
+        const parentValue = parentField ? parentField.value : null;
+
+        // If parent field doesn't have a value, show empty dropdown
+        if (!parentValue && !filterParams[field.filterField]) {
+          select.innerHTML =
+            '<option value="">Select parent field first...</option>';
+          return Promise.resolve();
+        }
+
+        // Use parent field value for filtering
+        if (parentValue && !filterParams[field.filterField]) {
+          filterParams[field.filterField] = parentValue;
+        }
+      }
+
+      // Load data from API
+      if (window.ApiClient && window.ApiClient.entities) {
+        console.log(
+          `Loading data for entityType: ${field.entityType}`,
+          filterParams,
+        );
+        console.log(
+          `Field config - valueField: ${field.valueField}, displayField: ${field.displayField}`,
+        );
+
+        // Build API parameters - handle specific field mappings
+        let apiParams = { ...filterParams };
+
+        // Special handling for sequencesmaster - map plm_id to planId
+        if (field.entityType === "sequencesmaster" && apiParams.plm_id) {
+          apiParams.planId = apiParams.plm_id;
+          delete apiParams.plm_id;
+        }
+
+        // Map entityType to correct API endpoint if needed
+        let actualEntityType = field.entityType;
+        if (field.entityType === "plans" && window.ApiClient.entities.getAll) {
+          // For plans dropdown, ensure we're calling the right endpoint
+          console.log(`Calling API for plans with params:`, apiParams);
+        } else if (field.entityType === "sequencesmaster") {
+          console.log(
+            `Calling API for sequencesmaster with params:`,
+            apiParams,
+          );
+        }
+
+        // Handle special case for status entityType
+        let apiCall;
+        if (field.entityType === "status") {
+          // Use status API with entityTypeFilter parameter
+          const statusEntityType = field.entityTypeFilter || "Iteration";
+          console.log(`Calling status API for entityType: ${statusEntityType}`);
+          apiCall = window.ApiClient.status.getByEntityType(statusEntityType);
+        } else {
+          // Use standard entities API
+          apiCall = window.ApiClient.entities.getAll(
+            actualEntityType,
+            apiParams,
+          );
+        }
+
+        return apiCall
+          .then((response) => {
+            console.log(`API response for ${actualEntityType}:`, response);
+            console.log(
+              `Response type:`,
+              Array.isArray(response) ? "Array" : typeof response,
+            );
+
+            // Handle different response formats
+            let items = [];
+            if (Array.isArray(response)) {
+              items = response;
+            } else if (response.data) {
+              items = response.data;
+            } else if (response.content) {
+              items = response.content;
+            } else if (response.items) {
+              items = response.items;
+            }
+            console.log(
+              `Extracted ${items.length} items for ${actualEntityType}`,
+            );
+            console.log(
+              `First item sample:`,
+              items.length > 0 ? items[0] : "No items",
+            );
+
+            // Clear existing options
+            select.innerHTML = '<option value="">Select...</option>';
+
+            // Add options
+            items.forEach((item, index) => {
+              const value = item[field.valueField];
+              const display = item[field.displayField];
+
+              // CRITICAL FIX: Filter out current entity for predecessor fields to prevent circular dependency
+              // For sequencesmaster predecessor_sqm_id field, exclude current sequence from dropdown
+              if (
+                field.key === "predecessor_sqm_id" &&
+                field.entityType === "sequencesmaster" &&
+                data &&
+                data.sqm_id &&
+                value === data.sqm_id
+              ) {
+                console.log(
+                  `Excluding current sequence ${value} from predecessor dropdown to prevent circular dependency`,
+                );
+                return; // Skip adding this option
+              }
+
+              // For phasesmaster predecessor_phm_id field, exclude current phase from dropdown
+              if (
+                field.key === "predecessor_phm_id" &&
+                field.entityType === "phasesmaster" &&
+                data &&
+                data.phm_id &&
+                value === data.phm_id
+              ) {
+                console.log(
+                  `Excluding current phase ${value} from predecessor dropdown to prevent circular dependency`,
+                );
+                return; // Skip adding this option
+              }
+
+              if (value !== undefined && display !== undefined) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = display;
+                // Pre-select if editing
+                if (data && data[field.key] === value) {
+                  option.selected = true;
                 }
+                select.appendChild(option);
 
-                // Clear existing options
-                select.innerHTML = '<option value="">Select...</option>';
+                if (index < 3) {
+                  console.log(
+                    `Option ${index}: value='${value}', display='${display}'`,
+                  );
+                }
+              } else {
+                console.warn(
+                  `Missing value or display for item:`,
+                  item,
+                  `valueField: ${field.valueField}, displayField: ${field.displayField}`,
+                );
+              }
+            });
 
-                // Add options
-                items.forEach((item) => {
-                  const value = item[field.valueField];
-                  const display = item[field.displayField];
-                  const option = document.createElement("option");
-                  option.value = value;
-                  option.textContent = display;
+            console.log(
+              `Successfully populated ${select.options.length - 1} options for ${field.key}`,
+            );
+          })
+          .catch((error) => {
+            console.error(`Failed to load ${field.entityType}:`, error);
+            select.innerHTML =
+              '<option value="">Failed to load options</option>';
+            throw error; // Re-throw error for upstream handling
+          });
+      } else {
+        console.error("ApiClient or ApiClient.entities not available");
+        select.innerHTML = '<option value="">API Client not available</option>';
+        return Promise.reject(new Error("ApiClient not available"));
+      }
+    },
 
-                  // Pre-select if editing
-                  if (data && data[field.key] === value) {
-                    option.selected = true;
-                  }
+    /**
+     * Setup field dependencies - add event listeners for dependent dropdowns
+     * @param {Object} entityConfig - Entity configuration
+     * @param {Object} data - Current entity data
+     */
+    setupFieldDependencies: function (entityConfig, data) {
+      if (!entityConfig || !entityConfig.fields) {
+        return;
+      }
 
-                  select.appendChild(option);
-                });
-              })
-              .catch((error) => {
-                console.error(`Failed to load ${field.entityType}:`, error);
-                select.innerHTML =
-                  '<option value="">Failed to load options</option>';
-              });
+      console.log("Setting up field dependencies for", entityConfig.name);
+
+      // Find fields with dependencies
+      const dependentFields = entityConfig.fields.filter(
+        (field) =>
+          field.type === "select" && field.entityType && field.dependsOn,
+      );
+
+      dependentFields.forEach((field) => {
+        const parentField = document.getElementById(field.dependsOn);
+        const childField = document.getElementById(field.key);
+
+        if (parentField && childField) {
+          console.log(
+            `Setting up dependency: ${field.dependsOn} -> ${field.key}`,
+          );
+
+          // Remove existing event listeners to prevent duplicates
+          const existingListener = parentField.getAttribute(
+            "data-dependency-listener",
+          );
+          if (existingListener) {
+            parentField.removeEventListener(
+              "change",
+              parentField._dependencyListener,
+            );
           }
+
+          // Create bound event listener to preserve context
+          const dependencyListener = ((fieldRef, childFieldRef, dataRef) => {
+            return (event) => {
+              const parentValue = event.target.value;
+              console.log(
+                `Parent field ${fieldRef.dependsOn} changed to:`,
+                parentValue,
+              );
+
+              // Clear any downstream dependent fields first
+              this.clearDownstreamDependentFields(fieldRef.key, entityConfig);
+
+              if (parentValue) {
+                // Build filter parameters
+                const filterParams = {};
+                filterParams[fieldRef.filterField] = parentValue;
+
+                console.log(
+                  `Repopulating ${fieldRef.key} with filter:`,
+                  filterParams,
+                );
+
+                // Show loading state
+                childFieldRef.innerHTML =
+                  '<option value="">Loading...</option>';
+
+                // Repopulate the dependent field
+                this.populateSelectField(fieldRef, dataRef, filterParams).catch(
+                  (error) => {
+                    console.error(`Failed to populate ${fieldRef.key}:`, error);
+                    childFieldRef.innerHTML =
+                      '<option value="">Error loading options</option>';
+                  },
+                );
+              } else {
+                // Clear the dependent field
+                childFieldRef.innerHTML =
+                  '<option value="">Select parent field first...</option>';
+              }
+            };
+          })(field, childField, data);
+
+          // Store listener reference for cleanup
+          parentField._dependencyListener = dependencyListener;
+          parentField.setAttribute("data-dependency-listener", "true");
+
+          // Add event listener to parent field
+          parentField.addEventListener("change", dependencyListener);
+        }
+      });
+    },
+
+    /**
+     * Test cascading dropdown functionality for phases
+     * This is a debug/test function to verify the fixes
+     */
+    testPhaseDropdownCascading: function () {
+      console.log("=== Testing Phase Dropdown Cascading ===");
+
+      // Check if we're on the phases master page
+      if (
+        !window.AdminGuiState ||
+        window.AdminGuiState.currentEntity !== "phasesmaster"
+      ) {
+        console.warn(
+          "Not on phasesmaster entity page. Switch to Master Phases to test.",
+        );
+        return;
+      }
+
+      // Simulate creating a new phase to test the cascading
+      console.log("1. Opening create modal...");
+      this.showEntityForm(null, "phasesmaster", true);
+
+      // Wait for modal to open and then test cascading
+      setTimeout(() => {
+        const planSelect = document.getElementById("plm_id");
+        const sequenceSelect = document.getElementById("sqm_id");
+        const predecessorSelect = document.getElementById("predecessor_phm_id");
+
+        if (planSelect && sequenceSelect && predecessorSelect) {
+          console.log("2. Found all dropdown elements");
+          console.log(
+            "   - Plan select:",
+            planSelect.options.length,
+            "options",
+          );
+          console.log(
+            "   - Sequence select:",
+            sequenceSelect.options.length,
+            "options",
+          );
+          console.log(
+            "   - Predecessor select:",
+            predecessorSelect.options.length,
+            "options",
+          );
+
+          // Test plan selection triggering sequence population
+          if (planSelect.options.length > 1) {
+            console.log("3. Testing plan selection...");
+            planSelect.selectedIndex = 1; // Select first real option
+            const changeEvent = new Event("change", { bubbles: true });
+            planSelect.dispatchEvent(changeEvent);
+
+            setTimeout(() => {
+              console.log(
+                "4. After plan selection - Sequence options:",
+                sequenceSelect.options.length,
+              );
+
+              // Test sequence selection triggering predecessor population
+              if (sequenceSelect.options.length > 1) {
+                console.log("5. Testing sequence selection...");
+                sequenceSelect.selectedIndex = 1;
+                const seqChangeEvent = new Event("change", { bubbles: true });
+                sequenceSelect.dispatchEvent(seqChangeEvent);
+
+                setTimeout(() => {
+                  console.log(
+                    "6. After sequence selection - Predecessor options:",
+                    predecessorSelect.options.length,
+                  );
+                  console.log("=== Cascading Test Complete ===");
+                }, 2000);
+              }
+            }, 2000);
+          }
+        } else {
+          console.error("Could not find dropdown elements");
+        }
+      }, 1000);
+    },
+
+    /**
+     * Clear downstream dependent fields when a parent field changes
+     * @param {string} changedFieldKey - The key of the field that changed
+     * @param {Object} entityConfig - Entity configuration
+     */
+    clearDownstreamDependentFields: function (changedFieldKey, entityConfig) {
+      // Find all fields that depend on the changed field
+      const dependentFields = entityConfig.fields.filter(
+        (field) => field.dependsOn === changedFieldKey,
+      );
+
+      dependentFields.forEach((dependentField) => {
+        const childField = document.getElementById(dependentField.key);
+        if (childField) {
+          console.log(`Clearing downstream field: ${dependentField.key}`);
+          childField.innerHTML =
+            '<option value="">Select parent field first...</option>';
+
+          // Recursively clear any fields that depend on this one
+          this.clearDownstreamDependentFields(dependentField.key, entityConfig);
         }
       });
     },
@@ -765,31 +1619,55 @@
 
     /**
      * Handle date/time picker changes
-     * Combines date and time inputs into a single ISO datetime value
+     * For datetime fields: Combines date and time inputs into a single ISO datetime value
+     * For date fields: Uses the date value directly
      * @param {Event} e - Change event
      */
     handleDateTimeChange: function (e) {
       const input = e.target;
-      const fieldName = input.name.replace(/_date$|_time$/, '');
-      
-      // Find the corresponding date/time inputs and hidden field
+      const fieldName = input.name.replace(/_date$|_time$/, "");
+
+      // Check if this is a simple date field (no _date suffix)
+      if (input.name === fieldName && input.type === "date") {
+        // Handle simple date field - no time component needed
+        if (input.value) {
+          // For date-only fields, just append T00:00:00+0000 to maintain backend format consistency
+          const dateValue = input.value;
+          const isoValue = `${dateValue}T00:00:00+0000`;
+          input.value = input.value; // Keep the simple date value in the input
+
+          // Validate date ranges for migration start/end dates
+          this.validateDateRange();
+        }
+        return;
+      }
+
+      // Handle datetime fields with separate date/time inputs
       const dateInput = document.getElementById(`${fieldName}_date`);
       const timeInput = document.getElementById(`${fieldName}_time`);
       const hiddenInput = document.getElementById(fieldName);
-      
+
       if (dateInput && timeInput && hiddenInput) {
         const dateValue = dateInput.value;
-        const timeValue = timeInput.value || '00:00';
-        
+        const timeValue = timeInput.value || "00:00";
+
         if (dateValue) {
-          // Combine date and time into ISO format
-          const isoValue = `${dateValue}T${timeValue}:00`;
+          // Combine date and time into proper ISO format with timezone
+          // Since the time input contains UTC time, we need to create a UTC Date object
+          const dateTimeString = `${dateValue}T${timeValue}:00Z`; // Add 'Z' to indicate UTC
+          const dateObj = new Date(dateTimeString);
+
+          // Convert to backend expected format (replace 'Z' with '+0000')
+          const isoValue = dateObj
+            .toISOString()
+            .replace("Z", "+0000")
+            .replace(".000", "");
           hiddenInput.value = isoValue;
-          
+
           // Validate date ranges for migration start/end dates
           this.validateDateRange();
         } else {
-          hiddenInput.value = '';
+          hiddenInput.value = "";
         }
       }
     },
@@ -798,15 +1676,18 @@
      * Validate date ranges (e.g., end date must be after start date)
      */
     validateDateRange: function () {
-      const startDateInput = document.getElementById('mig_start_date');
-      const endDateInput = document.getElementById('mig_end_date');
-      
+      const startDateInput = document.getElementById("mig_start_date");
+      const endDateInput = document.getElementById("mig_end_date");
+
       if (startDateInput && endDateInput) {
         const startDate = new Date(startDateInput.value);
         const endDate = new Date(endDateInput.value);
-        
+
         if (startDate && endDate && endDate <= startDate) {
-          this.showDateRangeError(endDateInput, 'End date must be after start date');
+          this.showDateRangeError(
+            endDateInput,
+            "End date must be after start date",
+          );
           return false;
         } else {
           this.clearDateRangeError(endDateInput);
@@ -823,13 +1704,13 @@
      */
     showDateRangeError: function (field, message) {
       this.clearDateRangeError(field);
-      
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'field-error date-range-error';
+
+      const errorDiv = document.createElement("div");
+      errorDiv.className = "field-error date-range-error";
       errorDiv.textContent = message;
-      
+
       field.parentNode.appendChild(errorDiv);
-      field.classList.add('error');
+      field.classList.add("error");
     },
 
     /**
@@ -837,11 +1718,11 @@
      * @param {HTMLElement} field - Field element
      */
     clearDateRangeError: function (field) {
-      const existingError = field.parentNode.querySelector('.date-range-error');
+      const existingError = field.parentNode.querySelector(".date-range-error");
       if (existingError) {
         existingError.remove();
       }
-      field.classList.remove('error');
+      field.classList.remove("error");
     },
 
     /**
@@ -869,13 +1750,153 @@
 
       if (entityConfig && entityConfig.fields.length > 0) {
         const idField = entityConfig.fields[0]; // Primary key is usually first field
+
+        // Check FormData first (for writable fields)
         if (formData[idField.key]) {
           isCreate = false;
           entityId = formData[idField.key];
+        } else {
+          // For readonly ID fields, check the DOM element directly
+          const idInput = form.querySelector(`[name="${idField.key}"]`);
+          if (idInput && idInput.value && idInput.value.trim() !== "") {
+            isCreate = false;
+            entityId = idInput.value.trim();
+            console.log(
+              `Detected UPDATE operation from readonly field: ${idField.key} = ${entityId}`,
+            );
+          }
         }
       }
 
+      console.log("Save operation details:", {
+        currentEntity,
+        isCreate,
+        entityId,
+        formDataKeys: Object.keys(formData),
+      });
+
       this.saveEntity(formData, currentEntity, isCreate, entityId);
+    },
+
+    /**
+     * Wait for modal to be available in DOM with proper retry mechanism
+     * @param {string} modalId - Modal element ID to wait for
+     * @param {number} timeout - Maximum time to wait in milliseconds (default 5000)
+     * @returns {Promise<Element>} Promise that resolves with modal element when ready
+     */
+    waitForModal: function (modalId, timeout = 5000) {
+      return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        const checkInterval = 50; // Check every 50ms
+
+        const checkModal = () => {
+          const modal = document.getElementById(modalId);
+
+          if (modal) {
+            // Additional check to ensure modal is properly rendered
+            const modalRect = modal.getBoundingClientRect();
+            const hasForm = modal.querySelector("#entityForm");
+            const hasContent = modal.querySelector(".modal-body");
+
+            // Different criteria for different modal types
+            let isReady = false;
+
+            if (modalId === "viewModal") {
+              // View modals need content but not forms
+              isReady =
+                modalRect.height > 0 &&
+                hasContent &&
+                hasContent.innerHTML.trim().length > 0;
+            } else if (modalId === "editModal") {
+              // Edit modals need forms
+              isReady = modalRect.height > 0 && hasForm;
+            } else if (modalId === "associationModal") {
+              // Association modals may have different content structures
+              const hasAssociationContent = modal.querySelector(
+                ".association-content, .modal-body",
+              );
+              isReady =
+                modalRect.height > 0 &&
+                hasAssociationContent &&
+                hasAssociationContent.innerHTML.trim().length > 0;
+            } else {
+              // Default criteria - try to detect modal type based on content
+              if (hasForm) {
+                // Has form - treat as edit modal
+                isReady = modalRect.height > 0 && hasForm;
+              } else if (hasContent) {
+                // No form but has content - treat as view modal
+                isReady =
+                  modalRect.height > 0 &&
+                  hasContent &&
+                  hasContent.innerHTML.trim().length > 0;
+              } else {
+                // Fallback - just check if modal has height
+                isReady = modalRect.height > 0;
+              }
+            }
+
+            if (isReady) {
+              const detectionType =
+                modalId === "viewModal"
+                  ? "view-content"
+                  : modalId === "editModal"
+                    ? "edit-form"
+                    : modalId === "associationModal"
+                      ? "association-content"
+                      : hasForm
+                        ? "auto-detected-form"
+                        : hasContent
+                          ? "auto-detected-content"
+                          : "fallback-height";
+              console.log(
+                `✅ Modal ${modalId} ready after ${Date.now() - startTime}ms (detection: ${detectionType})`,
+              );
+              resolve(modal);
+              return;
+            } else {
+              // Debug info for failed checks
+              console.debug(
+                `Modal ${modalId} not ready - height: ${modalRect.height}, hasForm: ${!!hasForm}, hasContent: ${!!hasContent}, contentLength: ${hasContent ? hasContent.innerHTML.trim().length : 0}`,
+              );
+            }
+          }
+
+          // Check timeout
+          if (Date.now() - startTime > timeout) {
+            const availableModals = Array.from(
+              document.querySelectorAll('[id*="modal" i], [id*="Modal" i]'),
+            ).map((el) => el.id);
+            const modal = document.getElementById(modalId);
+            let diagnostics = "Modal not found";
+
+            if (modal) {
+              const modalRect = modal.getBoundingClientRect();
+              const hasForm = modal.querySelector("#entityForm");
+              const hasContent = modal.querySelector(".modal-body");
+
+              diagnostics = `height: ${modalRect.height}, hasForm: ${!!hasForm}, hasContent: ${!!hasContent}, contentLength: ${hasContent ? hasContent.innerHTML.trim().length : 0}`;
+            }
+
+            console.error(
+              `❌ Modal ${modalId} not ready after ${timeout}ms. Diagnostics: ${diagnostics}. Available modals:`,
+              availableModals,
+            );
+            reject(
+              new Error(
+                `Modal ${modalId} not ready after ${timeout}ms. ${diagnostics}`,
+              ),
+            );
+            return;
+          }
+
+          // Schedule next check
+          setTimeout(checkModal, checkInterval);
+        };
+
+        // Start checking
+        checkModal();
+      });
     },
 
     /**
@@ -975,26 +1996,65 @@
         if (entityConfig) {
           const field = entityConfig.fields.find((f) => f.key === key);
           if (field) {
-            if (field.type === "select" && value === "") {
-              // Convert empty strings to null for select fields
-              data[key] = null;
-            } else if (field.type === "select" && field.options) {
-              // Check if the select field has numeric values
-              const option = field.options.find((opt) => opt.value == value);
-              if (option && typeof option.value === "number") {
-                // Convert to number if the option value is numeric
-                data[key] = parseInt(value, 10);
-              } else {
+            console.log(
+              `Processing field ${key} (type: ${field.type}) with value:`,
+              value,
+              `(typeof: ${typeof value})`,
+            );
+
+            if (field.type === "select") {
+              // Only convert to null if the value is truly empty (not a valid selection)
+              if (
+                value === "" ||
+                value === "Select..." ||
+                value === "Loading..."
+              ) {
+                data[key] = null;
+                console.log(`Set ${key} to null (empty selection)`);
+              } else if (field.options) {
+                // Check if the select field has numeric values (static options)
+                const option = field.options.find((opt) => opt.value == value);
+                if (option && typeof option.value === "number") {
+                  // Convert to number if the option value is numeric
+                  data[key] = parseInt(value, 10);
+                  console.log(`Converted ${key} to number:`, data[key]);
+                } else {
+                  data[key] = value;
+                  console.log(`Set ${key} to string value:`, data[key]);
+                }
+              } else if (field.entityType) {
+                // For entity-type selects, preserve the value as-is (should be UUID)
                 data[key] = value;
+                console.log(
+                  `Set entity-type select ${key} to:`,
+                  data[key],
+                  `(should preserve UUID format)`,
+                );
+              } else {
+                // Fallback for other select types
+                data[key] = value;
+                console.log(`Set unknown select type ${key} to:`, data[key]);
+              }
+            } else if (field.type === "number") {
+              // Handle number fields explicitly
+              if (value === "" || value === null || value === undefined) {
+                data[key] = null;
+                console.log(`Set number field ${key} to null (empty)`);
+              } else {
+                data[key] = parseInt(value, 10);
+                console.log(`Set number field ${key} to:`, data[key]);
               }
             } else {
               data[key] = value;
+              console.log(`Set ${key} (${field.type}) to:`, data[key]);
             }
           } else {
             data[key] = value;
+            console.log(`Field ${key} not found in config, setting to:`, value);
           }
         } else {
           data[key] = value;
+          console.log(`No entity config, setting ${key} to:`, value);
         }
       }
 
@@ -1057,6 +2117,45 @@
               value = parseInt(value, 10);
               if (isNaN(value)) {
                 value = null;
+              }
+            } else if (
+              field.type === "select" &&
+              value !== null &&
+              value !== ""
+            ) {
+              // Convert foreign key select fields to integers if they reference integer IDs
+              // Only convert specific known integer foreign keys, not UUIDs
+              const integerForeignKeys = [
+                "tms_id",
+                "usr_id",
+                "env_id",
+                "lbl_id",
+                "app_id",
+                "rls_id",
+              ];
+              const isIntegerForeignKey =
+                (field.valueField &&
+                  integerForeignKeys.includes(field.valueField)) ||
+                (field.key && integerForeignKeys.includes(field.key));
+
+              if (isIntegerForeignKey) {
+                value = parseInt(value, 10);
+                if (isNaN(value)) {
+                  value = null;
+                }
+              }
+            } else if (
+              field.type === "date" &&
+              value !== null &&
+              value !== ""
+            ) {
+              // Convert date string to datetime format expected by backend
+              // Transform "2025-08-25" to "2025-08-25T00:00:00+0000"
+              if (
+                typeof value === "string" &&
+                value.match(/^\d{4}-\d{2}-\d{2}$/)
+              ) {
+                value = `${value}T00:00:00+0000`;
               }
             }
 
@@ -1133,14 +2232,68 @@
      * @param {Object} field - Field configuration
      * @returns {string} Formatted value
      */
-    formatFieldValue: function (value, field, entity = null, entityConfig = null) {
+    formatFieldValue: function (
+      value,
+      field,
+      entity = null,
+      entityConfig = null,
+    ) {
       if (value === null || value === undefined) {
         return "";
       }
 
       // Check for custom renderers first - these override default formatting
       if (entityConfig?.customRenderers?.[field.key]) {
+        console.log(`Using custom renderer for ${field.key}:`, value, entity);
         return entityConfig.customRenderers[field.key](value, entity);
+      }
+
+      // SPECIAL HANDLING FOR UUID FIELDS IN VIEW MODE - Show human-readable names instead of UUIDs
+      // Check if this is a UUID field that has a corresponding display field available
+      if (
+        entity &&
+        field.type === "select" &&
+        entityConfig?.viewDisplayMapping
+      ) {
+        const displayField = entityConfig.viewDisplayMapping[field.key];
+        if (displayField && entity[displayField]) {
+          // Return the human-readable display value instead of the UUID
+          console.log(
+            `💡 VIEW Mode - Using display field '${displayField}' for '${field.key}': "${entity[displayField]}" instead of UUID "${value}"`,
+          );
+          return entity[displayField];
+        }
+      }
+
+      // Special handling for status fields that may need color badges
+      if (field.key.includes("status") && field.type === "select") {
+        // Get status display name
+        const displayName = value
+          ? value
+              .replace(/_/g, " ")
+              .toLowerCase()
+              .replace(/\b\w/g, (l) => l.toUpperCase())
+          : "Unknown";
+
+        // Check if entity has statusMetadata for color
+        let statusColor = null;
+        if (
+          entity &&
+          entity.statusMetadata &&
+          entity.statusMetadata.name === value
+        ) {
+          statusColor = entity.statusMetadata.color;
+        }
+
+        // Use color if available, otherwise use default styling
+        if (statusColor) {
+          const textColor = window.UiUtils
+            ? window.UiUtils.getContrastingTextColor(statusColor)
+            : "#ffffff";
+          return `<span class="status-badge" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
+        } else {
+          return `<span class="status-badge" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
+        }
       }
 
       switch (field.type) {
@@ -4135,4 +5288,9 @@
 
   // Export to global namespace
   window.ModalManager = ModalManager;
+
+  // Global test function for easy browser console access
+  window.testPhaseDropdownCascading = function () {
+    ModalManager.testPhaseDropdownCascading();
+  };
 })();

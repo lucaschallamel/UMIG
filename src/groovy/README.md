@@ -2,7 +2,7 @@
 
 This document serves as the main entry point for developers working with the UMIG Groovy source code. It describes the structure, conventions, and mandatory requirements for all Groovy backend code and frontend assets used by ScriptRunner in the UMIG project.
 
-## Project Status (August 2025)
+## Project Status (August 25, 2025)
 
 **✅ Production Ready Components:**
 
@@ -10,15 +10,19 @@ This document serves as the main entry point for developers working with the UMI
 - Repository pattern with DatabaseUtil.withSql enforcement
 - Type safety improvements (ADR-031) with explicit casting
 - Testing framework with US-024 consolidation
-- Admin GUI with modular SPA architecture
+- Admin GUI with modular SPA architecture (11/13 entities functional)
 - Infrastructure automation and upgrade support (US-032)
+- PostgreSQL production patterns (ADR-047)
+- ScriptRunner authentication context patterns (ADR-043)
+- Comprehensive integration test suite with AdminGuiAllEndpointsTest.groovy
 
-**🚧 MVP Remaining:**
+**🚧 Sprint 5 Active Development:**
 
-- Main Dashboard UI
-- Planning Feature (HTML export)
-- Data Import Strategy
-- Event Logging backend
+- Admin GUI authentication blocker resolution (HTTP 401 issue)
+- Manual endpoint registration (phases, controls APIs)
+- Main Dashboard UI implementation
+- Data Import Strategy (CSV/Excel import with validation)
+- Enhanced IterationView Phases 2-3
 
 ## Directory Structure
 
@@ -194,6 +198,9 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 - **ADR-026**: Testing patterns and SQL mocking
 - **ADR-030**: Repository pattern enforcement
 - **ADR-031**: Type safety requirements
+- **ADR-043**: Dual authentication context management
+- **ADR-044**: Mandatory endpoint registration patterns
+- **ADR-047**: PostgreSQL production-ready patterns
 
 ## Best Practices
 

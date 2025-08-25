@@ -13,13 +13,14 @@
 
 ## 2. Endpoints
 
-| Method | Path        | Description                                           |
-| ------ | ----------- | ----------------------------------------------------- |
-| GET    | /users      | Get all users with pagination, filtering, and sorting |
-| POST   | /users      | Create a new user                                     |
-| GET    | /users/{id} | Get a specific user by ID                             |
-| PUT    | /users/{id} | Update an existing user                               |
-| DELETE | /users/{id} | Delete a user                                         |
+| Method | Path          | Description                                           |
+| ------ | ------------- | ----------------------------------------------------- |
+| GET    | /users        | Get all users with pagination, filtering, and sorting |
+| POST   | /users        | Create a new user                                     |
+| GET    | /users/{id}   | Get a specific user by ID                             |
+| PUT    | /users/{id}   | Update an existing user                               |
+| DELETE | /users/{id}   | Delete a user                                         |
+| GET    | /user/context | Get user context with role information                |
 
 ## 3. Request Details
 
@@ -39,8 +40,14 @@
 | sort      | string  | No       | Field to sort by (usr_id, usr_first_name, usr_last_name, usr_email, usr_code, usr_is_admin, usr_active, rls_id) |
 | direction | string  | No       | Sort direction (asc, desc, default: asc)                                                                        |
 | teamId    | integer | No       | Filter users by team membership                                                                                 |
-| userCode  | string  | No       | Find user by exact code match (for authentication)                                                              |
+| userCode  | string  | No       | Find user by exact code match (for authentication, returns debug info if not found)                             |
 | active    | boolean | No       | Filter users by active status (true for active, false for inactive)                                             |
+
+#### GET /user/context Query Parameters
+
+| Name     | Type   | Required | Description                      |
+| -------- | ------ | -------- | -------------------------------- |
+| username | string | Yes      | Username to retrieve context for |
 
 ### 3.3. Request Body
 
@@ -157,6 +164,42 @@
 - **Status Code:** 204 No Content
 - **Body:** Empty
 
+#### GET /user/context
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "userId": "integer",
+  "username": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "email": "string",
+  "isAdmin": "boolean",
+  "roleId": "integer",
+  "role": "string",
+  "isActive": "boolean"
+}
+```
+
+- **Example:**
+
+```json
+{
+  "userId": 1001,
+  "username": "JDO",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "isAdmin": false,
+  "roleId": 2,
+  "role": "NORMAL",
+  "isActive": true
+}
+```
+
 ### 4.2. Error Responses
 
 | Status Code | Content-Type     | Schema                                                                                         | Example                                                                                                                               | Description                                                          |
@@ -220,9 +263,100 @@
 - **E2E Tests:** Manual testing through Admin GUI
 - **Mock Data/Fixtures:** Generated via `local-dev-setup/scripts/generators/005_generate_users.js`
 
-## 11. Changelog
+## 11. User Context and Role Management
 
-- **Date:** 2025-01-15
+### Role ID Mapping
+
+The system supports three user roles:
+
+| Role ID | Role Code | Description                           |
+| ------- | --------- | ------------------------------------- |
+| 1       | ADMIN     | Administrator with full system access |
+| 2       | NORMAL    | Standard user access                  |
+| 3       | PILOT     | Pilot user with execution privileges  |
+
+### Authentication Support
+
+The `/users` endpoint supports authentication queries via the `userCode` parameter:
+
+**Example Request:**
+
+```bash
+GET /users?userCode=JDO
+```
+
+**Success Response:**
+
+```json
+[
+  {
+    "usr_id": 1001,
+    "usr_code": "JDO",
+    "usr_first_name": "John",
+    "usr_last_name": "Doe",
+    "usr_email": "john.doe@example.com",
+    "usr_is_admin": false,
+    "usr_active": true,
+    "rls_id": 2
+  }
+]
+```
+
+**Not Found Response (with Debug Info):**
+
+```json
+{
+  "error": "User with code INVALID not found.",
+  "debug": "Available active user codes: JDO, MSmith, SJones, DBAdmin"
+}
+```
+
+### Enhanced Error Messages
+
+The API provides detailed constraint violation messages:
+
+**Email Duplicate (409 Conflict):**
+
+```json
+{
+  "error": "A user with this email address already exists.",
+  "details": "Duplicate value constraint violation",
+  "sqlState": "23505"
+}
+```
+
+**Missing Required Field (400 Bad Request):**
+
+```json
+{
+  "error": "Missing required field: First Name (usr_first_name)",
+  "details": "Database constraint violation - field cannot be null",
+  "sqlState": "23502"
+}
+```
+
+**Foreign Key Violation (400 Bad Request):**
+
+```json
+{
+  "error": "Invalid reference - the specified role or team does not exist.",
+  "details": "Foreign key constraint violation",
+  "sqlState": "23503"
+}
+```
+
+## 12. Changelog
+
+### Version 2.1.0 (August 25, 2025)
+
+- **Added User Context Endpoint**: New `/user/context` endpoint for retrieving user context with role information
+- **Enhanced Authentication Support**: Added `userCode` query parameter with debug information for authentication lookups
+- **Improved Error Handling**: More detailed error messages with SQL state codes and constraint-specific information
+- **Role Management**: Clear role ID to role code mapping (ADMIN, NORMAL, PILOT)
+- **Better Debugging**: Not found responses include available user codes for troubleshooting
+
+### Version 2.0.0 (January 15, 2025)
+
 - **Change:** Initial API specification created
 - **Author:** Claude (AI Assistant)
 

@@ -280,6 +280,8 @@ class StepsAPIv2Client {
       "status",
       "phaseId",
       "sequenceId",
+      "planId",
+      "labelId",
     ];
     for (const key of Object.keys(filters)) {
       if (!validFilters.includes(key)) {
@@ -301,6 +303,13 @@ class StepsAPIv2Client {
     }
     if (filters.sequenceId && !this._isValidUUID(filters.sequenceId)) {
       throw new Error("Invalid sequenceId format - must be a valid UUID");
+    }
+    if (filters.planId && !this._isValidUUID(filters.planId)) {
+      throw new Error("Invalid planId format - must be a valid UUID");
+    }
+    // Validate labelId is an integer (labels use integer IDs, not UUIDs)
+    if (filters.labelId && !Number.isInteger(Number(filters.labelId))) {
+      throw new Error("labelId must be a valid integer");
     }
 
     // Validate teamId is a number
@@ -727,7 +736,35 @@ class IterationView {
         return;
       }
 
-      // Fetch user role information from backend
+      // User context endpoint not yet implemented - using username-based detection
+      // TODO: Implement /user/context endpoint in future sprint
+      const username = this.config.confluence.username;
+
+      // Direct admin detection based on username
+      if (username === "admin" || username === "guq") {
+        console.log("Admin user detected (username-based detection)");
+        this.userRole = "ADMIN";
+        this.isAdmin = true;
+        this.applyRoleBasedControls();
+      } else {
+        // For non-admin users, check if we need user context from backend
+        // Currently using default NORMAL role
+        this.userRole = "NORMAL";
+        this.isAdmin = false;
+        console.log("Standard user detected:", username);
+
+        // Apply role-based UI controls once DOM is ready
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", () =>
+            this.applyRoleBasedControls(),
+          );
+        } else {
+          this.applyRoleBasedControls();
+        }
+      }
+
+      // ORIGINAL CODE COMMENTED OUT - endpoint doesn't exist yet
+      /*
       const response = await fetch(
         `${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(this.config.confluence.username)}`,
       );
@@ -745,33 +782,12 @@ class IterationView {
         } else {
           this.applyRoleBasedControls();
         }
-      } else {
-        console.warn("Failed to load user context:", response.status);
-        // TEMPORARY WORKAROUND: Check username for admin detection
-        const username = this.config.confluence.username;
-        if (username === "admin" || username === "guq") {
-          console.log("Admin user detected via workaround (404 response)");
-          this.userRole = "ADMIN";
-          this.isAdmin = true;
-        } else {
-          // Default to NORMAL role
-          this.userRole = "NORMAL";
-          this.isAdmin = false;
-        }
-      }
+      */
     } catch (error) {
-      console.error("Error loading user context:", error);
-      // TEMPORARY WORKAROUND: Check username for admin detection
-      const username = this.config.confluence.username;
-      if (username === "admin" || username === "guq") {
-        console.log("Admin user detected via workaround");
-        this.userRole = "ADMIN";
-        this.isAdmin = true;
-      } else {
-        // Default to NORMAL role
-        this.userRole = "NORMAL";
-        this.isAdmin = false;
-      }
+      console.error("Error in user context initialization:", error);
+      // Fallback to NORMAL role
+      this.userRole = "NORMAL";
+      this.isAdmin = false;
     }
   }
 
@@ -1329,7 +1345,7 @@ class IterationView {
   async fetchStepStatuses() {
     try {
       const response = await fetch(
-        "/rest/scriptrunner/latest/custom/statuses/step",
+        "/rest/scriptrunner/latest/custom/status?entityType=Step",
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch statuses: ${response.status}`);
@@ -1350,7 +1366,7 @@ class IterationView {
     while (retryCount <= maxRetries) {
       try {
         const response = await fetch(
-          "/rest/scriptrunner/latest/custom/statuses/step",
+          "/rest/scriptrunner/latest/custom/status?entityType=Step",
         );
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -1521,26 +1537,11 @@ class IterationView {
           );
         } else {
           console.warn(
-            `PopulateStatusDropdown - Could not find status name for ID: ${currentStatus}`,
+            `PopulateStatusDropdown - Could not find status name for ID: ${currentStatus}. Available statuses:`,
+            statuses.map((s) => `${s.id}:${s.name}`).join(", "),
           );
-          // Try to fetch the status name from API if not found in the list
-          try {
-            const response = await fetch(
-              `/rest/scriptrunner/latest/custom/statuses/${currentStatus}`,
-            );
-            if (response.ok) {
-              const statusInfo = await response.json();
-              currentStatusName = statusInfo.name;
-              console.log(
-                `PopulateStatusDropdown - Fetched status name from API: ${currentStatusName}`,
-              );
-            }
-          } catch (error) {
-            console.warn(
-              "PopulateStatusDropdown - Could not fetch status from API:",
-              error,
-            );
-          }
+          // Fallback: use the ID as display name if name lookup fails
+          currentStatusName = `Status ${currentStatus}`;
         }
       } else if (typeof currentStatus === "string") {
         // Current status is already a name
