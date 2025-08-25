@@ -21,11 +21,13 @@ This meant that even though the frontend was sending `phm_order` and `sqm_id` va
 ### 1. Updated Updatable Fields Array (Line 351)
 
 **Before:**
+
 ```groovy
 def updatableFields = ['phm_name', 'phm_description', 'predecessor_phm_id']
 ```
 
 **After:**
+
 ```groovy
 def updatableFields = ['phm_name', 'phm_description', 'predecessor_phm_id', 'phm_order', 'sqm_id']
 ```
@@ -43,7 +45,7 @@ Added comprehensive validation for the new updatable fields:
 The frontend can now successfully update:
 
 - ✅ **phm_order**: Order position within the sequence
-- ✅ **sqm_id**: Parent sequence assignment  
+- ✅ **sqm_id**: Parent sequence assignment
 - ✅ **phm_name**: Phase name (existing)
 - ✅ **phm_description**: Phase description (existing)
 - ✅ **predecessor_phm_id**: Predecessor relationship (existing)
@@ -53,10 +55,10 @@ The frontend can now successfully update:
 ```javascript
 // Frontend can now successfully update these fields
 const updateData = {
-    phm_order: 100,
-    sqm_id: "d2b63f42-83e0-42f3-a540-9f1b78c6501d",
-    phm_name: "Updated Phase Name",
-    phm_description: "Updated description"
+  phm_order: 100,
+  sqm_id: "d2b63f42-83e0-42f3-a540-9f1b78c6501d",
+  phm_name: "Updated Phase Name",
+  phm_description: "Updated description",
 };
 
 // PUT /api/v2/phases/master/{phaseId}
@@ -77,7 +79,7 @@ The fix has been validated with:
 
 - ✅ Logic verification through simulation
 - ✅ Field inclusion validation
-- ✅ Backward compatibility maintained  
+- ✅ Backward compatibility maintained
 - ✅ Error handling preserved
 
 ## Impact

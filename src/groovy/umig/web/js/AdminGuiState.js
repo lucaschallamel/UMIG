@@ -179,34 +179,34 @@
         // Mapping for navigation data-section to EntityConfig keys
         const sectionMapping = {
           // Basic entities (direct mapping)
-          'users': 'users',
-          'teams': 'teams',
-          'environments': 'environments',
-          'applications': 'applications',
-          'labels': 'labels',
-          
+          users: "users",
+          teams: "teams",
+          environments: "environments",
+          applications: "applications",
+          labels: "labels",
+
           // Migration-related entities (direct mapping)
-          'migrations': 'migrations',
-          
+          migrations: "migrations",
+
           // Instance entities (navigation uses different names)
-          'plans': 'plansinstance',  // FIXED: Map to plansinstance for PILOT section
-          'sequences': 'sequences',
-          'phases': 'phases',
-          'steps': 'instructions', // Steps section shows instructions
-          
+          plans: "plansinstance", // FIXED: Map to plansinstance for PILOT section
+          sequences: "sequences",
+          phases: "phases",
+          steps: "instructions", // Steps section shows instructions
+
           // Master entities (for future use)
-          'master-plans': 'plans',  // FIXED: Map to plans (master) for ADMIN section
-          'master-sequences': 'sequencesmaster',
-          'master-phases': 'phasesmaster',
-          'master-steps': 'steps-master',
-          'master-controls': 'controls-master',
-          
+          "master-plans": "plans", // FIXED: Map to plans (master) for ADMIN section
+          "master-sequences": "sequencesmaster",
+          "master-phases": "phasesmaster",
+          "master-steps": "steps-master",
+          "master-controls": "controls-master",
+
           // Other entities
-          'iterations': 'iterations',
-          'controls': 'controls-instance',
-          'audit-logs': 'audit-logs',
+          iterations: "iterations",
+          controls: "controls-instance",
+          "audit-logs": "audit-logs",
         };
-        
+
         return sectionMapping[section] || section;
       },
 

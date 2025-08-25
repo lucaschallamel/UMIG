@@ -6,12 +6,14 @@
 ## ✅ Testing Instructions
 
 ### 1. Start Development Environment
+
 ```bash
 cd /Users/lucaschallamel/Documents/GitHub/UMIG
 npm start  # If not already running
 ```
 
 ### 2. Access Admin GUI
+
 - Navigate to: http://localhost:8090
 - Login with Confluence credentials
 - Enter User Code (3-letter trigram)
@@ -21,16 +23,19 @@ npm start  # If not already running
 Check that ALL 11 entities appear in navigation and load without errors:
 
 #### SUPERADMIN Section (5 entities)
+
 - [ ] **Users** - Click and verify table loads
-- [ ] **Teams** - Click and verify table loads  
+- [ ] **Teams** - Click and verify table loads
 - [ ] **Environments** - Click and verify table loads
 - [ ] **Applications** - Click and verify table loads
 - [ ] **Labels** - Click and verify table loads
 
-#### ADMIN Section (1 entity) 
+#### ADMIN Section (1 entity)
+
 - [ ] **Migrations** - Click and verify table loads (may be empty)
 
 #### PILOT Section (5 entities)
+
 - [ ] **Plans** - Click and verify table loads
 - [ ] **Sequences** - Click and verify table loads
 - [ ] **Phases** - Click and verify table loads
@@ -49,12 +54,14 @@ For each NEW entity (Migrations, Plans, Sequences, Phases, Instructions):
 ### 5. Known Limitations (Acceptable for MVP)
 
 ✅ **Working Features:**
+
 - All 11 entities visible in navigation
 - Basic table display for each entity
 - Navigation between entities
 - Authentication/authorization respected
 
 ⚠️ **Deferred to Sprint 6:**
+
 - Real-time synchronization (use Refresh button instead)
 - Cross-browser testing (Chrome only for now)
 - Rich text editors (basic text fields only)
@@ -65,6 +72,7 @@ For each NEW entity (Migrations, Plans, Sequences, Phases, Instructions):
 ## 🔴 Critical Issues to Report
 
 If any of these occur, STOP and fix immediately:
+
 - JavaScript errors blocking navigation
 - Authentication bypass issues
 - Entity not appearing in navigation
@@ -73,6 +81,7 @@ If any of these occur, STOP and fix immediately:
 ## 🟡 Non-Critical Issues to Document
 
 Document these for Sprint 6:
+
 - Slow load times (>5 seconds)
 - Minor UI inconsistencies
 - Missing icons or styling
@@ -88,19 +97,22 @@ Document these for Sprint 6:
 
 ## Test Results
 
-**Tested by**: _________________  
-**Date/Time**: _________________
+**Tested by**: ********\_********  
+**Date/Time**: ********\_********
 
 ### Summary:
+
 - [ ] MVP Criteria Met
 - [ ] Ready for UAT
 
 ### Issues Found:
-1. 
-2. 
-3. 
+
+1.
+2.
+3.
 
 ### Next Steps:
+
 - If MVP criteria met: Proceed to US-034 (Data Import)
 - If critical issues: Fix immediately
 - If non-critical issues: Document for Sprint 6

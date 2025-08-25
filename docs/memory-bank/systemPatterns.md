@@ -1062,7 +1062,7 @@ class SystemConfigurationApi {
     def getConfiguration(String key) {
         return SystemConfigurationRepository.findByKey(key)
     }
-    
+
     def updateConfiguration(String key, String value, String updatedBy) {
         return SystemConfigurationRepository.updateConfiguration(key, value, updatedBy)
     }
@@ -1070,6 +1070,7 @@ class SystemConfigurationApi {
 ```
 
 **Benefits**:
+
 - **Runtime Configuration**: Change system behavior without deployments
 - **Audit Trail**: Complete configuration change history with user tracking
 - **Security**: Role-based access control for configuration modifications
@@ -1087,13 +1088,14 @@ class EnhancedEmailService {
         def template = EmailTemplateRepository.findByType(templateType)
         def recipients = extractRecipients(context)
         def emailContent = processTemplate(template, context)
-        
+
         return ConfluenceMailAPI.send(recipients, emailContent)
     }
 }
 ```
 
 **Components**:
+
 - **SystemConfigurationApi**: Enterprise configuration management
 - **EnhancedEmailService**: Advanced notification capabilities with URL integration
 - **StepNotificationIntegration**: Cross-system integration layer
@@ -1101,6 +1103,7 @@ class EnhancedEmailService {
 - **Template Management**: Database-driven templates (INSTRUCTION_UNCOMPLETED, STEP_STATUS_CHANGED)
 
 **Quality Features**:
+
 - **Local Development**: MailHog integration for testing
 - **Template Variables**: Dynamic placeholder replacement with GString processing
 - **Multi-Team Routing**: Automatic recipient extraction from team associations
@@ -1122,12 +1125,14 @@ git status                   # Verify clean repository
 ```
 
 **Prevention Measures**:
+
 - **File Count Verification**: Always check file count before major commits
 - **Pre-commit Validation**: Use `git status` and `git diff --stat`
 - **Incremental Commits**: Break large changes into smaller commits
 - **Backup Checkpoints**: Maintain regular backup points during reorganizations
 
 **Repository Optimization Metrics**:
+
 - **Cleanup Efficiency**: 99.9% file reduction (53,826 → 51 essential files)
 - **Development Experience**: Enhanced IDE performance and navigation
 - **Project Structure**: Clear separation of active vs archived components
@@ -1139,6 +1144,7 @@ git status                   # Verify clean repository
 **Implementation**: Focused, specialized documents with preserved context
 
 **Organization Pattern**:
+
 ```
 docs/
 ├── system-configuration-schema.md          # Pure schema documentation
@@ -1150,6 +1156,7 @@ docs/
 ```
 
 **Benefits**:
+
 - **Focused Content**: Each document serves single purpose
 - **Historical Preservation**: Context maintained through archival
 - **Improved Navigation**: Developers find relevant information faster
@@ -1176,6 +1183,7 @@ def logInstructionCompletion(UUID instructionId, Integer userId) {
 ```
 
 **Implementation Impact**:
+
 - **Regulatory Compliance**: Accurate audit trails for compliance reporting
 - **Data Integrity**: Proper entity type mapping prevents confusion
 - **Testing Coverage**: DirectAuditLoggingTest and InstructionAuditLoggingTest
@@ -1186,6 +1194,7 @@ def logInstructionCompletion(UUID instructionId, Integer userId) {
 **Achievement**: 6 new test files with complete email and audit coverage
 
 **Test Architecture**:
+
 ```groovy
 // Enhanced Testing Pattern Structure
 EnhancedEmailNotificationIntegrationTest.groovy  // Email flow integration
@@ -1197,6 +1206,7 @@ StepRepositoryAuditFixTest.groovy                // Repository audit compliance
 ```
 
 **Quality Assurance Features**:
+
 - **Integration Testing**: Email compatibility and mobile test scenarios
 - **Audit Verification**: AUDIT_LOGGING_FIX_VERIFICATION documentation
 - **Performance Testing**: Response time monitoring and regression detection
@@ -1211,16 +1221,17 @@ StepRepositoryAuditFixTest.groovy                // Repository audit compliance
 
 ```sql
 -- Database Relationship Mapping Pattern
-SELECT m.*, 
+SELECT m.*,
        COUNT(DISTINCT i.id) as iteration_count,
        COUNT(DISTINCT p.id) as plan_count
-FROM mig_migrations m 
-LEFT JOIN iterations i ON m.id = i.migration_id 
+FROM mig_migrations m
+LEFT JOIN iterations i ON m.id = i.migration_id
 LEFT JOIN plans p ON i.id = p.iteration_id
 GROUP BY m.id
 ```
 
 **Architectural Insights**:
+
 - **Indirect Relationships**: Plans connect to migrations through iterations table, not directly
 - **Computed Fields**: iteration_count, plan_count require special handling in sorting and filtering
 - **Table Naming**: Systematic discovery of correct table names (iterations_ite NOT iterations_instance_iti)
@@ -1228,6 +1239,7 @@ GROUP BY m.id
 - **ORDER BY Aliases**: Computed fields require SQL aliases in ORDER BY clauses for proper sorting
 
 **Impact on Development**:
+
 - **Admin GUI Pattern**: All hierarchical entity implementations must follow this relationship mapping
 - **Performance**: JOIN operations optimized for computed field calculations
 - **Consistency**: Standardized approach for all parent-child entity relationships
@@ -1242,13 +1254,13 @@ GROUP BY m.id
 def searchMigrations(String searchTerm) {
     // BEFORE: GString interpolation causes SQL errors
     def params = [searchTerm: searchTerm]  // GString in ScriptRunner context
-    
+
     // AFTER: Explicit String conversion prevents SQL issues
     def params = [searchTerm: searchTerm.toString()]  // Converted to String
-    
+
     DatabaseUtil.withSql { sql ->
         sql.rows("""
-            SELECT * FROM mig_migrations 
+            SELECT * FROM mig_migrations
             WHERE mig_name ILIKE CONCAT('%', :searchTerm, '%')
         """, params)
     }
@@ -1256,6 +1268,7 @@ def searchMigrations(String searchTerm) {
 ```
 
 **ScriptRunner-Specific Requirements**:
+
 - **Environment Dependency**: Issue specific to ScriptRunner/Confluence environment
 - **Error Manifestation**: SQL execution errors that are difficult to debug
 - **Universal Application**: Required for all dynamic SQL parameter handling
@@ -1263,6 +1276,7 @@ def searchMigrations(String searchTerm) {
 - **Context Rules**: Apply to ALL dynamic parameters from any source (HTTP params, variables, etc.)
 
 **Development Impact**:
+
 - **Debug Strategy**: Test API endpoints directly with curl before debugging frontend
 - **SQL Verification**: Always check dynamic parameter types when SQL fails
 
@@ -1274,29 +1288,28 @@ def searchMigrations(String searchTerm) {
 ```javascript
 // Context Preservation Pattern
 class AdminGUIComponent {
-    setupErrorHandling() {
-        // BEFORE: Context lost in callback
-        fetch('/api/migrations')
-            .catch(error => {
-                // 'this' context lost, 'Try Again' button undefined behavior
-                this.showError(error);  // 'this' is undefined
-            });
-    }
-    
-    setupErrorHandlingCorrected() {
-        // AFTER: Context preserved through arrow functions and explicit binding
-        const self = this;  // Explicit context capture
-        
-        fetch('/api/migrations')
-            .catch(error => {
-                self.showError(error);  // Context preserved
-                self.renderTryAgainButton(self.retryOperation.bind(self));
-            });
-    }
+  setupErrorHandling() {
+    // BEFORE: Context lost in callback
+    fetch("/api/migrations").catch((error) => {
+      // 'this' context lost, 'Try Again' button undefined behavior
+      this.showError(error); // 'this' is undefined
+    });
+  }
+
+  setupErrorHandlingCorrected() {
+    // AFTER: Context preserved through arrow functions and explicit binding
+    const self = this; // Explicit context capture
+
+    fetch("/api/migrations").catch((error) => {
+      self.showError(error); // Context preserved
+      self.renderTryAgainButton(self.retryOperation.bind(self));
+    });
+  }
 }
 ```
 
 **UMIG-Specific Considerations**:
+
 - **Framework Context**: Vanilla JavaScript without frameworks requires manual context management
 - **UI Component Integration**: Custom renderers must preserve context for callbacks
 - **Error Recovery**: "Try Again" buttons need preserved context for retry operations
@@ -1312,48 +1325,50 @@ class AdminGUIComponent {
 ```javascript
 // Custom Renderer Integration Pattern
 const sortableTableConfig = {
-    columns: [
-        {
-            key: 'mig_name',
-            sortable: true,
-            renderer: (value, row) => {
-                // Clickable UUID links with proper routing
-                return `<a href="/migration-details/${row.id}">${value}</a>`;
-            }
-        },
-        {
-            key: 'iteration_count',  // Computed field
-            sortable: true,  // Special handling required
-            renderer: (value, row) => {
-                return `<span class="badge badge-info">${value}</span>`;
-            }
-        },
-        {
-            key: 'mig_status',
-            sortable: true,
-            renderer: (value, row) => {
-                // Status badges with colored indicators
-                const statusClass = value === 'ACTIVE' ? 'success' : 'secondary';
-                return `<span class="badge badge-${statusClass}">${value}</span>`;
-            }
-        }
-    ],
-    
-    // Custom sorting for computed fields
-    customSort: {
-        iteration_count: (a, b) => a.iteration_count - b.iteration_count,
-        plan_count: (a, b) => a.plan_count - b.plan_count
-    }
+  columns: [
+    {
+      key: "mig_name",
+      sortable: true,
+      renderer: (value, row) => {
+        // Clickable UUID links with proper routing
+        return `<a href="/migration-details/${row.id}">${value}</a>`;
+      },
+    },
+    {
+      key: "iteration_count", // Computed field
+      sortable: true, // Special handling required
+      renderer: (value, row) => {
+        return `<span class="badge badge-info">${value}</span>`;
+      },
+    },
+    {
+      key: "mig_status",
+      sortable: true,
+      renderer: (value, row) => {
+        // Status badges with colored indicators
+        const statusClass = value === "ACTIVE" ? "success" : "secondary";
+        return `<span class="badge badge-${statusClass}">${value}</span>`;
+      },
+    },
+  ],
+
+  // Custom sorting for computed fields
+  customSort: {
+    iteration_count: (a, b) => a.iteration_count - b.iteration_count,
+    plan_count: (a, b) => a.plan_count - b.plan_count,
+  },
 };
 ```
 
 **Integration Benefits**:
+
 - **Visual Consistency**: Unified appearance across all admin entity tables
 - **Interactive Elements**: Clickable links, status badges, action dropdowns
 - **Performance**: Optimized rendering for computed fields and complex UI elements
 - **Maintainability**: Reusable patterns across different entity types
 
 **EntityConfig Access Pattern**:
+
 - **Custom Renderers**: Access via `entity.customRenderers[column]` pattern
 - **Status Metadata**: Structured as `{id, name, color, type}` objects
 - **Feature Flags**: Centralized bulk/export functionality controls
@@ -1366,23 +1381,23 @@ const sortableTableConfig = {
 ```javascript
 // Bulk Actions Implementation Pattern
 class BulkActionsManager {
-    constructor(entityType, tableManager) {
-        this.entityType = entityType;
-        this.tableManager = tableManager;
-        this.selectedItems = new Set();
-    }
-    
-    setupBulkActions() {
-        const bulkDropdown = this.createBulkDropdown();
-        const actionsContainer = document.getElementById('bulk-actions');
-        actionsContainer.appendChild(bulkDropdown);
-    }
-    
-    createBulkDropdown() {
-        // Native dropdown implementation without UI library
-        const dropdown = document.createElement('div');
-        dropdown.className = 'bulk-actions-dropdown';
-        dropdown.innerHTML = `
+  constructor(entityType, tableManager) {
+    this.entityType = entityType;
+    this.tableManager = tableManager;
+    this.selectedItems = new Set();
+  }
+
+  setupBulkActions() {
+    const bulkDropdown = this.createBulkDropdown();
+    const actionsContainer = document.getElementById("bulk-actions");
+    actionsContainer.appendChild(bulkDropdown);
+  }
+
+  createBulkDropdown() {
+    // Native dropdown implementation without UI library
+    const dropdown = document.createElement("div");
+    dropdown.className = "bulk-actions-dropdown";
+    dropdown.innerHTML = `
             <button class="btn btn-secondary dropdown-toggle" disabled>
                 Bulk Actions (<span class="selection-count">0</span>)
             </button>
@@ -1391,21 +1406,23 @@ class BulkActionsManager {
                 <a class="dropdown-item" href="#" data-action="delete">Delete Selected</a>
             </div>
         `;
-        
-        // Event delegation for bulk operations
-        dropdown.addEventListener('click', this.handleBulkAction.bind(this));
-        return dropdown;
-    }
+
+    // Event delegation for bulk operations
+    dropdown.addEventListener("click", this.handleBulkAction.bind(this));
+    return dropdown;
+  }
 }
 ```
 
 **Pattern Benefits**:
+
 - **Zero Dependencies**: No external UI library requirements
 - **Context Safety**: Proper event binding and context preservation
 - **User Feedback**: Real-time selection count and operation status
 - **Scalability**: Reusable across all admin entity types
 
 **Technical Debt Areas**:
+
 - **UiUtils.showCustomDialog**: Doesn't exist - implemented dropdown workaround
 - **EntityConfig Pattern**: Works well but needs consistent application
 - **Bulk Actions System**: Functional but could use proper modal library integration
@@ -1421,26 +1438,28 @@ class BulkActionsManager {
 5. **Progressive Implementation**: Build features incrementally with immediate testing
 
 **Debugging Tools**:
+
 ```javascript
 // Debugging utility for UMIG development
 const UMIGDebugger = {
-    logContext: function(label, context) {
-        console.log(`[DEBUG] ${label}:`, {
-            contextType: typeof context,
-            contextValue: context,
-            contextKeys: Object.keys(context || {})
-        });
-    },
-    
-    validateSQLParams: function(params) {
-        Object.entries(params).forEach(([key, value]) => {
-            console.log(`[SQL] ${key}:`, typeof value, value);
-        });
-    }
+  logContext: function (label, context) {
+    console.log(`[DEBUG] ${label}:`, {
+      contextType: typeof context,
+      contextValue: context,
+      contextKeys: Object.keys(context || {}),
+    });
+  },
+
+  validateSQLParams: function (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      console.log(`[SQL] ${key}:`, typeof value, value);
+    });
+  },
 };
 ```
 
 **Development Velocity Insights**:
+
 - **SQL Relationship Discovery**: Critical before implementing computed fields
 - **Frontend-Backend Alignment**: Essential for preventing data structure mismatches
 - **Context Preservation**: Frequent source of bugs in JavaScript callbacks
@@ -1450,12 +1469,14 @@ const UMIGDebugger = {
 ### Architecture Impact Assessment
 
 **US-031 Session Impact**:
+
 - **Database Understanding**: 75% improvement in entity relationship comprehension
 - **Debugging Efficiency**: 60% reduction in troubleshooting time for similar issues
 - **Pattern Reusability**: 90% of patterns applicable to remaining admin entities
 - **Knowledge Transfer**: Comprehensive documentation prevents future architectural confusion
 
 **Quality Metrics**:
+
 - **Implementation Success**: 100% feature completion for migrations entity
 - **Error Reduction**: Zero SQL parameter errors in subsequent development
 - **UI Consistency**: 95% visual/functional parity across admin components
@@ -1481,8 +1502,9 @@ if (stepId) {
 ```
 
 **Benefits**:
+
 - **Backward Compatibility**: Existing functionality unchanged
-- **Admin GUI Support**: Enables parameterless calls for admin interface  
+- **Admin GUI Support**: Enables parameterless calls for admin interface
 - **Clear Contract**: Explicit empty response for no-filter scenarios
 - **Future Extensibility**: Pattern applicable to all similar endpoints
 
@@ -1493,6 +1515,7 @@ if (stepId) {
 
 ```markdown
 # Manual Endpoint Registration Pattern
+
 1. Log into Confluence admin panel (http://localhost:8090)
 2. Navigate to ScriptRunner → REST Endpoints
 3. Register `/phases` endpoint from PhasesApi.groovy
@@ -1501,6 +1524,7 @@ if (stepId) {
 ```
 
 **Pattern Requirements**:
+
 - **UI-Based Registration**: Must be done through Confluence interface
 - **File Readiness**: API files already exist and are integration-ready
 - **Comprehensive Guide**: Step-by-step documentation prevents errors
@@ -1528,6 +1552,7 @@ def findMasterSequencesWithFilters() {
 ```
 
 **Critical Requirements**:
+
 - **Explicit Field Selection**: Never use `SELECT *` with Groovy RowResult
 - **Audit Field Inclusion**: Always include created_by, created_at, updated_by, updated_at
 - **JOIN Field Mapping**: Include fields from joined tables that are referenced
@@ -1557,6 +1582,7 @@ static def loadEnv() {
 ```
 
 **Benefits**:
+
 - **Development Flexibility**: Works from multiple working directories
 - **Error Prevention**: Graceful handling of missing configuration files
 - **Testing Support**: Different paths for different test execution contexts
@@ -1571,10 +1597,10 @@ static def loadEnv() {
 class AdminGuiAllEndpointsTest {
     static final List<String> ENDPOINTS = [
         "users", "teams", "environments", "applications", "labels",
-        "iterations", "migrations", "plans", "sequences", "steps", 
+        "iterations", "migrations", "plans", "sequences", "steps",
         "instructions", "phases", "controls"
     ]
-    
+
     def testAllEndpoints() {
         ENDPOINTS.each { endpoint ->
             try {
@@ -1589,6 +1615,7 @@ class AdminGuiAllEndpointsTest {
 ```
 
 **Testing Features**:
+
 - **Complete Coverage**: All 13 Admin GUI endpoints validated
 - **Detailed Reporting**: Pass/fail status with error details
 - **Environment Integration**: Loads credentials from .env configuration
@@ -1612,6 +1639,7 @@ class AdminGuiAllEndpointsTest {
 ```
 
 **Current Investigation Status**:
+
 - **Credentials Verified**: Correct password from .env file confirmed
 - **Multiple Methods Tested**: curl, Groovy script, integration test all return 401
 - **Container Restarted**: Full Confluence container restart attempted
@@ -1621,18 +1649,21 @@ class AdminGuiAllEndpointsTest {
 ### Admin GUI Pattern Impact Summary
 
 **Technical Achievements**:
+
 - **Endpoint Compatibility**: 11/13 endpoints functional (85% completion)
 - **Test Infrastructure**: Comprehensive testing framework established
 - **Documentation Quality**: Step-by-step guides prevent future configuration issues
 - **Error Resolution**: Systematic approaches to common integration problems
 
 **Pattern Benefits**:
-- **Reusability**: All patterns applicable to remaining Sprint 5 admin GUI work  
+
+- **Reusability**: All patterns applicable to remaining Sprint 5 admin GUI work
 - **Error Prevention**: Field mapping patterns prevent Groovy RowResult errors
 - **Testing Reliability**: Multi-location environment loading ensures consistent test execution
 - **Integration Readiness**: Manual registration documentation enables rapid endpoint activation
 
 **Knowledge Transfer Value**:
+
 - **Authentication Framework**: Investigation patterns applicable to future ScriptRunner issues
 - **SQL Compatibility**: Field mapping requirements documented for all future database queries
 - **Environment Flexibility**: Configuration loading patterns support various development setups

@@ -16,6 +16,7 @@
 ## Descoping Note (August 22, 2025)
 
 **Descoped from Sprint 5** to maintain focus on critical MVP components:
+
 - US-031 (Admin GUI Complete Integration) - 6 points, critical for MVP
 - US-034 (Data Import Strategy) - 3 points, migration enablement required
 

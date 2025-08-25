@@ -17,11 +17,13 @@
 ### Recent Updates
 
 **August 21, 2025 - Computed Fields Enhancement**:
+
 - ✅ **iteration_count**: Added computed field showing count of iterations per migration
 - ✅ **plan_count**: Added computed field showing count of distinct plans per migration
 - ✅ **created_by/updated_by**: Added user tracking fields for audit purposes
 
 **US-025 Phase 4 Fixes**:
+
 - ✅ **mig_type Parameter**: Fixed Integer→String casting issue in query processing
 - ✅ **GString Serialization**: Resolved JSON payload serialization overflow issues
 - ✅ **HTTP Basic Auth**: Validated Confluence user credential integration
@@ -72,18 +74,21 @@
 The Migrations API includes several computed fields that are automatically calculated based on related data:
 
 ### 3.1. iteration_count (integer)
+
 - **Description**: Count of iterations associated with the migration
 - **Calculation**: Direct count from the `iterations_ite` table grouped by `mig_id`
 - **SQL**: `COUNT(ite.ite_id) AS iteration_count`
 - **Usage**: Provides quick insight into migration complexity and scope
 
 ### 3.2. plan_count (integer)
+
 - **Description**: Count of distinct plans associated with the migration via iterations
 - **Calculation**: Count of distinct plan master IDs (`plm_id`) from iterations grouped by `mig_id`
 - **SQL**: `COUNT(DISTINCT ite.plm_id) AS plan_count`
 - **Usage**: Shows how many different plan types are involved in the migration
 
 ### 3.3. User Tracking Fields
+
 - **created_by** (string): Username of the user who created the migration
 - **updated_by** (string): Username of the user who last updated the migration
 - **Purpose**: Audit trail and ownership tracking
@@ -163,6 +168,7 @@ The Migrations API includes several computed fields that are automatically calcu
 #### Status Field Options
 
 **String Format (Status Names):**
+
 - `"PLANNING"` - Default status for new migrations
 - `"IN_PROGRESS"` - Active migration in progress
 - `"COMPLETED"` - Successfully completed migration
@@ -170,8 +176,9 @@ The Migrations API includes several computed fields that are automatically calcu
 - `"CANCELLED"` - Cancelled migration
 
 **Integer Format (Status IDs):**
+
 - `1` - PLANNING
-- `2` - IN_PROGRESS  
+- `2` - IN_PROGRESS
 - `3` - COMPLETED
 - `4` - ON_HOLD
 - `5` - CANCELLED
@@ -179,6 +186,7 @@ The Migrations API includes several computed fields that are automatically calcu
 #### Auto Owner Assignment Logic
 
 When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
+
 1. **Admin User**: First active admin user found
 2. **Active User**: Any active user if no admin exists
 3. **Any User**: Any user as last resort
@@ -187,11 +195,13 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 #### Date Format Support
 
 **Simple Date Format:**
+
 ```json
 "mig_start_date": "2025-07-01"
 ```
 
 **ISO DateTime Format:**
+
 ```json
 "mig_start_date": "2025-07-01T09:00:00"
 ```
@@ -199,6 +209,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 - **Examples:**
 
 **Basic Example (Minimal Required Fields):**
+
 ```json
 {
   "mig_name": "Data Center Migration Q3 2025"
@@ -206,6 +217,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```
 
 **Advanced Example (String Status):**
+
 ```json
 {
   "mig_name": "Data Center Migration Q3 2025",
@@ -220,6 +232,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```
 
 **Integer Status Example:**
+
 ```json
 {
   "mig_name": "Application Modernization",
@@ -341,6 +354,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 - **Schema:**
 
 **Computed Fields:**
+
 - `iteration_count` (integer): Count of iterations associated with the migration
 - `plan_count` (integer): Count of distinct plans associated with the migration via iterations
 - `created_by` (string): Username of the user who created the migration
@@ -477,14 +491,14 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 
 #### 5.6.2. Common Error Responses
 
-| Status Code | Description           | Example Scenarios                                                                             |
-| ----------- | --------------------- | --------------------------------------------------------------------------------------------- |
+| Status Code | Description           | Example Scenarios                                                                                                  |
+| ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | 400         | Bad Request           | Invalid UUID format, invalid pagination parameters, invalid date format, search term too long, invalid status name |
-| 401         | Unauthorized          | Missing authentication                                                                        |
-| 403         | Forbidden             | Insufficient permissions                                                                      |
-| 404         | Not Found             | Migration not found, unknown endpoint                                                         |
-| 409         | Conflict              | Foreign key violations, unique constraint violations (name already exists)                    |
-| 500         | Internal Server Error | Database errors, unexpected server errors, no users exist in system                          |
+| 401         | Unauthorized          | Missing authentication                                                                                             |
+| 403         | Forbidden             | Insufficient permissions                                                                                           |
+| 404         | Not Found             | Migration not found, unknown endpoint                                                                              |
+| 409         | Conflict              | Foreign key violations, unique constraint violations (name already exists)                                         |
+| 500         | Internal Server Error | Database errors, unexpected server errors, no users exist in system                                                |
 
 #### 5.6.3. Enhanced SQL Exception Mappings
 
@@ -497,6 +511,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 #### 5.6.4. Enhanced Validation Error Examples
 
 **Basic Validation Errors:**
+
 ```json
 {
   "error": "Invalid migration UUID"
@@ -510,6 +525,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```
 
 **Status Validation Errors:**
+
 ```json
 {
   "error": "Invalid status name: INVALID_STATUS"
@@ -523,6 +539,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```
 
 **Owner Assignment Errors:**
+
 ```json
 {
   "error": "Invalid owner user ID - user does not exist"
@@ -536,6 +553,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```
 
 **Date Format Errors:**
+
 ```json
 {
   "error": "Invalid dateFrom format. Use YYYY-MM-DD"
@@ -549,6 +567,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```
 
 **Constraint Violation Errors:**
+
 ```json
 {
   "error": "A migration with this name already exists"
@@ -562,6 +581,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```
 
 **Request Format Errors:**
+
 ```json
 {
   "error": "Invalid JSON format in request body"

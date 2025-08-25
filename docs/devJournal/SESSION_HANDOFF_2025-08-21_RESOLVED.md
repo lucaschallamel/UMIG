@@ -11,6 +11,7 @@ Successfully resolved the email notification and audit logging issue in StepView
 ## Root Cause (Confirmed)
 
 The issue was that `AuthenticatedUserThreadLocal.get()` returns null in the StepView macro context during AJAX API calls, causing:
+
 1. No valid user context for email notifications
 2. No audit records being created
 3. Different behavior between IterationView (works) and StepView (broken)
@@ -20,6 +21,7 @@ The issue was that `AuthenticatedUserThreadLocal.get()` returns null in the Step
 ### Approach: Hybrid Authentication with Frontend Fallback
 
 Modified the StepsApi to use a fallback mechanism:
+
 1. **Primary**: Try to get user context from `UserService.getCurrentUserContext()` (uses ThreadLocal)
 2. **Fallback**: If ThreadLocal is null, use the userId provided by the frontend
 3. **Logging**: Enhanced debug logging to track which authentication method is used
@@ -29,12 +31,14 @@ Modified the StepsApi to use a fallback mechanism:
 #### 1. `/src/groovy/umig/api/v2/StepsApi.groovy`
 
 Updated all user-context-dependent endpoints to respect frontend userId:
+
 - **PUT /steps/{id}/status** - Status change endpoint
 - **POST /steps/{id}/instructions/{id}/complete** - Instruction completion
 - **POST /steps/{id}/instructions/{id}/incomplete** - Instruction uncomplete
 - **POST /steps/{id}/comments** - Comment creation
 
 **Pattern Applied**:
+
 ```groovy
 // Get user context using UserService
 def userContext
@@ -63,6 +67,7 @@ if (!userId && requestData.userId) {
 #### 2. `/src/groovy/umig/web/js/step-view.js`
 
 Enhanced to send userId in all API requests:
+
 - Status change now includes: `userId: this.userContext?.userId || this.userId || null`
 - Comment creation now includes: `userId: this.userContext?.userId || this.userId || null`
 - Instruction completion/incompletion already had userId (no change needed)
@@ -70,13 +75,16 @@ Enhanced to send userId in all API requests:
 ## Verification Completed
 
 ### ✅ Email Templates Verified
+
 ```sql
-SELECT emt_type, emt_subject, emt_is_active FROM email_templates_emt 
+SELECT emt_type, emt_subject, emt_is_active FROM email_templates_emt
 WHERE emt_type IN ('STEP_STATUS_CHANGED', 'INSTRUCTION_COMPLETED');
 ```
+
 Result: Both templates exist and are active
 
 ### ✅ Authentication Flow Verified
+
 - StepView macro properly extracts userId from UMIG database
 - Frontend sends userId in all requests
 - API now accepts frontend userId when ThreadLocal is null
@@ -84,6 +92,7 @@ Result: Both templates exist and are active
 ## Testing Checklist
 
 ### Immediate Testing Required (After Service Restart)
+
 - [ ] Open StepView and change a step status
 - [ ] Verify email notification count displays in UI
 - [ ] Check MailHog (http://localhost:8025) for actual emails
@@ -92,6 +101,7 @@ Result: Both templates exist and are active
 - [ ] Check database audit logs for proper user attribution
 
 ### Expected Debug Output
+
 ```
 StepsApi: UserService failed (No Confluence user in ThreadLocal), checking for frontend userId
 StepsApi: Using frontend-provided userId: 123

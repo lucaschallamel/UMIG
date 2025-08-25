@@ -26,6 +26,7 @@ The Phases API provides critical quality gate management for migration execution
 The Phases API has been significantly enhanced with advanced repository capabilities:
 
 ### Admin GUI Support
+
 - **Pagination & Sorting:** Full pagination support with configurable page size (1-100 items)
 - **Advanced Filtering:** Filter by status, owner team, search terms, and date ranges
 - **Computed Fields:** Automatic calculation of `step_count` and `instance_count` for each phase
@@ -33,12 +34,14 @@ The Phases API has been significantly enhanced with advanced repository capabili
 - **Relationship Enrichment:** Automatic inclusion of parent sequence, plan, and team information
 
 ### Flexible Status Handling
+
 - **String Status Input:** Accept status names like 'PLANNING', 'IN_PROGRESS', 'COMPLETED'
 - **Integer Status Input:** Traditional numeric status IDs for backward compatibility
 - **Automatic Resolution:** Repository automatically resolves string names to appropriate IDs
 - **Validation:** Comprehensive status validation with specific error messages
 
 ### PostgreSQL Optimization
+
 - **Type Casting:** Proper PostgreSQL type casting with `::text` for date fields
 - **SQL State Mapping:** Advanced error handling with SQL state codes (23503→400, 23505→409)
 - **Date Compatibility:** Enhanced date parsing supporting multiple formats (YYYY-MM-DD, ISO datetime)
@@ -46,32 +49,32 @@ The Phases API has been significantly enhanced with advanced repository capabili
 
 ## 2. Endpoints
 
-| Method                        | Path                                          | Description                                         |
-| ----------------------------- | --------------------------------------------- | --------------------------------------------------- |
-| **Master Phase Management**   |                                               |                                                     |
+| Method                        | Path                                          | Description                                                                              |
+| ----------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Master Phase Management**   |                                               |                                                                                          |
 | GET                           | `/phases/master`                              | Get all master phases with Admin GUI pagination, filtering, sorting, and computed fields |
-| GET                           | `/phases/master/{phm_id}`                     | Get a specific master phase by ID                   |
-| POST                          | `/phases/master`                              | Create a new master phase                           |
-| PUT                           | `/phases/master/{phm_id}`                     | Update an existing master phase                     |
-| DELETE                        | `/phases/master/{phm_id}`                     | Delete a master phase                               |
-| **Instance Phase Operations** |                                               |                                                     |
-| GET                           | `/phases/instance`                            | Get all phase instances with hierarchical filtering |
-| GET                           | `/phases/instance/{phi_id}`                   | Get a specific phase instance by ID                 |
-| POST                          | `/phases/instance`                            | Create a phase instance from master phase           |
-| PUT                           | `/phases/instance/{phi_id}`                   | Update an existing phase instance                   |
-| DELETE                        | `/phases/instance/{phi_id}`                   | Delete a phase instance                             |
-| **Control Points**            |                                               |                                                     |
-| GET                           | `/phases/{phi_id}/controls`                   | Get control points for a phase instance             |
-| POST                          | `/phases/{phi_id}/controls/validate`          | Validate all control points for a phase             |
-| PUT                           | `/phases/{phi_id}/controls/{cti_id}`          | Update control point status                         |
-| POST                          | `/phases/{phi_id}/controls/{cti_id}/override` | Override control point with reason                  |
-| **Ordering**                  |                                               |                                                     |
-| PUT                           | `/phases/master/reorder`                      | Bulk reorder master phases within sequence          |
-| PUT                           | `/phases/instance/reorder`                    | Bulk reorder phase instances within sequence        |
-| POST                          | `/phases/master/{phm_id}/move`                | Move master phase to new position                   |
-| POST                          | `/phases/instance/{phi_id}/move`              | Move phase instance to new position                 |
-| **Progress**                  |                                               |                                                     |
-| GET                           | `/phases/{phi_id}/progress`                   | Get progress percentage for phase instance          |
+| GET                           | `/phases/master/{phm_id}`                     | Get a specific master phase by ID                                                        |
+| POST                          | `/phases/master`                              | Create a new master phase                                                                |
+| PUT                           | `/phases/master/{phm_id}`                     | Update an existing master phase                                                          |
+| DELETE                        | `/phases/master/{phm_id}`                     | Delete a master phase                                                                    |
+| **Instance Phase Operations** |                                               |                                                                                          |
+| GET                           | `/phases/instance`                            | Get all phase instances with hierarchical filtering                                      |
+| GET                           | `/phases/instance/{phi_id}`                   | Get a specific phase instance by ID                                                      |
+| POST                          | `/phases/instance`                            | Create a phase instance from master phase                                                |
+| PUT                           | `/phases/instance/{phi_id}`                   | Update an existing phase instance                                                        |
+| DELETE                        | `/phases/instance/{phi_id}`                   | Delete a phase instance                                                                  |
+| **Control Points**            |                                               |                                                                                          |
+| GET                           | `/phases/{phi_id}/controls`                   | Get control points for a phase instance                                                  |
+| POST                          | `/phases/{phi_id}/controls/validate`          | Validate all control points for a phase                                                  |
+| PUT                           | `/phases/{phi_id}/controls/{cti_id}`          | Update control point status                                                              |
+| POST                          | `/phases/{phi_id}/controls/{cti_id}/override` | Override control point with reason                                                       |
+| **Ordering**                  |                                               |                                                                                          |
+| PUT                           | `/phases/master/reorder`                      | Bulk reorder master phases within sequence                                               |
+| PUT                           | `/phases/instance/reorder`                    | Bulk reorder phase instances within sequence                                             |
+| POST                          | `/phases/master/{phm_id}/move`                | Move master phase to new position                                                        |
+| POST                          | `/phases/instance/{phi_id}/move`              | Move phase instance to new position                                                      |
+| **Progress**                  |                                               |                                                                                          |
+| GET                           | `/phases/{phi_id}/progress`                   | Get progress percentage for phase instance                                               |
 
 ## 3. Request Details
 
@@ -88,35 +91,40 @@ The Phases API has been significantly enhanced with advanced repository capabili
 #### GET /phases/master
 
 **Legacy Parameters (Backward Compatibility):**
-| Name       | Type | Required | Description                                |
+| Name | Type | Required | Description |
 | ---------- | ---- | -------- | ------------------------------------------ |
-| sequenceId | UUID | No       | Filter master phases by sequence master ID |
+| sequenceId | UUID | No | Filter master phases by sequence master ID |
 
 **Admin GUI Parameters (Enhanced Features):**
-| Name           | Type         | Required | Default     | Description                                      |
+| Name | Type | Required | Default | Description |
 | -------------- | ------------ | -------- | ----------- | ------------------------------------------------ |
-| page           | Integer      | No       | 1           | Page number for pagination (1-based)             |
-| size           | Integer      | No       | 50          | Number of items per page (1-100)                |
-| sort           | String       | No       | phm_name    | Field to sort by: phm_id, phm_name, phm_status, created_at, updated_at, step_count, instance_count |
-| direction      | String       | No       | asc         | Sort direction: asc, desc                        |
-| status         | String/Array | No       | -           | Filter by status name(s). Single value or array |
-| ownerId        | String       | No       | -           | Filter by owner team ID (through plan master)   |
-| search         | String       | No       | -           | Search in phase name and description             |
-| startDateFrom  | Date         | No       | -           | Filter by creation date from (YYYY-MM-DD)       |
-| startDateTo    | Date         | No       | -           | Filter by creation date to (YYYY-MM-DD)         |
+| page | Integer | No | 1 | Page number for pagination (1-based) |
+| size | Integer | No | 50 | Number of items per page (1-100) |
+| sort | String | No | phm_name | Field to sort by: phm_id, phm_name, phm_status, created_at, updated_at, step_count, instance_count |
+| direction | String | No | asc | Sort direction: asc, desc |
+| status | String/Array | No | - | Filter by status name(s). Single value or array |
+| ownerId | String | No | - | Filter by owner team ID (through plan master) |
+| search | String | No | - | Search in phase name and description |
+| startDateFrom | Date | No | - | Filter by creation date from (YYYY-MM-DD) |
+| startDateTo | Date | No | - | Filter by creation date to (YYYY-MM-DD) |
 
 **Enhanced Response Structure:**
 The Admin GUI endpoint returns a structured response with pagination metadata:
+
 ```json
 {
-  "data": [/* array of master phases with computed fields */],
+  "data": [
+    /* array of master phases with computed fields */
+  ],
   "pagination": {
     "page": 1,
     "size": 50,
     "total": 123,
     "totalPages": 3
   },
-  "filters": {/* applied filters for reference */}
+  "filters": {
+    /* applied filters for reference */
+  }
 }
 ```
 
@@ -202,6 +210,7 @@ The Admin GUI endpoint returns a structured response with pagination metadata:
 - **Examples:**
 
 **Using String Status (Recommended):**
+
 ```json
 {
   "phm_id": "123e4567-e89b-12d3-a456-426614174000",
@@ -213,17 +222,19 @@ The Admin GUI endpoint returns a structured response with pagination metadata:
 ```
 
 **Using Integer Status (Backward Compatibility):**
+
 ```json
 {
   "phm_id": "123e4567-e89b-12d3-a456-426614174000",
   "sqi_id": "456e7890-e89b-12d3-a456-426614174001",
-  "phi_name": "Production Pre-Migration Verification",  
+  "phi_name": "Production Pre-Migration Verification",
   "phi_status": 5,
   "phi_order": 1
 }
 ```
 
 **Supported Status Values:**
+
 - String names: `PLANNING`, `IN_PROGRESS`, `COMPLETED`, `ON_HOLD`, `CANCELLED`
 - Integer IDs: Numeric values from `status_sts` table
 - Repository automatically resolves string names to appropriate IDs
@@ -381,11 +392,12 @@ The Admin GUI endpoint returns a structured response with pagination metadata:
 - **Content-Type:** application/json
 
 **Legacy Response (without pagination):**
+
 ```json
 [
   {
     "phm_id": "UUID string",
-    "sqm_id": "UUID string", 
+    "sqm_id": "UUID string",
     "phm_name": "string",
     "phm_description": "string",
     "phm_order": "integer",
@@ -397,6 +409,7 @@ The Admin GUI endpoint returns a structured response with pagination metadata:
 ```
 
 **Enhanced Response (Admin GUI with pagination and computed fields):**
+
 ```json
 {
   "data": [
@@ -414,7 +427,7 @@ The Admin GUI endpoint returns a structured response with pagination metadata:
       "phm_status": "ACTIVE",
       "statusMetadata": {
         "sts_id": 1,
-        "sts_name": "ACTIVE", 
+        "sts_name": "ACTIVE",
         "sts_color": "#28a745",
         "sts_type": "Phase"
       },
@@ -425,7 +438,7 @@ The Admin GUI endpoint returns a structured response with pagination metadata:
       // Audit fields
       "created_at": "2025-01-15T10:30:00Z",
       "created_by": 1001,
-      "updated_at": "2025-02-20T14:45:00Z", 
+      "updated_at": "2025-02-20T14:45:00Z",
       "updated_by": 1002
     }
   ],
@@ -954,27 +967,30 @@ GET /phases/789abc12-f34e-45f6-c890-648736396222/progress
 The Phases API implements comprehensive PostgreSQL error handling with specific SQL State mappings:
 
 - **23503 (Foreign Key Violation):** 400 Bad Request - Invalid reference to parent entity
-- **23505 (Unique Constraint Violation):** 409 Conflict - Duplicate entry detected  
+- **23505 (Unique Constraint Violation):** 409 Conflict - Duplicate entry detected
 - **23514 (Check Constraint Violation):** 400 Bad Request - Data validation failure
 - **Other SQL Errors:** 500 Internal Server Error - Database-level issues
 
 ### 14.2. PostgreSQL Compatibility Features
 
 #### Type Casting & Date Handling
+
 ```sql
 -- Enhanced date casting for PostgreSQL compatibility
-SELECT phi_start_time::text, phi_end_time::text 
+SELECT phi_start_time::text, phi_end_time::text
 FROM phases_instance_phi
 WHERE phi_id = ?
 ```
 
 #### Status Resolution Process
+
 1. **String Input:** `"PLANNING"` → Repository queries `status_sts` table
 2. **ID Resolution:** Finds matching `sts_id` for `sts_name = 'PLANNING'` and `sts_type = 'Phase'`
 3. **Validation:** Returns specific error if status name is invalid
 4. **Fallback:** Uses default status if resolution fails
 
 #### Date Format Support
+
 - **YYYY-MM-DD:** Standard date format
 - **ISO DateTime:** Full timestamp with timezone
 - **Flexible Parsing:** Automatic format detection
@@ -983,6 +999,7 @@ WHERE phi_id = ?
 ### 14.3. Enhanced Error Scenarios
 
 #### Status Resolution Errors
+
 ```json
 {
   "error": "Invalid status name 'INVALID_STATUS' for Phase entity type",
@@ -990,7 +1007,8 @@ WHERE phi_id = ?
 }
 ```
 
-#### PostgreSQL Constraint Violations  
+#### PostgreSQL Constraint Violations
+
 ```json
 {
   "error": "Foreign key constraint violation: Referenced sequence does not exist",
@@ -1000,6 +1018,7 @@ WHERE phi_id = ?
 ```
 
 #### Type Casting Errors
+
 ```json
 {
   "error": "Invalid UUID format for parameter phm_id: 'not-a-uuid'",
@@ -1008,6 +1027,7 @@ WHERE phi_id = ?
 ```
 
 #### Date Parsing Errors
+
 ```json
 {
   "error": "Invalid date format. Use YYYY-MM-DD or ISO datetime",
@@ -1020,7 +1040,7 @@ WHERE phi_id = ?
 ### 15.1. API Usage
 
 1. **Always use instance IDs** for hierarchical filtering
-2. **Validate control points** before phase progression  
+2. **Validate control points** before phase progression
 3. **Document override reasons** thoroughly for audit compliance
 4. **Use bulk operations** for multiple phase reordering
 5. **Check progress regularly** during phase execution
@@ -1028,6 +1048,7 @@ WHERE phi_id = ?
 ### 15.2. Enhanced Features Usage
 
 #### Admin GUI Integration
+
 ```bash
 # Get paginated master phases with computed fields
 GET /phases/master?page=1&size=25&sort=step_count&direction=desc&status=ACTIVE
@@ -1036,7 +1057,8 @@ GET /phases/master?page=1&size=25&sort=step_count&direction=desc&status=ACTIVE
 GET /phases/master?search=validation&ownerId=5&startDateFrom=2025-01-01&startDateTo=2025-12-31
 ```
 
-#### Flexible Status Handling  
+#### Flexible Status Handling
+
 ```bash
 # Create phase instance with string status (recommended)
 POST /phases/instance
@@ -1054,12 +1076,13 @@ PUT /phases/instance/789abc12-f34e-45f6-c890-648736396222
 ```
 
 #### PostgreSQL Optimization
+
 ```bash
 # Repository automatically handles type casting and date parsing
-POST /phases/instance  
+POST /phases/instance
 {
   "phm_id": "123e4567-e89b-12d3-a456-426614174000",
-  "sqi_id": "456e7890-e89b-12d3-a456-426614174001", 
+  "sqi_id": "456e7890-e89b-12d3-a456-426614174001",
   "phi_status": "PLANNING",
   "phi_start_time": "2025-08-01T10:00:00"  // Automatic PostgreSQL conversion
 }
@@ -1181,7 +1204,7 @@ POST /phases/instance
 
 - **Date:** 2025-08-22
 - **Change:** Updated Phases API documentation with enhanced repository capabilities
-- **Author:** Claude AI Assistant  
+- **Author:** Claude AI Assistant
 - **Version:** 2.1.0
 - **Details:** Added Admin GUI support documentation, flexible status handling patterns, PostgreSQL compatibility features, computed fields (step_count, instance_count), status metadata enrichment, enhanced error handling with SQL State codes, and comprehensive examples of repository capabilities
 

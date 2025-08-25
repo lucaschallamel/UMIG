@@ -20,6 +20,7 @@ def softDeleteMasterPlan(UUID planId) {
 ```
 
 This caused:
+
 - API returned success message
 - Plan remained in database
 - UI still showed the plan in the list
@@ -38,7 +39,7 @@ def softDeleteMasterPlan(UUID planId) {
         if (!existingPlan) {
             return false
         }
-        
+
         // Perform hard delete
         def rowsDeleted = sql.executeUpdate('DELETE FROM plans_master_plm WHERE plm_id = :planId', [planId: planId])
         return rowsDeleted > 0
@@ -49,30 +50,35 @@ def softDeleteMasterPlan(UUID planId) {
 ## Changes Made
 
 ### 1. Updated PlanRepository.groovy
+
 - **File**: `/src/groovy/umig/repository/PlanRepository.groovy`
 - **Method**: `softDeleteMasterPlan(UUID planId)`
 - **Change**: Implemented actual hard delete instead of just existence check
 - **Returns**: `true` if plan was deleted successfully, `false` otherwise
 
 ### 2. API Endpoint Flow (No Changes Needed)
+
 The existing API endpoint in `PlansApi.groovy` already had correct logic:
+
 - Checks for active instances before deletion (line 541)
 - Returns 409 Conflict if instances exist
 - Returns 200 Success with confirmation message if deletion succeeds
 - Returns 404 if plan not found
 
 ### 3. Integration Test Created
+
 - **File**: `/src/groovy/umig/tests/integration/PlanDeletionTest.groovy`
 - **Framework**: ADR-036 Pure Groovy testing
-- **Coverage**: 
+- **Coverage**:
   - Successful deletion scenario
   - Non-existent plan handling (404)
-  - Plan with instances rejection (409) 
+  - Plan with instances rejection (409)
   - Invalid UUID handling (400)
 
 ## Business Logic Preserved
 
 The fix maintains all existing business rules:
+
 - ✅ Only administrators can delete plans (`confluence-administrators` group)
 - ✅ Cannot delete plans that have active instances (409 Conflict)
 - ✅ Proper validation of UUID format (400 Bad Request)
@@ -94,6 +100,7 @@ The fix maintains all existing business rules:
 ## Future Considerations
 
 When implementing proper soft delete:
+
 1. Add `soft_delete_flag` column to `plans_master_plm` table
 2. Update all query methods to exclude soft-deleted records
 3. Change `softDeleteMasterPlan` to set flag instead of hard delete
@@ -102,6 +109,7 @@ When implementing proper soft delete:
 ## Verification Steps
 
 To verify the fix works:
+
 1. Start the development environment
 2. Navigate to Admin GUI > Plans
 3. Create a test plan without instances

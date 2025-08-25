@@ -61,11 +61,17 @@
 
       // Row selection (only bind if feature flags are enabled)
       document.addEventListener("click", (e) => {
-        if (e.target.matches(".row-checkbox") && 
-            window.EntityConfig && window.EntityConfig.getFeatureFlag('enableRowSelection')) {
+        if (
+          e.target.matches(".row-checkbox") &&
+          window.EntityConfig &&
+          window.EntityConfig.getFeatureFlag("enableRowSelection")
+        ) {
           this.handleRowSelection(e.target);
-        } else if (e.target.matches(".select-all-checkbox") && 
-                   window.EntityConfig && window.EntityConfig.getFeatureFlag('enableSelectAll')) {
+        } else if (
+          e.target.matches(".select-all-checkbox") &&
+          window.EntityConfig &&
+          window.EntityConfig.getFeatureFlag("enableSelectAll")
+        ) {
           this.handleSelectAll(e.target);
         }
       });
@@ -156,12 +162,15 @@
           container.innerHTML = tableHtml;
         }
       }
-      
+
       // Apply status colors after rendering
       if (window.StatusColorService) {
         // Determine entity type for status lookup
         const statusEntityType = this.getStatusEntityType(entityType);
-        window.StatusColorService.applyStatusColors(container, statusEntityType);
+        window.StatusColorService.applyStatusColors(
+          container,
+          statusEntityType,
+        );
       }
 
       // Update selection UI after rendering
@@ -169,25 +178,25 @@
         this.updateSelectionUI();
       }, 50);
     },
-    
+
     /**
      * Get the appropriate entity type for status lookup
      * @param {string} entityType - The entity type from EntityConfig
      * @returns {string} The entity type to use for status lookup
      */
-    getStatusEntityType: function(entityType) {
+    getStatusEntityType: function (entityType) {
       // Map entity types to their status types
       const statusTypeMap = {
-        'migrations': 'Migration',
-        'iterations': 'Iteration',
-        'plans': 'Plan',
-        'sequences': 'Sequence',
-        'phases': 'Phase',
-        'steps': 'Step',
-        'instructions': 'Instruction'
+        migrations: "Migration",
+        iterations: "Iteration",
+        plans: "Plan",
+        sequences: "Sequence",
+        phases: "Phase",
+        steps: "Step",
+        instructions: "Instruction",
       };
-      
-      return statusTypeMap[entityType] || 'Step';
+
+      return statusTypeMap[entityType] || "Step";
     },
 
     /**
@@ -225,7 +234,10 @@
       let headerHtml = "<tr>";
 
       // Add selection checkbox column (conditionally based on feature flag)
-      if (window.EntityConfig && window.EntityConfig.getFeatureFlag('enableSelectAll')) {
+      if (
+        window.EntityConfig &&
+        window.EntityConfig.getFeatureFlag("enableSelectAll")
+      ) {
         headerHtml +=
           '<th class="selection-column"><input type="checkbox" class="select-all-checkbox"></th>';
       }
@@ -272,7 +284,10 @@
         // Show empty message
         let colSpan = entity.tableColumns.length + 1; // +1 for actions column
         // Add 1 more for checkbox column if enabled
-        if (window.EntityConfig && window.EntityConfig.getFeatureFlag('enableRowSelection')) {
+        if (
+          window.EntityConfig &&
+          window.EntityConfig.getFeatureFlag("enableRowSelection")
+        ) {
           colSpan += 1;
         }
         bodyHtml = `
@@ -302,7 +317,10 @@
       let rowHtml = `<tr class="${isSelected ? "selected" : ""}">`;
 
       // Selection checkbox (conditionally based on feature flag)
-      if (window.EntityConfig && window.EntityConfig.getFeatureFlag('enableRowSelection')) {
+      if (
+        window.EntityConfig &&
+        window.EntityConfig.getFeatureFlag("enableRowSelection")
+      ) {
         rowHtml += `<td><input type="checkbox" class="row-checkbox" value="${rowId}" ${isSelected ? "checked" : ""}></td>`;
       }
 
@@ -770,18 +788,18 @@
      * @param {HTMLElement} checkbox - Select all checkbox
      */
     handleSelectAll: function (checkbox) {
-      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-      
+      const rowCheckboxes = document.querySelectorAll(".row-checkbox");
+
       if (window.AdminGuiState) {
         if (checkbox.checked) {
           // Select all rows
-          rowCheckboxes.forEach(rowCheckbox => {
+          rowCheckboxes.forEach((rowCheckbox) => {
             rowCheckbox.checked = true;
             window.AdminGuiState.selection.selectRow(rowCheckbox.value);
           });
         } else {
           // Deselect all rows
-          rowCheckboxes.forEach(rowCheckbox => {
+          rowCheckboxes.forEach((rowCheckbox) => {
             rowCheckbox.checked = false;
             window.AdminGuiState.selection.deselectRow(rowCheckbox.value);
           });
@@ -801,29 +819,41 @@
       const selectedCount = selectedRows.size;
 
       // Update bulk actions button (only if bulk actions are enabled)
-      if (window.EntityConfig && window.EntityConfig.getFeatureFlag('enableBulkActions')) {
-        const bulkActionsBtn = document.getElementById('bulkActionsBtn');
+      if (
+        window.EntityConfig &&
+        window.EntityConfig.getFeatureFlag("enableBulkActions")
+      ) {
+        const bulkActionsBtn = document.getElementById("bulkActionsBtn");
         if (bulkActionsBtn) {
           bulkActionsBtn.disabled = selectedCount === 0;
-          
+
           // Update button text to show count
           if (selectedCount > 0) {
             bulkActionsBtn.textContent = `Bulk Actions (${selectedCount})`;
           } else {
-            bulkActionsBtn.textContent = 'Bulk Actions';
+            bulkActionsBtn.textContent = "Bulk Actions";
           }
         }
       }
 
       // Update select-all checkbox state (only if selection is enabled)
-      if (window.EntityConfig && window.EntityConfig.getFeatureFlag('enableSelectAll')) {
-        const selectAllCheckbox = document.querySelector('.select-all-checkbox');
-        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-        
+      if (
+        window.EntityConfig &&
+        window.EntityConfig.getFeatureFlag("enableSelectAll")
+      ) {
+        const selectAllCheckbox = document.querySelector(
+          ".select-all-checkbox",
+        );
+        const rowCheckboxes = document.querySelectorAll(".row-checkbox");
+
         if (selectAllCheckbox && rowCheckboxes.length > 0) {
-          const allSelected = Array.from(rowCheckboxes).every(checkbox => checkbox.checked);
-          const someSelected = Array.from(rowCheckboxes).some(checkbox => checkbox.checked);
-          
+          const allSelected = Array.from(rowCheckboxes).every(
+            (checkbox) => checkbox.checked,
+          );
+          const someSelected = Array.from(rowCheckboxes).some(
+            (checkbox) => checkbox.checked,
+          );
+
           selectAllCheckbox.checked = allSelected;
           selectAllCheckbox.indeterminate = someSelected && !allSelected;
         }

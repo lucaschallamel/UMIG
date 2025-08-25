@@ -48,7 +48,7 @@ export class IntegrationTestRunner extends BaseTestRunner {
       "ControlsApiIntegrationTest.groovy",
       "InstructionsApiIntegrationTestWorking.groovy",
       "stepViewApiIntegrationTest.groovy",
-      
+
       // US-031 Admin GUI Complete Integration
       "AdminGuiAllEndpointsTest.groovy",
     ];

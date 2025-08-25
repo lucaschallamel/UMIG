@@ -44,7 +44,7 @@
 | iterationId | UUID           | No       | Filter sequences by iteration (hierarchical)     |
 | planId      | UUID           | No       | Filter sequences by plan instance (hierarchical) |
 | teamId      | Integer        | No       | Filter sequences by owning team                  |
-| status      | String/Integer | No       | Filter by status name ("DRAFT", "ACTIVE") or ID |
+| status      | String/Integer | No       | Filter by status name ("DRAFT", "ACTIVE") or ID  |
 
 **Type Safety Note:** All parameters undergo explicit type casting with PostgreSQL compatibility validation.
 
@@ -70,6 +70,7 @@
 ```
 
 **Enhanced Features:**
+
 - **Flexible Status Input:** Accepts both "DRAFT"/"ACTIVE"/"INACTIVE" (strings) or 1/2/3 (integers)
 - **Multiple Date Formats:** Supports YYYY-MM-DD, DD/MM/YYYY, MM-DD-YYYY, ISO 8601 - automatically converted to PostgreSQL date type
 - **Auto-Assignment:** Team ID inherited from plan, sequence order auto-incremented
@@ -122,6 +123,7 @@
 ```
 
 **Enhanced Features:**
+
 - **Flexible Status Input:** Supports "DRAFT", "ACTIVE", "IN_PROGRESS", "COMPLETED", "ON_HOLD" (strings) or corresponding integer IDs
 - **Actual Date Tracking:** Separate fields for actual execution dates with flexible format support
 - **Inheritance:** Name and description inherited from master template if not overridden
@@ -265,16 +267,17 @@
 
 ### 4.3. Enhanced Error Responses (PostgreSQL-Compatible)
 
-| Status Code | Content-Type     | Schema | Example                                               | Description                      |
-| ----------- | ---------------- | ------ | ----------------------------------------------------- | -------------------------------- |
-| 400         | application/json | Error  | `{"error": "Invalid status: INVALID_STATUS. Valid options: DRAFT, ACTIVE, INACTIVE"}` | Bad request - validation/type errors |
-| 400         | application/json | Error  | `{"error": "Invalid date format for planned_start_date. Supported formats: YYYY-MM-DD, DD/MM/YYYY, MM-DD-YYYY, ISO 8601"}` | Date format validation |
-| 404         | application/json | Error  | `{"error": "Sequence not found"}`                     | Resource not found               |
-| 409         | application/json | Error  | `{"error": "A sequence with this name already exists in the specified plan (SQL State: 23505)"}` | Unique constraint violation |
-| 409         | application/json | Error  | `{"error": "Invalid plan ID - plan does not exist (SQL State: 23503)"}` | Foreign key violation |
-| 500         | application/json | Error  | `{"error": "Internal server error"}`                  | Server error                     |
+| Status Code | Content-Type     | Schema | Example                                                                                                                    | Description                          |
+| ----------- | ---------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| 400         | application/json | Error  | `{"error": "Invalid status: INVALID_STATUS. Valid options: DRAFT, ACTIVE, INACTIVE"}`                                      | Bad request - validation/type errors |
+| 400         | application/json | Error  | `{"error": "Invalid date format for planned_start_date. Supported formats: YYYY-MM-DD, DD/MM/YYYY, MM-DD-YYYY, ISO 8601"}` | Date format validation               |
+| 404         | application/json | Error  | `{"error": "Sequence not found"}`                                                                                          | Resource not found                   |
+| 409         | application/json | Error  | `{"error": "A sequence with this name already exists in the specified plan (SQL State: 23505)"}`                           | Unique constraint violation          |
+| 409         | application/json | Error  | `{"error": "Invalid plan ID - plan does not exist (SQL State: 23503)"}`                                                    | Foreign key violation                |
+| 500         | application/json | Error  | `{"error": "Internal server error"}`                                                                                       | Server error                         |
 
 **Enhanced Error Handling Features:**
+
 - **PostgreSQL SQL State Codes:** Specific error codes (23503 for foreign key violations, 23505 for unique constraints)
 - **Flexible Input Validation:** Clear guidance on supported formats for status and date fields
 - **Auto-Assignment Guidance:** Helpful messages about auto-assignment behavior
@@ -414,23 +417,27 @@ Sequence 4: Application Startup (order: 4, predecessor: Sequence 3)
 ## 13. Enhanced Features Summary (PostgreSQL Integration)
 
 ### 13.1. PostgreSQL Type Casting Enhancements
+
 - **Date Handling:** Multiple input formats (YYYY-MM-DD, DD/MM/YYYY, MM-DD-YYYY, ISO 8601) automatically converted to java.sql.Date for PostgreSQL compatibility
 - **Status Flexibility:** Accepts both string status names ("DRAFT", "ACTIVE", "INACTIVE") and integer status IDs for flexible API usage
 - **Type Safety:** All input parameters explicitly cast to appropriate types following ADR-031 patterns
 - **UUID Validation:** Enhanced UUID format validation with PostgreSQL UUID type conversion
 
 ### 13.2. Auto-Assignment Features
+
 - **Team Inheritance:** Team ID (tms_id) automatically assigned from parent plan when not provided
 - **Order Management:** Sequence order (sqm_order) auto-incremented to next available position
 - **Default Status:** Status defaults to "DRAFT" for new sequences if not specified
 - **Computed Fields:** Phase count, step count, and completion percentage automatically calculated
 
 ### 13.3. Enhanced Error Handling
+
 - **PostgreSQL SQL State Codes:** Specific error mapping (23503 for foreign key violations, 23505 for unique constraints)
 - **Helpful Error Messages:** Clear guidance on valid input formats and auto-assignment behavior
 - **Type Conversion Feedback:** Detailed error messages for PostgreSQL type conversion failures
 
 ### 13.4. Repository vs API Layer Separation
+
 - **Repository Enrichment:** Data enrichment and computation handled in repository layer
 - **API Passthrough:** API layer passes enriched data without duplication
 - **Single Source of Truth:** Repository layer as the authoritative source for business logic
@@ -438,21 +445,25 @@ Sequence 4: Application Startup (order: 4, predecessor: Sequence 3)
 ## 14. Troubleshooting Guide
 
 ### 14.1. Common Status Issues
+
 - **Problem:** "Invalid status name: INVALID_STATUS"
 - **Solution:** Use valid status names: "DRAFT", "ACTIVE", "INACTIVE" for master sequences; "DRAFT", "ACTIVE", "IN_PROGRESS", "COMPLETED", "ON_HOLD" for instances
 - **Alternative:** Use integer status IDs (1=DRAFT, 2=ACTIVE, etc.)
 
 ### 14.2. Date Format Issues
+
 - **Problem:** "Invalid date format for planned_start_date"
 - **Solution:** Use supported formats: YYYY-MM-DD, DD/MM/YYYY, MM-DD-YYYY, or ISO 8601
 - **Example:** "2025-03-15", "15/03/2025", "03-15-2025", or "2025-03-15T10:00:00Z"
 
 ### 14.3. Auto-Assignment Behavior
+
 - **Problem:** Team ID or order not as expected
 - **Solution:** Sequence inherits team from parent plan, order auto-increments - provide explicit values if needed
 - **Verification:** Check response for computed tms_id and sqm_order values
 
 ### 14.4. PostgreSQL Constraint Violations
+
 - **Problem:** "SQL State: 23503" or "SQL State: 23505" errors
 - **Solution:** Check foreign key references (plan IDs, team IDs, user IDs) and unique constraints (sequence names within plans)
 - **Prevention:** Validate parent resources exist before creating sequences
