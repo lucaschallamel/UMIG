@@ -189,13 +189,13 @@
           'migrations': 'migrations',
           
           // Instance entities (navigation uses different names)
-          'plans': 'plans',
+          'plans': 'plansinstance',  // FIXED: Map to plansinstance for PILOT section
           'sequences': 'sequences',
           'phases': 'phases',
           'steps': 'instructions', // Steps section shows instructions
           
           // Master entities (for future use)
-          'master-plans': 'plansmaster',
+          'master-plans': 'plans',  // FIXED: Map to plans (master) for ADMIN section
           'master-sequences': 'sequencesmaster',
           'master-phases': 'phasesmaster',
           'master-steps': 'steps-master',

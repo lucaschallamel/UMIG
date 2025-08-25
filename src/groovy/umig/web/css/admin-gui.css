@@ -1,5 +1,31 @@
 /* UMIG Admin GUI Styles */
 
+/* Readonly Fields */
+.form-group.readonly-field {
+  opacity: 0.8;
+}
+
+.form-group.readonly-field label {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.form-group.readonly-field input[disabled],
+.form-group.readonly-field textarea[disabled],
+.form-group.readonly-field select[disabled] {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  border-color: var(--border-color);
+}
+
+.form-group.readonly-field input[disabled]:focus,
+.form-group.readonly-field textarea[disabled]:focus,
+.form-group.readonly-field select[disabled]:focus {
+  outline: none;
+  box-shadow: none;
+}
+
 /* CSS Variables */
 :root {
   --primary-color: #0052cc;

@@ -70,7 +70,7 @@ class PlanRepository {
             def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
             
             // Validate sort field
-            def allowedSortFields = ['plm_id', 'plm_name', 'plm_status', 'created_at', 'updated_at', 'sequence_count', 'instance_count']
+            def allowedSortFields = ['plm_id', 'plm_name', 'plm_status', 'created_at', 'updated_at', 'sequence_count', 'instance_count', 'tms_name']
             if (!sortField || !allowedSortFields.contains(sortField)) {
                 sortField = 'plm_name'
             }
@@ -97,7 +97,7 @@ class PlanRepository {
                     GROUP BY plm_id
                 ) instance_counts ON p.plm_id = instance_counts.plm_id
                 ${whereClause}
-                ORDER BY ${['sequence_count', 'instance_count'].contains(sortField) ? sortField : 'p.' + sortField} ${sortDirection}
+                ORDER BY ${['sequence_count', 'instance_count'].contains(sortField) ? sortField : (sortField == 'tms_name' ? 't.' + sortField : 'p.' + sortField)} ${sortDirection}
                 LIMIT ${pageSize} OFFSET ${offset}
             """
             
@@ -173,7 +173,9 @@ class PlanRepository {
                     sts.sts_name,
                     sts.sts_color,
                     sts.sts_type,
-                    tms.tms_name
+                    tms.tms_name,
+                    (SELECT COUNT(*) FROM sequences_master_sqm sqm WHERE sqm.plm_id = plm.plm_id) as sequence_count,
+                    (SELECT COUNT(*) FROM plans_instance_pli pli WHERE pli.plm_id = plm.plm_id) as instance_count
                 FROM plans_master_plm plm
                 JOIN status_sts sts ON plm.plm_status = sts.sts_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
@@ -276,16 +278,22 @@ class PlanRepository {
     }
     
     /**
-     * Soft deletes a master plan by setting a flag.
+     * Deletes a master plan (hard delete since soft delete isn't implemented yet).
      * @param planId The UUID of the plan to delete
      * @return true if deleted successfully, false otherwise
      */
     def softDeleteMasterPlan(UUID planId) {
         DatabaseUtil.withSql { sql ->
-            // Note: Currently plans_master_plm doesn't have soft_delete_flag
-            // For now, we'll just check if deletion is possible
-            // In production, you'd add a soft_delete_flag column
-            return sql.firstRow('SELECT plm_id FROM plans_master_plm WHERE plm_id = :planId', [planId: planId]) != null
+            // Since soft_delete_flag column doesn't exist yet, perform hard delete
+            // Check if plan exists first
+            def existingPlan = sql.firstRow('SELECT plm_id FROM plans_master_plm WHERE plm_id = :planId', [planId: planId])
+            if (!existingPlan) {
+                return false
+            }
+            
+            // Perform hard delete
+            def rowsDeleted = sql.executeUpdate('DELETE FROM plans_master_plm WHERE plm_id = :planId', [planId: planId])
+            return rowsDeleted > 0
         }
     }
     

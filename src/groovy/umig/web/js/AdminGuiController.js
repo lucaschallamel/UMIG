@@ -621,13 +621,13 @@
         'migrations': 'migrations',
         
         // Instance entity mappings (navigation uses different names)
-        'plansinstance': 'plans',
+        'plansinstance': 'plansinstance',  // FIXED: Map to plansinstance entity for PILOT section
         'sequencesinstance': 'sequences',
         'phasesinstance': 'phases',
         'steps-instance': 'instructions', // Steps section shows instructions
         
         // Master entity mappings
-        'plansmaster': 'plansmaster',
+        'plansmaster': 'plans',  // Map to 'plans' which uses /plans/master endpoint for ADMIN section
         'sequencesmaster': 'sequencesmaster',
         'phasesmaster': 'phasesmaster',
         'steps-master': 'steps-master',
