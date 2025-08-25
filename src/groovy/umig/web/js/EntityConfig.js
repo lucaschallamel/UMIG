@@ -1636,17 +1636,52 @@
         { key: "phm_description", label: "Description", type: "textarea" },
         { key: "phm_order", label: "Order", type: "number", required: true },
         {
+          key: "plm_id",
+          label: "Master Plan",
+          type: "select",
+          required: true,
+          entityType: "plans",
+          displayField: "plm_name",
+          valueField: "plm_id",
+        },
+        {
           key: "sqm_id",
-          label: "Sequence ID",
+          label: "Master Sequence",
           type: "select",
           required: true,
           entityType: "sequencesmaster",
           displayField: "sqm_name",
           valueField: "sqm_id",
+          dependsOn: "plm_id",
+          filterField: "plm_id",
+        },
+        {
+          key: "predecessor_phm_id",
+          label: "Predecessor Phase",
+          type: "select",
+          entityType: "phasesmaster",
+          displayField: "phm_name",
+          valueField: "phm_id",
+          dependsOn: "sqm_id",
+          filterField: "sqm_id",
+        },
+        {
+          key: "predecessor_phm_name",
+          label: "Predecessor Phase",
+          type: "text",
+          readonly: true,
+          computed: true,
         },
         {
           key: "sqm_name",
           label: "Sequence",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "plm_name",
+          label: "Plan",
           type: "text",
           readonly: true,
           computed: true,
@@ -1693,6 +1728,7 @@
       tableColumns: [
         "phm_name",
         "sqm_name",
+        "plm_name",
         "phm_order",
         "step_count",
         "instance_count",
@@ -1701,6 +1737,7 @@
         phm_id: "phm_id",
         phm_name: "phm_name",
         sqm_name: "sqm_name",
+        plm_name: "plm_name",
         phm_order: "phm_order",
         step_count: "step_count",
         instance_count: "instance_count",
@@ -1747,8 +1784,13 @@
         "phm_id",
         "phm_name",
         "phm_description",
-        "sqm_id",
         "phm_order",
+        // Display fields for VIEW mode (computed/readonly fields showing readable names)
+        "plm_name",         // Plan name (readonly/computed, for VIEW display)
+        "sqm_name",         // Sequence name (readonly/computed, for VIEW display)
+        "predecessor_phm_name", // Predecessor name (readonly/computed, for VIEW display)
+        "step_count",
+        "instance_count",
         "created_at",
         "created_by",
         "updated_at",
@@ -2547,6 +2589,12 @@
           readonly: true,
         },
         {
+          key: "ctm_code",
+          label: "Control Code",
+          type: "text",
+          required: true,
+        },
+        {
           key: "ctm_name",
           label: "Control Name",
           type: "text",
@@ -2556,17 +2604,6 @@
         { key: "ctm_type", label: "Control Type", type: "text" },
         { key: "ctm_is_critical", label: "Critical", type: "boolean" },
         { key: "ctm_order", label: "Order", type: "number", required: true },
-        {
-          key: "ctm_status",
-          label: "Status",
-          type: "select",
-          options: [
-            { value: "PLANNING", label: "Planning" },
-            { value: "IN_PROGRESS", label: "In Progress" },
-            { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" },
-          ],
-        },
         {
           key: "inm_id",
           label: "Instruction ID",
@@ -2623,21 +2660,21 @@
         },
       ],
       tableColumns: [
+        "ctm_code",
         "ctm_name",
         "ctm_type",
         "ctm_is_critical",
-        "ctm_status",
         "instance_count",
         "validation_count",
       ],
       sortMapping: {
         ctm_id: "ctm_id",
+        ctm_code: "ctm_code",
         ctm_name: "ctm_name",
         ctm_description: "ctm_description",
         ctm_type: "ctm_type",
         ctm_is_critical: "ctm_is_critical",
         ctm_order: "ctm_order",
-        ctm_status: "ctm_status",
         instance_count: "instance_count",
         validation_count: "validation_count",
         created_at: "created_at",
@@ -2663,85 +2700,20 @@
                     style="color: #205081; text-decoration: none; cursor: pointer;" 
                     title="View control details">${value}</a>`;
         },
-        // Status with color pattern
-        ctm_status: function (value, row) {
-          // Handle both status objects and string values
-          let statusName, statusColor;
-
-          console.log(
-            "ctm_status renderer called with value:",
-            value,
-            "row:",
-            row,
-          );
-
-          // First check if statusMetadata is available in row AND has valid name
-          if (row && row.statusMetadata && row.statusMetadata.name) {
-            statusName = row.statusMetadata.name;
-            statusColor = row.statusMetadata.color;
-          }
-          // Check if value is the status string directly
-          else if (typeof value === "string") {
-            statusName = value;
-            // Check if we have statusMetadata in row for color
-            if (
-              row &&
-              row.statusMetadata &&
-              row.statusMetadata.name === value
-            ) {
-              statusColor = row.statusMetadata.color;
-            }
-          }
-          // Legacy handling for object status values
-          else if (typeof value === "object" && value !== null) {
-            statusName = value.sts_name || value.name;
-            statusColor = value.sts_color || value.color;
-          }
-          // Check for legacy status fields in row
-          else if (row && row.sts_name) {
-            statusName = row.sts_name;
-            statusColor = row.sts_color;
-          } else {
-            // Fallback
-            statusName = value || "Unknown";
-            statusColor = null;
-          }
-
-          console.log(
-            "Using statusName:",
-            statusName,
-            "statusColor:",
-            statusColor,
-          );
-
-          // Convert status name to display format
-          const displayName = statusName
-            ? statusName
-                .replace(/_/g, " ")
-                .toLowerCase()
-                .replace(/\b\w/g, (l) => l.toUpperCase())
-            : "Unknown";
-
-          // If we have a color, use it directly
-          if (statusColor) {
-            const textColor = window.UiUtils
-              ? window.UiUtils.getContrastingTextColor(statusColor)
-              : "#ffffff";
-            return `<span class="status-badge" data-status="${statusName}" data-entity-type="ControlMaster" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
-          }
-
-          // Otherwise, create badge with data attributes for async color application
-          return `<span class="status-badge" data-status="${statusName}" data-entity-type="ControlMaster" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
+        // Control Code with styling for prominence
+        ctm_code: function (value, row) {
+          if (!value) return "";
+          return `<span class="control-code" style="font-weight: 600; color: #205081; font-family: monospace;">${value}</span>`;
         },
       },
       modalFields: [
         "ctm_id",
+        "ctm_code",
         "ctm_name",
         "ctm_description",
         "ctm_type",
         "ctm_is_critical",
         "ctm_order",
-        "ctm_status",
         "created_at",
         "updated_at",
       ],
