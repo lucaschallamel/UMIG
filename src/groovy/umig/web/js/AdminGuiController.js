@@ -213,7 +213,10 @@
       this.bindFilterEvents();
 
       // Bulk actions (only bind if bulk actions are enabled)
-      if (window.EntityConfig && window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+      if (
+        window.EntityConfig &&
+        window.EntityConfig.getFeatureFlag("enableBulkActions")
+      ) {
         this.bindBulkActionsEvents();
       }
 
@@ -248,10 +251,13 @@
      */
     bindBulkActionsEvents: function () {
       // Only bind if bulk actions are enabled via feature flag
-      if (!window.EntityConfig || !window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+      if (
+        !window.EntityConfig ||
+        !window.EntityConfig.getFeatureFlag("enableBulkActions")
+      ) {
         return;
       }
-      
+
       const bulkActionsBtn = document.getElementById("bulkActionsBtn");
       if (bulkActionsBtn) {
         bulkActionsBtn.addEventListener("click", () => {
@@ -265,14 +271,17 @@
      */
     showBulkActionsMenu: function () {
       // Early return if bulk actions are disabled
-      if (!window.EntityConfig || !window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+      if (
+        !window.EntityConfig ||
+        !window.EntityConfig.getFeatureFlag("enableBulkActions")
+      ) {
         return;
       }
-      
+
       const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
       const selectedRows = state.selectedRows || new Set();
       const currentEntity = state.currentEntity || "users";
-      
+
       if (selectedRows.size === 0) {
         if (window.UiUtils) {
           window.UiUtils.showNotification("No items selected", "warning");
@@ -282,10 +291,13 @@
 
       // Define bulk actions for different entities
       const bulkActions = this.getBulkActionsForEntity(currentEntity);
-      
+
       if (bulkActions.length === 0) {
         if (window.UiUtils) {
-          window.UiUtils.showNotification("No bulk actions available for this entity", "info");
+          window.UiUtils.showNotification(
+            "No bulk actions available for this entity",
+            "info",
+          );
         }
         return;
       }
@@ -301,7 +313,8 @@
     getBulkActionsForEntity: function (entityType) {
       // Try to get bulk actions from EntityConfig first
       if (window.EntityConfig) {
-        const configActions = window.EntityConfig.getEntityBulkActions(entityType);
+        const configActions =
+          window.EntityConfig.getEntityBulkActions(entityType);
         if (configActions.length > 0) {
           return configActions;
         }
@@ -314,23 +327,23 @@
             id: "activate",
             label: "Activate Users",
             icon: "✅",
-            requiresInput: false
+            requiresInput: false,
           },
           {
             id: "deactivate",
-            label: "Deactivate Users", 
+            label: "Deactivate Users",
             icon: "❌",
-            requiresInput: false
-          }
+            requiresInput: false,
+          },
         ],
         default: [
           {
             id: "export_selected",
             label: "Export Selected",
             icon: "📄",
-            requiresInput: false
-          }
-        ]
+            requiresInput: false,
+          },
+        ],
       };
 
       return defaultActions[entityType] || defaultActions.default;
@@ -344,7 +357,7 @@
      */
     showBulkActionsDialog: function (actions, selectedRows, entityType) {
       const selectedCount = selectedRows.size;
-      
+
       // Create modal content
       let modalContent = `
         <div class="bulk-actions-dialog">
@@ -352,7 +365,7 @@
           <div class="bulk-actions-list">
       `;
 
-      actions.forEach(action => {
+      actions.forEach((action) => {
         modalContent += `
           <div class="bulk-action-item" data-action="${action.id}">
             <span class="action-icon">${action.icon}</span>
@@ -371,74 +384,84 @@
       const bulkActionsBtn = document.getElementById("bulkActionsButton");
       if (bulkActionsBtn) {
         // Remove any existing dropdown
-        const existingDropdown = document.querySelector('.bulk-actions-dropdown');
+        const existingDropdown = document.querySelector(
+          ".bulk-actions-dropdown",
+        );
         if (existingDropdown) {
           existingDropdown.remove();
         }
-        
+
         // Create dropdown menu
-        const dropdown = document.createElement('div');
-        dropdown.className = 'bulk-actions-dropdown aui-dropdown2';
-        dropdown.style.position = 'absolute';
-        dropdown.style.zIndex = '1000';
-        dropdown.style.background = 'white';
-        dropdown.style.border = '1px solid #ccc';
-        dropdown.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-        dropdown.style.padding = '10px';
-        dropdown.style.minWidth = '200px';
-        
+        const dropdown = document.createElement("div");
+        dropdown.className = "bulk-actions-dropdown aui-dropdown2";
+        dropdown.style.position = "absolute";
+        dropdown.style.zIndex = "1000";
+        dropdown.style.background = "white";
+        dropdown.style.border = "1px solid #ccc";
+        dropdown.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)";
+        dropdown.style.padding = "10px";
+        dropdown.style.minWidth = "200px";
+
         // Position below button
         const rect = bulkActionsBtn.getBoundingClientRect();
-        dropdown.style.top = (rect.bottom + 5) + 'px';
-        dropdown.style.left = rect.left + 'px';
-        
+        dropdown.style.top = rect.bottom + 5 + "px";
+        dropdown.style.left = rect.left + "px";
+
         dropdown.innerHTML = `
           <div style="margin-bottom: 10px; font-weight: bold;">
             ${selectedCount} item(s) selected
           </div>
-          ${actions.map(action => `
+          ${actions
+            .map(
+              (action) => `
             <div class="bulk-action-option" data-action="${action.id}" 
                  style="padding: 5px 10px; cursor: pointer; hover: background-color: #f0f0f0;">
               ${action.icon} ${action.label}
             </div>
-          `).join('')}
+          `,
+            )
+            .join("")}
         `;
-        
+
         document.body.appendChild(dropdown);
-        
+
         // Add click handlers
-        dropdown.querySelectorAll('.bulk-action-option').forEach(option => {
-          option.addEventListener('click', (e) => {
+        dropdown.querySelectorAll(".bulk-action-option").forEach((option) => {
+          option.addEventListener("click", (e) => {
             const actionId = e.currentTarget.dataset.action;
-            const action = actions.find(a => a.id === actionId);
+            const action = actions.find((a) => a.id === actionId);
             if (action) {
               this.executeBulkAction(action, selectedRows, entityType);
             }
             dropdown.remove();
           });
-          
+
           // Add hover effect
-          option.addEventListener('mouseenter', (e) => {
-            e.currentTarget.style.backgroundColor = '#f0f0f0';
+          option.addEventListener("mouseenter", (e) => {
+            e.currentTarget.style.backgroundColor = "#f0f0f0";
           });
-          option.addEventListener('mouseleave', (e) => {
-            e.currentTarget.style.backgroundColor = 'white';
+          option.addEventListener("mouseleave", (e) => {
+            e.currentTarget.style.backgroundColor = "white";
           });
         });
-        
+
         // Close dropdown on outside click
         setTimeout(() => {
-          document.addEventListener('click', function closeDropdown(e) {
+          document.addEventListener("click", function closeDropdown(e) {
             if (!dropdown.contains(e.target) && e.target !== bulkActionsBtn) {
               dropdown.remove();
-              document.removeEventListener('click', closeDropdown);
+              document.removeEventListener("click", closeDropdown);
             }
           });
         }, 100);
       } else {
         // Fallback to basic prompt
-        const actionLabels = actions.map(a => `${a.icon} ${a.label}`).join('\n');
-        const result = confirm(`Select bulk action for ${selectedCount} items:\n\n${actionLabels}\n\nProceed with first action?`);
+        const actionLabels = actions
+          .map((a) => `${a.icon} ${a.label}`)
+          .join("\n");
+        const result = confirm(
+          `Select bulk action for ${selectedCount} items:\n\n${actionLabels}\n\nProceed with first action?`,
+        );
         if (result && actions.length > 0) {
           this.executeBulkAction(actions[0], selectedRows, entityType);
         }
@@ -453,23 +476,21 @@
      */
     executeBulkAction: function (action, selectedRows, entityType) {
       const selectedCount = selectedRows.size;
-      
+
       // Generate confirm message
-      let confirmMessage = action.confirmMessage || 
+      let confirmMessage =
+        action.confirmMessage ||
         `Are you sure you want to perform "${action.label}" on ${selectedCount} selected item(s)?`;
-      
-      if (confirmMessage.includes('{count}')) {
-        confirmMessage = confirmMessage.replace('{count}', selectedCount);
+
+      if (confirmMessage.includes("{count}")) {
+        confirmMessage = confirmMessage.replace("{count}", selectedCount);
       }
 
       // Show confirmation
       if (window.UiUtils) {
-        window.UiUtils.showConfirmDialog(
-          confirmMessage,
-          () => {
-            this.performBulkAction(action, Array.from(selectedRows), entityType);
-          }
-        );
+        window.UiUtils.showConfirmDialog(confirmMessage, () => {
+          this.performBulkAction(action, Array.from(selectedRows), entityType);
+        });
       } else {
         if (confirm(confirmMessage)) {
           this.performBulkAction(action, Array.from(selectedRows), entityType);
@@ -500,7 +521,10 @@
           break;
         default:
           if (window.UiUtils) {
-            window.UiUtils.showNotification(`Bulk action '${action.label}' not yet implemented`, "info");
+            window.UiUtils.showNotification(
+              `Bulk action '${action.label}' not yet implemented`,
+              "info",
+            );
           }
       }
     },
@@ -513,11 +537,11 @@
     performBulkStatusUpdate: function (selectedIds, entityType) {
       // This would need to be implemented with proper API calls
       console.log("Bulk status update for", entityType, selectedIds);
-      
+
       if (window.UiUtils) {
         window.UiUtils.showNotification(
           `Bulk status update initiated for ${selectedIds.length} ${entityType}`,
-          "info"
+          "info",
         );
       }
 
@@ -537,11 +561,11 @@
      */
     performBulkExport: function (selectedIds, entityType) {
       console.log("Bulk export for", entityType, selectedIds);
-      
+
       if (window.UiUtils) {
         window.UiUtils.showNotification(
           `Exporting ${selectedIds.length} ${entityType}...`,
-          "info"
+          "info",
         );
       }
 
@@ -551,17 +575,21 @@
 
     /**
      * Perform bulk activation/deactivation
-     * @param {Array} selectedIds - Selected item IDs  
+     * @param {Array} selectedIds - Selected item IDs
      * @param {string} entityType - Entity type
      * @param {boolean} activate - Whether to activate (true) or deactivate (false)
      */
     performBulkActivation: function (selectedIds, entityType, activate) {
-      console.log(`Bulk ${activate ? 'activation' : 'deactivation'} for`, entityType, selectedIds);
-      
+      console.log(
+        `Bulk ${activate ? "activation" : "deactivation"} for`,
+        entityType,
+        selectedIds,
+      );
+
       if (window.UiUtils) {
         window.UiUtils.showNotification(
-          `${activate ? 'Activating' : 'Deactivating'} ${selectedIds.length} ${entityType}...`,
-          "info"
+          `${activate ? "Activating" : "Deactivating"} ${selectedIds.length} ${entityType}...`,
+          "info",
         );
       }
 
@@ -605,11 +633,50 @@
     },
 
     /**
+     * Map data-entity values to EntityConfig keys
+     * @param {string} entity - Entity value from data-entity attribute
+     * @returns {string} EntityConfig key
+     */
+    mapEntityToConfig: function (entity) {
+      // Mapping for navigation data-entity to EntityConfig keys
+      const entityMapping = {
+        // Direct mappings (no change needed)
+        users: "users",
+        teams: "teams",
+        environments: "environments",
+        applications: "applications",
+        labels: "labels",
+        migrations: "migrations",
+
+        // Instance entity mappings (navigation uses different names)
+        plansinstance: "plansinstance", // FIXED: Map to plansinstance entity for PILOT section
+        sequencesinstance: "sequences",
+        phasesinstance: "phasesinstance",
+        "steps-instance": "instructions", // Steps section shows instructions
+
+        // Master entity mappings
+        plansmaster: "plans", // Map to 'plans' which uses /plans/master endpoint for ADMIN section
+        sequencesmaster: "sequencesmaster",
+        phasesmaster: "phasesmaster",
+        "steps-master": "steps-master",
+        "controls-master": "controls-master",
+
+        // Other entities
+        iterations: "iterations",
+        "controls-instance": "controls-instance",
+        "audit-logs": "audit-logs",
+      };
+
+      return entityMapping[entity] || entity;
+    },
+
+    /**
      * Handle navigation
      * @param {HTMLElement} navItem - Navigation item element
      */
     handleNavigation: function (navItem) {
       const section = navItem.dataset.section;
+      const entity = navItem.dataset.entity; // Get entity if specified
       if (!section) return;
 
       // Update active navigation
@@ -620,7 +687,22 @@
 
       // Update state
       if (window.AdminGuiState) {
-        window.AdminGuiState.navigation.setCurrentSection(section);
+        // If entity is explicitly specified, map it to correct EntityConfig key
+        if (entity) {
+          const entityKey = this.mapEntityToConfig(entity);
+          window.AdminGuiState.updateState({
+            currentSection: section,
+            currentEntity: entityKey,
+            currentPage: 1,
+            searchTerm: "",
+            sortField: null,
+            sortDirection: "asc",
+            selectedRows: new Set(),
+            filters: {},
+          });
+        } else {
+          window.AdminGuiState.navigation.setCurrentSection(section);
+        }
       }
 
       // Load section
@@ -666,7 +748,7 @@
       // Show/hide Export button based on feature flag
       const exportBtn = document.getElementById("exportBtn");
       if (exportBtn) {
-        if (window.EntityConfig.getFeatureFlag('enableExportButton')) {
+        if (window.EntityConfig.getFeatureFlag("enableExportButton")) {
           exportBtn.style.display = "inline-block";
         } else {
           exportBtn.style.display = "none";
@@ -676,7 +758,7 @@
       // Show/hide Bulk Actions button based on feature flag
       const bulkActionsBtn = document.getElementById("bulkActionsBtn");
       if (bulkActionsBtn) {
-        if (window.EntityConfig.getFeatureFlag('enableBulkActions')) {
+        if (window.EntityConfig.getFeatureFlag("enableBulkActions")) {
           bulkActionsBtn.style.display = "inline-block";
         } else {
           bulkActionsBtn.style.display = "none";
@@ -822,16 +904,53 @@
      */
     buildSearchParams: function () {
       const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
+      const currentEntity = state.currentEntity || "users";
+
+      // Get entity configuration to check for defaultSort
+      const entity = window.EntityConfig
+        ? window.EntityConfig.getEntity(currentEntity)
+        : null;
+
+      // Apply defaultSort if no current sort is set
+      let sortField = state.sortField || "";
+      let sortDirection = state.sortDirection || "asc";
+
+      if (!sortField && entity && entity.defaultSort) {
+        sortField = entity.defaultSort.field;
+        sortDirection = entity.defaultSort.direction || "asc";
+
+        // Update the state with defaultSort to maintain consistency
+        if (window.AdminGuiState) {
+          window.AdminGuiState.updateState({
+            sortField: sortField,
+            sortDirection: sortDirection,
+          });
+        }
+      }
 
       // API expects 'size' not 'pageSize', and 'sort'/'direction' not 'sortField'/'sortDirection'
-      return {
+      const searchParams = {
         page: state.currentPage || 1,
         size: state.pageSize || 50, // Changed from pageSize to size
         search: state.searchTerm || "",
-        sort: state.sortField || "", // Changed from sortField to sort
-        direction: state.sortDirection || "asc",
+        sort: sortField, // Changed from sortField to sort
+        direction: sortDirection,
         ...state.filters,
       };
+
+      console.log("buildSearchParams - Current state:", {
+        currentPage: state.currentPage,
+        pageSize: state.pageSize,
+        currentEntity: state.currentEntity,
+        searchTerm: state.searchTerm,
+        sortField: state.sortField,
+      });
+      console.log(
+        "buildSearchParams - Generated search parameters:",
+        searchParams,
+      );
+
+      return searchParams;
     },
 
     /**
@@ -864,7 +983,17 @@
         };
       } else if (response.data && Array.isArray(response.data)) {
         data = response.data;
-        pagination = response.pagination || null;
+        // Handle PhaseRepository format and other repositories that return pagination object
+        if (response.pagination) {
+          pagination = {
+            currentPage: response.pagination.page || 1,
+            pageSize: response.pagination.size || 50,
+            totalItems: response.pagination.total || 0,
+            totalPages: response.pagination.totalPages || 1,
+          };
+        } else {
+          pagination = null;
+        }
       } else if (response.results && Array.isArray(response.results)) {
         data = response.results;
         pagination = response.pagination || null;
@@ -887,9 +1016,17 @@
       console.log("Processed data:", data);
       console.log("Pagination:", pagination);
 
+      // Debug logging for pagination
+      console.log("Pagination processing for", entityType, ":");
+      console.log("- Pagination object:", pagination);
+      console.log("- Data length:", data?.length || 0);
+
       // Update pagination state
       if (pagination && window.AdminGuiState) {
+        console.log("Setting pagination state:", pagination);
         window.AdminGuiState.pagination.setPagination(pagination);
+      } else {
+        console.log("No pagination data found, using default");
       }
 
       // Cache data
@@ -905,12 +1042,28 @@
         // Give DOM time to settle
         this.renderPagination();
 
-        // Ensure pagination container is visible
+        // Ensure pagination container is visible when there are multiple pages or items
         const paginationContainer = document.getElementById(
           "paginationContainer",
         );
+        const state = window.AdminGuiState
+          ? window.AdminGuiState.getState()
+          : {};
+        const totalPages = state.pagination?.totalPages || 1;
+        const totalItems = state.pagination?.totalItems || data?.length || 0;
+
         if (paginationContainer) {
-          paginationContainer.style.display = "flex";
+          if (totalPages > 1 || totalItems > 0) {
+            paginationContainer.style.display = "flex";
+            paginationContainer.style.visibility = "visible";
+            console.log("Pagination container made visible:", {
+              totalPages,
+              totalItems,
+            });
+          } else {
+            paginationContainer.style.display = "none";
+            console.log("Pagination container hidden - no pagination needed");
+          }
         }
       }, 100);
     },
@@ -929,9 +1082,9 @@
         window.UiUtils.showError(
           mainContent,
           `Failed to load ${entityType}. ${error.message}`,
-          function() { 
-            self.loadEntityData(entityType); 
-          }
+          function () {
+            self.loadEntityData(entityType);
+          },
         );
       }
     },

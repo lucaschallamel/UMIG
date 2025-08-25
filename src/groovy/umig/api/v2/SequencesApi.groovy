@@ -98,8 +98,8 @@ sequences(httpMethod: "GET", groups: ["confluence-users", "confluence-administra
                 }
             }
 
-            // Validate sort field
-            def allowedSortFields = ['sqm_id', 'sqm_name', 'sqm_status', 'created_at', 'updated_at', 'phase_count', 'instance_count']
+            // Validate sort field - must match repository allowed fields
+            def allowedSortFields = ['sqm_id', 'sqm_name', 'plm_name', 'sqm_order', 'created_at', 'updated_at', 'phase_count', 'instance_count']
             if (sortField && !allowedSortFields.contains(sortField)) {
                 return Response.status(400)
                     .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())

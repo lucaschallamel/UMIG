@@ -89,6 +89,9 @@ class StepsApiIntegrationTest {
             // Test Group 1: Master Steps Endpoints
             results << testRunner.testGetAllMasterSteps()
             results << testRunner.testGetMasterStepsByMigration()
+            results << testRunner.testGetMasterStepById()
+            results << testRunner.testGetMasterStepByIdNotFound()
+            results << testRunner.testGetMasterStepByIdInvalidFormat()
             
             // Test Group 2: Hierarchical Filtering Endpoints
             results << testRunner.testGetStepsWithMigrationFilter()
@@ -177,6 +180,76 @@ class StepsApiIntegrationTest {
                          
             return [test: testName, success: success,
                    details: "Migration: ${testMigrationId}, Items: ${response.data?.size()}"]
+        } catch (Exception e) {
+            return [test: testName, success: false, error: e.message]
+        }
+    }
+    
+    def testGetMasterStepById() {
+        def testName = "GET /steps/master/{id} - Individual Master Step"
+        try {
+            // Get a valid master step ID from the database
+            def masterStepId = null
+            DatabaseUtil.withSql { sql ->
+                def step = sql.firstRow("SELECT stm_id FROM steps_master_stm LIMIT 1")
+                masterStepId = step?.stm_id
+            }
+            
+            if (!masterStepId) {
+                return [test: testName, success: false, error: "No test master step data available"]
+            }
+            
+            def url = "${BASE_URL}/steps/master/${masterStepId}"
+            def response = makeHttpRequest("GET", url)
+            
+            def success = response.status == 200 && 
+                         response.data instanceof Map &&
+                         response.data.containsKey('stm_id') &&
+                         response.data.containsKey('stm_name') &&
+                         response.data.containsKey('plm_name') &&
+                         response.data.containsKey('sqm_name') &&
+                         response.data.containsKey('phm_name') &&
+                         response.data.containsKey('instruction_count') &&
+                         response.data.containsKey('instance_count')
+                         
+            def details = success ? 
+                "Retrieved step: ${response.data.stm_name}, Plan: ${response.data.plm_name}, Sequence: ${response.data.sqm_name}, Phase: ${response.data.phm_name}" :
+                "Status: ${response.status}, Data: ${response.data}"
+                         
+            return [test: testName, success: success, details: details]
+        } catch (Exception e) {
+            return [test: testName, success: false, error: e.message]
+        }
+    }
+    
+    def testGetMasterStepByIdNotFound() {
+        def testName = "GET /steps/master/{id} - 404 Not Found"
+        try {
+            def fakeId = UUID.randomUUID()
+            def url = "${BASE_URL}/steps/master/${fakeId}"
+            def response = makeHttpRequest("GET", url)
+            
+            def success = response.status == 404 &&
+                         response.data instanceof Map &&
+                         response.data.containsKey('error')
+                         
+            return [test: testName, success: success, details: "Status: ${response.status}, Error: ${response.data?.error}"]
+        } catch (Exception e) {
+            return [test: testName, success: false, error: e.message]
+        }
+    }
+    
+    def testGetMasterStepByIdInvalidFormat() {
+        def testName = "GET /steps/master/{id} - 400 Invalid UUID"
+        try {
+            def url = "${BASE_URL}/steps/master/invalid-uuid-format"
+            def response = makeHttpRequest("GET", url)
+            
+            def success = response.status == 400 &&
+                         response.data instanceof Map &&
+                         response.data.containsKey('error')
+                         
+            return [test: testName, success: success, details: "Status: ${response.status}, Error: ${response.data?.error}"]
         } catch (Exception e) {
             return [test: testName, success: false, error: e.message]
         }

@@ -164,9 +164,9 @@ def handleInstructionsFilterRequest(MultivaluedMap queryParams) {
     } else if (stepInstanceId) {
         return handleInstructionsByStepInstanceId(stepInstanceId)
     } else {
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder([error: "stepId or stepInstanceId parameter required"]).toString())
-            .build()
+        // For Admin GUI - return empty array when no filters provided
+        // This allows the Admin GUI to function while requiring filters for actual data
+        return Response.ok(new JsonBuilder([]).toString()).build()
     }
 }
 

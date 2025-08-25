@@ -2,6 +2,7 @@ package umig.api.v2
 
 import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.UserRepository
+import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
@@ -11,11 +12,16 @@ import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 import java.sql.SQLException
+import org.apache.log4j.LogManager
+import org.apache.log4j.Logger
 
 @BaseScript CustomEndpointDelegate delegate
 
 @Field
 final UserRepository userRepository = new UserRepository()
+
+@Field
+final Logger log = LogManager.getLogger(getClass())
 
 private Integer getUserIdFromPath(HttpServletRequest request) {
     def extraPath = getAdditionalPath(request)
@@ -53,12 +59,23 @@ users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             // Check for userCode authentication parameter
             def userCode = queryParams.getFirst('userCode')
             if (userCode) {
+                log.info("GET /users - Authentication request for userCode: ${userCode}")
                 // Find user by userCode for authentication
-                def user = userRepository.findUserByUsername(userCode as String)
-                if (user) {
+                def userResult = userRepository.findUserByUsername(userCode as String)
+                if (userResult) {
+                    Map user = userResult as Map
+                    log.info("GET /users - User found for authentication: ${user.usr_code} (ID: ${user.usr_id})")
                     return Response.ok(new JsonBuilder([user]).toString()).build()
                 } else {
-                    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "User with code ${userCode} not found."]).toString()).build()
+                    log.warn("GET /users - User not found for authentication: ${userCode}")
+                    // Provide additional debugging information
+                    def allUserCodes = DatabaseUtil.withSql { sql ->
+                        return sql.rows("SELECT usr_code FROM users_usr WHERE usr_active = true ORDER BY usr_code").collect { it.usr_code }
+                    }
+                    return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([
+                        error: "User with code ${userCode} not found.", 
+                        debug: "Available active user codes: ${allUserCodes.join(', ')}"
+                    ]).toString()).build()
                 }
             }
             

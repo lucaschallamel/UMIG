@@ -171,13 +171,55 @@
      */
     navigation: {
       /**
+       * Map navigation sections to entity configurations
+       * @param {string} section - Section name from navigation
+       * @returns {string} Entity configuration key
+       */
+      mapSectionToEntity: function (section) {
+        // Mapping for navigation data-section to EntityConfig keys
+        // Normalized to use consistent dash separators for all entity configurations
+        const sectionMapping = {
+          // Basic entities (direct mapping)
+          users: "users",
+          teams: "teams",
+          environments: "environments",
+          applications: "applications",
+          labels: "labels",
+
+          // Migration-related entities (direct mapping)
+          migrations: "migrations",
+
+          // Instance entities (PILOT sections - normalized with dash separators)
+          plans: "plans-instance", // Changed from "plansinstance"
+          sequences: "sequences-instance", // Changed from "sequences"
+          phases: "phases-instance", // Changed from "phasesmaster"
+          steps: "steps-instance", // Changed from "instructions"
+
+          // Master entities (ADMIN sections - consistent dash separators)
+          "master-plans": "plans-master", // Changed from "plans"
+          "master-sequences": "sequences-master", // Changed from "sequencesmaster"
+          "master-phases": "phases-master", // Changed from "phasesmaster"
+          "master-steps": "steps-master", // Keep (already has dash)
+          "master-controls": "controls-master", // Keep (already has dash)
+
+          // Other entities
+          iterations: "iterations",
+          controls: "controls-instance", // Keep (already has dash)
+          "audit-logs": "audit-logs",
+        };
+
+        return sectionMapping[section] || section;
+      },
+
+      /**
        * Set current section
        * @param {string} section - Section name
        */
       setCurrentSection: function (section) {
+        const entityKey = this.mapSectionToEntity(section);
         AdminGuiState.updateState({
           currentSection: section,
-          currentEntity: section,
+          currentEntity: entityKey,
           currentPage: 1,
           searchTerm: "",
           sortField: null,

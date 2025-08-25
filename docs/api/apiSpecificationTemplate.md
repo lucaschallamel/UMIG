@@ -6,16 +6,16 @@
 
 ## 1. API Overview
 
-- **API Name:**
-- **Purpose:**
-- **Owner:**
-- **Related ADRs:**
+- **API Name:** [API Name] v2 (specify version)
+- **Purpose:** [Detailed purpose and business value]
+- **Owner:** UMIG Development Team
+- **Related ADRs:** ADR-017 (V2 REST API Architecture), [other relevant ADRs]
 
 ## 2. Endpoints
 
-| Method | Path | Description |
-| ------ | ---- | ----------- |
-|        |      |             |
+| Method | Path               | Description                         |
+| ------ | ------------------ | ----------------------------------- |
+|        | /api/v2/[resource] | [Full API v2 path with description] |
 
 ## 3. Request Details
 
@@ -72,16 +72,20 @@
 
 ## 5. Authentication & Authorization
 
-- **Required?** (Yes/No)
-- **Mechanism:**
-- **Permissions:**
+- **Required?** Yes
+- **Mechanism:** Confluence Authentication (groups: ["confluence-users"])
+- **Permissions:** User must be member of confluence-users group
 
 ## 6. Rate Limiting & Security
 
-- **Rate Limits:**
-- **RLS (Row-Level Security):** (Yes/No)
+- **Rate Limits:** Standard ScriptRunner limits apply
+- **RLS (Row-Level Security):** No (data access controlled by Confluence permissions)
 - **Input Validation:**
-- **Other Security Considerations:**
+  - UUID format validation for all IDs
+  - String length limits and content validation
+  - Type casting validation (ADR-031)
+  - SQL injection prevented via prepared statements
+- **Other Security Considerations:** [Specify any additional security measures]
 
 ## 7. Business Logic & Side Effects
 
@@ -92,26 +96,62 @@
 ## 8. Dependencies & Backing Services
 
 - **DB Tables/Entities:**
-- **External APIs:**
+  - `[primary_table]` (primary table)
+  - `[related_tables]` (relationships)
+
+- **External APIs:** None (unless external dependencies exist)
 - **Other Services:**
+  - Repository pattern for data access
+  - DatabaseUtil for connection management
 
 ## 9. Versioning & Deprecation
 
-- **API Version:**
-- **Deprecation Policy:**
+- **API Version:** v2
+- **Deprecation Policy:** Breaking changes will require version increment
 
 ## 10. Testing & Mock Data
 
-- **Unit Tests:**
-- **Integration Tests:**
-- **E2E Tests:**
-- **Mock Data/Fixtures:**
+- **Unit Tests:** Repository tests cover data access operations
+- **Integration Tests:** Full CRUD operations tested in integration test suite
+- **E2E Tests:** Tested via Admin GUI and Postman collections
+- **Mock Data/Fixtures:** Available via npm run generate-data:erase
 
-## 11. Changelog
+## 11. Business Logic & Validation Rules
 
-- **Date:**
-- **Change:**
-- **Author:**
+### [Operation Name] (e.g., Create, Update, Delete)
+
+- [Specific validation rules and business logic]
+- [Error conditions and handling]
+- [Side effects and constraints]
+
+### [Additional Operations]
+
+- [Continue for each major operation]
+
+## 12. Examples
+
+### [Operation Example]
+
+```bash
+curl -X [METHOD] /rest/scriptrunner/latest/custom/api/v2/[endpoint] \
+  -H "Content-Type: application/json" \
+  -d '[request body]'
+```
+
+## 13. Notes
+
+- [Important implementation notes]
+- [Integration considerations]
+- [Performance characteristics]
+
+## 14. Related APIs
+
+- **[Related API 1]:** [Relationship description]
+- **[Related API 2]:** [Relationship description]
+
+## 15. Change Log
+
+- **2025-[MM-DD]:** [Change description]
 
 ---
 

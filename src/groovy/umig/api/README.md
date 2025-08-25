@@ -217,6 +217,9 @@ All APIs support comprehensive testing with:
 
 - **PRIMARY**: [ADR-023: Standardized REST API Implementation Patterns](../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md)
 - [ADR-031: Type Safety Improvements](../../docs/adr/ADR-031-Type-Safety-Improvements.md)
+- [ADR-043: Dual Authentication Context Management](../../../../docs/adr/ADR-043-dual-authentication-context-management.md)
+- [ADR-044: Mandatory Endpoint Registration Patterns](../../../../docs/adr/ADR-044-endpoint-registration-patterns.md)
+- [ADR-047: PostgreSQL Production-Ready Patterns](../../../../docs/adr/ADR-047-postgresql-patterns.md)
 - [Repository Pattern Guidelines](../repository/README.md)
 - [API Workflow Guide](../../.clinerules/workflows/api-work.md)
 - [Testing Guidelines](../tests/README.md)

@@ -114,8 +114,8 @@ phases(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
                     }
                 }
 
-                // Validate sort field
-                def allowedSortFields = ['phm_id', 'phm_name', 'phm_status', 'created_at', 'updated_at', 'step_count', 'instance_count']
+                // Validate sort field - includes joined table fields
+                def allowedSortFields = ['phm_id', 'phm_name', 'phm_order', 'sqm_name', 'sqm_order', 'plm_name', 'created_at', 'updated_at', 'step_count', 'instance_count']
                 if (sortField && !allowedSortFields.contains(sortField)) {
                     return Response.status(400)
                         .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())
@@ -470,6 +470,7 @@ phases(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryPa
             updateData['phm_name'] = requestData['phm_name'] as String
             updateData['phm_description'] = requestData['phm_description'] as String
             updateData['phm_order'] = requestData['phm_order'] as Integer
+            updateData['sqm_id'] = requestData['sqm_id'] ? UUID.fromString(requestData['sqm_id'] as String) : null
             updateData['predecessor_phm_id'] = requestData['predecessor_phm_id'] ? UUID.fromString(requestData['predecessor_phm_id'] as String) : null
             
             def result = phaseRepository.updateMasterPhase(phaseId, updateData)

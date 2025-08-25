@@ -68,17 +68,6 @@ class PhaseRepository {
             def params = []
             
             // Build dynamic WHERE clause
-            if (filters.status) {
-                if (filters.status instanceof List) {
-                    def placeholders = filters.status.collect { '?' }.join(', ')
-                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
-                    params.addAll(filters.status)
-                } else {
-                    whereConditions << "s.sts_name = ?"
-                    params << filters.status
-                }
-            }
-            
             // Owner ID filtering (team-based ownership through sequence and plan)
             if (filters.ownerId) {
                 whereConditions << "plm.tms_id = ?"
@@ -99,6 +88,12 @@ class PhaseRepository {
                 params << filters.startDateTo
             }
             
+            // Sequence ID filtering (for predecessor dropdowns)
+            if (filters.sqm_id) {
+                whereConditions << "phm.sqm_id = ?"
+                params << UUID.fromString(filters.sqm_id as String)
+            }
+            
             def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
             
             // Count query
@@ -108,13 +103,12 @@ class PhaseRepository {
                 JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts s ON s.sts_name = 'ACTIVE' AND s.sts_type = 'Phase'
                 ${whereClause}
             """
             def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
             
-            // Validate sort field
-            def allowedSortFields = ['phm_id', 'phm_name', 'phm_status', 'created_at', 'updated_at', 'step_count', 'instance_count']
+            // Validate sort field - includes joined table fields
+            def allowedSortFields = ['phm_id', 'phm_name', 'phm_order', 'sqm_name', 'sqm_order', 'plm_name', 'created_at', 'updated_at', 'step_count', 'instance_count']
             if (!sortField || !allowedSortFields.contains(sortField)) {
                 sortField = 'phm_name'
             }
@@ -123,15 +117,16 @@ class PhaseRepository {
             // Data query with computed fields
             def offset = (pageNumber - 1) * pageSize
             def dataQuery = """
-                SELECT DISTINCT phm.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
-                       sqm.sqm_name, sqm.sqm_id, plm.plm_name, plm.tms_id, tms.tms_name,
+                SELECT DISTINCT phm.*,
+                       sqm.sqm_name, sqm.sqm_id, sqm.sqm_order, sqm.plm_id, plm.plm_name, plm.tms_id, tms.tms_name,
+                       pred.phm_name as predecessor_name,
                        COALESCE(step_counts.step_count, 0) as step_count,
                        COALESCE(instance_counts.instance_count, 0) as instance_count
                 FROM phases_master_phm phm
                 JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                LEFT JOIN status_sts s ON s.sts_name = 'ACTIVE' AND s.sts_type = 'Phase'
+                LEFT JOIN phases_master_phm pred ON phm.predecessor_phm_id = pred.phm_id
                 LEFT JOIN (
                     SELECT phm_id, COUNT(*) as step_count
                     FROM steps_master_stm
@@ -143,7 +138,17 @@ class PhaseRepository {
                     GROUP BY phm_id
                 ) instance_counts ON phm.phm_id = instance_counts.phm_id
                 ${whereClause}
-                ORDER BY ${['step_count', 'instance_count'].contains(sortField) ? sortField : 'phm.' + sortField} ${sortDirection}
+                ORDER BY ${
+                    if (['step_count', 'instance_count'].contains(sortField)) {
+                        sortField
+                    } else if (['sqm_name', 'sqm_order'].contains(sortField)) {
+                        'sqm.' + sortField
+                    } else if (sortField == 'plm_name') {
+                        'plm.' + sortField
+                    } else {
+                        'phm.' + sortField
+                    }
+                } ${sortDirection}
                 LIMIT ${pageSize} OFFSET ${offset}
             """
             
@@ -201,7 +206,7 @@ class PhaseRepository {
      */
     def findMasterPhaseById(UUID phaseId) {
         DatabaseUtil.withSql { sql ->
-            return sql.firstRow("""
+            def row = sql.firstRow("""
                 SELECT 
                     phm.phm_id, 
                     phm.sqm_id, 
@@ -220,14 +225,28 @@ class PhaseRepository {
                     plm.plm_description as plan_description,
                     plm.tms_id,
                     tms.tms_name,
-                    pred.phm_name as predecessor_name
+                    pred.phm_name as predecessor_name,
+                    COALESCE(step_counts.step_count, 0) as step_count,
+                    COALESCE(instance_counts.instance_count, 0) as instance_count
                 FROM phases_master_phm phm
                 JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
                 LEFT JOIN phases_master_phm pred ON phm.predecessor_phm_id = pred.phm_id
+                LEFT JOIN (
+                    SELECT phm_id, COUNT(*) as step_count
+                    FROM steps_master_stm
+                    GROUP BY phm_id
+                ) step_counts ON phm.phm_id = step_counts.phm_id
+                LEFT JOIN (
+                    SELECT phm_id, COUNT(*) as instance_count
+                    FROM phases_instance_phi
+                    GROUP BY phm_id
+                ) instance_counts ON phm.phm_id = instance_counts.phm_id
                 WHERE phm.phm_id = :phaseId
             """, [phaseId: phaseId])
+            
+            return row ? enrichMasterPhaseWithStatusMetadata(row) : null
         }
     }
     
@@ -323,20 +342,50 @@ class PhaseRepository {
                     return null
                 }
                 
+                // Validate sequence exists if being updated
+                if (phaseData.sqm_id && phaseData.sqm_id != currentPhase.sqm_id) {
+                    def sequenceExists = sql.firstRow(
+                        'SELECT sqm_id FROM sequences_master_sqm WHERE sqm_id = :sequenceId', 
+                        [sequenceId: phaseData.sqm_id]
+                    )
+                    if (!sequenceExists) {
+                        throw new IllegalArgumentException("Sequence not found")
+                    }
+                }
+                
                 // Check for circular dependency if predecessor is being updated
                 if (phaseData.predecessor_phm_id && 
                     phaseData.predecessor_phm_id != currentPhase.predecessor_phm_id) {
-                    UUID sequenceId = currentPhase.sqm_id as UUID
+                    UUID sequenceId = (phaseData.sqm_id ?: currentPhase.sqm_id) as UUID
                     UUID predecessorId = phaseData.predecessor_phm_id as UUID
                     if (hasCircularDependency(sql, sequenceId, predecessorId, phaseId)) {
                         throw new IllegalArgumentException("Circular dependency detected")
                     }
                 }
                 
+                // Check for order conflicts if both sequence and order are being updated
+                if (phaseData.phm_order && phaseData.sqm_id) {
+                    def orderConflict = sql.firstRow("""
+                        SELECT phm_id FROM phases_master_phm 
+                        WHERE sqm_id = :sequenceId AND phm_order = :order AND phm_id != :phaseId
+                    """, [sequenceId: phaseData.sqm_id, order: phaseData.phm_order, phaseId: phaseId])
+                    
+                    if (orderConflict) {
+                        // Shift existing phases to make room
+                        sql.executeUpdate("""
+                            UPDATE phases_master_phm 
+                            SET phm_order = phm_order + 1,
+                                updated_by = 'system',
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE sqm_id = :sequenceId AND phm_order >= :order AND phm_id != :phaseId
+                        """, [sequenceId: phaseData.sqm_id, order: phaseData.phm_order, phaseId: phaseId])
+                    }
+                }
+                
                 // Build dynamic update query
                 def setClauses = []
                 def queryParams = [:]
-                def updatableFields = ['phm_name', 'phm_description', 'predecessor_phm_id']
+                def updatableFields = ['phm_name', 'phm_description', 'predecessor_phm_id', 'phm_order', 'sqm_id']
                 
                 phaseData.each { key, value ->
                     if (key in updatableFields) {
@@ -1347,9 +1396,10 @@ class PhaseRepository {
     }
     
     /**
-     * Enriches master phase data with status metadata while maintaining backward compatibility.
-     * @param row Database row containing master phase and status data
-     * @return Enhanced master phase map with statusMetadata and computed fields
+     * Enriches master phase data with computed fields.
+     * Note: Master phases don't have status as they are templates.
+     * @param row Database row containing master phase data
+     * @return Enhanced master phase map with computed fields
      */
     private Map enrichMasterPhaseWithStatusMetadata(Map row) {
         return [
@@ -1359,7 +1409,6 @@ class PhaseRepository {
             phm_description: row.phm_description,
             phm_order: row.phm_order,
             predecessor_phm_id: row.predecessor_phm_id,
-            phm_status: row.sts_name ?: 'ACTIVE', // Backward compatibility - master phases use ACTIVE status
             // Audit fields (consistent across all entities)
             created_by: row.created_by,
             created_at: row.created_at,
@@ -1367,20 +1416,16 @@ class PhaseRepository {
             updated_at: row.updated_at,
             // Sequence and plan details
             sqm_name: row.sqm_name,
-            sqm_id: row.sqm_id,
+            plm_id: row.plm_id,
             plm_name: row.plm_name,
             tms_id: row.tms_id,
             tms_name: row.tms_name,
+            // Predecessor phase name for VIEW display mapping (ADR-031 compatibility)
+            predecessor_phm_name: row.predecessor_name,
             // Computed fields from joins (phase-specific relationships)
             step_count: row.step_count ?: 0,
-            instance_count: row.instance_count ?: 0,
-            // Enhanced status metadata (consistent across all entities)
-            statusMetadata: [
-                id: row.sts_id,
-                name: row.sts_name,
-                color: row.sts_color,
-                type: row.sts_type
-            ]
+            instance_count: row.instance_count ?: 0
+            // No status metadata for master phases - they are templates
         ]
     }
 }

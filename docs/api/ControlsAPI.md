@@ -56,6 +56,34 @@
 | phaseId            | UUID    | No       | Filter master controls by master phase              |
 | teamId             | Integer | No       | Filter controls by owning team                      |
 | statusId           | Integer | No       | Filter controls by status                           |
+| page               | Integer | No       | Page number for pagination (default: 1)             |
+| size               | Integer | No       | Page size for pagination (default: 50)              |
+| sort               | String  | No       | Sort field (default: ctm_code)                      |
+| direction          | String  | No       | Sort direction: asc or desc (default: asc)          |
+
+#### Allowed Sort Fields for Master Controls
+
+The following fields are supported for sorting master controls via the `sort` parameter:
+
+| Field Name       | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| ctm_id           | Master control ID (UUID)                             |
+| ctm_code         | Control code identifier (default sort field)         |
+| ctm_name         | Control name                                         |
+| ctm_description  | Control description                                  |
+| ctm_type         | Control type (VALIDATION, CHECK, APPROVAL)           |
+| ctm_is_critical  | Critical control flag                                |
+| ctm_order        | Display order within phase                           |
+| created_at       | Creation timestamp                                   |
+| updated_at       | Last update timestamp                                |
+| instance_count   | Number of instances created from this master control |
+| validation_count | Number of validated instances                        |
+| plm_name         | Plan master name (hierarchy field)                   |
+| sqm_name         | Sequence master name (hierarchy field)               |
+| phm_name         | Phase master name (hierarchy field)                  |
+| tms_name         | Team name (hierarchy field)                          |
+
+**Default Sort:** If no `sort` parameter is provided, results are sorted by `ctm_code` in ascending order, which serves as the primary display field for Admin GUI integration.
 
 ### 3.3. Request Body
 
@@ -89,6 +117,39 @@
   "ctm_order": 1
 }
 ```
+
+#### Master Control Update
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "ctm_name": "string (optional)",
+  "ctm_description": "string (optional)",
+  "ctm_type": "string (optional)",
+  "ctm_is_critical": "boolean (optional)",
+  "ctm_code": "string (optional)",
+  "ctm_order": "integer (optional)",
+  "phm_id": "uuid (optional)"
+}
+```
+
+- **Example:**
+
+```json
+{
+  "ctm_name": "Updated Database Backup Verification",
+  "ctm_description": "Enhanced verification process for all critical databases",
+  "ctm_type": "VALIDATION",
+  "ctm_is_critical": true,
+  "ctm_code": "DB_BACKUP_CHECK_V2",
+  "ctm_order": 2,
+  "phm_id": "456e7890-e12b-34c5-b678-901234567def"
+}
+```
+
+**Note:** The `phm_id` field enables Admin GUI EDIT mode support by allowing phase association updates. When `phm_id` is updated, the plan and sequence relationships are automatically resolved through database JOINs, as only the Phase Master ID is stored directly in the controls_master_ctm table.
 
 #### Control Instance Creation
 
@@ -567,6 +628,7 @@ This reduces redundant type casting and improves query performance.
 
 ## 15. Changelog
 
+- **2025-08-25:** Enhanced Admin GUI integration - Added hierarchy fields (plm_name, sqm_name, phm_name, tms_name) to sortable fields for master controls. Added phm_id parameter support in PUT endpoint for Phase Master association updates. Added comprehensive sorting documentation with 16 supported sort fields.
 - **2025-08-06:** Added performance optimizations (validateFilters, buildSuccessResponse) and edge case tests
 - **2025-01-15:** Created comprehensive API specification with validation workflows
 - **2024-12-15:** Initial implementation of Controls API v2

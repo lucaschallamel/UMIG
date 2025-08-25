@@ -319,7 +319,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
             String sortDirection = 'asc'
             
             if (sort) {
-                def allowedSortFields = ['mig_id', 'mig_name', 'mig_status', 'created_at', 'updated_at', 'mig_start_date', 'mig_end_date', 'iteration_count', 'plan_count']
+                def allowedSortFields = ['mig_id', 'mig_name', 'mig_status', 'mig_type', 'created_at', 'updated_at', 'mig_start_date', 'mig_end_date', 'iteration_count', 'plan_count']
                 if (allowedSortFields.contains(sort as String)) {
                     sortField = sort as String
                 } else {
@@ -401,6 +401,9 @@ migrations(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap qu
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
     
+    // Declare migrationData at method scope for static type checking compliance
+    Map migrationData = null
+    
     try {
         // Handle bulk export
         if (pathParts.size() >= 2 && pathParts[0] == 'bulk' && pathParts[1] == 'export') {
@@ -440,7 +443,7 @@ migrations(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap qu
         
         // Create new migration
         if (!pathParts) {
-            Map migrationData = new JsonSlurper().parseText(body) as Map
+            migrationData = new JsonSlurper().parseText(body) as Map
             log.info("POST /migrations - Creating migration with data: ${migrationData}")
             
             // Validate required fields
@@ -487,8 +490,13 @@ migrations(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap qu
     } catch (SQLException e) {
         def status = mapSqlExceptionToHttpStatus(e)
         def message = mapSqlExceptionToMessage(e)
+        log.error("POST /migrations - SQL Exception: State=${e.SQLState}, Code=${e.errorCode}, Message=${e.message}. Input data: ${migrationData}", e)
         return Response.status(status)
-            .entity(new JsonBuilder([error: message]).toString())
+            .entity(new JsonBuilder([
+                error: message, 
+                debug: "SQL State: ${e.SQLState}, Error Code: ${e.errorCode}",
+                inputData: migrationData ? migrationData.findAll { k, v -> k != 'mig_description' } : [:] // Exclude potentially long description
+            ]).toString())
             .build()
     } catch (Exception e) {
         log.error("Unexpected error in POST /migrations", e)
@@ -505,6 +513,9 @@ migrations(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap qu
 migrations(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
+    
+    // Declare migrationData at method scope for static type checking compliance
+    Map migrationData = null
     
     try {
         // Handle bulk status update
@@ -564,7 +575,7 @@ migrations(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap que
                     .build()
             }
             
-            Map migrationData = new JsonSlurper().parseText(body) as Map
+            migrationData = new JsonSlurper().parseText(body) as Map
             log.info("PUT /migrations/${migrationId} - Updating with data: ${migrationData}")
             
             try {
