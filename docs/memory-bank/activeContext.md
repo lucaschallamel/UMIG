@@ -390,7 +390,7 @@
 **All 9 Core APIs Status** (Updated August 25, 2025):
 
 - ✅ Plans API - Sprint 3 patterns proven
-- ✅ Sequences API - Sprint 3 patterns proven  
+- ✅ Sequences API - Sprint 3 patterns proven
 - ✅ Phases API - Sprint 3 patterns proven
 - ✅ Instructions API - Sprint 3 patterns proven
 - ✅ Controls API - Sprint 3 patterns proven
@@ -400,6 +400,7 @@
 - ✅ **StatusApi** - US-031 NEW (August 2025) with centralized status management
 
 **Supporting APIs Complete**:
+
 - ✅ Users, Teams, Environments, Applications, Labels APIs - Full CRUD operations
 - ✅ Static Type Checking Compliance - Groovy 3.0.15 compatibility achieved across all APIs
 

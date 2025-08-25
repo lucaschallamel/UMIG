@@ -247,7 +247,7 @@ UMIG/
 │   ├── liquibase/          # DB migrations
 │   └── podman-compose.yml  # Container orchestration
 ├── docs/                    # Documentation
-│   ├── solution-architecture.md  # PRIMARY REFERENCE (33 ADRs consolidated)
+│   ├── solution-architecture.md  # PRIMARY REFERENCE (47 ADRs consolidated)
 │   ├── api/openapi.yaml     # API specification
 │   ├── archived/           # Historical documentation
 │   │   └── us-032-confluence-upgrade/  # US-032 upgrade archive
@@ -405,7 +405,7 @@ if (stepId) {
 ### ✅ Completed
 
 - Development environment, Admin UI (SPA pattern)
-- APIs: Users, Teams, Environments, Applications, Labels, Migrations, Plans, Sequences, Phases, Instructions
+- APIs: Users, Teams, Environments, Applications, Labels, Migrations, Plans, Sequences, Phases, Instructions, Iterations, Status
 - Steps API: 100% complete (All phases finished)
 - Iteration View: Enhanced interface with Phase 1 features delivered
 - Type safety patterns, hierarchical filtering
@@ -419,7 +419,7 @@ if (stepId) {
 - Documentation consolidation (50% reduction: 6→3 files, 8→4 scripts)
 - **US-022**: Integration Test Suite Expansion ✅ COMPLETE (August 18, 2025)
 - **US-030**: API Documentation Completion ✅ COMPLETE (August 19, 2025)
-- **US-031**: Admin GUI Integration Day 2/3 COMPLETE - 11/13 entities functional (August 25, 2025)
+- **US-031**: Admin GUI Integration Day 3 COMPLETE - 13/13 entities functional with IterationsApi and StatusApi (August 25, 2025)
 - **AdminGuiAllEndpointsTest.groovy**: Comprehensive Admin GUI endpoint validation suite (August 22, 2025)
 - **ADR-043, ADR-044, ADR-047**: New critical ADRs for authentication, endpoint registration, and PostgreSQL patterns
 
@@ -456,7 +456,7 @@ if (stepId) {
 
 - **✅ US-022**: Integration Test Expansion (1 point) - Day 1 COMPLETE ✅ (August 18, 2025)
 - **✅ US-030**: API Documentation Completion (1 point) - Day 1 COMPLETE ✅ (August 19, 2025)
-- **🚧 US-031**: Admin GUI Complete Integration (6 points) - Days 2-4 - Core MVP functionality - **Day 2/3 COMPLETE** (11/13 endpoints functional, auth blocker identified)
+- **🚧 US-031**: Admin GUI Complete Integration (6 points) - Days 2-4 - Core MVP functionality - **Day 3 COMPLETE** (13/13 endpoints functional including IterationsApi and StatusApi, auth investigation ongoing)
 - **🚧 US-036**: StepView UI Refactoring (3 points) - Days 3-4 - NEW Enhanced interface
 - **🚧 US-034**: Data Import Strategy (3 points) - Days 4-5 - Migration enablement
 - **🚧 US-033**: Main Dashboard UI (3 points) - Day 5 - Final MVP component
@@ -489,12 +489,12 @@ if (stepId) {
 
 ### 🔴 Current Critical Issues (Sprint 5 Day 3)
 
-#### **Authentication Blocker - HTTP 401 Unauthorized**
+#### **Authentication Investigation - HTTP 401**
 
-- **Status**: CRITICAL - All Admin GUI API endpoints returning 401
-- **Impact**: Cannot validate complete Admin GUI integration despite technical completion
-- **Root Cause**: ScriptRunner authentication context requires investigation
-- **Progress**: Issue isolated, credentials verified (admin:Spaceop!13)
+- **Status**: UNDER INVESTIGATION - Authentication requirements being analyzed
+- **Impact**: Admin GUI validation pending authentication resolution
+- **Root Cause**: ScriptRunner session-based authentication vs Basic Auth mismatch suspected
+- **Progress**: Issue isolated, multiple authentication approaches being tested
 - **Next Steps**:
   - Investigate ScriptRunner session-based vs Basic Auth requirements
   - Verify Confluence user configuration and permissions

@@ -37,7 +37,7 @@
     - **Status management integration** with proper entity relationship handling
     - **Admin GUI compatibility** with parameterless call support
   - **StatusApi (US-031):** NEW centralized status management completed August 2025
-    - **Centralized status management** across all entities with consistent type-safe operations  
+    - **Centralized status management** across all entities with consistent type-safe operations
     - **Color coding support** for dynamic UI styling and status visualization
     - **Entity-specific filtering** with comprehensive status lookup capabilities
     - **Administrative interface integration** supporting dynamic status dropdowns

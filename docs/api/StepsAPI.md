@@ -38,58 +38,58 @@ All endpoints are relative to the ScriptRunner custom REST base:
 
 ## 2. Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | /steps | Get Step Instances with Hierarchical Filtering |
-| GET | /steps/master | Get Master Steps with Admin GUI Support |
-| GET | /steps/master/{id} | Get Single Master Step |
-| GET | /steps/instance/{stepInstanceId} | Get Step Instance Details |
-| GET | /steps/summary | Get Dashboard Summary Metrics |
-| GET | /steps/progress | Get Progress Tracking Data |
-| GET | /steps/export | Export Steps Data |
-| PUT | /steps/{stepInstanceId}/status | Update Step Status |
-| PUT | /steps/bulk/status | Bulk Status Updates |
-| PUT | /steps/bulk/assign | Bulk Team Assignments |
-| PUT | /steps/bulk/reorder | Bulk Step Reordering |
-| POST | /steps/{stepInstanceId}/open | Mark Step as Opened |
-| POST | /steps/{stepInstanceId}/instructions/{instructionId}/complete | Complete Instruction |
-| POST | /steps/{stepInstanceId}/instructions/{instructionId}/incomplete | Mark Instruction as Incomplete |
-| GET | /statuses/step | Get Step Status Options |
-| GET | /statuses/{type} | Get Status Options by Entity Type |
-| GET | /statuses | Get All Status Options |
-| GET | /steps/{stepInstanceId}/comments | Get Step Comments |
-| POST | /steps/{stepInstanceId}/comments | Create Step Comment |
-| PUT | /comments/{commentId} | Update Comment |
-| DELETE | /comments/{commentId} | Delete Comment |
+| Method | Path                                                            | Description                                    |
+| ------ | --------------------------------------------------------------- | ---------------------------------------------- |
+| GET    | /steps                                                          | Get Step Instances with Hierarchical Filtering |
+| GET    | /steps/master                                                   | Get Master Steps with Admin GUI Support        |
+| GET    | /steps/master/{id}                                              | Get Single Master Step                         |
+| GET    | /steps/instance/{stepInstanceId}                                | Get Step Instance Details                      |
+| GET    | /steps/summary                                                  | Get Dashboard Summary Metrics                  |
+| GET    | /steps/progress                                                 | Get Progress Tracking Data                     |
+| GET    | /steps/export                                                   | Export Steps Data                              |
+| PUT    | /steps/{stepInstanceId}/status                                  | Update Step Status                             |
+| PUT    | /steps/bulk/status                                              | Bulk Status Updates                            |
+| PUT    | /steps/bulk/assign                                              | Bulk Team Assignments                          |
+| PUT    | /steps/bulk/reorder                                             | Bulk Step Reordering                           |
+| POST   | /steps/{stepInstanceId}/open                                    | Mark Step as Opened                            |
+| POST   | /steps/{stepInstanceId}/instructions/{instructionId}/complete   | Complete Instruction                           |
+| POST   | /steps/{stepInstanceId}/instructions/{instructionId}/incomplete | Mark Instruction as Incomplete                 |
+| GET    | /statuses/step                                                  | Get Step Status Options                        |
+| GET    | /statuses/{type}                                                | Get Status Options by Entity Type              |
+| GET    | /statuses                                                       | Get All Status Options                         |
+| GET    | /steps/{stepInstanceId}/comments                                | Get Step Comments                              |
+| POST   | /steps/{stepInstanceId}/comments                                | Create Step Comment                            |
+| PUT    | /comments/{commentId}                                           | Update Comment                                 |
+| DELETE | /comments/{commentId}                                           | Delete Comment                                 |
 
 ## 3. Request Details
 
 ### 3.1. Path Parameters
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| stepInstanceId | UUID/String | Yes | Step instance UUID or step code |
-| id | UUID | Yes | Master step UUID |
-| instructionId | UUID | Yes | Instruction instance UUID |
-| commentId | Integer | Yes | Comment ID |
-| type | String | Yes | Entity type for status queries |
+| Name           | Type        | Required | Description                     |
+| -------------- | ----------- | -------- | ------------------------------- |
+| stepInstanceId | UUID/String | Yes      | Step instance UUID or step code |
+| id             | UUID        | Yes      | Master step UUID                |
+| instructionId  | UUID        | Yes      | Instruction instance UUID       |
+| commentId      | Integer     | Yes      | Comment ID                      |
+| type           | String      | Yes      | Entity type for status queries  |
 
 ### 3.2. Query Parameters
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| migrationId | UUID | No | Filter by migration UUID |
-| iterationId | UUID | No | Filter by iteration UUID |
-| planId | UUID | No | Filter by plan instance UUID |
-| sequenceId | UUID | No | Filter by sequence instance UUID |
-| phaseId | UUID | No | Filter by phase instance UUID |
-| teamId | Integer | No | Filter by team ID |
-| labelId | UUID | No | Filter by label UUID |
-| page | Integer | No | Page number for pagination (default: 1) |
-| size | Integer | No | Number of items per page (default: 50) |
-| sort | String | No | Field to sort by |
-| direction | String | No | Sort direction (asc/desc, default: asc) |
-| format | String | No | Export format ("json" or "csv", default: "json") |
+| Name        | Type    | Required | Description                                      |
+| ----------- | ------- | -------- | ------------------------------------------------ |
+| migrationId | UUID    | No       | Filter by migration UUID                         |
+| iterationId | UUID    | No       | Filter by iteration UUID                         |
+| planId      | UUID    | No       | Filter by plan instance UUID                     |
+| sequenceId  | UUID    | No       | Filter by sequence instance UUID                 |
+| phaseId     | UUID    | No       | Filter by phase instance UUID                    |
+| teamId      | Integer | No       | Filter by team ID                                |
+| labelId     | UUID    | No       | Filter by label UUID                             |
+| page        | Integer | No       | Page number for pagination (default: 1)          |
+| size        | Integer | No       | Number of items per page (default: 50)           |
+| sort        | String  | No       | Field to sort by                                 |
+| direction   | String  | No       | Sort direction (asc/desc, default: asc)          |
+| format      | String  | No       | Export format ("json" or "csv", default: "json") |
 
 ### 3.3. Request Body
 
@@ -207,12 +207,12 @@ All endpoints are relative to the ScriptRunner custom REST base:
 
 ### 4.2. Error Responses
 
-| Status Code | Content-Type | Schema | Example | Description |
-|-------------|--------------|--------|---------|-------------|
-| 400 | application/json | {"error": "string"} | {"error": "Invalid step ID format"} | Invalid UUID format, missing required fields |
-| 404 | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"} | Step instance, instruction, or comment not found |
-| 409 | application/json | {"error": "string"} | {"error": "Duplicate entry"} | Unique constraint violation (23505) |
-| 500 | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"} | Database or server errors |
+| Status Code | Content-Type     | Schema              | Example                                                      | Description                                      |
+| ----------- | ---------------- | ------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| 400         | application/json | {"error": "string"} | {"error": "Invalid step ID format"}                          | Invalid UUID format, missing required fields     |
+| 404         | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"}            | Step instance, instruction, or comment not found |
+| 409         | application/json | {"error": "string"} | {"error": "Duplicate entry"}                                 | Unique constraint violation (23505)              |
+| 500         | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"} | Database or server errors                        |
 
 ## 5. Authentication & Authorization
 
@@ -233,7 +233,7 @@ All endpoints are relative to the ScriptRunner custom REST base:
   - Comment content sanitization
   - Type casting validation (ADR-031)
   - SQL injection prevented via parameterized queries
-- **Other Security Considerations:** 
+- **Other Security Considerations:**
   - User IDs validated against active Confluence users
   - Email notifications only sent to authorized stakeholders
   - Database connection pooling with proper cleanup
@@ -242,7 +242,7 @@ All endpoints are relative to the ScriptRunner custom REST base:
 
 - **Key Logic:**
   - **Hierarchical Filtering**: Uses instance→master table relationships for progressive filtering
-  - **Status Management**: Status changes trigger email notifications to stakeholders  
+  - **Status Management**: Status changes trigger email notifications to stakeholders
   - **Instruction Integration**: Step instances contain instruction instances that can be managed independently
   - **Label Support**: Steps can have multiple labels for categorization and filtering
   - **Team Assignment**: Steps are assigned to teams via ownerTeamId relationship
@@ -282,7 +282,7 @@ All endpoints are relative to the ScriptRunner custom REST base:
 ### External Services
 
 - **EmailService**: For status change and action notifications
-- **DatabaseUtil**: For connection management and transaction handling  
+- **DatabaseUtil**: For connection management and transaction handling
 - **UserRepository**: For user validation and lookup
 - **StatusRepository**: For dynamic status management
 
@@ -298,7 +298,7 @@ All endpoints are relative to the ScriptRunner custom REST base:
 - **Unit Tests:** Repository tests cover data access operations (`StepRepositoryTest`)
 - **Integration Tests:** Full CRUD operations tested in integration test suite via npm commands
 - **E2E Tests:** Tested via Admin GUI and comprehensive API endpoint validation
-- **Mock Data/Fixtures:** 
+- **Mock Data/Fixtures:**
   - Available via `npm run generate-data:erase`
   - Synthetic data via data generators (001-100)
   - Realistic step templates and instances with full hierarchy relationships

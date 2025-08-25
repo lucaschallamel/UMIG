@@ -631,6 +631,7 @@ completions, and other workflow events.
 #### API Endpoints
 
 **Completed APIs** (11 entities with full CRUD operations):
+
 - Users, Teams, Environments, Applications, Labels, Migrations, Plans, Sequences, Phases, Steps, Instructions
 - **New**: IterationsApi, StatusApi (added in US-031)
 - **Enhanced**: All APIs with static type checking compliance
@@ -638,11 +639,13 @@ completions, and other workflow events.
 #### Testing Framework
 
 **Shell Script Migration Complete** ✅ (August 18, 2025):
+
 - 8 shell scripts successfully migrated to NPM commands
 - Enhanced cross-platform support (Windows/macOS/Linux)
 - Improved error handling and maintainability
 
 **Integration Testing** ✅:
+
 - AdminGuiAllEndpointsTest.groovy comprehensive validation
 - 95%+ test coverage across all endpoints
 - Automated performance benchmarking
