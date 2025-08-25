@@ -1,12 +1,18 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.4.0
+  version: 2.4.1
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
+
+    **Version 2.4.1 - August 25, 2025:**
+    **Controls API v2.1.0 Admin GUI Enhancement:** Enhanced GET /controls/master with comprehensive pagination, filtering, and sorting support.
+    Added hierarchy fields (plm_name, sqm_name, phm_name, tms_name) to sort options for improved Admin GUI integration.
+    Updated PUT /controls/master/{id} to support phm_id parameter for Phase Master association updates enabling EDIT mode functionality.
+    Added 16 total sort fields including computed fields (instance_count, validation_count) for comprehensive control management.
 
     **Version 2.4.0 - August 25, 2025:**
     **Steps API v2.2.0 Integration:** Added 6 new Steps API endpoints - /steps/summary, /steps/progress, /steps/export,
@@ -3153,10 +3159,10 @@ paths:
     get:
       tags:
         - Controls
-      summary: Get all master control templates
+      summary: Get all master control templates with pagination and sorting
       description: |
-        Retrieves all master control templates with optional filtering by phase.
-        Results include phase hierarchy information.
+        Retrieves all master control templates with optional filtering by phase, pagination, and sorting.
+        Results include phase hierarchy information. Supports Admin GUI integration with comprehensive sorting options.
       operationId: getAllMasterControls
       parameters:
         - name: phaseId
@@ -3166,6 +3172,56 @@ paths:
             type: string
             format: uuid
           description: Filter controls by master phase ID
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+          description: Number of items per page
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              [
+                ctm_id,
+                ctm_code,
+                ctm_name,
+                ctm_description,
+                ctm_type,
+                ctm_is_critical,
+                ctm_order,
+                created_at,
+                updated_at,
+                instance_count,
+                validation_count,
+                plm_name,
+                sqm_name,
+                phm_name,
+                tms_name,
+              ]
+            default: ctm_code
+          description: Field to sort by (default is ctm_code - primary display field for Admin GUI)
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort direction
       responses:
         "200":
           description: List of master control templates
@@ -7643,6 +7699,15 @@ components:
           type: string
           nullable: true
           description: Control code identifier
+        ctm_order:
+          type: integer
+          nullable: true
+          description: Display order within phase
+        phm_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Associated Phase Master ID for Admin GUI EDIT mode support
 
     CreateControlInstanceRequest:
       type: object

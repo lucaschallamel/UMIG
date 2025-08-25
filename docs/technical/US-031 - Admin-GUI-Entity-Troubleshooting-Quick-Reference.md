@@ -2,7 +2,7 @@
 
 **UMIG System**: Comprehensive troubleshooting, implementation patterns, and quick reference for Admin GUI entity development, endpoint registration, and debugging.
 
-**Consolidated from**: Entity-Development-Templates.md, US-031-Migrations-Entity-Implementation-Guide.md, ENDPOINT_REGISTRATION_GUIDE.md, PHASE_UPDATE_FIX_SUMMARY.md, PLAN_DELETION_FIX.md, US-031-COMPLETE-IMPLEMENTATION-GUIDE.md
+**Consolidated from**: Entity-Development-Templates.md, US-031-Migrations-Entity-Implementation-Guide.md, ENDPOINT_REGISTRATION_GUIDE.md, PHASE_UPDATE_FIX_SUMMARY.md, PLAN_DELETION_FIX.md, US-031-COMPLETE-IMPLEMENTATION-GUIDE.md, **US-031-Admin-GUI-Entity-Troubleshooting-Quick-Reference.md** (modal detection fixes, pagination fixes, cascading dropdown issues, display mapping problems)
 
 **Status**: Production Ready | **Version**: 1.0 | **Last Updated**: August 25, 2025
 
@@ -10,6 +10,7 @@
 
 ## Quick Navigation
 
+- [🎯 Quick Diagnostic Decision Tree](#-quick-diagnostic-decision-tree)
 - [🚨 Emergency Troubleshooting](#-emergency-troubleshooting)
 - [📝 Endpoint Registration](#-endpoint-registration)
 - [🏗️ Implementation Templates](#️-implementation-templates)
@@ -17,6 +18,37 @@
 - [🐛 Systematic Debugging](#-systematic-debugging)
 - [⚡ Performance & Security](#-performance--security)
 - [📚 Historical Fixes](#-historical-fixes)
+- [⚠️ Common Pitfalls](#️-common-pitfalls)
+- [🛠️ Emergency Fixes](#️-emergency-fixes)
+- [📍 File Locations Reference](#-file-locations-reference)
+
+---
+
+## 🎯 Quick Diagnostic Decision Tree
+
+```
+📋 ADMIN GUI ISSUE?
+├─ Modal won't open/load?
+│  ├─ Check console for "Modal not found" → [Modal Issues - DOM Detection](#modal-detection-problems)
+│  ├─ Edit modal shows empty form → [Modal Issues - Form Population](#form-population-failures)
+│  └─ View modal shows UUIDs not names → [Display Mapping](#uuid-display-issues)
+├─ Pagination broken?
+│  ├─ Page 2 shows "no data" → [Pagination - Response Format](#pagination-response-format-mismatch)
+│  ├─ Controls disappear → [Pagination - Visibility](#pagination-controls-visibility)
+│  └─ Wrong page count → [Pagination - Backend Mismatch](#pagination-backend-contract)
+├─ Dropdowns not cascading?
+│  ├─ Child dropdown stays empty → [Cascading - Event Listeners](#event-listener-scope-loss)
+│  ├─ Selection doesn't trigger refresh → [Cascading - API Loading](#api-loading-failures)
+│  └─ Hierarchy broken → [Cascading - Field Clearing](#downstream-field-clearing)
+├─ Data display issues?
+│  ├─ UUIDs showing instead of names → [Display Mapping](#viewdisplaymapping-issues)
+│  ├─ Fields missing in view → [Field Configuration](#field-visibility-conflicts)
+│  └─ Sorting fails → [API Validation](#sort-field-validation)
+└─ API errors?
+   ├─ 400 "Invalid sort field" → [API Response - Sort Validation](#sort-field-validation-enhancement)
+   ├─ 401 Authentication → [API Response - Auth Issues](#authentication-problems)
+   └─ Missing fields in response → [API Response - Data Completeness](#missing-fields-in-responses)
+```
 
 ---
 
@@ -166,6 +198,448 @@ private Integer resolveStatusId(def statusValue, String statusType = 'MIGRATION'
 | `NOT NULL violation`                                   | Missing required fields   | Preserve existing values in updates                   |
 | `Status colors not displaying`                         | Wrong entity type casing  | Use "Iteration" not "iteration" in EntityConfig       |
 | `404 on /statuses/iteration endpoint`                  | Capitalization mismatch   | `UiUtils.formatStatus(statusName, "Iteration")`       |
+
+### Modal Detection Problems
+
+#### Symptom: Modal Ready Detection Failures
+
+**Error**: `❌ Modal viewModal not ready after 2000ms`
+
+**Root Cause**: Single detection criteria applied to all modal types
+
+**Files**: `/src/groovy/umig/web/js/ModalManager.js` (lines 1707-1756)
+
+**Quick Fix**:
+
+```javascript
+// Replace generic modal detection with type-specific detection
+if (modalId === "viewModal") {
+  // View modals need content but not forms
+  isReady =
+    modalRect.height > 0 &&
+    hasContent &&
+    hasContent.innerHTML.trim().length > 0;
+} else if (modalId === "editModal") {
+  // Edit modals need forms
+  isReady = modalRect.height > 0 && hasForm;
+} else {
+  // Auto-detection for unknown types
+  if (hasForm) {
+    isReady = modalRect.height > 0 && hasForm;
+  } else if (hasContent) {
+    isReady =
+      modalRect.height > 0 &&
+      hasContent &&
+      hasContent.innerHTML.trim().length > 0;
+  }
+}
+```
+
+#### Form Population Failures
+
+**Symptom**: "Modal not found in DOM - cannot populate fields"
+
+**Root Cause**: Incorrect modal ID references and insufficient DOM readiness
+
+**Files**: `/src/groovy/umig/web/js/ModalManager.js` (lines 544, 1138)
+
+**Quick Fix**:
+
+```javascript
+// WRONG: Looking for wrong modal ID
+const modal = document.getElementById("entity-modal"); // ❌
+
+// CORRECT: Use proper modal ID
+const modal = document.getElementById("editModal"); // ✅
+
+// WRONG: Single setTimeout check
+setTimeout(() => {
+  /* check once */
+}, 100);
+
+// CORRECT: Robust polling system
+this.waitForModal("editModal", 5000)
+  .then((modal) => {
+    // Populate fields after confirmed readiness
+  })
+  .catch((error) => {
+    console.error("Modal readiness timeout:", error);
+  });
+```
+
+#### waitForModal Implementation
+
+**Location**: `/src/groovy/umig/web/js/ModalManager.js` (new function at line 1661)
+
+```javascript
+waitForModal(modalId, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+
+    const checkModal = () => {
+      const modal = document.getElementById(modalId);
+
+      if (modal) {
+        const modalRect = modal.getBoundingClientRect();
+        const hasForm = modal.querySelector('#entityForm');
+        const hasContent = modal.querySelector('.modal-body, .modal-content');
+
+        let isReady = false;
+
+        // Apply modal-type-specific criteria
+        if (modalId === 'viewModal') {
+          isReady = modalRect.height > 0 && hasContent && hasContent.innerHTML.trim().length > 0;
+        } else if (modalId === 'editModal') {
+          isReady = modalRect.height > 0 && hasForm;
+        } else {
+          if (hasForm) {
+            isReady = modalRect.height > 0 && hasForm;
+          } else if (hasContent) {
+            isReady = modalRect.height > 0 && hasContent && hasContent.innerHTML.trim().length > 0;
+          }
+        }
+
+        if (isReady) {
+          resolve(modal);
+          return;
+        }
+      }
+
+      if (Date.now() - startTime > timeout) {
+        reject(new Error(`Modal ${modalId} not ready after ${timeout}ms`));
+        return;
+      }
+
+      setTimeout(checkModal, 50); // Poll every 50ms
+    };
+
+    checkModal();
+  });
+}
+```
+
+### Pagination Response Format Mismatch
+
+**Symptom**: Page 2 shows "no data" despite records existing
+
+**Root Cause**: Backend returns `{page, size, total}` but frontend expects `{currentPage, pageSize, totalItems}`
+
+**Files**:
+
+- `/src/groovy/umig/web/js/AdminGuiController.js` (lines 970-982)
+- Repository classes (PhaseRepository, etc.)
+
+**Quick Fix**:
+
+```javascript
+// AdminGuiController.js - Fix response mapping
+if (response.pagination) {
+  pagination = {
+    currentPage: response.pagination.page || 1, // Map page -> currentPage
+    pageSize: response.pagination.size || 50, // Map size -> pageSize
+    totalItems: response.pagination.total || 0, // Map total -> totalItems
+    totalPages: response.pagination.totalPages || 1, // Keep consistent
+  };
+}
+```
+
+#### Pagination Controls Visibility
+
+**Symptom**: Pagination controls disappear when changing page sizes
+
+**Root Cause**: Race conditions in DOM manipulation and visibility logic
+
+**Files**: `/src/groovy/umig/web/js/AdminGuiController.js`, `/src/groovy/umig/web/js/TableManager.js`
+
+**Quick Fix**:
+
+```javascript
+// Enhanced visibility logic with timeout
+setTimeout(() => {
+  const paginationContainer = document.querySelector(".pagination-container");
+  if (paginationContainer && totalPages > 1) {
+    paginationContainer.style.display = "flex";
+    paginationContainer.style.visibility = "visible";
+    console.log("[Pagination] Container made visible");
+  }
+}, 100); // Allow DOM to settle
+```
+
+#### TableManager Pagination Fixes
+
+**Location**: `/src/groovy/umig/web/js/TableManager.js`
+
+```javascript
+// Enhanced goToPage function (lines 691-714)
+goToPage(page) {
+  console.log(`[TableManager] goToPage called with page: ${page}`);
+  console.log('[TableManager] Current pagination state:', this.currentPagination);
+
+  // Update state before API call
+  this.currentPagination.currentPage = page;
+
+  // Reload data with new page
+  this.adminGuiController.loadEntityData(this.currentEntityType, page)
+    .then(() => {
+      console.log(`[TableManager] Successfully loaded page ${page}`);
+    })
+    .catch(error => {
+      console.error(`[TableManager] Error loading page ${page}:`, error);
+    });
+}
+
+// Enhanced handlePageSizeChange (lines 763-797)
+handlePageSizeChange(newSize) {
+  console.log(`[TableManager] Page size changed to: ${newSize}`);
+
+  // Reset to page 1 when changing size
+  this.currentPagination.currentPage = 1;
+  this.currentPagination.pageSize = newSize;
+
+  // Reload with new parameters
+  this.adminGuiController.loadEntityData(this.currentEntityType, 1, newSize);
+}
+```
+
+### Cascading Dropdown Issues
+
+#### Event Listener Scope Loss
+
+**Symptom**: Child dropdowns don't update when parent selection changes
+
+**Root Cause**: Event listeners lose scope context after DOM manipulation
+
+**Files**: `/src/groovy/umig/web/js/EntityConfig.js`
+
+**Quick Fix** - Closure Pattern:
+
+```javascript
+// WRONG: Direct reference loses scope
+parentField.addEventListener("change", this.handleCascadeChange);
+
+// CORRECT: Use closure to preserve context
+const createCascadeHandler = (parent, child, apiEndpoint) => {
+  return async (event) => {
+    try {
+      // Clear downstream fields immediately
+      this.clearDownstreamFields(child);
+
+      if (event.target.value) {
+        const options = await this.loadDependentOptions(
+          apiEndpoint,
+          event.target.value,
+        );
+        this.populateDropdown(child, options);
+      }
+    } catch (error) {
+      console.error(`[Cascade] Error loading ${child.name} options:`, error);
+      this.showErrorMessage(`Failed to load ${child.name} options`);
+    }
+  };
+};
+
+// Apply with preserved context
+parentField.addEventListener(
+  "change",
+  createCascadeHandler(parentField, childField, cascade.apiEndpoint),
+);
+```
+
+#### API Loading Failures
+
+**Symptom**: Dependent dropdowns stay empty after parent selection
+
+**Root Cause**: API endpoints not returning expected data format or network failures
+
+**Debugging Steps**:
+
+```javascript
+// Add comprehensive error logging
+async loadDependentOptions(apiEndpoint, parentValue) {
+  try {
+    const url = `${apiEndpoint}?parentId=${parentValue}`;
+    console.debug(`[Cascade] Loading options from: ${url}`);
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.debug(`[Cascade] Loaded ${data.length} options:`, data);
+
+    return data;
+  } catch (error) {
+    console.error(`[Cascade] Failed to load options from ${apiEndpoint}:`, error);
+    throw error;
+  }
+}
+```
+
+#### Downstream Field Clearing
+
+**Location**: Field clearing logic
+
+```javascript
+clearDownstreamFields(field) {
+  console.debug(`[Cascade] Clearing downstream field: ${field.name}`);
+
+  // Clear the field options
+  field.innerHTML = '<option value="">Select...</option>';
+  field.value = '';
+
+  // Trigger change event to cascade clearing to further downstream fields
+  field.dispatchEvent(new Event('change'));
+
+  // Visual feedback
+  field.style.opacity = '0.6';
+  setTimeout(() => {
+    field.style.opacity = '1';
+  }, 200);
+}
+```
+
+### Display Mapping Problems
+
+#### viewDisplayMapping Issues
+
+**Symptom**: UUIDs displayed instead of human-readable names in view modals
+
+**Root Cause**: Field visibility configuration conflicts with display mapping
+
+**Files**: `/src/groovy/umig/web/js/EntityConfig.js`
+
+**Anti-Pattern** (Don't do this):
+
+```javascript
+// WRONG: Hiding UUID fields prevents viewDisplayMapping
+{ name: 'phm_sequence_id', hideInView: true },
+{ name: 'phm_sequence_name', label: 'Sequence Name', readonly: true }
+```
+
+**Correct Pattern**:
+
+```javascript
+// CORRECT: Keep UUID fields visible, use viewDisplayMapping
+{
+  fields: [
+    { name: 'phm_sequence_id', label: 'Sequence', type: 'uuid' },
+    { name: 'phm_sequence_name', label: 'Sequence Name', readonly: true }
+  ],
+  viewDisplayMapping: {
+    'phm_sequence_id': 'phm_sequence_name'  // Transform UUID to name in views
+  }
+}
+```
+
+#### UUID Display Issues
+
+**Location**: `/src/groovy/umig/web/js/ModalManager.js`
+
+```javascript
+// Apply display mapping in view modals
+applyViewDisplayMapping(entityData, entityType) {
+  const config = ENTITY_CONFIGS[entityType];
+  if (!config.viewDisplayMapping) return entityData;
+
+  const displayData = { ...entityData };
+
+  Object.entries(config.viewDisplayMapping).forEach(([sourceField, displayField]) => {
+    if (displayData[displayField]) {
+      // Replace technical ID with human-readable name
+      displayData[sourceField] = displayData[displayField];
+      console.debug(`[Display] Mapped ${sourceField}: ${displayData[displayField]}`);
+    }
+  });
+
+  return displayData;
+}
+```
+
+#### Repository Data Enrichment
+
+**Files**: Repository classes (PhaseRepository, SequenceRepository, etc.)
+
+**Pattern**:
+
+```groovy
+// MANDATORY: Individual record methods must enrich display fields
+def findMasterPhaseById(UUID phaseId) {
+  def result = DatabaseUtil.withSql { sql ->
+    return sql.firstRow("""
+      SELECT phm.*,
+             sqm.sqm_name as phm_sequence_name
+      FROM tbl_phases_master phm
+      LEFT JOIN tbl_sequences_master sqm ON phm.phm_sequence_id = sqm.sqm_id
+      WHERE phm.phm_id = ?
+    """, [phaseId])
+  }
+  return result ? enrichMasterPhaseWithStatusMetadata(result) : null
+}
+
+def enrichMasterPhaseWithStatusMetadata(phase) {
+  // Ensure all display fields are populated
+  if (phase.phm_sequence_id && !phase.phm_sequence_name) {
+    def sequence = findMasterSequenceById(phase.phm_sequence_id)
+    phase.phm_sequence_name = sequence?.sqm_name ?: 'Unknown'
+  }
+  return phase
+}
+```
+
+### Field Configuration Problems
+
+#### Field Visibility Conflicts
+
+**Symptom**: Fields disappear from modals unexpectedly
+
+**Root Cause**: Conflicting `hideInView`, `hideInForm`, and `viewDisplayMapping` settings
+
+**Resolution Pattern**:
+
+```javascript
+// STANDARD: Clear hierarchy for field visibility
+{
+  fields: [
+    // Hidden backend fields
+    { name: 'primary_id', type: 'uuid', readonly: true, hideInView: true, hideInForm: true },
+
+    // Reference fields (shown as IDs in edit, names in view)
+    { name: 'reference_id', label: 'Reference', type: 'uuid', required: true },
+    { name: 'reference_name', label: 'Reference Name', type: 'text', readonly: true },
+
+    // Regular editable fields
+    { name: 'editable_field', label: 'Editable Field', type: 'text', required: true }
+  ],
+
+  // Transform reference IDs to names in view mode
+  viewDisplayMapping: {
+    'reference_id': 'reference_name'
+  },
+
+  // Hide technical fields from view
+  hideInView: ['primary_id'],
+
+  // Required fields for validation
+  required: ['reference_id', 'editable_field']
+}
+```
+
+#### Repository Field Updates
+
+**Symptom**: JavaScript errors due to incorrect field references in API
+
+**Files**: Repository classes (e.g., ControlRepository)
+
+**Example Fix**:
+
+```groovy
+// ControlRepository.groovy - BEFORE (Incorrect)
+def updatableFields = ['ctm_name', 'ctm_description', 'inm_id'] // inm_id was wrong
+
+// ControlRepository.groovy - AFTER (Correct)
+def updatableFields = ['ctm_name', 'ctm_description', 'ctm_order']
+```
 
 ---
 
@@ -1675,6 +2149,111 @@ DatabaseUtil.withSql { sql ->
 }
 ```
 
+### Enhanced Debugging Toolkit
+
+#### Console Commands for Quick Diagnosis
+
+```javascript
+// Check modal state
+console.log("Available modals:", document.querySelectorAll('[id*="Modal"]'));
+console.log("Modal manager state:", window.modalManager);
+
+// Check pagination state
+console.log(
+  "Pagination containers:",
+  document.querySelectorAll(".pagination-container"),
+);
+console.log("Table manager state:", window.tableManager?.currentPagination);
+
+// Check entity configurations
+console.log("Entity configs:", ENTITY_CONFIGS);
+console.log("Available entities:", Object.keys(ENTITY_CONFIGS));
+
+// Check API endpoints
+fetch("/rest/scriptrunner/latest/custom/phasesApi?page=1&size=5")
+  .then((r) => r.json())
+  .then((data) => console.log("API Response:", data))
+  .catch((err) => console.error("API Error:", err));
+```
+
+#### Debug Logging Framework
+
+```javascript
+// Centralized debug logging
+class DebugManager {
+  logWithContext(level, component, message, data = null) {
+    const timestamp = new Date().toISOString();
+    const context = `[${timestamp}][${level}][${component}]`;
+
+    if (data) {
+      console.log(`${context} ${message}:`, data);
+    } else {
+      console.log(`${context} ${message}`);
+    }
+  }
+
+  logApiCall(method, url, params, response) {
+    this.logWithContext("API", "HTTP", `${method} ${url}`, {
+      params,
+      status: response?.status,
+      timing: response?.timing,
+    });
+  }
+
+  logStateChange(component, oldState, newState) {
+    this.logWithContext("MANAGER", component, "State change", {
+      from: oldState,
+      to: newState,
+    });
+  }
+}
+
+// Usage throughout application
+const debugManager = new DebugManager();
+debugManager.logApiCall("GET", url, { page, pageSize }, response);
+```
+
+#### Component State Inspection
+
+```javascript
+// Modal state inspection
+function inspectModalState() {
+  const modals = document.querySelectorAll('[id*="Modal"]');
+  modals.forEach((modal) => {
+    console.log(`Modal ${modal.id}:`, {
+      visible: modal.style.display !== "none",
+      dimensions: modal.getBoundingClientRect(),
+      hasForm: !!modal.querySelector("#entityForm"),
+      hasContent: !!modal.querySelector(".modal-body, .modal-content"),
+    });
+  });
+}
+
+// Pagination state inspection
+function inspectPaginationState() {
+  const containers = document.querySelectorAll(".pagination-container");
+  containers.forEach((container) => {
+    console.log("Pagination container:", {
+      visible: container.style.display !== "none",
+      buttons: container.querySelectorAll(".pagination-button").length,
+      currentPage: container.querySelector(".active")?.textContent,
+    });
+  });
+}
+
+// Dropdown state inspection
+function inspectDropdownState() {
+  const selects = document.querySelectorAll("select");
+  selects.forEach((select) => {
+    console.log(`Dropdown ${select.name}:`, {
+      options: select.options.length,
+      selected: select.value,
+      disabled: select.disabled,
+    });
+  });
+}
+```
+
 ## Performance Red Flags
 
 ### Slow Loading Issues
@@ -1888,10 +2467,157 @@ Multiple endpoints failing?
 
 ---
 
+## ⚠️ Common Pitfalls
+
+### 1. Modal Detection Assumptions
+
+- **Pitfall**: Assuming all modals need forms for readiness detection
+- **Reality**: View modals have content, edit modals have forms
+- **Fix**: Use modal-type-aware detection criteria
+
+### 2. Pagination Backend Contracts
+
+- **Pitfall**: Assuming frontend and backend use same pagination field names
+- **Reality**: Backend uses `{page, size, total}`, frontend expects `{currentPage, pageSize, totalItems}`
+- **Fix**: Always map pagination response fields
+
+### 3. Event Listener Scope
+
+- **Pitfall**: Using `this` references in event listeners after DOM changes
+- **Reality**: Scope context gets lost during DOM manipulation
+- **Fix**: Use closure pattern to preserve context
+
+### 4. Field Display Strategy
+
+- **Pitfall**: Hiding UUID fields to show names in view
+- **Reality**: Hidden fields break viewDisplayMapping functionality
+- **Fix**: Keep UUID fields, use viewDisplayMapping to transform display
+
+### 5. SQL Query Completeness
+
+- **Pitfall**: Different fields in list queries vs individual queries
+- **Reality**: Individual record queries must include same display fields as list queries
+- **Fix**: Standardize JOIN logic across all query methods
+
+### 6. Configuration Naming
+
+- **Pitfall**: Inconsistent entity configuration naming causing overrides
+- **Reality**: Multiple configurations with same effective name create conflicts
+- **Fix**: Use consistent dash-separated naming convention
+
+### 7. Sort Field Validation
+
+- **Pitfall**: Only allowing direct table fields in sort validation
+- **Reality**: Users see and want to sort by joined display fields
+- **Fix**: Include all queryable fields in allowedSortFields
+
+### 8. Error Handling
+
+- **Pitfall**: Silent failures in complex UI interactions
+- **Reality**: Multi-layer failures require systematic debugging
+- **Fix**: Implement comprehensive logging at all interaction points
+
+---
+
+## 🛠️ Emergency Fixes
+
+### Quick Modal Fix (Production Ready)
+
+**File**: `/src/groovy/umig/web/js/ModalManager.js`
+
+```javascript
+// Emergency modal detection fix - replace checkModal function
+const checkModal = () => {
+  const modal = document.getElementById(modalId);
+  if (!modal) return false;
+
+  const rect = modal.getBoundingClientRect();
+  if (rect.height === 0) return false;
+
+  // Emergency: Accept any modal with height > 0
+  console.log(`[Emergency] Modal ${modalId} ready with height ${rect.height}`);
+  resolve(modal);
+};
+```
+
+### Quick Pagination Fix (Production Ready)
+
+**File**: `/src/groovy/umig/web/js/AdminGuiController.js`
+
+```javascript
+// Emergency pagination fix - add to loadEntityData method
+if (response.pagination) {
+  // Emergency: Force standard format
+  const pagination = {
+    currentPage:
+      response.pagination.page || response.pagination.currentPage || 1,
+    pageSize: response.pagination.size || response.pagination.pageSize || 50,
+    totalItems:
+      response.pagination.total || response.pagination.totalItems || 0,
+    totalPages: Math.ceil(
+      (response.pagination.total || response.pagination.totalItems || 0) /
+        (response.pagination.size || response.pagination.pageSize || 50),
+    ),
+  };
+  response.pagination = pagination;
+}
+```
+
+### Quick Cascade Fix (Production Ready)
+
+**File**: `/src/groovy/umig/web/js/EntityConfig.js`
+
+```javascript
+// Emergency cascade fix - simple event delegation
+document.addEventListener("change", async (event) => {
+  if (event.target.tagName === "SELECT" && event.target.dataset.cascade) {
+    const childSelector = event.target.dataset.cascade;
+    const childField = document.querySelector(childSelector);
+
+    if (childField) {
+      // Emergency: Clear and reload
+      childField.innerHTML = '<option value="">Loading...</option>';
+
+      try {
+        const response = await fetch(
+          `${event.target.dataset.api}?parent=${event.target.value}`,
+        );
+        const options = await response.json();
+
+        childField.innerHTML = '<option value="">Select...</option>';
+        options.forEach((option) => {
+          childField.innerHTML += `<option value="${option.value}">${option.label}</option>`;
+        });
+      } catch (error) {
+        childField.innerHTML =
+          '<option value="">Error loading options</option>';
+        console.error("Emergency cascade error:", error);
+      }
+    }
+  }
+});
+```
+
+---
+
+## 📍 File Locations Reference
+
+| Problem Category          | Primary Files                                   | Line Numbers               |
+| ------------------------- | ----------------------------------------------- | -------------------------- |
+| **Modal Detection**       | `/src/groovy/umig/web/js/ModalManager.js`       | 1707-1756, 544, 1138, 1661 |
+| **Pagination**            | `/src/groovy/umig/web/js/AdminGuiController.js` | 970-982, 1005-1049         |
+| **Pagination**            | `/src/groovy/umig/web/js/TableManager.js`       | 500, 691-714, 763-797      |
+| **Cascading Dropdowns**   | `/src/groovy/umig/web/js/EntityConfig.js`       | Multiple functions         |
+| **Display Mapping**       | `/src/groovy/umig/web/js/EntityConfig.js`       | Entity configurations      |
+| **Repository Enrichment** | `*Repository.groovy` files                      | Individual methods         |
+| **Field Configuration**   | `*Repository.groovy` files                      | updatableFields arrays     |
+
+---
+
 **Document Status**: ✅ PRODUCTION READY  
 **Consolidation Date**: August 25, 2025  
 **Validation**: Patterns proven in production debugging sessions  
-**Coverage**: Complete consolidation of 6 technical documents with zero information loss
+**Coverage**: Complete consolidation of 7 technical documents with zero information loss
 
 **Original Files Consolidated**:
 
@@ -1901,5 +2627,19 @@ Multiple endpoints failing?
 4. `/docs/technical/US-031-Migrations-Entity-Implementation-Guide.md` → Debugging & Patterns sections
 5. `/docs/technical/PLAN_DELETION_FIX.md` → Plan Deletion Fix in Historical Fixes section
 6. `/docs/technical/US-031-COMPLETE-IMPLEMENTATION-GUIDE.md` → API endpoint fixes, authentication patterns, troubleshooting enhancements
+7. `/docs/technical/US-031-Admin-GUI-Entity-Troubleshooting-Quick-Reference.md` → Modal detection patterns, pagination response format fixes, cascading dropdown troubleshooting, display mapping solutions, common pitfalls, debugging toolkit, emergency fixes
 
 **Next Steps**: Archive original files after validation of this consolidated reference.
+
+**Unique Content Added from Source**:
+
+- 🎯 Quick Diagnostic Decision Tree with visual flowchart
+- 🔧 Modal Detection Problems with type-specific detection patterns
+- 📊 Pagination Response Format Mismatch with backend contract solutions
+- 🔗 Cascading Dropdown Issues with closure patterns and scope preservation
+- 🎨 Display Mapping Problems with viewDisplayMapping and UUID display fixes
+- 📝 Field Configuration Problems with visibility conflict resolution
+- ⚠️ Common Pitfalls section with 8 detailed troubleshooting insights
+- 🛠️ Emergency Fixes with production-ready quick solutions
+- 🔍 Enhanced Debugging Toolkit with console commands and inspection functions
+- 📍 File Locations Reference table for rapid problem resolution

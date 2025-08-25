@@ -430,26 +430,31 @@
       document.body.insertAdjacentHTML("beforeend", modalHtml);
 
       // Apply status colors after modal is rendered
-      this.waitForModal("viewModal", 2000).then((modal) => {
-        if (window.StatusColorService) {
-          console.log('✅ Applying status colors to view modal');
-          // Map entityType to status entity type
-          const statusEntityTypeMap = {
-            migrations: "Migration",
-            iterations: "Iteration",
-            plans: "Plan",
-            sequences: "Sequence",
-            phases: "Phase",
-            steps: "Step",
-            instructions: "Instruction",
-          };
-          const statusEntityType =
-            statusEntityTypeMap[entityType] || entityType;
-          window.StatusColorService.applyStatusColors(modal, statusEntityType);
-        }
-      }).catch((error) => {
-        console.warn('View modal not ready for status colors:', error);
-      });
+      this.waitForModal("viewModal", 2000)
+        .then((modal) => {
+          if (window.StatusColorService) {
+            console.log("✅ Applying status colors to view modal");
+            // Map entityType to status entity type
+            const statusEntityTypeMap = {
+              migrations: "Migration",
+              iterations: "Iteration",
+              plans: "Plan",
+              sequences: "Sequence",
+              phases: "Phase",
+              steps: "Step",
+              instructions: "Instruction",
+            };
+            const statusEntityType =
+              statusEntityTypeMap[entityType] || entityType;
+            window.StatusColorService.applyStatusColors(
+              modal,
+              statusEntityType,
+            );
+          }
+        })
+        .catch((error) => {
+          console.warn("View modal not ready for status colors:", error);
+        });
     },
 
     /**
@@ -480,7 +485,9 @@
 
         // Skip fields marked as hideInView in VIEW mode
         if (field.hideInView === true) {
-          console.log(`Skipping field ${fieldKey} in VIEW mode (hideInView: true)`);
+          console.log(
+            `Skipping field ${fieldKey} in VIEW mode (hideInView: true)`,
+          );
           return;
         }
 
@@ -511,17 +518,24 @@
      * @param {boolean} isCreate - Whether this is create mode
      */
     showEntityForm: function (data, entityType, isCreate) {
-      console.log(`🔧 showEntityForm called: entityType=${entityType}, isCreate=${isCreate}, hasData=${!!data}`);
-      
+      console.log(
+        `🔧 showEntityForm called: entityType=${entityType}, isCreate=${isCreate}, hasData=${!!data}`,
+      );
+
       const entityConfig = window.EntityConfig
         ? window.EntityConfig.getEntity(entityType)
         : null;
       if (!entityConfig) {
         console.error("❌ Entity configuration not found:", entityType);
-        console.log("Available entity types:", window.EntityConfig ? Object.keys(window.EntityConfig.entities || {}) : "EntityConfig not loaded");
+        console.log(
+          "Available entity types:",
+          window.EntityConfig
+            ? Object.keys(window.EntityConfig.entities || {})
+            : "EntityConfig not loaded",
+        );
         return;
       }
-      
+
       console.log(`✅ Entity config loaded for: ${entityConfig.name}`);
 
       const formHtml = this.buildEntityForm(data, entityConfig, isCreate);
@@ -529,7 +543,7 @@
         console.error("❌ Form HTML generation failed for entity:", entityType);
         return;
       }
-      
+
       const modalTitle = isCreate
         ? `Add ${entityConfig.name.slice(0, -1)}`
         : `Edit ${entityConfig.name.slice(0, -1)}`;
@@ -555,9 +569,9 @@
             `;
 
       // Remove any existing modals to prevent conflicts
-      const existingModal = document.getElementById('editModal');
+      const existingModal = document.getElementById("editModal");
       if (existingModal) {
-        console.log('Removing existing modal to prevent conflicts');
+        console.log("Removing existing modal to prevent conflicts");
         existingModal.remove();
       }
 
@@ -566,57 +580,75 @@
         document.body.insertAdjacentHTML("beforeend", modalHtml);
         console.log(`📋 Modal HTML inserted for entity: ${entityConfig.name}`);
       } catch (error) {
-        console.error('❌ Failed to insert modal HTML:', error);
+        console.error("❌ Failed to insert modal HTML:", error);
         if (window.UiUtils) {
-          window.UiUtils.showNotification('Error: Failed to create modal', 'error');
+          window.UiUtils.showNotification(
+            "Error: Failed to create modal",
+            "error",
+          );
         }
         return;
       }
 
       // Wait for modal to be properly inserted and rendered in DOM
-      this.waitForModal('editModal', 5000).then((modal) => {
-        console.log(`✅ Modal ready for entity: ${entityConfig.name}`);
-        
-        // Additional check for form element
-        const form = modal.querySelector('#entityForm');
-        if (!form) {
-          console.error('Form not found in modal - DOM may not be fully ready');
-          return;
-        }
-        
-        console.log(`=== Initializing modal for entity: ${entityConfig.name} ===`);
-        console.log("Modal fields to render:", entityConfig.modalFields || entityConfig.fields?.map(f => f.key));
-        
-        try {
-          this.populateEntityTypeSelects(entityConfig, data);
-        } catch (error) {
-          console.error('Error populating entity type selects:', error);
-        }
+      this.waitForModal("editModal", 5000)
+        .then((modal) => {
+          console.log(`✅ Modal ready for entity: ${entityConfig.name}`);
 
-        // Set form data if editing - moved here to ensure DOM is ready
-        if (data && !isCreate) {
-          console.log(`=== Setting form data for ${entityConfig.name} ===`);
-          console.log("Data being set:", data);
-          try {
-            this.setFormData(data, entityConfig);
-          } catch (error) {
-            console.error('Error setting form data:', error);
+          // Additional check for form element
+          const form = modal.querySelector("#entityForm");
+          if (!form) {
+            console.error(
+              "Form not found in modal - DOM may not be fully ready",
+            );
+            return;
           }
-          // Add debugging for datetime fields
-          console.log(
-            "Setting form data for datetime fields:",
-            this.debugDatetimeFields(data, entityConfig),
-          );
-        }
 
-        // Setup field dependencies after everything is populated
-        this.setupFieldDependencies(entityConfig, data);
-      }).catch((error) => {
-        console.error('Modal readiness timeout - DOM may not be ready:', error);
-        if (window.UiUtils) {
-          window.UiUtils.showNotification('Error: Modal failed to load properly', 'error');
-        }
-      });
+          console.log(
+            `=== Initializing modal for entity: ${entityConfig.name} ===`,
+          );
+          console.log(
+            "Modal fields to render:",
+            entityConfig.modalFields || entityConfig.fields?.map((f) => f.key),
+          );
+
+          try {
+            this.populateEntityTypeSelects(entityConfig, data);
+          } catch (error) {
+            console.error("Error populating entity type selects:", error);
+          }
+
+          // Set form data if editing - moved here to ensure DOM is ready
+          if (data && !isCreate) {
+            console.log(`=== Setting form data for ${entityConfig.name} ===`);
+            console.log("Data being set:", data);
+            try {
+              this.setFormData(data, entityConfig);
+            } catch (error) {
+              console.error("Error setting form data:", error);
+            }
+            // Add debugging for datetime fields
+            console.log(
+              "Setting form data for datetime fields:",
+              this.debugDatetimeFields(data, entityConfig),
+            );
+          }
+
+          // Setup field dependencies after everything is populated
+          this.setupFieldDependencies(entityConfig, data);
+        })
+        .catch((error) => {
+          console.error(
+            "Modal readiness timeout - DOM may not be ready:",
+            error,
+          );
+          if (window.UiUtils) {
+            window.UiUtils.showNotification(
+              "Error: Modal failed to load properly",
+              "error",
+            );
+          }
+        });
     },
 
     /**
@@ -699,7 +731,9 @@
         if (field && !field.computed) {
           // Skip fields marked as hideInEdit in EDIT mode
           if (!isCreate && field.hideInEdit === true) {
-            console.log(`Skipping field ${fieldKey} in EDIT mode (hideInEdit: true)`);
+            console.log(
+              `Skipping field ${fieldKey} in EDIT mode (hideInEdit: true)`,
+            );
             return;
           }
           // Include readonly fields as visible disabled fields, and editable fields as normal
@@ -1129,15 +1163,24 @@
       );
 
       console.log(
-        `Found ${independentFields.length} independent fields and ${dependentFields.length} dependent fields for entity: ${entityConfig.name}`
+        `Found ${independentFields.length} independent fields and ${dependentFields.length} dependent fields for entity: ${entityConfig.name}`,
       );
-      console.log("Independent fields:", independentFields.map(f => f.key));
-      console.log("Dependent fields:", dependentFields.map(f => f.key));
+      console.log(
+        "Independent fields:",
+        independentFields.map((f) => f.key),
+      );
+      console.log(
+        "Dependent fields:",
+        dependentFields.map((f) => f.key),
+      );
 
       // Process independent fields first
       independentFields.forEach((field) => {
-        this.populateSelectField(field, data, {}).catch(error => {
-          console.error(`Failed to populate independent field ${field.key}:`, error);
+        this.populateSelectField(field, data, {}).catch((error) => {
+          console.error(
+            `Failed to populate independent field ${field.key}:`,
+            error,
+          );
         });
       });
 
@@ -1159,9 +1202,14 @@
           );
         }
 
-        this.populateSelectField(field, data, fieldFilterParams).catch(error => {
-          console.error(`Failed to populate dependent field ${field.key}:`, error);
-        });
+        this.populateSelectField(field, data, fieldFilterParams).catch(
+          (error) => {
+            console.error(
+              `Failed to populate dependent field ${field.key}:`,
+              error,
+            );
+          },
+        );
       });
     },
 
@@ -1178,13 +1226,19 @@
 
       const select = document.getElementById(field.key);
       if (!select) {
-        console.warn(`Select element not found for field: ${field.key} - skipping gracefully. This may be expected if the field is only shown in certain modes (view vs edit).`);
-        
+        console.warn(
+          `Select element not found for field: ${field.key} - skipping gracefully. This may be expected if the field is only shown in certain modes (view vs edit).`,
+        );
+
         // Debug: List all select elements in the modal to help troubleshooting
-        const allSelects = document.querySelectorAll('#editModal select');
-        const selectIds = Array.from(allSelects).map(s => s.id).filter(id => id);
-        console.log(`Available select elements in modal: [${selectIds.join(', ')}]`);
-        
+        const allSelects = document.querySelectorAll("#editModal select");
+        const selectIds = Array.from(allSelects)
+          .map((s) => s.id)
+          .filter((id) => id);
+        console.log(
+          `Available select elements in modal: [${selectIds.join(", ")}]`,
+        );
+
         // Gracefully resolve instead of rejecting to prevent cascading failures
         return Promise.resolve();
       }
@@ -1386,9 +1440,14 @@
           );
 
           // Remove existing event listeners to prevent duplicates
-          const existingListener = parentField.getAttribute('data-dependency-listener');
+          const existingListener = parentField.getAttribute(
+            "data-dependency-listener",
+          );
           if (existingListener) {
-            parentField.removeEventListener("change", parentField._dependencyListener);
+            parentField.removeEventListener(
+              "change",
+              parentField._dependencyListener,
+            );
           }
 
           // Create bound event listener to preserve context
@@ -1414,14 +1473,17 @@
                 );
 
                 // Show loading state
-                childFieldRef.innerHTML = '<option value="">Loading...</option>';
+                childFieldRef.innerHTML =
+                  '<option value="">Loading...</option>';
 
                 // Repopulate the dependent field
-                this.populateSelectField(fieldRef, dataRef, filterParams)
-                  .catch((error) => {
+                this.populateSelectField(fieldRef, dataRef, filterParams).catch(
+                  (error) => {
                     console.error(`Failed to populate ${fieldRef.key}:`, error);
-                    childFieldRef.innerHTML = '<option value="">Error loading options</option>';
-                  });
+                    childFieldRef.innerHTML =
+                      '<option value="">Error loading options</option>';
+                  },
+                );
               } else {
                 // Clear the dependent field
                 childFieldRef.innerHTML =
@@ -1432,8 +1494,8 @@
 
           // Store listener reference for cleanup
           parentField._dependencyListener = dependencyListener;
-          parentField.setAttribute('data-dependency-listener', 'true');
-          
+          parentField.setAttribute("data-dependency-listener", "true");
+
           // Add event listener to parent field
           parentField.addEventListener("change", dependencyListener);
         }
@@ -1444,50 +1506,73 @@
      * Test cascading dropdown functionality for phases
      * This is a debug/test function to verify the fixes
      */
-    testPhaseDropdownCascading: function() {
+    testPhaseDropdownCascading: function () {
       console.log("=== Testing Phase Dropdown Cascading ===");
-      
+
       // Check if we're on the phases master page
-      if (!window.AdminGuiState || window.AdminGuiState.currentEntity !== 'phasesmaster') {
-        console.warn("Not on phasesmaster entity page. Switch to Master Phases to test.");
+      if (
+        !window.AdminGuiState ||
+        window.AdminGuiState.currentEntity !== "phasesmaster"
+      ) {
+        console.warn(
+          "Not on phasesmaster entity page. Switch to Master Phases to test.",
+        );
         return;
       }
-      
+
       // Simulate creating a new phase to test the cascading
       console.log("1. Opening create modal...");
-      this.showEntityForm(null, 'phasesmaster', true);
-      
+      this.showEntityForm(null, "phasesmaster", true);
+
       // Wait for modal to open and then test cascading
       setTimeout(() => {
-        const planSelect = document.getElementById('plm_id');
-        const sequenceSelect = document.getElementById('sqm_id');
-        const predecessorSelect = document.getElementById('predecessor_phm_id');
-        
+        const planSelect = document.getElementById("plm_id");
+        const sequenceSelect = document.getElementById("sqm_id");
+        const predecessorSelect = document.getElementById("predecessor_phm_id");
+
         if (planSelect && sequenceSelect && predecessorSelect) {
           console.log("2. Found all dropdown elements");
-          console.log("   - Plan select:", planSelect.options.length, "options");
-          console.log("   - Sequence select:", sequenceSelect.options.length, "options");
-          console.log("   - Predecessor select:", predecessorSelect.options.length, "options");
-          
+          console.log(
+            "   - Plan select:",
+            planSelect.options.length,
+            "options",
+          );
+          console.log(
+            "   - Sequence select:",
+            sequenceSelect.options.length,
+            "options",
+          );
+          console.log(
+            "   - Predecessor select:",
+            predecessorSelect.options.length,
+            "options",
+          );
+
           // Test plan selection triggering sequence population
           if (planSelect.options.length > 1) {
             console.log("3. Testing plan selection...");
             planSelect.selectedIndex = 1; // Select first real option
-            const changeEvent = new Event('change', { bubbles: true });
+            const changeEvent = new Event("change", { bubbles: true });
             planSelect.dispatchEvent(changeEvent);
-            
+
             setTimeout(() => {
-              console.log("4. After plan selection - Sequence options:", sequenceSelect.options.length);
-              
+              console.log(
+                "4. After plan selection - Sequence options:",
+                sequenceSelect.options.length,
+              );
+
               // Test sequence selection triggering predecessor population
               if (sequenceSelect.options.length > 1) {
                 console.log("5. Testing sequence selection...");
                 sequenceSelect.selectedIndex = 1;
-                const seqChangeEvent = new Event('change', { bubbles: true });
+                const seqChangeEvent = new Event("change", { bubbles: true });
                 sequenceSelect.dispatchEvent(seqChangeEvent);
-                
+
                 setTimeout(() => {
-                  console.log("6. After sequence selection - Predecessor options:", predecessorSelect.options.length);
+                  console.log(
+                    "6. After sequence selection - Predecessor options:",
+                    predecessorSelect.options.length,
+                  );
                   console.log("=== Cascading Test Complete ===");
                 }, 2000);
               }
@@ -1507,15 +1592,16 @@
     clearDownstreamDependentFields: function (changedFieldKey, entityConfig) {
       // Find all fields that depend on the changed field
       const dependentFields = entityConfig.fields.filter(
-        (field) => field.dependsOn === changedFieldKey
+        (field) => field.dependsOn === changedFieldKey,
       );
 
       dependentFields.forEach((dependentField) => {
         const childField = document.getElementById(dependentField.key);
         if (childField) {
           console.log(`Clearing downstream field: ${dependentField.key}`);
-          childField.innerHTML = '<option value="">Select parent field first...</option>';
-          
+          childField.innerHTML =
+            '<option value="">Select parent field first...</option>';
+
           // Recursively clear any fields that depend on this one
           this.clearDownstreamDependentFields(dependentField.key, entityConfig);
         }
@@ -1702,29 +1788,37 @@
       return new Promise((resolve, reject) => {
         const startTime = Date.now();
         const checkInterval = 50; // Check every 50ms
-        
+
         const checkModal = () => {
           const modal = document.getElementById(modalId);
-          
+
           if (modal) {
             // Additional check to ensure modal is properly rendered
             const modalRect = modal.getBoundingClientRect();
-            const hasForm = modal.querySelector('#entityForm');
-            const hasContent = modal.querySelector('.modal-body');
-            
+            const hasForm = modal.querySelector("#entityForm");
+            const hasContent = modal.querySelector(".modal-body");
+
             // Different criteria for different modal types
             let isReady = false;
-            
-            if (modalId === 'viewModal') {
+
+            if (modalId === "viewModal") {
               // View modals need content but not forms
-              isReady = modalRect.height > 0 && hasContent && hasContent.innerHTML.trim().length > 0;
-            } else if (modalId === 'editModal') {
+              isReady =
+                modalRect.height > 0 &&
+                hasContent &&
+                hasContent.innerHTML.trim().length > 0;
+            } else if (modalId === "editModal") {
               // Edit modals need forms
               isReady = modalRect.height > 0 && hasForm;
-            } else if (modalId === 'associationModal') {
+            } else if (modalId === "associationModal") {
               // Association modals may have different content structures
-              const hasAssociationContent = modal.querySelector('.association-content, .modal-body');
-              isReady = modalRect.height > 0 && hasAssociationContent && hasAssociationContent.innerHTML.trim().length > 0;
+              const hasAssociationContent = modal.querySelector(
+                ".association-content, .modal-body",
+              );
+              isReady =
+                modalRect.height > 0 &&
+                hasAssociationContent &&
+                hasAssociationContent.innerHTML.trim().length > 0;
             } else {
               // Default criteria - try to detect modal type based on content
               if (hasForm) {
@@ -1732,50 +1826,74 @@
                 isReady = modalRect.height > 0 && hasForm;
               } else if (hasContent) {
                 // No form but has content - treat as view modal
-                isReady = modalRect.height > 0 && hasContent && hasContent.innerHTML.trim().length > 0;
+                isReady =
+                  modalRect.height > 0 &&
+                  hasContent &&
+                  hasContent.innerHTML.trim().length > 0;
               } else {
                 // Fallback - just check if modal has height
                 isReady = modalRect.height > 0;
               }
             }
-            
+
             if (isReady) {
-              const detectionType = modalId === 'viewModal' ? 'view-content' : 
-                                    modalId === 'editModal' ? 'edit-form' : 
-                                    modalId === 'associationModal' ? 'association-content' :
-                                    hasForm ? 'auto-detected-form' : hasContent ? 'auto-detected-content' : 'fallback-height';
-              console.log(`✅ Modal ${modalId} ready after ${Date.now() - startTime}ms (detection: ${detectionType})`);
+              const detectionType =
+                modalId === "viewModal"
+                  ? "view-content"
+                  : modalId === "editModal"
+                    ? "edit-form"
+                    : modalId === "associationModal"
+                      ? "association-content"
+                      : hasForm
+                        ? "auto-detected-form"
+                        : hasContent
+                          ? "auto-detected-content"
+                          : "fallback-height";
+              console.log(
+                `✅ Modal ${modalId} ready after ${Date.now() - startTime}ms (detection: ${detectionType})`,
+              );
               resolve(modal);
               return;
             } else {
               // Debug info for failed checks
-              console.debug(`Modal ${modalId} not ready - height: ${modalRect.height}, hasForm: ${!!hasForm}, hasContent: ${!!hasContent}, contentLength: ${hasContent ? hasContent.innerHTML.trim().length : 0}`);
+              console.debug(
+                `Modal ${modalId} not ready - height: ${modalRect.height}, hasForm: ${!!hasForm}, hasContent: ${!!hasContent}, contentLength: ${hasContent ? hasContent.innerHTML.trim().length : 0}`,
+              );
             }
           }
-          
+
           // Check timeout
           if (Date.now() - startTime > timeout) {
-            const availableModals = Array.from(document.querySelectorAll('[id*="modal" i], [id*="Modal" i]')).map(el => el.id);
+            const availableModals = Array.from(
+              document.querySelectorAll('[id*="modal" i], [id*="Modal" i]'),
+            ).map((el) => el.id);
             const modal = document.getElementById(modalId);
-            let diagnostics = 'Modal not found';
-            
+            let diagnostics = "Modal not found";
+
             if (modal) {
               const modalRect = modal.getBoundingClientRect();
-              const hasForm = modal.querySelector('#entityForm');
-              const hasContent = modal.querySelector('.modal-body');
-              
+              const hasForm = modal.querySelector("#entityForm");
+              const hasContent = modal.querySelector(".modal-body");
+
               diagnostics = `height: ${modalRect.height}, hasForm: ${!!hasForm}, hasContent: ${!!hasContent}, contentLength: ${hasContent ? hasContent.innerHTML.trim().length : 0}`;
             }
-            
-            console.error(`❌ Modal ${modalId} not ready after ${timeout}ms. Diagnostics: ${diagnostics}. Available modals:`, availableModals);
-            reject(new Error(`Modal ${modalId} not ready after ${timeout}ms. ${diagnostics}`));
+
+            console.error(
+              `❌ Modal ${modalId} not ready after ${timeout}ms. Diagnostics: ${diagnostics}. Available modals:`,
+              availableModals,
+            );
+            reject(
+              new Error(
+                `Modal ${modalId} not ready after ${timeout}ms. ${diagnostics}`,
+              ),
+            );
             return;
           }
-          
+
           // Schedule next check
           setTimeout(checkModal, checkInterval);
         };
-        
+
         // Start checking
         checkModal();
       });
@@ -2132,11 +2250,17 @@
 
       // SPECIAL HANDLING FOR UUID FIELDS IN VIEW MODE - Show human-readable names instead of UUIDs
       // Check if this is a UUID field that has a corresponding display field available
-      if (entity && field.type === "select" && entityConfig?.viewDisplayMapping) {
+      if (
+        entity &&
+        field.type === "select" &&
+        entityConfig?.viewDisplayMapping
+      ) {
         const displayField = entityConfig.viewDisplayMapping[field.key];
         if (displayField && entity[displayField]) {
           // Return the human-readable display value instead of the UUID
-          console.log(`💡 VIEW Mode - Using display field '${displayField}' for '${field.key}': "${entity[displayField]}" instead of UUID "${value}"`);
+          console.log(
+            `💡 VIEW Mode - Using display field '${displayField}' for '${field.key}': "${entity[displayField]}" instead of UUID "${value}"`,
+          );
           return entity[displayField];
         }
       }
@@ -5166,7 +5290,7 @@
   window.ModalManager = ModalManager;
 
   // Global test function for easy browser console access
-  window.testPhaseDropdownCascading = function() {
+  window.testPhaseDropdownCascading = function () {
     ModalManager.testPhaseDropdownCascading();
   };
 })();
