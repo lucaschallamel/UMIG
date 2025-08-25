@@ -177,6 +177,7 @@
        */
       mapSectionToEntity: function (section) {
         // Mapping for navigation data-section to EntityConfig keys
+        // Normalized to use consistent dash separators for all entity configurations
         const sectionMapping = {
           // Basic entities (direct mapping)
           users: "users",
@@ -188,22 +189,22 @@
           // Migration-related entities (direct mapping)
           migrations: "migrations",
 
-          // Instance entities (navigation uses different names)
-          plans: "plansinstance", // FIXED: Map to plansinstance for PILOT section
-          sequences: "sequences",
-          phases: "phases",
-          steps: "instructions", // Steps section shows instructions
+          // Instance entities (PILOT sections - normalized with dash separators)
+          plans: "plans-instance", // Changed from "plansinstance"
+          sequences: "sequences-instance", // Changed from "sequences"
+          phases: "phases-instance", // Changed from "phasesmaster"
+          steps: "steps-instance", // Changed from "instructions"
 
-          // Master entities (for future use)
-          "master-plans": "plans", // FIXED: Map to plans (master) for ADMIN section
-          "master-sequences": "sequencesmaster",
-          "master-phases": "phasesmaster",
-          "master-steps": "steps-master",
-          "master-controls": "controls-master",
+          // Master entities (ADMIN sections - consistent dash separators)
+          "master-plans": "plans-master", // Changed from "plans"
+          "master-sequences": "sequences-master", // Changed from "sequencesmaster"
+          "master-phases": "phases-master", // Changed from "phasesmaster"
+          "master-steps": "steps-master", // Keep (already has dash)
+          "master-controls": "controls-master", // Keep (already has dash)
 
           // Other entities
           iterations: "iterations",
-          controls: "controls-instance",
+          controls: "controls-instance", // Keep (already has dash)
           "audit-logs": "audit-logs",
         };
 

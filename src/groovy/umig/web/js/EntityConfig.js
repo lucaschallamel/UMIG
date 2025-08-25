@@ -1030,6 +1030,12 @@
       ],
       defaultSort: { field: "plm_name", direction: "asc" },
       permissions: ["superadmin"],
+      
+      // VIEW MODE DISPLAY MAPPING - Maps ID fields to their human-readable display fields
+      // This enables VIEW modal to show names instead of IDs while preserving EDIT modal dropdowns
+      viewDisplayMapping: {
+        "tms_id": "tms_name"     // Team ID → Team Name
+      },
     },
 
     // Plan Instances configuration (PILOT section)
@@ -1296,6 +1302,7 @@
           entityType: "plans",
           displayField: "plm_name",
           valueField: "plm_id",
+          // Remove hideInView - let viewDisplayMapping handle the display
         },
         {
           key: "predecessor_sqm_id",
@@ -1306,13 +1313,7 @@
           valueField: "sqm_id",
           dependsOn: "plm_id",
           filterField: "plm_id",
-        },
-        {
-          key: "plm_name",
-          label: "Plan",
-          type: "text",
-          readonly: true,
-          computed: true,
+          // Remove hideInView - let viewDisplayMapping handle the display
         },
         {
           key: "phase_count",
@@ -1428,6 +1429,13 @@
         enableRowSelection: false,
       },
       defaultSort: { field: "sqm_name", direction: "asc" },
+      
+      // VIEW MODE DISPLAY MAPPING - Maps UUID fields to their human-readable display fields
+      // This enables VIEW modal to show names instead of UUIDs while preserving EDIT modal dropdowns
+      viewDisplayMapping: {
+        "plm_id": "plm_name",                // Master Plan ID → Master Plan Name
+        "predecessor_sqm_id": "predecessor_name"  // Predecessor Sequence ID → Predecessor Sequence Name
+      },
     },
 
     sequences: {
@@ -1643,6 +1651,7 @@
           entityType: "plans",
           displayField: "plm_name",
           valueField: "plm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show plm_name instead
         },
         {
           key: "sqm_id",
@@ -1654,6 +1663,7 @@
           valueField: "sqm_id",
           dependsOn: "plm_id",
           filterField: "plm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show sqm_name instead
         },
         {
           key: "predecessor_phm_id",
@@ -1664,6 +1674,7 @@
           valueField: "phm_id",
           dependsOn: "sqm_id",
           filterField: "sqm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show predecessor_phm_name instead
         },
         {
           key: "predecessor_phm_name",
@@ -1785,6 +1796,10 @@
         "phm_name",
         "phm_description",
         "phm_order",
+        // Dropdown/selector fields for EDIT mode (required by ModalManager.js)
+        "plm_id",           // Plan selector dropdown (required for editing)
+        "sqm_id",           // Sequence selector dropdown (required for editing)
+        "predecessor_phm_id", // Predecessor phase selector dropdown (required for editing)
         // Display fields for VIEW mode (computed/readonly fields showing readable names)
         "plm_name",         // Plan name (readonly/computed, for VIEW display)
         "sqm_name",         // Sequence name (readonly/computed, for VIEW display)
@@ -1804,143 +1819,16 @@
         enableRowSelection: false,
       },
       defaultSort: { field: "phm_name", direction: "asc" },
+      
+      // VIEW MODE DISPLAY MAPPING - Maps UUID fields to their human-readable display fields
+      // This enables VIEW modal to show names instead of UUIDs while preserving EDIT modal dropdowns
+      viewDisplayMapping: {
+        "plm_id": "plm_name",                    // Master Plan ID → Master Plan Name
+        "sqm_id": "sqm_name",                    // Master Sequence ID → Master Sequence Name  
+        "predecessor_phm_id": "predecessor_phm_name"  // Predecessor Phase ID → Predecessor Phase Name
+      },
     },
 
-    phases: {
-      name: "Phases",
-      description: "Manage phase events and their configurations",
-      fields: [
-        { key: "phm_id", label: "Phase ID", type: "text", readonly: true },
-        { key: "phm_name", label: "Phase Name", type: "text", required: true },
-        { key: "phm_description", label: "Description", type: "textarea" },
-        {
-          key: "phm_status",
-          label: "Status",
-          type: "select",
-          options: [
-            { value: "PLANNING", label: "Planning" },
-            { value: "IN_PROGRESS", label: "In Progress" },
-            { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" },
-          ],
-        },
-        // Computed fields pattern
-        {
-          key: "step_count",
-          label: "Steps",
-          type: "number",
-          readonly: true,
-          computed: true,
-        },
-        {
-          key: "instance_count",
-          label: "Instances",
-          type: "number",
-          readonly: true,
-          computed: true,
-        },
-        // Audit fields (consistent across all entities)
-        {
-          key: "created_at",
-          label: "Created",
-          type: "datetime",
-          readonly: true,
-        },
-        {
-          key: "created_by",
-          label: "Created By",
-          type: "text",
-          readonly: true,
-        },
-        {
-          key: "updated_at",
-          label: "Updated",
-          type: "datetime",
-          readonly: true,
-        },
-        {
-          key: "updated_by",
-          label: "Updated By",
-          type: "text",
-          readonly: true,
-        },
-      ],
-      tableColumns: ["phm_name", "phm_status", "step_count", "instance_count"],
-      sortMapping: {
-        phm_id: "phm_id",
-        phm_name: "phm_name",
-        phm_status: "phm_status",
-        step_count: "step_count",
-        instance_count: "instance_count",
-        created_at: "created_at",
-        updated_at: "updated_at",
-      },
-      filters: [],
-      customRenderers: {
-        // Clickable ID pattern
-        phm_id: function (value, row) {
-          if (!value) return "";
-          return `<a href="#" class="phase-id-link btn-table-action" data-action="view" data-id="${value}" 
-                    style="color: #205081; text-decoration: none; cursor: pointer;" 
-                    title="View phase details">${value}</a>`;
-        },
-        // Status with color pattern
-        phm_status: function (value, row) {
-          let statusName, statusColor;
-
-          console.log(
-            "phm_status renderer called with value:",
-            value,
-            "row:",
-            row,
-          );
-
-          // Enhanced status metadata handling
-          if (row && row.statusMetadata && row.statusMetadata.name) {
-            statusName = row.statusMetadata.name;
-            statusColor = row.statusMetadata.color;
-          } else if (typeof value === "string") {
-            statusName = value;
-            if (
-              row &&
-              row.statusMetadata &&
-              row.statusMetadata.name === value
-            ) {
-              statusColor = row.statusMetadata.color;
-            }
-          } else if (typeof value === "object" && value !== null) {
-            statusName = value.sts_name || value.name;
-            statusColor = value.sts_color || value.color;
-          } else if (row && row.sts_name) {
-            statusName = row.sts_name;
-            statusColor = row.sts_color;
-          } else {
-            statusName = value || "Unknown";
-            statusColor = "#999999";
-          }
-
-          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        },
-      },
-      // Feature flags to disable bulk operations
-      featureFlags: {
-        enableBulkActions: false,
-        enableExport: false,
-        enableRowSelection: false,
-      },
-      modalFields: [
-        "phm_id",
-        "phm_name",
-        "phm_description",
-        "phm_status",
-        "created_at",
-        "created_by",
-        "updated_at",
-        "updated_by",
-      ],
-      defaultSort: { field: "phm_name", direction: "asc" },
-      permissions: ["superadmin"],
-    },
     steps: {
       name: "Steps",
       description: "Manage step events and their configurations",
@@ -2605,17 +2493,56 @@
         { key: "ctm_is_critical", label: "Critical", type: "boolean" },
         { key: "ctm_order", label: "Order", type: "number", required: true },
         {
-          key: "inm_id",
-          label: "Instruction ID",
+          key: "plm_id",
+          label: "Master Plan",
           type: "select",
           required: true,
-          entityType: "instructions",
-          displayField: "inm_name",
-          valueField: "inm_id",
+          entityType: "plans",
+          displayField: "plm_name",
+          valueField: "plm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show plm_name instead
         },
         {
-          key: "inm_name",
-          label: "Instruction",
+          key: "sqm_id",
+          label: "Master Sequence",
+          type: "select",
+          required: true,
+          entityType: "sequencesmaster",
+          displayField: "sqm_name",
+          valueField: "sqm_id",
+          dependsOn: "plm_id",
+          filterField: "plm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show sqm_name instead
+        },
+        {
+          key: "phm_id",
+          label: "Master Phase",
+          type: "select",
+          required: true,
+          entityType: "phasesmaster",
+          displayField: "phm_name",
+          valueField: "phm_id",
+          dependsOn: "sqm_id",
+          filterField: "sqm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show phm_name instead
+        },
+        {
+          key: "phm_name",
+          label: "Phase",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "sqm_name",
+          label: "Sequence",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "plm_name",
+          label: "Plan",
           type: "text",
           readonly: true,
           computed: true,
@@ -2662,6 +2589,7 @@
       tableColumns: [
         "ctm_code",
         "ctm_name",
+        "hierarchy",
         "ctm_type",
         "ctm_is_critical",
         "instance_count",
@@ -2675,20 +2603,26 @@
         ctm_type: "ctm_type",
         ctm_is_critical: "ctm_is_critical",
         ctm_order: "ctm_order",
+        hierarchy: "plm_name", // Sort hierarchy by Plan name (top level of hierarchy)
+        phm_name: "phm_name",
+        sqm_name: "sqm_name",
+        plm_name: "plm_name",
         instance_count: "instance_count",
         validation_count: "validation_count",
         created_at: "created_at",
+        created_by: "created_by",
         updated_at: "updated_at",
+        updated_by: "updated_by",
       },
       filters: [
         {
-          key: "instructionId",
-          label: "Instruction",
+          key: "phaseId",
+          label: "Phase",
           type: "select",
-          endpoint: "/instructions",
-          valueField: "inm_id",
-          textField: "inm_name",
-          placeholder: "All Instructions",
+          endpoint: "/phases/master",
+          valueField: "phm_id",
+          textField: "phm_name",
+          placeholder: "All Phases",
         },
       ],
       permissions: ["superadmin"],
@@ -2705,6 +2639,13 @@
           if (!value) return "";
           return `<span class="control-code" style="font-weight: 600; color: #205081; font-family: monospace;">${value}</span>`;
         },
+        // Hierarchy display - Plan > Sequence > Phase
+        hierarchy: function (value, row) {
+          const planName = row.plm_name || "Unknown Plan";
+          const sequenceName = row.sqm_name || "Unknown Sequence";
+          const phaseName = row.phm_name || "Unknown Phase";
+          return `<span class="hierarchy-path" style="font-size: 11px; color: #666; font-style: italic;">${planName} &gt; ${sequenceName} &gt; ${phaseName}</span>`;
+        },
       },
       modalFields: [
         "ctm_id",
@@ -2714,8 +2655,20 @@
         "ctm_type",
         "ctm_is_critical",
         "ctm_order",
+        // Dropdown/selector fields for EDIT mode (required by ModalManager.js)
+        "plm_id",           // Plan selector dropdown (required for editing)
+        "sqm_id",           // Sequence selector dropdown (required for editing)
+        "phm_id",           // Phase selector dropdown (required for editing)
+        // Display fields for VIEW mode (computed/readonly fields showing readable names)
+        "plm_name",         // Plan name (readonly/computed, for VIEW display)
+        "sqm_name",         // Sequence name (readonly/computed, for VIEW display)
+        "phm_name",         // Phase name (readonly/computed, for VIEW display)
+        "instance_count",
+        "validation_count",
         "created_at",
+        "created_by",
         "updated_at",
+        "updated_by",
       ],
       permissions: ["superadmin"],
       // Feature flags to disable bulk operations
@@ -2723,6 +2676,15 @@
         enableBulkActions: false,
         enableExport: false,
         enableRowSelection: false,
+      },
+      defaultSort: { field: "ctm_name", direction: "asc" },
+      
+      // VIEW MODE DISPLAY MAPPING - Maps UUID fields to their human-readable display fields
+      // This enables VIEW modal to show names instead of UUIDs while preserving EDIT modal dropdowns
+      viewDisplayMapping: {
+        "plm_id": "plm_name",     // Master Plan ID → Master Plan Name
+        "sqm_id": "sqm_name",     // Master Sequence ID → Master Sequence Name  
+        "phm_id": "phm_name"      // Master Phase ID → Master Phase Name
       },
     },
 
@@ -3000,6 +2962,340 @@
       },
       permissions: ["confluence-users"], // Available to PILOT users
     },
+
+    // ==================== NORMALIZED DASH-SEPARATED ENTITY CONFIGURATIONS ====================
+    // These configurations use consistent dash separators for AdminGuiState compatibility
+
+    // Master entity configurations (ADMIN sections)
+    "plans-master": {
+      name: "Master Plans",
+      description: "Manage master plan templates",
+      endpoint: "/plans/master",
+      fields: [
+        { key: "plm_id", label: "Plan ID", type: "text", readonly: true },
+        { key: "plm_name", label: "Plan Name", type: "text", required: true },
+        { key: "plm_description", label: "Description", type: "textarea" },
+        { key: "plm_order", label: "Order", type: "number", min: 1 },
+        { key: "plm_is_active", label: "Active", type: "boolean", defaultValue: true },
+      ],
+      tableColumns: ["plm_name", "plm_description", "plm_order", "plm_is_active"],
+      searchFields: ["plm_name", "plm_description"],
+      actions: {
+        view: true,
+        edit: true,
+        delete: true,
+        create: true,
+      },
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+      defaultSort: { field: "plm_order", direction: "asc" },
+      permissions: ["superadmin"],
+    },
+
+    "sequences-master": {
+      name: "Master Sequences", 
+      description: "Manage master sequence templates within plans",
+      endpoint: "/sequences/master",
+      fields: [
+        { key: "sqm_id", label: "Sequence ID", type: "uuid", readonly: true },
+        { key: "sqm_name", label: "Sequence Name", type: "text", required: true },
+        { key: "sqm_description", label: "Description", type: "textarea" },
+        {
+          key: "plm_id",
+          label: "Plan",
+          type: "select",
+          required: true,
+          entityType: "plans-master",
+          displayField: "plm_name",
+          valueField: "plm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show plm_name instead
+        },
+        {
+          key: "predecessor_sqm_id",
+          label: "Predecessor Sequence",
+          type: "select",
+          entityType: "sequences-master",
+          displayField: "sqm_name",
+          valueField: "sqm_id",
+          dependsOn: "plm_id",
+          filterField: "plm_id",
+          hideInView: true, // Hide UUID field in VIEW mode, show predecessor_name instead
+        },
+        {
+          key: "plm_name",
+          label: "Plan",
+          type: "text",
+          readonly: true,
+          hideInEdit: true, // Only show in VIEW mode
+        },
+        {
+          key: "predecessor_name",
+          label: "Predecessor Sequence",
+          type: "text",
+          readonly: true,
+          hideInEdit: true, // Only show in VIEW mode
+        },
+        { key: "sqm_order", label: "Order", type: "number", min: 1 },
+        { key: "sqm_is_active", label: "Active", type: "boolean", defaultValue: true },
+      ],
+      tableColumns: ["sqm_name", "sqm_description", "plm_name", "sqm_order", "sqm_is_active"],
+      searchFields: ["sqm_name", "sqm_description"],
+      actions: {
+        view: true,
+        edit: true,
+        delete: true,
+        create: true,
+      },
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+      defaultSort: { field: "sqm_order", direction: "asc" },
+      permissions: ["superadmin"],
+    },
+
+    "phases-master": {
+      name: "Master Phases",
+      description: "Manage master phase templates within sequences",
+      endpoint: "/phases/master",
+      fields: [
+        { key: "phm_id", label: "Phase ID", type: "uuid", readonly: true },
+        { key: "phm_name", label: "Phase Name", type: "text", required: true },
+        { key: "phm_description", label: "Description", type: "textarea" },
+        {
+          key: "plm_id",
+          label: "Master Plan",
+          type: "select",
+          required: true,
+          entityType: "plans-master",
+          displayField: "plm_name",
+          valueField: "plm_id",
+        },
+        {
+          key: "sqm_id",
+          label: "Master Sequence",
+          type: "select", 
+          required: true,
+          entityType: "sequences-master",
+          displayField: "sqm_name",
+          valueField: "sqm_id",
+          dependsOn: "plm_id",
+        },
+        { key: "phm_order", label: "Order", type: "number", min: 1 },
+        { key: "phm_is_active", label: "Active", type: "boolean", defaultValue: true },
+      ],
+      tableColumns: ["phm_name", "phm_description", "sqm_name", "phm_order", "phm_is_active"],
+      searchFields: ["phm_name", "phm_description"],
+      actions: {
+        view: true,
+        edit: true,
+        delete: true,
+        create: true,
+      },
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+      defaultSort: { field: "phm_order", direction: "asc" },
+      permissions: ["superadmin"],
+    },
+
+    // Instance entity configurations (PILOT sections)
+    "plans-instance": {
+      name: "Plans",
+      description: "Manage plan instances for iterations",
+      endpoint: "/plans",
+      fields: [
+        { key: "pli_id", label: "Instance ID", type: "uuid", readonly: true },
+        { key: "pli_name", label: "Plan Name", type: "text", required: true },
+        { key: "pli_description", label: "Description", type: "textarea" },
+        {
+          key: "plm_id",
+          label: "Master Plan",
+          type: "select",
+          required: true,
+          entityType: "plans-master",
+          displayField: "plm_name",
+          valueField: "plm_id",
+        },
+        {
+          key: "iti_id",
+          label: "Iteration",
+          type: "select",
+          required: true,
+          entityType: "iterations",
+          displayField: "iti_name",
+          valueField: "iti_id",
+        },
+        { key: "pli_order", label: "Order", type: "number", min: 1 },
+        { key: "pli_is_active", label: "Active", type: "boolean", defaultValue: true },
+      ],
+      tableColumns: ["pli_name", "pli_description", "plm_name", "iti_name", "pli_order", "pli_is_active"],
+      searchFields: ["pli_name", "pli_description"],
+      actions: {
+        view: true,
+        edit: true,
+        delete: true,
+        create: true,
+      },
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+      defaultSort: { field: "pli_order", direction: "asc" },
+      permissions: ["confluence-users"],
+    },
+
+    "sequences-instance": {
+      name: "Sequences",
+      description: "Manage sequence instances for plans",
+      endpoint: "/sequences",
+      fields: [
+        { key: "sqi_id", label: "Instance ID", type: "uuid", readonly: true },
+        { key: "sqi_name", label: "Sequence Name", type: "text", required: true },
+        { key: "sqi_description", label: "Description", type: "textarea" },
+        {
+          key: "sqm_id",
+          label: "Master Sequence",
+          type: "select",
+          required: true,
+          entityType: "sequences-master",
+          displayField: "sqm_name",
+          valueField: "sqm_id",
+        },
+        {
+          key: "pli_id",
+          label: "Plan Instance",
+          type: "select",
+          required: true,
+          entityType: "plans-instance",
+          displayField: "pli_name",
+          valueField: "pli_id",
+        },
+        { key: "sqi_order", label: "Order", type: "number", min: 1 },
+        { key: "sqi_is_active", label: "Active", type: "boolean", defaultValue: true },
+      ],
+      tableColumns: ["sqi_name", "sqi_description", "sqm_name", "pli_name", "sqi_order", "sqi_is_active"],
+      searchFields: ["sqi_name", "sqi_description"],
+      actions: {
+        view: true,
+        edit: true,
+        delete: true,
+        create: true,
+      },
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+      defaultSort: { field: "sqi_order", direction: "asc" },
+      permissions: ["confluence-users"],
+    },
+
+    "phases-instance": {
+      name: "Phases",
+      description: "Manage phase instances for sequences",
+      endpoint: "/phases",
+      fields: [
+        { key: "phi_id", label: "Instance ID", type: "uuid", readonly: true },
+        { key: "phi_name", label: "Phase Name", type: "text", required: true },
+        { key: "phi_description", label: "Description", type: "textarea" },
+        {
+          key: "phm_id",
+          label: "Master Phase",
+          type: "select",
+          required: true,
+          entityType: "phases-master",
+          displayField: "phm_name",
+          valueField: "phm_id",
+        },
+        {
+          key: "sqi_id",
+          label: "Sequence Instance",
+          type: "select",
+          required: true,
+          entityType: "sequences-instance",
+          displayField: "sqi_name",
+          valueField: "sqi_id",
+        },
+        { key: "phi_order", label: "Order", type: "number", min: 1 },
+        { key: "phi_is_active", label: "Active", type: "boolean", defaultValue: true },
+      ],
+      tableColumns: ["phi_name", "phi_description", "phm_name", "sqi_name", "phi_order", "phi_is_active"],
+      searchFields: ["phi_name", "phi_description"],
+      actions: {
+        view: true,
+        edit: true,
+        delete: true,
+        create: true,
+      },
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+      defaultSort: { field: "phi_order", direction: "asc" },
+      permissions: ["confluence-users"],
+    },
+
+    "steps-instance": {
+      name: "Steps",
+      description: "Manage step instances for phases",
+      endpoint: "/steps",
+      fields: [
+        { key: "sti_id", label: "Instance ID", type: "uuid", readonly: true },
+        { key: "sti_name", label: "Step Name", type: "text", required: true },
+        { key: "sti_description", label: "Description", type: "textarea" },
+        {
+          key: "stm_id",
+          label: "Master Step",
+          type: "select",
+          required: true,
+          entityType: "steps-master",
+          displayField: "stm_name",
+          valueField: "stm_id",
+        },
+        {
+          key: "phi_id",
+          label: "Phase Instance",
+          type: "select",
+          required: true,
+          entityType: "phases-instance",
+          displayField: "phi_name",
+          valueField: "phi_id",
+        },
+        { key: "sti_order", label: "Order", type: "number", min: 1 },
+        { key: "sti_is_active", label: "Active", type: "boolean", defaultValue: true },
+      ],
+      tableColumns: ["sti_name", "sti_description", "stm_name", "phi_name", "sti_order", "sti_is_active"],
+      searchFields: ["sti_name", "sti_description"],
+      actions: {
+        view: true,
+        edit: true,
+        delete: true,
+        create: true,
+      },
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+      defaultSort: { field: "sti_order", direction: "asc" },
+      permissions: ["confluence-users"],
+    },
   };
 
   // API endpoints configuration
@@ -3014,6 +3310,8 @@
       iterationTypes: "/iterationTypes",
       labels: "/labels",
       migrations: "/migrations",
+      
+      // Legacy endpoints (maintained for backward compatibility)
       plans: "/plans/master", // Master plans endpoint
       plansinstance: "/plans", // Plan instances endpoint
       sequences: "/sequences",
@@ -3023,11 +3321,21 @@
       phasesinstance: "/phases", // Phase instances endpoint
       phasesmaster: "/phases/master",
       steps: "/steps",
-      "steps-master": "/steps/master",
       instructions: "/instructions",
       controls: "/controls",
+      
+      // Normalized dash-separated endpoints (for new AdminGuiState mapping)
+      "plans-master": "/plans/master",
+      "plans-instance": "/plans",
+      "sequences-master": "/sequences/master",
+      "sequences-instance": "/sequences",
+      "phases-master": "/phases/master",
+      "phases-instance": "/phases",
+      "steps-master": "/steps/master",
+      "steps-instance": "/steps",
       "controls-master": "/controls/master",
       "controls-instance": "/controls",
+      
       stepView: "/stepViewApi",
     },
   };

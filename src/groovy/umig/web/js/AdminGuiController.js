@@ -651,7 +651,7 @@
         // Instance entity mappings (navigation uses different names)
         plansinstance: "plansinstance", // FIXED: Map to plansinstance entity for PILOT section
         sequencesinstance: "sequences",
-        phasesinstance: "phases",
+        phasesinstance: "phasesinstance",
         "steps-instance": "instructions", // Steps section shows instructions
 
         // Master entity mappings
@@ -929,7 +929,7 @@
       }
 
       // API expects 'size' not 'pageSize', and 'sort'/'direction' not 'sortField'/'sortDirection'
-      return {
+      const searchParams = {
         page: state.currentPage || 1,
         size: state.pageSize || 50, // Changed from pageSize to size
         search: state.searchTerm || "",
@@ -937,6 +937,17 @@
         direction: sortDirection,
         ...state.filters,
       };
+
+      console.log("buildSearchParams - Current state:", {
+        currentPage: state.currentPage,
+        pageSize: state.pageSize,
+        currentEntity: state.currentEntity,
+        searchTerm: state.searchTerm,
+        sortField: state.sortField
+      });
+      console.log("buildSearchParams - Generated search parameters:", searchParams);
+      
+      return searchParams;
     },
 
     /**
@@ -969,7 +980,17 @@
         };
       } else if (response.data && Array.isArray(response.data)) {
         data = response.data;
-        pagination = response.pagination || null;
+        // Handle PhaseRepository format and other repositories that return pagination object
+        if (response.pagination) {
+          pagination = {
+            currentPage: response.pagination.page || 1,
+            pageSize: response.pagination.size || 50,
+            totalItems: response.pagination.total || 0,
+            totalPages: response.pagination.totalPages || 1,
+          };
+        } else {
+          pagination = null;
+        }
       } else if (response.results && Array.isArray(response.results)) {
         data = response.results;
         pagination = response.pagination || null;
@@ -992,9 +1013,17 @@
       console.log("Processed data:", data);
       console.log("Pagination:", pagination);
 
+      // Debug logging for pagination
+      console.log("Pagination processing for", entityType, ":");
+      console.log("- Pagination object:", pagination);
+      console.log("- Data length:", data?.length || 0);
+
       // Update pagination state
       if (pagination && window.AdminGuiState) {
+        console.log("Setting pagination state:", pagination);
         window.AdminGuiState.pagination.setPagination(pagination);
+      } else {
+        console.log("No pagination data found, using default");
       }
 
       // Cache data
@@ -1010,12 +1039,23 @@
         // Give DOM time to settle
         this.renderPagination();
 
-        // Ensure pagination container is visible
+        // Ensure pagination container is visible when there are multiple pages or items
         const paginationContainer = document.getElementById(
           "paginationContainer",
         );
+        const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
+        const totalPages = state.pagination?.totalPages || 1;
+        const totalItems = state.pagination?.totalItems || data?.length || 0;
+
         if (paginationContainer) {
-          paginationContainer.style.display = "flex";
+          if (totalPages > 1 || totalItems > 0) {
+            paginationContainer.style.display = "flex";
+            paginationContainer.style.visibility = "visible";
+            console.log("Pagination container made visible:", { totalPages, totalItems });
+          } else {
+            paginationContainer.style.display = "none";
+            console.log("Pagination container hidden - no pagination needed");
+          }
         }
       }, 100);
     },
