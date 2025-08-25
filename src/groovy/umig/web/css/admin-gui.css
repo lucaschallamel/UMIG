@@ -148,6 +148,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -270,6 +271,34 @@
   padding: 20px;
   overflow-y: auto;
   flex: 1;
+}
+
+/* Modal Form Styles - Ensure symmetric spacing */
+.modal-body .form-group {
+  margin-bottom: 20px;
+}
+
+.modal-body .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.modal-body .form-group input,
+.modal-body .form-group select,
+.modal-body .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.modal-body .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .modal-footer {
@@ -976,6 +1005,45 @@
 .form-field select {
   width: 100%;
   box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Modal-specific form field spacing fixes */
+.modal-body .form-field input[type="text"],
+.modal-body .form-field input[type="color"],
+.modal-body .form-field textarea,
+.modal-body .form-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Comprehensive modal input field fix - catches all input types */
+.modal-body input,
+.modal-body textarea,
+.modal-body select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+/* Ensure checkbox inputs don't get full width treatment */
+.modal-body input[type="checkbox"],
+.modal-body input[type="radio"] {
+  width: auto;
+  margin-right: 8px;
 }
 
 .form-section {

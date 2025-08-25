@@ -58,16 +58,17 @@
 
 ### 2.4 Hierarchical Endpoints
 
-| Method | Path                                                                                                       | Description                                                                                                             |
-| ------ | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations                                                | List iterations for a migration (fields: staticCutoverDate, dynamicCutoverDate; see data model in Liquibase changelogs) |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}                                  | Get specific iteration by ID                                                                                            |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances                   | List plan instances for an iteration                                                                                    |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences                        | List sequences for an iteration                                                                                         |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/phases                           | List phases for an iteration                                                                                            |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances/{pliId}/sequences | List sequences for a plan instance                                                                                      |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/plan-instances/{pliId}/phases    | List phases for a plan instance                                                                                         |
-| GET    | /rest/scriptrunner/latest/custom/migrations/{id}/iterations/{iterationId}/sequences/{seqId}/phases         | List phases for a sequence                                                                                              |
+| Method | Path                                                                                                                   | Description                                                                                                             |
+| ------ | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations                                                         | List iterations for a migration (fields: staticCutoverDate, dynamicCutoverDate; see data model in Liquibase changelogs) |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}                                                 | Get specific iteration by ID                                                                                            |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}/plan-instances                                  | List plan instances for an iteration                                                                                    |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}/sequences                                       | List sequences for an iteration                                                                                         |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}/phases                                          | List phases for an iteration                                                                                            |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences                | List sequences for a plan instance                                                                                      |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/phases                   | List phases for a plan instance                                                                                         |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}/sequences/{seqId}/phases                        | List phases for a sequence                                                                                              |
+| GET    | /rest/scriptrunner/latest/custom/migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences/{seqId}/phases | List phases for a specific sequence within a plan instance                                                              |
 
 ## 3. Computed Fields
 
@@ -109,18 +110,18 @@ The Migrations API includes several computed fields that are automatically calcu
 
 #### 4.2.1 List Migrations (/migrations)
 
-| Name      | Type    | Required | Description                        | Default | Constraints                                                                |
-| --------- | ------- | -------- | ---------------------------------- | ------- | -------------------------------------------------------------------------- |
-| page      | integer | No       | Page number for pagination         | 1       | ≥ 1                                                                        |
-| size      | integer | No       | Number of items per page           | 50      | 1-100                                                                      |
-| search    | string  | No       | Search term for name/description   | -       | Max 100 chars                                                              |
-| sort      | string  | No       | Sort field                         | -       | mig_name, mig_status, created_at, updated_at, mig_start_date, mig_end_date |
-| direction | string  | No       | Sort direction                     | asc     | asc, desc                                                                  |
-| status    | string  | No       | Filter by status (comma-separated) | -       | Valid status values                                                        |
-| dateFrom  | string  | No       | Start date filter                  | -       | YYYY-MM-DD format                                                          |
-| dateTo    | string  | No       | End date filter                    | -       | YYYY-MM-DD format                                                          |
-| teamId    | integer | No       | Filter by team ID                  | -       | Valid team ID                                                              |
-| ownerId   | integer | No       | Filter by owner user ID            | -       | Valid user ID                                                              |
+| Name      | Type    | Required | Description                        | Default | Constraints                                                                                                               |
+| --------- | ------- | -------- | ---------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------- |
+| page      | integer | No       | Page number for pagination         | 1       | ≥ 1                                                                                                                       |
+| size      | integer | No       | Number of items per page           | 50      | 1-100                                                                                                                     |
+| search    | string  | No       | Search term for name/description   | -       | Max 100 chars                                                                                                             |
+| sort      | string  | No       | Sort field                         | -       | mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count |
+| direction | string  | No       | Sort direction                     | asc     | asc, desc                                                                                                                 |
+| status    | string  | No       | Filter by status (comma-separated) | -       | Valid status values                                                                                                       |
+| dateFrom  | string  | No       | Start date filter                  | -       | YYYY-MM-DD format                                                                                                         |
+| dateTo    | string  | No       | End date filter                    | -       | YYYY-MM-DD format                                                                                                         |
+| teamId    | integer | No       | Filter by team ID                  | -       | Valid team ID                                                                                                             |
+| ownerId   | integer | No       | Filter by owner user ID            | -       | Valid user ID                                                                                                             |
 
 #### 4.2.2 Dashboard Progress (/migrations/dashboard/progress)
 
@@ -386,6 +387,71 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 }
 ```
 
+### 5.2.1. Hierarchical Endpoints Response Formats
+
+#### Single Iteration (GET /migrations/{migId}/iterations/{iteId})
+
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174001",
+  "migrationId": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "Iteration 1",
+  "description": "First iteration of the migration",
+  "status": 1,
+  "staticCutoverDate": "2025-08-15",
+  "dynamicCutoverDate": "2025-08-15T14:00:00"
+}
+```
+
+#### Iterations List (GET /migrations/{migId}/iterations)
+
+```json
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174001",
+    "migrationId": "123e4567-e89b-12d3-a456-426614174000",
+    "name": "Iteration 1",
+    "description": "First iteration of the migration",
+    "status": 1,
+    "staticCutoverDate": "2025-08-15",
+    "dynamicCutoverDate": "2025-08-15T14:00:00"
+  }
+]
+```
+
+#### Plan Instances List (GET /migrations/{migId}/iterations/{iteId}/plan-instances)
+
+```json
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174002",
+    "name": "Plan Instance 1"
+  }
+]
+```
+
+#### Sequences List (Various endpoints)
+
+```json
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174003",
+    "name": "Sequence 1"
+  }
+]
+```
+
+#### Phases List (Various endpoints)
+
+```json
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174004",
+    "name": "Phase 1"
+  }
+]
+```
+
 ### 5.3. Dashboard Summary (GET /migrations/dashboard/summary)
 
 - **Status Code:** 200
@@ -524,6 +590,26 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 }
 ```
 
+**Path and Method Validation Errors:**
+
+```json
+{
+  "error": "Invalid path for DELETE request"
+}
+```
+
+```json
+{
+  "error": "Unknown endpoint"
+}
+```
+
+```json
+{
+  "error": "Bulk operations require POST or PUT method"
+}
+```
+
 **Status Validation Errors:**
 
 ```json
@@ -562,7 +648,45 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 
 ```json
 {
+  "error": "Invalid dateTo format. Use YYYY-MM-DD"
+}
+```
+
+```json
+{
   "error": "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+}
+```
+
+**Pagination and Query Parameter Errors:**
+
+```json
+{
+  "error": "Invalid page number format"
+}
+```
+
+```json
+{
+  "error": "Invalid page size format"
+}
+```
+
+```json
+{
+  "error": "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
+}
+```
+
+```json
+{
+  "error": "Invalid team ID format"
+}
+```
+
+```json
+{
+  "error": "Invalid owner ID format"
 }
 ```
 
@@ -576,7 +700,7 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 
 ```json
 {
-  "error": "Cannot perform operation due to referential integrity constraints"
+  "error": "Cannot delete migration - it has associated iterations or is referenced by other resources"
 }
 ```
 
@@ -591,6 +715,78 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 ```json
 {
   "error": "Search term too long (max 100 characters)"
+}
+```
+
+**Bulk Operations Errors:**
+
+```json
+{
+  "error": "migrationIds is required and must be an array"
+}
+```
+
+```json
+{
+  "error": "Invalid migration ID format in list"
+}
+```
+
+```json
+{
+  "error": "Invalid format. Must be 'json' or 'csv'"
+}
+```
+
+```json
+{
+  "error": "newStatus is required"
+}
+```
+
+**Dashboard Errors:**
+
+```json
+{
+  "error": "Invalid migration ID format"
+}
+```
+
+```json
+{
+  "error": "Invalid period. Must be: day, week, month, or quarter"
+}
+```
+
+```json
+{
+  "error": "Unknown dashboard endpoint"
+}
+```
+
+**Additional Validation Errors:**
+
+```json
+{
+  "error": "Invalid iteration UUID"
+}
+```
+
+```json
+{
+  "error": "Invalid sequence UUID"
+}
+```
+
+```json
+{
+  "error": "Invalid plan instance UUID"
+}
+```
+
+```json
+{
+  "error": "Iteration not found"
 }
 ```
 
@@ -681,6 +877,18 @@ When `usr_id_owner` is not provided, the system uses this fallback hierarchy:
 - `getMetrics()`: Performance metrics aggregation method
 
 ## 13. Changelog
+
+**Version 2.3** - August 25, 2025
+
+- **Critical Accuracy Update**: Complete documentation review and synchronization with actual implementation (`migrationApi.groovy`)
+- **Enhanced Hierarchical Endpoints**: Updated all nested endpoint paths to reflect actual implementation structure, including the 8-level nested path for phases within plan instances and sequences
+- **Expanded Error Handling**: Added comprehensive error message documentation covering all validation scenarios, including bulk operations, dashboard endpoints, and hierarchical path validation
+- **Improved Response Documentation**: Added detailed response formats for all hierarchical endpoints (iterations, plan instances, sequences, phases) with actual field mappings
+- **Updated Query Parameters**: Corrected allowed sort fields to include computed fields (`iteration_count`, `plan_count`) and additional fields (`mig_id`, `mig_type`)
+- **Enhanced Validation Examples**: Added specific error messages for pagination, dashboard periods, bulk operations, and hierarchical endpoint validation
+- **Implementation Status Clarification**: Updated placeholder endpoint documentation to accurately reflect current implementation status
+- **Developer Accuracy**: All documented features now precisely match the actual API implementation behavior
+- **Author**: Claude Code with comprehensive line-by-line comparison between documentation and implementation
 
 **Version 2.2** - August 22, 2025
 

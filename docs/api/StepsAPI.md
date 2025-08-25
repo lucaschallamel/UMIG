@@ -1,14 +1,13 @@
 # Steps API Specification
 
-**Version:** 2.1.1  
-**API Version:** v2  
-**Last Updated:** August 14, 2025
+## 1. API Overview
 
-## Overview
+- **API Name:** Steps API v2.2.0
+- **Purpose:** Comprehensive management of step entities within the UMIG (Unified Migration Implementation Guide) system. Steps are the fundamental execution units within migration phases, representing discrete tasks that teams perform during cutover events. The API supports both master step templates and step instances, hierarchical filtering, status management, and integrated notification systems.
+- **Owner:** UMIG Development Team
+- **Related ADRs:** ADR-017 (V2 REST API Architecture), ADR-026 (SQL Query Mocking), ADR-030 (Hierarchical Filtering), ADR-031 (Type Safety), ADR-037 (Integration Testing Framework), ADR-038 (Quality Assurance Standards), ADR-039 (Notification Service Integration), ADR-040 (System Performance Benchmarking)
 
-The Steps API provides comprehensive management of step entities within the UMIG (Unified Migration Implementation Guide) system. Steps are the fundamental execution units within migration phases, representing discrete tasks that teams perform during cutover events. The API supports both master step templates and step instances, hierarchical filtering, status management, and integrated notification systems.
-
-## Architecture Overview
+### Architecture Overview
 
 The Steps API follows UMIG's established patterns:
 
@@ -29,20 +28,7 @@ Step Master ──────────────────────�
 Instruction Master → Instruction Instance (attached to Step Instance)
 ```
 
-## Authentication & Authorization
-
-All endpoints require Confluence authentication with group membership:
-
-```groovy
-groups: ["confluence-users", "confluence-administrators"]
-```
-
-**Required Headers:**
-
-- `Authorization`: Confluence session or basic auth
-- `Content-Type`: `application/json` (for POST/PUT requests)
-
-## Base URL Structure
+### Base URL Structure
 
 All endpoints are relative to the ScriptRunner custom REST base:
 
@@ -50,59 +36,133 @@ All endpoints are relative to the ScriptRunner custom REST base:
 {confluence-base-url}/rest/scriptrunner/latest/custom/steps
 ```
 
-## API Endpoints
+## 2. Endpoints
 
-### 1. Step Instance Management
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /steps | Get Step Instances with Hierarchical Filtering |
+| GET | /steps/master | Get Master Steps with Admin GUI Support |
+| GET | /steps/master/{id} | Get Single Master Step |
+| GET | /steps/instance/{stepInstanceId} | Get Step Instance Details |
+| GET | /steps/summary | Get Dashboard Summary Metrics |
+| GET | /steps/progress | Get Progress Tracking Data |
+| GET | /steps/export | Export Steps Data |
+| PUT | /steps/{stepInstanceId}/status | Update Step Status |
+| PUT | /steps/bulk/status | Bulk Status Updates |
+| PUT | /steps/bulk/assign | Bulk Team Assignments |
+| PUT | /steps/bulk/reorder | Bulk Step Reordering |
+| POST | /steps/{stepInstanceId}/open | Mark Step as Opened |
+| POST | /steps/{stepInstanceId}/instructions/{instructionId}/complete | Complete Instruction |
+| POST | /steps/{stepInstanceId}/instructions/{instructionId}/incomplete | Mark Instruction as Incomplete |
+| GET | /statuses/step | Get Step Status Options |
+| GET | /statuses/{type} | Get Status Options by Entity Type |
+| GET | /statuses | Get All Status Options |
+| GET | /steps/{stepInstanceId}/comments | Get Step Comments |
+| POST | /steps/{stepInstanceId}/comments | Create Step Comment |
+| PUT | /comments/{commentId} | Update Comment |
+| DELETE | /comments/{commentId} | Delete Comment |
 
-#### GET /steps - Get Step Instances with Hierarchical Filtering
+## 3. Request Details
 
-Retrieves step instances with optional hierarchical filtering for the runsheet interface. Results are grouped by sequence and phase for frontend consumption.
+### 3.1. Path Parameters
 
-**Query Parameters:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| stepInstanceId | UUID/String | Yes | Step instance UUID or step code |
+| id | UUID | Yes | Master step UUID |
+| instructionId | UUID | Yes | Instruction instance UUID |
+| commentId | Integer | Yes | Comment ID |
+| type | String | Yes | Entity type for status queries |
 
-- `migrationId` (optional): Filter by migration UUID
-- `iterationId` (optional): Filter by iteration UUID
-- `planId` (optional): Filter by plan instance UUID
-- `sequenceId` (optional): Filter by sequence instance UUID
-- `phaseId` (optional): Filter by phase instance UUID
-- `teamId` (optional): Filter by team ID
-- `labelId` (optional): Filter by label UUID
+### 3.2. Query Parameters
 
-**Example Request:**
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| migrationId | UUID | No | Filter by migration UUID |
+| iterationId | UUID | No | Filter by iteration UUID |
+| planId | UUID | No | Filter by plan instance UUID |
+| sequenceId | UUID | No | Filter by sequence instance UUID |
+| phaseId | UUID | No | Filter by phase instance UUID |
+| teamId | Integer | No | Filter by team ID |
+| labelId | UUID | No | Filter by label UUID |
+| page | Integer | No | Page number for pagination (default: 1) |
+| size | Integer | No | Number of items per page (default: 50) |
+| sort | String | No | Field to sort by |
+| direction | String | No | Sort direction (asc/desc, default: asc) |
+| format | String | No | Export format ("json" or "csv", default: "json") |
 
-```bash
-GET /steps?iterationId=iter-001&teamId=15
+### 3.3. Request Body
+
+#### Status Update Request
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "statusId": "integer (preferred)",
+  "status": "string (legacy support)",
+  "userId": "integer (required)"
+}
 ```
 
-**Example Response:**
+#### Bulk Operations Request
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "stepIds": ["array of UUIDs"],
+  "statusId": "integer (for status updates)",
+  "teamId": "integer (for assignments)",
+  "userId": "integer (required)"
+}
+```
+
+#### Comment Request
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "body": "string (required)",
+  "userId": "integer (required)"
+}
+```
+
+## 4. Response Details
+
+### 4.1. Success Response
+
+#### Hierarchical Step Instances (GET /steps)
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
 
 ```json
 [
   {
-    "id": "seq-inst-001",
-    "name": "Pre-Migration Sequence",
-    "number": 1,
+    "id": "string",
+    "name": "string",
+    "number": "integer",
     "phases": [
       {
-        "id": "phase-inst-001",
-        "name": "Environment Preparation",
-        "number": 1,
+        "id": "string",
+        "name": "string",
+        "number": "integer",
         "steps": [
           {
-            "id": "step-inst-001",
-            "code": "ENV-001",
-            "name": "Verify database connectivity",
-            "status": "COMPLETED",
-            "durationMinutes": 30,
-            "ownerTeamId": 15,
-            "ownerTeamName": "Database Team",
-            "labels": [
-              {
-                "id": "label-001",
-                "name": "Critical",
-                "color": "#ff0000"
-              }
-            ]
+            "id": "string",
+            "code": "string",
+            "name": "string",
+            "status": "string",
+            "durationMinutes": "integer",
+            "ownerTeamId": "integer",
+            "ownerTeamName": "string",
+            "labels": ["array of label objects"]
           }
         ]
       }
@@ -111,773 +171,109 @@ GET /steps?iterationId=iter-001&teamId=15
 ]
 ```
 
-#### GET /steps/master - Get Master Steps for Dropdowns
+#### Paginated Master Steps (GET /steps/master)
 
-Retrieves master step templates formatted for dropdown selections.
-
-**Query Parameters:**
-
-- `migrationId` (optional): Filter by migration UUID
-
-**Example Response:**
-
-```json
-[
-  {
-    "stm_id": "master-step-001",
-    "stt_code": "ENV",
-    "stm_step_number": 1,
-    "stm_title": "Verify database connectivity",
-    "stm_description": "Ensure database is accessible and responding",
-    "stt_name": "Environment",
-    "step_code": "ENV-001",
-    "display_name": "ENV-001: Verify database connectivity"
-  }
-]
-```
-
-#### GET /steps/instance/{stepInstanceId} - Get Step Instance Details
-
-Retrieves detailed information for a specific step instance, including associated instructions.
-
-**Parameters:**
-
-- `stepInstanceId`: Step instance UUID or step code (path parameter)
-
-**Example Request:**
-
-```bash
-GET /steps/instance/step-inst-001
-# OR
-GET /steps/instance/ENV-001
-```
-
-**Example Response:**
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
 
 ```json
 {
-  "id": "step-inst-001",
-  "code": "ENV-001",
-  "name": "Verify database connectivity",
-  "description": "Ensure database is accessible and responding",
-  "status": "IN_PROGRESS",
-  "durationMinutes": 30,
-  "estimatedStartTime": "2025-08-07T09:00:00Z",
-  "estimatedEndTime": "2025-08-07T09:30:00Z",
-  "actualStartTime": "2025-08-07T09:05:00Z",
-  "actualEndTime": null,
-  "ownerTeamId": 15,
-  "ownerTeamName": "Database Team",
-  "sequenceId": "seq-inst-001",
-  "sequenceName": "Pre-Migration Sequence",
-  "sequenceNumber": 1,
-  "phaseId": "phase-inst-001",
-  "phaseName": "Environment Preparation",
-  "phaseNumber": 1,
-  "instructions": [
-    {
-      "id": "inst-inst-001",
-      "name": "Test connection string",
-      "content": "Run: telnet db-server 1521",
-      "order": 1,
-      "isCompleted": true
-    }
-  ],
-  "labels": [
-    {
-      "id": "label-001",
-      "name": "Critical",
-      "color": "#ff0000"
-    }
-  ]
+  "content": ["array of master step objects"],
+  "totalElements": "integer",
+  "totalPages": "integer",
+  "pageNumber": "integer",
+  "pageSize": "integer",
+  "hasNext": "boolean",
+  "hasPrevious": "boolean"
 }
 ```
 
-### 2. Step Status Management
+#### Status Update Response
 
-#### PUT /steps/{stepInstanceId}/status - Update Step Status
-
-Updates the status of a step instance and sends notifications to relevant stakeholders.
-
-**Request Body:**
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
 
 ```json
 {
-  "status": "IN_PROGRESS",
-  "userId": 1001
+  "success": "boolean",
+  "message": "string",
+  "stepInstanceId": "string",
+  "newStatus": "string",
+  "emailsSent": "integer"
 }
 ```
 
-**Valid Status Values:**
-
-- `PENDING` - Step is pending execution
-- `TODO` - Step is ready to be executed
-- `IN_PROGRESS` - Step is currently being executed
-- `COMPLETED` - Step has been completed successfully
-- `FAILED` - Step execution failed
-- `BLOCKED` - Step is blocked by dependencies
-- `CANCELLED` - Step execution was cancelled
-
-**Example Request:**
-
-```bash
-PUT /steps/step-inst-001/status
-Content-Type: application/json
-
-{
-  "status": "COMPLETED",
-  "userId": 1001
-}
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "message": "Step status updated successfully",
-  "stepInstanceId": "step-inst-001",
-  "newStatus": "COMPLETED",
-  "emailsSent": 3
-}
-```
-
-### 3. Step Actions
-
-#### POST /steps/{stepInstanceId}/open - Mark Step as Opened
-
-Marks a step as opened by PILOT and sends notifications to the assigned team.
-
-**Request Body:**
-
-```json
-{
-  "userId": 1001
-}
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "message": "Step opened successfully",
-  "stepInstanceId": "step-inst-001",
-  "emailsSent": 2
-}
-```
-
-#### POST /steps/{stepInstanceId}/instructions/{instructionId}/complete - Complete Instruction
-
-Marks a specific instruction within a step as completed and sends notifications.
-
-**Request Body:**
-
-```json
-{
-  "userId": 1001
-}
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "message": "Instruction completed successfully",
-  "instructionId": "inst-inst-001",
-  "stepInstanceId": "step-inst-001",
-  "emailsSent": 1
-}
-```
-
-#### POST /steps/{stepInstanceId}/instructions/{instructionId}/incomplete - Mark Instruction as Incomplete
-
-Reverts an instruction completion status and sends notifications.
-
-**Request Body:**
-
-```json
-{
-  "userId": 1001
-}
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "message": "Instruction marked as incomplete",
-  "emailsSent": 1
-}
-```
-
-### 4. Status Management
-
-#### GET /statuses/step - Get Step Status Options
-
-Retrieves all available status options for step entities, used for populating status dropdowns with color coding.
-
-**Example Response:**
-
-```json
-[
-  {
-    "sts_id": 1,
-    "sts_code": "PENDING",
-    "sts_name": "Pending",
-    "sts_color": "#ffc107",
-    "sts_type": "Step"
-  },
-  {
-    "sts_id": 2,
-    "sts_code": "IN_PROGRESS",
-    "sts_name": "In Progress",
-    "sts_color": "#007bff",
-    "sts_type": "Step"
-  }
-]
-```
-
-#### GET /statuses/{type} - Get Status Options by Entity Type
-
-Retrieves status options for any entity type in the system.
-
-**Parameters:**
-
-- `type`: Entity type (e.g., "step", "phase", "sequence")
-
-#### GET /statuses - Get All Status Options
-
-Retrieves all status options across all entity types.
-
-### 5. Comments Management
-
-Comments follow a RESTful sub-resource pattern where comments are accessed as sub-resources of steps using the pattern `/steps/{stepInstanceId}/comments`. Direct comment operations (update/delete) are available at `/comments/{id}` for efficiency.
-
-#### GET /steps/{stepInstanceId}/comments - Get Step Comments
-
-Retrieves all comments associated with a step instance. This endpoint uses the RESTful sub-resource pattern.
-
-**URL Pattern:**
-
-```
-GET /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments
-```
-
-**Example Response:**
-
-```json
-[
-  {
-    "id": 1,
-    "body": "Database connection verified successfully",
-    "userId": 1001,
-    "userName": "John Smith",
-    "createdAt": "2025-08-07T09:15:00Z",
-    "updatedAt": "2025-08-07T09:15:00Z"
-  }
-]
-```
-
-**Enhanced Error Handling:**
-
-If you use an incorrect endpoint pattern, the API provides helpful guidance:
-
-```json
-{
-  "error": "Invalid comments endpoint usage",
-  "message": "To access comments, use: /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments",
-  "example": "/rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments"
-}
-```
-
-#### POST /steps/{stepInstanceId}/comments - Create Step Comment
-
-Creates a new comment on a step instance using the RESTful sub-resource pattern.
-
-**URL Pattern:**
-
-```
-POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments
-```
-
-**Request Body:**
-
-```json
-{
-  "body": "Encountered timeout issue, retrying connection",
-  "userId": 1001
-}
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "commentId": 2,
-  "createdAt": "2025-08-07T09:20:00Z"
-}
-```
-
-**Enhanced Error Handling:**
-
-If you use an incorrect endpoint pattern, the API provides helpful guidance:
-
-```json
-{
-  "error": "Invalid comments endpoint usage",
-  "message": "To create a comment, use: POST /rest/scriptrunner/latest/custom/steps/{stepInstanceId}/comments",
-  "example": "POST /rest/scriptrunner/latest/custom/steps/f9aa535d-4d8b-447c-9d89-16494f678702/comments with comment data in the request body"
-}
-```
-
-#### PUT /comments/{commentId} - Update Comment
-
-Updates an existing comment. This endpoint uses the direct comment access pattern for efficiency.
-
-**URL Pattern:**
-
-```
-PUT /rest/scriptrunner/latest/custom/comments/{commentId}
-```
-
-**Request Body:**
-
-```json
-{
-  "body": "Updated comment text",
-  "userId": 1001
-}
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "message": "Comment updated successfully"
-}
-```
-
-**Enhanced Error Handling:**
-
-If you use an incorrect endpoint pattern, the API provides helpful guidance:
-
-```json
-{
-  "error": "Invalid comments endpoint usage",
-  "message": "To update a comment, use: PUT /rest/scriptrunner/latest/custom/comments/{commentId}",
-  "example": "PUT /rest/scriptrunner/latest/custom/comments/123 with updated comment data in the request body"
-}
-```
-
-#### DELETE /comments/{commentId} - Delete Comment
-
-Deletes a comment. This endpoint uses the direct comment access pattern for efficiency.
-
-**URL Pattern:**
-
-```
-DELETE /rest/scriptrunner/latest/custom/comments/{commentId}
-```
-
-**Example Response:**
-
-```json
-{
-  "success": true,
-  "message": "Comment deleted successfully"
-}
-```
-
-**Enhanced Error Handling:**
-
-If you use an incorrect endpoint pattern, the API provides helpful guidance:
-
-```json
-{
-  "error": "Invalid comments endpoint usage",
-  "message": "To delete a comment, use: DELETE /rest/scriptrunner/latest/custom/comments/{commentId}",
-  "example": "DELETE /rest/scriptrunner/latest/custom/comments/123"
-}
-```
-
-## Hierarchical Filtering Examples
-
-### Filter by Migration
-
-```bash
-GET /steps?migrationId=mig-001
-```
-
-### Filter by Iteration and Team
-
-```bash
-GET /steps?iterationId=iter-001&teamId=15
-```
-
-### Filter by Phase
-
-```bash
-GET /steps?phaseId=phase-inst-001
-```
-
-### Progressive Filtering
-
-Start broad and narrow down:
-
-```bash
-# 1. Get all steps for a migration
-GET /steps?migrationId=mig-001
-
-# 2. Focus on specific iteration
-GET /steps?iterationId=iter-001
-
-# 3. Drill down to sequence level
-GET /steps?sequenceId=seq-inst-001
-
-# 4. Focus on specific team
-GET /steps?sequenceId=seq-inst-001&teamId=15
-```
-
-## Error Handling
-
-### HTTP Status Codes
-
-- **200 OK**: Successful operation
-- **201 Created**: Resource created successfully
-- **204 No Content**: Successful deletion (no response body)
-- **400 Bad Request**: Invalid input, UUID format, or SQL constraint violation (23503)
-- **404 Not Found**: Step instance, instruction, or comment not found
-- **409 Conflict**: Duplicate entry or unique constraint violation (23505)
-- **500 Internal Server Error**: Unexpected server error
-
-### Error Response Format
-
-```json
-{
-  "error": "Invalid step instance ID format"
-}
-```
-
-### Common Error Scenarios
-
-#### 1. Invalid UUID Format (400)
-
-```json
-{
-  "error": "Invalid step instance ID format"
-}
-```
-
-#### 2. Step Not Found (404)
-
-```json
-{
-  "error": "Step instance not found for ID: step-inst-999"
-}
-```
-
-#### 3. Invalid Status (400)
-
-```json
-{
-  "error": "Invalid status. Must be one of: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED"
-}
-```
-
-#### 4. Missing Required Field (400)
-
-```json
-{
-  "error": "Missing required field: status"
-}
-```
-
-## Integration with Other APIs
-
-### Related APIs
-
-- **Instructions API**: Step instances contain instruction instances
-- **Teams API**: Steps are assigned to teams via ownerTeamId
-- **Labels API**: Steps can have multiple labels attached
-- **Phases API**: Steps exist within phase instances
-- **Plans API**: Hierarchical filtering includes plan instances
-
-### Cross-API Workflows
-
-#### Complete Step Workflow
-
-1. GET step instance details: `/steps/instance/{stepInstanceId}`
-2. Mark instructions complete: `POST /steps/{stepInstanceId}/instructions/{instructionId}/complete`
-3. Update step status: `PUT /steps/{stepInstanceId}/status`
-4. Add completion comment: `POST /steps/{stepInstanceId}/comments`
-
-#### Runsheet Display Workflow
-
-1. GET filtered steps: `/steps?iterationId={id}&teamId={id}`
-2. Display grouped by sequence/phase structure
-3. Show step status with color coding from `/statuses/step`
-4. Allow status updates and instruction completion
-
-## Integration Examples
-
-### Frontend Integration (JavaScript)
-
-```javascript
-class StepsAPI {
-  constructor(baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-
-  async getStepsForRunsheet(filters = {}) {
-    const params = new URLSearchParams(filters);
-    const response = await fetch(`${this.baseUrl}/steps?${params}`);
-    return response.json();
-  }
-
-  async getStepDetails(stepInstanceId) {
-    const response = await fetch(
-      `${this.baseUrl}/steps/instance/${stepInstanceId}`,
-    );
-    return response.json();
-  }
-
-  async updateStepStatus(stepInstanceId, status, userId) {
-    const response = await fetch(
-      `${this.baseUrl}/steps/${stepInstanceId}/status`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, userId }),
-      },
-    );
-    return response.json();
-  }
-
-  async openStep(stepInstanceId, userId) {
-    const response = await fetch(
-      `${this.baseUrl}/steps/${stepInstanceId}/open`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      },
-    );
-    return response.json();
-  }
-
-  async completeInstruction(stepInstanceId, instructionId, userId) {
-    const response = await fetch(
-      `${this.baseUrl}/steps/${stepInstanceId}/instructions/${instructionId}/complete`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      },
-    );
-    return response.json();
-  }
-
-  async getMasterSteps(migrationId = null) {
-    const params = migrationId ? `?migrationId=${migrationId}` : "";
-    const response = await fetch(`${this.baseUrl}/steps/master${params}`);
-    return response.json();
-  }
-
-  async getStepStatuses() {
-    const response = await fetch(`${this.baseUrl}/statuses/step`);
-    return response.json();
-  }
-
-  async getComments(stepInstanceId) {
-    const response = await fetch(
-      `${this.baseUrl}/steps/${stepInstanceId}/comments`,
-    );
-    return response.json();
-  }
-
-  async createComment(stepInstanceId, body, userId) {
-    const response = await fetch(
-      `${this.baseUrl}/steps/${stepInstanceId}/comments`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body, userId }),
-      },
-    );
-    return response.json();
-  }
-}
-
-// Usage
-const api = new StepsAPI("/rest/scriptrunner/latest/custom");
-
-// Get steps for runsheet
-const steps = await api.getStepsForRunsheet({
-  iterationId: "iter-001",
-  teamId: 15,
-});
-
-// Update step status
-await api.updateStepStatus("step-inst-001", "COMPLETED", 1001);
-
-// Complete instruction
-await api.completeInstruction("step-inst-001", "inst-inst-001", 1001);
-
-// Get master steps for dropdown
-const masterSteps = await api.getMasterSteps("mig-001");
-```
-
-### Groovy Integration (Backend)
-
-```groovy
-// Example service layer usage
-@Service
-class StepService {
-
-    StepRepository stepRepository = new StepRepository()
-
-    def completeStepWithNotifications(UUID stepInstanceId, Integer userId) {
-        // Update step status to completed
-        def statusResult = stepRepository.updateStepInstanceStatusWithNotification(
-            stepInstanceId, 'COMPLETED', userId
-        )
-
-        if (statusResult.success) {
-            // Get step details for logging
-            def stepDetails = stepRepository.findStepInstanceDetailsById(stepInstanceId)
-
-            log.info("Step completed: ${stepDetails.name} by user ${userId}")
-
-            return [
-                success: true,
-                message: "Step completed successfully",
-                emailsSent: statusResult.emailsSent
-            ]
-        }
-
-        return statusResult
-    }
-
-    def getRunsheetData(Map filters) {
-        return stepRepository.findFilteredStepInstances(filters)
-    }
-}
-```
-
-## Best Practices
-
-### 1. Performance Optimization
-
-**Use Hierarchical Filtering:**
-
-```javascript
-// ✅ Good: Filter at the appropriate level
-GET /steps?phaseId=phase-001
-
-// ❌ Avoid: Over-fetching then filtering client-side
-GET /steps // then filter locally
-```
-
-**Batch Status Updates:**
-
-```javascript
-// ✅ Good: Update multiple steps efficiently
-await Promise.all([
-  api.updateStepStatus("step-1", "COMPLETED", userId),
-  api.updateStepStatus("step-2", "COMPLETED", userId),
-]);
-
-// ❌ Avoid: Sequential updates
-for (const step of steps) {
-  await api.updateStepStatus(step.id, "COMPLETED", userId);
-}
-```
-
-### 2. Error Handling
-
-**Implement Proper Error Handling:**
-
-```javascript
-try {
-  await api.updateStepStatus(stepId, "COMPLETED", userId);
-} catch (error) {
-  if (error.status === 404) {
-    console.error("Step not found:", stepId);
-  } else if (error.status === 400) {
-    console.error("Invalid status or request:", error.message);
-  }
-}
-```
-
-### 3. State Management
-
-**Track Step Status Changes:**
-
-```javascript
-// Monitor step progress in runsheet
-const steps = await api.getStepsForRunsheet({ iterationId: "iter-001" });
-const completedSteps = steps
-  .flatMap((seq) => seq.phases.flatMap((phase) => phase.steps))
-  .filter((step) => step.status === "COMPLETED");
-
-const progress = (completedSteps.length / totalSteps) * 100;
-```
-
-### 4. Notification Management
-
-**Handle Notification Results:**
-
-```javascript
-const result = await api.updateStepStatus(stepId, "COMPLETED", userId);
-if (result.emailsSent > 0) {
-  console.log(
-    `Status update notifications sent to ${result.emailsSent} recipients`,
-  );
-}
-```
-
-## Business Logic & Side Effects
-
-### Key Logic
-
-- **Hierarchical Filtering**: Uses instance→master table relationships for progressive filtering
-- **Status Management**: Status changes trigger email notifications to stakeholders
-- **Instruction Integration**: Step instances contain instruction instances that can be managed independently
-- **Label Support**: Steps can have multiple labels for categorization and filtering
-- **Team Assignment**: Steps are assigned to teams via ownerTeamId relationship
-
-### Side Effects
-
-- **Status Updates**: Trigger email notifications via EmailService
-- **Step Opening**: Sends notifications to assigned team members
-- **Instruction Completion**: Triggers notifications and updates step completion progress
-- **Comment Creation**: Creates audit trail for step execution
-
-### Idempotency
-
-- **GET Operations**: Fully idempotent
-- **PUT Status Updates**: Idempotent (repeated status updates with same value are safe)
-- **POST Actions**: Not idempotent (repeated opens/completions may send duplicate notifications)
-
-## Dependencies & Backing Services
+### 4.2. Error Responses
+
+| Status Code | Content-Type | Schema | Example | Description |
+|-------------|--------------|--------|---------|-------------|
+| 400 | application/json | {"error": "string"} | {"error": "Invalid step ID format"} | Invalid UUID format, missing required fields |
+| 404 | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"} | Step instance, instruction, or comment not found |
+| 409 | application/json | {"error": "string"} | {"error": "Duplicate entry"} | Unique constraint violation (23505) |
+| 500 | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"} | Database or server errors |
+
+## 5. Authentication & Authorization
+
+- **Required?** Yes
+- **Mechanism:** Confluence Authentication (groups: ["confluence-users", "confluence-administrators"])
+- **Permissions:** User must be member of confluence-users or confluence-administrators group
+- **Required Headers:**
+  - `Authorization`: Confluence session or basic auth
+  - `Content-Type`: `application/json` (for POST/PUT requests)
+
+## 6. Rate Limiting & Security
+
+- **Rate Limits:** Standard ScriptRunner limits apply
+- **RLS (Row-Level Security):** Implemented through team assignments and Confluence group membership
+- **Input Validation:**
+  - UUID format validation for all ID parameters
+  - Status value validation against allowed values
+  - Comment content sanitization
+  - Type casting validation (ADR-031)
+  - SQL injection prevented via parameterized queries
+- **Other Security Considerations:** 
+  - User IDs validated against active Confluence users
+  - Email notifications only sent to authorized stakeholders
+  - Database connection pooling with proper cleanup
+
+## 7. Business Logic & Side Effects
+
+- **Key Logic:**
+  - **Hierarchical Filtering**: Uses instance→master table relationships for progressive filtering
+  - **Status Management**: Status changes trigger email notifications to stakeholders  
+  - **Instruction Integration**: Step instances contain instruction instances that can be managed independently
+  - **Label Support**: Steps can have multiple labels for categorization and filtering
+  - **Team Assignment**: Steps are assigned to teams via ownerTeamId relationship
+
+- **Side Effects:**
+  - **Status Updates**: Trigger email notifications via EmailService
+  - **Step Opening**: Sends notifications to assigned team members
+  - **Instruction Completion**: Triggers notifications and updates step completion progress
+  - **Comment Creation**: Creates audit trail for step execution
+
+- **Idempotency:**
+  - **GET Operations**: Fully idempotent
+  - **PUT Status Updates**: Idempotent (repeated status updates with same value are safe)
+  - **POST Actions**: Not idempotent (repeated opens/completions may send duplicate notifications)
+
+## 8. Dependencies & Backing Services
 
 ### Database Tables/Entities
 
-- **Primary Tables**:
+- **Primary Tables:**
   - `steps_master_stm` (step templates)
   - `steps_instance_sti` (step execution instances)
   - `instructions_master_inm` & `instructions_instance_ini` (instruction relationships)
   - `comments_com` (step comments)
-- **Reference Tables**:
+
+- **Reference Tables:**
   - `teams_tms` (team assignments)
   - `labels_lab` (step labeling)
   - `status_sts` (status options)
-- **Hierarchy Tables**:
+
+- **Hierarchy Tables:**
   - `phases_master_phm` & `phases_instance_phi`
   - `sequences_master_sqm` & `sequences_instance_sqi`
   - `plans_master_plm` & `plans_instance_pli`
@@ -886,104 +282,153 @@ if (result.emailsSent > 0) {
 ### External Services
 
 - **EmailService**: For status change and action notifications
-- **DatabaseUtil**: For connection management and transaction handling
+- **DatabaseUtil**: For connection management and transaction handling  
 - **UserRepository**: For user validation and lookup
 - **StatusRepository**: For dynamic status management
 
-## Testing & Mock Data
+## 9. Versioning & Deprecation
 
-### Unit Testing
+- **API Version**: V2 (current version 2.2.0)
+- **Backward Compatibility**: Supports step code lookups for legacy compatibility
+- **Deprecation Policy**: Breaking changes will require version increment following project deprecation guidelines
+- **Breaking Changes**: Status value changes require careful migration
 
-```groovy
-class StepRepositoryTest {
-    @Test
-    void testFindStepInstanceDetailsById() {
-        def stepId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000")
-        def result = stepRepository.findStepInstanceDetailsById(stepId)
+## 10. Testing & Mock Data
 
-        assert result != null
-        assert result.name == "Test Step"
-        assert result.instructions != null
-    }
-}
-```
+- **Unit Tests:** Repository tests cover data access operations (`StepRepositoryTest`)
+- **Integration Tests:** Full CRUD operations tested in integration test suite via npm commands
+- **E2E Tests:** Tested via Admin GUI and comprehensive API endpoint validation
+- **Mock Data/Fixtures:** 
+  - Available via `npm run generate-data:erase`
+  - Synthetic data via data generators (001-100)
+  - Realistic step templates and instances with full hierarchy relationships
+  - Comment and label test data
 
-### Integration Testing
+## 11. Business Logic & Validation Rules
+
+### Step Status Updates
+
+- Valid status values: PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED
+- Status changes trigger email notifications to assigned team members
+- Status updates require valid userId for audit trail
+- Supports both statusId (preferred) and legacy status string formats
+
+### Step Instance Management
+
+- Step instances inherit properties from master step templates
+- Step instances are bound to specific phase instances within the hierarchy
+- Each step instance can have multiple instructions and comments
+- Label assignments support multiple labels per step for categorization
+
+### Bulk Operations
+
+- Bulk status updates process multiple steps atomically where possible
+- Failed individual operations within bulk requests are reported separately
+- Bulk operations maintain audit trail with user attribution
+- Team assignments validate team existence before assignment
+
+### Hierarchical Filtering
+
+- Filtering respects the migration hierarchy (Migration → Iteration → Plan → Sequence → Phase → Step)
+- Multiple filter criteria are combined with AND logic
+- Instance IDs are preferred over master IDs for filtering
+- All referenced fields must be included in SELECT queries for result mapping
+
+### Comment Management
+
+- Comments use RESTful sub-resource pattern: `/steps/{stepInstanceId}/comments`
+- Direct comment operations available at `/comments/{id}` for efficiency
+- Comment creation and updates require user authentication
+- Enhanced error handling provides usage guidance for incorrect endpoint patterns
+
+## 12. Examples
+
+### Get Steps for Runsheet Display
 
 ```bash
-# Test complete workflow
-curl -X GET "/steps?iterationId=iter-001&teamId=15"
+curl -X GET "/rest/scriptrunner/latest/custom/steps?iterationId=iter-001&teamId=15" \
+  -H "Authorization: Basic [credentials]"
+```
 
-curl -X GET "/steps/instance/step-inst-001"
+### Update Step Status
 
-curl -X PUT "/steps/step-inst-001/status" \
+```bash
+curl -X PUT "/rest/scriptrunner/latest/custom/steps/step-inst-001/status" \
   -H "Content-Type: application/json" \
-  -d '{"status": "IN_PROGRESS", "userId": 1001}'
+  -H "Authorization: Basic [credentials]" \
+  -d '{"statusId": 2, "userId": 1001}'
+```
 
-curl -X POST "/steps/step-inst-001/open" \
+### Complete Instruction
+
+```bash
+curl -X POST "/rest/scriptrunner/latest/custom/steps/step-inst-001/instructions/inst-inst-001/complete" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Basic [credentials]" \
   -d '{"userId": 1001}'
 ```
 
-### Mock Data
+### Create Step Comment
 
-- Synthetic data via data generators (001-100)
-- Realistic step templates and instances
-- Test data includes full hierarchy relationships
-- Comment and label test data
+```bash
+curl -X POST "/rest/scriptrunner/latest/custom/steps/step-inst-001/comments" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Basic [credentials]" \
+  -d '{"body": "Database connection verified successfully", "userId": 1001}'
+```
 
-## Performance Considerations
+### Bulk Status Update
 
-### Query Optimization
+```bash
+curl -X PUT "/rest/scriptrunner/latest/custom/steps/bulk/status" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Basic [credentials]" \
+  -d '{"stepIds": ["step-inst-001", "step-inst-002"], "statusId": 3, "userId": 1001}'
+```
 
-- Step instances are typically queried by hierarchy filters (indexed)
-- Large runsheet queries may require pagination
-- Label fetching is optimized with batch queries
+### Export Steps Data
 
-### Caching Strategy
+```bash
+curl -X GET "/rest/scriptrunner/latest/custom/steps/export?migrationId=mig-001&format=csv" \
+  -H "Authorization: Basic [credentials]"
+```
 
-- Master steps can be cached (low change frequency)
-- Status options are cached globally
-- Step instance data requires real-time updates
+## 13. Notes
 
-### Scalability Notes
+- **Performance Optimization**: Use hierarchical filtering to reduce payload sizes. Filter at appropriate hierarchy level rather than over-fetching.
+- **Notification Management**: Status updates and step actions trigger email notifications. Monitor emailsSent counts in responses.
+- **Frontend Integration**: Grouped response format optimizes frontend rendering for runsheet displays.
+- **Caching Strategy**: Master steps and status options can be cached due to low change frequency. Step instance data requires real-time updates.
+- **Error Handling**: Enhanced error messages provide specific usage instructions for incorrect endpoint patterns, particularly for comments endpoints.
+- **State Management**: Track step progress using summary and progress endpoints for dashboard displays.
 
-- API supports filtering to reduce payload sizes
-- Grouped response format optimizes frontend rendering
-- Notification system handles bulk operations efficiently
+## 14. Related APIs
 
-## Security Notes
+- **Instructions API**: Step instances contain instruction instances that can be managed through Steps API or directly through Instructions API
+- **Teams API**: Steps are assigned to teams via ownerTeamId field, team information retrieved through Teams API
+- **Labels API**: Steps can have multiple labels attached, label data managed through Labels API
+- **Phases API**: Steps exist within phase instances, phase hierarchy accessed through Phases API
+- **Plans API**: Hierarchical filtering includes plan instances accessed through Plans API
+- **Sequences API**: Steps are organized within sequences, sequence data available through Sequences API
+- **Status API**: Dynamic status management with color coding accessed through embedded status endpoints
 
-### Authentication & Authorization
+## 15. Change Log
 
-- All endpoints require Confluence group membership
-- User IDs are validated against active Confluence users
-- Row-level security through team assignments
+### Version 2.2.0 (August 25, 2025 - US-031)
 
-### Input Validation
-
-- UUID format validation for all ID parameters
-- Status value validation against allowed values
-- Comment content sanitization
-
-### SQL Security
-
-- Parameterized queries prevent SQL injection
-- Type safety with explicit casting (ADR-031)
-- Database connection pooling with proper cleanup
-
-## Versioning & Deprecation
-
-- **API Version**: V2 (current)
-- **Backward Compatibility**: Supports step code lookups for legacy compatibility
-- **Deprecation Policy**: Follow project deprecation guidelines
-- **Breaking Changes**: Status value changes require careful migration
-
-## Changelog
+- **Added Bulk Operations**: New bulk endpoints for status updates, team assignments, and step reordering
+- **Enhanced Admin GUI Support**: Master steps endpoint now supports pagination, filtering, and sorting
+- **Dashboard Metrics**: Added `/steps/summary` endpoint for dashboard summary metrics
+- **Progress Tracking**: Added `/steps/progress` endpoint for detailed progress tracking
+- **Export Functionality**: Added `/steps/export` endpoint with JSON and CSV support
+- **Modern Status Management**: Enhanced status handling with database-validated `statusId` field and legacy `status` support
+- **UserService Integration**: Improved user context handling with intelligent fallback mechanisms
+- **Enhanced Error Handling**: More sophisticated error responses with context and SQL state mapping
+- **Performance Improvements**: Added enhanced method with pagination support and filtering optimizations
 
 ### Version 2.1.1 (August 14, 2025 - US-024)
 
-- **Enhanced Comments Error Handling**: Comments endpoints now return helpful error messages instead of generic "Invalid comments endpoint" responses
+- **Enhanced Comments Error Handling**: Comments endpoints now return helpful error messages instead of generic responses
 - **Improved User Guidance**: Error responses include specific usage instructions and practical examples
 - **RESTful Pattern Documentation**: Clear documentation of the sub-resource pattern for comments (`/steps/{id}/comments`)
 - **Enhanced API Usability**: Direct comment operations (`/comments/{id}`) documented with usage guidance

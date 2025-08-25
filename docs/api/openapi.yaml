@@ -1,12 +1,28 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.2.0
+  version: 2.4.0
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
+
+    **Version 2.4.0 - August 25, 2025:**
+    **Steps API v2.2.0 Integration:** Added 6 new Steps API endpoints - /steps/summary, /steps/progress, /steps/export,
+    /steps/bulk/status, /steps/bulk/assign, /steps/bulk/reorder. Enhanced GET /steps/master with pagination, filtering, and sorting.
+    Updated PUT /steps/{id}/status to support both statusId and status fields for modern and legacy compatibility.
+    **Users API v2.1.0 Integration:** Enhanced /user/context endpoint with role mapping (ADMIN=1, NORMAL=2, PILOT=3).
+    Added userCode query parameter support with debugging information. Improved error responses with SQL state codes.
+    **New Bulk Operations:** Complete bulk management for step status updates, team assignments, and reordering.
+    **Enhanced Admin GUI Support:** All APIs now provide comprehensive pagination, filtering, and sorting for admin interfaces.
+
+    **Version 2.3.0 - August 25, 2025:**
+    **Migration API Specification Sync:** Updated OpenAPI spec to reflect Migration API v2.3 documentation.
+    **Sort Fields Enhanced:** Added mig_id, mig_type, iteration_count, plan_count to migration sort options.
+    **Error Examples Expanded:** Comprehensive validation error examples for all Migration API endpoints.
+    **Dashboard Validation:** Enhanced period validation for dashboard metrics endpoint.
+    **Hierarchical Path Support:** Complete error handling for nested migration endpoints.
 
     **Version 2.2.0 - August 22, 2025:**
     **Migration API Enhanced:** POST /migrations now supports flexible status handling (string names OR integer IDs),
@@ -88,9 +104,10 @@ paths:
             default: 50
         - name: search
           in: query
-          description: Search term for iteration names and descriptions (max 100 chars)
+          description: Search term for iteration names and descriptions (min 3 chars, max 100 chars)
           schema:
             type: string
+            minLength: 3
             maxLength: 100
         - name: sort
           in: query
@@ -106,6 +123,7 @@ paths:
                 ite_dynamic_cutover_date,
                 ite_status,
                 migration_name,
+                master_plan_name,
                 created_at,
                 updated_at,
               ]
@@ -165,6 +183,14 @@ paths:
                   itt_code: "PROD"
                   ite_static_cutover_date: "2025-08-15T14:30:00"
                   ite_dynamic_cutover_date: "2025-08-15T16:00:00"
+              alternative_fields:
+                summary: Alternative field naming example
+                value:
+                  name: "Phase 2 Development"
+                  ite_description: "Second phase development iteration"
+                  migrationId: "123e4567-e89b-12d3-a456-426614174001"
+                  itt_code: "DEV"
+                  ite_static_cutover_date: "2025-09-01"
       responses:
         "201":
           description: Iteration created successfully
@@ -267,10 +293,19 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateIterationRequest"
-            example:
-              ite_name: "Updated Iteration Name"
-              ite_description: "Updated description"
-              ite_static_cutover_date: "2025-08-20"
+            examples:
+              standard_fields:
+                summary: Update using standard field names
+                value:
+                  ite_name: "Updated Iteration Name"
+                  ite_description: "Updated description"
+                  ite_static_cutover_date: "2025-08-20"
+              alternative_fields:
+                summary: Update using alternative field naming
+                value:
+                  name: "Updated Iteration (Alternative)"
+                  ite_description: "Updated with alternative naming"
+                  itt_code: "UPD"
       responses:
         "200":
           description: Iteration updated successfully
@@ -704,12 +739,16 @@ paths:
             type: string
             enum:
               [
+                mig_id,
                 mig_name,
                 mig_status,
+                mig_type,
                 created_at,
                 updated_at,
                 mig_start_date,
                 mig_end_date,
+                iteration_count,
+                plan_count,
               ]
         - name: direction
           in: query
@@ -1858,12 +1897,57 @@ paths:
     get:
       tags:
         - Steps
-      summary: Get master steps for dropdowns
+      summary: Get master steps with pagination and Admin GUI support
       description: |
-        Retrieves all master steps in a format suitable for dropdown menus.
-        Can be filtered by migration ID to show only steps belonging to a specific migration.
+        Retrieves master step templates with comprehensive filtering, pagination, and sorting support 
+        for both dropdown selections and Admin GUI management. Supports all standard filtering parameters.
       operationId: getMasterSteps
       parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination (default 1)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+          description: Number of items per page (default 50)
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              [
+                stm_id,
+                stm_name,
+                stm_order,
+                created_at,
+                updated_at,
+                instruction_count,
+                instance_count,
+                plm_name,
+                sqm_name,
+                phm_name,
+              ]
+            default: stm_order
+          description: Field to sort by
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort direction
         - name: migrationId
           in: query
           required: false
@@ -1873,15 +1957,52 @@ paths:
           description: Filter steps by migration ID
       responses:
         "200":
-          description: List of master steps
+          description: Paginated list of master steps
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MasterStep"
+                $ref: "#/components/schemas/PaginatedMasterSteps"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /steps/master/{id}:
+    get:
+      tags:
+        - Steps
+      summary: Get single master step by ID
+      description: |
+        Retrieves detailed information about a specific master step template by its UUID.
+        Returns comprehensive step information including metadata and related entity details.
+      operationId: getMasterStepById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master step UUID
+      responses:
+        "200":
+          description: Master step details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterStep"
+        "400":
+          description: Invalid step ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Master step not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -2024,6 +2145,52 @@ paths:
       responses:
         "200":
           description: Instruction completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InstructionCompleteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /steps/{stepInstanceId}/instructions/{instructionId}/incomplete:
+    post:
+      tags:
+        - Steps
+      summary: Mark instruction as incomplete
+      description: |
+        Marks a specific instruction within a step instance as incomplete and sends email notifications.
+        This is the reverse operation of completing an instruction.
+      operationId: markInstructionIncomplete
+      parameters:
+        - name: stepInstanceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Step instance ID
+        - name: instructionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Instruction ID
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  description: User ID for audit logging
+      responses:
+        "200":
+          description: Instruction marked as incomplete successfully
           content:
             application/json:
               schema:
@@ -2218,6 +2385,228 @@ paths:
                   summary: Comment not found
                   value:
                     error: "Comment not found"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ==================== NEW STEPS API V2.2.0 ENDPOINTS ====================
+
+  /steps/summary:
+    get:
+      tags:
+        - Steps
+      summary: Get dashboard summary metrics for steps
+      description: |
+        Retrieves summary metrics for steps within a migration, used for dashboard displays.
+        Provides counts by status, team breakdown, and completion percentages.
+      operationId: getStepsSummary
+      parameters:
+        - name: migrationId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Migration UUID to get summary for
+      responses:
+        "200":
+          description: Step summary metrics for dashboard
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StepsSummary"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /steps/progress:
+    get:
+      tags:
+        - Steps
+      summary: Get detailed progress tracking data
+      description: |
+        Retrieves detailed progress tracking information for steps within a migration.
+        Provides sequence-by-sequence and phase-by-phase breakdown with completion percentages.
+      operationId: getStepsProgress
+      parameters:
+        - name: migrationId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Migration UUID to track progress for
+      responses:
+        "200":
+          description: Detailed progress tracking data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StepsProgress"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /steps/export:
+    get:
+      tags:
+        - Steps
+      summary: Export steps data in JSON or CSV format
+      description: |
+        Exports step data with filtering support in JSON or CSV format.
+        All standard hierarchical filtering parameters are supported.
+      operationId: exportStepsData
+      parameters:
+        - name: migrationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by migration ID
+        - name: iterationId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by iteration ID
+        - name: planId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by plan instance ID
+        - name: sequenceId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by sequence instance ID
+        - name: phaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter by phase instance ID
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by owning team ID
+        - name: labelId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter by label ID
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+          description: Export format (json or csv)
+      responses:
+        "200":
+          description: Exported steps data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StepsExportData"
+            text/csv:
+              schema:
+                type: string
+                description: CSV formatted steps data
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /steps/bulk/status:
+    put:
+      tags:
+        - Steps
+      summary: Bulk update step status
+      description: |
+        Updates the status of multiple step instances in a single operation with notifications.
+        Provides detailed feedback on successful and failed updates.
+      operationId: bulkUpdateStepsStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkStatusUpdate"
+      responses:
+        "200":
+          description: Bulk status update completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /steps/bulk/assign:
+    put:
+      tags:
+        - Steps
+      summary: Bulk assign steps to team
+      description: |
+        Assigns multiple step instances to a team in a single operation.
+        Provides detailed feedback on successful and failed assignments.
+      operationId: bulkAssignStepsToTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkTeamAssignment"
+      responses:
+        "200":
+          description: Bulk team assignment completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /steps/bulk/reorder:
+    put:
+      tags:
+        - Steps
+      summary: Bulk reorder steps within phases
+      description: |
+        Reorders multiple step instances within their respective phases.
+        Provides detailed feedback on successful and failed reordering operations.
+      operationId: bulkReorderSteps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkStepReordering"
+      responses:
+        "200":
+          description: Bulk reordering completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkUpdateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -3425,14 +3814,37 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /iterationTypes:
+    get:
+      tags:
+        - Iterations
+      summary: Get all iteration types
+      description: |
+        Retrieves all available iteration types for reference data.
+        Used primarily for populating dropdowns in the Admin GUI.
+        Returns a simple list of iteration type codes and names.
+      operationId: getAllIterationTypes
+      responses:
+        "200":
+          description: List of all iteration types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IterationType"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   /user/context:
     get:
       tags:
         - Users
-      summary: Get user context information
+      summary: Get user context with role information (v2.1.0)
       description: |
         Retrieves context information for a user including role and permissions.
-        Used for authentication and authorization purposes.
+        Used for authentication and authorization purposes. Enhanced in v2.1.0 with
+        clear role mapping (ADMIN=1, NORMAL=2, PILOT=3) and improved error handling.
       operationId: getUserContext
       parameters:
         - name: username
@@ -4116,7 +4528,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-
 
   /plans/{id}/status:
     put:
@@ -5409,7 +5820,26 @@ paths:
           required: false
           schema:
             type: string
-          description: Search term to filter users by name, email, or code
+            minLength: 2
+          description: Search term to filter users by name, email, or code (min 2 chars)
+        - name: userCode
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Find user by exact code match (for authentication, returns debug info if not found)
+        - name: teamId
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Filter users by team membership
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter users by active status (true for active, false for inactive)
         - name: sort
           in: query
           required: false
@@ -6534,11 +6964,18 @@ components:
       properties:
         status:
           type: string
-          enum: [OPEN, IN_PROGRESS, COMPLETED, BLOCKED, ON_HOLD]
-          description: New status for the step
+          enum:
+            [PENDING, TODO, IN_PROGRESS, COMPLETED, FAILED, BLOCKED, CANCELLED]
+          description: New status for the step (legacy string support)
+        statusId:
+          type: integer
+          description: New status ID for the step (modern database-validated approach)
         userId:
           type: integer
           description: User ID for audit logging
+      description: |
+        Update step status using either statusId (preferred) or status (legacy).
+        Only one of statusId or status should be provided.
 
     StepStatusUpdateResponse:
       type: object
@@ -7592,6 +8029,21 @@ components:
           type: integer
           description: Sort order for display
 
+    IterationType:
+      type: object
+      properties:
+        itt_code:
+          type: string
+          description: Iteration type code
+          example: "PILOT"
+        itt_name:
+          type: string
+          description: Iteration type name
+          example: "Pilot Migration"
+      required:
+        - itt_code
+        - itt_name
+
     UserContext:
       type: object
       properties:
@@ -7616,10 +8068,11 @@ components:
           description: Whether the user has admin privileges
         roleId:
           type: integer
-          description: Role ID
+          description: Role ID (1=ADMIN, 2=NORMAL, 3=PILOT)
         role:
           type: string
-          description: Role code (e.g., NORMAL, PILOT)
+          enum: [ADMIN, NORMAL, PILOT]
+          description: Role code - ADMIN (full system access), NORMAL (standard user), PILOT (execution privileges)
         isActive:
           type: boolean
           description: Whether the user account is active
@@ -9060,6 +9513,9 @@ components:
         migration_name:
           type: string
           description: Name of the parent migration
+        master_plan_name:
+          type: string
+          description: Name of the master plan associated with this iteration
         itt_code:
           type: string
           description: Iteration type code
@@ -9093,13 +9549,27 @@ components:
 
     CreateIterationRequest:
       type: object
-      required: [ite_name, mig_id]
+      description: |
+        Request to create a new iteration. Supports flexible field naming:
+        - Name: Use either 'ite_name' or 'name'
+        - Migration ID: Use either 'mig_id' or 'migrationId'
+        At least one name field and one migration ID field must be provided.
+      anyOf:
+        - required: [ite_name, mig_id]
+        - required: [ite_name, migrationId]
+        - required: [name, mig_id]
+        - required: [name, migrationId]
       properties:
         ite_name:
           type: string
           minLength: 1
           maxLength: 255
-          description: Name of the iteration (required, unique within migration)
+          description: Name of the iteration (required if 'name' not provided, unique within migration)
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Alternative field name for iteration name (required if 'ite_name' not provided)
         ite_description:
           type: string
           maxLength: 1000
@@ -9107,11 +9577,11 @@ components:
         mig_id:
           type: string
           format: uuid
-          description: Migration ID this iteration belongs to (required)
+          description: Migration ID this iteration belongs to (required if 'migrationId' not provided)
         migrationId:
           type: string
           format: uuid
-          description: Alternative field name for migration ID (for compatibility)
+          description: Alternative field name for migration ID (required if 'mig_id' not provided)
         itt_code:
           type: string
           maxLength: 50
@@ -9125,12 +9595,21 @@ components:
 
     UpdateIterationRequest:
       type: object
+      description: |
+        Request to update an iteration. Supports flexible field naming:
+        - Name: Use either 'ite_name' or 'name'
+        Only provided fields are updated (partial updates supported).
       properties:
         ite_name:
           type: string
           minLength: 1
           maxLength: 255
-          description: Name of the iteration
+          description: Name of the iteration (alternative to 'name')
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Alternative field name for iteration name (alternative to 'ite_name')
         ite_description:
           type: string
           maxLength: 1000
@@ -9238,10 +9717,78 @@ components:
               summary: Invalid date format
               value:
                 error: "Invalid dateFrom format. Use YYYY-MM-DD"
+            searchTooShort:
+              summary: Search term too short
+              value:
+                error: "Search term too short (min 3 characters)"
             searchTooLong:
               summary: Search term too long
               value:
                 error: "Search term too long (max 100 characters)"
+            invalidSortField:
+              summary: Invalid sort field for iterations
+              value:
+                error: "Invalid sort field. Allowed: ite_id, ite_name, itt_code, ite_static_cutover_date, ite_dynamic_cutover_date, ite_status, migration_name, master_plan_name, created_at, updated_at"
+            invalidMigrationSortField:
+              summary: Invalid sort field for migrations
+              value:
+                error: "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
+            invalidStatusName:
+              summary: Invalid status name for migration
+              value:
+                error: "Invalid status name: INVALID_STATUS"
+            invalidPeriod:
+              summary: Invalid dashboard period
+              value:
+                error: "Invalid period. Must be: day, week, month, or quarter"
+            invalidDateFormat:
+              summary: Invalid date format in request body
+              value:
+                error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+            invalidPageSize:
+              summary: Invalid page size format
+              value:
+                error: "Invalid page size format"
+            invalidTeamId:
+              summary: Invalid team ID format
+              value:
+                error: "Invalid team ID format"
+            invalidOwnerId:
+              summary: Invalid owner ID format
+              value:
+                error: "Invalid owner ID format"
+            migrationNameRequired:
+              summary: Missing required migration name
+              value:
+                error: "Migration name is required"
+            noUsersExist:
+              summary: No users exist for auto-assignment
+              value:
+                error: "No users exist in the system. Cannot create migration without owner."
+            defaultPlanningNotFound:
+              summary: Default planning status not found
+              value:
+                error: "Default PLANNING status for Migration not found in database"
+            invalidJsonFormat:
+              summary: Invalid JSON in request body
+              value:
+                error: "Invalid JSON format in request body"
+            bulkMigrationIdsRequired:
+              summary: Bulk operation missing migration IDs
+              value:
+                error: "migrationIds is required and must be an array"
+            invalidBulkFormat:
+              summary: Invalid bulk export format
+              value:
+                error: "Invalid format. Must be 'json' or 'csv'"
+            bulkStatusRequired:
+              summary: Bulk update missing new status
+              value:
+                error: "newStatus is required"
+            hierarchicalPathErrors:
+              summary: Hierarchical endpoint validation errors
+              value:
+                error: "Invalid iteration UUID"
             # PostgreSQL-specific error examples
             foreignKeyViolation:
               summary: Foreign key constraint violation (SQL State 23503)
@@ -9253,8 +9800,8 @@ components:
               value:
                 error: "Check constraint violation: Invalid date range - end date must be after start date"
                 sqlState: "23514"
-            invalidStatusName:
-              summary: Invalid status name resolution
+            invalidStatusNamePhase:
+              summary: Invalid status name resolution for phases
               value:
                 error: "Invalid status name 'INVALID_STATUS' for Phase entity type"
             typeCastingError:
@@ -9283,6 +9830,14 @@ components:
               summary: Referential integrity on delete
               value:
                 error: "Cannot delete migration - it has associated iterations or is referenced by other resources"
+            migrationDuplicateName:
+              summary: Duplicate migration name
+              value:
+                error: "A migration with this name already exists"
+            invalidOwnerUser:
+              summary: Invalid owner user reference
+              value:
+                error: "Invalid owner user ID - user does not exist"
     InternalServerError:
       description: An unexpected internal server error occurred.
       content:
@@ -9290,10 +9845,371 @@ components:
           schema:
             $ref: "#/components/schemas/Error"
 
+    # ==================== NEW STEPS API V2.2.0 SCHEMAS ====================
+
+    PaginatedMasterSteps:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/EnhancedMasterStep"
+        totalElements:
+          type: integer
+          description: Total number of elements
+        totalPages:
+          type: integer
+          description: Total number of pages
+        pageNumber:
+          type: integer
+          description: Current page number (1-based)
+        pageSize:
+          type: integer
+          description: Number of items per page
+        hasNext:
+          type: boolean
+          description: Whether there are more pages available
+        hasPrevious:
+          type: boolean
+          description: Whether there are previous pages
+        sortField:
+          type: string
+          description: Field used for sorting
+        sortDirection:
+          type: string
+          enum: [asc, desc]
+          description: Sort direction applied
+
+    EnhancedMasterStep:
+      type: object
+      properties:
+        stm_id:
+          type: string
+          format: uuid
+          description: Master step ID
+        stm_name:
+          type: string
+          description: Step name
+        stm_description:
+          type: string
+          description: Step description
+        stm_order:
+          type: integer
+          description: Step order within phase
+        instruction_count:
+          type: integer
+          description: Number of associated instructions
+        instance_count:
+          type: integer
+          description: Number of step instances
+        plm_name:
+          type: string
+          description: Plan master name
+        sqm_name:
+          type: string
+          description: Sequence master name
+        phm_name:
+          type: string
+          description: Phase master name
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    StepsSummary:
+      type: object
+      properties:
+        totalSteps:
+          type: integer
+          description: Total number of steps
+        completedSteps:
+          type: integer
+          description: Number of completed steps
+        inProgressSteps:
+          type: integer
+          description: Number of steps in progress
+        pendingSteps:
+          type: integer
+          description: Number of pending steps
+        completionPercentage:
+          type: number
+          format: float
+          description: Overall completion percentage
+        estimatedRemainingTime:
+          type: integer
+          description: Estimated remaining time in minutes
+        byTeam:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamStepSummary"
+        byStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusStepSummary"
+
+    TeamStepSummary:
+      type: object
+      properties:
+        teamId:
+          type: integer
+          description: Team ID
+        teamName:
+          type: string
+          description: Team name
+        totalSteps:
+          type: integer
+          description: Total steps assigned to team
+        completedSteps:
+          type: integer
+          description: Completed steps by team
+        completionPercentage:
+          type: number
+          format: float
+          description: Team completion percentage
+
+    StatusStepSummary:
+      type: object
+      properties:
+        statusId:
+          type: integer
+          description: Status ID
+        statusName:
+          type: string
+          description: Status name
+        count:
+          type: integer
+          description: Number of steps with this status
+        percentage:
+          type: number
+          format: float
+          description: Percentage of steps with this status
+
+    StepsProgress:
+      type: object
+      properties:
+        migrationId:
+          type: string
+          format: uuid
+          description: Migration ID
+        migrationName:
+          type: string
+          description: Migration name
+        overallProgress:
+          type: number
+          format: float
+          description: Overall progress percentage
+        sequences:
+          type: array
+          items:
+            $ref: "#/components/schemas/SequenceProgress"
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    SequenceProgress:
+      type: object
+      properties:
+        sequenceId:
+          type: string
+          format: uuid
+          description: Sequence ID
+        sequenceName:
+          type: string
+          description: Sequence name
+        progress:
+          type: number
+          format: float
+          description: Sequence progress percentage
+        phases:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhaseProgress"
+
+    PhaseProgress:
+      type: object
+      properties:
+        phaseId:
+          type: string
+          format: uuid
+          description: Phase ID
+        phaseName:
+          type: string
+          description: Phase name
+        progress:
+          type: number
+          format: float
+          description: Phase progress percentage
+        stepCount:
+          type: integer
+          description: Total number of steps in phase
+        completedCount:
+          type: integer
+          description: Number of completed steps in phase
+
+    StepsExportData:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportedStepData"
+        totalCount:
+          type: integer
+          description: Total number of exported steps
+        exportedAt:
+          type: string
+          format: date-time
+          description: Export timestamp
+
+    ExportedStepData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Step instance ID
+        code:
+          type: string
+          description: Step code
+        name:
+          type: string
+          description: Step name
+        status:
+          type: string
+          description: Step status
+        teamName:
+          type: string
+          description: Assigned team name
+        sequenceName:
+          type: string
+          description: Sequence name
+        phaseName:
+          type: string
+          description: Phase name
+        durationMinutes:
+          type: integer
+          description: Duration in minutes
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    BulkStatusUpdate:
+      type: object
+      required:
+        - stepIds
+        - statusId
+        - userId
+      properties:
+        stepIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Array of step instance IDs to update
+        statusId:
+          type: integer
+          description: New status ID to apply
+        userId:
+          type: integer
+          description: User ID for audit logging
+
+    BulkTeamAssignment:
+      type: object
+      required:
+        - stepIds
+        - teamId
+        - userId
+      properties:
+        stepIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Array of step instance IDs to assign
+        teamId:
+          type: integer
+          description: Team ID to assign steps to
+        userId:
+          type: integer
+          description: User ID for audit logging
+
+    BulkStepReordering:
+      type: object
+      required:
+        - steps
+      properties:
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/StepReorderItem"
+          description: Array of steps with new order positions
+
+    StepReorderItem:
+      type: object
+      required:
+        - id
+        - newOrder
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Step instance ID
+        newOrder:
+          type: integer
+          description: New order position within phase
+
+    BulkUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Overall operation success
+        message:
+          type: string
+          description: Success message
+        updatedCount:
+          type: integer
+          description: Number of successfully updated items
+        assignedCount:
+          type: integer
+          description: Number of successfully assigned items (for assignments)
+        reorderedCount:
+          type: integer
+          description: Number of successfully reordered items (for reordering)
+        failedCount:
+          type: integer
+          description: Number of failed operations
+        failures:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkOperationFailure"
+          description: Details of failed operations
+
+    BulkOperationFailure:
+      type: object
+      properties:
+        stepId:
+          type: string
+          format: uuid
+          description: Step ID that failed
+        error:
+          type: string
+          description: Error message for this step
+
   securitySchemes:
     ConfluenceUsers:
       type: http
       scheme: basic
       description: |
         HTTP Basic Authentication using Confluence username and password.
-        All endpoints require membership in the "confluence-users" group for access control.
+        All endpoints require membership in either the "confluence-users" or "confluence-administrators" group for access control.

@@ -1,8 +1,8 @@
 # Active Context - UMIG Project
 
-**Last Updated**: 25 August 2025, updated for fast documentation update workflow (commit 4ff3e63 analysis)  
-**Current Status**: Sprint 5 Day 3 COMPLETED - US-022, US-030 & US-036 100% COMPLETE, US-031 Day 3/3 TECHNICAL COMPLETION WITH AUTHENTICATION BLOCKER  
-**Current Sprint**: Sprint 5 Execution (Aug 18-22, 2025) - MVP Completion & Production Readiness  
+**Last Updated**: 25 August 2025, updated for comprehensive documentation consolidation and API integration enhancements  
+**Current Status**: Sprint 5 Day 3+ PROGRESS - US-022, US-030 & US-036 100% COMPLETE, US-031 85% COMPLETE (11/13 endpoints functional), New APIs Added (Iterations, Status)  
+**Current Sprint**: Sprint 5 Extended (Aug 18-25, 2025) - MVP Completion, Documentation Consolidation, & API Integration Fixes  
 **Sprint 4 Achievement**: STRATEGIC TRIUMPH - 17 points delivered + hidden AI infrastructure (5.7 points/day velocity)  
 **Sprint History**: Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug), Sprint 4 (7-15 Aug) COMPLETE, Sprint 5 (18-22 Aug) CURRENT  
 **Major Achievement**: US-036 scope expanded from 3 to 10 points with 100% completion including comprehensive email notification system, git disaster recovery (53,826→51 files), and audit logging enhancements  
@@ -131,23 +131,27 @@
 
 #### **US-031: Admin GUI Complete Integration** (6 points) - P0 CRITICAL MVP
 
-- **Status**: Day 3/3 TECHNICAL COMPLETE (85% progress), 11/13 endpoints functional, AUTHENTICATION BLOCKER ISOLATED
+- **Status**: Day 3/3+ TECHNICAL COMPLETE (85% progress), 11/13 endpoints functional, NEW APIs ADDED
 - **Scope**: Final administrative interface with seamless cross-module sync and browser compatibility
-- **Progress**: Major technical fixes completed (Sequences/Instructions endpoints), comprehensive test suite created
-- **Critical Blocker**: HTTP 401 authentication issue affecting all API endpoints
-  - **Credentials Tested**: admin:Spaceop!13 (from .env file), admin:admin (default fallback)
-  - **Error**: "Basic Authentication Failure - Reason : AUTHENTICATED_FAILED"
-  - **Investigation Status**: ScriptRunner authentication requirements under analysis
-  - **Impact**: Cannot validate Admin GUI integration despite technical completion
-- **Achievements**:
+- **Progress**: Major technical fixes completed, comprehensive test suite created, documentation consolidated
+- **New Achievements (August 25)**:
+  - **IterationsApi.groovy**: Complete implementation with master/instance support and hierarchical filtering
+  - **StatusApi.groovy**: Centralized status management across all entities with type-safe operations
+  - **Documentation Consolidation**: 6 technical docs → 1 unified troubleshooting guide
+  - **API Integration Fixes**: Frontend endpoint paths corrected, Postman collection regenerated
+  - **OpenAPI Specification**: Updated to v2.2.0 with duplicate schema fixes
+- **Previous Achievements**:
   - **Sequences Endpoint Fixed**: HTTP 500 → 200 (missing field mappings resolved)
   - **Instructions Endpoint Fixed**: HTTP 400 → 200 (parameterless calls supported)
   - **Test Suite Created**: AdminGuiAllEndpointsTest.groovy with environment loading
   - **Documentation Created**: ENDPOINT_REGISTRATION_GUIDE.md for manual registration
-- **Manual Registration Required**: 2/13 endpoints (phases, controls) need ScriptRunner UI registration
-- **Next Priority**: Resolve authentication blocker, complete endpoint registration
-- **Timeline**: Day 2-5 (Aug 19-22) - Authentication resolution critical
-- **Risk**: MEDIUM → HIGH (authentication blocker impacts integration validation)
+- **Authentication Investigation**: HTTP 401 authentication issue under systematic investigation
+  - **Credentials Tested**: admin:Spaceop!13 (from .env file), admin:admin (default fallback)
+  - **Error Pattern**: "Basic Authentication Failure - Reason : AUTHENTICATED_FAILED"
+  - **Investigation Status**: ScriptRunner authentication requirements analysis ongoing
+- **Manual Registration Status**: 11/13 endpoints registered, 2/13 (phases, controls) pending
+- **Next Priority**: Complete authentication resolution, validate all endpoint integrations
+- **Timeline**: Extended investigation phase (Aug 25+) - MVP readiness dependent on resolution
 
 #### **✅ US-036: StepView UI Refactoring** (10 points actual) - P1 HIGH VALUE **100% COMPLETE**
 
@@ -383,15 +387,21 @@
 
 ## API Modernization Status
 
-**All 7 Core APIs Status**:
+**All 9 Core APIs Status** (Updated August 25, 2025):
 
 - ✅ Plans API - Sprint 3 patterns proven
-- ✅ Sequences API - Sprint 3 patterns proven
+- ✅ Sequences API - Sprint 3 patterns proven  
 - ✅ Phases API - Sprint 3 patterns proven
 - ✅ Instructions API - Sprint 3 patterns proven
 - ✅ Controls API - Sprint 3 patterns proven
 - ✅ Migrations API - Sprint 4 refactored
 - ✅ Steps API - US-024 COMPLETED with modern patterns 100%
+- ✅ **IterationsApi** - US-031 NEW (August 2025) with master/instance support
+- ✅ **StatusApi** - US-031 NEW (August 2025) with centralized status management
+
+**Supporting APIs Complete**:
+- ✅ Users, Teams, Environments, Applications, Labels APIs - Full CRUD operations
+- ✅ Static Type Checking Compliance - Groovy 3.0.15 compatibility achieved across all APIs
 
 ## Sprint 3 Final Status: COMPLETED (6 August 2025)
 

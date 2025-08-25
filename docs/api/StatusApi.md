@@ -13,8 +13,8 @@
 
 ## 2. Endpoints
 
-| Method | Path           | Description                                     |
-| ------ | -------------- | ----------------------------------------------- |
+| Method | Path    | Description                                     |
+| ------ | ------- | ----------------------------------------------- |
 | GET    | /status | Get statuses by entity type with color metadata |
 
 ## 3. Request Details

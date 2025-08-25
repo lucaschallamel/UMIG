@@ -5,6 +5,7 @@ import groovy.json.JsonBuilder
 import groovy.transform.BaseScript
 import umig.repository.StatusRepository
 
+import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 
 @BaseScript CustomEndpointDelegate delegate
@@ -56,7 +57,8 @@ status(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
         def statuses = statusRepository.findStatusesByType(normalizedEntityType)
         
         // Transform to format expected by frontend (id, name, color, type)
-        def result = statuses.collect { status ->
+        // Explicit Map casting for static type checking compatibility (ADR-031)
+        def result = statuses.collect { Map status ->
             [
                 id: status.id,
                 name: status.name,

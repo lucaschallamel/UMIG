@@ -14,8 +14,8 @@
 
 ## 2. Endpoints
 
-| Method | Path                                      | Description                                        |
-| ------ | ----------------------------------------- | -------------------------------------------------- |
+| Method | Path                               | Description                                        |
+| ------ | ---------------------------------- | -------------------------------------------------- |
 | GET    | /plans/master                      | List all master plan templates                     |
 | POST   | /plans/master                      | Create new master plan template                    |
 | GET    | /plans/master/{id}                 | Get specific master plan template                  |

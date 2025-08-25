@@ -1,5 +1,53 @@
 ### [Unreleased]
 
+#### 2025-08-25 (Documentation Consolidation and API Integration Enhancements - US-031 Support)
+
+- **Documentation(Comprehensive Reorganization):** Major documentation consolidation supporting Admin GUI completion and developer experience improvement
+  - **Consolidation Achievement**: Reduced 6 technical troubleshooting documents into single Admin-GUI-Entity-Troubleshooting-Quick-Reference for improved accessibility
+  - **Archive Organization**: Moved 9 obsolete status/session handoff files to docs/archived/us-031/ for historical preservation
+  - **Documentation Cleanup**: Removed executive presentation artifacts achieving 8MB+ cleanup and improved repository maintenance
+  - **CHANGELOG Enhancement**: Comprehensive Sprint 5 Day 3 status documentation with detailed progress tracking
+- **API(Documentation and Integration):** Complete API documentation ecosystem enhancement with integration fixes
+  - **New API Documentation**: Created comprehensive IterationsApi.md and StatusApi.md specifications with detailed examples
+  - **OpenAPI Specification Fixes**: Resolved duplicate schema definitions, corrected /api/v2/ prefix inconsistencies, and updated to v2.2.0
+  - **Endpoint Path Corrections**: Fixed IterationsApi endpoint from /iterations to /iterationsList matching ScriptRunner deployment pattern
+  - **Individual API Specs**: Updated all API documentation to match OpenAPI specification with current best practices template
+- **Integration(Postman and Frontend):** Complete integration testing and frontend compatibility improvements
+  - **Postman Collection Enhancement**: Regenerated collection including new Iterations and Status APIs with correct endpoint paths
+  - **404 Error Resolution**: Fixed endpoint paths to match ScriptRunner deployment pattern (/rest/scriptrunner/latest/custom/)
+  - **Frontend Integration Fixes**: Updated EntityConfig.js and admin-gui.js with correct endpoint paths resolving API integration failures
+  - **Admin GUI Compatibility**: Enhanced API integration supporting Admin GUI functionality with proper endpoint configuration
+- **Architecture(ADR and Authentication):** Enhanced architectural documentation with new patterns and authentication context management
+  - **New ADRs Added**: 4 new architectural decisions covering PostgreSQL type casting, repository patterns, layer separation, and authentication context
+  - **Dual Authentication Enhancement**: Enhanced dual authentication context management documentation for platform vs application separation
+  - **Technical Patterns**: Documented PostgreSQL JDBC type casting standards, ScriptRunner repository access patterns, and layer separation anti-patterns
+- **Project(Memory Bank and Status):** Comprehensive project knowledge synchronization with current Sprint 5 progress
+  - **Memory Bank Updates**: Updated all context files (activeContext.md, progress.md, systemPatterns.md, techContext.md) with Sprint 5 Day 3 status
+  - **Project Brief Enhancement**: Updated with latest patterns, authentication investigation, and Admin GUI completion progress
+  - **Roadmap Synchronization**: Enhanced roadmap documentation with current status, blockers, and next steps for authentication resolution
+- **Impact(Developer Experience):** Significant improvement in developer experience and API integration reliability
+  - **Files Changed**: 53 files modified (+13,122 insertions, -14,126 deletions) demonstrating comprehensive improvement scope
+  - **API Integration**: Resolved multiple API integration issues causing Admin GUI endpoint failures
+  - **Documentation Quality**: Streamlined documentation ecosystem reducing complexity while improving information accessibility
+  - **Technical Foundation**: Enhanced technical foundation supporting final US-031 authentication resolution and MVP completion
+- **Feature(New APIs and Type Safety):** Comprehensive static type checking compliance and new API endpoints
+  - **IterationsApi.groovy**: Complete implementation with master/instance support, hierarchical filtering, and status management
+  - **StatusApi.groovy**: Centralized status management across all entities with type-safe operations and color coding support
+  - **Static Type Checking**: Full Groovy 3.0.15 compatibility achieved across entire v2 API codebase following ADR-031 patterns
+  - **Type Safety Enforcement**: Mandatory explicit casting implemented for all query parameters (UUID, Integer, String conversions)
+  - **Repository Enhancements**: All repository classes updated with proper type declarations and static checking compliance
+- **Testing(Framework Standardization):** Complete testing infrastructure modernization and standardization
+  - **NPM Script Migration**: 8 shell scripts successfully migrated to cross-platform NPM commands (August 18, 2025)
+  - **AdminGuiAllEndpointsTest**: Comprehensive integration testing framework validating all 13 Admin GUI entities
+  - **Multi-environment Credentials**: Dynamic credential loading with .env file integration and fallback authentication
+  - **Performance Benchmarking**: Automated response time validation with regression detection across all endpoints
+- **Bug Fixes(Critical Endpoint Issues):** Resolution of multiple critical API endpoint failures affecting Admin GUI integration
+  - **Plans Deletion**: Fixed SQL constraint violation (23503→400) with proper cascade deletion error handling
+  - **Sequences Field Mapping**: Resolved Groovy RowResult compatibility with proper field selection and audit field integration
+  - **Instructions Parameterless Calls**: Admin GUI compatibility pattern for endpoints supporting both filtered and unfiltered access
+  - **Phase Status Updates**: Enhanced validation and error handling with proper status FK constraint management
+  - **Filter Type Casting**: Comprehensive UUID/Integer/String type casting fixes across all hierarchical filtering operations
+
 #### 2025-08-25 (Sprint 5 Day 3 Technical Completion - US-031 Authentication Blocker Status)
 
 - **Achievement(US-031 Admin GUI Complete Integration):** Day 2/3 completion with major technical breakthroughs (85% completed) ✅

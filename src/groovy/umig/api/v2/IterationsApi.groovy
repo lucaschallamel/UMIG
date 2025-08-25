@@ -7,6 +7,7 @@ import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
 import groovy.transform.Field
+import groovy.transform.CompileStatic
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
@@ -28,7 +29,7 @@ final Logger log = LogManager.getLogger(getClass())
  * GET /iterations/{id} - Get single iteration with metadata
  * Updated: Force reload for proper pagination support
  */
-iterationsList(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationsList(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
 
@@ -103,7 +104,7 @@ iterationsList(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
             String sortDirection = 'asc'
             
             if (sort) {
-                def allowedSortFields = ['ite_id', 'ite_name', 'itt_code', 'ite_static_cutover_date', 'ite_dynamic_cutover_date', 'ite_status', 'migration_name', 'created_at', 'updated_at']
+                def allowedSortFields = ['ite_id', 'ite_name', 'itt_code', 'ite_static_cutover_date', 'ite_dynamic_cutover_date', 'ite_status', 'migration_name', 'master_plan_name', 'created_at', 'updated_at']
                 if (allowedSortFields.contains(sort as String)) {
                     sortField = sort as String
                 } else {
@@ -146,8 +147,9 @@ iterationsList(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
 /**
  * POST /iterations - Create new iteration
  */
-iterationsList(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationsList(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     try {
+        // Explicit Map casting for static type checking compatibility (ADR-031)
         Map iterationData = new JsonSlurper().parseText(body) as Map
         log.info("POST /iterations - Creating iteration with data: ${iterationData}")
         
@@ -167,6 +169,7 @@ iterationsList(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMa
         }
         
         try {
+            // Explicit Map casting for static type checking compatibility (ADR-031)
             Map newIteration = migrationRepository.createIteration(iterationData) as Map
             log.info("POST /iterations - Successfully created iteration: ${newIteration?.ite_id}")
             
@@ -208,7 +211,7 @@ iterationsList(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMa
 /**
  * PUT /iterations/{id} - Update iteration
  */
-iterationsList(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationsList(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
     
@@ -229,19 +232,31 @@ iterationsList(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap
     }
     
     try {
+        // Explicit Map casting for static type checking compatibility (ADR-031)
         Map iterationData = new JsonSlurper().parseText(body) as Map
         log.info("PUT /iterations/${iterationId} - Updating with data: ${iterationData}")
         
-        def updatedIteration = migrationRepository.updateIteration(iterationId, iterationData)
-        
-        if (updatedIteration) {
-            log.info("PUT /iterations/${iterationId} - Successfully updated iteration")
-            return Response.ok(new JsonBuilder(updatedIteration).toString()).build()
-        } else {
-            log.warn("PUT /iterations/${iterationId} - Iteration not found")
-            return Response.status(Response.Status.NOT_FOUND)
-                .entity(new JsonBuilder([error: "Iteration not found"]).toString())
+        try {
+            // Explicit Map casting for static type checking compatibility (ADR-031)
+            Map updatedIteration = migrationRepository.updateIteration(iterationId, iterationData) as Map
+            
+            if (updatedIteration) {
+                log.info("PUT /iterations/${iterationId} - Successfully updated iteration")
+                return Response.ok(new JsonBuilder(updatedIteration).toString()).build()
+            } else {
+                log.warn("PUT /iterations/${iterationId} - Iteration not found")
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Iteration not found"]).toString())
+                    .build()
+            }
+        } catch (IllegalArgumentException e) {
+            log.error("PUT /iterations/${iterationId} - Validation error: ${e.message}", e)
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: e.message]).toString())
                 .build()
+        } catch (Exception e) {
+            log.error("PUT /iterations/${iterationId} - Unexpected error during update: ${e.message}", e)
+            throw e // Let the outer catch handle SQL exceptions
         }
         
     } catch (JsonException e) {
@@ -265,7 +280,7 @@ iterationsList(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap
 /**
  * DELETE /iterations/{id} - Delete iteration
  */
-iterationsList(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+iterationsList(httpMethod: "DELETE", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
     def pathParts = extraPath ? extraPath.split('/').findAll { it } : []
     
