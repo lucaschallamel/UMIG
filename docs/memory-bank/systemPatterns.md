@@ -54,6 +54,7 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 ### Documentation Structure Cross-References
 
 **Primary Architecture Documentation**:
+
 - [Solution Architecture](../solution-architecture.md) - Complete consolidation of 45 ADRs with current implementation status
 - [API v2 Documentation](../../src/groovy/umig/api/v2/README.md) - 21 REST endpoints with comprehensive implementation guide
 - [Repository Patterns](../../src/groovy/umig/repository/README.md) - Database access layer with ADR-031 type safety compliance
@@ -61,10 +62,12 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 - [Testing Framework](../../src/groovy/umig/tests/README.md) - NPM-based testing with 95%+ coverage
 
 **OpenAPI Integration**:
+
 - [Complete API Specification](../api/openapi.yaml) - Version 2.4.0 with 100% endpoint coverage
 - [Individual API Documentation](../api/) - Detailed specifications per API (StepsAPI.md, etc.)
 
 **Sprint Planning & Progress**:
+
 - [Current Sprint Status](../roadmap/sprint5/) - US-031, US-036, US-037 progress tracking
 - [Unified Roadmap](../roadmap/unified-roadmap.md) - Complete project timeline and deliverables
 - [Memory Bank Active Context](./activeContext.md) - Real-time project status and immediate priorities
@@ -72,17 +75,20 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 ### Implementation Pattern Cross-References
 
 **Critical ADRs Implemented**:
+
 - [ADR-043](../adr/ADR-043-postgresql-jdbc-type-casting-standards.md) - PostgreSQL JDBC Type Casting Standards (August 25, 2025)
 - [ADR-044](../adr/ADR-044-scriptrunner-repository-access-patterns.md) - ScriptRunner Repository Access Patterns (August 25, 2025)
 - [ADR-047](../adr/ADR-047-layer-separation-anti-patterns.md) - Layer Separation Anti-Patterns (August 25, 2025)
 - [ADR-042](../adr/ADR-042-dual-authentication-context-management.md) - Dual Authentication Context Management
 
 **Test Integration Cross-References**:
+
 - [Integration Test Files](../../src/groovy/umig/tests/integration/) - 22 comprehensive integration tests
 - [AdminGuiAllEndpointsTest.groovy](../../src/groovy/umig/tests/integration/AdminGuiAllEndpointsTest.groovy) - Complete endpoint validation framework
 - [NPM Test Scripts](../../../scripts/test-runners/) - Cross-platform JavaScript test runners
 
 **Configuration Cross-References**:
+
 - [Environment Configuration](../../../local-dev-setup/.env.example) - Development environment template
 - [ScriptRunner Endpoints](../archived/us-031/ENDPOINT_REGISTRATION_GUIDE.md) - Manual registration procedures
 - **Admin GUI Integration Patterns:** Comprehensive integration patterns established through US-031 (Sprint 5, August 2025)
@@ -345,10 +351,10 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
     try {
         // Type-safe parameter extraction
         Map<String, Object> filters = extractAndValidateFilters(queryParams)
-        
+
         // Repository interaction with explicit types
         List<Map<String, Object>> results = getRepository().findWithFilters(filters)
-        
+
         return Response.ok(new JsonBuilder(results).toString()).build()
     } catch (Exception e) {
         log.error("Endpoint error: ${e.message}", e)
@@ -408,19 +414,19 @@ DatabaseUtil.withSql { sql ->
 @CompileStatic
 class EntityRepository {
     static DatabaseService databaseService
-    
+
     static List<Map<String, Object>> findAllMaster() {
         return databaseService.executeQuery('SELECT * FROM entities_master', [:])
     }
-    
+
     static Map<String, Object> findMasterById(UUID entityId) {
         List<Map<String, Object>> results = databaseService.executeQuery(
-            'SELECT * FROM entities_master WHERE id = :id', 
+            'SELECT * FROM entities_master WHERE id = :id',
             [id: entityId]
         )
         return results.isEmpty() ? null : results[0]
     }
-    
+
     static UUID createMaster(Map<String, Object> params) {
         UUID entityId = UUID.randomUUID()
         Map<String, Object> insertParams = [
@@ -531,64 +537,68 @@ class EntityApiIntegrationTest extends GroovyTestCase {
 ```javascript
 // BaseTestRunner.js - Cross-Platform Test Framework
 class BaseTestRunner {
-    constructor(options = {}) {
-        this.platform = process.platform;
-        this.timeout = options.timeout || 30000;
-        this.parallel = options.parallel || false;
-        this.verbose = options.verbose || false;
-    }
+  constructor(options = {}) {
+    this.platform = process.platform;
+    this.timeout = options.timeout || 30000;
+    this.parallel = options.parallel || false;
+    this.verbose = options.verbose || false;
+  }
 
-    async executeTest(testFile, args = []) {
-        const command = this.buildGroovyCommand(testFile, args);
-        
-        try {
-            const result = await this.executeWithTimeout(command, this.timeout);
-            return {
-                success: true,
-                output: result.stdout,
-                testFile: testFile,
-                duration: result.duration
-            };
-        } catch (error) {
-            return {
-                success: false,
-                error: error.message,
-                testFile: testFile,
-                exitCode: error.code
-            };
-        }
-    }
+  async executeTest(testFile, args = []) {
+    const command = this.buildGroovyCommand(testFile, args);
 
-    buildGroovyCommand(testFile, args) {
-        const groovyPath = this.resolveGroovyPath();
-        const classpathSeparator = this.platform === 'win32' ? ';' : ':';
-        const classpath = this.buildClasspath(classpathSeparator);
-        
-        return `"${groovyPath}" -cp "${classpath}" "${testFile}" ${args.join(' ')}`;
+    try {
+      const result = await this.executeWithTimeout(command, this.timeout);
+      return {
+        success: true,
+        output: result.stdout,
+        testFile: testFile,
+        duration: result.duration,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        testFile: testFile,
+        exitCode: error.code,
+      };
     }
+  }
 
-    async executeWithTimeout(command, timeout) {
-        const startTime = Date.now();
-        
-        return new Promise((resolve, reject) => {
-            const child = exec(command, { 
-                timeout: timeout,
-                maxBuffer: 1024 * 1024 * 10 // 10MB buffer
-            }, (error, stdout, stderr) => {
-                const duration = Date.now() - startTime;
-                
-                if (error) {
-                    reject({
-                        message: `Command failed: ${error.message}`,
-                        code: error.code,
-                        stderr: stderr
-                    });
-                } else {
-                    resolve({ stdout, stderr, duration });
-                }
+  buildGroovyCommand(testFile, args) {
+    const groovyPath = this.resolveGroovyPath();
+    const classpathSeparator = this.platform === "win32" ? ";" : ":";
+    const classpath = this.buildClasspath(classpathSeparator);
+
+    return `"${groovyPath}" -cp "${classpath}" "${testFile}" ${args.join(" ")}`;
+  }
+
+  async executeWithTimeout(command, timeout) {
+    const startTime = Date.now();
+
+    return new Promise((resolve, reject) => {
+      const child = exec(
+        command,
+        {
+          timeout: timeout,
+          maxBuffer: 1024 * 1024 * 10, // 10MB buffer
+        },
+        (error, stdout, stderr) => {
+          const duration = Date.now() - startTime;
+
+          if (error) {
+            reject({
+              message: `Command failed: ${error.message}`,
+              code: error.code,
+              stderr: stderr,
             });
-        });
-    }
+          } else {
+            resolve({ stdout, stderr, duration });
+          }
+        },
+      );
+    });
+  }
 }
 ```
 
@@ -610,11 +620,11 @@ class AuthenticationTestFramework {
     static void testRoleBasedAccess(String endpoint, String expectedRole) {
         TEST_CREDENTIALS.each { role, credentials ->
             def response = makeAuthenticatedRequest(endpoint, credentials)
-            
+
             if (role == expectedRole) {
                 assertEquals("${role} should have access to ${endpoint}", 200, response.statusCode)
             } else {
-                assertTrue("${role} should be denied access to ${endpoint}", 
+                assertTrue("${role} should be denied access to ${endpoint}",
                     response.statusCode in [401, 403])
             }
         }
@@ -623,7 +633,7 @@ class AuthenticationTestFramework {
     static Response makeAuthenticatedRequest(String endpoint, String credentials) {
         def [username, password] = credentials.split(':')
         def auth = Base64.encoder.encodeToString("${username}:${password}".bytes)
-        
+
         return given()
             .header('Authorization', "Basic ${auth}")
             .when()
@@ -642,7 +652,7 @@ class AuthenticationTestFramework {
 class ErrorHandlingTestFramework {
     static final Map<String, Integer> SQL_STATE_TO_HTTP = [
         '23503': 400,  // Foreign key violation
-        '23505': 409,  // Unique constraint violation  
+        '23505': 409,  // Unique constraint violation
         '23502': 400,  // Not null violation
         '22001': 400,  // String data too long
         '08006': 500   // Connection failure
@@ -651,15 +661,15 @@ class ErrorHandlingTestFramework {
     static void testErrorScenarios(String endpoint, Map testCases) {
         testCases.each { scenario, expectedError ->
             def response = executeErrorScenario(endpoint, scenario)
-            
+
             // Validate HTTP status code
-            assertEquals("${scenario} should return ${expectedError.httpStatus}", 
+            assertEquals("${scenario} should return ${expectedError.httpStatus}",
                 expectedError.httpStatus, response.statusCode)
-            
+
             // Validate error message structure
-            assertNotNull("Error response should contain error field", 
+            assertNotNull("Error response should contain error field",
                 response.jsonPath().get('error'))
-            
+
             // Validate specific error content
             if (expectedError.errorMessage) {
                 assertTrue("Error message should contain expected content",
@@ -695,61 +705,64 @@ class ErrorHandlingTestFramework {
 ```javascript
 // Performance Integration Pattern
 class PerformanceBenchmarkIntegration {
-    constructor(thresholds = {}) {
-        this.thresholds = {
-            simple_get: 500,      // ms
-            complex_query: 1000,  // ms
-            bulk_operation: 3000, // ms
-            ...thresholds
-        };
-        this.results = [];
-    }
+  constructor(thresholds = {}) {
+    this.thresholds = {
+      simple_get: 500, // ms
+      complex_query: 1000, // ms
+      bulk_operation: 3000, // ms
+      ...thresholds,
+    };
+    this.results = [];
+  }
 
-    async benchmarkTestSuite(testSuite) {
-        for (const test of testSuite) {
-            const startTime = performance.now();
-            
-            try {
-                await test.execute();
-                const duration = performance.now() - startTime;
-                
-                this.recordResult({
-                    testName: test.name,
-                    duration: duration,
-                    passed: true,
-                    withinThreshold: duration < this.getThreshold(test.type)
-                });
-            } catch (error) {
-                const duration = performance.now() - startTime;
-                
-                this.recordResult({
-                    testName: test.name,
-                    duration: duration,
-                    passed: false,
-                    error: error.message
-                });
-            }
-        }
-    }
+  async benchmarkTestSuite(testSuite) {
+    for (const test of testSuite) {
+      const startTime = performance.now();
 
-    generatePerformanceReport() {
-        const totalTests = this.results.length;
-        const passedTests = this.results.filter(r => r.passed).length;
-        const thresholdViolations = this.results.filter(r => r.passed && !r.withinThreshold).length;
-        const averageDuration = this.results.reduce((sum, r) => sum + r.duration, 0) / totalTests;
+      try {
+        await test.execute();
+        const duration = performance.now() - startTime;
 
-        return {
-            summary: {
-                totalTests,
-                passedTests,
-                failedTests: totalTests - passedTests,
-                thresholdViolations,
-                averageDuration: Math.round(averageDuration)
-            },
-            details: this.results,
-            regressions: this.identifyRegressions()
-        };
+        this.recordResult({
+          testName: test.name,
+          duration: duration,
+          passed: true,
+          withinThreshold: duration < this.getThreshold(test.type),
+        });
+      } catch (error) {
+        const duration = performance.now() - startTime;
+
+        this.recordResult({
+          testName: test.name,
+          duration: duration,
+          passed: false,
+          error: error.message,
+        });
+      }
     }
+  }
+
+  generatePerformanceReport() {
+    const totalTests = this.results.length;
+    const passedTests = this.results.filter((r) => r.passed).length;
+    const thresholdViolations = this.results.filter(
+      (r) => r.passed && !r.withinThreshold,
+    ).length;
+    const averageDuration =
+      this.results.reduce((sum, r) => sum + r.duration, 0) / totalTests;
+
+    return {
+      summary: {
+        totalTests,
+        passedTests,
+        failedTests: totalTests - passedTests,
+        thresholdViolations,
+        averageDuration: Math.round(averageDuration),
+      },
+      details: this.results,
+      regressions: this.identifyRegressions(),
+    };
+  }
 }
 ```
 
@@ -764,10 +777,10 @@ class PerformanceBenchmarkIntegration {
 class TestDataManager {
     static DatabaseService databaseService
     static Map<String, List<UUID>> createdEntities = [:]
-    
+
     static void setupTestData(String testSuite) {
         def testDataConfig = loadTestDataConfig(testSuite)
-        
+
         testDataConfig.entities.each { entityType, entityData ->
             entityData.each { data ->
                 UUID entityId = createTestEntity(entityType, data)
@@ -775,12 +788,12 @@ class TestDataManager {
             }
         }
     }
-    
+
     static void cleanupTestData(String testSuite) {
         // Clean up in reverse dependency order
-        def cleanupOrder = ['instructions', 'steps', 'phases', 'sequences', 
+        def cleanupOrder = ['instructions', 'steps', 'phases', 'sequences',
                            'plans', 'iterations', 'migrations']
-        
+
         cleanupOrder.each { entityType ->
             if (createdEntities.containsKey(entityType)) {
                 createdEntities[entityType].each { entityId ->
@@ -790,7 +803,7 @@ class TestDataManager {
             }
         }
     }
-    
+
     static Map<String, Object> validateDatabaseHealth() {
         return [
             connectionStatus: testDatabaseConnection(),
@@ -805,6 +818,7 @@ class TestDataManager {
 ### Integration Testing Benefits Summary
 
 **Technical Achievements**:
+
 - **Cross-Platform Support**: 100% compatibility across Windows, macOS, and Linux
 - **Code Reduction**: 53% reduction in test framework code (850→400 lines)
 - **Performance Optimization**: Parallel execution capability with 40% speed improvement
@@ -812,13 +826,15 @@ class TestDataManager {
 - **Authentication Framework**: Role-based testing patterns across all security levels
 
 **Quality Improvements**:
+
 - **Test Reliability**: Eliminated platform-specific test failures
-- **Developer Experience**: Simplified command interface (npm run test:*)
+- **Developer Experience**: Simplified command interface (npm run test:\*)
 - **Pattern Consistency**: Standardized approaches reduce cognitive load
 - **Performance Monitoring**: Integrated benchmarking prevents regression
 - **Data Management**: Automated cleanup prevents test interference
 
 **Strategic Impact**:
+
 - **CI/CD Ready**: Platform-agnostic tests enable robust deployment pipelines
 - **Knowledge Transfer**: Standardized patterns reduce onboarding complexity
 - **Technical Debt Reduction**: 92% capacity utilization for systematic improvements
@@ -978,27 +994,31 @@ def validateImplementationStatus(userStory) {
 <!-- Interactive Documentation Implementation -->
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>UMIG API Documentation</title>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui.css" />
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui.css"
+    />
+  </head>
+  <body>
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@3.52.5/swagger-ui-bundle.js"></script>
     <script>
-        SwaggerUIBundle({
-            url: '/docs/api/openapi.yaml',
-            dom_id: '#swagger-ui',
-            deepLinking: true,
-            presets: [SwaggerUIBundle.presets.apis],
-            layout: 'BaseLayout',
-            supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-            onComplete: function() {
-                console.log('UMIG API Documentation loaded successfully');
-            }
-        });
+      SwaggerUIBundle({
+        url: "/docs/api/openapi.yaml",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        presets: [SwaggerUIBundle.presets.apis],
+        layout: "BaseLayout",
+        supportedSubmitMethods: ["get", "post", "put", "delete", "patch"],
+        onComplete: function () {
+          console.log("UMIG API Documentation loaded successfully");
+        },
+      });
     </script>
-</body>
+  </body>
 </html>
 ```
 
@@ -1038,7 +1058,7 @@ components:
           minimum: 0
           example: 3
         plan_count:
-          type: integer  
+          type: integer
           minimum: 0
           example: 12
 
@@ -1052,14 +1072,14 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Successful response
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Migration'
+                  $ref: "#/components/schemas/Migration"
 ```
 
 ### Documentation Validation Automation Pattern
@@ -1070,53 +1090,57 @@ paths:
 ```javascript
 // Documentation Validation Automation (validate-documentation.js - 416 lines)
 class DocumentationValidator {
-    constructor() {
-        this.spec = null;
-        this.codeEndpoints = new Map();
-        this.validationErrors = [];
-    }
+  constructor() {
+    this.spec = null;
+    this.codeEndpoints = new Map();
+    this.validationErrors = [];
+  }
 
-    async validateComplete() {
-        // Load OpenAPI specification
-        this.spec = await this.loadOpenAPISpec();
-        
-        // Scan codebase for endpoints
-        await this.scanCodeForEndpoints();
-        
-        // Cross-reference documentation with implementation
-        this.validateSpecToCodeAlignment();
-        
-        // Generate validation report
-        return this.generateReport();
-    }
+  async validateComplete() {
+    // Load OpenAPI specification
+    this.spec = await this.loadOpenAPISpec();
 
-    validateSpecToCodeAlignment() {
-        // Check if all documented endpoints exist in code
-        Object.keys(this.spec.paths).forEach(path => {
-            if (!this.codeEndpoints.has(path)) {
-                this.validationErrors.push(`Documented endpoint ${path} not found in code`);
-            }
-        });
+    // Scan codebase for endpoints
+    await this.scanCodeForEndpoints();
 
-        // Check if all code endpoints are documented
-        this.codeEndpoints.forEach((endpoint, path) => {
-            if (!this.spec.paths[path]) {
-                this.validationErrors.push(`Code endpoint ${path} not documented in OpenAPI spec`);
-            }
-        });
-    }
+    // Cross-reference documentation with implementation
+    this.validateSpecToCodeAlignment();
 
-    generateReport() {
-        const coverage = this.calculateCoverage();
-        return {
-            totalEndpoints: this.codeEndpoints.size,
-            documentedEndpoints: Object.keys(this.spec.paths).length,
-            coverage: coverage.percentage,
-            errors: this.validationErrors,
-            warnings: this.validationWarnings,
-            status: this.validationErrors.length === 0 ? 'PASS' : 'FAIL'
-        };
-    }
+    // Generate validation report
+    return this.generateReport();
+  }
+
+  validateSpecToCodeAlignment() {
+    // Check if all documented endpoints exist in code
+    Object.keys(this.spec.paths).forEach((path) => {
+      if (!this.codeEndpoints.has(path)) {
+        this.validationErrors.push(
+          `Documented endpoint ${path} not found in code`,
+        );
+      }
+    });
+
+    // Check if all code endpoints are documented
+    this.codeEndpoints.forEach((endpoint, path) => {
+      if (!this.spec.paths[path]) {
+        this.validationErrors.push(
+          `Code endpoint ${path} not documented in OpenAPI spec`,
+        );
+      }
+    });
+  }
+
+  generateReport() {
+    const coverage = this.calculateCoverage();
+    return {
+      totalEndpoints: this.codeEndpoints.size,
+      documentedEndpoints: Object.keys(this.spec.paths).length,
+      coverage: coverage.percentage,
+      errors: this.validationErrors,
+      warnings: this.validationWarnings,
+      status: this.validationErrors.length === 0 ? "PASS" : "FAIL",
+    };
+  }
 }
 ```
 
@@ -1131,18 +1155,21 @@ class DocumentationValidator {
 # UAT Integration Guide Pattern (570 lines)
 
 ## Authentication Setup
+
 1. Access Confluence at http://localhost:8090
 2. Login with credentials: admin/Spaceop!13
 3. Navigate to UMIG Admin GUI page
 
 ## Endpoint Testing Procedures
+
 ### Migration Management Testing
+
 1. **Create Migration Test**
    - Method: POST /rest/scriptrunner/latest/custom/migrations
    - Payload: {"mig_name": "UAT Test Migration", "mig_status": "PLANNING"}
    - Expected: 201 Created response with UUID
 
-2. **Read Migration Test**  
+2. **Read Migration Test**
    - Method: GET /rest/scriptrunner/latest/custom/migrations
    - Expected: Array including created migration
 
@@ -1155,13 +1182,15 @@ class DocumentationValidator {
    - Expected: 204 No Content
 
 ## Performance Benchmarking
+
 - All endpoints must respond within <500ms for typical requests
 - Bulk operations must complete within <3s for up to 100 records
 - UI loading must complete within <2s across all admin screens
 
-## Error Scenario Testing  
+## Error Scenario Testing
+
 - Test invalid UUID formats (expect 400 Bad Request)
-- Test constraint violations (expect 409 Conflict)  
+- Test constraint violations (expect 409 Conflict)
 - Test missing required fields (expect 400 Bad Request)
 ```
 
@@ -1173,55 +1202,60 @@ class DocumentationValidator {
 ```javascript
 // Performance Monitoring Implementation
 class APIPerformanceMonitor {
-    constructor() {
-        this.benchmarks = new Map();
-        this.thresholds = {
-            simple_get: 200,    // ms
-            complex_query: 500, // ms  
-            bulk_operation: 3000 // ms
-        };
-    }
+  constructor() {
+    this.benchmarks = new Map();
+    this.thresholds = {
+      simple_get: 200, // ms
+      complex_query: 500, // ms
+      bulk_operation: 3000, // ms
+    };
+  }
 
-    async benchmarkEndpoint(endpoint, method, payload = null) {
-        const startTime = performance.now();
-        
-        try {
-            const response = await fetch(endpoint, {
-                method: method,
-                body: payload ? JSON.stringify(payload) : null,
-                headers: { 'Content-Type': 'application/json' }
-            });
-            
-            const endTime = performance.now();
-            const duration = endTime - startTime;
-            
-            this.recordBenchmark(endpoint, method, duration, response.status);
-            
-            return {
-                endpoint,
-                method,
-                duration,
-                status: response.status,
-                withinThreshold: this.checkThreshold(endpoint, duration)
-            };
-        } catch (error) {
-            console.error(`Benchmark failed for ${endpoint}:`, error);
-            return { endpoint, method, error: error.message };
-        }
-    }
+  async benchmarkEndpoint(endpoint, method, payload = null) {
+    const startTime = performance.now();
 
-    generatePerformanceReport() {
-        const results = Array.from(this.benchmarks.values());
-        const averageResponseTime = results.reduce((sum, r) => sum + r.duration, 0) / results.length;
-        
-        return {
-            totalRequests: results.length,
-            averageResponseTime: Math.round(averageResponseTime),
-            thresholdViolations: results.filter(r => !r.withinThreshold).length,
-            fastestEndpoint: results.reduce((min, r) => r.duration < min.duration ? r : min),
-            slowestEndpoint: results.reduce((max, r) => r.duration > max.duration ? r : max)
-        };
+    try {
+      const response = await fetch(endpoint, {
+        method: method,
+        body: payload ? JSON.stringify(payload) : null,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      this.recordBenchmark(endpoint, method, duration, response.status);
+
+      return {
+        endpoint,
+        method,
+        duration,
+        status: response.status,
+        withinThreshold: this.checkThreshold(endpoint, duration),
+      };
+    } catch (error) {
+      console.error(`Benchmark failed for ${endpoint}:`, error);
+      return { endpoint, method, error: error.message };
     }
+  }
+
+  generatePerformanceReport() {
+    const results = Array.from(this.benchmarks.values());
+    const averageResponseTime =
+      results.reduce((sum, r) => sum + r.duration, 0) / results.length;
+
+    return {
+      totalRequests: results.length,
+      averageResponseTime: Math.round(averageResponseTime),
+      thresholdViolations: results.filter((r) => !r.withinThreshold).length,
+      fastestEndpoint: results.reduce((min, r) =>
+        r.duration < min.duration ? r : min,
+      ),
+      slowestEndpoint: results.reduce((max, r) =>
+        r.duration > max.duration ? r : max,
+      ),
+    };
+  }
 }
 ```
 
@@ -1234,14 +1268,14 @@ class APIPerformanceMonitor {
 
 ```bash
 # Documentation Consolidation Methodology
-echo "=== UMIG Documentation Consolidation ===" 
+echo "=== UMIG Documentation Consolidation ==="
 
 # Phase 1: Content Analysis
 find docs/api -name "*.md" -exec wc -l {} + | sort -nr
 
 # Phase 2: Thematic Grouping
 # - Core API specifications → openapi.yaml
-# - Integration guides → uat-integration-guide.md  
+# - Integration guides → uat-integration-guide.md
 # - Performance benchmarks → performance-guide.md
 # - Error handling → error-handling-guide.md
 
@@ -1257,6 +1291,7 @@ node docs/api/validate-documentation.js
 ### API Documentation Benefits Summary
 
 **Technical Achievements**:
+
 - **Coverage Completeness**: 100% of all REST endpoints documented
 - **Interactive Testing**: Live API explorer with authentication support
 - **Validation Automation**: Real-time synchronization ensuring accuracy
@@ -1264,6 +1299,7 @@ node docs/api/validate-documentation.js
 - **UAT Enablement**: Independent testing capabilities without developer support
 
 **Quality Metrics**:
+
 - **Documentation Size**: 4,314 lines across 8 deliverables
 - **Validation Accuracy**: 416-line validation script with 100% coverage verification
 - **Response Time**: Documentation load time <2s consistently achieved
@@ -1271,6 +1307,7 @@ node docs/api/validate-documentation.js
 - **User Experience**: Interactive documentation reduces learning curve by 60%
 
 **Strategic Impact**:
+
 - **UAT Readiness**: 100% autonomous testing capability achieved
 - **Developer Experience**: Self-service API exploration and testing
 - **Knowledge Transfer**: Complete technical specifications prevent knowledge loss
@@ -2451,24 +2488,36 @@ class AdminGuiAllEndpointsTest {
 ```javascript
 // Comprehensive Entity Configuration Pattern
 const EntityConfig = {
-    migrations: {
-        apiEndpoint: '/rest/scriptrunner/latest/custom/migrations',
-        displayName: 'Migrations',
-        fields: [
-            { key: 'mig_name', label: 'Migration Name', sortable: true },
-            { key: 'mig_status', label: 'Status', sortable: true, renderer: 'statusBadge' },
-            { key: 'iteration_count', label: 'Iterations', sortable: true, renderer: 'count' },
-            { key: 'plan_count', label: 'Plans', sortable: true, renderer: 'count' }
-        ],
-        customRenderers: {
-            statusBadge: (value, row) => `<span class="badge badge-${getStatusClass(value)}">${value}</span>`,
-            count: (value, row) => `<span class="badge badge-info">${value || 0}</span>`
-        },
-        bulkActions: ['export', 'delete'],
-        navigation: { section: 'migrations', route: '/admin/migrations' },
-        sorting: { default: 'mig_name', direction: 'asc' }
-    }
-    // ... configuration for all 13 entities
+  migrations: {
+    apiEndpoint: "/rest/scriptrunner/latest/custom/migrations",
+    displayName: "Migrations",
+    fields: [
+      { key: "mig_name", label: "Migration Name", sortable: true },
+      {
+        key: "mig_status",
+        label: "Status",
+        sortable: true,
+        renderer: "statusBadge",
+      },
+      {
+        key: "iteration_count",
+        label: "Iterations",
+        sortable: true,
+        renderer: "count",
+      },
+      { key: "plan_count", label: "Plans", sortable: true, renderer: "count" },
+    ],
+    customRenderers: {
+      statusBadge: (value, row) =>
+        `<span class="badge badge-${getStatusClass(value)}">${value}</span>`,
+      count: (value, row) =>
+        `<span class="badge badge-info">${value || 0}</span>`,
+    },
+    bulkActions: ["export", "delete"],
+    navigation: { section: "migrations", route: "/admin/migrations" },
+    sorting: { default: "mig_name", direction: "asc" },
+  },
+  // ... configuration for all 13 entities
 };
 ```
 
@@ -2480,31 +2529,33 @@ const EntityConfig = {
 ```javascript
 // Cross-Module Synchronization Implementation
 class AdminGuiState {
-    constructor() {
-        this.entityData = new Map();
-        this.subscribers = new Map();
+  constructor() {
+    this.entityData = new Map();
+    this.subscribers = new Map();
+  }
+
+  updateEntity(entityType, entityId, updatedData) {
+    // Update local state
+    const entities = this.entityData.get(entityType) || [];
+    const index = entities.findIndex((e) => e.id === entityId);
+
+    if (index >= 0) {
+      entities[index] = { ...entities[index], ...updatedData };
     }
 
-    updateEntity(entityType, entityId, updatedData) {
-        // Update local state
-        const entities = this.entityData.get(entityType) || [];
-        const index = entities.findIndex(e => e.id === entityId);
-        
-        if (index >= 0) {
-            entities[index] = { ...entities[index], ...updatedData };
-        }
-        
-        // Notify all subscribers
-        const subscribers = this.subscribers.get(entityType) || [];
-        subscribers.forEach(callback => callback(updatedData, entityType, entityId));
-    }
+    // Notify all subscribers
+    const subscribers = this.subscribers.get(entityType) || [];
+    subscribers.forEach((callback) =>
+      callback(updatedData, entityType, entityId),
+    );
+  }
 
-    subscribeToEntityUpdates(entityType, callback) {
-        if (!this.subscribers.has(entityType)) {
-            this.subscribers.set(entityType, []);
-        }
-        this.subscribers.get(entityType).push(callback);
+  subscribeToEntityUpdates(entityType, callback) {
+    if (!this.subscribers.has(entityType)) {
+      this.subscribers.set(entityType, []);
     }
+    this.subscribers.get(entityType).push(callback);
+  }
 }
 ```
 
@@ -2520,7 +2571,7 @@ class AdminGuiState {
 class AdminGuiAllEndpointsTest extends GroovyTestCase {
     static final Map<String, String> ENDPOINT_MAPPINGS = [
         'users': 'UsersApi.groovy',
-        'teams': 'TeamsApi.groovy', 
+        'teams': 'TeamsApi.groovy',
         'environments': 'EnvironmentsApi.groovy',
         'applications': 'ApplicationsApi.groovy',
         'labels': 'LabelsApi.groovy',
@@ -2554,7 +2605,7 @@ class AdminGuiAllEndpointsTest extends GroovyTestCase {
 // PostgreSQL Type Casting Excellence Pattern
 @CompileStatic
 class DatabaseTypeHandler {
-    
+
     static Map<String, Object> castParametersForPostgreSQL(Map<String, Object> params) {
         return params.collectEntries { key, value ->
             switch(key) {
@@ -2572,13 +2623,13 @@ class DatabaseTypeHandler {
             }
         }
     }
-    
+
     static List<Map<String, Object>> enrichQueryResults(List<Map<String, Object>> rawResults) {
         return rawResults.collect { row ->
             Map<String, Object> enrichedRow = [:]
             row.each { key, value ->
                 // Handle PostgreSQL-specific type conversions
-                enrichedRow[key] = value instanceof java.sql.Timestamp ? 
+                enrichedRow[key] = value instanceof java.sql.Timestamp ?
                     new Date(((java.sql.Timestamp)value).time) : value
             }
             return enrichedRow
@@ -2600,9 +2651,9 @@ class DatabaseTypeHandler {
 status(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, Map binding ->
     try {
         String entityType = queryParams.getFirst('entityType') as String
-        
+
         List<Map<String, Object>> statuses = EntityStatusRepository.findByEntityType(entityType)
-        
+
         // Transform for dropdown consumption
         List<Map<String, String>> dropdownOptions = statuses.collect { status ->
             [
@@ -2612,7 +2663,7 @@ status(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
                 type: status.sts_category as String
             ]
         }
-        
+
         return Response.ok(new JsonBuilder(dropdownOptions).toString()).build()
     } catch (Exception e) {
         log.error("Status API error: ${e.message}", e)
@@ -2624,6 +2675,7 @@ status(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
 ### Admin GUI Pattern Benefits Summary
 
 **Technical Excellence**:
+
 - **Integration Completeness**: 85% endpoint functionality (11/13 operational)
 - **Type Safety**: 100% elimination of database type casting errors
 - **Configuration Management**: Unified EntityConfig approach reducing code duplication by 60%
@@ -2631,12 +2683,14 @@ status(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPa
 - **Testing Coverage**: Comprehensive validation framework for endpoint registration
 
 **Operational Impact**:
+
 - **Development Velocity**: 40% reduction in entity implementation time through pattern reuse
 - **Error Prevention**: Systematic type handling prevents runtime database errors
 - **User Experience**: Consistent interface across all entity management screens
 - **Maintenance Efficiency**: Centralized configuration reduces update complexity
 
 **MVP Readiness**:
+
 - **Authentication Resolution**: Framework established for ScriptRunner authentication investigation
 - **Manual Registration**: Clear procedures for remaining 2 endpoints (phases, controls)
 - **Quality Assurance**: AdminGuiAllEndpointsTest provides ongoing validation
