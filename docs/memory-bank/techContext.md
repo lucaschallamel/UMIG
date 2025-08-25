@@ -1,9 +1,10 @@
 # Technology Context
 
-**Last Updated**: 22 August 2025, 18:30 GMT  
+**Last Updated**: 25 August 2025, updated for comprehensive API enhancements and documentation consolidation  
 **Current Platform**: Confluence 9.2.7 + ScriptRunner 9.21.0  
-**Sprint 5 Achievement**: US-022, US-030, US-036 100% COMPLETE; US-031 Day 2/3 complete with authentication blocker identified  
-**Critical Issue**: HTTP 401 authentication failure affecting all ScriptRunner REST endpoints - investigation ongoing
+**Sprint 5 Achievement**: US-022, US-030, US-036 100% COMPLETE; US-031 enhanced with NEW APIs (Iterations, Status), documentation consolidation  
+**API Expansion**: IterationsApi + StatusApi added with master/instance support and centralized status management  
+**Critical Issue**: HTTP 401 authentication failure - under systematic investigation with comprehensive troubleshooting framework
 
 ## 1. Approved Core Technologies
 
@@ -48,6 +49,11 @@
 - **Modular JavaScript:** 8-module architecture (EntityConfig, UiUtils, AdminGuiState, ApiClient, AuthenticationManager, TableManager, ModalManager, AdminGuiController).
 - **Error Handling:** SQL state mapping with detailed error messages (23503→400, 23505→409).
 - **Type Safety:** Robust Groovy patterns with explicit casting for UUID and Integer parameters (ADR-031).
+- **Admin GUI Compatibility:** Parameterless API call pattern supporting both filtered and unfiltered access modes.
+- **PostgreSQL JDBC Type Casting:** Standardized type casting patterns for ScriptRunner compatibility (ADR-043).
+- **Repository Access Patterns:** Systematic patterns for ScriptRunner repository access with proper error handling (ADR-044).
+- **Layer Separation Anti-Patterns:** Documented approaches to avoid architectural violations (ADR-047).
+- **Documentation Consolidation:** Strategic consolidation patterns reducing complexity while improving accessibility.
 - **Documentation:** All 33 ADRs consolidated into solution-architecture.md as single source of truth.
 - **Association Management:** Dedicated API endpoints for managing many-to-many relationships with UI integration.
 - **Dynamic UI Updates:** Event-driven updates with onchange handlers for cascading selections.

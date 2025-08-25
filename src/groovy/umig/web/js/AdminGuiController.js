@@ -904,14 +904,37 @@
      */
     buildSearchParams: function () {
       const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
+      const currentEntity = state.currentEntity || "users";
+
+      // Get entity configuration to check for defaultSort
+      const entity = window.EntityConfig
+        ? window.EntityConfig.getEntity(currentEntity)
+        : null;
+
+      // Apply defaultSort if no current sort is set
+      let sortField = state.sortField || "";
+      let sortDirection = state.sortDirection || "asc";
+
+      if (!sortField && entity && entity.defaultSort) {
+        sortField = entity.defaultSort.field;
+        sortDirection = entity.defaultSort.direction || "asc";
+
+        // Update the state with defaultSort to maintain consistency
+        if (window.AdminGuiState) {
+          window.AdminGuiState.updateState({
+            sortField: sortField,
+            sortDirection: sortDirection,
+          });
+        }
+      }
 
       // API expects 'size' not 'pageSize', and 'sort'/'direction' not 'sortField'/'sortDirection'
       return {
         page: state.currentPage || 1,
         size: state.pageSize || 50, // Changed from pageSize to size
         search: state.searchTerm || "",
-        sort: state.sortField || "", // Changed from sortField to sort
-        direction: state.sortDirection || "asc",
+        sort: sortField, // Changed from sortField to sort
+        direction: sortDirection,
         ...state.filters,
       };
     },

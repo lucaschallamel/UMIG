@@ -13,8 +13,8 @@
 
 ## 2. Endpoints
 
-| Method | Path                                   | Description                                         |
-| ------ | -------------------------------------- | --------------------------------------------------- |
+| Method | Path                            | Description                                         |
+| ------ | ------------------------------- | --------------------------------------------------- |
 | GET    | /sequences/master               | List all master sequence templates                  |
 | POST   | /sequences/master               | Create new master sequence template                 |
 | GET    | /sequences/master/{id}          | Get specific master sequence template               |

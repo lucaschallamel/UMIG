@@ -112,8 +112,10 @@
       }
 
       try {
-        // Use the entityType with proper capitalization for API call
-        const response = await fetch(`${this.baseUrl}/statuses/${entityType}`);
+        // Use the unified status API with entityType parameter
+        const response = await fetch(
+          `${this.baseUrl}/status?entityType=${entityType}`,
+        );
 
         if (!response.ok) {
           console.warn(

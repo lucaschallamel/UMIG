@@ -88,6 +88,128 @@ describe("Users Generator (03_generate_users.js)", () => {
     );
   });
 
+  it("should always create ADM superadmin user with correct attributes", async () => {
+    // Arrange
+    const mockRoles = [
+      { rls_id: "admin-id", rls_code: "ADMIN" },
+      { rls_id: "pilot-id", rls_code: "PILOT" },
+      { rls_id: "normal-id", rls_code: "NORMAL" },
+    ];
+    const mockTeams = [{ tms_id: "it-cutover-id", tms_name: "IT_CUTOVER" }];
+
+    let admUserParams = null;
+
+    client.query.mockImplementation((sql, params) => {
+      if (sql.startsWith("SELECT rls_id, rls_code FROM roles_rls")) {
+        return Promise.resolve({ rows: mockRoles });
+      }
+      if (/INSERT INTO users_usr/i.test(sql)) {
+        // Capture ADM user creation parameters
+        if (params && params[0] === "ADM") {
+          admUserParams = params;
+        }
+        return Promise.resolve({ rows: [{ usr_id: "mock-id" }] });
+      }
+      if (sql.startsWith("SELECT u.usr_id, r.rls_code")) {
+        return Promise.resolve({ rows: [] });
+      }
+      if (sql.startsWith("SELECT tms_id, tms_name FROM teams_tms")) {
+        return Promise.resolve({ rows: mockTeams });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
+    // Act
+    await generateUsers(CONFIG, {});
+
+    // Assert
+    expect(admUserParams).not.toBeNull();
+    expect(admUserParams[0]).toBe("ADM"); // usr_code
+    expect(admUserParams[1]).toBe("System"); // usr_first_name
+    expect(admUserParams[2]).toBe("Administrator"); // usr_last_name
+    expect(admUserParams[3]).toBe("admin@system.local"); // usr_email
+    expect(admUserParams[4]).toBe(true); // usr_is_admin
+    expect(admUserParams[5]).toBe("admin-id"); // rls_id (ADMIN role)
+    expect(admUserParams[6]).toBe(true); // usr_active
+    expect(admUserParams[7]).toBe("generator"); // created_by
+    expect(admUserParams[9]).toBe("generator"); // updated_by
+
+    // Verify ADM user is created with ON CONFLICT handling
+    const admInsertCall = client.query.mock.calls.find(
+      (call) =>
+        call[0].includes("INSERT INTO users_usr") &&
+        call[0].includes("ON CONFLICT (usr_code)") &&
+        call[1] &&
+        call[1][0] === "ADM",
+    );
+    expect(admInsertCall).toBeDefined();
+  });
+
+  it("should create ADM user even when no ADMIN users are configured", async () => {
+    // Arrange
+    const configWithoutAdmin = {
+      USERS: {
+        NORMAL: { COUNT: 2 },
+        PILOT: { COUNT: 1 },
+      },
+    };
+
+    const mockRoles = [
+      { rls_id: "admin-id", rls_code: "ADMIN" },
+      { rls_id: "pilot-id", rls_code: "PILOT" },
+      { rls_id: "normal-id", rls_code: "NORMAL" },
+    ];
+
+    let admUserCreated = false;
+
+    client.query.mockImplementation((sql, params) => {
+      if (sql.startsWith("SELECT rls_id, rls_code FROM roles_rls")) {
+        return Promise.resolve({ rows: mockRoles });
+      }
+      if (/INSERT INTO users_usr/i.test(sql)) {
+        if (params && params[0] === "ADM") {
+          admUserCreated = true;
+        }
+        return Promise.resolve({ rows: [{ usr_id: "mock-id" }] });
+      }
+      if (sql.startsWith("SELECT u.usr_id, r.rls_code")) {
+        return Promise.resolve({ rows: [] });
+      }
+      if (sql.startsWith("SELECT tms_id, tms_name FROM teams_tms")) {
+        return Promise.resolve({
+          rows: [{ tms_id: "it-cutover-id", tms_name: "IT_CUTOVER" }],
+        });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
+    // Act
+    await generateUsers(configWithoutAdmin, {});
+
+    // Assert
+    expect(admUserCreated).toBe(true);
+  });
+
+  it("should throw error when ADMIN role is missing from database", async () => {
+    // Arrange
+    const mockRolesWithoutAdmin = [
+      { rls_id: "pilot-id", rls_code: "PILOT" },
+      { rls_id: "normal-id", rls_code: "NORMAL" },
+    ];
+
+    client.query.mockImplementation((sql) => {
+      if (sql.startsWith("SELECT rls_id, rls_code FROM roles_rls")) {
+        return Promise.resolve({ rows: mockRolesWithoutAdmin });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
+    // Act & Assert
+    await expect(generateUsers(CONFIG, {})).rejects.toThrow(
+      "ADMIN role not found - required for ADM user creation",
+    );
+  });
+
   it("should generate users and link them correctly", async () => {
     // Arrange
     const mockRoles = [

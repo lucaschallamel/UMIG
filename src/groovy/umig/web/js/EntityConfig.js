@@ -60,9 +60,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -95,6 +107,7 @@
           placeholder: "All Teams",
         },
       ],
+      defaultSort: { field: "usr_last_name", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -149,6 +162,7 @@
         member_count: "member_count",
         app_count: "app_count",
       },
+      defaultSort: { field: "tms_name", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -205,6 +219,7 @@
         iteration_count: "iteration_count",
       },
       filters: [],
+      defaultSort: { field: "env_code", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -297,6 +312,7 @@
           return `<span class="aui-label" style="background-color: ${value}; color: ${window.UiUtils ? window.UiUtils.getContrastColor(value) : "#000000"};">${value}</span>`;
         },
       },
+      defaultSort: { field: "lbl_name", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -362,6 +378,7 @@
         label_count: "label_count",
       },
       filters: [],
+      defaultSort: { field: "app_code", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -379,17 +396,22 @@
         {
           key: "itt_code",
           label: "Iteration Code",
-          type: "text",
-          readonly: true,
+          type: "select",
+          required: true,
+          entityType: "iterationTypes",
+          displayField: "itt_name",
+          valueField: "itt_code",
         },
         {
           key: "ite_status",
           label: "Status",
           type: "select",
-          entityType: "status",
-          entityTypeFilter: "Iteration",
-          displayField: "name",
-          valueField: "id",
+          options: [
+            { value: "PLANNING", label: "Planning" },
+            { value: "IN_PROGRESS", label: "In Progress" },
+            { value: "COMPLETED", label: "Completed" },
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         {
           key: "mig_id",
@@ -401,8 +423,24 @@
           valueField: "mig_id",
         },
         {
+          key: "plm_id",
+          label: "Master Plan",
+          type: "select",
+          required: false,
+          entityType: "plans",
+          displayField: "plm_name",
+          valueField: "plm_id",
+        },
+        {
           key: "migration_name",
           label: "Migration",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "master_plan_name",
+          label: "Master Plan Name",
           type: "text",
           readonly: true,
           computed: true,
@@ -439,19 +477,28 @@
         "itt_code",
         "ite_status",
         "mig_id",
+        "plm_id",
         "migration_name",
+        "master_plan_name",
         "created_at",
         "created_by",
         "updated_at",
         "updated_by",
       ],
-      tableColumns: ["ite_name", "itt_code", "ite_status", "migration_name"],
+      tableColumns: [
+        "ite_name",
+        "migration_name",
+        "master_plan_name",
+        "itt_code",
+        "ite_status",
+      ],
       sortMapping: {
         ite_id: "ite_id",
         ite_name: "ite_name",
         itt_code: "itt_code",
         ite_status: "ite_status",
         migration_name: "migration_name",
+        master_plan_name: "master_plan_name",
         mig_id: "mig_id",
         created_at: "created_at",
         created_by: "created_by",
@@ -469,6 +516,7 @@
           placeholder: "All Migrations",
         },
       ],
+      defaultSort: { field: "migration_name", direction: "asc" },
       customRenderers: {
         // Clickable ID pattern
         ite_id: function (value, row) {
@@ -574,6 +622,22 @@
           }
           return "-";
         },
+        // Master Plan name renderer
+        master_plan_name: function (value, row) {
+          if (value && value.trim()) {
+            return `<span title="${value}">${value}</span>`;
+          }
+          if (row && row.master_plan_name && row.master_plan_name.trim()) {
+            return `<span title="${row.master_plan_name}">${row.master_plan_name}</span>`;
+          }
+          if (row && row.plm_name && row.plm_name.trim()) {
+            return `<span title="${row.plm_name}">${row.plm_name}</span>`;
+          }
+          if (row && row.plm_id) {
+            return `<span style="color: #666; font-style: italic;" title="Plan ID: ${row.plm_id}">Plan ${row.plm_id.substring(0, 8)}...</span>`;
+          }
+          return "-";
+        },
       },
       permissions: ["pilot"],
     },
@@ -614,6 +678,18 @@
           ],
         },
         {
+          key: "mig_type",
+          label: "Migration Type",
+          type: "select",
+          required: true,
+          options: [
+            { value: "EXTERNAL", label: "External Acquisition" },
+            { value: "INTERNAL", label: "Internal data migration" },
+            { value: "MAINTENANCE", label: "Maintenance" },
+            { value: "ROLLBACK", label: "Rollback" },
+          ],
+        },
+        {
           key: "iteration_count",
           label: "Iterations",
           type: "number",
@@ -634,14 +710,27 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
           readonly: true,
         },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
       ],
       tableColumns: [
         "mig_name",
+        "mig_type",
         "mig_start_date",
         "mig_end_date",
         "mig_status",
@@ -651,6 +740,7 @@
       sortMapping: {
         mig_id: "mig_id",
         mig_name: "mig_name",
+        mig_type: "mig_type",
         mig_start_date: "mig_start_date",
         mig_end_date: "mig_end_date",
         mig_status: "mig_status",
@@ -730,16 +820,33 @@
           // Otherwise, create badge with data attributes for async color application
           return `<span class="status-badge" data-status="${statusName}" data-entity-type="Migration" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
         },
+        mig_type: function (value, row) {
+          // Map migration type values to user-friendly labels
+          const typeLabels = {
+            EXTERNAL: "External Acquisition",
+            INTERNAL: "Internal data migration",
+            MAINTENANCE: "Maintenance",
+            ROLLBACK: "Rollback",
+          };
+
+          const displayLabel = typeLabels[value] || value || "Unknown";
+
+          // Return styled badge for migration type
+          return `<span class="migration-type-badge" style="background-color: #f4f4f4; color: #333; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; display: inline-block; border: 1px solid #ddd;">${displayLabel}</span>`;
+        },
       },
       modalFields: [
         "mig_id",
         "mig_name",
         "mig_description",
+        "mig_type",
         "mig_start_date",
         "mig_end_date",
         "mig_status",
         "created_at",
+        "created_by",
         "updated_at",
+        "updated_by",
       ],
       permissions: ["admin"],
       bulkActions: [
@@ -763,6 +870,7 @@
           requiresInput: false,
         },
       ],
+      defaultSort: { field: "mig_name", direction: "asc" },
     },
 
     plans: {
@@ -821,9 +929,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -904,8 +1024,11 @@
         "tms_id",
         "plm_status",
         "created_at",
+        "created_by",
         "updated_at",
+        "updated_by",
       ],
+      defaultSort: { field: "plm_name", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -1304,6 +1427,7 @@
         enableExport: false,
         enableRowSelection: false,
       },
+      defaultSort: { field: "sqm_name", direction: "asc" },
     },
 
     sequences: {
@@ -1494,6 +1618,7 @@
         enableExport: false,
         enableRowSelection: false,
       },
+      defaultSort: { field: "sqm_name", direction: "asc" },
     },
 
     phasesmaster: {
@@ -1547,9 +1672,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -1613,7 +1750,9 @@
         "sqm_id",
         "phm_order",
         "created_at",
+        "created_by",
         "updated_at",
+        "updated_by",
       ],
       permissions: ["superadmin"],
       // Feature flags to disable bulk operations
@@ -1622,6 +1761,7 @@
         enableExport: false,
         enableRowSelection: false,
       },
+      defaultSort: { field: "phm_name", direction: "asc" },
     },
 
     phases: {
@@ -1665,9 +1805,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -1740,8 +1892,11 @@
         "phm_description",
         "phm_status",
         "created_at",
+        "created_by",
         "updated_at",
+        "updated_by",
       ],
+      defaultSort: { field: "phm_name", direction: "asc" },
       permissions: ["superadmin"],
     },
     steps: {
@@ -1785,9 +1940,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -1867,6 +2034,7 @@
         enableExport: false,
         enableRowSelection: false,
       },
+      defaultSort: { field: "stm_name", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -1922,9 +2090,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -2004,6 +2184,7 @@
         enableExport: false,
         enableRowSelection: false,
       },
+      defaultSort: { field: "ins_order", direction: "asc" },
       permissions: ["superadmin"],
     },
 
@@ -2145,17 +2326,6 @@
         },
         { key: "stm_name", label: "Step Name", type: "text", required: true },
         { key: "stm_description", label: "Description", type: "textarea" },
-        {
-          key: "stm_status",
-          label: "Status",
-          type: "select",
-          options: [
-            { value: "PLANNING", label: "Planning" },
-            { value: "IN_PROGRESS", label: "In Progress" },
-            { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" },
-          ],
-        },
         { key: "stm_order", label: "Order", type: "number", required: true },
         {
           key: "phm_id",
@@ -2169,6 +2339,20 @@
         {
           key: "phm_name",
           label: "Phase",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "sqm_name",
+          label: "Sequence",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "plm_name",
+          label: "Plan",
           type: "text",
           readonly: true,
           computed: true,
@@ -2194,22 +2378,82 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
           readonly: true,
         },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
+        // Additional fields for VIEW modal display
+        {
+          key: "team_name",
+          label: "Owning Team",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "step_code",
+          label: "Step Code",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "stm_duration_minutes",
+          label: "Duration (mins)",
+          type: "number",
+          readonly: true,
+        },
+        {
+          key: "environment_role_name",
+          label: "Environment Role",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "predecessor_name",
+          label: "Predecessor Step",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
+        {
+          key: "predecessor_code",
+          label: "Predecessor Code",
+          type: "text",
+          readonly: true,
+          computed: true,
+        },
       ],
       tableColumns: [
         "stm_name",
-        "stm_status",
+        "plm_name",
+        "sqm_name",
+        "phm_name",
+        "stm_order",
         "instruction_count",
         "instance_count",
       ],
       sortMapping: {
         stm_id: "stm_id",
         stm_name: "stm_name",
-        stm_status: "stm_status",
+        plm_name: "plm_name",
+        sqm_name: "sqm_name",
+        phm_name: "phm_name",
+        stm_order: "stm_order",
         instruction_count: "instruction_count",
         instance_count: "instance_count",
         created_at: "created_at",
@@ -2230,11 +2474,21 @@
         "stm_id",
         "stm_name",
         "stm_description",
-        "phm_id",
+        "step_code", // NEW: User-friendly step code (XXX-nnnn format)
+        "phm_id", // Keep for EDIT mode
+        "phm_name", // Add for VIEW display - Phase name
+        "sqm_name", // Add for VIEW display - Sequence name
+        "plm_name", // Add for VIEW display - Plan name
         "stm_order",
-        "stm_status",
+        "team_name", // NEW: Owning team name
+        "stm_duration_minutes", // NEW: Duration in minutes
+        "environment_role_name", // NEW: Environment role name
+        "predecessor_name", // NEW: Predecessor step name
+        "predecessor_code", // NEW: Predecessor step code
         "created_at",
+        "created_by",
         "updated_at",
+        "updated_by",
       ],
       permissions: ["superadmin"],
       customRenderers: {
@@ -2245,75 +2499,32 @@
                     style="color: #205081; text-decoration: none; cursor: pointer;" 
                     title="View step details">${value}</a>`;
         },
-        // Status with color pattern
-        stm_status: function (value, row) {
-          // Handle both status objects and string values
-          let statusName, statusColor;
-
-          console.log(
-            "stm_status renderer called with value:",
-            value,
-            "row:",
-            row,
-          );
-
-          // First check if statusMetadata is available in row AND has valid name
-          if (row && row.statusMetadata && row.statusMetadata.name) {
-            statusName = row.statusMetadata.name;
-            statusColor = row.statusMetadata.color;
+        // Plan name renderer
+        plm_name: function (value, row) {
+          if (!value && !row.plm_name) return "-";
+          const planName = value || row.plm_name || "-";
+          return `<span title="${planName}">${planName}</span>`;
+        },
+        // Sequence name renderer
+        sqm_name: function (value, row) {
+          if (!value && !row.sqm_name) return "-";
+          const sequenceName = value || row.sqm_name || "-";
+          return `<span title="${sequenceName}">${sequenceName}</span>`;
+        },
+        // Phase name renderer
+        phm_name: function (value, row) {
+          if (!value && !row.phm_name) return "-";
+          const phaseName = value || row.phm_name || "-";
+          return `<span title="${phaseName}">${phaseName}</span>`;
+        },
+        // Order renderer
+        stm_order: function (value, row) {
+          if (value === null || value === undefined) {
+            // Try to get from row if not in value
+            value = row.stm_order;
           }
-          // Check if value is the status string directly
-          else if (typeof value === "string") {
-            statusName = value;
-            // Check if we have statusMetadata in row for color
-            if (
-              row &&
-              row.statusMetadata &&
-              row.statusMetadata.name === value
-            ) {
-              statusColor = row.statusMetadata.color;
-            }
-          }
-          // Legacy handling for object status values
-          else if (typeof value === "object" && value !== null) {
-            statusName = value.sts_name || value.name;
-            statusColor = value.sts_color || value.color;
-          }
-          // Check for legacy status fields in row
-          else if (row && row.sts_name) {
-            statusName = row.sts_name;
-            statusColor = row.sts_color;
-          } else {
-            // Fallback
-            statusName = value || "Unknown";
-            statusColor = null;
-          }
-
-          console.log(
-            "Using statusName:",
-            statusName,
-            "statusColor:",
-            statusColor,
-          );
-
-          // Convert status name to display format
-          const displayName = statusName
-            ? statusName
-                .replace(/_/g, " ")
-                .toLowerCase()
-                .replace(/\b\w/g, (l) => l.toUpperCase())
-            : "Unknown";
-
-          // If we have a color, use it directly
-          if (statusColor) {
-            const textColor = window.UiUtils
-              ? window.UiUtils.getContrastingTextColor(statusColor)
-              : "#ffffff";
-            return `<span class="status-badge" data-status="${statusName}" data-entity-type="StepMaster" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
-          }
-
-          // Otherwise, create badge with data attributes for async color application
-          return `<span class="status-badge" data-status="${statusName}" data-entity-type="StepMaster" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
+          if (value === null || value === undefined) return "-";
+          return `<span style="font-weight: 600;">${value}</span>`;
         },
       },
       // Feature flags to disable bulk operations
@@ -2393,9 +2604,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -2580,9 +2803,21 @@
           readonly: true,
         },
         {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
           key: "updated_at",
           label: "Updated",
           type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
           readonly: true,
         },
       ],
@@ -2804,6 +3039,7 @@
       environments: "/environments",
       applications: "/applications",
       iterations: "/iterationsList",
+      iterationTypes: "/iterationTypes",
       labels: "/labels",
       migrations: "/migrations",
       plans: "/plans/master", // Master plans endpoint

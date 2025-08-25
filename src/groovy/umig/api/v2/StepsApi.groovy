@@ -26,6 +26,7 @@ import java.sql.SQLException
  * Handles GET requests for Steps with hierarchical filtering for the runsheet.
  * - GET /steps -> returns all steps (not recommended for production)
  * - GET /steps/master -> returns all master steps for dropdowns
+ * - GET /steps/master/{id} -> returns specific master step by ID
  * - GET /steps?migrationId={uuid} -> returns steps in a migration
  * - GET /steps?iterationId={uuid} -> returns steps in an iteration
  * - GET /steps?planId={uuid} -> returns steps in a plan
@@ -99,9 +100,9 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         
         if (qParams.getFirst("labelId")) {
             try {
-                filters.labelId = UUID.fromString(qParams.getFirst("labelId") as String)
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid labelId format: must be a valid UUID")
+                filters.labelId = Integer.parseInt(qParams.getFirst("labelId") as String)
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid labelId format: must be a valid integer")
             }
         }
         
@@ -277,6 +278,32 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
         }
     }
     
+    // GET /steps/master/{id} - return specific master step
+    if (pathParts.size() == 2 && pathParts[0] == 'master') {
+        try {
+            def stepId = UUID.fromString(pathParts[1])
+            StepRepository stepRepository = getStepRepository()
+            def masterStep = stepRepository.findMasterStepById(stepId)
+            
+            if (!masterStep) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Master step not found for ID: ${stepId}"]).toString())
+                    .build()
+            }
+            
+            return Response.ok(new JsonBuilder(masterStep).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid step ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to retrieve master step: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
     // GET /steps/master - return master steps with Admin GUI support
     if (pathParts.size() == 1 && pathParts[0] == 'master') {
         try {
@@ -308,8 +335,8 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 }
             }
 
-            // Validate sort field
-            def allowedSortFields = ['stm_id', 'stm_name', 'stm_status', 'created_at', 'updated_at', 'instruction_count', 'instance_count']
+            // Validate sort field (removed stm_status as master steps don't have status)
+            def allowedSortFields = ['stm_id', 'stm_name', 'stm_order', 'created_at', 'updated_at', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name']
             if (sortField && !allowedSortFields.contains(sortField)) {
                 return Response.status(400)
                     .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())

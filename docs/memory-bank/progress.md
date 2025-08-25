@@ -1,10 +1,10 @@
 # Project Progress
 
-**Last Updated**: 25 August 2025, updated for fast documentation update workflow (commit 4ff3e63 analysis)  
-**Sprint 5 Status**: TECHNICAL COMPLETION - 3/8 stories 100% complete (US-022, US-030, US-036), US-031 Day 3/3 technical complete WITH AUTHENTICATION BLOCKER ISOLATED  
-**Current Focus**: US-031 authentication blocker resolution with comprehensive technical foundation established  
-**Sprint Velocity**: MVP delivery positioned for August 28, 2025 with authentication resolution pathway identified  
-**Technical Achievement**: 11/13 endpoints functional (85% completion), comprehensive test framework, production-ready code quality
+**Last Updated**: 25 August 2025, updated for comprehensive documentation consolidation and API integration enhancements  
+**Sprint 5 Status**: EXTENDED TECHNICAL COMPLETION - 3/8 stories 100% complete (US-022, US-030, US-036), US-031 enhanced with NEW APIs (Iterations, Status)  
+**Current Focus**: US-031 authentication resolution with expanded API ecosystem and documentation consolidation complete  
+**Sprint Velocity**: MVP delivery positioned for completion with comprehensive technical foundation and enhanced integration capabilities  
+**Technical Achievement**: 11/13 endpoints functional (85% completion), NEW APIs added, comprehensive test framework, production-ready code quality with documentation consolidation
 
 ## 1. What Works / Completed
 
@@ -21,7 +21,7 @@
   - Standardised database naming conventions (ADR-014) have been implemented.
   - Comprehensive synthetic data generation with 3-digit prefixed generators (001-101) covering all entities.
 - **Phase 2: Backend Development (ScriptRunner)**
-  - **Complete API Implementation:** Core REST endpoints for user, team, environment, application, label, plans, sequences, phases, instructions, controls, and **migrations** management
+  - **Complete API Implementation:** Core REST endpoints for user, team, environment, application, label, plans, sequences, phases, instructions, controls, migrations, **iterations**, and **status** management
   - **Migrations API (US-025):** Production-ready implementation completed 11 August 2025
     - **Complete REST API** with 17 endpoints including CRUD, dashboard, bulk operations, and hierarchical filtering
     - **MigrationsApi.groovy** with comprehensive error handling and type safety compliance
@@ -31,6 +31,16 @@
     - **ADR-036 Integration Testing** framework with pure Groovy implementation and zero external dependencies
     - **Critical Bug Fixes** including mig_type Integer→String conversion and GString serialization resolution
     - **Performance Achievement** with <200ms average response time and >85% test coverage
+  - **IterationsApi (US-031):** NEW API implementation completed August 2025
+    - **Complete master/instance support** with comprehensive hierarchical filtering capabilities
+    - **Type-safe operations** following Groovy 3.0.15 static type checking patterns
+    - **Status management integration** with proper entity relationship handling
+    - **Admin GUI compatibility** with parameterless call support
+  - **StatusApi (US-031):** NEW centralized status management completed August 2025
+    - **Centralized status management** across all entities with consistent type-safe operations  
+    - **Color coding support** for dynamic UI styling and status visualization
+    - **Entity-specific filtering** with comprehensive status lookup capabilities
+    - **Administrative interface integration** supporting dynamic status dropdowns
   - **Plans API (US-001):** Production-ready implementation completed 31 July 2025
     - **537-line PlansApi.groovy** with full CRUD operations for master plans and plan instances
     - **451-line PlanRepository** with 13 data access methods following established patterns

@@ -108,28 +108,45 @@ class StepRepository {
             
             def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
             
-            // Count query
+            // Count query with JOINs for hierarchy information
             def countQuery = """
                 SELECT COUNT(DISTINCT stm.stm_id) as total
                 FROM steps_master_stm stm
+                JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 ${whereClause}
             """
             def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
             
             // Validate sort field (removed stm_status as master steps don't have status)
-            def allowedSortFields = ['stm_id', 'stm_name', 'stm_number', 'stm_description', 'instruction_count', 'instance_count']
+            def allowedSortFields = ['stm_id', 'stm_name', 'stm_number', 'stm_description', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name', 'team_name', 'step_code', 'environment_role_name', 'predecessor_name']
             if (!sortField || !allowedSortFields.contains(sortField)) {
                 sortField = 'stm_name'
             }
             sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
             
-            // Data query with computed fields
+            // Data query with computed fields and hierarchy information
             def offset = (pageNumber - 1) * pageSize
             def dataQuery = """
                 SELECT DISTINCT stm.*,
+                       phm.phm_name,
+                       sqm.sqm_name,
+                       plm.plm_name,
+                       tms.tms_name as team_name,
+                       CONCAT(stm.stt_code, '-', LPAD(stm.stm_number::text, 4, '0')) as step_code,
+                       enr.enr_name as environment_role_name,
+                       pred.stm_name as predecessor_name,
+                       CONCAT(pred.stt_code, '-', LPAD(pred.stm_number::text, 4, '0')) as predecessor_code,
                        COALESCE(instruction_counts.instruction_count, 0) as instruction_count,
                        COALESCE(instance_counts.instance_count, 0) as instance_count
                 FROM steps_master_stm stm
+                JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                LEFT JOIN environment_roles_enr enr ON stm.enr_id_target = enr.enr_id
+                LEFT JOIN steps_master_stm pred ON stm.stm_id_predecessor = pred.stm_id
                 LEFT JOIN (
                     SELECT stm_id, COUNT(*) as instruction_count
                     FROM instructions_master_inm
@@ -141,7 +158,7 @@ class StepRepository {
                     GROUP BY stm_id
                 ) instance_counts ON stm.stm_id = instance_counts.stm_id
                 ${whereClause}
-                ORDER BY ${['instruction_count', 'instance_count'].contains(sortField) ? sortField : 'stm.' + sortField} ${sortDirection}
+                ORDER BY ${['instruction_count', 'instance_count', 'team_name', 'step_code', 'environment_role_name', 'predecessor_name'].contains(sortField) ? sortField : (['plm_name', 'sqm_name', 'phm_name'].contains(sortField) ? sortField : 'stm.' + sortField)} ${sortDirection}
                 LIMIT ${pageSize} OFFSET ${offset}
             """
             
@@ -173,17 +190,76 @@ class StepRepository {
             stm_name: row.stm_name,
             stm_description: row.stm_description,
             stm_number: row.stm_number,
+            stm_order: row.stm_number, // Frontend expects stm_order, which corresponds to stm_number in database
             stm_duration_minutes: row.stm_duration_minutes,
             phm_id: row.phm_id,
             tms_id_owner: row.tms_id_owner,
             stt_code: row.stt_code,
             enr_id_target: row.enr_id_target,
             stm_id_predecessor: row.stm_id_predecessor,
+            // NEW FIELDS - Additional attributes for VIEW modal display
+            team_name: row.team_name,
+            step_code: row.step_code,
+            environment_role_name: row.environment_role_name,
+            predecessor_name: row.predecessor_name,
+            predecessor_code: row.predecessor_code,
+            // Audit fields - added for VIEW modal display
+            created_by: row.created_by,
+            created_at: row.created_at,
+            updated_by: row.updated_by,
+            updated_at: row.updated_at,
+            // Hierarchy fields from JOINs
+            plm_name: row.plm_name,
+            sqm_name: row.sqm_name,
+            phm_name: row.phm_name,
             // Computed fields from joins
             instruction_count: row.instruction_count ?: 0,
             instance_count: row.instance_count ?: 0
             // Note: Master steps don't have status - status exists only on step instances
         ]
+    }
+
+    /**
+     * Finds a single master step by ID with hierarchy data and computed fields
+     * @param stepId The UUID of the master step
+     * @return Map containing master step data or null if not found
+     */
+    def findMasterStepById(UUID stepId) {
+        DatabaseUtil.withSql { sql ->
+            def result = sql.firstRow("""
+                SELECT DISTINCT stm.*,
+                       phm.phm_name,
+                       sqm.sqm_name,
+                       plm.plm_name,
+                       tms.tms_name as team_name,
+                       CONCAT(stm.stt_code, '-', LPAD(stm.stm_number::text, 4, '0')) as step_code,
+                       enr.enr_name as environment_role_name,
+                       pred.stm_name as predecessor_name,
+                       CONCAT(pred.stt_code, '-', LPAD(pred.stm_number::text, 4, '0')) as predecessor_code,
+                       COALESCE(instruction_counts.instruction_count, 0) as instruction_count,
+                       COALESCE(instance_counts.instance_count, 0) as instance_count
+                FROM steps_master_stm stm
+                JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                LEFT JOIN environment_roles_enr enr ON stm.enr_id_target = enr.enr_id
+                LEFT JOIN steps_master_stm pred ON stm.stm_id_predecessor = pred.stm_id
+                LEFT JOIN (
+                    SELECT stm_id, COUNT(*) as instruction_count
+                    FROM instructions_master_inm
+                    GROUP BY stm_id
+                ) instruction_counts ON stm.stm_id = instruction_counts.stm_id
+                LEFT JOIN (
+                    SELECT stm_id, COUNT(*) as instance_count
+                    FROM steps_instance_sti
+                    GROUP BY stm_id
+                ) instance_counts ON stm.stm_id = instance_counts.stm_id
+                WHERE stm.stm_id = :stepId
+            """, [stepId: stepId])
+            
+            return result ? enrichMasterStepWithStatusMetadata(result) : null
+        }
     }
 
     /**
