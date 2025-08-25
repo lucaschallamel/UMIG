@@ -943,10 +943,13 @@
         pageSize: state.pageSize,
         currentEntity: state.currentEntity,
         searchTerm: state.searchTerm,
-        sortField: state.sortField
+        sortField: state.sortField,
       });
-      console.log("buildSearchParams - Generated search parameters:", searchParams);
-      
+      console.log(
+        "buildSearchParams - Generated search parameters:",
+        searchParams,
+      );
+
       return searchParams;
     },
 
@@ -1043,7 +1046,9 @@
         const paginationContainer = document.getElementById(
           "paginationContainer",
         );
-        const state = window.AdminGuiState ? window.AdminGuiState.getState() : {};
+        const state = window.AdminGuiState
+          ? window.AdminGuiState.getState()
+          : {};
         const totalPages = state.pagination?.totalPages || 1;
         const totalItems = state.pagination?.totalItems || data?.length || 0;
 
@@ -1051,7 +1056,10 @@
           if (totalPages > 1 || totalItems > 0) {
             paginationContainer.style.display = "flex";
             paginationContainer.style.visibility = "visible";
-            console.log("Pagination container made visible:", { totalPages, totalItems });
+            console.log("Pagination container made visible:", {
+              totalPages,
+              totalItems,
+            });
           } else {
             paginationContainer.style.display = "none";
             console.log("Pagination container hidden - no pagination needed");
