@@ -88,6 +88,12 @@ class PhaseRepository {
                 params << filters.startDateTo
             }
             
+            // Sequence ID filtering (for predecessor dropdowns)
+            if (filters.sqm_id) {
+                whereConditions << "phm.sqm_id = ?"
+                params << UUID.fromString(filters.sqm_id as String)
+            }
+            
             def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
             
             // Count query

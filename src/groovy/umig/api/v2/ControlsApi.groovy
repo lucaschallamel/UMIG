@@ -72,12 +72,15 @@ private Response buildSuccessResponse(Object data, Response.Status status = Resp
 
 /**
  * Handles GET requests for controls.
- * - GET /controls/master -> returns all master controls
+ * - GET /controls/master -> returns all master controls (default sort: ctm_code - primary display field for Admin GUI)
  * - GET /controls/master/{ctm_id} -> returns specific master control
  * - GET /controls/master?phaseId={phm_id} -> returns controls filtered by phase
  * - GET /controls/instance -> returns all control instances
  * - GET /controls/instance/{cti_id} -> returns specific control instance
  * - GET /controls/{phi_id}/progress -> returns phase control progress
+ * - GET /controls/debug -> simple debug endpoint for testing
+ * 
+ * Admin GUI Integration: ctm_code is the FIRST column and DEFAULT sort field for table display
  */
 controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
     def extraPath = getAdditionalPath(request)
@@ -103,7 +106,50 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
         
         // GET /controls/master with optional filtering - Admin GUI support
         if (pathParts.size() == 1 && pathParts[0] == 'master') {
-            return handleMasterControlsRequest(queryParams)
+            def filters = [:]
+            def pageNumber = 1
+            def pageSize = 50
+            def sortField = null
+            def sortDirection = 'asc'
+
+            // Extract query parameters
+            queryParams.keySet().each { param ->
+                def value = queryParams.getFirst(param)
+                switch (param) {
+                    case 'page':
+                        pageNumber = Integer.parseInt(value as String)
+                        break
+                    case 'size':
+                        pageSize = Integer.parseInt(value as String)
+                        break
+                    case 'sort':
+                        sortField = value as String
+                        break
+                    case 'direction':
+                        sortDirection = value as String
+                        break
+                    default:
+                        filters[param] = value
+                }
+            }
+
+            // Validate sort field - ctm_code is the default sort field (primary display field for Admin GUI)
+            def allowedSortFields = ['ctm_id', 'ctm_code', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count']
+            
+            // Default to ctm_code if no sort field specified (Admin GUI primary display field and default ordering)
+            if (!sortField) {
+                sortField = 'ctm_code'
+            }
+            
+            if (!allowedSortFields.contains(sortField)) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())
+                    .build()
+            }
+
+            def controlRepository = getControlRepository()
+            def result = controlRepository.findMasterControlsWithFilters(filters as Map, pageNumber as int, pageSize as int, sortField as String, sortDirection as String)
+            return buildSuccessResponse(result)
         }
         
         // ==================== INSTANCE CONTROL GET OPERATIONS ====================
@@ -733,78 +779,5 @@ controls(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
             
     } catch (Exception e) {
         return handleError(e)
-    }
-}/**
- * Additional methods for ControlsApi.groovy to support Admin GUI functionality.
- * These methods should be copied and pasted into the main ControlsApi.groovy file.
- */
-
-/**
- * Handles GET requests for master controls with Admin GUI support.
- * Provides filtering, pagination, sorting, and computed fields.
- * @param queryParams Query parameters from the request
- * @return Response with paginated and filtered master controls data
- */
-def handleMasterControlsRequest(MultivaluedMap queryParams) {
-    try {
-        def filters = [:]
-        def pageNumber = 1
-        def pageSize = 50
-        def sortField = null
-        def sortDirection = 'asc'
-
-        // Extract query parameters
-        queryParams.keySet().each { param ->
-            def value = queryParams.getFirst(param)
-            switch (param) {
-                case 'page':
-                    pageNumber = Integer.parseInt(value as String)
-                    break
-                case 'size':
-                    pageSize = Integer.parseInt(value as String)
-                    break
-                case 'sort':
-                    sortField = value as String
-                    break
-                case 'direction':
-                    sortDirection = value as String
-                    break
-                default:
-                    filters[param] = value
-            }
-        }
-
-        // Validate sort field
-        def allowedSortFields = ['ctm_id', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count']
-        if (sortField && !allowedSortFields.contains(sortField)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())
-                .build()
-        }
-
-        def controlRepository = getControlRepository()
-        def result = controlRepository.findMasterControlsWithFilters(filters as Map, pageNumber as int, pageSize as int, sortField as String, sortDirection as String)
-        return Response.ok(new JsonBuilder(result).toString()).build()
-    } catch (SQLException e) {
-        def statusCode = mapSqlStateToHttpStatus(e.getSQLState())
-        return Response.status(statusCode)
-            .entity(new JsonBuilder([error: e.message, code: statusCode]).toString())
-            .build()
-    } catch (Exception e) {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "Internal server error", code: 500]).toString())
-            .build()
-    }
-}
-
-/**
- * Maps SQL state codes to appropriate HTTP status codes
- */
-private static int mapSqlStateToHttpStatus(String sqlState) {
-    switch (sqlState) {
-        case '23503': return 400 // Foreign key violation
-        case '23505': return 409 // Unique violation
-        case '23514': return 400 // Check constraint violation
-        default: return 500     // General server error
     }
 }

@@ -21,14 +21,14 @@ class ControlRepository {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
                 SELECT 
+                    ctm.ctm_code,
                     ctm.ctm_id, 
+                    ctm.ctm_name, 
                     ctm.phm_id, 
                     ctm.ctm_order, 
-                    ctm.ctm_name, 
                     ctm.ctm_description, 
                     ctm.ctm_type,
                     ctm.ctm_is_critical,
-                    ctm.ctm_code,
                     ctm.created_by,
                     ctm.created_at,
                     ctm.updated_by,
@@ -42,13 +42,27 @@ class ControlRepository {
                     plm.plm_name,
                     plm.plm_description as plan_description,
                     plm.tms_id,
-                    tms.tms_name
+                    tms.tms_name,
+                    -- Computed fields for Admin GUI support
+                    COALESCE(ic.instance_count, 0) as instance_count,
+                    COALESCE(vc.validation_count, 0) as validation_count
                 FROM controls_master_ctm ctm
                 JOIN phases_master_phm phm ON ctm.phm_id = phm.phm_id
                 JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
-                ORDER BY plm.plm_name, sqm.sqm_order, phm.phm_order, ctm.ctm_order
+                LEFT JOIN (
+                    SELECT ctm_id, COUNT(*) as instance_count
+                    FROM controls_instance_cti
+                    GROUP BY ctm_id
+                ) ic ON ctm.ctm_id = ic.ctm_id
+                LEFT JOIN (
+                    SELECT ctm_id, COUNT(*) as validation_count
+                    FROM controls_instance_cti
+                    WHERE cti_status IN (SELECT sts_id FROM status_sts WHERE sts_name IN ('VALIDATED', 'COMPLETED'))
+                    GROUP BY ctm_id
+                ) vc ON ctm.ctm_id = vc.ctm_id
+                ORDER BY CASE WHEN ctm.ctm_code IS NULL THEN 1 ELSE 0 END, ctm.ctm_code, ctm.ctm_order, plm.plm_name, sqm.sqm_order, phm.phm_order
             """)
         }
     }
@@ -62,14 +76,14 @@ class ControlRepository {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
                 SELECT 
+                    ctm.ctm_code,
                     ctm.ctm_id, 
+                    ctm.ctm_name, 
                     ctm.phm_id, 
                     ctm.ctm_order, 
-                    ctm.ctm_name, 
                     ctm.ctm_description, 
                     ctm.ctm_type,
                     ctm.ctm_is_critical,
-                    ctm.ctm_code,
                     ctm.created_by,
                     ctm.created_at,
                     ctm.updated_by,
@@ -103,14 +117,14 @@ class ControlRepository {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
                 SELECT 
+                    ctm.ctm_code,
                     ctm.ctm_id, 
+                    ctm.ctm_name, 
                     ctm.phm_id, 
                     ctm.ctm_order, 
-                    ctm.ctm_name, 
                     ctm.ctm_description, 
                     ctm.ctm_type,
                     ctm.ctm_is_critical,
-                    ctm.ctm_code,
                     ctm.created_by,
                     ctm.created_at,
                     ctm.updated_by,
@@ -120,7 +134,7 @@ class ControlRepository {
                 FROM controls_master_ctm ctm
                 JOIN phases_master_phm phm ON ctm.phm_id = phm.phm_id
                 WHERE ctm.phm_id = :phaseId
-                ORDER BY ctm.ctm_order
+                ORDER BY CASE WHEN ctm.ctm_code IS NULL THEN 1 ELSE 0 END, ctm.ctm_code, ctm.ctm_order
             """, [phaseId: phaseId])
         }
     }
@@ -131,108 +145,80 @@ class ControlRepository {
      * @param filters Map containing optional filters (status, search, ownerId, etc.)
      * @param pageNumber Page number for pagination (default: 1)
      * @param pageSize Items per page (default: 50, max: 100)
-     * @param sortField Field to sort by (default: ctm_name)
+     * @param sortField Field to sort by (default: ctm_code - primary display field and default ordering for Admin GUI)
      * @param sortDirection Sort direction - 'asc' or 'desc' (default: 'asc')
      * @return Map containing data, pagination info, and applied filters
      */
     def findMasterControlsWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
-        DatabaseUtil.withSql { sql ->
-            pageNumber = Math.max(1, pageNumber)
-            pageSize = Math.min(100, Math.max(1, pageSize))
-            
-            def whereConditions = []
-            def params = []
-            
-            // Build dynamic WHERE clause
-            if (filters.status) {
-                if (filters.status instanceof List) {
-                    def placeholders = filters.status.collect { '?' }.join(', ')
-                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
-                    params.addAll(filters.status)
-                } else {
-                    whereConditions << "s.sts_name = ?"
-                    params << filters.status
-                }
+        // Get all controls using the working method
+        def allControls = findAllMasterControls()
+        
+        // Apply filters if provided
+        def filteredControls = allControls
+        
+        if (filters.phaseId) {
+            def phaseId = filters.phaseId instanceof UUID ? filters.phaseId : UUID.fromString(filters.phaseId as String)
+            filteredControls = (filteredControls as List).findAll { row -> 
+                (row as Map)['phm_id'] == phaseId 
             }
-            
-            // Phase ID filtering (controls belong to phases)
-            if (filters.phaseId) {
-                whereConditions << "e.phm_id = ?"
-                params << UUID.fromString(filters.phaseId as String)
-            }
-            
-            // Search functionality (control name and description)
-            if (filters.search) {
-                whereConditions << "(e.ctm_name ILIKE ? OR e.ctm_description ILIKE ?)"
-                params << "%${filters.search}%".toString()
-                params << "%${filters.search}%".toString()
-            }
-            
-            // Critical controls only filter
-            if (filters.criticalOnly) {
-                whereConditions << "e.ctm_is_critical = ?"
-                params << true
-            }
-            
-            def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
-            
-            // Count query
-            def countQuery = """
-                SELECT COUNT(DISTINCT e.ctm_id) as total
-                FROM controls_master_ctm e
-                LEFT JOIN status_sts s ON e.ctm_status = s.sts_id
-                ${whereClause}
-            """
-            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
-            
-            // Validate sort field
-            def allowedSortFields = ['ctm_id', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count']
-            if (!sortField || !allowedSortFields.contains(sortField)) {
-                sortField = 'ctm_name'
-            }
-            sortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
-            
-            // Data query with computed fields
-            def offset = (pageNumber - 1) * pageSize
-            def dataQuery = """
-                SELECT DISTINCT e.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
-                       phm.phm_name,
-                       COALESCE(instance_counts.instance_count, 0) as instance_count,
-                       COALESCE(validation_counts.validation_count, 0) as validation_count
-                FROM controls_master_ctm e
-                LEFT JOIN status_sts s ON e.ctm_status = s.sts_id
-                LEFT JOIN phases_master_phm phm ON e.phm_id = phm.phm_id
-                LEFT JOIN (
-                    SELECT ctm_id, COUNT(*) as instance_count
-                    FROM controls_instance_cti
-                    GROUP BY ctm_id
-                ) instance_counts ON e.ctm_id = instance_counts.ctm_id
-                LEFT JOIN (
-                    SELECT ctm_id, COUNT(CASE WHEN cti_status IN (
-                        SELECT sts_id FROM status_sts WHERE sts_name IN ('PASSED', 'FAILED') AND sts_type = 'Control'
-                    ) THEN 1 END) as validation_count
-                    FROM controls_instance_cti
-                    GROUP BY ctm_id
-                ) validation_counts ON e.ctm_id = validation_counts.ctm_id
-                ${whereClause}
-                ORDER BY ${['instance_count', 'validation_count'].contains(sortField) ? sortField : 'e.' + sortField} ${sortDirection}
-                LIMIT ${pageSize} OFFSET ${offset}
-            """
-            
-            def controls = sql.rows(dataQuery, params)
-            def enrichedControls = controls.collect { enrichMasterControlWithStatusMetadata(it) }
-            
-            return [
-                data: enrichedControls,
-                pagination: [
-                    page: pageNumber,
-                    size: pageSize,
-                    total: totalCount,
-                    totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
-                ],
-                filters: filters
-            ]
         }
+        
+        if (filters.search) {
+            def searchTerm = (filters.search as String).toLowerCase()
+            filteredControls = (filteredControls as List).findAll { row -> 
+                def rowMap = row as Map
+                (rowMap['ctm_name'] as String)?.toLowerCase()?.contains(searchTerm) || 
+                (rowMap['ctm_description'] as String)?.toLowerCase()?.contains(searchTerm) 
+            }
+        }
+        
+        if (filters.criticalOnly) {
+            filteredControls = (filteredControls as List).findAll { row -> 
+                (row as Map)['ctm_is_critical'] == true 
+            }
+        }
+        
+        // Apply sorting - ctm_code is the primary display field and default sort field for Admin GUI table view
+        def allowedSortFields = ['ctm_id', 'ctm_code', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at']
+        if (!sortField || !allowedSortFields.contains(sortField)) {
+            sortField = 'ctm_code'  // Default to ctm_code for Admin GUI primary display
+        }
+        
+        filteredControls = (filteredControls as List).sort { a, b ->
+            def aMap = a as Map
+            def bMap = b as Map
+            def aVal = aMap[sortField]
+            def bVal = bMap[sortField]
+            
+            // Handle null values for ctm_code - nulls last for better Admin GUI display
+            if (sortField == 'ctm_code') {
+                if (aVal == null && bVal == null) return 0
+                if (aVal == null) return 1  // null comes after non-null
+                if (bVal == null) return -1 // non-null comes before null
+            }
+            
+            def result = (aVal as Comparable) <=> (bVal as Comparable)
+            return ((sortDirection as String)?.toLowerCase() == 'desc') ? -result : result
+        }
+        
+        // Apply pagination
+        def totalCount = (filteredControls as List).size()
+        pageNumber = Math.max(1, pageNumber)
+        pageSize = Math.min(100, Math.max(1, pageSize))
+        
+        def offset = (pageNumber - 1) * pageSize
+        def paginatedControls = (filteredControls as List).drop(offset).take(pageSize)
+        
+        return [
+            data: paginatedControls,
+            pagination: [
+                page: pageNumber,
+                size: pageSize,
+                total: totalCount,
+                totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
+            ],
+            filters: filters
+        ]
     }
     
     /**
@@ -242,6 +228,7 @@ class ControlRepository {
      */
     private Map enrichMasterControlWithStatusMetadata(Map row) {
         return [
+            ctm_code: row.ctm_code,
             ctm_id: row.ctm_id,
             phm_id: row.phm_id,
             ctm_order: row.ctm_order,
@@ -249,7 +236,6 @@ class ControlRepository {
             ctm_description: row.ctm_description,
             ctm_type: row.ctm_type,
             ctm_is_critical: row.ctm_is_critical,
-            ctm_code: row.ctm_code,
             ctm_status: row.sts_name, // Backward compatibility
             created_by: row.created_by,
             created_at: row.created_at,
