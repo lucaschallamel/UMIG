@@ -378,7 +378,29 @@ if (stepId) {
 - SQL state mappings: 23503→400, 23505→409
 - Robust error propagation through all layers
 
-## Status (August 19, 2025)
+## Current Critical Issues (Sprint 5 Day 3 - August 25, 2025)
+
+### **Authentication Blocker - HTTP 401 Unauthorized**
+
+- **Status**: CRITICAL - All Admin GUI API endpoints returning 401
+- **Impact**: Cannot validate complete Admin GUI integration despite technical completion
+- **Root Cause**: ScriptRunner authentication context requires investigation
+- **Progress**: Issue isolated, credentials verified (admin:Spaceop!13)
+- **New ADRs Created**: ADR-043, ADR-044, ADR-047 document mandatory patterns for authentication and endpoint registration
+- **Next Steps**:
+  - Investigate ScriptRunner session-based vs Basic Auth requirements
+  - Verify Confluence user configuration and permissions
+  - Test UI-based authentication approach as alternative
+  - Implement patterns from new ADRs
+
+### **Manual Endpoint Registration Pending**
+
+- **Status**: BLOCKED by authentication issue
+- **Scope**: 2/13 endpoints (phases, controls) require ScriptRunner UI registration
+- **Documentation**: Comprehensive registration guide created (`docs/technical/ENDPOINT_REGISTRATION_GUIDE.md`)
+- **Solution Framework**: ADR-044 provides mandatory endpoint registration patterns
+
+## Status (August 25, 2025)
 
 ### ✅ Completed
 
@@ -397,7 +419,9 @@ if (stepId) {
 - Documentation consolidation (50% reduction: 6→3 files, 8→4 scripts)
 - **US-022**: Integration Test Suite Expansion ✅ COMPLETE (August 18, 2025)
 - **US-030**: API Documentation Completion ✅ COMPLETE (August 19, 2025)
+- **US-031**: Admin GUI Integration Day 2/3 COMPLETE - 11/13 entities functional (August 25, 2025)
 - **AdminGuiAllEndpointsTest.groovy**: Comprehensive Admin GUI endpoint validation suite (August 22, 2025)
+- **ADR-043, ADR-044, ADR-047**: New critical ADRs for authentication, endpoint registration, and PostgreSQL patterns
 
 ### ✅ Sprint 4 COMPLETE - Strategic Triumph (August 7-15, 2025)
 
@@ -500,7 +524,7 @@ if (stepId) {
 
 ## Key References
 
-- **PRIMARY**: `docs/solution-architecture.md` (ALWAYS REVIEW FIRST - 40 ADRs consolidated)
+- **PRIMARY**: `docs/solution-architecture.md` (ALWAYS REVIEW FIRST - 43+ ADRs including ADR-043, ADR-044, ADR-047)
 - **TESTING**: `docs/testing/` (Comprehensive testing framework documentation)
 - **QUALITY CHECKS**: `docs/testing/QUALITY_CHECK_PROCEDURES.md` (Validation procedures)
 - **API**: `docs/api/openapi.yaml`, individual API docs

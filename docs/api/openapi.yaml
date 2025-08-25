@@ -27,6 +27,8 @@ tags:
     description: Operations related to the STEP View component.
   - name: Migrations
     description: Operations about migrations, iterations, sequences and phases.
+  - name: Iterations
+    description: Operations about iterations with full CRUD functionality and pagination.
   - name: Teams
     description: Operations about teams.
   - name: Environments
@@ -59,6 +61,373 @@ tags:
     description: Serves static web assets.
 
 paths:
+  # ==================== NEW V2 ITERATIONS API ====================
+  /iterationsList:
+    get:
+      summary: List all iterations with pagination
+      description: |
+        Retrieve all iterations with comprehensive filtering, pagination, and search capabilities.
+        Supports sorting by multiple fields and migration-based filtering.
+      tags: [Iterations]
+      operationId: listIterations
+      parameters:
+        - name: page
+          in: query
+          description: Page number (default 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          description: Page size (1-100, default 50)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: search
+          in: query
+          description: Search term for iteration names and descriptions (max 100 chars)
+          schema:
+            type: string
+            maxLength: 100
+        - name: sort
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            enum:
+              [
+                ite_id,
+                ite_name,
+                itt_code,
+                ite_static_cutover_date,
+                ite_dynamic_cutover_date,
+                ite_status,
+                migration_name,
+                created_at,
+                updated_at,
+              ]
+        - name: direction
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: migrationId
+          in: query
+          description: Filter by migration ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Paginated list of iterations with metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedIterations"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+    post:
+      summary: Create new iteration
+      description: |
+        Create a new iteration with validation and automatic field assignment.
+        Migration ID is required and must exist. Name uniqueness is enforced.
+      tags: [Iterations]
+      operationId: createIteration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIterationRequest"
+            examples:
+              basic:
+                summary: Basic iteration creation
+                value:
+                  ite_name: "Phase 1 Iteration"
+                  mig_id: "123e4567-e89b-12d3-a456-426614174000"
+                  ite_static_cutover_date: "2025-08-15"
+              complete:
+                summary: Complete iteration with all fields
+                value:
+                  ite_name: "Production Cutover"
+                  ite_description: "Final production migration phase"
+                  mig_id: "123e4567-e89b-12d3-a456-426614174000"
+                  itt_code: "PROD"
+                  ite_static_cutover_date: "2025-08-15T14:30:00"
+                  ite_dynamic_cutover_date: "2025-08-15T16:00:00"
+      responses:
+        "201":
+          description: Iteration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Iteration"
+        "400":
+          description: Validation error or invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missing_name:
+                  summary: Missing iteration name
+                  value:
+                    error: "Iteration name is required"
+                missing_migration:
+                  summary: Missing migration ID
+                  value:
+                    error: "Migration ID is required"
+                invalid_uuid:
+                  summary: Invalid migration ID format
+                  value:
+                    error: "Invalid migration ID format"
+        "409":
+          description: Conflict - iteration name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "An iteration with this name already exists"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+  /iterationsList/{id}:
+    get:
+      summary: Get single iteration by ID
+      description: Retrieve a specific iteration with full metadata and relationships
+      tags: [Iterations]
+      operationId: getIteration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Iteration UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Single iteration with metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Iteration"
+        "400":
+          description: Invalid iteration UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Invalid iteration UUID"
+        "404":
+          description: Iteration not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Iteration not found"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+    put:
+      summary: Update iteration
+      description: |
+        Update an existing iteration with validation.
+        Only provided fields are updated, others remain unchanged.
+      tags: [Iterations]
+      operationId: updateIteration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Iteration UUID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIterationRequest"
+            example:
+              ite_name: "Updated Iteration Name"
+              ite_description: "Updated description"
+              ite_static_cutover_date: "2025-08-20"
+      responses:
+        "200":
+          description: Iteration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Iteration"
+        "400":
+          description: Invalid request data or UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Iteration not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Iteration not found"
+        "409":
+          description: Conflict - name already exists or constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+    delete:
+      summary: Delete iteration
+      description: |
+        Delete an iteration. Will fail if the iteration has associated plans or is referenced by other resources.
+      tags: [Iterations]
+      operationId: deleteIteration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Iteration UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Iteration deleted successfully
+        "400":
+          description: Invalid iteration UUID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Invalid iteration UUID"
+        "404":
+          description: Iteration not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Iteration not found"
+        "409":
+          description: Conflict - iteration has associated resources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Cannot delete iteration - it has associated plans or is referenced by other resources"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+  # ==================== NEW V2 STATUS API ====================
+  /status:
+    get:
+      summary: Get statuses by entity type
+      description: |
+        Retrieve status information for different entity types.
+        Entity type is case-insensitive but normalized to proper case internally.
+      tags: [Statuses]
+      operationId: getStatuses
+      parameters:
+        - name: entityType
+          in: query
+          required: true
+          description: Entity type to get statuses for
+          schema:
+            type: string
+            enum:
+              [
+                Migration,
+                Iteration,
+                Plan,
+                Sequence,
+                Phase,
+                Step,
+                Control,
+                Label,
+                Environment,
+                Team,
+                Application,
+                User,
+              ]
+          example: "Migration"
+      responses:
+        "200":
+          description: Array of status objects with metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatusInfo"
+              examples:
+                migration_statuses:
+                  summary: Migration statuses
+                  value:
+                    - id: 1
+                      name: "PLANNING"
+                      color: "#FFA500"
+                      type: "Migration"
+                    - id: 2
+                      name: "IN_PROGRESS"
+                      color: "#007BFF"
+                      type: "Migration"
+                    - id: 3
+                      name: "COMPLETED"
+                      color: "#28A745"
+                      type: "Migration"
+        "400":
+          description: Missing or invalid entity type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missing_type:
+                  summary: Missing entity type parameter
+                  value:
+                    error: "Missing required parameter 'entityType'"
+                    message: "Valid entity types: Migration, Iteration, Plan, Sequence, Phase, Step, Control, Instruction"
+                invalid_type:
+                  summary: Invalid entity type
+                  value:
+                    error: "Invalid entity type: INVALID_TYPE"
+                    message: "Valid entity types: Migration, Iteration, Plan, Sequence, Phase, Step, Control, Instruction"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
   /migrations/{migId}/iterations/{iteId}:
     get:
       summary: Get a specific iteration
@@ -3748,6 +4117,7 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+
   /plans/{id}/status:
     put:
       tags:
@@ -5821,25 +6191,6 @@ components:
         expiresAt:
           type: string
           format: date-time
-
-    Iteration:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        description:
-          type: string
-        status:
-          type: string
-        staticCutoverDate:
-          type: string
-          format: date
-        dynamicCutoverDate:
-          type: string
-          format: date
 
     IterationSummary:
       type: object
@@ -8668,6 +9019,185 @@ components:
           description: New order position for the phase
           minimum: 1
 
+    # ==================== NEW ITERATION SCHEMAS ====================
+
+    PaginatedIterations:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Iteration"
+        pagination:
+          $ref: "#/components/schemas/PaginationMetadata"
+        filters:
+          type: object
+          description: Applied filters for the request
+          properties:
+            search:
+              type: string
+            migrationId:
+              type: string
+              format: uuid
+
+    Iteration:
+      type: object
+      properties:
+        ite_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the iteration
+        ite_name:
+          type: string
+          description: Name of the iteration
+        ite_description:
+          type: string
+          description: Description of the iteration
+        mig_id:
+          type: string
+          format: uuid
+          description: Migration ID this iteration belongs to
+        migration_name:
+          type: string
+          description: Name of the parent migration
+        itt_code:
+          type: string
+          description: Iteration type code
+        ite_static_cutover_date:
+          type: string
+          format: date-time
+          description: Static cutover date
+        ite_dynamic_cutover_date:
+          type: string
+          format: date-time
+          description: Dynamic cutover date
+        ite_status:
+          type: integer
+          description: Status ID of the iteration
+        status_metadata:
+          $ref: "#/components/schemas/StatusMetadata"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        created_by:
+          type: string
+          description: Username who created the iteration
+        updated_by:
+          type: string
+          description: Username who last updated the iteration
+
+    CreateIterationRequest:
+      type: object
+      required: [ite_name, mig_id]
+      properties:
+        ite_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the iteration (required, unique within migration)
+        ite_description:
+          type: string
+          maxLength: 1000
+          description: Description of the iteration
+        mig_id:
+          type: string
+          format: uuid
+          description: Migration ID this iteration belongs to (required)
+        migrationId:
+          type: string
+          format: uuid
+          description: Alternative field name for migration ID (for compatibility)
+        itt_code:
+          type: string
+          maxLength: 50
+          description: Iteration type code
+        ite_static_cutover_date:
+          type: string
+          description: Static cutover date (supports YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss formats)
+        ite_dynamic_cutover_date:
+          type: string
+          description: Dynamic cutover date (supports YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss formats)
+
+    UpdateIterationRequest:
+      type: object
+      properties:
+        ite_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Name of the iteration
+        ite_description:
+          type: string
+          maxLength: 1000
+          description: Description of the iteration
+        itt_code:
+          type: string
+          maxLength: 50
+          description: Iteration type code
+        ite_static_cutover_date:
+          type: string
+          description: Static cutover date (supports YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss formats)
+        ite_dynamic_cutover_date:
+          type: string
+          description: Dynamic cutover date (supports YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss formats)
+
+    # ==================== NEW STATUS SCHEMAS ====================
+
+    StatusInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique status ID
+        name:
+          type: string
+          description: Status name (e.g., PLANNING, IN_PROGRESS, COMPLETED)
+        color:
+          type: string
+          description: Hex color code for UI display
+        type:
+          type: string
+          description: Entity type this status applies to
+      example:
+        id: 1
+        name: "PLANNING"
+        color: "#FFA500"
+        type: "Migration"
+
+    # ==================== ENHANCED ERROR RESPONSE ====================
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Main error message
+        message:
+          type: string
+          description: Additional error details or context
+        details:
+          type: string
+          description: Technical details about the error
+        sqlState:
+          type: string
+          description: SQL state code for database errors
+      examples:
+        validation_error:
+          summary: Validation error
+          value:
+            error: "Iteration name is required"
+        database_error:
+          summary: Database constraint violation
+          value:
+            error: "Foreign key constraint violation"
+            message: "Invalid migration ID - migration does not exist"
+            sqlState: "23503"
+
   responses:
     Unauthorized:
       description: Unauthorized
@@ -8759,3 +9289,11 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+
+  securitySchemes:
+    ConfluenceUsers:
+      type: http
+      scheme: basic
+      description: |
+        HTTP Basic Authentication using Confluence username and password.
+        All endpoints require membership in the "confluence-users" group for access control.

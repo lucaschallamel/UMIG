@@ -30,6 +30,8 @@ During US-036 implementation (August 21, 2025), a 3+ hour debugging session reve
 - API endpoints receive requests without clear user identification
 - Audit logs contain generic system users instead of actual performers
 - Authentication failures cause system errors rather than graceful degradation
+- **ScriptRunner Session Management Limitations**: `AuthenticatedUserThreadLocal.get()` returns null in macro contexts, requiring frontend fallback patterns
+- **Hybrid Authentication Implementation**: StepsApi.groovy demonstrates successful fallback pattern for user identification
 
 ## Decision
 
@@ -194,6 +196,36 @@ class StepsAPIv2Client {
   }
 }
 ```
+
+#### Frontend userId Fallback Pattern (Discovered in StepView Debugging)
+
+StepView components implement userId injection for macro contexts where `AuthenticatedUserThreadLocal.get()` returns null:
+
+```javascript
+// step-view.js - Status change includes userId fallback
+async updateStatus(newStatus) {
+    const payload = {
+        stepId: this.stepId,
+        status: newStatus,
+        userId: this.userContext?.userId || this.userId || null  // Frontend fallback
+    };
+
+    const response = await this.stepsClient.updateStep(this.stepId, payload);
+}
+
+// comment creation with userId fallback
+async addComment(commentText) {
+    const payload = {
+        stepId: this.stepId,
+        comment: commentText,
+        userId: this.userContext?.userId || this.userId || null  // Frontend fallback
+    };
+
+    const response = await this.stepsClient.addComment(payload);
+}
+```
+
+This pattern enables audit logging even when ScriptRunner session management fails to provide user context.
 
 ### 4. Audit Logging Enhancement
 

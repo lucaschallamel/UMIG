@@ -2803,7 +2803,7 @@
       teams: "/teams",
       environments: "/environments",
       applications: "/applications",
-      iterations: "/iterations",
+      iterations: "/iterationsList",
       labels: "/labels",
       migrations: "/migrations",
       plans: "/plans/master", // Master plans endpoint

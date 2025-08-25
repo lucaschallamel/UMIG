@@ -13,20 +13,22 @@
 
 ## 2. Endpoints
 
-| Method | Path                            | Description                                         |
-| ------ | ------------------------------- | --------------------------------------------------- |
+| Method | Path                                   | Description                                         |
+| ------ | -------------------------------------- | --------------------------------------------------- |
 | GET    | /sequences/master               | List all master sequence templates                  |
 | POST   | /sequences/master               | Create new master sequence template                 |
 | GET    | /sequences/master/{id}          | Get specific master sequence template               |
 | PUT    | /sequences/master/{id}          | Update master sequence template                     |
 | DELETE | /sequences/master/{id}          | Soft delete master sequence template                |
-| PUT    | /sequences/master/{id}/order    | Update sequence order within plan                   |
+| PUT    | /sequences/master/{id}/order    | Update sequence order within plan (reordering)      |
+| PUT    | /sequences/master/reorder       | Bulk reorder master sequences within plan           |
 | GET    | /sequences                      | List sequence instances with hierarchical filtering |
 | POST   | /sequences/instance             | Create sequence instance from master template       |
 | GET    | /sequences/instance/{id}        | Get specific sequence instance                      |
 | PUT    | /sequences/instance/{id}        | Update sequence instance                            |
 | DELETE | /sequences/instance/{id}        | Delete sequence instance                            |
 | PUT    | /sequences/instance/{id}/status | Update sequence instance status                     |
+| PUT    | /sequences/instance/reorder     | Bulk reorder sequence instances within plan         |
 
 ## 3. Request Details
 

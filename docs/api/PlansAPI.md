@@ -14,19 +14,20 @@
 
 ## 2. Endpoints
 
-| Method | Path                 | Description                                     |
-| ------ | -------------------- | ----------------------------------------------- |
-| GET    | /plans/master        | List all master plan templates                  |
-| POST   | /plans/master        | Create new master plan template                 |
-| GET    | /plans/master/{id}   | Get specific master plan template               |
-| PUT    | /plans/master/{id}   | Update master plan template                     |
-| DELETE | /plans/master/{id}   | Soft delete master plan template                |
-| GET    | /plans               | List plan instances with hierarchical filtering |
-| POST   | /plans/instance      | Create plan instance from master template       |
-| GET    | /plans/instance/{id} | Get specific plan instance                      |
-| PUT    | /plans/instance/{id} | Update plan instance                            |
-| DELETE | /plans/instance/{id} | Delete plan instance                            |
-| PUT    | /plans/{id}/status   | Update plan instance status                     |
+| Method | Path                                      | Description                                        |
+| ------ | ----------------------------------------- | -------------------------------------------------- |
+| GET    | /plans/master                      | List all master plan templates                     |
+| POST   | /plans/master                      | Create new master plan template                    |
+| GET    | /plans/master/{id}                 | Get specific master plan template                  |
+| PUT    | /plans/master/{id}                 | Update master plan template                        |
+| DELETE | /plans/master/{id}                 | Soft delete master plan template                   |
+| GET    | /plans                             | List plan instances with hierarchical filtering    |
+| POST   | /plans/instance                    | Create plan instance from master template          |
+| POST   | /plans/instance/create-from-master | Create multiple plan instances from masters (bulk) |
+| GET    | /plans/instance/{id}               | Get specific plan instance                         |
+| PUT    | /plans/instance/{id}               | Update plan instance                               |
+| DELETE | /plans/instance/{id}               | Delete plan instance                               |
+| PUT    | /plans/{id}/status                 | Update plan instance status                        |
 
 ## 3. Request Details
 

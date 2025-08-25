@@ -48,6 +48,8 @@ During the implementation of hierarchical filtering and labels integration in th
    params.migrationId = UUID.fromString(filters.migrationId)
    ```
 
+   **Note**: For PostgreSQL JDBC operations, prefer `java.sql` types over `java.util` types to avoid JDBC type inference failures (see [ADR-043]).
+
 2. **Complete Field Selection**: Include ALL fields referenced in result mapping
 
    ```groovy
@@ -157,6 +159,8 @@ try {
 - ADR-024: Iteration-Centric Data Model (master vs instance relationships)
 - ADR-030: Hierarchical Filtering Pattern (filtering hierarchy design)
 - ADR-023: Standardized REST API Patterns (error handling patterns)
+- ADR-043: PostgreSQL JDBC Type Casting Standards (java.sql types requirement)
+- ADR-044: ScriptRunner Repository Access Patterns (ScriptRunner-specific patterns)
 
 ---
 

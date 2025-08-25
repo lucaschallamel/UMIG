@@ -50,6 +50,27 @@ plans(httpMethod: "GET", groups: ["confluence-users"]) { /* ... closure body ...
 plans(httpMethod: "POST", groups: ["confluence-users"]) { /* ... closure body ... */ }
 ```
 
+### Manual Registration Requirements (US-031 Discovery)
+
+Despite automatic scanning, some endpoints require manual registration due to ScriptRunner authentication context limitations:
+
+#### Affected Endpoints
+
+- **PhasesApi.groovy** → `/rest/scriptrunner/latest/custom/phases`
+- **ControlsApi.groovy** → `/rest/scriptrunner/latest/custom/controls`
+- **StatusApi.groovy** → `/rest/scriptrunner/latest/custom/status`
+
+#### Registration Process
+
+1. Navigate to: Confluence Administration → ScriptRunner → REST Endpoints
+2. Click "Add New Item" → "Custom endpoint"
+3. Select "Inline" script type and reference the specific `.groovy` file
+4. Configure appropriate security groups: `["confluence-users", "confluence-administrators"]`
+
+#### Root Cause
+
+Authentication blocker (HTTP 401) prevents automatic registration for these specific endpoints, requiring ScriptRunner UI-based session authentication instead of Basic Auth. This is documented in ENDPOINT_REGISTRATION_GUIDE.md.
+
 ## Consequences
 
 ### Positive
@@ -65,3 +86,4 @@ plans(httpMethod: "POST", groups: ["confluence-users"]) { /* ... closure body ..
 - **Requires Container Recreation:** Changes to `CATALINA_OPTS` in `podman-compose.yml` require the container to be fully recreated (`--force-recreate`) to take effect.
 - **Configuration Abstraction:** Developers must understand the relationship between the volume mount, the `script.roots` property, and the `rest.scripts.package` property.
 - **URL Structure:** The `CustomEndpointDelegate` pattern generates URLs under the `/rest/scriptrunner/latest/custom/` path. The full URL, including the Confluence context path (defaulting to `/confluence`), is `http://<host>:<port>/confluence/rest/scriptrunner/latest/custom/<endpoint_name>`. For local development, an example is `http://localhost:8090/confluence/rest/scriptrunner/latest/custom/plans`. This differs from a more conventional `/api/v2/plans` structure and may require a reverse proxy or URL rewriting if a custom URL scheme is desired.
+- **Manual Registration Limitations (Discovered in US-031):** Despite automatic scanning configuration, some endpoints require manual registration through ScriptRunner UI due to authentication context limitations. See ENDPOINT_REGISTRATION_GUIDE.md for specific procedures.

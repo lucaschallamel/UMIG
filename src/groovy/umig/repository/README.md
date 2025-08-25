@@ -153,6 +153,13 @@ DatabaseUtil.metaClass.static.withSql = { Closure closure ->
 - Robust existence checks for all operations
 - Clear, actionable error messages
 
+### Production-Ready Patterns (ADR-047)
+
+- Connection pooling through DatabaseUtil.withSql
+- Transaction management for bulk operations
+- Performance optimization for large datasets
+- Proper resource cleanup and error handling
+
 ### Comment System (StepsApi Enhancement)
 
 - Comprehensive comment CRUD operations in StepRepository
@@ -164,4 +171,5 @@ DatabaseUtil.metaClass.static.withSql = { Closure closure ->
 - **PRIMARY**: [ADR-031](../../docs/adr/ADR-031-Type-Safety-Improvements.md) - Type safety requirements
 - [ADR-010](../../docs/adr/ADR-010-Database-Connection-Pooling.md) - Database connection pooling
 - [ADR-023](../../docs/adr/ADR-023-Standardized-Rest-Api-Patterns.md) - API patterns
+- [ADR-047](../../../../docs/adr/ADR-047-postgresql-patterns.md) - PostgreSQL production-ready patterns
 - [Testing Guidelines](../tests/README.md) - Repository testing patterns

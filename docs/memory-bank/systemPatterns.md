@@ -1,8 +1,8 @@
 # System Patterns
 
-**Last Updated**: 22 August 2025, 18:30 GMT  
-**Sprint 5 Patterns**: Email Notification Infrastructure, System Configuration Management, Git Disaster Recovery, Audit Logging Enhancement, US-031 Admin GUI Integration Patterns  
-**Key Achievement**: Production-ready email notification system with enterprise configuration management, successful git disaster recovery (53,826→51 files), audit logging entity type fixes, and Admin GUI compatibility patterns for endpoint integration
+**Last Updated**: 25 August 2025, updated for fast documentation update workflow (commit 4ff3e63 and subsequent commits)  
+**Sprint 5 Patterns**: Email Notification Infrastructure, System Configuration Management, Git Disaster Recovery, Audit Logging Enhancement, US-031 Admin GUI Integration Patterns, Authentication Blocker Investigation Patterns, PostgreSQL Type Casting Resolution, API Documentation Excellence  
+**Key Achievement**: Production-ready email notification system with enterprise configuration management, successful git disaster recovery (53,826→51 files), audit logging entity type fixes, Admin GUI compatibility patterns for endpoint integration, comprehensive authentication investigation framework, and API documentation completion achieving 100% UAT readiness
 
 ## 1. System Architecture
 
@@ -48,10 +48,41 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
 - **Testing:** A formal integration testing framework (ADR-019) is established, and specificity in test mocks is enforced (ADR-026).
 - **Data Utilities:** Node.js is adopted for data utilities (ADR-013), with comprehensive synthetic data generation using 3-digit prefixed generators.
 - **Database Naming Conventions:** Standardised database naming conventions (ADR-014) are implemented across all entities.
+- **Admin GUI Integration Patterns:** Comprehensive integration patterns established through US-031 (Sprint 5, August 2025)
+  - **Admin GUI Compatibility Pattern:** Parameterless API calls supported for Admin GUI cross-module synchronization with graceful fallbacks
+  - **Multi-Environment Credential Loading:** Environment-based authentication with .env file support and fallback mechanisms
+  - **Comprehensive Integration Testing:** AdminGuiAllEndpointsTest.groovy framework for systematic endpoint validation across 13 entities
+  - **Manual Endpoint Registration Strategy:** ScriptRunner UI registration procedures for API endpoint management with comprehensive documentation
+  - **SQL Field Mapping Resolution:** Groovy RowResult compatibility patterns for database query result handling preventing NoSuchPropertyException
+  - **PostgreSQL Type Casting Excellence:** JDBC-compatible type handling preventing database integration issues
+    - **java.sql.Timestamp Usage:** Mandatory for PostgreSQL datetime fields instead of java.util.Date
+    - **Explicit Type Conversion:** UUID.fromString(), Integer.parseInt() patterns for all query parameters
+    - **Double Enrichment Prevention:** Single enrichment responsibility per layer (Repository enriches, API handles HTTP only)
+  - **EntityConfig Extension Patterns:** Comprehensive entity configuration with 2,150+ lines covering 11 functional entities
+    - **Custom Field Renderers:** Status color coding, date formatting, boolean display, UUID truncation
+    - **Navigation Mapping:** Entity-based section routing for seamless Admin GUI user experience
+    - **Sorting Configuration:** Intelligent field mapping for database query compatibility
+  - **API Endpoint Resolution Patterns:** Critical endpoint fixes enabling MVP functionality
+    - **Sequences Endpoint:** HTTP 500→200 resolution through missing audit field mapping
+    - **Instructions Endpoint:** HTTP 400→200 resolution through parameterless call compatibility
+    - **Status API Creation:** New dropdown support API for Admin GUI entity management
+- **Authentication Investigation Framework:** Systematic authentication troubleshooting methodology (US-031 blocker resolution)
+  - **HTTP 401 Error Classification:** "Basic Authentication Failure" error pattern identification and debugging approach
+  - **Multi-Approach Authentication Testing:** Session-based vs Basic Auth requirements analysis framework
+  - **Credential Validation Procedures:** Environment variable testing with fallback credential mechanisms
+  - **ScriptRunner Authentication Context Analysis:** Platform authentication requirements investigation methodology
 - **Control and Instruction Refactoring:** Controls are linked to phases, and instructions are streamlined (ADR-016).
 - **Dev Environment Orchestration:** Node.js-based orchestration (ADR-025) replaces shell scripts for the local development environment.
 - **Modular Frontend Architecture:** JavaScript applications are built with modular architecture (8-module pattern) replacing monolithic approaches.
 - **Documentation Standards:** Comprehensive API documentation with OpenAPI specifications and generated Postman collections ensure consistency.
+- **API Documentation Excellence Patterns:** Enterprise-grade documentation framework established through US-030 (Sprint 5, August 2025)
+  - **Interactive Swagger UI:** Fully functional API explorer with authentication support and live endpoint testing capabilities
+  - **OpenAPI 3.0 Specification:** Complete schemas, examples, and validation rules for all 11 entity types with comprehensive coverage
+  - **Automated Validation Scripts:** Real-time documentation synchronization ensuring accuracy (validate-documentation.js, 416 lines)
+  - **UAT Integration Guide:** Step-by-step procedures enabling independent UAT team testing with comprehensive workflows
+  - **Performance Documentation:** Complete benchmarking guide with response time targets and monitoring procedures
+  - **Cross-API Standardization:** Unified PostgreSQL patterns, error handling, flexible input handling across all v2 APIs
+  - **Documentation Consolidation Strategy:** Technical knowledge management with 8-file merger achieving 50% fragmentation reduction
 - **Enhanced IterationView Patterns:** Advanced operational interface with real-time synchronization
   - **StepsAPIv2Client**: Intelligent caching with 30-second timeout and 60% API call reduction
   - **RealTimeSync**: 2-second polling with optimized DOM updates and delta change detection
