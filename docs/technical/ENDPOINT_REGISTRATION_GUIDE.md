@@ -18,6 +18,12 @@ For US-031 Admin GUI Complete Integration, the following endpoints need to be ma
    - Method: GET
    - Groups: `confluence-users`, `confluence-administrators`
 
+3. **Status Endpoint**
+   - File: `/src/groovy/umig/api/v2/StatusApi.groovy`
+   - Path: `/rest/scriptrunner/latest/custom/status`
+   - Method: GET
+   - Groups: `confluence-users`, `confluence-administrators`
+
 ### Registration Steps
 
 1. **Access ScriptRunner Admin**
@@ -41,7 +47,13 @@ For US-031 Admin GUI Complete Integration, the following endpoints need to be ma
    File: /src/groovy/umig/api/v2/ControlsApi.groovy
    ```
 
-5. **Configure Permissions**
+5. **For Status Endpoint:**
+   ```groovy
+   // Point to the StatusApi.groovy file
+   File: /src/groovy/umig/api/v2/StatusApi.groovy
+   ```
+
+6. **Configure Permissions**
    - Groups: Add `confluence-users` and `confluence-administrators`
    - Save and enable the endpoint
 
@@ -56,6 +68,9 @@ curl -u admin:admin http://localhost:8090/rest/scriptrunner/latest/custom/phases
 # Test controls endpoint
 curl -u admin:admin http://localhost:8090/rest/scriptrunner/latest/custom/controls
 
+# Test status endpoint
+curl -u admin:admin "http://localhost:8090/rest/scriptrunner/latest/custom/status?entityType=Iteration"
+
 # Run integration test
 groovy src/groovy/umig/tests/integration/AdminGuiAllEndpointsTest.groovy
 ```
@@ -67,9 +82,10 @@ groovy src/groovy/umig/tests/integration/AdminGuiAllEndpointsTest.groovy
   ✅ iterations, migrations, plans, sequences
   ✅ steps, instructions
 
-- **Requiring Manual Registration (2/13):**
+- **Requiring Manual Registration (3/14):**
   ❌ phases - Needs ScriptRunner UI registration
   ❌ controls - Needs ScriptRunner UI registration
+  ❌ status - Needs ScriptRunner UI registration (NEW for iterations dropdown fix)
 
 ### Notes
 

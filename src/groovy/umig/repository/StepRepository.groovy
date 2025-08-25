@@ -90,16 +90,8 @@ class StepRepository {
             def params = []
             
             // Build dynamic WHERE clause
-            if (filters.status) {
-                if (filters.status instanceof List) {
-                    def placeholders = filters.status.collect { '?' }.join(', ')
-                    whereConditions << ("s.sts_name IN (${placeholders})".toString())
-                    params.addAll(filters.status)
-                } else {
-                    whereConditions << "s.sts_name = ?"
-                    params << filters.status
-                }
-            }
+            // Note: Status filtering removed for master steps as they don't have status
+            // Status is only available for step instances (steps_instance_sti)
             
             // Owner ID filtering (phases own steps via phm_id)
             if (filters.ownerId) {
@@ -120,13 +112,12 @@ class StepRepository {
             def countQuery = """
                 SELECT COUNT(DISTINCT stm.stm_id) as total
                 FROM steps_master_stm stm
-                JOIN status_sts s ON stm.stm_status = s.sts_id
                 ${whereClause}
             """
             def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
             
-            // Validate sort field
-            def allowedSortFields = ['stm_id', 'stm_name', 'stm_status', 'created_at', 'updated_at', 'instruction_count', 'instance_count']
+            // Validate sort field (removed stm_status as master steps don't have status)
+            def allowedSortFields = ['stm_id', 'stm_name', 'stm_number', 'stm_description', 'instruction_count', 'instance_count']
             if (!sortField || !allowedSortFields.contains(sortField)) {
                 sortField = 'stm_name'
             }
@@ -135,11 +126,10 @@ class StepRepository {
             // Data query with computed fields
             def offset = (pageNumber - 1) * pageSize
             def dataQuery = """
-                SELECT DISTINCT stm.*, s.sts_id, s.sts_name, s.sts_color, s.sts_type,
+                SELECT DISTINCT stm.*,
                        COALESCE(instruction_counts.instruction_count, 0) as instruction_count,
                        COALESCE(instance_counts.instance_count, 0) as instance_count
                 FROM steps_master_stm stm
-                JOIN status_sts s ON stm.stm_status = s.sts_id
                 LEFT JOIN (
                     SELECT stm_id, COUNT(*) as instruction_count
                     FROM instructions_master_inm
@@ -172,9 +162,9 @@ class StepRepository {
     }
 
     /**
-     * Enriches step data with status metadata while maintaining backward compatibility.
-     * @param row Database row containing step and status data
-     * @return Enhanced step map with statusMetadata
+     * Enriches master step data without status information (master steps don't have status).
+     * @param row Database row containing master step data
+     * @return Enhanced step map suitable for Admin GUI
      */
     private Map enrichMasterStepWithStatusMetadata(Map row) {
         return [
@@ -182,27 +172,18 @@ class StepRepository {
             // Core step fields
             stm_name: row.stm_name,
             stm_description: row.stm_description,
-            stm_status: row.sts_name, // Backward compatibility
-            // Audit fields (consistent across all entities)
-            created_by: row.created_by,
-            created_at: row.created_at,
-            updated_by: row.updated_by,
-            updated_at: row.updated_at,
+            stm_number: row.stm_number,
+            stm_duration_minutes: row.stm_duration_minutes,
+            phm_id: row.phm_id,
+            tms_id_owner: row.tms_id_owner,
+            stt_code: row.stt_code,
+            enr_id_target: row.enr_id_target,
+            stm_id_predecessor: row.stm_id_predecessor,
             // Computed fields from joins
             instruction_count: row.instruction_count ?: 0,
-            instance_count: row.instance_count ?: 0,
-            // Enhanced status metadata (consistent across all entities)
-            statusMetadata: [
-                id: row.sts_id,
-                name: row.sts_name,
-                color: row.sts_color,
-                type: row.sts_type
-            ]
+            instance_count: row.instance_count ?: 0
+            // Note: Master steps don't have status - status exists only on step instances
         ]
-    }
-
-    /**
-        }
     }
 
     /**

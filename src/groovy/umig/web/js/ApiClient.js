@@ -303,7 +303,21 @@
        * @returns {Promise} Request promise
        */
       getAll: function (entityType, params = {}) {
-        return ApiClient.get(`/${entityType}`, params);
+        // Check if entity has a custom endpoint defined
+        let endpoint = `/${entityType}`;
+        if (window.EntityConfig) {
+          const entityConfig = window.EntityConfig.getEntity(entityType);
+          if (entityConfig && entityConfig.endpoint) {
+            endpoint = entityConfig.endpoint;
+          }
+        }
+        
+        // Use specific endpoint for iterations
+        if (entityType === 'iterations') {
+          endpoint = '/iterationsList';
+        }
+        
+        return ApiClient.get(endpoint, params);
       },
 
       /**
@@ -313,7 +327,21 @@
        * @returns {Promise} Request promise
        */
       getById: function (entityType, id) {
-        return ApiClient.get(`/${entityType}/${id}`);
+        // Check if entity has a custom endpoint defined
+        let endpoint = `/${entityType}`;
+        if (window.EntityConfig) {
+          const entityConfig = window.EntityConfig.getEntity(entityType);
+          if (entityConfig && entityConfig.endpoint) {
+            endpoint = entityConfig.endpoint;
+          }
+        }
+        
+        // Use specific endpoint for iterations
+        if (entityType === 'iterations') {
+          endpoint = '/iterationsList';
+        }
+        
+        return ApiClient.get(`${endpoint}/${id}`);
       },
 
       /**
@@ -323,7 +351,21 @@
        * @returns {Promise} Request promise
        */
       create: function (entityType, data) {
-        return ApiClient.post(`/${entityType}`, data);
+        // Check if entity has a custom endpoint defined
+        let endpoint = `/${entityType}`;
+        if (window.EntityConfig) {
+          const entityConfig = window.EntityConfig.getEntity(entityType);
+          if (entityConfig && entityConfig.endpoint) {
+            endpoint = entityConfig.endpoint;
+          }
+        }
+        
+        // Use specific endpoint for iterations
+        if (entityType === 'iterations') {
+          endpoint = '/iterationsList';
+        }
+        
+        return ApiClient.post(endpoint, data);
       },
 
       /**
@@ -334,7 +376,21 @@
        * @returns {Promise} Request promise
        */
       update: function (entityType, id, data) {
-        return ApiClient.put(`/${entityType}/${id}`, data);
+        // Check if entity has a custom endpoint defined
+        let endpoint = `/${entityType}`;
+        if (window.EntityConfig) {
+          const entityConfig = window.EntityConfig.getEntity(entityType);
+          if (entityConfig && entityConfig.endpoint) {
+            endpoint = entityConfig.endpoint;
+          }
+        }
+        
+        // Use specific endpoint for iterations
+        if (entityType === 'iterations') {
+          endpoint = '/iterationsList';
+        }
+        
+        return ApiClient.put(`${endpoint}/${id}`, data);
       },
 
       /**
@@ -344,7 +400,21 @@
        * @returns {Promise} Request promise
        */
       delete: function (entityType, id) {
-        return ApiClient.delete(`/${entityType}/${id}`);
+        // Check if entity has a custom endpoint defined
+        let endpoint = `/${entityType}`;
+        if (window.EntityConfig) {
+          const entityConfig = window.EntityConfig.getEntity(entityType);
+          if (entityConfig && entityConfig.endpoint) {
+            endpoint = entityConfig.endpoint;
+          }
+        }
+        
+        // Use specific endpoint for iterations
+        if (entityType === 'iterations') {
+          endpoint = '/iterationsList';
+        }
+        
+        return ApiClient.delete(`${endpoint}/${id}`);
       },
     },
 
@@ -810,6 +880,20 @@
       delete: function (id) {
         return ApiClient.entities.delete("migrations", id);
       },
+    },
+
+    /**
+     * Status API
+     */
+    status: {
+      /**
+       * Get status options for entity type
+       * @param {string} entityType - Entity type (e.g., 'Iteration', 'Migration', etc.)
+       * @returns {Promise} Request promise
+       */
+      getByEntityType: function (entityType) {
+        return ApiClient.get("/status", { entityType: entityType });
+      }
     },
 
     /**

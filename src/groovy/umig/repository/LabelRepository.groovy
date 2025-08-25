@@ -235,7 +235,7 @@ class LabelRepository {
                     u.usr_last_name
                 FROM labels_lbl l
                 LEFT JOIN migrations_mig m ON l.mig_id = m.mig_id
-                LEFT JOIN users_usr u ON l.created_by = u.usr_id
+                LEFT JOIN users_usr u ON l.created_by = u.usr_code
                 WHERE l.lbl_id = :labelId
             """, [labelId: labelId])
 

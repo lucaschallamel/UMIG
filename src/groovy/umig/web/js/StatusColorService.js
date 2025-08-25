@@ -19,6 +19,49 @@
     // Base URL for API
     baseUrl: "/rest/scriptrunner/latest/custom",
     
+    // Entity types that have dynamic status endpoints
+    entityTypesWithEndpoints: ["Step", "Instruction"],
+    
+    // Hardcoded fallback colors for entity types without endpoints
+    fallbackColors: {
+      Migration: {
+        PLANNING: "#FFA500",
+        IN_PROGRESS: "#0066CC", 
+        COMPLETED: "#00AA00",
+        CANCELLED: "#CC0000"
+      },
+      Plan: {
+        PLANNING: "#FFA500",
+        IN_PROGRESS: "#0066CC",
+        COMPLETED: "#00AA00", 
+        CANCELLED: "#CC0000"
+      },
+      Iteration: {
+        PLANNING: "#FFA500",
+        IN_PROGRESS: "#0066CC",
+        COMPLETED: "#00AA00",
+        CANCELLED: "#CC0000"
+      },
+      Sequence: {
+        PLANNING: "#FFA500",
+        IN_PROGRESS: "#0066CC",
+        COMPLETED: "#00AA00",
+        CANCELLED: "#CC0000"
+      },
+      Phase: {
+        PLANNING: "#FFA500", 
+        IN_PROGRESS: "#0066CC",
+        COMPLETED: "#00AA00",
+        CANCELLED: "#CC0000"
+      },
+      Control: {
+        TODO: "#FFFF00",
+        PASSED: "#00AA00",
+        FAILED: "#FF0000",
+        CANCELLED: "#CC0000"
+      }
+    },
+    
     /**
      * Fetch statuses for a given entity type
      * @param {string} entityType - The entity type (Migration, Iteration, Step, etc.)
@@ -35,8 +78,34 @@
         return this.statusCache[cacheKey].data;
       }
       
+      // Check if this entity type has a dynamic endpoint
+      if (!this.entityTypesWithEndpoints.includes(entityType)) {
+        // Use fallback colors for entities without endpoints
+        const fallback = this.fallbackColors[entityType];
+        if (fallback) {
+          const statuses = Object.entries(fallback).map(([name, color]) => ({
+            name: name,
+            color: color,
+            type: entityType
+          }));
+          
+          // Cache the fallback results
+          this.statusCache[cacheKey] = {
+            data: statuses,
+            timestamp: now
+          };
+          
+          console.log(`Using fallback colors for ${entityType}:`, statuses.length, 'statuses');
+          return statuses;
+        } else {
+          console.warn(`No fallback colors defined for entity type: ${entityType}`);
+          return [];
+        }
+      }
+      
       try {
-        const response = await fetch(`${this.baseUrl}/statuses/${cacheKey}`);
+        // Use the entityType with proper capitalization for API call
+        const response = await fetch(`${this.baseUrl}/statuses/${entityType}`);
         
         if (!response.ok) {
           console.warn(`Failed to fetch statuses for ${entityType}:`, response.status);
@@ -174,9 +243,11 @@
      * Pre-load statuses for multiple entity types
      * @param {Array<string>} entityTypes - Array of entity types to preload
      */
-    preloadStatuses: async function(entityTypes = ["Migration", "Iteration", "Step", "Phase", "Sequence", "Plan"]) {
+    preloadStatuses: async function(entityTypes = ["Migration", "Iteration", "Step", "Phase", "Sequence", "Plan", "Control", "Instruction"]) {
+      console.log('Preloading statuses for entity types:', entityTypes);
       const promises = entityTypes.map(type => this.fetchStatuses(type));
       await Promise.all(promises);
+      console.log('Status preloading complete');
     }
   };
 

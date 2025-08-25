@@ -206,10 +206,12 @@ class MigrationRepository {
     def findIterationById(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
-                SELECT ite_id, mig_id, plm_id, itt_code, ite_name, ite_description, ite_status,
-                       ite_static_cutover_date, ite_dynamic_cutover_date, created_by, created_at, updated_by, updated_at
-                FROM iterations_ite
-                WHERE ite_id = :iterationId
+                SELECT ite.ite_id, ite.mig_id, ite.plm_id, ite.itt_code, ite.ite_name, ite.ite_description, ite.ite_status,
+                       ite.ite_static_cutover_date, ite.ite_dynamic_cutover_date, ite.created_by, ite.created_at, ite.updated_by, ite.updated_at,
+                       mig.mig_name as migration_name
+                FROM iterations_ite ite
+                LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                WHERE ite.ite_id = :iterationId
             """, [iterationId: iterationId])
         }
     }
@@ -1231,7 +1233,7 @@ class MigrationRepository {
                 
                 // Return the newly created migration
                 def createdMigration = findMigrationById(migrationId)
-                log.info("MigrationRepository.create() - Successfully created migration: ${createdMigration?.mig_id}")
+                log.info("MigrationRepository.create() - Successfully created migration: ${(createdMigration as Map)?.mig_id}")
                 return createdMigration
             } catch (java.sql.SQLException e) {
                 log.error("MigrationRepository.create() - SQL Exception. SQL State: ${e.SQLState}, Error Code: ${e.errorCode}, Message: ${e.message}. Params: ${params}", e)
@@ -1439,6 +1441,246 @@ class MigrationRepository {
         DatabaseUtil.withSql { sql ->
             def deleteQuery = "DELETE FROM migrations_mig WHERE mig_id = ?"
             def rowsDeleted = sql.executeUpdate(deleteQuery, [migrationId])
+            return rowsDeleted > 0
+        }
+    }
+    
+    // ========== ITERATION MANAGEMENT METHODS ==========
+    
+    /**
+     * Find all iterations with filters and pagination support.
+     * @param filters Map containing optional filters (search, migrationId, etc.)
+     * @param page Page number (1-based)
+     * @param size Number of records per page
+     * @param sortField Field to sort by
+     * @param sortDirection 'asc' or 'desc'
+     * @return Map containing data array and pagination metadata
+     */
+    def findIterationsWithFilters(Map filters = [:], int page = 1, int size = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            // Build the WHERE clause dynamically
+            def whereClauses = []
+            def params = [:]
+            
+            if (filters.search) {
+                whereClauses << "(ite.ite_name ILIKE :search OR ite.ite_description ILIKE :search)"
+                params.search = "%${filters.search}%"
+            }
+            
+            if (filters.migrationId) {
+                whereClauses << "ite.mig_id = :migrationId"
+                params.migrationId = filters.migrationId
+            }
+            
+            def whereClause = whereClauses.empty ? "" : "WHERE " + whereClauses.join(" AND ")
+            
+            // Build ORDER BY clause
+            def orderBy = ""
+            if (sortField) {
+                def direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+                // Handle special fields that are not prefixed with ite. table
+                if (sortField == 'migration_name') {
+                    orderBy = "ORDER BY migration_name ${direction}"
+                } else {
+                    orderBy = "ORDER BY ite.${sortField} ${direction}"
+                }
+            } else {
+                orderBy = "ORDER BY ite.ite_static_cutover_date ASC"
+            }
+            
+            // Count total records for pagination
+            def countQuery = """
+                SELECT COUNT(*) as total
+                FROM iterations_ite ite
+                LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                ${whereClause}
+            """
+            
+            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            
+            // Calculate pagination
+            def offset = (page - 1) * size
+            def totalPages = (int) Math.ceil((double) totalCount / (double) size)
+            
+            // Main query with joins for additional context
+            def dataQuery = """
+                SELECT ite.ite_id, ite.mig_id, ite.plm_id, ite.itt_code, ite.ite_name, ite.ite_description, 
+                       ite.ite_status, ite.ite_static_cutover_date, ite.ite_dynamic_cutover_date,
+                       ite.created_by, ite.created_at, ite.updated_by, ite.updated_at,
+                       mig.mig_name as migration_name
+                FROM iterations_ite ite
+                LEFT JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                ${whereClause}
+                ${orderBy}
+                LIMIT :limit OFFSET :offset
+            """
+            
+            params.limit = size
+            params.offset = offset
+            
+            def iterations = sql.rows(dataQuery, params)
+            
+            return [
+                data: iterations,
+                pagination: [
+                    page: page,
+                    size: size,
+                    total: totalCount,
+                    totalPages: totalPages
+                ]
+            ]
+        }
+    }
+    
+    /**
+     * Creates a new iteration.
+     * @param iterationData Map containing iteration data
+     * @return Map representing the created iteration
+     */
+    def createIteration(Map iterationData) {
+        DatabaseUtil.withSql { sql ->
+            def iterationId = UUID.randomUUID()
+            def currentTime = new Date()
+            def createdBy = "system" // You might want to get this from context
+            
+            // Map field names to handle both API formats
+            def iteData = [
+                ite_id: iterationId,
+                mig_id: (iterationData.mig_id ?: iterationData.migrationId) as UUID,
+                plm_id: iterationData.plm_id ? (iterationData.plm_id as UUID) : null,
+                itt_code: iterationData.itt_code ? (iterationData.itt_code as String) : null,
+                ite_name: (iterationData.ite_name ?: iterationData.name) as String,
+                ite_description: (iterationData.ite_description ?: iterationData.description) as String,
+                ite_status: (iterationData.ite_status ?: iterationData.status) as String,
+                ite_static_cutover_date: iterationData.ite_static_cutover_date ?: iterationData.staticCutoverDate,
+                ite_dynamic_cutover_date: iterationData.ite_dynamic_cutover_date ?: iterationData.dynamicCutoverDate,
+                created_by: createdBy as String,
+                created_at: currentTime,
+                updated_by: createdBy as String,
+                updated_at: currentTime
+            ]
+            
+            // Validate required fields
+            if (!iteData.ite_name) {
+                throw new IllegalArgumentException("Iteration name is required")
+            }
+            if (!iteData.mig_id) {
+                throw new IllegalArgumentException("Migration ID is required")
+            }
+            
+            def insertQuery = """
+                INSERT INTO iterations_ite (
+                    ite_id, mig_id, plm_id, itt_code, ite_name, ite_description, ite_status,
+                    ite_static_cutover_date, ite_dynamic_cutover_date, created_by, created_at, updated_by, updated_at
+                ) VALUES (
+                    :ite_id, :mig_id, :plm_id, :itt_code, :ite_name, :ite_description, :ite_status,
+                    :ite_static_cutover_date, :ite_dynamic_cutover_date, :created_by, :created_at, :updated_by, :updated_at
+                )
+            """
+            
+            try {
+                def rowsInserted = sql.executeUpdate(insertQuery, iteData)
+                if (rowsInserted > 0) {
+                    return findIterationById(iterationId)
+                } else {
+                    throw new RuntimeException("Failed to create iteration - no rows inserted")
+                }
+            } catch (java.sql.SQLException e) {
+                log.error("MigrationRepository.createIteration() - SQL Exception: ${e.message}", e)
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * Updates an iteration.
+     * @param iterationId The UUID of the iteration to update
+     * @param iterationData Map containing updated iteration data
+     * @return Map representing the updated iteration, or null if not found
+     */
+    def updateIteration(UUID iterationId, Map iterationData) {
+        DatabaseUtil.withSql { sql ->
+            def updateFields = []
+            def params = [ite_id: iterationId] as Map<String, Object>
+            def updatedBy = "system" // You might want to get this from context
+            def currentTime = new Date()
+            
+            // Add updated_at and updated_by to all updates
+            updateFields << "updated_at = :updated_at"
+            updateFields << "updated_by = :updated_by"
+            params.updated_at = currentTime as Object
+            params.updated_by = updatedBy as String
+            
+            // Build dynamic update based on provided fields
+            if (iterationData.ite_name || iterationData.name) {
+                updateFields << "ite_name = :ite_name"
+                params.ite_name = (iterationData.ite_name ?: iterationData.name) as String
+            }
+            
+            if (iterationData.ite_description || iterationData.description) {
+                updateFields << "ite_description = :ite_description"
+                params.ite_description = (iterationData.ite_description ?: iterationData.description) as String
+            }
+            
+            if (iterationData.ite_status || iterationData.status) {
+                updateFields << "ite_status = :ite_status"
+                params.ite_status = (iterationData.ite_status ?: iterationData.status) as String
+            }
+            
+            if (iterationData.ite_static_cutover_date || iterationData.staticCutoverDate) {
+                updateFields << "ite_static_cutover_date = :ite_static_cutover_date"
+                params.ite_static_cutover_date = (iterationData.ite_static_cutover_date ?: iterationData.staticCutoverDate) as Object
+            }
+            
+            if (iterationData.ite_dynamic_cutover_date || iterationData.dynamicCutoverDate) {
+                updateFields << "ite_dynamic_cutover_date = :ite_dynamic_cutover_date"
+                params.ite_dynamic_cutover_date = iterationData.ite_dynamic_cutover_date ?: iterationData.dynamicCutoverDate
+            }
+            
+            if (iterationData.itt_code) {
+                updateFields << "itt_code = :itt_code"
+                params.itt_code = iterationData.itt_code ? (iterationData.itt_code as String) : null
+            }
+            
+            if (iterationData.plm_id) {
+                updateFields << "plm_id = :plm_id"
+                params.plm_id = iterationData.plm_id ? (iterationData.plm_id as UUID) : null
+            }
+            
+            if (updateFields.size() <= 2) { // Only updated_at and updated_by
+                log.warn("MigrationRepository.updateIteration() - No fields to update for iteration ${iterationId}")
+                return findIterationById(iterationId) // Return existing iteration
+            }
+            
+            def updateQuery = """
+                UPDATE iterations_ite 
+                SET ${updateFields.join(', ')}
+                WHERE ite_id = :ite_id
+            """
+            
+            try {
+                def rowsUpdated = sql.executeUpdate(updateQuery, params)
+                if (rowsUpdated > 0) {
+                    return findIterationById(iterationId)
+                } else {
+                    return null // Iteration not found
+                }
+            } catch (java.sql.SQLException e) {
+                log.error("MigrationRepository.updateIteration() - SQL Exception: ${e.message}", e)
+                throw e
+            }
+        }
+    }
+    
+    /**
+     * Deletes an iteration.
+     * @param iterationId The UUID of the iteration to delete
+     * @return true if deleted, false if not found
+     */
+    def deleteIteration(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            def deleteQuery = "DELETE FROM iterations_ite WHERE ite_id = ?"
+            def rowsDeleted = sql.executeUpdate(deleteQuery, [iterationId])
             return rowsDeleted > 0
         }
     }
