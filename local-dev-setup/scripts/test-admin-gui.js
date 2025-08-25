@@ -15,9 +15,13 @@ async function main() {
   });
 
   try {
-    console.log("\n============================================================");
+    console.log(
+      "\n============================================================",
+    );
     console.log("  US-031: Admin GUI Complete Integration Test");
-    console.log("============================================================\n");
+    console.log(
+      "============================================================\n",
+    );
 
     // Check prerequisites
     await runner.checkPrerequisites();
@@ -25,26 +29,27 @@ async function main() {
     // Run just the AdminGuiAllEndpointsTest
     const testFile = path.join(
       runner.integrationTestsDir,
-      "AdminGuiAllEndpointsTest.groovy"
+      "AdminGuiAllEndpointsTest.groovy",
     );
 
     console.log("🧪 Running AdminGuiAllEndpointsTest...\n");
-    
-    const results = await runner.executeTestBatch(
-      [testFile],
-      { parallel: false }
-    );
+
+    const results = await runner.executeTestBatch([testFile], {
+      parallel: false,
+    });
 
     // Print results
-    console.log("\n============================================================");
+    console.log(
+      "\n============================================================",
+    );
     console.log("  TEST RESULTS");
     console.log("============================================================");
     console.log(`Tests Passed: ${runner.results.passed}`);
     console.log(`Tests Failed: ${runner.results.failed}`);
-    
+
     if (runner.results.failed > 0) {
       console.log("\nFailed Tests:");
-      runner.results.failedTests.forEach(test => {
+      runner.results.failedTests.forEach((test) => {
         console.log(`  - ${test}`);
       });
     }

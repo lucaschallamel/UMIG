@@ -196,15 +196,15 @@
 
 ### 4.3. Error Responses (Enhanced PostgreSQL Patterns)
 
-| Status Code | Content-Type     | Schema | Example                                           | Description                      |
-| ----------- | ---------------- | ------ | ------------------------------------------------- | -------------------------------- |
-| 400         | application/json | Error  | `{"error": "Invalid plan ID format"}`             | Bad request - invalid parameters |
-| 400         | application/json | Error  | `{"error": "Invalid status name: UNKNOWN. Available statuses: PLANNING, ACTIVE, COMPLETED"}` | Invalid status name with suggestions |
-| 400         | application/json | Error  | `{"error": "Invalid date format. Use yyyy-MM-dd or ISO datetime"}` | Enhanced date parsing error |
-| 404         | application/json | Error  | `{"error": "Plan not found"}`                     | Resource not found               |
-| 409         | application/json | Error  | `{"error": "Plan with this name already exists"}` | Conflict - duplicate name (SQL State 23505) |
-| 409         | application/json | Error  | `{"error": "Invalid owner user ID 999 - user does not exist"}` | Foreign key constraint (SQL State 23503) |
-| 500         | application/json | Error  | `{"error": "Internal server error"}`              | Server error                     |
+| Status Code | Content-Type     | Schema | Example                                                                                      | Description                                 |
+| ----------- | ---------------- | ------ | -------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 400         | application/json | Error  | `{"error": "Invalid plan ID format"}`                                                        | Bad request - invalid parameters            |
+| 400         | application/json | Error  | `{"error": "Invalid status name: UNKNOWN. Available statuses: PLANNING, ACTIVE, COMPLETED"}` | Invalid status name with suggestions        |
+| 400         | application/json | Error  | `{"error": "Invalid date format. Use yyyy-MM-dd or ISO datetime"}`                           | Enhanced date parsing error                 |
+| 404         | application/json | Error  | `{"error": "Plan not found"}`                                                                | Resource not found                          |
+| 409         | application/json | Error  | `{"error": "Plan with this name already exists"}`                                            | Conflict - duplicate name (SQL State 23505) |
+| 409         | application/json | Error  | `{"error": "Invalid owner user ID 999 - user does not exist"}`                               | Foreign key constraint (SQL State 23503)    |
+| 500         | application/json | Error  | `{"error": "Internal server error"}`                                                         | Server error                                |
 
 ## 5. Authentication & Authorization
 
@@ -219,7 +219,7 @@
 
 - **Rate Limits:** Standard Confluence limits apply
 - **RLS (Row-Level Security):** No
-- **Input Validation:** 
+- **Input Validation:**
   - All UUID and integer parameters validated with explicit casting (ADR-031)
   - Flexible status input handling (string names or integer IDs)
   - Enhanced date format support (yyyy-MM-dd, ISO datetime with milliseconds)
@@ -298,20 +298,23 @@ Returns plan instances matching all specified criteria.
 The Plans API supports dual-format status input for enhanced usability:
 
 **Status Names (Strings):**
+
 ```json
 {
-  "plm_status": "PLANNING"    // Automatically resolved to status ID
+  "plm_status": "PLANNING" // Automatically resolved to status ID
 }
 ```
 
 **Status IDs (Integers):**
+
 ```json
 {
-  "plm_status": 1             // Direct database reference
+  "plm_status": 1 // Direct database reference
 }
 ```
 
 **Benefits:**
+
 - Enhanced developer experience with readable status names
 - Backward compatibility with integer IDs
 - Automatic validation against status_sts table
@@ -322,28 +325,32 @@ The Plans API supports dual-format status input for enhanced usability:
 Multiple date format support with automatic PostgreSQL type conversion:
 
 **Supported Formats:**
+
 - `yyyy-MM-dd` - Simple date format
 - `yyyy-MM-dd'T'HH:mm:ss` - ISO datetime format
 - `yyyy-MM-dd'T'HH:mm:ss.SSS` - ISO datetime with milliseconds
 
 **Examples:**
+
 ```json
 {
-  "startDate": "2025-03-15",                    // Simple date
-  "endDate": "2025-06-30T18:00:00",            // ISO datetime
-  "businessCutoverDate": "2025-05-15T14:30:00.000"  // ISO with milliseconds
+  "startDate": "2025-03-15", // Simple date
+  "endDate": "2025-06-30T18:00:00", // ISO datetime
+  "businessCutoverDate": "2025-05-15T14:30:00.000" // ISO with milliseconds
 }
 ```
 
 ### 12.3. Auto-Assignment Patterns
 
 **Owner Assignment Fallback Strategy:**
+
 1. Use provided `usr_id_owner` if valid
 2. Fallback to system admin user if available
 3. Fallback to any active user
 4. Error if no users exist
 
 **Status Assignment:**
+
 1. Use provided status (name or ID) if valid
 2. Fallback to "PLANNING" status
 3. Fallback to "Draft" or "New" if available
@@ -354,40 +361,49 @@ Multiple date format support with automatic PostgreSQL type conversion:
 ### 13.1. Common PostgreSQL Compatibility Issues
 
 **Invalid Status Error:**
+
 ```json
 {
   "error": "Invalid status name: UNKNOWN. Available statuses: PLANNING, ACTIVE, COMPLETED"
 }
 ```
+
 **Solution:** Use one of the suggested status names or check status_sts table.
 
 **Date Parsing Failure:**
+
 ```json
 {
   "error": "Invalid date format. Use yyyy-MM-dd or ISO datetime"
 }
 ```
+
 **Solution:** Ensure dates match supported formats or use java.sql.Date/Timestamp types.
 
 **Foreign Key Constraint Violation (SQL State 23503):**
+
 ```json
 {
   "error": "Invalid owner user ID 999 - user does not exist"
 }
 ```
+
 **Solution:** Verify user exists in users_usr table or omit for auto-assignment.
 
 **Unique Constraint Violation (SQL State 23505):**
+
 ```json
 {
   "error": "A plan with the name 'Existing Plan' already exists"
 }
 ```
+
 **Solution:** Choose a unique plan name or update existing plan instead.
 
 ### 13.2. Enhanced Error Recovery
 
 The API provides specific error messages with recovery guidance:
+
 - Invalid status: Lists available status options
 - Invalid user: Suggests checking user table or using auto-assignment
 - Invalid date: Shows supported date formats
@@ -396,12 +412,14 @@ The API provides specific error messages with recovery guidance:
 ### 13.3. Cross-Reference with Related APIs
 
 **Pattern Consistency:**
+
 - Same PostgreSQL patterns used in Migrations API
 - Consistent error handling across all v2 APIs
 - Shared status resolution logic
 - Unified date parsing utilities
 
 **Related Documentation:**
+
 - US-031: Admin GUI Complete Integration
 - ADR-031: Type Safety and Explicit Casting
 - Migrations API: Reference implementation for these patterns

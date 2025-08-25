@@ -311,12 +311,12 @@
             endpoint = entityConfig.endpoint;
           }
         }
-        
+
         // Use specific endpoint for iterations
-        if (entityType === 'iterations') {
-          endpoint = '/iterationsList';
+        if (entityType === "iterations") {
+          endpoint = "/iterationsList";
         }
-        
+
         return ApiClient.get(endpoint, params);
       },
 
@@ -335,12 +335,12 @@
             endpoint = entityConfig.endpoint;
           }
         }
-        
+
         // Use specific endpoint for iterations
-        if (entityType === 'iterations') {
-          endpoint = '/iterationsList';
+        if (entityType === "iterations") {
+          endpoint = "/iterationsList";
         }
-        
+
         return ApiClient.get(`${endpoint}/${id}`);
       },
 
@@ -359,12 +359,12 @@
             endpoint = entityConfig.endpoint;
           }
         }
-        
+
         // Use specific endpoint for iterations
-        if (entityType === 'iterations') {
-          endpoint = '/iterationsList';
+        if (entityType === "iterations") {
+          endpoint = "/iterationsList";
         }
-        
+
         return ApiClient.post(endpoint, data);
       },
 
@@ -384,12 +384,12 @@
             endpoint = entityConfig.endpoint;
           }
         }
-        
+
         // Use specific endpoint for iterations
-        if (entityType === 'iterations') {
-          endpoint = '/iterationsList';
+        if (entityType === "iterations") {
+          endpoint = "/iterationsList";
         }
-        
+
         return ApiClient.put(`${endpoint}/${id}`, data);
       },
 
@@ -408,12 +408,12 @@
             endpoint = entityConfig.endpoint;
           }
         }
-        
+
         // Use specific endpoint for iterations
-        if (entityType === 'iterations') {
-          endpoint = '/iterationsList';
+        if (entityType === "iterations") {
+          endpoint = "/iterationsList";
         }
-        
+
         return ApiClient.delete(`${endpoint}/${id}`);
       },
     },
@@ -893,7 +893,7 @@
        */
       getByEntityType: function (entityType) {
         return ApiClient.get("/status", { entityType: entityType });
-      }
+      },
     },
 
     /**

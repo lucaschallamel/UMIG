@@ -36,18 +36,21 @@ For US-031 Admin GUI Complete Integration, the following endpoints need to be ma
    - Select "Inline" script type
 
 3. **For Phases Endpoint:**
+
    ```groovy
    // Point to the PhasesApi.groovy file
    File: /src/groovy/umig/api/v2/PhasesApi.groovy
    ```
 
 4. **For Controls Endpoint:**
+
    ```groovy
    // Point to the ControlsApi.groovy file
    File: /src/groovy/umig/api/v2/ControlsApi.groovy
    ```
 
 5. **For Status Endpoint:**
+
    ```groovy
    // Point to the StatusApi.groovy file
    File: /src/groovy/umig/api/v2/StatusApi.groovy

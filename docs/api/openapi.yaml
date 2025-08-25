@@ -14,7 +14,7 @@ info:
     **Error Handling:** Comprehensive validation with specific error messages for all failure scenarios.
     **Backward Compatibility:** All existing API usage continues to work unchanged.
     **Implementation Status:** All documented features are fully implemented and tested.
-    
+
     **Previous Updates:**
     **US-024 Complete:** Enhanced StepsAPI with improved comments endpoint error handling.
     **Features:** RESTful sub-resource pattern for comments with clear documentation and practical examples.
@@ -3781,7 +3781,7 @@ paths:
                   description: New status - accepts either status name (string) or status ID (integer) for flexible input handling
                   examples:
                     - "PLANNING"
-                    - "ACTIVE" 
+                    - "ACTIVE"
                     - 1
                     - 2
       responses:
@@ -4214,7 +4214,7 @@ paths:
       description: |
         Retrieves all master phase templates with comprehensive filtering, pagination, sorting, and computed fields.
         Supports Admin GUI with enhanced status metadata, relationship data, and performance optimization.
-        
+
         **Enhanced Features:**
         - Computed fields (step_count, instance_count)
         - Status metadata with colors and descriptions
@@ -4254,7 +4254,16 @@ paths:
           required: false
           schema:
             type: string
-            enum: [phm_id, phm_name, phm_status, created_at, updated_at, step_count, instance_count]
+            enum:
+              [
+                phm_id,
+                phm_name,
+                phm_status,
+                created_at,
+                updated_at,
+                step_count,
+                instance_count,
+              ]
             default: phm_name
           description: Field to sort by
         - name: direction
@@ -5485,7 +5494,8 @@ components:
         mig_status:
           oneOf:
             - type: string
-              enum: ["PLANNING", "IN_PROGRESS", "COMPLETED", "ON_HOLD", "CANCELLED"]
+              enum:
+                ["PLANNING", "IN_PROGRESS", "COMPLETED", "ON_HOLD", "CANCELLED"]
               description: Status as string name
               example: "PLANNING"
             - type: integer

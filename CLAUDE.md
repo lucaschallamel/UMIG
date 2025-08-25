@@ -466,16 +466,18 @@ if (stepId) {
 ### 🔴 Current Critical Issues (Sprint 5 Day 3)
 
 #### **Authentication Blocker - HTTP 401 Unauthorized**
+
 - **Status**: CRITICAL - All Admin GUI API endpoints returning 401
 - **Impact**: Cannot validate complete Admin GUI integration despite technical completion
 - **Root Cause**: ScriptRunner authentication context requires investigation
 - **Progress**: Issue isolated, credentials verified (admin:Spaceop!13)
-- **Next Steps**: 
+- **Next Steps**:
   - Investigate ScriptRunner session-based vs Basic Auth requirements
   - Verify Confluence user configuration and permissions
   - Test UI-based authentication approach as alternative
 
 #### **Manual Endpoint Registration Pending**
+
 - **Status**: BLOCKED by authentication issue
 - **Scope**: 2/13 endpoints (phases, controls) require ScriptRunner UI registration
 - **Workaround**: Comprehensive registration guide created (`docs/technical/ENDPOINT_REGISTRATION_GUIDE.md`)

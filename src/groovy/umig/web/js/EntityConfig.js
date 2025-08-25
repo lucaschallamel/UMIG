@@ -370,13 +370,26 @@
       description: "Manage iteration instances for migrations",
       fields: [
         { key: "ite_id", label: "Iteration ID", type: "text", readonly: true },
-        { key: "ite_name", label: "Iteration Name", type: "text", required: true },
-        { key: "itt_code", label: "Iteration Code", type: "text", readonly: true },
-        { key: "ite_status", label: "Status", type: "select",
+        {
+          key: "ite_name",
+          label: "Iteration Name",
+          type: "text",
+          required: true,
+        },
+        {
+          key: "itt_code",
+          label: "Iteration Code",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "ite_status",
+          label: "Status",
+          type: "select",
           entityType: "status",
           entityTypeFilter: "Iteration",
           displayField: "name",
-          valueField: "id"
+          valueField: "id",
         },
         {
           key: "mig_id",
@@ -422,22 +435,17 @@
       // Modal fields for view/edit modals - ordered logically
       modalFields: [
         "ite_id",
-        "ite_name", 
+        "ite_name",
         "itt_code",
         "ite_status",
         "mig_id",
         "migration_name",
         "created_at",
         "created_by",
-        "updated_at", 
-        "updated_by"
+        "updated_at",
+        "updated_by",
       ],
-      tableColumns: [
-        "ite_name",
-        "itt_code",
-        "ite_status",
-        "migration_name",
-      ],
+      tableColumns: ["ite_name", "itt_code", "ite_status", "migration_name"],
       sortMapping: {
         ite_id: "ite_id",
         ite_name: "ite_name",
@@ -473,35 +481,44 @@
         ite_status: function (value, row) {
           // Handle both status objects and numeric values
           let statusName, statusColor;
-          
-          console.log('ite_status renderer called with value:', value, 'row:', row);
-            
+
+          console.log(
+            "ite_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // First check if statusMetadata is available in row AND has valid name
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
           }
           // Check if value is the status string directly
-          else if (typeof value === 'string') {
+          else if (typeof value === "string") {
             statusName = value;
             // Check if we have statusMetadata in row for color
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
           }
           // Handle numeric status values - map to string equivalents
-          else if (typeof value === 'number') {
+          else if (typeof value === "number") {
             const statusMap = {
-              1: "PLANNING", 
-              9: "PLANNING", 
-              10: "IN_PROGRESS", 
-              11: "COMPLETED", 
-              12: "CANCELLED"
+              1: "PLANNING",
+              9: "PLANNING",
+              10: "IN_PROGRESS",
+              11: "COMPLETED",
+              12: "CANCELLED",
             };
             statusName = statusMap[value] || `STATUS_${value}`;
           }
           // Legacy handling for object status values
-          else if (typeof value === 'object' && value !== null) {
+          else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           }
@@ -514,23 +531,35 @@
             statusName = value || "Unknown";
             statusColor = null;
           }
-            
-          console.log('Using statusName:', statusName, 'statusColor:', statusColor);
-          
+
+          console.log(
+            "Using statusName:",
+            statusName,
+            "statusColor:",
+            statusColor,
+          );
+
           // Convert status name to display format
-          const displayName = statusName ? statusName.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
-          
+          const displayName = statusName
+            ? statusName
+                .replace(/_/g, " ")
+                .toLowerCase()
+                .replace(/\b\w/g, (l) => l.toUpperCase())
+            : "Unknown";
+
           // If we have a color, use it directly
           if (statusColor) {
-            const textColor = window.UiUtils ? window.UiUtils.getContrastingTextColor(statusColor) : "#ffffff";
+            const textColor = window.UiUtils
+              ? window.UiUtils.getContrastingTextColor(statusColor)
+              : "#ffffff";
             return `<span class="status-badge" data-status="${statusName}" data-entity-type="Iteration" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
           }
-          
+
           // Otherwise, create badge with data attributes for async color application
           return `<span class="status-badge" data-status="${statusName}" data-entity-type="Iteration" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
         },
         // Migration name renderer
-        migration_name: function(value, row) {
+        migration_name: function (value, row) {
           if (value && value.trim()) {
             return `<span title="${value}">${value}</span>`;
           }
@@ -544,7 +573,7 @@
             return `<span style="color: #666; font-style: italic;" title="Migration ID: ${row.mig_id}">Migration ${row.mig_id.substring(0, 8)}...</span>`;
           }
           return "-";
-        }
+        },
       },
       permissions: ["pilot"],
     },
@@ -554,17 +583,35 @@
       description: "Manage migration events and their configurations",
       fields: [
         { key: "mig_id", label: "Migration ID", type: "text", readonly: true },
-        { key: "mig_name", label: "Migration Name", type: "text", required: true },
+        {
+          key: "mig_name",
+          label: "Migration Name",
+          type: "text",
+          required: true,
+        },
         { key: "mig_description", label: "Description", type: "textarea" },
-        { key: "mig_start_date", label: "Start Date", type: "date", required: true },
-        { key: "mig_end_date", label: "End Date", type: "date", required: true },
-        { key: "mig_status", label: "Status", type: "select", 
+        {
+          key: "mig_start_date",
+          label: "Start Date",
+          type: "date",
+          required: true,
+        },
+        {
+          key: "mig_end_date",
+          label: "End Date",
+          type: "date",
+          required: true,
+        },
+        {
+          key: "mig_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         {
           key: "iteration_count",
@@ -617,24 +664,33 @@
         mig_status: function (value, row) {
           // Handle both status objects and numeric values
           let statusName, statusColor;
-          
-          console.log('mig_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "mig_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // First check if statusMetadata is available in row AND has valid name
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
           }
           // Check if value is the status string directly
-          else if (typeof value === 'string') {
+          else if (typeof value === "string") {
             statusName = value;
             // Check if we have statusMetadata in row for color
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
           }
           // Legacy handling for object status values
-          else if (typeof value === 'object' && value !== null) {
+          else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           }
@@ -647,31 +703,43 @@
             statusName = value || "Unknown";
             statusColor = null;
           }
-          
-          console.log('Using statusName:', statusName, 'statusColor:', statusColor);
-          
+
+          console.log(
+            "Using statusName:",
+            statusName,
+            "statusColor:",
+            statusColor,
+          );
+
           // Convert status name to display format
-          const displayName = statusName ? statusName.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
-          
+          const displayName = statusName
+            ? statusName
+                .replace(/_/g, " ")
+                .toLowerCase()
+                .replace(/\b\w/g, (l) => l.toUpperCase())
+            : "Unknown";
+
           // If we have a color, use it directly
           if (statusColor) {
-            const textColor = window.UiUtils ? window.UiUtils.getContrastingTextColor(statusColor) : "#ffffff";
+            const textColor = window.UiUtils
+              ? window.UiUtils.getContrastingTextColor(statusColor)
+              : "#ffffff";
             return `<span class="status-badge" data-status="${statusName}" data-entity-type="Migration" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
           }
-          
+
           // Otherwise, create badge with data attributes for async color application
           return `<span class="status-badge" data-status="${statusName}" data-entity-type="Migration" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
-        }
+        },
       },
       modalFields: [
         "mig_id",
         "mig_name",
-        "mig_description", 
+        "mig_description",
         "mig_start_date",
         "mig_end_date",
         "mig_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       permissions: ["admin"],
       bulkActions: [
@@ -685,22 +753,22 @@
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         {
           id: "export_selected",
           label: "Export Selected",
           icon: "📄",
-          requiresInput: false
-        }
+          requiresInput: false,
+        },
       ],
     },
 
     plans: {
       name: "Plans",
       description: "Manage master plans and plan instances for migrations",
-      endpoint: "/plans/master",  // FIXED: Use master endpoint for Master Plans
+      endpoint: "/plans/master", // FIXED: Use master endpoint for Master Plans
       fields: [
         { key: "plm_id", label: "Plan ID", type: "text", readonly: true },
         { key: "plm_name", label: "Plan Name", type: "text", required: true },
@@ -721,13 +789,16 @@
           readonly: true,
           computed: true,
         },
-        { key: "plm_status", label: "Status", type: "select", 
+        {
+          key: "plm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         {
           key: "sequence_count",
@@ -785,19 +856,28 @@
         // Status with color pattern
         plm_status: function (value, row) {
           let statusName, statusColor;
-          
-          console.log('plm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "plm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // Enhanced status metadata handling
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -808,14 +888,14 @@
             statusColor = "#999999";
           }
 
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
+        enableRowSelection: false,
       },
       modalFields: [
         "plm_id",
@@ -824,7 +904,7 @@
         "tms_id",
         "plm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       permissions: ["superadmin"],
     },
@@ -833,22 +913,53 @@
     plansinstance: {
       name: "Plans",
       description: "Manage plan instances for iterations",
-      endpoint: "/plans",  // Instance endpoint (not /plans/master)
+      endpoint: "/plans", // Instance endpoint (not /plans/master)
       fields: [
         { key: "pli_id", label: "Instance ID", type: "uuid", readonly: true },
         { key: "pli_name", label: "Plan Name", type: "text", required: true },
         { key: "pli_description", label: "Description", type: "textarea" },
-        { key: "plm_id", label: "Master Plan ID", type: "uuid", readonly: true },
+        {
+          key: "plm_id",
+          label: "Master Plan ID",
+          type: "uuid",
+          readonly: true,
+        },
         { key: "plm_name", label: "Master Plan", type: "text", readonly: true },
         { key: "ite_id", label: "Iteration ID", type: "uuid", required: true },
         { key: "itr_name", label: "Iteration", type: "text", readonly: true },
         { key: "pli_status", label: "Status", type: "dropdown", options: [] },
-        { key: "created_by", label: "Created By", type: "text", readonly: true },
-        { key: "created_at", label: "Created At", type: "datetime", readonly: true },
-        { key: "updated_by", label: "Updated By", type: "text", readonly: true },
-        { key: "updated_at", label: "Updated At", type: "datetime", readonly: true }
+        {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "created_at",
+          label: "Created At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated At",
+          type: "datetime",
+          readonly: true,
+        },
       ],
-      tableColumns: ["pli_id", "pli_name", "plm_name", "itr_name", "pli_status"],
+      tableColumns: [
+        "pli_id",
+        "pli_name",
+        "plm_name",
+        "itr_name",
+        "pli_status",
+      ],
       modalFields: ["pli_name", "pli_description", "ite_id", "pli_status"],
       searchFields: ["pli_name", "pli_description", "plm_name"],
       defaultSort: { field: "pli_name", direction: "asc" },
@@ -873,15 +984,15 @@
         // Status with color pattern
         pli_status: function (value, row) {
           let statusName, statusColor;
-          
+
           // Enhanced status metadata handling
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
             statusColor = "#999999";
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -892,41 +1003,99 @@
             statusColor = "#999999";
           }
 
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
         enableRowSelection: false,
-        enableSelectAll: false
+        enableSelectAll: false,
       },
-      permissions: ["confluence-users"],  // Available to PILOT users
+      permissions: ["confluence-users"], // Available to PILOT users
     },
 
     // Sequence Instances configuration (PILOT section)
     sequencesinstance: {
       name: "Sequences",
       description: "Manage sequence instances for plans",
-      endpoint: "/sequences",  // Instance endpoint
+      endpoint: "/sequences", // Instance endpoint
       fields: [
         { key: "sqi_id", label: "Instance ID", type: "uuid", readonly: true },
-        { key: "sqi_name", label: "Sequence Name", type: "text", required: true },
+        {
+          key: "sqi_name",
+          label: "Sequence Name",
+          type: "text",
+          required: true,
+        },
         { key: "sqi_description", label: "Description", type: "textarea" },
-        { key: "sqm_id", label: "Master Sequence ID", type: "uuid", readonly: true },
-        { key: "sqm_name", label: "Master Sequence", type: "text", readonly: true },
-        { key: "pli_id", label: "Plan Instance ID", type: "uuid", required: true },
-        { key: "pli_name", label: "Plan Instance", type: "text", readonly: true },
+        {
+          key: "sqm_id",
+          label: "Master Sequence ID",
+          type: "uuid",
+          readonly: true,
+        },
+        {
+          key: "sqm_name",
+          label: "Master Sequence",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "pli_id",
+          label: "Plan Instance ID",
+          type: "uuid",
+          required: true,
+        },
+        {
+          key: "pli_name",
+          label: "Plan Instance",
+          type: "text",
+          readonly: true,
+        },
         { key: "sqi_order", label: "Order", type: "number", required: true },
         { key: "sqi_status", label: "Status", type: "dropdown", options: [] },
-        { key: "created_by", label: "Created By", type: "text", readonly: true },
-        { key: "created_at", label: "Created At", type: "datetime", readonly: true },
-        { key: "updated_by", label: "Updated By", type: "text", readonly: true },
-        { key: "updated_at", label: "Updated At", type: "datetime", readonly: true }
+        {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "created_at",
+          label: "Created At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated At",
+          type: "datetime",
+          readonly: true,
+        },
       ],
-      tableColumns: ["sqi_id", "sqi_name", "sqm_name", "pli_name", "sqi_order", "sqi_status"],
-      modalFields: ["sqi_name", "sqi_description", "pli_id", "sqi_order", "sqi_status"],
+      tableColumns: [
+        "sqi_id",
+        "sqi_name",
+        "sqm_name",
+        "pli_name",
+        "sqi_order",
+        "sqi_status",
+      ],
+      modalFields: [
+        "sqi_name",
+        "sqi_description",
+        "pli_id",
+        "sqi_order",
+        "sqi_status",
+      ],
       searchFields: ["sqi_name", "sqi_description", "sqm_name"],
       defaultSort: { field: "sqi_order", direction: "asc" },
       columnMap: {
@@ -952,10 +1121,10 @@
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
             statusColor = "#999999";
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -965,14 +1134,14 @@
             statusName = value || "Unknown";
             statusColor = "#999999";
           }
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
         enableRowSelection: false,
-        enableSelectAll: false
+        enableSelectAll: false,
       },
       permissions: ["confluence-users"],
     },
@@ -980,10 +1149,20 @@
     sequencesmaster: {
       name: "Master Sequences",
       description: "Manage master sequence templates within plans",
-      endpoint: "/sequences/master",  // Use master endpoint for Master Sequences
+      endpoint: "/sequences/master", // Use master endpoint for Master Sequences
       fields: [
-        { key: "sqm_id", label: "Master Sequence ID", type: "uuid", readonly: true },
-        { key: "sqm_name", label: "Sequence Name", type: "text", required: true },
+        {
+          key: "sqm_id",
+          label: "Master Sequence ID",
+          type: "uuid",
+          readonly: true,
+        },
+        {
+          key: "sqm_name",
+          label: "Sequence Name",
+          type: "text",
+          required: true,
+        },
         { key: "sqm_description", label: "Description", type: "textarea" },
         { key: "sqm_order", label: "Order", type: "number", required: true },
         {
@@ -1089,20 +1268,20 @@
                     title="View sequence details">${value}</a>`;
         },
         // Plan name renderer
-        plm_name: function(value, row) {
+        plm_name: function (value, row) {
           if (!value && !row.plm_name) return "-";
           const planName = value || row.plm_name || "-";
           return `<span title="${planName}">${planName}</span>`;
         },
         // Order renderer
-        sqm_order: function(value, row) {
+        sqm_order: function (value, row) {
           if (value === null || value === undefined) {
             // Try to get from row if not in value
             value = row.sqm_order;
           }
           if (value === null || value === undefined) return "-";
           return `<span style="font-weight: 600;">${value}</span>`;
-        }
+        },
       },
       // Modal fields for view/edit modals - Plan selection comes first, then predecessor
       modalFields: [
@@ -1110,37 +1289,51 @@
         "plm_id",
         "predecessor_sqm_id",
         "sqm_name",
-        "sqm_description", 
+        "sqm_description",
         "sqm_order",
         "phase_count",
         "instance_count",
         "created_at",
         "updated_at",
         "created_by",
-        "updated_by"
+        "updated_by",
       ],
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
-      }
+        enableRowSelection: false,
+      },
     },
 
     sequences: {
       name: "Sequences",
-      description: "Manage master sequences and sequence instances within plans",
+      description:
+        "Manage master sequences and sequence instances within plans",
       fields: [
-        { key: "sqm_id", label: "Master Sequence ID", type: "uuid", readonly: true },
-        { key: "sqm_name", label: "Sequence Name", type: "text", required: true },
+        {
+          key: "sqm_id",
+          label: "Master Sequence ID",
+          type: "uuid",
+          readonly: true,
+        },
+        {
+          key: "sqm_name",
+          label: "Sequence Name",
+          type: "text",
+          required: true,
+        },
         { key: "sqm_description", label: "Description", type: "textarea" },
-        { key: "sqm_status", label: "Status", type: "select", 
+        {
+          key: "sqm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         { key: "sqm_order", label: "Order", type: "number", required: true },
         {
@@ -1186,12 +1379,7 @@
           readonly: true,
         },
       ],
-      tableColumns: [
-        "sqm_name",
-        "sqm_status",
-        "phase_count",
-        "instance_count",
-      ],
+      tableColumns: ["sqm_name", "sqm_status", "phase_count", "instance_count"],
       sortMapping: {
         sqm_id: "sqm_id",
         sqm_name: "sqm_name",
@@ -1221,28 +1409,37 @@
                     style="color: #205081; text-decoration: none; cursor: pointer;" 
                     title="View sequence details">${value}</a>`;
         },
-        // Status with color pattern  
+        // Status with color pattern
         sqm_status: function (value, row) {
           // Handle both status objects and string values
           let statusName, statusColor;
-          
-          console.log('sqm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "sqm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // First check if statusMetadata is available in row AND has valid name
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
           }
           // Check if value is the status string directly
-          else if (typeof value === 'string') {
+          else if (typeof value === "string") {
             statusName = value;
             // Check if we have statusMetadata in row for color
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
           }
           // Legacy handling for object status values
-          else if (typeof value === 'object' && value !== null) {
+          else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           }
@@ -1255,21 +1452,33 @@
             statusName = value || "Unknown";
             statusColor = null;
           }
-          
-          console.log('Using statusName:', statusName, 'statusColor:', statusColor);
-          
+
+          console.log(
+            "Using statusName:",
+            statusName,
+            "statusColor:",
+            statusColor,
+          );
+
           // Convert status name to display format
-          const displayName = statusName ? statusName.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
-          
+          const displayName = statusName
+            ? statusName
+                .replace(/_/g, " ")
+                .toLowerCase()
+                .replace(/\b\w/g, (l) => l.toUpperCase())
+            : "Unknown";
+
           // If we have a color, use it directly
           if (statusColor) {
-            const textColor = window.UiUtils ? window.UiUtils.getContrastingTextColor(statusColor) : "#ffffff";
+            const textColor = window.UiUtils
+              ? window.UiUtils.getContrastingTextColor(statusColor)
+              : "#ffffff";
             return `<span class="status-badge" data-status="${statusName}" data-entity-type="Sequence" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
           }
-          
+
           // Otherwise, create badge with data attributes for async color application
           return `<span class="status-badge" data-status="${statusName}" data-entity-type="Sequence" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
-        }
+        },
       },
       modalFields: [
         "sqm_id",
@@ -1277,22 +1486,27 @@
         "sqm_description",
         "sqm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
-      }
+        enableRowSelection: false,
+      },
     },
 
     phasesmaster: {
       name: "Master Phases",
       description: "Manage master phase templates within sequences",
-      endpoint: "/phases/master",  // Use master endpoint for Master Phases
+      endpoint: "/phases/master", // Use master endpoint for Master Phases
       fields: [
-        { key: "phm_id", label: "Master Phase ID", type: "text", readonly: true },
+        {
+          key: "phm_id",
+          label: "Master Phase ID",
+          type: "text",
+          readonly: true,
+        },
         { key: "phm_name", label: "Phase Name", type: "text", required: true },
         { key: "phm_description", label: "Description", type: "textarea" },
         { key: "phm_order", label: "Order", type: "number", required: true },
@@ -1377,37 +1591,37 @@
                     title="View phase details">${value}</a>`;
         },
         // Sequence name renderer
-        sqm_name: function(value, row) {
+        sqm_name: function (value, row) {
           if (!value && !row.sqm_name) return "-";
           const sequenceName = value || row.sqm_name || "-";
           return `<span title="${sequenceName}">${sequenceName}</span>`;
         },
         // Order renderer
-        phm_order: function(value, row) {
+        phm_order: function (value, row) {
           if (value === null || value === undefined) {
             // Try to get from row if not in value
             value = row.phm_order;
           }
           if (value === null || value === undefined) return "-";
           return `<span style="font-weight: 600;">${value}</span>`;
-        }
+        },
       },
       modalFields: [
         "phm_id",
         "phm_name",
         "phm_description",
         "sqm_id",
-        "phm_order", 
+        "phm_order",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       permissions: ["superadmin"],
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
-      }
+        enableRowSelection: false,
+      },
     },
 
     phases: {
@@ -1417,13 +1631,16 @@
         { key: "phm_id", label: "Phase ID", type: "text", readonly: true },
         { key: "phm_name", label: "Phase Name", type: "text", required: true },
         { key: "phm_description", label: "Description", type: "textarea" },
-        { key: "phm_status", label: "Status", type: "select", 
+        {
+          key: "phm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         // Computed fields pattern
         {
@@ -1434,7 +1651,7 @@
           computed: true,
         },
         {
-          key: "instance_count", 
+          key: "instance_count",
           label: "Instances",
           type: "number",
           readonly: true,
@@ -1449,17 +1666,12 @@
         },
         {
           key: "updated_at",
-          label: "Updated", 
+          label: "Updated",
           type: "datetime",
           readonly: true,
         },
       ],
-      tableColumns: [
-        "phm_name",
-        "phm_status",
-        "step_count",
-        "instance_count",
-      ],
+      tableColumns: ["phm_name", "phm_status", "step_count", "instance_count"],
       sortMapping: {
         phm_id: "phm_id",
         phm_name: "phm_name",
@@ -1481,19 +1693,28 @@
         // Status with color pattern
         phm_status: function (value, row) {
           let statusName, statusColor;
-          
-          console.log('phm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "phm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // Enhanced status metadata handling
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -1504,14 +1725,14 @@
             statusColor = "#999999";
           }
 
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
+        enableRowSelection: false,
       },
       modalFields: [
         "phm_id",
@@ -1519,7 +1740,7 @@
         "phm_description",
         "phm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       permissions: ["superadmin"],
     },
@@ -1530,13 +1751,16 @@
         { key: "stm_id", label: "Step ID", type: "text", readonly: true },
         { key: "stm_name", label: "Step Name", type: "text", required: true },
         { key: "stm_description", label: "Description", type: "textarea" },
-        { key: "stm_status", label: "Status", type: "select", 
+        {
+          key: "stm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         // Computed fields pattern
         {
@@ -1547,7 +1771,7 @@
           computed: true,
         },
         {
-          key: "instance_count", 
+          key: "instance_count",
           label: "Instances",
           type: "number",
           readonly: true,
@@ -1562,7 +1786,7 @@
         },
         {
           key: "updated_at",
-          label: "Updated", 
+          label: "Updated",
           type: "datetime",
           readonly: true,
         },
@@ -1594,19 +1818,28 @@
         // Status with color pattern
         stm_status: function (value, row) {
           let statusName, statusColor;
-          
-          console.log('stm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "stm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // Enhanced status metadata handling
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -1617,8 +1850,8 @@
             statusColor = "#999999";
           }
 
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       modalFields: [
         "stm_id",
@@ -1626,13 +1859,13 @@
         "stm_description",
         "stm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
+        enableRowSelection: false,
       },
       permissions: ["superadmin"],
     },
@@ -1642,16 +1875,29 @@
       description: "Manage instruction events and their configurations",
       endpoint: "/instructions",
       fields: [
-        { key: "inm_id", label: "Instruction ID", type: "text", readonly: true },
-        { key: "inm_name", label: "Instruction Name", type: "text", required: true },
+        {
+          key: "inm_id",
+          label: "Instruction ID",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "inm_name",
+          label: "Instruction Name",
+          type: "text",
+          required: true,
+        },
         { key: "inm_description", label: "Description", type: "textarea" },
-        { key: "inm_status", label: "Status", type: "select", 
+        {
+          key: "inm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         // Computed fields pattern
         {
@@ -1662,7 +1908,7 @@
           computed: true,
         },
         {
-          key: "control_count", 
+          key: "control_count",
           label: "Controls",
           type: "number",
           readonly: true,
@@ -1677,7 +1923,7 @@
         },
         {
           key: "updated_at",
-          label: "Updated", 
+          label: "Updated",
           type: "datetime",
           readonly: true,
         },
@@ -1709,19 +1955,28 @@
         // Status with color pattern
         inm_status: function (value, row) {
           let statusName, statusColor;
-          
-          console.log('inm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "inm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // Enhanced status metadata handling
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -1732,8 +1987,8 @@
             statusColor = "#999999";
           }
 
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       modalFields: [
         "inm_id",
@@ -1741,13 +1996,13 @@
         "inm_description",
         "inm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
+        enableRowSelection: false,
       },
       permissions: ["superadmin"],
     },
@@ -1756,24 +2011,77 @@
     phasesinstance: {
       name: "Phases",
       description: "Manage phase instances for sequences",
-      endpoint: "/phases",  // Instance endpoint
+      endpoint: "/phases", // Instance endpoint
       fields: [
         { key: "phi_id", label: "Instance ID", type: "uuid", readonly: true },
         { key: "phi_name", label: "Phase Name", type: "text", required: true },
         { key: "phi_description", label: "Description", type: "textarea" },
-        { key: "phm_id", label: "Master Phase ID", type: "uuid", readonly: true },
-        { key: "phm_name", label: "Master Phase", type: "text", readonly: true },
-        { key: "sqi_id", label: "Sequence Instance ID", type: "uuid", required: true },
-        { key: "sqi_name", label: "Sequence Instance", type: "text", readonly: true },
+        {
+          key: "phm_id",
+          label: "Master Phase ID",
+          type: "uuid",
+          readonly: true,
+        },
+        {
+          key: "phm_name",
+          label: "Master Phase",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "sqi_id",
+          label: "Sequence Instance ID",
+          type: "uuid",
+          required: true,
+        },
+        {
+          key: "sqi_name",
+          label: "Sequence Instance",
+          type: "text",
+          readonly: true,
+        },
         { key: "phi_order", label: "Order", type: "number", required: true },
         { key: "phi_status", label: "Status", type: "dropdown", options: [] },
-        { key: "created_by", label: "Created By", type: "text", readonly: true },
-        { key: "created_at", label: "Created At", type: "datetime", readonly: true },
-        { key: "updated_by", label: "Updated By", type: "text", readonly: true },
-        { key: "updated_at", label: "Updated At", type: "datetime", readonly: true }
+        {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "created_at",
+          label: "Created At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated At",
+          type: "datetime",
+          readonly: true,
+        },
       ],
-      tableColumns: ["phi_id", "phi_name", "phm_name", "sqi_name", "phi_order", "phi_status"],
-      modalFields: ["phi_name", "phi_description", "sqi_id", "phi_order", "phi_status"],
+      tableColumns: [
+        "phi_id",
+        "phi_name",
+        "phm_name",
+        "sqi_name",
+        "phi_order",
+        "phi_status",
+      ],
+      modalFields: [
+        "phi_name",
+        "phi_description",
+        "sqi_id",
+        "phi_order",
+        "phi_status",
+      ],
       searchFields: ["phi_name", "phi_description", "phm_name"],
       defaultSort: { field: "phi_order", direction: "asc" },
       columnMap: {
@@ -1799,10 +2107,10 @@
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
             statusColor = "#999999";
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -1812,14 +2120,14 @@
             statusName = value || "Unknown";
             statusColor = "#999999";
           }
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
         enableRowSelection: false,
-        enableSelectAll: false
+        enableSelectAll: false,
       },
       permissions: ["confluence-users"],
     },
@@ -1829,16 +2137,24 @@
       description: "Manage master step templates within phases",
       endpoint: "/steps/master",
       fields: [
-        { key: "stm_id", label: "Master Step ID", type: "text", readonly: true },
+        {
+          key: "stm_id",
+          label: "Master Step ID",
+          type: "text",
+          readonly: true,
+        },
         { key: "stm_name", label: "Step Name", type: "text", required: true },
         { key: "stm_description", label: "Description", type: "textarea" },
-        { key: "stm_status", label: "Status", type: "select", 
+        {
+          key: "stm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         { key: "stm_order", label: "Order", type: "number", required: true },
         {
@@ -1918,7 +2234,7 @@
         "stm_order",
         "stm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       permissions: ["superadmin"],
       customRenderers: {
@@ -1933,24 +2249,33 @@
         stm_status: function (value, row) {
           // Handle both status objects and string values
           let statusName, statusColor;
-          
-          console.log('stm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "stm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // First check if statusMetadata is available in row AND has valid name
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
           }
           // Check if value is the status string directly
-          else if (typeof value === 'string') {
+          else if (typeof value === "string") {
             statusName = value;
             // Check if we have statusMetadata in row for color
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
           }
           // Legacy handling for object status values
-          else if (typeof value === 'object' && value !== null) {
+          else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           }
@@ -1963,28 +2288,40 @@
             statusName = value || "Unknown";
             statusColor = null;
           }
-          
-          console.log('Using statusName:', statusName, 'statusColor:', statusColor);
-          
+
+          console.log(
+            "Using statusName:",
+            statusName,
+            "statusColor:",
+            statusColor,
+          );
+
           // Convert status name to display format
-          const displayName = statusName ? statusName.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
-          
+          const displayName = statusName
+            ? statusName
+                .replace(/_/g, " ")
+                .toLowerCase()
+                .replace(/\b\w/g, (l) => l.toUpperCase())
+            : "Unknown";
+
           // If we have a color, use it directly
           if (statusColor) {
-            const textColor = window.UiUtils ? window.UiUtils.getContrastingTextColor(statusColor) : "#ffffff";
+            const textColor = window.UiUtils
+              ? window.UiUtils.getContrastingTextColor(statusColor)
+              : "#ffffff";
             return `<span class="status-badge" data-status="${statusName}" data-entity-type="StepMaster" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
           }
-          
+
           // Otherwise, create badge with data attributes for async color application
           return `<span class="status-badge" data-status="${statusName}" data-entity-type="StepMaster" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
-        }
+        },
       },
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
-      }
+        enableRowSelection: false,
+      },
     },
 
     "controls-master": {
@@ -1992,19 +2329,32 @@
       description: "Manage master control templates within instructions",
       endpoint: "/controls/master",
       fields: [
-        { key: "ctm_id", label: "Master Control ID", type: "text", readonly: true },
-        { key: "ctm_name", label: "Control Name", type: "text", required: true },
+        {
+          key: "ctm_id",
+          label: "Master Control ID",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "ctm_name",
+          label: "Control Name",
+          type: "text",
+          required: true,
+        },
         { key: "ctm_description", label: "Description", type: "textarea" },
         { key: "ctm_type", label: "Control Type", type: "text" },
         { key: "ctm_is_critical", label: "Critical", type: "boolean" },
         { key: "ctm_order", label: "Order", type: "number", required: true },
-        { key: "ctm_status", label: "Status", type: "select", 
+        {
+          key: "ctm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         {
           key: "inm_id",
@@ -2030,7 +2380,7 @@
           computed: true,
         },
         {
-          key: "validation_count", 
+          key: "validation_count",
           label: "Validations",
           type: "number",
           readonly: true,
@@ -2094,24 +2444,33 @@
         ctm_status: function (value, row) {
           // Handle both status objects and string values
           let statusName, statusColor;
-          
-          console.log('ctm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "ctm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // First check if statusMetadata is available in row AND has valid name
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
           }
           // Check if value is the status string directly
-          else if (typeof value === 'string') {
+          else if (typeof value === "string") {
             statusName = value;
             // Check if we have statusMetadata in row for color
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
           }
           // Legacy handling for object status values
-          else if (typeof value === 'object' && value !== null) {
+          else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           }
@@ -2124,21 +2483,33 @@
             statusName = value || "Unknown";
             statusColor = null;
           }
-          
-          console.log('Using statusName:', statusName, 'statusColor:', statusColor);
-          
+
+          console.log(
+            "Using statusName:",
+            statusName,
+            "statusColor:",
+            statusColor,
+          );
+
           // Convert status name to display format
-          const displayName = statusName ? statusName.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown';
-          
+          const displayName = statusName
+            ? statusName
+                .replace(/_/g, " ")
+                .toLowerCase()
+                .replace(/\b\w/g, (l) => l.toUpperCase())
+            : "Unknown";
+
           // If we have a color, use it directly
           if (statusColor) {
-            const textColor = window.UiUtils ? window.UiUtils.getContrastingTextColor(statusColor) : "#ffffff";
+            const textColor = window.UiUtils
+              ? window.UiUtils.getContrastingTextColor(statusColor)
+              : "#ffffff";
             return `<span class="status-badge" data-status="${statusName}" data-entity-type="ControlMaster" style="background-color: ${statusColor}; color: ${textColor}; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
           }
-          
+
           // Otherwise, create badge with data attributes for async color application
           return `<span class="status-badge" data-status="${statusName}" data-entity-type="ControlMaster" style="background-color: #999; color: #fff; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; display: inline-block;">${displayName}</span>`;
-        }
+        },
       },
       modalFields: [
         "ctm_id",
@@ -2149,15 +2520,15 @@
         "ctm_order",
         "ctm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       permissions: ["superadmin"],
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
-      }
+        enableRowSelection: false,
+      },
     },
 
     controls: {
@@ -2165,18 +2536,26 @@
       description: "Manage control events and their configurations",
       fields: [
         { key: "ctm_id", label: "Control ID", type: "text", readonly: true },
-        { key: "ctm_name", label: "Control Name", type: "text", required: true },
+        {
+          key: "ctm_name",
+          label: "Control Name",
+          type: "text",
+          required: true,
+        },
         { key: "ctm_description", label: "Description", type: "textarea" },
         { key: "ctm_type", label: "Control Type", type: "text" },
         { key: "ctm_is_critical", label: "Critical", type: "boolean" },
         { key: "ctm_order", label: "Order", type: "number", required: true },
-        { key: "ctm_status", label: "Status", type: "select", 
+        {
+          key: "ctm_status",
+          label: "Status",
+          type: "select",
           options: [
             { value: "PLANNING", label: "Planning" },
             { value: "IN_PROGRESS", label: "In Progress" },
             { value: "COMPLETED", label: "Completed" },
-            { value: "CANCELLED", label: "Cancelled" }
-          ]
+            { value: "CANCELLED", label: "Cancelled" },
+          ],
         },
         // Computed fields pattern
         {
@@ -2187,7 +2566,7 @@
           computed: true,
         },
         {
-          key: "validation_count", 
+          key: "validation_count",
           label: "Validations",
           type: "number",
           readonly: true,
@@ -2202,7 +2581,7 @@
         },
         {
           key: "updated_at",
-          label: "Updated", 
+          label: "Updated",
           type: "datetime",
           readonly: true,
         },
@@ -2240,19 +2619,28 @@
         // Status with color pattern
         ctm_status: function (value, row) {
           let statusName, statusColor;
-          
-          console.log('ctm_status renderer called with value:', value, 'row:', row);
-          
+
+          console.log(
+            "ctm_status renderer called with value:",
+            value,
+            "row:",
+            row,
+          );
+
           // Enhanced status metadata handling
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
-            if (row && row.statusMetadata && row.statusMetadata.name === value) {
+            if (
+              row &&
+              row.statusMetadata &&
+              row.statusMetadata.name === value
+            ) {
               statusColor = row.statusMetadata.color;
             }
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -2263,8 +2651,8 @@
             statusColor = "#999999";
           }
 
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       modalFields: [
         "ctm_id",
@@ -2275,13 +2663,13 @@
         "ctm_order",
         "ctm_status",
         "created_at",
-        "updated_at"
+        "updated_at",
       ],
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
-        enableRowSelection: false
+        enableRowSelection: false,
       },
       permissions: ["superadmin"],
     },
@@ -2292,19 +2680,65 @@
       endpoint: "/controls",
       fields: [
         { key: "cti_id", label: "Instance ID", type: "uuid", readonly: true },
-        { key: "cti_name", label: "Control Name", type: "text", required: true },
+        {
+          key: "cti_name",
+          label: "Control Name",
+          type: "text",
+          required: true,
+        },
         { key: "cti_description", label: "Description", type: "textarea" },
-        { key: "ctm_id", label: "Master Control ID", type: "uuid", readonly: true },
-        { key: "ctm_name", label: "Master Control", type: "text", readonly: true },
+        {
+          key: "ctm_id",
+          label: "Master Control ID",
+          type: "uuid",
+          readonly: true,
+        },
+        {
+          key: "ctm_name",
+          label: "Master Control",
+          type: "text",
+          readonly: true,
+        },
         { key: "cti_status", label: "Status", type: "dropdown", options: [] },
         { key: "cti_is_critical", label: "Critical", type: "boolean" },
-        { key: "created_by", label: "Created By", type: "text", readonly: true },
-        { key: "created_at", label: "Created At", type: "datetime", readonly: true },
-        { key: "updated_by", label: "Updated By", type: "text", readonly: true },
-        { key: "updated_at", label: "Updated At", type: "datetime", readonly: true }
+        {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "created_at",
+          label: "Created At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated At",
+          type: "datetime",
+          readonly: true,
+        },
       ],
-      tableColumns: ["cti_id", "cti_name", "ctm_name", "cti_status", "cti_is_critical"],
-      modalFields: ["cti_name", "cti_description", "cti_status", "cti_is_critical"],
+      tableColumns: [
+        "cti_id",
+        "cti_name",
+        "ctm_name",
+        "cti_status",
+        "cti_is_critical",
+      ],
+      modalFields: [
+        "cti_name",
+        "cti_description",
+        "cti_status",
+        "cti_is_critical",
+      ],
       searchFields: ["cti_name", "cti_description", "ctm_name"],
       defaultSort: { field: "cti_name", direction: "asc" },
       columnMap: {
@@ -2328,15 +2762,15 @@
         // Status with color pattern
         cti_status: function (value, row) {
           let statusName, statusColor;
-          
+
           // Enhanced status metadata handling
           if (row && row.statusMetadata && row.statusMetadata.name) {
             statusName = row.statusMetadata.name;
             statusColor = row.statusMetadata.color;
-          } else if (typeof value === 'string') {
+          } else if (typeof value === "string") {
             statusName = value;
             statusColor = "#999999";
-          } else if (typeof value === 'object' && value !== null) {
+          } else if (typeof value === "object" && value !== null) {
             statusName = value.sts_name || value.name;
             statusColor = value.sts_color || value.color;
           } else if (row && row.sts_name) {
@@ -2347,17 +2781,17 @@
             statusColor = "#999999";
           }
 
-          return `<span class="status-badge" style="background-color: ${statusColor || '#999999'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
-        }
+          return `<span class="status-badge" style="background-color: ${statusColor || "#999999"}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${statusName}</span>`;
+        },
       },
       // Feature flags to disable bulk operations
       featureFlags: {
         enableBulkActions: false,
         enableExport: false,
         enableRowSelection: false,
-        enableSelectAll: false
+        enableSelectAll: false,
       },
-      permissions: ["confluence-users"],  // Available to PILOT users
+      permissions: ["confluence-users"], // Available to PILOT users
     },
   };
 
@@ -2372,13 +2806,13 @@
       iterations: "/iterations",
       labels: "/labels",
       migrations: "/migrations",
-      plans: "/plans/master",  // Master plans endpoint
-      plansinstance: "/plans",  // Plan instances endpoint
+      plans: "/plans/master", // Master plans endpoint
+      plansinstance: "/plans", // Plan instances endpoint
       sequences: "/sequences",
-      sequencesinstance: "/sequences",  // Sequence instances endpoint
+      sequencesinstance: "/sequences", // Sequence instances endpoint
       sequencesmaster: "/sequences/master",
       phases: "/phases",
-      phasesinstance: "/phases",  // Phase instances endpoint
+      phasesinstance: "/phases", // Phase instances endpoint
       phasesmaster: "/phases/master",
       steps: "/steps",
       "steps-master": "/steps/master",
@@ -2393,15 +2827,15 @@
   // Feature flags configuration
   const FEATURE_FLAGS = {
     // Export and bulk functionality features
-    enableExportButton: false,        // Set to true to show Export button
-    enableBulkActions: false,         // Set to true to show Bulk Actions button  
-    enableRowSelection: false,        // Set to true to show selection checkboxes
-    enableSelectAll: false,           // Set to true to show select-all checkbox
-    
+    enableExportButton: false, // Set to true to show Export button
+    enableBulkActions: false, // Set to true to show Bulk Actions button
+    enableRowSelection: false, // Set to true to show selection checkboxes
+    enableSelectAll: false, // Set to true to show select-all checkbox
+
     // Additional feature flags for future use
-    enableAdvancedFilters: true,      // Advanced filtering capabilities
-    enableRealTimeSync: true,         // Real-time data synchronization
-    enableTableActions: true,         // Individual row actions (view, edit, delete)
+    enableAdvancedFilters: true, // Advanced filtering capabilities
+    enableRealTimeSync: true, // Real-time data synchronization
+    enableTableActions: true, // Individual row actions (view, edit, delete)
   };
 
   // Entity configuration utility functions
