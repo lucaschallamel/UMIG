@@ -49,31 +49,31 @@ The Phases API has been significantly enhanced with advanced repository capabili
 
 ## 2. Endpoints
 
-| Method                        | Path                                          | Description                                                                              |
-| ----------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| **Master Phase Management**   |                                               |                                                                                          |
+| Method                        | Path                                                 | Description                                                                              |
+| ----------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Master Phase Management**   |                                                      |                                                                                          |
 | GET                           | `/phases/master`                              | Get all master phases with Admin GUI pagination, filtering, sorting, and computed fields |
 | GET                           | `/phases/master/{phm_id}`                     | Get a specific master phase by ID                                                        |
 | POST                          | `/phases/master`                              | Create a new master phase                                                                |
 | PUT                           | `/phases/master/{phm_id}`                     | Update an existing master phase                                                          |
 | DELETE                        | `/phases/master/{phm_id}`                     | Delete a master phase                                                                    |
-| **Instance Phase Operations** |                                               |                                                                                          |
+| **Instance Phase Operations** |                                                      |                                                                                          |
 | GET                           | `/phases/instance`                            | Get all phase instances with hierarchical filtering                                      |
 | GET                           | `/phases/instance/{phi_id}`                   | Get a specific phase instance by ID                                                      |
 | POST                          | `/phases/instance`                            | Create a phase instance from master phase                                                |
 | PUT                           | `/phases/instance/{phi_id}`                   | Update an existing phase instance                                                        |
 | DELETE                        | `/phases/instance/{phi_id}`                   | Delete a phase instance                                                                  |
-| **Control Points**            |                                               |                                                                                          |
+| **Control Points**            |                                                      |                                                                                          |
 | GET                           | `/phases/{phi_id}/controls`                   | Get control points for a phase instance                                                  |
 | POST                          | `/phases/{phi_id}/controls/validate`          | Validate all control points for a phase                                                  |
 | PUT                           | `/phases/{phi_id}/controls/{cti_id}`          | Update control point status                                                              |
 | POST                          | `/phases/{phi_id}/controls/{cti_id}/override` | Override control point with reason                                                       |
-| **Ordering**                  |                                               |                                                                                          |
+| **Ordering**                  |                                                      |                                                                                          |
 | PUT                           | `/phases/master/reorder`                      | Bulk reorder master phases within sequence                                               |
 | PUT                           | `/phases/instance/reorder`                    | Bulk reorder phase instances within sequence                                             |
 | POST                          | `/phases/master/{phm_id}/move`                | Move master phase to new position                                                        |
 | POST                          | `/phases/instance/{phi_id}/move`              | Move phase instance to new position                                                      |
-| **Progress**                  |                                               |                                                                                          |
+| **Progress**                  |                                                      |                                                                                          |
 | GET                           | `/phases/{phi_id}/progress`                   | Get progress percentage for phase instance                                               |
 
 ## 3. Request Details
