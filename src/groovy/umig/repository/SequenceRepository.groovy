@@ -188,6 +188,7 @@ class SequenceRepository {
                 FROM sequences_master_sqm sqm
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN sequences_master_sqm pred ON sqm.predecessor_sqm_id = pred.sqm_id
                 ${whereClause}
             """
             def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
@@ -206,11 +207,13 @@ class SequenceRepository {
                        sqm.sqm_order, sqm.predecessor_sqm_id, sqm.created_by, sqm.created_at, 
                        sqm.updated_by, sqm.updated_at,
                        plm.plm_name, plm.tms_id, tms.tms_name,
+                       pred.sqm_name as predecessor_name,
                        COALESCE(phase_counts.phase_count, 0) as phase_count,
                        COALESCE(instance_counts.instance_count, 0) as instance_count
                 FROM sequences_master_sqm sqm
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN sequences_master_sqm pred ON sqm.predecessor_sqm_id = pred.sqm_id
                 LEFT JOIN (
                     SELECT sqm_id, COUNT(*) as phase_count
                     FROM phases_master_phm

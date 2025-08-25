@@ -118,13 +118,15 @@ class PhaseRepository {
             def offset = (pageNumber - 1) * pageSize
             def dataQuery = """
                 SELECT DISTINCT phm.*,
-                       sqm.sqm_name, sqm.sqm_id, sqm.sqm_order, plm.plm_name, plm.tms_id, tms.tms_name,
+                       sqm.sqm_name, sqm.sqm_id, sqm.sqm_order, sqm.plm_id, plm.plm_name, plm.tms_id, tms.tms_name,
+                       pred.phm_name as predecessor_name,
                        COALESCE(step_counts.step_count, 0) as step_count,
                        COALESCE(instance_counts.instance_count, 0) as instance_count
                 FROM phases_master_phm phm
                 JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 LEFT JOIN teams_tms tms ON plm.tms_id = tms.tms_id
+                LEFT JOIN phases_master_phm pred ON phm.predecessor_phm_id = pred.phm_id
                 LEFT JOIN (
                     SELECT phm_id, COUNT(*) as step_count
                     FROM steps_master_stm
@@ -244,8 +246,7 @@ class PhaseRepository {
                 WHERE phm.phm_id = :phaseId
             """, [phaseId: phaseId])
             
-            
-            return row
+            return row ? enrichMasterPhaseWithStatusMetadata(row) : null
         }
     }
     
@@ -1415,10 +1416,12 @@ class PhaseRepository {
             updated_at: row.updated_at,
             // Sequence and plan details
             sqm_name: row.sqm_name,
-            sqm_id: row.sqm_id,
+            plm_id: row.plm_id,
             plm_name: row.plm_name,
             tms_id: row.tms_id,
             tms_name: row.tms_name,
+            // Predecessor phase name for VIEW display mapping (ADR-031 compatibility)
+            predecessor_phm_name: row.predecessor_name,
             // Computed fields from joins (phase-specific relationships)
             step_count: row.step_count ?: 0,
             instance_count: row.instance_count ?: 0

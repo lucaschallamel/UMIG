@@ -497,6 +497,8 @@
         totalPages: 1,
       };
 
+      console.log("TableManager.renderPagination called with:", pagination);
+
       // Update pagination info
       const paginationInfo = document.getElementById("paginationInfo");
       if (paginationInfo) {
@@ -686,12 +688,27 @@
      * @param {number} page - Page number
      */
     goToPage: function (page) {
+      console.log(`TableManager.goToPage called with page: ${page}`);
+      
       if (window.AdminGuiState) {
+        const stateBefore = window.AdminGuiState.getState();
+        console.log("State before page change:", { 
+          currentPage: stateBefore.currentPage, 
+          pageSize: stateBefore.pageSize 
+        });
+        
         window.AdminGuiState.pagination.setCurrentPage(page);
+        
+        const stateAfter = window.AdminGuiState.getState();
+        console.log("State after page change:", { 
+          currentPage: stateAfter.currentPage, 
+          pageSize: stateAfter.pageSize 
+        });
       }
 
       // Reload data
       if (window.AdminGuiController) {
+        console.log("Reloading current section...");
         window.AdminGuiController.loadCurrentSection();
       }
     },
@@ -750,18 +767,33 @@
       console.log("Page size changed to:", pageSize);
 
       if (window.AdminGuiState) {
+        const stateBefore = window.AdminGuiState.getState();
+        console.log("State before page size change:", { 
+          currentPage: stateBefore.currentPage, 
+          pageSize: stateBefore.pageSize,
+          totalItems: stateBefore.pagination?.totalItems
+        });
+
         // Reset to first page when changing page size
         window.AdminGuiState.pagination.setCurrentPage(1);
         window.AdminGuiState.pagination.setPageSize(pageSize);
 
-        const state = window.AdminGuiState.getState();
-        console.log("Updated state:", state);
+        const stateAfter = window.AdminGuiState.getState();
+        console.log("State after page size change:", { 
+          currentPage: stateAfter.currentPage, 
+          pageSize: stateAfter.pageSize,
+          totalItems: stateAfter.pagination?.totalItems
+        });
       }
 
-      // Reload data
-      if (window.AdminGuiController) {
-        window.AdminGuiController.loadCurrentSection();
-      }
+      // Add a small delay to ensure state is properly set
+      setTimeout(() => {
+        // Reload data
+        if (window.AdminGuiController) {
+          console.log("Reloading data with new page size...");
+          window.AdminGuiController.loadCurrentSection();
+        }
+      }, 10);
     },
 
     /**

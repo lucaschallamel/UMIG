@@ -134,7 +134,8 @@ controls(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
             }
 
             // Validate sort field - ctm_code is the default sort field (primary display field for Admin GUI)
-            def allowedSortFields = ['ctm_id', 'ctm_code', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count']
+            // Include hierarchy fields for sorting by plan, sequence, phase, and team names
+            def allowedSortFields = ['ctm_id', 'ctm_code', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count', 'plm_name', 'sqm_name', 'phm_name', 'tms_name']
             
             // Default to ctm_code if no sort field specified (Admin GUI primary display field and default ordering)
             if (!sortField) {
@@ -571,6 +572,14 @@ controls(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             updateData['ctm_type'] = requestData['ctm_type'] as String
             updateData['ctm_is_critical'] = requestData['ctm_is_critical'] as Boolean
             updateData['ctm_code'] = requestData['ctm_code'] as String
+            updateData['ctm_order'] = requestData['ctm_order'] as Integer
+            
+            // Include phase association for Admin GUI EDIT mode support
+            // Note: plm_id and sqm_id are derived values - only phm_id is stored in controls_master_ctm
+            // When phm_id is updated, the plan and sequence relationships are automatically resolved through JOINs
+            if (requestData['phm_id']) {
+                updateData['phm_id'] = UUID.fromString(requestData['phm_id'] as String)
+            }
             
             def controlRepository = getControlRepository()
             def result = controlRepository.updateMasterControl(controlId, updateData)

@@ -179,7 +179,8 @@ class ControlRepository {
         }
         
         // Apply sorting - ctm_code is the primary display field and default sort field for Admin GUI table view
-        def allowedSortFields = ['ctm_id', 'ctm_code', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at']
+        // Include hierarchy fields for sorting by plan, sequence, phase, and team names
+        def allowedSortFields = ['ctm_id', 'ctm_code', 'ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_order', 'created_at', 'updated_at', 'instance_count', 'validation_count', 'plm_name', 'sqm_name', 'phm_name', 'tms_name']
         if (!sortField || !allowedSortFields.contains(sortField)) {
             sortField = 'ctm_code'  // Default to ctm_code for Admin GUI primary display
         }
@@ -363,7 +364,7 @@ class ControlRepository {
                 // Build dynamic update query
                 def setClauses = []
                 def queryParams = [:]
-                def updatableFields = ['ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_code']
+                def updatableFields = ['ctm_name', 'ctm_description', 'ctm_type', 'ctm_is_critical', 'ctm_code', 'ctm_order', 'phm_id']
                 
                 controlData.each { key, value ->
                     if (key in updatableFields) {
