@@ -321,8 +321,8 @@ class StepNotificationIntegration {
             def teams = getTeamsForStepNotification(sql, stepInstanceId)
             def cutoverTeam = getCutoverTeam(sql)
             
-            // Send enhanced notification
-            EnhancedEmailService.sendStepStatusChangedNotificationWithUrl(
+            // Send enhanced notification with mobile template (US-039 Phase 1)
+            EnhancedEmailNotificationService.sendAutomatedStatusChangeNotification(
                 stepInstance,
                 teams,
                 cutoverTeam,
@@ -355,8 +355,8 @@ class StepNotificationIntegration {
             // Get teams for notification
             def teams = getTeamsForStepNotification(sql, stepInstanceId)
             
-            // Send enhanced notification
-            EnhancedEmailService.sendStepOpenedNotificationWithUrl(
+            // Send enhanced notification with mobile template (US-039 Phase 1)
+            EnhancedEmailNotificationService.sendAutomatedStepOpenedNotification(
                 stepInstance,
                 teams,
                 userId,
@@ -388,8 +388,8 @@ class StepNotificationIntegration {
             // Get teams for notification
             def teams = getTeamsForStepNotification(sql, stepInstanceId)
             
-            // Send enhanced notification
-            EnhancedEmailService.sendInstructionCompletedNotificationWithUrl(
+            // Send enhanced notification with mobile template (US-039 Phase 1)
+            EnhancedEmailNotificationService.sendAutomatedInstructionCompletedNotification(
                 instruction,
                 stepInstance,
                 teams,
