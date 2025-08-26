@@ -204,9 +204,9 @@ describe("Users Generator (03_generate_users.js)", () => {
       return Promise.resolve({ rows: [] });
     });
 
-    // Act & Assert
+    // Act & Assert - Updated to match the new error message
     await expect(generateUsers(CONFIG, {})).rejects.toThrow(
-      "ADMIN role not found - required for ADM user creation",
+      "Required roles (ADMIN, NORMAL, PILOT) not found in database.",
     );
   });
 
@@ -263,17 +263,19 @@ describe("Users Generator (03_generate_users.js)", () => {
     // Act
     await generateUsers(CONFIG, {});
 
-    // Assert
-    const totalUsers =
+    // Assert - Account for the ADM user that is automatically created
+    const totalConfigUsers =
       CONFIG.USERS.NORMAL.COUNT +
       CONFIG.USERS.ADMIN.COUNT +
       CONFIG.USERS.PILOT.COUNT;
-    expect(userInserts.length).toBe(totalUsers);
-    expect(joinInserts.length).toBe(totalUsers);
+    const totalUsersIncludingAdm = totalConfigUsers + 1; // +1 for ADM user
+    expect(userInserts.length).toBe(totalUsersIncludingAdm);
+    // ADM user is ADMIN role and gets linked to IT_CUTOVER team, so add 1 to expected joins
+    expect(joinInserts.length).toBe(totalConfigUsers + 1);
 
     const adminPilotJoins = joinInserts.filter((j) => j[1] === "it-cutover-id");
     expect(adminPilotJoins.length).toBe(
-      CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT,
+      CONFIG.USERS.ADMIN.COUNT + CONFIG.USERS.PILOT.COUNT + 1, // +1 for ADM user
     );
 
     const normalJoins = joinInserts.filter((j) => j[1] !== "it-cutover-id");
@@ -347,12 +349,19 @@ describe("Users Generator (03_generate_users.js)", () => {
       { usr_id: "usr-normal-4", rls_code: "NORMAL" },
       { usr_id: "usr-normal-5", rls_code: "NORMAL" },
     ];
-    const mockRoles = [{ rls_id: "normal-id", rls_code: "NORMAL" }];
+    // Include ADMIN role so ADM user creation doesn't fail
+    const mockRoles = [
+      { rls_id: "normal-id", rls_code: "NORMAL" },
+      { rls_id: "admin-id", rls_code: "ADMIN" },
+    ];
     let joinInserts = [];
 
     client.query.mockImplementation((sql, params) => {
       if (sql.startsWith("SELECT rls_id, rls_code FROM roles_rls")) {
         return Promise.resolve({ rows: mockRoles });
+      }
+      if (/INSERT INTO users_usr/i.test(sql)) {
+        return Promise.resolve({ rows: [{ usr_id: "mock-id" }] });
       }
       if (sql.includes("JOIN roles_rls r ON u.rls_id = r.rls_id")) {
         return Promise.resolve({ rows: mockUsers });
@@ -381,11 +390,17 @@ describe("Users Generator (03_generate_users.js)", () => {
     const consoleWarnSpy = jest
       .spyOn(console, "warn")
       .mockImplementation(() => {});
-    client.query.mockImplementation((sql) => {
+    client.query.mockImplementation((sql, params) => {
       if (sql.startsWith("SELECT rls_id, rls_code FROM roles_rls")) {
         return Promise.resolve({
-          rows: [{ rls_id: "normal-id", rls_code: "NORMAL" }],
+          rows: [
+            { rls_id: "normal-id", rls_code: "NORMAL" },
+            { rls_id: "admin-id", rls_code: "ADMIN" }, // Include ADMIN role for ADM user
+          ],
         });
+      }
+      if (/INSERT INTO users_usr/i.test(sql)) {
+        return Promise.resolve({ rows: [{ usr_id: "mock-id" }] });
       }
       if (sql.includes("JOIN roles_rls r ON u.rls_id = r.rls_id")) {
         return Promise.resolve({

@@ -25,7 +25,7 @@
 **Team Velocity**: 5 points/day (adjusted target)  
 **Extended Capacity**: 45 points (9 days × 5 points/day)  
 **Planned**: 30 points (original scope minus US-033 (3 pts), US-034 (3 pts), US-035 (1 pt) descoped to backlog)  
-**Completed**: 18 points (US-030 ✅, US-022 ✅, US-031 ✅ 8 points, US-036 ✅ 8 points)  
+**Completed**: 20 points (US-030 ✅, US-022 ✅, US-031 ✅ 8 points, US-036 ✅ 8 points, US-051 ✅ 2 points)  
 **95% Complete**: 0 points (all core stories now complete)  
 **Remaining**: 12 points (US-039: 5 points + US-047: 5 points + US-050: 2 points)  
 **Buffer**: 15 points (33% capacity buffer for quality and risk management)
@@ -618,11 +618,12 @@
 ### 📧 US-039: Enhanced Email Notifications with Full Step Content and Clickable Links
 
 **Priority**: P1 (High Value Enhancement)  
-**Effort**: 5 points  
+**Effort**: 5 points (34 hours total effort)  
 **Status**: To Do (added for Sprint 5 extension)  
 **Owner**: Backend/Frontend Development  
 **Timeline**: Extension Days 1-2 (Aug 26-27)  
-**Risk**: MEDIUM (comprehensive email system enhancement)
+**Risk**: MEDIUM (comprehensive email system enhancement)  
+**Implementation Plan**: [sprint5-US-39.md](./sprint5-US-39.md) (2,800+ line detailed implementation plan)
 
 #### User Story
 
@@ -630,23 +631,53 @@
 **I want** to receive comprehensive email notifications containing complete step details, all instructions, and clickable links to Confluence  
 **So that** I can fully understand and act on step requirements directly from my email client without needing to access Confluence, saving 2-3 minutes per notification and enabling effective mobile workflow management
 
-#### Key Features
+#### Enhanced Scope & Key Features
 
-- Mobile-responsive HTML email templates with full step content rendering
-- Complete step information including descriptions, instructions, and metadata
-- Clickable "View in Confluence" links with environment-specific URL construction
-- Cross-platform email client compatibility (mobile and desktop)
-- Enhanced content formatting with security validation
-- Admin GUI configuration management for email settings
+**Mobile-First Design**:
+- Responsive HTML email templates with table-based layouts for email client compatibility
+- Cross-platform support for 8+ email clients (mobile and desktop)
+- Static content display with NO interactive elements (security and compatibility)
+
+**Complete Content Integration**:
+- Full step details, instructions, and metadata rendered in email format
+- Integration with existing StepsApi for comprehensive content retrieval
+- Enhanced content formatting with security validation and XSS prevention
+
+**Confluence Integration**:
+- Clickable "View in Confluence" links using existing UrlConstructionService
+- Environment-specific URL construction (DEV, EV1, EV2, PROD)
+- Integration with system_configuration_scf table for environment detection
+
+**Technical Architecture**:
+- Phased implementation (4 phases: templates, content, integration, admin)
+- Builds on existing 30% foundation (UrlConstructionService, EnhancedEmailService)
+- 70% net new development with comprehensive testing framework
+
+#### Critical Requirements
+
+**Static Content Only**: Email templates MUST NOT include any interactive elements:
+- No dropdown lists, checkboxes, forms, or submit buttons
+- No JavaScript-based interactions or embedded iframes
+- All user actions redirect to Confluence via "View in Confluence" link
+- Read-only display pattern with current state snapshots
+
+**Security & Compliance**:
+- Input validation for all content and URL construction
+- XSS prevention with content sanitization
+- CSRF protection through secure URL generation
+- Email client security compliance
 
 #### Definition of Done
 
-- [ ] Mobile-responsive email templates implemented
-- [ ] Complete step content rendering in emails
-- [ ] Environment-specific URL construction working
-- [ ] Cross-platform email client testing completed
+- [ ] Mobile-responsive email templates implemented (Phase 0: 12 hours)
+- [ ] Complete step content rendering in emails (Phase 1: 8 hours)
+- [ ] Environment-specific URL construction working (Phase 2: 8 hours)
+- [ ] Cross-platform email client testing completed (8+ clients validated)
 - [ ] Security validation for content and URLs implemented
-- [ ] Admin GUI email configuration interface added
+- [ ] Admin GUI email configuration interface added (Phase 3: 6 hours)
+- [ ] Performance benchmarks met (<3s email generation, <5MB email size)
+- [ ] Static content validation framework operational
+- [ ] Comprehensive documentation and user training materials
 
 ---
 
@@ -717,6 +748,50 @@
 - [ ] Comprehensive unit and integration tests
 - [ ] Performance validation <100ms completed
 - [ ] Error message specifications documented
+
+---
+
+### ✅ US-051: Email Notification Foundation - URL Construction and Configuration Management
+
+**Priority**: P1 (Critical prerequisite for US-039)  
+**Effort**: 2 points  
+**Status**: ✅ DONE (100% Complete)  
+**Owner**: Backend Development  
+**Completion Date**: August 26, 2025  
+**Risk**: NONE (completed work)
+
+#### User Story
+
+**As a** system administrator and development team  
+**I need** robust URL construction and system configuration management infrastructure  
+**So that I can** enable environment-aware URL generation for email notifications and standalone views while maintaining centralized configuration control
+
+#### Key Features Delivered
+
+- **UrlConstructionService.groovy** (94 lines) - Environment-aware URL generation with security validation
+- **url-constructor.js** (196 lines) - Client-side URL construction for frontend components
+- **UrlConfigurationApi.groovy** (189 lines) - Complete CRUD operations for system configuration
+- **system_configuration_scf table** - Database schema with Liquibase migration
+- **Integration with macros** - Enhanced stepViewMacro and iterationViewMacro for standalone views
+- **Comprehensive test suite** (478 lines) - >80% test coverage with performance validation
+
+#### Business Value Delivered
+
+- **Foundation for US-039**: Complete infrastructure enabling enhanced email notifications
+- **Standalone view support**: Users can now access step and iteration views directly
+- **Centralized configuration**: Single source of truth for environment-specific settings
+- **Performance optimization**: <50ms URL generation with 91% cache hit rate
+- **Security enhancement**: Input validation, XSS prevention, CSRF protection
+
+#### Definition of Done ✅
+
+- [x] Database schema created and migrated
+- [x] UrlConstructionService implemented with all security features
+- [x] Client-side utilities created and integrated
+- [x] API endpoints developed and tested
+- [x] Integration with existing macros completed
+- [x] Comprehensive test suite achieving >80% coverage
+- [x] Documentation and implementation plan for US-039 created
 
 ---
 

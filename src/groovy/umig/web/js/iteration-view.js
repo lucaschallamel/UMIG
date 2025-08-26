@@ -2129,6 +2129,10 @@ class IterationView {
             <div class="step-info" data-sti-id="${summary.ID || ""}">
                 <div class="step-title">
                     <h3>📋 ${summary.StepCode || "Unknown"} - ${summary.Name || "Unknown Step"}</h3>
+                    <!-- StepView Button - Positioned at top right -->
+                    <button type="button" class="btn btn-secondary" id="open-stepview-btn">
+                        🔗 StepView
+                    </button>
                 </div>
                 
                 <div class="step-breadcrumb">
@@ -2319,6 +2323,8 @@ class IterationView {
 
     // Add event listeners for comment functionality
     this.attachCommentListeners();
+    // Add event listener for StepView button
+    this.attachStepViewButtonListener();
   }
 
   applyFilters() {
@@ -3237,6 +3243,102 @@ class IterationView {
     deleteButtons.forEach((btn) => {
       btn.addEventListener("click", (e) => this.handleDeleteComment(e));
     });
+  }
+
+  /**
+   * Attach event listener for StepView button
+   */
+  attachStepViewButtonListener() {
+    const stepViewBtn = document.getElementById("open-stepview-btn");
+    if (stepViewBtn) {
+      stepViewBtn.addEventListener("click", () => this.openStepView());
+    }
+  }
+
+  /**
+   * Build the StepView URL with current context parameters using server-provided configuration
+   * Uses UrlConstructionService via server-side macro configuration for consistency
+   */
+  buildStepViewURL() {
+    const migrationSelect = document.getElementById("migration-select");
+    const iterationSelect = document.getElementById("iteration-select");
+    
+    const migrationName = migrationSelect ? migrationSelect.options[migrationSelect.selectedIndex]?.text : "";
+    const iterationName = iterationSelect ? iterationSelect.options[iterationSelect.selectedIndex]?.text : "";
+    const stepCode = this.selectedStepCode || "";
+    
+    if (!migrationName || !iterationName || !stepCode) {
+      console.warn("buildStepViewURL: Missing required parameters", {
+        migration: migrationName,
+        iteration: iterationName,
+        stepCode: stepCode
+      });
+      return null;
+    }
+    
+    // Use server-provided configuration from UrlConstructionService
+    const stepViewConfig = window.UMIG_ITERATION_CONFIG?.stepView;
+    if (!stepViewConfig?.baseUrl) {
+      console.error("buildStepViewURL: Server configuration not available", {
+        available: !!window.UMIG_ITERATION_CONFIG,
+        stepViewConfig: stepViewConfig
+      });
+      // Fallback to client-side construction for development using full Confluence page URL
+      console.warn("buildStepViewURL: Falling back to client-side URL construction with full Confluence page URL");
+      
+      // Construct full Confluence page URL format
+      // Expected: http://localhost:8090/spaces/UMIG/pages/1048581/UMIG+-+Step+View?mig=migrationName&ite=iterationName&stepid=stepCode
+      const origin = window.location.origin; // e.g., http://localhost:8090
+      const fullPageUrl = `${origin}/spaces/UMIG/pages/1048581/UMIG+-+Step+View`;
+      
+      const params = new URLSearchParams();
+      params.set('mig', migrationName);
+      params.set('ite', iterationName);  
+      params.set('stepid', stepCode);
+      
+      return `${fullPageUrl}?${params.toString()}`;
+    }
+    
+    // Build URL using server-provided base URL template with validated parameters
+    const params = new URLSearchParams();
+    params.set('mig', this._sanitizeParameter(migrationName));
+    params.set('ite', this._sanitizeParameter(iterationName));  
+    params.set('stepid', this._sanitizeParameter(stepCode));
+    
+    const constructedUrl = `${stepViewConfig.baseUrl}?${params.toString()}`;
+    console.log("buildStepViewURL: Constructed URL using server configuration", {
+      baseUrl: stepViewConfig.baseUrl,
+      parameters: Object.fromEntries(params),
+      finalUrl: constructedUrl
+    });
+    
+    return constructedUrl;
+  }
+
+  /**
+   * Sanitize URL parameters following UrlConstructionService patterns
+   * Basic client-side validation to match server-side sanitization
+   */
+  _sanitizeParameter(param) {
+    if (!param || typeof param !== 'string') return '';
+    
+    // Allow alphanumeric, dots, underscores, hyphens (matching server-side pattern)
+    const sanitized = param.trim().replace(/[^a-zA-Z0-9._-]/g, '');
+    return sanitized;
+  }
+
+  /**
+   * Open StepView in new tab/window
+   */
+  openStepView() {
+    const stepViewURL = this.buildStepViewURL();
+    
+    if (stepViewURL) {
+      console.log("Opening StepView:", stepViewURL);
+      window.open(stepViewURL, '_blank', 'noopener,noreferrer');
+    } else {
+      this.showNotification("Unable to open StepView - missing context information", "warning");
+    }
   }
 
   /**

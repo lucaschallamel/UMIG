@@ -206,6 +206,17 @@ document.addEventListener('DOMContentLoaded', function() {
             exportEnabled: true,
             searchEnabled: false,     // US-036: Search removed
             filterEnabled: false      // US-036: Filters removed
+        },
+        // URL Configuration - will be loaded dynamically from server
+        urlConfig: null,
+        // Fallback URL configuration (ONLY used if server configuration fails)
+        fallbackUrlConfig: {
+            baseUrl: 'http://localhost:8090',
+            spaceKey: 'UMIG',
+            pageId: '1048581',
+            pageTitle: 'UMIG+-+Step+View',
+            environment: 'DEV',
+            urlTemplate: 'http://localhost:8090/spaces/UMIG/pages/1048581/UMIG%2B-%2BStep%2BView'
         }
     };
     
@@ -236,5 +247,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 </script>
 
+<!-- Include URL constructor utility -->
+<script type=\"text/javascript\" src=\"${webRoot}/js/utils/url-constructor.js\"></script>
+
+<!-- Include main step view JavaScript -->
 <script type=\"text/javascript\" src=\"${webRoot}/js/step-view.js\"></script>
 """

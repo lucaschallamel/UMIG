@@ -26,7 +26,7 @@
     <include file="019_status_field_normalization.sql" relativeToChangelogFile="true"/>
     <include file="020_add_confluence_user_id.sql" relativeToChangelogFile="true"/>
     <include file="021_add_status_foreign_keys.sql" relativeToChangelogFile="true"/>
-    <include file="022_create_system_configuration_table_simple.sql" relativeToChangelogFile="true"/>
+    <include file="022_create_system_configuration_scf.sql" relativeToChangelogFile="true"/>
     <include file="023_add_instruction_uncompleted_email_template.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
