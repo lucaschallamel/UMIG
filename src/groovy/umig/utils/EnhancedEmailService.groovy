@@ -23,6 +23,7 @@ import umig.repository.AuditLogRepository
 import umig.repository.EmailTemplateRepository
 import umig.utils.DatabaseUtil
 import umig.utils.UrlConstructionService
+import umig.utils.StepContentFormatter
 
 /**
  * EnhancedEmailService - Email notifications with dynamic URL construction
@@ -110,7 +111,11 @@ class EnhancedEmailService {
                     }
                 }
                 
-                // Prepare template variables with URL
+                // Enhanced content formatting for mobile (US-039 Phase 1)
+                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                def stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
+                
+                // Prepare enhanced template variables with rich content and mobile support
                 def variables = [
                     stepInstance: stepInstance,
                     oldStatus: oldStatus,
@@ -121,7 +126,18 @@ class EnhancedEmailService {
                     stepViewUrl: stepViewUrl,
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
-                    iterationCode: iterationCode
+                    iterationCode: iterationCode,
+                    // US-039 Phase 1: Rich content support
+                    stepDescription: contentDetails.stepDescription,
+                    instructionsHtml: contentDetails.instructionsHtml,
+                    instructionsCount: contentDetails.instructionsCount,
+                    instructionsDisplayed: contentDetails.instructionsDisplayed,
+                    contentTruncated: contentDetails.contentTruncated,
+                    estimatedDuration: contentDetails.estimatedDuration,
+                    stepMetadata: stepMetadata,
+                    // Mobile template indicators
+                    isMobileTemplate: true,
+                    notificationType: 'STEP_STATUS_CHANGED'
                 ]
                 
                 // Process template
@@ -237,7 +253,11 @@ class EnhancedEmailService {
                     }
                 }
                 
-                // Prepare template variables
+                // Enhanced content formatting for mobile (US-039 Phase 1)
+                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                def stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
+                
+                // Prepare enhanced template variables with rich content
                 def variables = [
                     stepInstance: stepInstance,
                     stepViewUrl: stepViewUrl,
@@ -245,7 +265,18 @@ class EnhancedEmailService {
                     openedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     openedBy: getUsernameById(sql, userId),
                     migrationCode: migrationCode,
-                    iterationCode: iterationCode
+                    iterationCode: iterationCode,
+                    // US-039 Phase 1: Rich content support
+                    stepDescription: contentDetails.stepDescription,
+                    instructionsHtml: contentDetails.instructionsHtml,
+                    instructionsCount: contentDetails.instructionsCount,
+                    instructionsDisplayed: contentDetails.instructionsDisplayed,
+                    contentTruncated: contentDetails.contentTruncated,
+                    estimatedDuration: contentDetails.estimatedDuration,
+                    stepMetadata: stepMetadata,
+                    // Mobile template indicators
+                    isMobileTemplate: true,
+                    notificationType: 'STEP_OPENED'
                 ]
                 
                 // Process template
@@ -334,7 +365,11 @@ class EnhancedEmailService {
                     }
                 }
                 
-                // Prepare template variables
+                // Enhanced content formatting for mobile (US-039 Phase 1)
+                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                def stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
+                
+                // Prepare enhanced template variables with rich content
                 def variables = [
                     instruction: instruction,
                     stepInstance: stepInstance,
@@ -343,7 +378,18 @@ class EnhancedEmailService {
                     stepViewUrl: stepViewUrl,
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
-                    iterationCode: iterationCode
+                    iterationCode: iterationCode,
+                    // US-039 Phase 1: Rich content support
+                    stepDescription: contentDetails.stepDescription,
+                    instructionsHtml: contentDetails.instructionsHtml,
+                    instructionsCount: contentDetails.instructionsCount,
+                    instructionsDisplayed: contentDetails.instructionsDisplayed,
+                    contentTruncated: contentDetails.contentTruncated,
+                    estimatedDuration: contentDetails.estimatedDuration,
+                    stepMetadata: stepMetadata,
+                    // Mobile template indicators
+                    isMobileTemplate: true,
+                    notificationType: 'INSTRUCTION_COMPLETED'
                 ]
                 
                 // Process template
@@ -466,6 +512,20 @@ class EnhancedEmailService {
     }
     
     /**
+     * Format date for display (ADR-031 type safety)
+     */
+    private static String formatDate(Date date) {
+        if (!date) {
+            return 'Not specified'
+        }
+        try {
+            return date.format('yyyy-MM-dd HH:mm')
+        } catch (Exception e) {
+            return 'Invalid date'
+        }
+    }
+    
+    /**
      * Log errors for debugging and monitoring
      */
     private static void logError(String method, Exception error, Map context = [:]) {
@@ -475,7 +535,21 @@ class EnhancedEmailService {
     }
     
     /**
-     * Health check for monitoring URL construction capabilities
+     * Check if mobile template enhancements are available (US-039 Phase 1)
+     */
+    static boolean isMobileTemplateEnhancementAvailable() {
+        try {
+            // Test if StepContentFormatter is available and functional
+            def healthCheck = StepContentFormatter.healthCheck()
+            return healthCheck.status == 'healthy'
+        } catch (Exception e) {
+            println "EnhancedEmailService: Mobile template enhancement not available: ${e.message}"
+            return false
+        }
+    }
+    
+    /**
+     * Health check for monitoring URL construction capabilities and mobile enhancements
      */
     static Map healthCheck() {
         try {
@@ -489,7 +563,10 @@ class EnhancedEmailService {
                 capabilities: [
                     dynamicUrls: configHealth,
                     emailTemplates: true,
-                    auditLogging: true
+                    auditLogging: true,
+                    mobileTemplateEnhancements: isMobileTemplateEnhancementAvailable(),
+                    richContentFormatting: isMobileTemplateEnhancementAvailable(),
+                    htmlSanitization: isMobileTemplateEnhancementAvailable()
                 ],
                 timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             ]
@@ -500,6 +577,133 @@ class EnhancedEmailService {
                 error: e.message,
                 timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             ]
+        }
+    }
+    
+    /**
+     * Send step email with explicit TO, CC, BCC recipients
+     * Used for manual email sending from StepView with proper recipient configuration
+     * 
+     * @param stepInstance The step instance data
+     * @param toRecipients List of email addresses for TO field (assigned team)
+     * @param ccRecipients List of email addresses for CC field (impacted teams)
+     * @param bccRecipients List of email addresses for BCC field (IT_CUTOVER team)
+     * @param userId Optional user ID for audit logging
+     * @param migrationCode Migration code for URL construction
+     * @param iterationCode Iteration code for URL construction
+     * @return Map with sending result
+     */
+    static Map sendStepEmailWithRecipients(Map stepInstance, List<String> toRecipients, 
+                                          List<String> ccRecipients, List<String> bccRecipients,
+                                          Integer userId = null, String migrationCode = null, 
+                                          String iterationCode = null) {
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Validate recipients
+                if (!toRecipients && !ccRecipients && !bccRecipients) {
+                    return [
+                        success: false,
+                        error: "No recipients specified"
+                    ]
+                }
+                
+                // Get enhanced mobile email template
+                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_OPENED')
+                if (!template) {
+                    println "EnhancedEmailService: No active template found for STEP_OPENED"
+                    return [
+                        success: false,
+                        error: "No active email template found"
+                    ]
+                }
+                
+                // Construct step view URL if migration and iteration codes are provided
+                def stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                    try {
+                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
+                            stepInstance.sti_id : 
+                            UUID.fromString(stepInstance.sti_id.toString())
+                        
+                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
+                            stepInstanceUuid, 
+                            migrationCode, 
+                            iterationCode
+                        )
+                    } catch (Exception urlException) {
+                        println "EnhancedEmailService: Error constructing step view URL: ${urlException.message}"
+                    }
+                }
+                
+                // Format step content using StepContentFormatter - Fix method signature
+                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                
+                // Build mobile-responsive HTML using enhanced template - Fix type casting
+                def templateEngine = new SimpleTemplateEngine()
+                def templateText = template.emt_body_html as String
+                def templateObject = templateEngine.createTemplate(templateText)
+                
+                def binding = [
+                    stepName: stepInstance.sti_name ?: 'Step',
+                    stepNumber: stepInstance.stm_number ?: '',
+                    stepId: stepInstance.sti_id,
+                    stepDescription: stepInstance.sti_description ?: '',
+                    stepStartDate: formatDate(stepInstance.sti_start_date as Date),
+                    stepEndDate: formatDate(stepInstance.sti_end_date as Date),
+                    stepDuration: stepInstance.sti_duration_hour ?: 0,
+                    stepStatus: stepInstance.status_name ?: 'PENDING',
+                    stepStatusColor: getStatusColor(stepInstance.status_name as String),
+                    assignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
+                    stepUrl: stepViewUrl ?: '#',
+                    stepContent: contentDetails.instructionsHtml as String,
+                    migrationName: stepInstance.migration_name ?: 'Migration',
+                    iterationName: stepInstance.iteration_name ?: 'Iteration',
+                    phaseName: stepInstance.phase_name ?: '',
+                    sequenceName: stepInstance.sequence_name ?: '',
+                    planName: stepInstance.plan_name ?: '',
+                    year: new Date().format('yyyy')
+                ] as Map<String, Object>
+                
+                def htmlContent = templateObject.make(binding).toString()
+                
+                // Send email with proper recipient configuration
+                def subject = "Step ${stepInstance.stm_number ?: ''}: ${stepInstance.sti_name ?: 'Update'}"
+                
+                // Configure email with TO, CC, BCC
+                def emailSent = EmailService.sendEmailWithCCAndBCC(
+                    toRecipients.join(','),
+                    ccRecipients ? ccRecipients.join(',') : null,
+                    bccRecipients ? bccRecipients.join(',') : null,
+                    subject,
+                    htmlContent,
+                    true // isHtml
+                )
+                
+                if (emailSent) {
+                    println "EnhancedEmailService: Email sent successfully to TO: ${toRecipients}, CC: ${ccRecipients}, BCC: ${bccRecipients}"
+                    return [
+                        success: true,
+                        recipients: [
+                            to: toRecipients,
+                            cc: ccRecipients,
+                            bcc: bccRecipients
+                        ],
+                        total: toRecipients.size() + ccRecipients.size() + bccRecipients.size()
+                    ]
+                } else {
+                    return [
+                        success: false,
+                        error: "Failed to send email"
+                    ]
+                }
+                
+            } catch (Exception e) {
+                logError('sendStepEmailWithRecipients', e, [stepId: stepInstance.sti_id])
+                return [
+                    success: false,
+                    error: e.message
+                ]
+            }
         }
     }
 }

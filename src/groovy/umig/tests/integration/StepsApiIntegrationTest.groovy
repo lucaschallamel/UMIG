@@ -126,13 +126,16 @@ class StepsApiIntegrationTest {
             results << testRunner.testUpdateComment()
             results << testRunner.testDeleteComment()
             
-            // Test Group 8: Error Scenarios
+            // Test Group 8: Email Operations (US-039 Mobile Template Support)
+            results << testRunner.testManualEmailReport()
+            
+            // Test Group 9: Error Scenarios
             results << testRunner.testErrorScenarios()
             
-            // Test Group 9: Backward Compatibility
+            // Test Group 10: Backward Compatibility
             results << testRunner.testBackwardCompatibility()
             
-            // Test Group 10: Performance Validation  
+            // Test Group 11: Performance Validation  
             results << testRunner.testPerformanceRequirements()
             
         } catch (Exception e) {
@@ -995,6 +998,50 @@ class StepsApiIntegrationTest {
             }
             if (response.data?.error) {
                 details += ", Error: ${response.data.error}"
+            }
+                         
+            return [test: testName, success: success, details: details]
+        } catch (Exception e) {
+            return [test: testName, success: false, error: e.message]
+        }
+    }
+    
+    /**
+     * Test the new manual email endpoint with mobile template support
+     * This endpoint automatically determines recipients (assigned + impacted teams)
+     * and sends email using enhanced mobile templates from US-039.
+     */
+    def testManualEmailReport() {
+        def testName = "POST /steps/{id}/send-email - Manual Email Report with Mobile Template"
+        try {
+            if (!testStepInstanceId) {
+                return [test: testName, success: false, error: "No test step instance data available"]
+            }
+            
+            // Test with minimal request body (userId is optional and can come from Confluence context)
+            def requestBody = new JsonBuilder([
+                userId: 1  // Optional parameter for audit logging
+            ]).toString()
+            
+            def url = "${BASE_URL}/steps/${testStepInstanceId}/send-email"
+            def response = makeHttpRequest("POST", url, requestBody)
+            
+            // The endpoint should either succeed (200) or fail gracefully (400/404 for missing data)
+            // We don't expect 500 errors with proper error handling
+            def success = response.status in [200, 400, 404] && response.status != 500
+            
+            def details = "Status: ${response.status}"
+            if (response.data?.message) {
+                details += ", Message: ${response.data.message}"
+            }
+            if (response.data?.error) {
+                details += ", Error: ${response.data.error}"
+            }
+            if (response.data?.recipientCount) {
+                details += ", Recipients: ${response.data.recipientCount}"
+            }
+            if (response.data?.emailsSent) {
+                details += ", Emails Sent: ${response.data.emailsSent}"
             }
                          
             return [test: testName, success: success, details: details]

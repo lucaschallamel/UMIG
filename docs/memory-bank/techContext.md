@@ -1,6 +1,6 @@
 # Technology Context
 
-**Last Updated**: 25 August 2025, updated for DOCUMENTATION CONSOLIDATION EXCELLENCE and comprehensive troubleshooting framework standardization  
+**Last Updated**: 26 August 2025, updated for US-039 Enhanced Email Notifications debugging breakthrough and Groovy 3.0.15 pattern discovery  
 **Current Platform**: Confluence 9.2.7 + ScriptRunner 9.21.0  
 **Sprint 5 Achievement**: US-022, US-030, US-036 100% COMPLETE; US-031 95% COMPLETE with DOCUMENTATION CONSOLIDATION EXCELLENCE, NEW APIs (Iterations, Status)  
 **Major Achievement**: DOCUMENTATION CONSOLIDATION COMPLETE - 7 technical documents consolidated into authoritative 2,598-line troubleshooting reference with 8 critical diagnostic patterns  
@@ -38,7 +38,9 @@
 - **No External Frameworks:** The frontend must be built with "vanilla" JavaScript. No external libraries like React, Vue, or Angular are permitted. Modular architecture achieved through IIFE patterns and careful DOM management.
 - **Platform Dependency:** The application's performance and availability are tightly coupled to the enterprise Confluence instance.
 - **Database Choice:** SQLite is explicitly disallowed for this project due to concurrency requirements.
-- **Type Safety:** Explicit casting required in Groovy for static type checking compliance.
+- **Type Safety:** Explicit casting required in Groovy for static type checking compliance (ADR-031 mandatory).
+- **ScriptRunner Debugging:** Critical pattern recognition for misleading syntax errors - "Unexpected input: '{'" often indicates file corruption, wrong imports, or missing type casting rather than actual syntax issues.
+- **Package Structure:** Services must be imported from umig.service, utilities from umig.utils - exact package matching required.
 - **API Standards:** All endpoints must follow standardised REST patterns with proper error handling.
 
 ## 4. Proven Patterns

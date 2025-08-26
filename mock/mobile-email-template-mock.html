@@ -7,7 +7,7 @@
     <meta name="x-apple-disable-message-reformatting">
     <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no">
     
-    <title>${stepInstance.sti_code ?: 'STEP'} - ${stepInstance.sti_name ?: 'Step Details'} | UMIG</title>
+    <title>DB-001 - Database Migration - User Tables | UMIG</title>
     
     <!--[if mso]>
     <noscript>
@@ -386,53 +386,6 @@
             text-align: left !important;
         }
         
-        /* COMMENT CARDS */
-        .comment-card {
-            background-color: #f8f9fa !important;
-            border: 1px solid #e9ecef !important;
-            border-radius: 6px !important;
-            padding: 16px !important;
-            margin-bottom: 12px !important;
-        }
-        
-        .comment-card:first-child {
-            margin-top: 0 !important;
-        }
-        
-        .comment-card:last-child {
-            margin-bottom: 0 !important;
-        }
-        
-        .comment-header {
-            margin-bottom: 8px !important;
-            border-bottom: 1px solid #e9ecef !important;
-            padding-bottom: 8px !important;
-            text-align: left !important;
-        }
-        
-        .comment-author {
-            font-weight: 600 !important;
-            color: #212529 !important;
-            font-size: 14px !important;
-            text-align: left !important;
-        }
-        
-        .comment-timestamp {
-            font-size: 12px !important;
-            color: #6c757d !important;
-            margin-left: 8px !important;
-            text-align: left !important;
-        }
-        
-        .comment-text {
-            color: #212529 !important;
-            font-size: 14px !important;
-            line-height: 1.5 !important;
-            word-wrap: break-word !important;
-            margin: 0 !important;
-            text-align: left !important;
-        }
-        
         /* FOOTER */
         .email-footer {
             background-color: #f8f9fa !important;
@@ -552,33 +505,6 @@
                 min-width: 160px !important;
                 width: 80% !important;
                 max-width: 280px !important;
-            }
-            
-            .comment-card {
-                padding: 12px !important;
-                margin-bottom: 10px !important;
-            }
-            
-            .comment-header {
-                margin-bottom: 6px !important;
-                padding-bottom: 6px !important;
-                text-align: left !important;
-            }
-            
-            .comment-author {
-                font-size: 13px !important;
-                text-align: left !important;
-            }
-            
-            .comment-timestamp {
-                font-size: 11px !important;
-                margin-left: 6px !important;
-                text-align: left !important;
-            }
-            
-            .comment-text {
-                font-size: 13px !important;
-                text-align: left !important;
             }
             
             .email-footer {
@@ -846,30 +772,6 @@
                 width: 90% !important;
                 padding: 12px 20px !important;
             }
-            
-            .comment-card {
-                padding: 10px !important;
-                margin-bottom: 8px !important;
-            }
-            
-            .comment-author {
-                font-size: 12px !important;
-                text-align: left !important;
-            }
-            
-            .comment-timestamp {
-                font-size: 10px !important;
-                margin-left: 4px !important;
-                display: block !important;
-                margin-top: 2px !important;
-                text-align: left !important;
-            }
-            
-            .comment-text {
-                font-size: 12px !important;
-                line-height: 1.4 !important;
-                text-align: left !important;
-            }
         }
         
         /* DARK MODE SUPPORT */
@@ -935,30 +837,6 @@
                 background-color: #2d2d2d !important;
                 border-color: #4a4a4a !important;
                 color: #ffffff !important;
-            }
-            
-            .comment-card {
-                background-color: #3a3a3a !important;
-                border-color: #4a4a4a !important;
-            }
-            
-            .comment-header {
-                border-color: #4a4a4a !important;
-            }
-            
-            .comment-author {
-                color: #ffffff !important;
-                text-align: left !important;
-            }
-            
-            .comment-timestamp {
-                color: #cccccc !important;
-                text-align: left !important;
-            }
-            
-            .comment-text {
-                color: #ffffff !important;
-                text-align: left !important;
             }
             
             .cta-container {
@@ -1076,32 +954,24 @@
                         <!-- Header Section -->
                         <div class="email-header">
                             <h1 class="header-title">
-                                📋 ${stepInstance.sti_code ?: 'STEP'} - ${stepInstance.sti_name ?: 'Step Details'}
+                                📋 DB-001 - Database Migration - User Tables
                             </h1>
                             <div class="header-breadcrumb">
-                                <% if (migrationCode && iterationCode) { %>
-                                ${migrationCode} › ${iterationCode}
-                                <% if (stepInstance.plan_name) { %> › ${stepInstance.plan_name}<% } %>
-                                <% if (stepInstance.sequence_name) { %> › ${stepInstance.sequence_name}<% } %>
-                                <% if (stepInstance.phase_name) { %> › ${stepInstance.phase_name}<% } %>
-                                <% } else { %>
-                                ${stepInstance.migration_name ?: 'Migration'} › ${stepInstance.iteration_name ?: 'Iteration'}
-                                <% } %>
+                                TORONTO › run1 › Database Operations › Core Services › Data Migration
                             </div>
                             
                             <!-- Compact Status Line -->
                             <div class="header-status-line">
                                 <span>STATUS:</span>
-                                <span class="status-badge status-${(stepInstance.sti_status ?: 'open').toLowerCase().replace('_', '-')}">
-                                    ${stepInstance.sti_status ?: 'OPEN'}
+                                <span class="status-badge status-completed">
+                                    COMPLETED
                                 </span>
                             </div>
                             
                             <!-- Consolidated Info Lines -->
                             <div class="header-meta">
                                 <div class="header-info-line">
-                                    LAST UPDATE: ${new Date().format('MMM dd, yyyy HH:mm')}
-                                    <% if (oldStatus && newStatus && oldStatus != newStatus) { %> | Changed from ${oldStatus}<% } %>
+                                    LAST UPDATE: Aug 26, 2025 10:45 AM | Changed from IN_PROGRESS
                                 </div>
                             </div>
                         </div>
@@ -1114,65 +984,51 @@
                                     <h2 class="section-title">📊 Step Summary</h2>
                                     <table class="metadata-grid" cellspacing="0" cellpadding="0" border="0" width="100%">
                                         <!-- Duration & Environment (first row) -->
-                                        <% if (stepInstance.sti_duration_minutes || stepInstance.environment_name) { %>
                                         <tr>
                                             <td class="metadata-row">
                                                 <div class="metadata-label">Duration & Environment</div>
-                                                <div class="metadata-value">
-                                                    <% if (stepInstance.sti_duration_minutes) { %>${stepInstance.sti_duration_minutes} min<% } %><% if (stepInstance.sti_duration_minutes && stepInstance.environment_name) { %> | <% } %><% if (stepInstance.environment_name) { %>${stepInstance.environment_name}<% } %>
-                                                </div>
+                                                <div class="metadata-value">45 min | Production</div>
                                             </td>
                                         </tr>
-                                        <% } %>
                                         
                                         <!-- Assigned Team -->
-                                        <% if (stepInstance.team_name) { %>
                                         <tr>
                                             <td class="metadata-row">
                                                 <div class="metadata-label">Assigned Team</div>
-                                                <div class="metadata-value">${stepInstance.team_name}</div>
+                                                <div class="metadata-value">Database Team</div>
                                             </td>
                                         </tr>
-                                        <% } %>
                                         
                                         <!-- Impacted Teams -->
                                         <tr>
                                             <td class="metadata-row">
                                                 <div class="metadata-label">Impacted Teams</div>
-                                                <div class="metadata-value">
-                                                    <% if (stepInstance.impacted_teams && stepInstance.impacted_teams.trim()) { %>${stepInstance.impacted_teams}<% } else { %>-<% } %>
-                                                </div>
+                                                <div class="metadata-value">Infrastructure Team, Security Team, QA Team</div>
                                             </td>
                                         </tr>
                                         
                                         <!-- Predecessor -->
-                                        <% if (stepInstance.predecessor_code) { %>
                                         <tr>
                                             <td class="metadata-row">
                                                 <div class="metadata-label">Predecessor</div>
                                                 <div class="metadata-value">
-                                                    ${stepInstance.predecessor_code}
-                                                    <% if (stepInstance.predecessor_name) { %>: ${stepInstance.predecessor_name}<% } %>
+                                                    APP-003: Application Services Shutdown
                                                 </div>
                                             </td>
                                         </tr>
-                                        <% } %>
                                     </table>
                                     
                                     <!-- Description -->
-                                    <% if (stepInstance.sti_description) { %>
                                     <div class="metadata-label" style="margin-top: 20px;">Description</div>
                                     <div class="description-box">
-                                        ${stepInstance.sti_description}
+                                        Complete migration of user tables (users, user_profiles, user_permissions) from legacy system to new Toronto datacenter. This includes data validation, integrity checks, and index optimization for enhanced performance in the new environment.
                                     </div>
-                                    <% } %>
                                 </div>
                             </div>
                             
                             <!-- Instructions Section -->
                             <div class="content-section">
                                 <h2 class="section-title">📝 Instructions</h2>
-                                <% if (stepInstance.instructions && stepInstance.instructions.size() > 0) { %>
                                 <div class="instructions-container">
                                     <table class="instructions-table instructions-table-mobile" role="table" cellspacing="0" cellpadding="0" border="0">
                                         <thead>
@@ -1185,95 +1041,117 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <% stepInstance.instructions.eachWithIndex { instruction, index -> %>
                                             <tr role="row">
                                                 <td role="gridcell">
-                                                    <div class="instruction-status ${instruction.completed ? 'instruction-complete' : 'instruction-pending'}">
-                                                        ${instruction.completed ? '✓' : (index + 1)}
+                                                    <div class="instruction-status instruction-complete">
+                                                        ✓
                                                     </div>
                                                 </td>
                                                 <td role="gridcell">
-                                                    <div class="instruction-text ${instruction.completed ? 'instruction-completed-text' : ''}">
-                                                        ${instruction.ini_name ?: instruction.description ?: "Instruction ${index + 1}"}
+                                                    <div class="instruction-text instruction-completed-text">
+                                                        Create backup of current user tables in legacy system
                                                     </div>
                                                 </td>
                                                 <td role="gridcell">
-                                                    <% if (instruction.ini_duration_minutes) { %>
-                                                    <div class="instruction-duration">${instruction.ini_duration_minutes} min</div>
-                                                    <% } else { %>
-                                                    <div class="instruction-duration">-</div>
-                                                    <% } %>
+                                                    <div class="instruction-duration">15 min</div>
                                                 </td>
                                                 <td role="gridcell">
-                                                    <% if (instruction.team_name) { %>
-                                                    <div class="instruction-team">${instruction.team_name}</div>
-                                                    <% } else { %>
-                                                    <div class="instruction-team">-</div>
-                                                    <% } %>
+                                                    <div class="instruction-team">Database Team</div>
                                                 </td>
                                                 <td role="gridcell">
-                                                    <% if (instruction.control_code) { %>
-                                                    <div class="instruction-control">${instruction.control_code}</div>
-                                                    <% } else { %>
-                                                    <div class="instruction-control">-</div>
-                                                    <% } %>
+                                                    <div class="instruction-control">CTL-001</div>
                                                 </td>
                                             </tr>
-                                            <% } %>
+                                            <tr role="row">
+                                                <td role="gridcell">
+                                                    <div class="instruction-status instruction-complete">
+                                                        ✓
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-text instruction-completed-text">
+                                                        Execute data migration scripts for user, user_profiles, and user_permissions tables
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-duration">25 min</div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-team">Infrastructure Team</div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-control">CTL-002</div>
+                                                </td>
+                                            </tr>
+                                            <tr role="row">
+                                                <td role="gridcell">
+                                                    <div class="instruction-status instruction-complete">
+                                                        ✓
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-text instruction-completed-text">
+                                                        Validate data integrity and perform performance optimization tests
+                                                    </div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-duration">5 min</div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-team">QA Team</div>
+                                                </td>
+                                                <td role="gridcell">
+                                                    <div class="instruction-control">CTL-003</div>
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <% } else { %>
-                                <div class="description-box">
-                                    <p style="text-align: center; color: #6c757d; font-style: italic;">
-                                        No instructions defined for this step.
-                                    </p>
-                                </div>
-                                <% } %>
                             </div>
                             
                             <!-- Call-to-Action Button -->
                             <div class="content-section">
                                 <div class="cta-container">
-                                    <% if (hasStepViewUrl && stepViewUrl) { %>
-                                    <a href="${stepViewUrl}" class="cta-button">
+                                    <a href="https://confluence.example.com/spaces/UMIG/pages/123456/StepView?mig=TORONTO&ite=run1&stepid=DB-001" class="cta-button">
                                         🔗 View in Confluence
                                     </a>
                                     <div class="cta-subtitle">
                                         Click to view this step with live updates and collaboration features
                                     </div>
-                                    <% } else { %>
-                                    <div style="padding: 20px; background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; text-align: left;">
-                                        <strong>📌 Access Information:</strong><br>
-                                        Direct link is not available. Please access the UMIG system in Confluence to view the most current step details and collaborate with your team.
-                                    </div>
-                                    <% } %>
                                 </div>
                             </div>
                             
                             <!-- Recent Comments Section -->
-                <div class="content-section">
+                            <div class="content-section">
                                 <div class="step-details-card">
                                     <h3 class="section-title">💬 Recent Comments</h3>
-                                    <% if (recentComments && recentComments.size() > 0) { %>
-                                        <% recentComments.take(3).eachWithIndex { comment, index -> %>
-                                        <div class="comment-card" style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? '0' : '12px'} 0;">
-                                            <div class="comment-header" style="margin-bottom: 8px; border-bottom: 1px solid #e9ecef; padding-bottom: 8px; text-align: left;">
-                                                <span class="comment-author" style="font-weight: 600; color: #212529; font-size: 14px; text-align: left;">${comment.author_name ?: 'Anonymous'}</span>
-                                                <span class="comment-timestamp" style="font-size: 12px; color: #6c757d; margin-left: 8px; text-align: left;">${comment.created_at ?: 'Recent'}</span>
-                                            </div>
-                                            <div class="comment-text" style="color: #212529; font-size: 14px; line-height: 1.5; word-wrap: break-word; text-align: left;">
-                                                ${comment.comment_text ?: ''}
-                                            </div>
+                                    <div class="comment-card" style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: 0;">
+                                        <div class="comment-header" style="margin-bottom: 8px; border-bottom: 1px solid #e9ecef; padding-bottom: 8px; text-align: left;">
+                                            <span class="comment-author" style="font-weight: 600; color: #212529; font-size: 14px; text-align: left;">Sarah Chen</span>
+                                            <span class="comment-timestamp" style="font-size: 12px; color: #6c757d; margin-left: 8px; text-align: left;">Aug 26, 2025 2:15 PM</span>
                                         </div>
-                                        <% } %>
-                                    <% } else { %>
-                                    <div class="description-box">
-                                        <p style="text-align: center; color: #6c757d; font-style: italic; margin: 0;">
-                                            No comments yet. Be the first to add your insights!
-                                        </p>
+                                        <div class="comment-text" style="color: #212529; font-size: 14px; line-height: 1.5; word-wrap: break-word; text-align: left;">
+                                            Data validation completed successfully. All integrity checks passed with 100% accuracy.
+                                        </div>
                                     </div>
-                                    <% } %>
+                                    <div class="comment-card" style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: 12px 0;">
+                                        <div class="comment-header" style="margin-bottom: 8px; border-bottom: 1px solid #e9ecef; padding-bottom: 8px; text-align: left;">
+                                            <span class="comment-author" style="font-weight: 600; color: #212529; font-size: 14px; text-align: left;">Mike Thompson</span>
+                                            <span class="comment-timestamp" style="font-size: 12px; color: #6c757d; margin-left: 8px; text-align: left;">Aug 26, 2025 1:45 PM</span>
+                                        </div>
+                                        <div class="comment-text" style="color: #212529; font-size: 14px; line-height: 1.5; word-wrap: break-word; text-align: left;">
+                                            Migration scripts executed without errors. Performance metrics look good.
+                                        </div>
+                                    </div>
+                                    <div class="comment-card" style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: 12px 0;">
+                                        <div class="comment-header" style="margin-bottom: 8px; border-bottom: 1px solid #e9ecef; padding-bottom: 8px; text-align: left;">
+                                            <span class="comment-author" style="font-weight: 600; color: #212529; font-size: 14px; text-align: left;">Emily Rodriguez</span>
+                                            <span class="comment-timestamp" style="font-size: 12px; color: #6c757d; margin-left: 8px; text-align: left;">Aug 26, 2025 1:30 PM</span>
+                                        </div>
+                                        <div class="comment-text" style="color: #212529; font-size: 14px; line-height: 1.5; word-wrap: break-word; text-align: left;">
+                                            Starting user table migration process. Backup completed.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1285,21 +1163,19 @@
                             </div>
                             
                             <div class="footer-links">
-                                <% if (hasStepViewUrl && stepViewUrl) { %>
-                                <a href="${stepViewUrl}" class="footer-link">View in Confluence</a>
-                                <% } %>
-                                <a href="${documentationUrl ?: '#'}" class="footer-link">${documentationLinkText ?: 'View Documentation'}</a>
-                                <a href="${supportUrl ?: '#'}" class="footer-link">${supportLinkText ?: 'Support Portal'}</a>
+                                <a href="https://confluence.example.com/spaces/UMIG/pages/123456/StepView?mig=TORONTO&ite=run1&stepid=DB-001" class="footer-link">View in Confluence</a>
+                                <a href="https://wiki.example.com/umig-docs" class="footer-link">View Documentation</a>
+                                <a href="https://support.example.com/umig" class="footer-link">Support Portal</a>
                             </div>
                             
                             <div style="font-size: 14px; color: #495057; margin: 16px 0;">
-                                This step is part of the migration "${migrationCode ?: 'CURRENT'}".
+                                This step is part of the migration "TORONTO".
                                 <br>
                                 For questions or technical support, please contact your project coordinator.
                             </div>
                             
                             <div class="footer-disclaimer">
-                                <strong>Important:</strong> This email contains a snapshot of step details as of ${new Date().format('MMM dd, yyyy HH:mm')}. 
+                                <strong>Important:</strong> This email contains a snapshot of step details as of Aug 26, 2025 10:50 AM. 
                                 For the most current information and real-time collaboration, please visit the live system in Confluence.
                                 This email is intended for authorized project team members and stakeholders only.
                             </div>

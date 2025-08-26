@@ -47,7 +47,7 @@ class StepNotificationIntegration {
                 }
                 
                 // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContext(sql, stepInstanceId)
+                def contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
                 
                 if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
                     // Send enhanced notification with URL
@@ -118,7 +118,7 @@ class StepNotificationIntegration {
                 }
                 
                 // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContext(sql, stepInstanceId)
+                def contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
                 
                 if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
                     // Send enhanced notification with URL
@@ -184,7 +184,7 @@ class StepNotificationIntegration {
                 }
                 
                 // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContext(sql, stepInstanceId)
+                def contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
                 
                 if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
                     // Send enhanced notification with URL
@@ -235,16 +235,30 @@ class StepNotificationIntegration {
     }
     
     // ========================================
+    // PUBLIC HELPER METHODS (US-039 Phase 1)
+    // ========================================
+    
+    /**
+     * Extract migration and iteration context for URL construction (public wrapper)
+     * Added in US-039 Phase 1 for API access to context information
+     */
+    static Map extractMigrationIterationContext(UUID stepInstanceId) {
+        DatabaseUtil.withSql { sql ->
+            return extractMigrationIterationContextInternal(sql, stepInstanceId)
+        }
+    }
+    
+    // ========================================
     // PRIVATE HELPER METHODS
     // ========================================
     
     /**
-     * Extract migration and iteration context for URL construction
+     * Extract migration and iteration context for URL construction (internal implementation)
      * 
      * This method traverses the hierarchy from step instance up to migration
      * to extract the codes needed for URL construction.
      */
-    private static Map extractMigrationIterationContext(Sql sql, UUID stepInstanceId) {
+    private static Map extractMigrationIterationContextInternal(Sql sql, UUID stepInstanceId) {
         try {
             def contextQuery = '''
                 SELECT 

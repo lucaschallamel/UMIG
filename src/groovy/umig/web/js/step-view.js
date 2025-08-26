@@ -163,16 +163,18 @@ class StepViewCache {
       api: { baseUrl: "/rest/scriptrunner/latest/custom" },
     };
 
+    // URLSearchParams automatically handles URL encoding
     const queryParams = new URLSearchParams({
-      migrationName: migrationName,
-      iterationName: iterationName,
-      stepCode: stepCode,
+      migrationName: migrationName || '',
+      iterationName: iterationName || '',
+      stepCode: stepCode || '',
     });
 
+    const apiUrl = `${config.api.baseUrl}/stepViewApi/instance?${queryParams}`;
+    console.log(`🔗 StepView: Fetching from URL: ${apiUrl}`);
+
     try {
-      const response = await fetch(
-        `${config.api.baseUrl}/stepViewApi/instance?${queryParams}`,
-      );
+      const response = await fetch(apiUrl);
 
       if (!response.ok) {
         const errorData = await response
@@ -1183,6 +1185,9 @@ class StepViewPilotFeatures {
           <button type="button" class="aui-button aui-button-subtle" id="email-step-details" title="Email step details to stakeholders">
             📧 Email Step Details
           </button>
+          <button type="button" class="aui-button aui-button-subtle pilot-only" id="send-email-report" title="Send mobile email report to assigned and impacted teams">
+            📧 Send Email Report
+          </button>
           <button type="button" class="aui-button aui-button-subtle admin-only" id="edit-step-metadata">
             ⚙️ Edit Metadata
           </button>
@@ -1353,41 +1358,62 @@ class StepViewPilotFeatures {
    * Attach event listeners for advanced controls
    */
   attachAdvancedControlListeners() {
+    // Store reference to this for use in event handlers
+    const self = this;
+    
     document
       .getElementById("refresh-step-data")
       ?.addEventListener("click", () => {
-        this.forceRefreshData();
+        self.forceRefreshData();
       });
 
     document
       .getElementById("export-step-data")
       ?.addEventListener("click", () => {
-        this.exportStepData();
+        self.exportStepData();
       });
 
     document.getElementById("clone-step")?.addEventListener("click", () => {
-      this.cloneStep();
+      self.cloneStep();
     });
 
     document.getElementById("step-history")?.addEventListener("click", () => {
-      this.showStepHistory();
+      self.showStepHistory();
     });
 
     document
       .getElementById("email-step-details")
-      ?.addEventListener("click", () => {
+      ?.addEventListener("click", async (event) => {
+        console.log("📧 Email button clicked");
+        
+        // Check permission first
+        if (!self.hasPermission("email_step_details")) {
+          console.warn("❌ User lacks permission for email_step_details");
+          self.showNotification("You need PILOT or ADMIN permissions to email step details", "warning");
+          return;
+        }
+        
+        console.log("✅ Permission check passed, calling emailStepDetails");
+        
+        // Call the email function directly
+        await self.emailStepDetails();
+      });
+
+    document
+      .getElementById("send-email-report")
+      ?.addEventListener("click", (event) => {
         if (
-          this.validatePermission("email_step_details", "email step details") &&
-          this.pilotFeatures
+          self.stepView.validatePermission("email_step_details", "send email report") &&
+          self.pilotFeatures
         ) {
-          this.pilotFeatures.emailStepDetails();
+          self.pilotFeatures.sendEmailReport();
         }
       });
 
     document
       .getElementById("edit-step-metadata")
       ?.addEventListener("click", () => {
-        this.editStepMetadata();
+        self.editStepMetadata();
       });
   }
 
@@ -2091,6 +2117,116 @@ class StepViewPilotFeatures {
   }
 
   /**
+   * Send email report using mobile template to assigned and impacted teams (PILOT/ADMIN only)
+   */
+  async sendEmailReport() {
+    if (
+      !this.stepView.validatePermission(
+        "email_step_details",
+        "send email report",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      // Get current step instance ID
+      const stepInstanceId = this.stepView.currentStepInstanceId;
+      if (!stepInstanceId) {
+        throw new Error("No step instance ID available");
+      }
+
+      // Show loading state
+      this.stepView.showNotification(
+        "Sending email report with mobile template...",
+        "info"
+      );
+
+      // Call the new API endpoint
+      const response = await fetch(
+        `${this.stepView.config.api.baseUrl}/steps/${stepInstanceId}/send-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: this.stepView.userId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: `HTTP ${response.status}` }));
+        throw new Error(
+          errorData.error || `Failed to send email: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+
+      // Show success message
+      this.stepView.showNotification(
+        `Email report sent successfully to ${result.recipientCount} recipient(s) using enhanced mobile template`,
+        "success"
+      );
+
+      // Log the action for audit trail
+      this.stepView.logSecurityEvent("email_report_sent", {
+        stepInstanceId: stepInstanceId,
+        recipientCount: result.recipientCount,
+        emailsSent: result.emailsSent,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Failed to send email report:", error);
+      this.stepView.showNotification(
+        `Failed to send email report: ${error.message}`,
+        "error"
+      );
+    }
+  }
+
+  /**
+   * Email step details to stakeholders
+   */
+  async emailStepDetails() {
+    console.log("📧 emailStepDetails called");
+    
+    try {
+      // Check if we have a current step instance ID
+      if (!this.currentStepInstanceId) {
+        console.error("❌ No current step instance ID");
+        this.showNotification("No step loaded to email", "error");
+        return;
+      }
+      
+      console.log(`📧 Preparing to email step: ${this.currentStepInstanceId}`);
+      
+      // Get current step data
+      const stepData = {
+        metadata: {
+          stepCode: this.currentStepCode || 'Unknown',
+          migration: this.currentMigrationName || 'Unknown', 
+          iteration: this.currentIterationName || 'Unknown',
+          stepInstanceId: this.currentStepInstanceId
+        }
+      };
+      
+      console.log("📧 Step data prepared:", stepData);
+      
+      // Show email dialog
+      this.showEmailDialog(stepData);
+      
+    } catch (error) {
+      console.error("❌ Error in emailStepDetails:", error);
+      this.showNotification(`Failed to prepare email: ${error.message}`, "error");
+    }
+  }
+
+  /**
    * Show email composition dialog
    */
   showEmailDialog(stepData) {
@@ -2167,10 +2303,13 @@ class StepViewPilotFeatures {
     dialog.querySelector("#email-recipients").focus();
   }
 
+
   /**
    * Send the step email
    */
   async sendStepEmail(stepData, dialog) {
+    console.log("📧 sendStepEmail called with stepData:", stepData);
+    
     const form = dialog.querySelector("#email-step-form");
     const formData = new FormData(form);
 
@@ -2184,8 +2323,15 @@ class StepViewPilotFeatures {
     const includeInstructions = formData.has("includeInstructions");
     const includeComments = formData.has("includeComments");
 
+    console.log("📧 Email details:", {
+      recipients,
+      subject,
+      includeInstructions,
+      includeComments
+    });
+
     if (recipients.length === 0) {
-      this.stepView.showNotification(
+      this.showNotification(
         "Please enter at least one email recipient",
         "warning",
       );
@@ -2204,27 +2350,31 @@ class StepViewPilotFeatures {
         recipients: recipients,
         subject: subject,
         message: message,
-        stepData: {
-          summary: stepData.stepSummary,
-          instructions: includeInstructions ? stepData.instructions : [],
-          comments: includeComments ? stepData.comments : [],
-          metadata: stepData.metadata,
-        },
+        stepInstanceId: stepData.metadata.stepInstanceId,
         includeInstructions: includeInstructions,
         includeComments: includeComments,
+        userId: this.userId || null
       };
 
-      // Send email request to backend
+      console.log("📧 Sending email with payload:", emailPayload);
+
+      // Send email request to backend - using the correct endpoint
+      console.log(`📧 Calling API: /rest/scriptrunner/latest/custom/steps/instance/${stepData.metadata.stepInstanceId}/send-email`);
+      
       const response = await fetch(
-        `${this.stepView.config.api.baseUrl}/stepViewApi/email`,
+        `/rest/scriptrunner/latest/custom/steps/instance/${stepData.metadata.stepInstanceId}/send-email`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-Atlassian-Token": "no-check"
           },
+          credentials: "same-origin",
           body: JSON.stringify(emailPayload),
         },
       );
+      
+      console.log(`📧 API Response status: ${response.status}`);
 
       if (!response.ok) {
         const errorData = await response
@@ -2239,13 +2389,14 @@ class StepViewPilotFeatures {
 
       // Close dialog and show success message
       document.body.removeChild(dialog);
-      this.stepView.showNotification(
+      this.showNotification(
         `Email sent successfully to ${recipients.length} recipient(s)`,
         "success",
       );
 
       // Log the action for audit trail
-      this.stepView.logSecurityEvent("email_sent", {
+      console.log("📝 Logging security event for audit trail");
+      this.logSecurityEvent("email_sent", {
         recipients: recipients.length,
         stepCode: stepData.metadata.stepCode,
         includeInstructions: includeInstructions,
@@ -2253,8 +2404,8 @@ class StepViewPilotFeatures {
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error("Failed to send email:", error);
-      this.stepView.showNotification(
+      console.error("❌ Failed to send email:", error);
+      this.showNotification(
         `Failed to send email: ${error.message}`,
         "error",
       );

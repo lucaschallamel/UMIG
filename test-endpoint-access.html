@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StepView Email Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007cba;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        .pending { border-left-color: #ffc107; }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 StepView Email Functionality Debug Test</h1>
+    <p>This tool tests the endpoints that StepView email functionality depends on.</p>
+
+    <div class="test-section" id="userContext">
+        <h3>1. User Context Endpoint</h3>
+        <p>Testing: <code>/rest/scriptrunner/latest/custom/v2/user/context?username=admin</code></p>
+        <button onclick="testUserContext()">Test User Context</button>
+        <div id="userContextResult" class="result"></div>
+    </div>
+
+    <div class="test-section" id="urlConfig">
+        <h3>2. URL Configuration Endpoint</h3>
+        <p>Testing: <code>/rest/scriptrunner/latest/custom/v2/urlConfiguration</code></p>
+        <button onclick="testUrlConfiguration()">Test URL Configuration</button>
+        <div id="urlConfigResult" class="result"></div>
+    </div>
+
+    <div class="test-section" id="stepEmail">
+        <h3>3. Step Email Endpoint</h3>
+        <p>Testing: <code>/rest/scriptrunner/latest/custom/steps/instance/{uuid}/send-email</code></p>
+        <button onclick="testStepEmail()">Test Step Email</button>
+        <div id="stepEmailResult" class="result"></div>
+    </div>
+
+    <div class="test-section" id="permissions">
+        <h3>4. Permission System Test</h3>
+        <p>Testing the hasPermission method functionality</p>
+        <button onclick="testPermissions()">Test Permission System</button>
+        <div id="permissionsResult" class="result"></div>
+    </div>
+
+    <script>
+        async function testUserContext() {
+            const result = document.getElementById('userContextResult');
+            const section = document.getElementById('userContext');
+            
+            try {
+                result.innerHTML = 'Testing user context endpoint...';
+                
+                const response = await fetch('/rest/scriptrunner/latest/custom/v2/user/context?username=admin', {
+                    headers: {
+                        'X-Atlassian-Token': 'no-check'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                const status = response.status;
+                const text = await response.text();
+                
+                result.innerHTML = `
+Status: ${status}
+Response: ${text}
+                `;
+                
+                section.className = `test-section ${status === 200 ? 'success' : status === 404 ? 'error' : 'pending'}`;
+                
+            } catch (error) {
+                result.innerHTML = `Error: ${error.message}`;
+                section.className = 'test-section error';
+            }
+        }
+
+        async function testUrlConfiguration() {
+            const result = document.getElementById('urlConfigResult');
+            const section = document.getElementById('urlConfig');
+            
+            try {
+                result.innerHTML = 'Testing URL configuration endpoint...';
+                
+                const response = await fetch('/rest/scriptrunner/latest/custom/v2/urlConfiguration', {
+                    headers: {
+                        'X-Atlassian-Token': 'no-check'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                const status = response.status;
+                const text = await response.text();
+                
+                result.innerHTML = `
+Status: ${status}
+Response: ${text}
+                `;
+                
+                section.className = `test-section ${status === 200 ? 'success' : status === 404 ? 'error' : 'pending'}`;
+                
+            } catch (error) {
+                result.innerHTML = `Error: ${error.message}`;
+                section.className = 'test-section error';
+            }
+        }
+
+        async function testStepEmail() {
+            const result = document.getElementById('stepEmailResult');
+            const section = document.getElementById('stepEmail');
+            
+            try {
+                result.innerHTML = 'Testing step email endpoint...';
+                
+                // Use a dummy UUID for testing - we expect this to fail with validation error (not 404)
+                const testUuid = '550e8400-e29b-41d4-a716-446655440000';
+                const response = await fetch(`/rest/scriptrunner/latest/custom/steps/instance/${testUuid}/send-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Atlassian-Token': 'no-check'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        recipients: ['test@example.com'],
+                        subject: 'Test Email',
+                        message: 'This is a test'
+                    })
+                });
+                
+                const status = response.status;
+                const text = await response.text();
+                
+                result.innerHTML = `
+Status: ${status}
+Response: ${text}
+Note: Status 400/500 is expected (endpoint exists), Status 404 means endpoint not registered
+                `;
+                
+                section.className = `test-section ${status === 404 ? 'error' : 'success'}`;
+                
+            } catch (error) {
+                result.innerHTML = `Error: ${error.message}`;
+                section.className = 'test-section error';
+            }
+        }
+
+        function testPermissions() {
+            const result = document.getElementById('permissionsResult');
+            const section = document.getElementById('permissions');
+            
+            try {
+                result.innerHTML = 'Testing permission system...';
+                
+                // Create a mock StepView instance to test hasPermission
+                const mockStepView = {
+                    permissions: {
+                        email_step_details: true,
+                        complete_instructions: true,
+                        add_comments: false
+                    },
+                    hasPermission: function(feature) {
+                        if (!this.permissions || typeof this.permissions !== "object") {
+                            console.error("🚨 CRITICAL: permissions object is undefined");
+                            return false;
+                        }
+                        return this.permissions[feature] === true;
+                    }
+                };
+                
+                const tests = [
+                    { feature: 'email_step_details', expected: true },
+                    { feature: 'complete_instructions', expected: true },
+                    { feature: 'add_comments', expected: false },
+                    { feature: 'nonexistent_permission', expected: false }
+                ];
+                
+                let testResults = [];
+                let allPassed = true;
+                
+                tests.forEach(test => {
+                    const actual = mockStepView.hasPermission(test.feature);
+                    const passed = actual === test.expected;
+                    allPassed = allPassed && passed;
+                    
+                    testResults.push(`
+${passed ? '✅' : '❌'} ${test.feature}: Expected ${test.expected}, Got ${actual}
+                    `);
+                });
+                
+                result.innerHTML = `
+Permission System Test Results:
+${testResults.join('')}
+
+Overall: ${allPassed ? '✅ PASSED' : '❌ FAILED'}
+                `;
+                
+                section.className = `test-section ${allPassed ? 'success' : 'error'}`;
+                
+            } catch (error) {
+                result.innerHTML = `Error: ${error.message}`;
+                section.className = 'test-section error';
+            }
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            // Run tests with a small delay between each
+            setTimeout(testUserContext, 100);
+            setTimeout(testUrlConfiguration, 500);
+            setTimeout(testStepEmail, 1000);
+            setTimeout(testPermissions, 1500);
+        });
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import umig.repository.SystemConfigurationRepository
 
 /**
  * UrlConstructionService - Constructs secure URLs for UMIG step views
@@ -158,26 +159,93 @@ class UrlConstructionService {
         }
         
         try {
-            DatabaseUtil.withSql { sql ->
-                def config = sql.firstRow('''
-                    SELECT scf_environment_code, scf_base_url, scf_space_key, 
-                           scf_page_id, scf_page_title, scf_is_active
-                    FROM system_configuration_scf 
-                    WHERE scf_environment_code = :envCode 
-                      AND scf_is_active = true
-                ''', [envCode: environmentCode])
-                
-                if (config) {
-                    configurationCache[environmentCode] = config
-                    cacheLastUpdated = now
-                }
-                
-                return config
+            // Get environment ID from environment code
+            def envId = getEnvironmentIdByCode(environmentCode)
+            if (!envId) {
+                println "UrlConstructionService: No environment found for code: ${environmentCode}"
+                return getDefaultConfiguration(environmentCode)
             }
+            
+            // Use SystemConfigurationRepository to fetch configuration
+            def repository = new SystemConfigurationRepository()
+            def confluenceConfig = repository.findConfluenceConfigurationForEnvironment(envId)
+            
+            if (!confluenceConfig || !confluenceConfig.configurations) {
+                println "UrlConstructionService: No configuration found in database for environment: ${environmentCode}, using defaults"
+                return getDefaultConfiguration(environmentCode)
+            }
+            
+            // Build configuration map from database values
+            def configs = confluenceConfig.configurations as Map
+            def config = [
+                scf_environment_code: environmentCode,
+                scf_base_url: getConfigValue(configs, 'stepview.confluence.base.url', 'http://localhost:8090'),
+                scf_space_key: getConfigValue(configs, 'stepview.confluence.space.key', 'UMIG'),
+                scf_page_id: getConfigValue(configs, 'stepview.confluence.page.id', '1114120'),
+                scf_page_title: getConfigValue(configs, 'stepview.confluence.page.title', 'UMIG - Step View'),
+                scf_is_active: true
+            ]
+            
+            configurationCache[environmentCode] = config
+            cacheLastUpdated = now
+            return config
+            
         } catch (Exception e) {
             println "UrlConstructionService: Error retrieving configuration for ${environmentCode}: ${e.message}"
+            e.printStackTrace()
+            return getDefaultConfiguration(environmentCode)
+        }
+    }
+    
+    /**
+     * Gets environment ID by environment code from database
+     */
+    private static Integer getEnvironmentIdByCode(String environmentCode) {
+        try {
+            DatabaseUtil.withSql { sql ->
+                def result = sql.firstRow('''
+                    SELECT env_id 
+                    FROM environments_env 
+                    WHERE UPPER(env_code) = UPPER(:envCode)
+                ''', [envCode: environmentCode])
+                
+                return result ? (result.env_id as Integer) : null
+            }
+        } catch (Exception e) {
+            println "UrlConstructionService: Error retrieving environment ID for ${environmentCode}: ${e.message}"
             return null
         }
+    }
+    
+    /**
+     * Helper method to safely extract configuration values with defaults
+     */
+    private static String getConfigValue(Map configs, String key, String defaultValue) {
+        try {
+            def configEntry = configs[key]
+            if (configEntry && configEntry instanceof Map) {
+                def value = (configEntry as Map).value
+                return value ? value.toString().trim() : defaultValue
+            }
+            return defaultValue
+        } catch (Exception e) {
+            println "UrlConstructionService: Error extracting config value for key ${key}: ${e.message}"
+            return defaultValue
+        }
+    }
+    
+    /**
+     * Provides default configuration for URL construction
+     */
+    private static Map getDefaultConfiguration(String environmentCode) {
+        return [
+            scf_environment_code: environmentCode,
+            scf_base_url: 'http://localhost:8090',
+            scf_space_key: 'UMIG',
+            scf_page_id: '1114120',
+            scf_page_title: 'UMIG - Step View',
+            scf_is_active: true
+        ]
     }
     
     /**

@@ -11,7 +11,9 @@ import java.util.UUID
 import com.atlassian.confluence.mail.ConfluenceMailServerManager
 import com.atlassian.mail.Email
 import com.atlassian.mail.server.SMTPMailServer
+// Queue imports removed - using direct sending instead of task queue
 import com.atlassian.sal.api.component.ComponentLocator
+// TaskManager not available in ScriptRunner context - using direct email sending instead
 
 // JavaMail imports for MailHog
 import javax.mail.*
@@ -492,6 +494,146 @@ class EmailService {
             
         } catch (Exception e) {
             println "EmailService: Failed to send email - ${e.message}"
+            e.printStackTrace()
+            return false
+        }
+    }
+    
+    /**
+     * Send email with CC and BCC recipients
+     * Used for manual email sending with proper recipient configuration
+     * 
+     * @param to Comma-separated TO recipients
+     * @param cc Comma-separated CC recipients (can be null)
+     * @param bcc Comma-separated BCC recipients (can be null)
+     * @param subject Email subject
+     * @param htmlBody HTML content body
+     * @param isHtml Whether the body is HTML (true) or plain text (false)
+     * @return true if email was sent successfully
+     */
+    static boolean sendEmailWithCCAndBCC(String to, String cc, String bcc, 
+                                         String subject, String htmlBody, boolean isHtml = true) {
+        try {
+            // Parse recipients
+            def toRecipients = to ? to.split(',').collect { it.trim() }.findAll { it } : []
+            def ccRecipients = cc ? cc.split(',').collect { it.trim() }.findAll { it } : []
+            def bccRecipients = bcc ? bcc.split(',').collect { it.trim() }.findAll { it } : []
+            
+            if (!toRecipients && !ccRecipients && !bccRecipients) {
+                println "EmailService: No valid recipients found"
+                return false
+            }
+            
+            // Get Confluence mail server
+            def mailServerManager = ComponentLocator.getComponent(ConfluenceMailServerManager)
+            def mailServer = mailServerManager.getDefaultSMTPMailServer()
+            
+            if (!mailServer) {
+                println "EmailService: No mail server configured in Confluence"
+                
+                // For local development, use MailHog
+                if (isLocalDevelopment()) {
+                    return sendEmailViaMailHogWithCCBCC(toRecipients, ccRecipients, bccRecipients, 
+                                                        subject, htmlBody, isHtml)
+                }
+                
+                throw new RuntimeException("No mail server configured")
+            }
+            
+            // Create email message
+            def email = new Email(to)
+            email.setSubject(subject)
+            
+            if (isHtml) {
+                email.setBody(htmlBody)
+                email.setMimeType("text/html")
+            } else {
+                email.setBody(htmlBody)
+                email.setMimeType("text/plain")
+            }
+            
+            // Add CC recipients
+            if (ccRecipients) {
+                email.setCc(cc)
+            }
+            
+            // Add BCC recipients  
+            if (bccRecipients) {
+                email.setBcc(bcc)
+            }
+            
+            // Set from address
+            email.setFrom(mailServer.getDefaultFrom() ?: "noreply@confluence.local")
+            
+            // Send the email directly (TaskManager not available in ScriptRunner)
+            mailServer.send(email)
+            
+            println "EmailService: Email sent successfully - TO: ${toRecipients.size()}, CC: ${ccRecipients.size()}, BCC: ${bccRecipients.size()}"
+            return true
+            
+        } catch (Exception e) {
+            println "EmailService ERROR sending email: ${e.message}"
+            e.printStackTrace()
+            return false
+        }
+    }
+    
+    /**
+     * Send email via MailHog with CC and BCC support for local development
+     */
+    private static boolean sendEmailViaMailHogWithCCBCC(List<String> toRecipients, List<String> ccRecipients, 
+                                                        List<String> bccRecipients, String subject, 
+                                                        String body, boolean isHtml = true) {
+        try {
+            println "EmailService: Sending via MailHog with CC/BCC (local development mode)"
+            
+            def props = new Properties()
+            props.put("mail.smtp.host", "localhost")
+            props.put("mail.smtp.port", "1025")
+            props.put("mail.smtp.auth", "false")
+            
+            def session = Session.getInstance(props)
+            def message = new MimeMessage(session)
+            
+            // Set from
+            message.setFrom(new InternetAddress("umig@confluence.local", "UMIG System"))
+            
+            // Set TO recipients
+            if (toRecipients) {
+                def toAddresses = toRecipients.collect { new InternetAddress(it) } as InternetAddress[]
+                message.setRecipients(Message.RecipientType.TO, toAddresses)
+            }
+            
+            // Set CC recipients
+            if (ccRecipients) {
+                def ccAddresses = ccRecipients.collect { new InternetAddress(it) } as InternetAddress[]
+                message.setRecipients(Message.RecipientType.CC, ccAddresses)
+            }
+            
+            // Set BCC recipients
+            if (bccRecipients) {
+                def bccAddresses = bccRecipients.collect { new InternetAddress(it) } as InternetAddress[]
+                message.setRecipients(Message.RecipientType.BCC, bccAddresses)
+            }
+            
+            // Set subject and body
+            message.setSubject(subject)
+            
+            if (isHtml) {
+                message.setContent(body, "text/html; charset=UTF-8")
+            } else {
+                message.setText(body, "UTF-8")
+            }
+            
+            // Send the message
+            Transport.send(message)
+            
+            def totalRecipients = toRecipients.size() + ccRecipients.size() + bccRecipients.size()
+            println "EmailService: Email sent via MailHog to ${totalRecipients} recipients"
+            return true
+            
+        } catch (Exception e) {
+            println "EmailService ERROR sending via MailHog: ${e.message}"
             e.printStackTrace()
             return false
         }

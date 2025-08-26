@@ -6,7 +6,13 @@ import umig.repository.StatusRepository
 import umig.repository.UserRepository
 import umig.service.UserService
 import umig.utils.DatabaseUtil
+import umig.utils.EmailService
+import umig.utils.EnhancedEmailService
+import umig.utils.StepNotificationIntegration
+import umig.utils.UrlConstructionService
 import groovy.json.JsonBuilder
+import groovy.json.JsonSlurper
+import groovy.sql.GroovyRowResult
 import groovy.transform.BaseScript
 
 import javax.servlet.http.HttpServletRequest
@@ -15,10 +21,12 @@ import javax.ws.rs.core.Response
 import java.util.UUID
 import java.sql.SQLException
 
+// Type safety achieved through explicit casting per ADR-031 standards
+@BaseScript CustomEndpointDelegate delegate
+
 /**
  * Steps API - repositories instantiated within methods to avoid class loading issues
  */
-@BaseScript CustomEndpointDelegate delegate
 
 // Import repositories at compile time but instantiate lazily
 
@@ -38,269 +46,269 @@ import java.sql.SQLException
  * Multiple filters can be combined for progressive refinement.
  * Results are ordered by sequence number, phase number, and step number.
  */
-steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request) as String
+    List<String> pathParts = extraPath?.split('/')?.findAll { String it -> it } as List<String> ?: [] as List<String>
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
+    Closure<StepRepository> getStepRepository = { ->
+        return new StepRepository() as StepRepository
     }
-    def getStatusRepository = { ->
-        return new StatusRepository()
+    Closure<StatusRepository> getStatusRepository = { ->
+        return new StatusRepository() as StatusRepository
     }
-    def getUserRepository = { ->
-        return new UserRepository()
+    Closure<UserRepository> getUserRepository = { ->
+        return new UserRepository() as UserRepository
     }
     
     // Parse and validate query parameters for filtering with type safety (ADR-031) - inline
-    def parseAndValidateFilters = { MultivaluedMap qParams ->
-        def filters = [:]
+    Closure<Map<String, Object>> parseAndValidateFilters = { MultivaluedMap<String, String> qParams ->
+        Map<String, Object> filters = [:] as Map<String, Object>
         
         // UUID parameters with explicit casting and validation
         if (qParams.getFirst("migrationId")) {
             try {
-                filters.migrationId = UUID.fromString(qParams.getFirst("migrationId") as String)
+                filters.migrationId = UUID.fromString(qParams.getFirst("migrationId") as String) as UUID
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid migrationId format: must be a valid UUID")
+                throw new IllegalArgumentException("Invalid migrationId format: must be a valid UUID") as IllegalArgumentException
             }
         }
         
         if (qParams.getFirst("iterationId")) {
             try {
-                filters.iterationId = UUID.fromString(qParams.getFirst("iterationId") as String)
+                filters.iterationId = UUID.fromString(qParams.getFirst("iterationId") as String) as UUID
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid iterationId format: must be a valid UUID")
+                throw new IllegalArgumentException("Invalid iterationId format: must be a valid UUID") as IllegalArgumentException
             }
         }
         
         if (qParams.getFirst("planId")) {
             try {
-                filters.planId = UUID.fromString(qParams.getFirst("planId") as String)
+                filters.planId = UUID.fromString(qParams.getFirst("planId") as String) as UUID
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid planId format: must be a valid UUID")
+                throw new IllegalArgumentException("Invalid planId format: must be a valid UUID") as IllegalArgumentException
             }
         }
         
         if (qParams.getFirst("sequenceId")) {
             try {
-                filters.sequenceId = UUID.fromString(qParams.getFirst("sequenceId") as String)
+                filters.sequenceId = UUID.fromString(qParams.getFirst("sequenceId") as String) as UUID
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid sequenceId format: must be a valid UUID")
+                throw new IllegalArgumentException("Invalid sequenceId format: must be a valid UUID") as IllegalArgumentException
             }
         }
         
         if (qParams.getFirst("phaseId")) {
             try {
-                filters.phaseId = UUID.fromString(qParams.getFirst("phaseId") as String)
+                filters.phaseId = UUID.fromString(qParams.getFirst("phaseId") as String) as UUID
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid phaseId format: must be a valid UUID")
+                throw new IllegalArgumentException("Invalid phaseId format: must be a valid UUID") as IllegalArgumentException
             }
         }
         
         if (qParams.getFirst("labelId")) {
             try {
-                filters.labelId = Integer.parseInt(qParams.getFirst("labelId") as String)
+                filters.labelId = Integer.parseInt(qParams.getFirst("labelId") as String) as Integer
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid labelId format: must be a valid integer")
+                throw new IllegalArgumentException("Invalid labelId format: must be a valid integer") as IllegalArgumentException
             }
         }
         
         // Integer parameters with explicit casting and validation
         if (qParams.getFirst("teamId")) {
             try {
-                filters.teamId = Integer.parseInt(qParams.getFirst("teamId") as String)
+                filters.teamId = Integer.parseInt(qParams.getFirst("teamId") as String) as Integer
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid teamId format: must be a valid integer")
+                throw new IllegalArgumentException("Invalid teamId format: must be a valid integer") as IllegalArgumentException
             }
         }
         
         if (qParams.getFirst("statusId")) {
             try {
-                filters.statusId = Integer.parseInt(qParams.getFirst("statusId") as String)
+                filters.statusId = Integer.parseInt(qParams.getFirst("statusId") as String) as Integer
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid statusId format: must be a valid integer")
+                throw new IllegalArgumentException("Invalid statusId format: must be a valid integer") as IllegalArgumentException
             }
         }
         
         // String parameters with validation
         if (qParams.getFirst("status")) {
-            def status = qParams.getFirst("status") as String
+            String status = qParams.getFirst("status") as String
             if (status.trim().isEmpty()) {
-                throw new IllegalArgumentException("Status parameter cannot be empty")
+                throw new IllegalArgumentException("Status parameter cannot be empty") as IllegalArgumentException
             }
-            filters.status = status.toUpperCase()
+            filters.status = status.toUpperCase() as String
         }
         
-        return filters
+        return filters as Map<String, Object>
     }
     
     // Validate pagination parameters with type safety and limits - inline
-    def validatePaginationParams = { MultivaluedMap qParams ->
-        def limit = 100  // default limit
-        def offset = 0   // default offset
+    Closure<Map<String, Integer>> validatePaginationParams = { MultivaluedMap<String, String> qParams ->
+        Integer limit = 100 as Integer  // default limit
+        Integer offset = 0 as Integer   // default offset
         
         if (qParams.getFirst("limit")) {
             try {
-                def requestedLimit = Integer.parseInt(qParams.getFirst("limit") as String)
+                Integer requestedLimit = Integer.parseInt(qParams.getFirst("limit") as String) as Integer
                 if (requestedLimit <= 0) {
-                    throw new IllegalArgumentException("Limit must be greater than 0")
+                    throw new IllegalArgumentException("Limit must be greater than 0") as IllegalArgumentException
                 }
                 if (requestedLimit > 1000) {
-                    throw new IllegalArgumentException("Limit cannot exceed 1000")
+                    throw new IllegalArgumentException("Limit cannot exceed 1000") as IllegalArgumentException
                 }
-                limit = requestedLimit
+                limit = requestedLimit as Integer
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid limit format: must be a valid integer")
+                throw new IllegalArgumentException("Invalid limit format: must be a valid integer") as IllegalArgumentException
             }
         }
         
         if (qParams.getFirst("offset")) {
             try {
-                def requestedOffset = Integer.parseInt(qParams.getFirst("offset") as String)
+                Integer requestedOffset = Integer.parseInt(qParams.getFirst("offset") as String) as Integer
                 if (requestedOffset < 0) {
-                    throw new IllegalArgumentException("Offset cannot be negative")
+                    throw new IllegalArgumentException("Offset cannot be negative") as IllegalArgumentException
                 }
-                offset = requestedOffset
+                offset = requestedOffset as Integer
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Invalid offset format: must be a valid integer")
+                throw new IllegalArgumentException("Invalid offset format: must be a valid integer") as IllegalArgumentException
             }
         }
         
-        return [limit: limit, offset: offset]
+        return [limit: limit, offset: offset] as Map<String, Integer>
     }
     
     // Enhanced error handling with SQL state mapping and context - inline
-    def handleError = { Exception e, String context ->
+    Closure<Response> handleError = { Exception e, String context ->
         if (e instanceof IllegalArgumentException) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([
-                    error: e.message,
-                    context: context,
-                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                ]).toString())
-                .build()
+                    error: e.message as String,
+                    context: context as String,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") as String
+                ] as Map).toString() as String)
+                .build() as Response
         }
         
         // SQL state mappings (ADR-031)
-        def errorMessage = e.message?.toLowerCase() ?: ""
+        String errorMessage = (e.message?.toLowerCase() ?: "") as String
         if (errorMessage.contains("23503") || errorMessage.contains("foreign key")) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([
-                    error: "Invalid reference: related entity not found",
-                    context: context,
-                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                ]).toString())
-                .build()
+                    error: "Invalid reference: related entity not found" as String,
+                    context: context as String,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") as String
+                ] as Map).toString() as String)
+                .build() as Response
         }
         
         if (errorMessage.contains("23505") || errorMessage.contains("unique constraint")) {
             return Response.status(Response.Status.CONFLICT)
                 .entity(new JsonBuilder([
-                    error: "Duplicate entry: resource already exists",
-                    context: context,
-                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                ]).toString())
-                .build()
+                    error: "Duplicate entry: resource already exists" as String,
+                    context: context as String,
+                    timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") as String
+                ] as Map).toString() as String)
+                .build() as Response
         }
         
         // Default internal server error
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .entity(new JsonBuilder([
-                error: "Internal server error: ${e.message}",
-                context: context,
-                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-            ]).toString())
-            .build()
+                error: "Internal server error: ${e.message}" as String,
+                context: context as String,
+                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") as String
+            ] as Map).toString() as String)
+            .build() as Response
     }
     
     // GET /steps/instance/{stepInstanceId} - return step instance details with instructions
     if (pathParts.size() == 2 && pathParts[0] == 'instance') {
-        def stepInstanceId = pathParts[1]
+        String stepInstanceId = pathParts[1] as String
         
         try {
             // Try to parse as UUID first
-            UUID stepInstanceUuid = UUID.fromString(stepInstanceId)
-            StepRepository stepRepository = getStepRepository()
-            def stepDetails = stepRepository.findStepInstanceDetailsById(stepInstanceUuid)
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId) as UUID
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> stepDetails = stepRepository.findStepInstanceDetailsById(stepInstanceUuid) as Map<String, Object>
             
             if (!stepDetails) {
                 return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Step instance not found for ID: ${stepInstanceId}"]).toString())
-                    .build()
+                    .entity(new JsonBuilder([error: "Step instance not found for ID: ${stepInstanceId}"] as Map).toString() as String)
+                    .build() as Response
             }
             
-            return Response.ok(new JsonBuilder(stepDetails).toString()).build()
+            return Response.ok(new JsonBuilder(stepDetails).toString() as String).build() as Response
             
         } catch (IllegalArgumentException e) {
             // If not a valid UUID, try to parse as step code for backward compatibility
             try {
-                StepRepository stepRepository = getStepRepository()
-                def stepDetails = stepRepository.findStepInstanceDetailsByCode(stepInstanceId)
+                StepRepository stepRepository = getStepRepository() as StepRepository
+                Map<String, Object> stepDetails = stepRepository.findStepInstanceDetailsByCode(stepInstanceId) as Map<String, Object>
                 
                 if (!stepDetails) {
                     return Response.status(Response.Status.NOT_FOUND)
-                        .entity(new JsonBuilder([error: "Step instance not found for code: ${stepInstanceId}"]).toString())
-                        .build()
+                        .entity(new JsonBuilder([error: "Step instance not found for code: ${stepInstanceId}"] as Map).toString() as String)
+                        .build() as Response
                 }
                 
-                return Response.ok(new JsonBuilder(stepDetails).toString()).build()
+                return Response.ok(new JsonBuilder(stepDetails).toString() as String).build() as Response
                 
             } catch (Exception ex) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Invalid step instance ID format: ${stepInstanceId}"]).toString())
-                    .build()
+                    .entity(new JsonBuilder([error: "Invalid step instance ID format: ${stepInstanceId}"] as Map).toString() as String)
+                    .build() as Response
             }
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(new JsonBuilder([error: "Failed to load step details: ${e.message}"]).toString())
-                .build()
+                .entity(new JsonBuilder([error: "Failed to load step details: ${e.message}"] as Map).toString() as String)
+                .build() as Response
         }
     }
     
     // GET /steps/{stepInstanceId}/comments - return comments for a step instance
     if (pathParts.size() == 2 && pathParts[1] == 'comments') {
         try {
-            def stepInstanceId = pathParts[0]
-            UUID stepInstanceUuid = UUID.fromString(stepInstanceId)
-            StepRepository stepRepository = getStepRepository()
-            def comments = stepRepository.findCommentsByStepInstanceId(stepInstanceUuid)
+            String stepInstanceId = pathParts[0] as String
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId) as UUID
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            List<Map<String, Object>> comments = stepRepository.findCommentsByStepInstanceId(stepInstanceUuid) as List<Map<String, Object>>
             
-            return Response.ok(new JsonBuilder(comments).toString()).build()
+            return Response.ok(new JsonBuilder(comments).toString() as String).build() as Response
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
-                .build()
+                .entity(new JsonBuilder([error: "Invalid step instance ID format"] as Map).toString() as String)
+                .build() as Response
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(new JsonBuilder([error: "Failed to fetch comments: ${e.message}"]).toString())
-                .build()
+                .entity(new JsonBuilder([error: "Failed to fetch comments: ${e.message}"] as Map).toString() as String)
+                .build() as Response
         }
     }
     
     // GET /steps/master/{id} - return specific master step
     if (pathParts.size() == 2 && pathParts[0] == 'master') {
         try {
-            def stepId = UUID.fromString(pathParts[1])
-            StepRepository stepRepository = getStepRepository()
-            def masterStep = stepRepository.findMasterStepById(stepId)
+            UUID stepId = UUID.fromString(pathParts[1]) as UUID
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> masterStep = stepRepository.findMasterStepById(stepId) as Map<String, Object>
             
             if (!masterStep) {
                 return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new JsonBuilder([error: "Master step not found for ID: ${stepId}"]).toString())
-                    .build()
+                    .entity(new JsonBuilder([error: "Master step not found for ID: ${stepId}"] as Map).toString() as String)
+                    .build() as Response
             }
             
-            return Response.ok(new JsonBuilder(masterStep).toString()).build()
+            return Response.ok(new JsonBuilder(masterStep).toString() as String).build() as Response
             
         } catch (IllegalArgumentException e) {
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new JsonBuilder([error: "Invalid step ID format"]).toString())
-                .build()
+                .entity(new JsonBuilder([error: "Invalid step ID format"] as Map).toString() as String)
+                .build() as Response
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(new JsonBuilder([error: "Failed to retrieve master step: ${e.message}"]).toString())
-                .build()
+                .entity(new JsonBuilder([error: "Failed to retrieve master step: ${e.message}"] as Map).toString() as String)
+                .build() as Response
         }
     }
     
@@ -308,21 +316,21 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     if (pathParts.size() == 1 && pathParts[0] == 'master') {
         try {
             // Extract query parameters for Admin GUI support
-            def filters = [:]
-            def pageNumber = 1
-            def pageSize = 50
-            def sortField = null
-            def sortDirection = 'asc'
+            Map<String, Object> filters = [:] as Map<String, Object>
+            Integer pageNumber = 1 as Integer
+            Integer pageSize = 50 as Integer
+            String sortField = null as String
+            String sortDirection = 'asc' as String
 
             // Extract standard parameters
-            queryParams.keySet().each { param ->
-                def value = queryParams.getFirst(param)
+            queryParams.keySet().each { String param ->
+                String value = queryParams.getFirst(param) as String
                 switch (param) {
                     case 'page':
-                        pageNumber = Integer.parseInt(value as String)
+                        pageNumber = Integer.parseInt(value as String) as Integer
                         break
                     case 'size':
-                        pageSize = Integer.parseInt(value as String)
+                        pageSize = Integer.parseInt(value as String) as Integer
                         break
                     case 'sort':
                         sortField = value as String
@@ -331,48 +339,48 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                         sortDirection = value as String
                         break
                     default:
-                        filters[param] = value
+                        filters[param] = value as String
                 }
             }
 
             // Validate sort field (removed stm_status as master steps don't have status)
-            def allowedSortFields = ['stm_id', 'stm_name', 'stm_order', 'created_at', 'updated_at', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name']
+            List<String> allowedSortFields = ['stm_id', 'stm_name', 'stm_order', 'created_at', 'updated_at', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name'] as List<String>
             if (sortField && !allowedSortFields.contains(sortField)) {
                 return Response.status(400)
-                    .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400]).toString())
-                    .build()
+                    .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}", code: 400] as Map).toString() as String)
+                    .build() as Response
             }
 
-            StepRepository stepRepository = getStepRepository()
-            def result = stepRepository.findMasterStepsWithFilters(filters as Map, pageNumber as int, pageSize as int, sortField as String, sortDirection as String)
-            return Response.ok(new JsonBuilder(result).toString()).build()
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> result = stepRepository.findMasterStepsWithFilters(filters as Map<String, Object>, pageNumber as int, pageSize as int, sortField as String, sortDirection as String) as Map<String, Object>
+            return Response.ok(new JsonBuilder(result).toString() as String).build() as Response
         } catch (SQLException e) {
             log.error("Database error in steps master GET: ${e.message}", e)
-            def statusCode = mapSqlStateToHttpStatus(e.getSQLState())
+            int statusCode = mapSqlStateToHttpStatus(e.getSQLState()) as int
             return Response.status(statusCode)
-                .entity(new JsonBuilder([error: e.message, code: statusCode]).toString())
-                .build()
+                .entity(new JsonBuilder([error: e.message, code: statusCode] as Map).toString() as String)
+                .build() as Response
         } catch (Exception e) {
             log.error("Unexpected error in steps master GET: ${e.message}", e)
             return Response.status(500)
-                .entity(new JsonBuilder([error: "Internal server error", code: 500]).toString())
-                .build()
+                .entity(new JsonBuilder([error: "Internal server error", code: 500] as Map).toString() as String)
+                .build() as Response
         }
     }
     
     // GET /steps/summary - return dashboard summary metrics
     if (pathParts.size() == 1 && pathParts[0] == 'summary') {
         try {
-            def migrationId = queryParams.getFirst("migrationId") as String
+            String migrationId = queryParams.getFirst("migrationId") as String
             if (!migrationId) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([error: "migrationId parameter is required for summary"]).toString())
                     .build()
             }
             
-            def migrationUuid = UUID.fromString(migrationId as String)
+            UUID migrationUuid = UUID.fromString(migrationId as String)
             StepRepository stepRepository = getStepRepository()
-            def summary = stepRepository.getStepsSummary(migrationUuid)
+            Map<String, Object> summary = stepRepository.getStepsSummary(migrationUuid)
             
             return Response.ok(new JsonBuilder(summary).toString()).build()
             
@@ -386,18 +394,18 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /steps/progress - return progress tracking data  
     if (pathParts.size() == 1 && pathParts[0] == 'progress') {
         try {
-            def migrationId = queryParams.getFirst("migrationId") as String
+            String migrationId = queryParams.getFirst("migrationId") as String
             if (!migrationId) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "migrationId parameter is required for progress tracking"]).toString())
-                    .build()
+                    .entity(new JsonBuilder([error: "migrationId parameter is required for progress tracking"] as Map).toString() as String)
+                    .build() as Response
             }
             
-            def migrationUuid = UUID.fromString(migrationId as String)
-            StepRepository stepRepository = getStepRepository()
-            def progress = stepRepository.getStepsProgress(migrationUuid)
+            UUID migrationUuid = UUID.fromString(migrationId as String) as UUID
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> progress = stepRepository.getStepsProgress(migrationUuid) as Map<String, Object>
             
-            return Response.ok(new JsonBuilder(progress).toString()).build()
+            return Response.ok(new JsonBuilder(progress).toString() as String).build() as Response
             
         } catch (IllegalArgumentException e) {
             return handleError(e, "GET /steps/progress")
@@ -409,8 +417,8 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     // GET /steps/export - return steps data for export (JSON/CSV)
     if (pathParts.size() == 1 && pathParts[0] == 'export') {
         try {
-            def filters = parseAndValidateFilters(queryParams)
-            def format = (queryParams.getFirst("format") ?: "json") as String
+            Map<String, Object> filters = parseAndValidateFilters(queryParams)
+            String format = (queryParams.getFirst("format") ?: "json") as String
             
             if (!["json", "csv"].contains(format.toLowerCase())) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -420,25 +428,25 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             
             // Use enhanced repository method for export
             StepRepository stepRepository = getStepRepository()
-            def exportData = stepRepository.findStepsWithFilters(filters, 10000, 0, "export")
+            Map<String, Object> exportData = stepRepository.findStepsWithFilters(filters, 10000, 0, "export")
             
             if (format.toLowerCase() == "csv") {
                 // Generate CSV format - inline method
-                def steps = exportData.data as List
-                def csvContent
+                List<Map<String, Object>> steps = exportData.data as List<Map<String, Object>>
+                String csvContent
                 if (!steps || steps.isEmpty()) {
                     csvContent = "No data available"
                 } else {
-                    def headers = [
+                    List<String> headers = [
                         "Step ID", "Step Code", "Step Name", "Status", "Team", 
                         "Sequence", "Phase", "Duration (min)", "Created At", "Updated At"
                     ]
                     
-                    def csvLines = [headers.join(",")]
+                    List<String> csvLines = [headers.join(",")]
                     
-                    steps.each { step ->
-                        def stepMap = step as Map
-                        def line = [
+                    steps.each { Map<String, Object> step ->
+                        Map<String, Object> stepMap = step as Map<String, Object>
+                        String line = [
                             "\"${stepMap.id ?: ''}\"",
                             "\"${stepMap.code ?: ''}\"", 
                             "\"${stepMap.name ?: ''}\"",
@@ -475,22 +483,26 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
     }
     
     // GET /steps with query parameters for hierarchical filtering (MODERNIZED)
-    if (pathParts.empty) {
+    if (pathParts.isEmpty()) {
         try {
             // Parse and validate parameters with type safety
-            def filters = parseAndValidateFilters(queryParams)
-            def pagination = validatePaginationParams(queryParams)
+            Map<String, Object> filters = parseAndValidateFilters(queryParams)
+            Map<String, Integer> pagination = validatePaginationParams(queryParams)
+            
+            // DEBUG: Log the filters and pagination for troubleshooting
+            println "StepsApi DEBUG: filters = ${filters}"
+            println "StepsApi DEBUG: pagination = ${pagination}"
             
             // Check if this is a simple list request or enhanced filtering
-            def useEnhancedMethod = queryParams.getFirst("enhanced") == "true" || 
-                                   queryParams.getFirst("limit") || 
-                                   queryParams.getFirst("offset")
+            boolean useEnhancedMethod = queryParams.getFirst("enhanced") == "true" || 
+                                       queryParams.getFirst("limit") || 
+                                       queryParams.getFirst("offset")
             
             StepRepository stepRepository = getStepRepository()
             
             if (useEnhancedMethod) {
                 // Use enhanced repository method with pagination
-                def result = stepRepository.findStepsWithFilters(
+                Map<String, Object> result = stepRepository.findStepsWithFilters(
                     filters, 
                     pagination.limit as Integer, 
                     pagination.offset as Integer,
@@ -500,15 +512,17 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                 return Response.ok(new JsonBuilder(result).toString()).build()
             } else {
                 // Backward compatibility: use original grouping logic
-                def steps = stepRepository.findFilteredStepInstances(filters)
+                println "StepsApi DEBUG: About to call findFilteredStepInstances with filters: ${filters}"
+                List<Map<String, Object>> steps = stepRepository.findFilteredStepInstances(filters)
+                println "StepsApi DEBUG: findFilteredStepInstances returned ${steps?.size()} steps"
             
             // Group steps by sequence and phase for frontend consumption
-            def groupedSteps = [:]
+            Map<String, Map<String, Object>> groupedSteps = [:]
             
-            steps.each { stepItem ->
-                def step = stepItem as Map
-                def sequenceKey = "${step.sequenceNumber}-${step.sequenceId}"
-                def phaseKey = "${step.phaseNumber}-${step.phaseId}"
+            steps.each { Map<String, Object> stepItem ->
+                Map<String, Object> step = stepItem as Map<String, Object>
+                String sequenceKey = "${step.sequenceNumber}-${step.sequenceId}"
+                String phaseKey = "${step.phaseNumber}-${step.phaseId}"
                 
                 if (!groupedSteps[sequenceKey]) {
                     groupedSteps[sequenceKey] = [
@@ -519,8 +533,8 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     ]
                 }
                 
-                def sequenceMap = groupedSteps[sequenceKey] as Map
-                def phasesMap = sequenceMap.phases as Map
+                Map<String, Object> sequenceMap = groupedSteps[sequenceKey] as Map<String, Object>
+                Map<String, Map<String, Object>> phasesMap = sequenceMap.phases as Map<String, Map<String, Object>>
                 
                 if (!phasesMap[phaseKey]) {
                     phasesMap[phaseKey] = [
@@ -531,15 +545,15 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
                     ]
                 }
                 
-                def phaseMap = phasesMap[phaseKey] as Map
-                def stepsList = phaseMap.steps as List
+                Map<String, Object> phaseMap = phasesMap[phaseKey] as Map<String, Object>
+                List<Map<String, Object>> stepsList = phaseMap.steps as List<Map<String, Object>>
                 
                 // Fetch labels for this step
-                def stepLabels = []
+                List<Map<String, Object>> stepLabels = []
                 try {
                     // Convert stmId to UUID if it's a string
-                    def stmId = step.stmId instanceof UUID ? step.stmId : UUID.fromString(step.stmId.toString())
-                    stepLabels = stepRepository.findLabelsByStepId(stmId)
+                    UUID stmId = step.stmId instanceof UUID ? step.stmId : UUID.fromString(step.stmId.toString())
+                    stepLabels = stepRepository.findLabelsByStepId(stmId) as List<Map<String, Object>>
                 } catch (Exception e) {
                     // If label fetching fails, continue with empty labels
                     stepLabels = []
@@ -559,31 +573,31 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
             }
             
             // Convert to arrays and sort
-            def result = groupedSteps.values().collect { sequenceItem ->
-                def sequence = sequenceItem as Map
-                def phasesMap = sequence.phases as Map
+            List<Map<String, Object>> result = groupedSteps.values().collect { Map<String, Object> sequenceItem ->
+                Map<String, Object> sequence = sequenceItem as Map<String, Object>
+                Map<String, Map<String, Object>> phasesMap = sequence.phases as Map<String, Map<String, Object>>
                 
-                def phasesList = phasesMap.values().collect { phaseItem ->
-                    def phase = phaseItem as Map
-                    def stepsList = phase.steps as List
+                List<Map<String, Object>> phasesList = phasesMap.values().collect { Map<String, Object> phaseItem ->
+                    Map<String, Object> phase = phaseItem as Map<String, Object>
+                    List<Map<String, Object>> stepsList = phase.steps as List<Map<String, Object>>
                     
                     return [
                         id: phase.id,
                         name: phase.name,
                         number: phase.number,
-                        steps: stepsList.sort { stepItem -> (stepItem as Map).code }
-                    ]
+                        steps: stepsList.sort { Map<String, Object> stepItem -> (stepItem as Map<String, Object>).code }
+                    ] as Map<String, Object>
                 }
-                phasesList.sort { phaseItem -> (phaseItem as Map).number }
+                phasesList.sort { Map<String, Object> phaseItem -> (phaseItem as Map<String, Object>).number }
                 
                 return [
                     id: sequence.id,
                     name: sequence.name,
                     number: sequence.number,
                     phases: phasesList
-                ]
+                ] as Map<String, Object>
             }
-            result.sort { sequenceItem -> (sequenceItem as Map).number }
+            result.sort { Map<String, Object> sequenceItem -> (sequenceItem as Map<String, Object>).number }
             
             return Response.ok(new JsonBuilder(result).toString()).build()
             }
@@ -612,23 +626,23 @@ steps(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
  * - PUT /steps/bulk/assign -> bulk team assignments  
  * - PUT /steps/bulk/reorder -> bulk step reordering
  */
-steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request) as String
+    List<String> pathParts = extraPath?.split('/')?.findAll { String it -> it } as List<String> ?: [] as List<String>
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
+    Closure<StepRepository> getStepRepository = { ->
+        return new StepRepository() as StepRepository
     }
-    def getStatusRepository = { ->
-        return new StatusRepository()
+    Closure<StatusRepository> getStatusRepository = { ->
+        return new StatusRepository() as StatusRepository
     }
-    def getUserRepository = { ->
-        return new UserRepository()
+    Closure<UserRepository> getUserRepository = { ->
+        return new UserRepository() as UserRepository
     }
     
     // Enhanced error handling with SQL state mapping and context - inline
-    def handleError = { Exception e, String context ->
+    Closure<Response> handleError = { Exception e, String context ->
         if (e instanceof IllegalArgumentException) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([
@@ -640,7 +654,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
         }
         
         // SQL state mappings (ADR-031)
-        def errorMessage = e.message?.toLowerCase() ?: ""
+        String errorMessage = (e.message?.toLowerCase() ?: "") as String
         if (errorMessage.contains("23503") || errorMessage.contains("foreign key")) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([
@@ -681,10 +695,10 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Parse request body
-            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def stepIds = requestData.stepIds as List<String>
-            def statusId = requestData.statusId as Integer
-            def userId = requestData.userId as Integer
+            Map<String, Object> requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
+            List<String> stepIds = (requestData.stepIds as List<String>) ?: [] as List<String>
+            Integer statusId = requestData.statusId as Integer
+            Integer userId = requestData.userId as Integer
             
             // Validation
             if (!stepIds || stepIds.isEmpty()) {
@@ -696,8 +710,8 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             // Validate statusId using database
             StatusRepository statusRepository = getStatusRepository()
             if (!statusId) {
-                def validStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = validStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
+                List<Map<String, Object>> validStatuses = statusRepository.findStatusesByType('Step') as List<Map<String, Object>>
+                String statusOptions = validStatuses.collect { Map<String, Object> status -> "${status.id}=${status.name}" }.join(', ') as String
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "statusId is required", 
@@ -708,9 +722,9 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             // Validate status ID against database - single source of truth
             if (!statusRepository.isValidStatusId(statusId, 'Step')) {
-                def validStatusIds = statusRepository.getValidStatusIds('Step')
-                def availableStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = availableStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
+                List<Integer> validStatusIds = statusRepository.getValidStatusIds('Step') as List<Integer>
+                List<Map<String, Object>> availableStatuses = statusRepository.findStatusesByType('Step') as List<Map<String, Object>>
+                String statusOptions = availableStatuses.collect { Map<String, Object> status -> "${status.id}=${status.name}" }.join(', ') as String
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "Invalid statusId '${statusId}' for Step entities",
@@ -722,7 +736,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             // Convert string IDs to UUIDs with validation
             List<UUID> stepUuids = []
-            for (def stepId : stepIds) {
+            for (String stepId : stepIds) {
                 try {
                     stepUuids.add(UUID.fromString(stepId as String))
                 } catch (IllegalArgumentException e) {
@@ -734,8 +748,8 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             // Perform bulk update using enhanced repository method
             StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.bulkUpdateStepStatus(stepUuids, statusId, userId)
-            def result = repositoryResult as Map
+            Map<String, Object> repositoryResult = stepRepository.bulkUpdateStepStatus(stepUuids, statusId, userId) as Map<String, Object>
+            Map<String, Object> result = repositoryResult as Map<String, Object>
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
@@ -765,10 +779,10 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Parse request body
-            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def stepIds = requestData.stepIds as List<String>
-            def teamId = requestData.teamId as Integer
-            def userId = requestData.userId as Integer
+            Map<String, Object> requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
+            List<String> stepIds = (requestData.stepIds as List<String>) ?: [] as List<String>
+            Integer teamId = requestData.teamId as Integer
+            Integer userId = requestData.userId as Integer
             
             // Validation
             if (!stepIds || stepIds.isEmpty()) {
@@ -784,21 +798,21 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Convert string IDs to UUIDs with validation
-            List<UUID> stepUuids = []
-            for (def stepId : stepIds) {
+            List<UUID> stepUuids = [] as List<UUID>
+            for (String stepId : stepIds) {
                 try {
-                    stepUuids.add(UUID.fromString(stepId as String))
+                    stepUuids.add(UUID.fromString(stepId as String) as UUID)
                 } catch (IllegalArgumentException e) {
                     return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid step ID format: ${stepId}"]).toString())
-                        .build()
+                        .entity(new JsonBuilder([error: "Invalid step ID format: ${stepId}"] as Map).toString() as String)
+                        .build() as Response
                 }
             }
             
             // Perform bulk assignment using enhanced repository method
-            StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.bulkAssignSteps(stepUuids, teamId, userId)
-            def result = repositoryResult as Map
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> repositoryResult = stepRepository.bulkAssignSteps(stepUuids, teamId, userId) as Map<String, Object>
+            Map<String, Object> result = repositoryResult as Map<String, Object>
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
                     success: true,
@@ -828,8 +842,8 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Parse request body
-            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def reorderData = requestData.steps as List<Map>
+            Map<String, Object> requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
+            List<Map<String, Object>> reorderData = (requestData.steps as List<Map<String, Object>>) ?: [] as List<Map<String, Object>>
             
             // Validation
             if (!reorderData || reorderData.isEmpty()) {
@@ -839,27 +853,27 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Validate reorder data structure
-            for (def step : reorderData) {
+            for (Map<String, Object> step : reorderData) {
                 if (!step.id || step.newOrder == null) {
                     return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Each step must have 'id' and 'newOrder' fields"]).toString())
-                        .build()
+                        .entity(new JsonBuilder([error: "Each step must have 'id' and 'newOrder' fields"] as Map).toString() as String)
+                        .build() as Response
                 }
                 
                 try {
-                    UUID.fromString(step.id as String)
-                    Integer.parseInt(step.newOrder.toString())
+                    UUID.fromString(step.id as String) as UUID
+                    Integer.parseInt(step.newOrder.toString()) as Integer
                 } catch (Exception e) {
                     return Response.status(Response.Status.BAD_REQUEST)
-                        .entity(new JsonBuilder([error: "Invalid id or newOrder format in step data"]).toString())
-                        .build()
+                        .entity(new JsonBuilder([error: "Invalid id or newOrder format in step data"] as Map).toString() as String)
+                        .build() as Response
                 }
             }
             
             // Perform bulk reordering using enhanced repository method
-            StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.bulkReorderSteps(reorderData)
-            def result = repositoryResult as Map
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> repositoryResult = stepRepository.bulkReorderSteps(reorderData) as Map<String, Object>
+            Map<String, Object> result = repositoryResult as Map<String, Object>
             
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
@@ -883,26 +897,26 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
     // PUT /steps/{stepInstanceId}/status - individual step status update
     if (pathParts.size() == 2 && pathParts[1] == 'status') {
         try {
-            def stepInstanceId = pathParts[0]
-            def stepInstanceUuid = UUID.fromString(stepInstanceId as String)
+            String stepInstanceId = pathParts[0] as String
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId as String) as UUID
             
             // Validate request body
             if (!body) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "Request body is required"]).toString())
-                    .build()
+                    .entity(new JsonBuilder([error: "Request body is required"] as Map).toString() as String)
+                    .build() as Response
             }
             
             // Parse request body with type safety
-            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def statusId = requestData.statusId as Integer
+            Map<String, Object> requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
+            Integer statusId = requestData.statusId as Integer
             
             // Get user context using UserService for intelligent fallback handling
-            def userContext
-            Integer userId = null
+            Map<String, Object> userContext = null as Map<String, Object>
+            Integer userId = null as Integer
             
             try {
-                userContext = UserService.getCurrentUserContext()
+                userContext = UserService.getCurrentUserContext() as Map<String, Object>
                 userId = userContext.userId as Integer
                 
                 // Log the user context for debugging
@@ -912,7 +926,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             } catch (Exception e) {
                 // If UserService fails, try to use frontend-provided userId
                 println "StepsApi: UserService failed (${e.message}), checking for frontend userId"
-                userContext = null
+                userContext = null as Map<String, Object>
             }
             
             // CRITICAL FIX: If no valid user context from ThreadLocal, use frontend-provided userId
@@ -934,14 +948,14 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             StatusRepository statusRepository = getStatusRepository()
             if (!statusId && requestData.status) {
                 // Convert status name to ID using database lookup for backward compatibility
-                def statusName = (requestData.status as String).toUpperCase()
-                def statusRecord = statusRepository.findStatusByNameAndType(statusName, 'Step')
+                String statusName = (requestData.status as String).toUpperCase() as String
+                Map<String, Object> statusRecord = statusRepository.findStatusByNameAndType(statusName, 'Step') as Map<String, Object>
                 
                 if (statusRecord) {
                     statusId = (statusRecord as Map).id as Integer
                 } else {
-                    def availableStatuses = statusRepository.findStatusesByType('Step')
-                    def statusNames = availableStatuses.collect { Map it -> it.name }.join(', ')
+                    List<Map<String, Object>> availableStatuses = statusRepository.findStatusesByType('Step') as List<Map<String, Object>>
+                    String statusNames = availableStatuses.collect { Map<String, Object> it -> it.name }.join(', ') as String
                     return Response.status(Response.Status.BAD_REQUEST)
                         .entity(new JsonBuilder([
                             error: "Invalid status name '${statusName}'. Use statusId instead, or valid status names: ${statusNames}"
@@ -951,8 +965,8 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             if (!statusId) {
-                def validStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = validStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
+                List<Map<String, Object>> validStatuses = statusRepository.findStatusesByType('Step') as List<Map<String, Object>>
+                String statusOptions = validStatuses.collect { Map<String, Object> status -> "${status.id}=${status.name}" }.join(', ') as String
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "Missing required field: statusId", 
@@ -963,9 +977,9 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             
             // Validate status ID against database - single source of truth
             if (!statusRepository.isValidStatusId(statusId, 'Step')) {
-                def validStatusIds = statusRepository.getValidStatusIds('Step')
-                def availableStatuses = statusRepository.findStatusesByType('Step')
-                def statusOptions = availableStatuses.collect { Map status -> "${status.id}=${status.name}" }.join(', ')
+                List<Integer> validStatusIds = statusRepository.getValidStatusIds('Step') as List<Integer>
+                List<Map<String, Object>> availableStatuses = statusRepository.findStatusesByType('Step') as List<Map<String, Object>>
+                String statusOptions = availableStatuses.collect { Map<String, Object> status -> "${status.id}=${status.name}" }.join(', ') as String
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new JsonBuilder([
                         error: "Invalid statusId '${statusId}' for Step entities",
@@ -976,9 +990,9 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
             }
             
             // Update step status and send notifications
-            StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, statusId, userId)
-            def result = repositoryResult as Map
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> repositoryResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceUuid, statusId, userId) as Map<String, Object>
+            Map<String, Object> result = repositoryResult as Map<String, Object>
             
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
@@ -1017,23 +1031,23 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
  *   "userId": 123 (optional, for audit logging)
  * }
  */
-steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request) as String
+    List<String> pathParts = extraPath?.split('/')?.findAll { String it -> it } as List<String> ?: [] as List<String>
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
+    Closure<StepRepository> getStepRepository = { ->
+        return new StepRepository() as StepRepository
     }
-    def getStatusRepository = { ->
-        return new StatusRepository()
+    Closure<StatusRepository> getStatusRepository = { ->
+        return new StatusRepository() as StatusRepository
     }
-    def getUserRepository = { ->
-        return new UserRepository()
+    Closure<UserRepository> getUserRepository = { ->
+        return new UserRepository() as UserRepository
     }
     
     // Enhanced error handling with SQL state mapping and context - inline
-    def handleError = { Exception e, String context ->
+    Closure<Response> handleError = { Exception e, String context ->
         if (e instanceof IllegalArgumentException) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([
@@ -1045,7 +1059,7 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
         }
         
         // SQL state mappings (ADR-031)
-        def errorMessage = e.message?.toLowerCase() ?: ""
+        String errorMessage = (e.message?.toLowerCase() ?: "") as String
         if (errorMessage.contains("23503") || errorMessage.contains("foreign key")) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([
@@ -1079,33 +1093,33 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     // POST /steps/{stepInstanceId}/open
     if (pathParts.size() == 2 && pathParts[1] == 'open') {
         try {
-            def stepInstanceId = pathParts[0]
-            def stepInstanceUuid = UUID.fromString(stepInstanceId)
+            String stepInstanceId = pathParts[0] as String
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId) as UUID
             
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:] as Map<String, Object>
             if (body) {
-                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+                requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
             }
             
             // Get user context using UserService
-            def userContext
+            Map<String, Object> userContext = null as Map<String, Object>
             try {
-                userContext = UserService.getCurrentUserContext()
+                userContext = UserService.getCurrentUserContext() as Map<String, Object>
                 if (userContext.isSystemUser || userContext.fallbackReason) {
                     println "StepsApi (open): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
                 }
             } catch (Exception e) {
                 println "StepsApi (open): UserService failed (${e.message}), using null userId"
-                userContext = [userId: null]
+                userContext = [userId: null] as Map<String, Object>
             }
             
             Integer userId = userContext?.userId as Integer
             
             // Mark step as opened and send notifications
-            StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.openStepInstanceWithNotification(stepInstanceUuid, userId)
-            def result = repositoryResult as Map
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> repositoryResult = stepRepository.openStepInstanceWithNotification(stepInstanceUuid, userId) as Map<String, Object>
+            Map<String, Object> result = repositoryResult as Map<String, Object>
             
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
@@ -1130,30 +1144,30 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     // POST /steps/{stepInstanceId}/instructions/{instructionId}/complete
     if (pathParts.size() == 4 && pathParts[1] == 'instructions' && pathParts[3] == 'complete') {
         try {
-            def stepInstanceId = pathParts[0]
-            def instructionId = pathParts[2]
-            def stepInstanceUuid = UUID.fromString(stepInstanceId)
-            def instructionUuid = UUID.fromString(instructionId)
+            String stepInstanceId = pathParts[0] as String
+            String instructionId = pathParts[2] as String
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId) as UUID
+            UUID instructionUuid = UUID.fromString(instructionId) as UUID
             
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:] as Map<String, Object>
             if (body) {
-                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+                requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
             }
             
             // Get user context using UserService
-            def userContext
-            Integer userId = null
+            Map<String, Object> userContext = null as Map<String, Object>
+            Integer userId = null as Integer
             
             try {
-                userContext = UserService.getCurrentUserContext()
+                userContext = UserService.getCurrentUserContext() as Map<String, Object>
                 userId = userContext.userId as Integer
                 if (userContext.isSystemUser || userContext.fallbackReason) {
                     println "StepsApi (complete): Using ${userContext.fallbackReason ?: 'system user'} for '${userContext.confluenceUsername}'"
                 }
             } catch (Exception e) {
                 println "StepsApi (complete): UserService failed (${e.message}), checking for frontend userId"
-                userContext = null
+                userContext = null as Map<String, Object>
             }
             
             // CRITICAL FIX: If no valid user context from ThreadLocal, use frontend-provided userId
@@ -1172,9 +1186,9 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             }
             
             // Complete instruction and send notifications
-            StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.completeInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
-            def result = repositoryResult as Map
+            StepRepository stepRepository = getStepRepository() as StepRepository
+            Map<String, Object> repositoryResult = stepRepository.completeInstructionWithNotification(instructionUuid, stepInstanceUuid, userId) as Map<String, Object>
+            Map<String, Object> result = repositoryResult as Map<String, Object>
             
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
@@ -1204,20 +1218,20 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
     // POST /steps/{stepInstanceId}/instructions/{instructionId}/incomplete
     if (pathParts.size() == 4 && pathParts[1] == 'instructions' && pathParts[3] == 'incomplete') {
         try {
-            def stepInstanceId = pathParts[0]
-            def instructionId = pathParts[2]
-            def stepInstanceUuid = UUID.fromString(stepInstanceId)
-            def instructionUuid = UUID.fromString(instructionId)
+            String stepInstanceId = pathParts[0] as String
+            String instructionId = pathParts[2] as String
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId) as UUID
+            UUID instructionUuid = UUID.fromString(instructionId) as UUID
             
             // Parse request body
-            def requestData = [:]
+            Map<String, Object> requestData = [:] as Map<String, Object>
             if (body) {
-                requestData = new groovy.json.JsonSlurper().parseText(body) as Map
+                requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
             }
             
             // Get user context using UserService
-            def userContext
-            Integer userId = null
+            Map<String, Object> userContext = null as Map<String, Object>
+            Integer userId = null as Integer
             
             try {
                 userContext = UserService.getCurrentUserContext()
@@ -1247,8 +1261,8 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
             
             // Mark instruction as incomplete and send notifications
             StepRepository stepRepository = getStepRepository()
-            def repositoryResult = stepRepository.uncompleteInstructionWithNotification(instructionUuid, stepInstanceUuid, userId)
-            def result = repositoryResult as Map
+            Map<String, Object> repositoryResult = stepRepository.uncompleteInstructionWithNotification(instructionUuid, stepInstanceUuid, userId) as Map<String, Object>
+            Map<String, Object> result = repositoryResult as Map<String, Object>
             
             if ((result.success as Boolean)) {
                 return Response.ok(new JsonBuilder([
@@ -1273,6 +1287,161 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
         }
     }
     
+        // POST /steps/{stepInstanceId}/send-email - manual email sending with enhanced mobile templates
+    if (pathParts.size() == 2 && pathParts[1] == 'send-email') {
+        try {
+            String stepInstanceId = pathParts[0] as String
+            UUID stepInstanceUuid = UUID.fromString(stepInstanceId) as UUID
+            
+            // Parse request body for optional userId
+            Map<String, Object> requestData = [:] as Map<String, Object>
+            if (body) {
+                try {
+                    // Fix Line 1294: Explicit casting for JsonSlurper result
+                    requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
+                } catch (Exception e) {
+                    // Ignore parsing errors, proceed with empty requestData
+                }
+            }
+            
+            // Get user context for audit logging
+            Integer userId = null
+            try {
+                umig.service.UserService userService = new umig.service.UserService()
+                Map<String, Object> userContext = userService.getCurrentUserContext() as Map<String, Object>
+                userId = userContext?.userId as Integer
+            } catch (Exception e) {
+                // If UserService fails, try to get userId from request body
+                Map<String, Object> requestMap = requestData as Map<String, Object>
+                if (requestMap.userId) {
+                    try {
+                        userId = requestMap.userId as Integer
+                    } catch (Exception parseError) {
+                        // Ignore parse error
+                    }
+                }
+            }
+            
+            // Get step instance and related data for email
+            Map<String, Object> stepInstance = getStepRepository().findStepInstanceDetailsById(stepInstanceUuid) as Map<String, Object>
+            if (!stepInstance) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Step instance not found"]).toString())
+                    .build()
+            }
+            
+            // Fix Line 1327: Explicit return type casting for recipients map
+            // Get team information for recipient configuration
+            Map<String, List<String>> recipients = DatabaseUtil.withSql { sql ->
+                // TO: Assigned team (owner team)
+                Map<String, Object> assignedTeam = sql.firstRow('''
+                    SELECT tms.tms_email, tms.tms_name 
+                    FROM teams_tms tms
+                    JOIN steps_master_stm stm ON tms.tms_id = stm.tms_id_owner
+                    JOIN steps_instance_sti sti ON stm.stm_id = sti.stm_id
+                    WHERE sti.sti_id = :stepInstanceId
+                ''', [stepInstanceId: stepInstanceUuid])
+                
+                // Fix Line 1338: Explicit casting for sql.rows() result
+                // CC: Impacted teams
+                List<GroovyRowResult> impactedTeamRows = sql.rows('''
+                    SELECT DISTINCT tms.tms_email, tms.tms_name
+                    FROM teams_tms tms
+                    JOIN steps_master_stm_x_teams_tms_impacted imp ON tms.tms_id = imp.tms_id_impacted
+                    JOIN steps_master_stm stm ON imp.stm_id = stm.stm_id
+                    JOIN steps_instance_sti sti ON stm.stm_id = sti.stm_id
+                    WHERE sti.sti_id = :stepInstanceId
+                ''', [stepInstanceId: stepInstanceUuid])
+                
+                // Convert GroovyRowResult to proper Map<String, Object> format
+                List<Map<String, Object>> impactedTeams = impactedTeamRows.collect { row ->
+                    [tms_email: row.tms_email, tms_name: row.tms_name] as Map<String, Object>
+                }
+                
+                // BCC: IT_CUTOVER team
+                Map<String, Object> itCutoverTeam = sql.firstRow('''
+                    SELECT tms_email, tms_name 
+                    FROM teams_tms 
+                    WHERE UPPER(tms_name) = 'IT_CUTOVER' 
+                    OR UPPER(tms_name) = 'IT CUTOVER'
+                    LIMIT 1
+                ''')
+                
+                // Return properly typed map with explicit casting for each value
+                return [
+                    to: assignedTeam ? [assignedTeam.tms_email as String] : ([] as List<String>),
+                    cc: impactedTeams.collect { (it.tms_email as String) } as List<String>,
+                    bcc: itCutoverTeam ? [itCutoverTeam.tms_email as String] : ([] as List<String>)
+                ] as Map<String, List<String>>
+            } as Map<String, List<String>>
+            
+            // Call enhanced email service with proper recipient configuration
+            umig.utils.EnhancedEmailService emailService = new umig.utils.EnhancedEmailService()
+            Map<String, Object> emailResult = emailService.sendStepEmailWithRecipients(
+                stepInstance,
+                recipients.to as List<String>,
+                recipients.cc as List<String>,
+                recipients.bcc as List<String>,
+                userId,
+                (stepInstance.migration_code ?: stepInstance.get('migration_code')) as String,
+                (stepInstance.iteration_code ?: stepInstance.get('iteration_code')) as String
+            ) as Map<String, Object>
+            
+            // Log audit event
+            DatabaseUtil.withSql { sql ->
+                sql.execute('''
+                    INSERT INTO audit_log_aud (
+                        usr_id, 
+                        aud_action, 
+                        aud_entity_type, 
+                        aud_entity_id, 
+                        aud_details
+                    ) VALUES (
+                        :userId, 
+                        'EMAIL_SENT', 
+                        'steps_instance_sti', 
+                        :entityId, 
+                        :details
+                    )
+                ''', [
+                    userId: userId,
+                    entityId: stepInstanceUuid,
+                    details: new groovy.json.JsonBuilder([
+                        to: recipients.to,
+                        cc: recipients.cc,
+                        bcc: recipients.bcc,
+                        template: 'enhanced_mobile',
+                        timestamp: new Date().format("yyyy-MM-dd HH:mm:ss")
+                    ]).toString()
+                ])
+            }
+            
+            Integer totalRecipients = recipients.to.size() + recipients.cc.size() + recipients.bcc.size() as Integer
+            
+            return Response.ok(new JsonBuilder([
+                success: true,
+                message: "Email sent successfully using enhanced mobile template",
+                stepInstanceId: stepInstanceId,
+                recipientCount: totalRecipients,
+                recipients: [
+                    to: recipients.to.size(),
+                    cc: recipients.cc.size(),
+                    bcc: recipients.bcc.size()
+                ],
+                emailsSent: 1
+            ]).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to send email: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
     // Invalid path
     return Response.status(Response.Status.NOT_FOUND)
         .entity(new JsonBuilder([error: "Endpoint not found"]).toString())
@@ -1286,12 +1455,12 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
  * Returns all statuses from status_sts table where sts_type = 'Step'
  * Used for populating the dynamic color-coded status dropdown
  */
-statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStatusRepository = { ->
+    Closure<StatusRepository> getStatusRepository = { ->
         return new StatusRepository()
     }
     
@@ -1299,7 +1468,7 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     if (pathParts.size() == 1 && pathParts[0] == 'step') {
         try {
             StatusRepository statusRepository = getStatusRepository()
-            def statuses = statusRepository.findStatusesByType('Step')
+            List<Map<String, Object>> statuses = statusRepository.findStatusesByType('Step') as List<Map<String, Object>>
             
             return Response.ok(new JsonBuilder(statuses).toString()).build()
         } catch (Exception e) {
@@ -1312,13 +1481,13 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     
     // GET /statuses/{type} - return statuses for any entity type
     if (pathParts.size() == 1) {
-        def entityType = pathParts[0]
+        String entityType = pathParts[0] as String
         // Capitalize first letter to match database values
         entityType = entityType.substring(0, 1).toUpperCase() + entityType.substring(1).toLowerCase()
         
         try {
             StatusRepository statusRepository = getStatusRepository()
-            def statuses = statusRepository.findStatusesByType(entityType)
+            List<Map<String, Object>> statuses = statusRepository.findStatusesByType(entityType) as List<Map<String, Object>>
             
             if (!statuses || (statuses as List).size() == 0) {
                 return Response.status(Response.Status.NOT_FOUND)
@@ -1339,7 +1508,7 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
     if (pathParts.isEmpty()) {
         try {
             StatusRepository statusRepository = getStatusRepository()
-            def statuses = statusRepository.findAllStatuses()
+            List<Map<String, Object>> statuses = statusRepository.findAllStatuses() as List<Map<String, Object>>
             
             return Response.ok(new JsonBuilder(statuses).toString()).build()
         } catch (Exception e) {
@@ -1359,21 +1528,21 @@ statuses(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
  * Handles GET requests for step comments.
  * - GET /steps/{stepInstanceId}/comments -> returns all comments for a step instance
  */
-comments(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+comments(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
+    Closure<StepRepository> getStepRepository = { ->
         return new StepRepository()
     }
     
     // GET /steps/{stepInstanceId}/comments
     if (pathParts.size() == 2 && pathParts[1] == 'comments') {
         try {
-            def stepInstanceId = UUID.fromString(pathParts[0])
+            UUID stepInstanceId = UUID.fromString(pathParts[0]) as UUID
             StepRepository stepRepository = getStepRepository()
-            def comments = stepRepository.findCommentsByStepInstanceId(stepInstanceId)
+            List<Map<String, Object>> comments = stepRepository.findCommentsByStepInstanceId(stepInstanceId) as List<Map<String, Object>>
             
             return Response.ok(new JsonBuilder(comments).toString()).build()
         } catch (IllegalArgumentException e) {
@@ -1406,27 +1575,27 @@ comments(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap query
  *   "userId": 123 (optional)
  * }
  */
-comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
+    Closure<StepRepository> getStepRepository = { ->
         return new StepRepository()
     }
     
     // POST /steps/{stepInstanceId}/comments
     if (pathParts.size() == 2 && pathParts[1] == 'comments') {
         try {
-            def stepInstanceId = UUID.fromString(pathParts[0])
+            UUID stepInstanceId = UUID.fromString(pathParts[0]) as UUID
             
             // Parse request body
-            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def commentBody = requestData.body as String
+            Map<String, Object> requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
+            String commentBody = requestData.body as String
             
             // Get user context using UserService for intelligent fallback handling
-            def userContext
-            Integer userId = null
+            Map<String, Object> userContext = null as Map<String, Object>
+            Integer userId = null as Integer
             
             try {
                 userContext = UserService.getCurrentUserContext()
@@ -1463,7 +1632,7 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
             }
             
             StepRepository stepRepository = getStepRepository()
-            def result = stepRepository.createComment(stepInstanceId, commentBody, userId)
+            Map<String, Object> result = stepRepository.createComment(stepInstanceId, commentBody, userId) as Map<String, Object>
             
             return Response.ok(new JsonBuilder([
                 success: true,
@@ -1503,26 +1672,26 @@ comments(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap quer
  *   "userId": 123 (optional)
  * }
  */
-comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
+    Closure<StepRepository> getStepRepository = { ->
         return new StepRepository()
     }
     
     // PUT /comments/{commentId}
     if (pathParts.size() == 1) {
         try {
-            def commentId = Integer.parseInt(pathParts[0])
+            Integer commentId = Integer.parseInt(pathParts[0]) as Integer
             
             // Parse request body
-            def requestData = new groovy.json.JsonSlurper().parseText(body) as Map
-            def commentBody = requestData.body as String
+            Map<String, Object> requestData = new groovy.json.JsonSlurper().parseText(body) as Map<String, Object>
+            String commentBody = requestData.body as String
             
             // Get user context using UserService for intelligent fallback handling
-            def userContext
+            Map<String, Object> userContext = null as Map<String, Object>
             try {
                 userContext = UserService.getCurrentUserContext()
                 
@@ -1545,7 +1714,7 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
             }
             
             StepRepository stepRepository = getStepRepository()
-            def success = stepRepository.updateComment(commentId, commentBody, userId)
+            Boolean success = stepRepository.updateComment(commentId, commentBody, userId) as Boolean
             
             if (success) {
                 return Response.ok(new JsonBuilder([
@@ -1582,23 +1751,23 @@ comments(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap query
  * Handles DELETE requests for deleting comments.
  * - DELETE /comments/{commentId} -> deletes a comment
  */
-comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
     
     // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
+    Closure<StepRepository> getStepRepository = { ->
         return new StepRepository()
     }
     
     // DELETE /comments/{commentId}
     if (pathParts.size() == 1) {
         try {
-            def commentId = Integer.parseInt(pathParts[0])
-            Integer userId = 1 // Default to user 1 for now
+            Integer commentId = Integer.parseInt(pathParts[0]) as Integer
+            Integer userId = 1 as Integer // Default to user 1 for now
             
             StepRepository stepRepository = getStepRepository()
-            def success = stepRepository.deleteComment(commentId, userId)
+            Boolean success = stepRepository.deleteComment(commentId, userId) as Boolean
             
             if (success) {
                 return Response.ok(new JsonBuilder([
@@ -1631,29 +1800,233 @@ comments(httpMethod: "DELETE", groups: ["confluence-users"]) { MultivaluedMap qu
         .build()
 }
 
+/**
+ * POST /steps/instance/{stepInstanceId}/send-email
+ * Send email notification for a step instance with enhanced features
+ */
+stepEmail(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    String extraPath = getAdditionalPath(request)
+    List<String> pathParts = extraPath?.split('/')?.findAll { it } as List<String> ?: []
+    
+    // POST /steps/instance/{stepInstanceId}/send-email
+    if (pathParts.size() >= 3 && pathParts[0] == 'instance' && pathParts[2] == 'send-email') {
+        try {
+            String stepInstanceIdStr = pathParts[1] as String
+            UUID stepInstanceId = UUID.fromString(stepInstanceIdStr) as UUID
+            
+            // Parse request body
+            def slurper = new JsonSlurper()
+            Map<String, Object> emailData = slurper.parseText(body) as Map<String, Object>
+            
+            List<String> recipients = emailData.recipients as List<String> ?: []
+            String subject = emailData.subject as String ?: ""
+            String message = emailData.message as String ?: ""
+            Boolean includeInstructions = emailData.includeInstructions as Boolean ?: false
+            Boolean includeComments = emailData.includeComments as Boolean ?: false
+            Integer userId = emailData.userId as Integer ?: 1
+            
+            if (recipients.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Recipients list cannot be empty"]).toString())
+                    .build()
+            }
+            
+            // Use StepNotificationIntegration for enhanced email features
+            StepNotificationIntegration integrator = new StepNotificationIntegration()
+            
+            // Send enhanced email notification
+            Map<String, Object> result = (DatabaseUtil.withSql { sql ->
+                // Get step details
+                def stepQuery = '''
+                    SELECT sti.sti_id, sti.sti_name, sti.sti_status, stm.stt_code, stm.stm_number,
+                           stm.stm_name, mig.mig_name as migration_name, itn.itn_code as iteration_code,
+                           mig.mig_code as migration_code
+                    FROM steps_instance_sti sti
+                    INNER JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    LEFT JOIN phase_instance_phi phi ON sti.phi_id = phi.phi_id
+                    LEFT JOIN sequence_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                    LEFT JOIN plan_instance_pli pli ON sqi.pli_id = pli.pli_id
+                    LEFT JOIN iteration_instance_ini ini ON pli.ini_id = ini.ini_id
+                    LEFT JOIN iteration_types_itn itn ON ini.itt_id = itn.itt_id
+                    LEFT JOIN migration_mig mig ON ini.mig_id = mig.mig_id
+                    WHERE sti.sti_id = :stepInstanceId
+                '''
+                
+                def stepInstance = sql.firstRow(stepQuery, [stepInstanceId: stepInstanceId])
+                
+                if (!stepInstance) {
+                    return [
+                        success: false,
+                        error: "Step instance not found"
+                    ]
+                }
+                
+                // Send email using EnhancedEmailService
+                EnhancedEmailService emailService = new EnhancedEmailService()
+                
+                // Build email content
+                StringBuilder emailBody = new StringBuilder()
+                emailBody.append("<h3>Step Details: ${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}</h3>")
+                emailBody.append("<p><strong>Step Name:</strong> ${stepInstance.sti_name}</p>")
+                emailBody.append("<p><strong>Migration:</strong> ${stepInstance.migration_name}</p>")
+                
+                if (message) {
+                    emailBody.append("<hr/>")
+                    emailBody.append("<p><strong>Message:</strong></p>")
+                    emailBody.append("<p>${message}</p>")
+                }
+                
+                if (includeInstructions) {
+                    // Get instructions
+                    def instructionsQuery = '''
+                        SELECT ini.ini_name, ini.ini_description, ini.ini_is_completed
+                        FROM instructions_instance_ini ini
+                        WHERE ini.sti_id = :stepInstanceId
+                        ORDER BY ini.ini_order
+                    '''
+                    def instructions = sql.rows(instructionsQuery, [stepInstanceId: stepInstanceId])
+                    
+                    if (!instructions.isEmpty()) {
+                        emailBody.append("<hr/>")
+                        emailBody.append("<h4>Instructions:</h4>")
+                        emailBody.append("<ul>")
+                        instructions.each { inst ->
+                            String status = inst.ini_is_completed ? "✅" : "⏳"
+                            emailBody.append("<li>${status} ${inst.ini_name}: ${inst.ini_description ?: 'No description'}</li>")
+                        }
+                        emailBody.append("</ul>")
+                    }
+                }
+                
+                if (includeComments) {
+                    // Get comments
+                    def commentsQuery = '''
+                        SELECT sic.sic_content, sic.created_by, sic.created_at
+                        FROM step_instance_comments_sic sic
+                        WHERE sic.sti_id = :stepInstanceId
+                        ORDER BY sic.created_at DESC
+                        LIMIT 10
+                    '''
+                    def comments = sql.rows(commentsQuery, [stepInstanceId: stepInstanceId])
+                    
+                    if (!comments.isEmpty()) {
+                        emailBody.append("<hr/>")
+                        emailBody.append("<h4>Recent Comments:</h4>")
+                        comments.each { comment ->
+                            emailBody.append("<div style='margin: 10px 0; padding: 10px; background: #f5f5f5;'>")
+                            emailBody.append("<p><strong>${comment.created_by}</strong> - ${comment.created_at}</p>")
+                            emailBody.append("<p>${comment.sic_content}</p>")
+                            emailBody.append("</div>")
+                        }
+                    }
+                }
+                
+                // Add URL link if available
+                String migrationCode = stepInstance.migration_code as String ?: "unknown"
+                String iterationCode = stepInstance.iteration_code as String ?: "default"
+                String stepCode = "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}"
+                
+                String stepUrl = UrlConstructionService.buildStepViewUrl(
+                    stepInstanceId,
+                    migrationCode,
+                    iterationCode,
+                    stepCode
+                )
+                
+                if (stepUrl) {
+                    emailBody.append("<hr/>")
+                    emailBody.append("<p><a href='${stepUrl}' style='padding: 10px 20px; background: #0066cc; color: white; text-decoration: none; border-radius: 4px;'>View Step in UMIG</a></p>")
+                }
+                
+                // Send the email
+                int emailsSent = 0
+                recipients.each { recipient ->
+                    try {
+                        // Use static method from EmailService class
+                        EmailService.sendEmail(
+                            [recipient as String],
+                            subject,
+                            emailBody.toString()
+                        )
+                        emailsSent++
+                    } catch (Exception e) {
+                        log.warn("Failed to send email to ${recipient}: ${e.message}")
+                    }
+                }
+                
+                // Log audit entry
+                def auditInsert = '''
+                    INSERT INTO audit_log_aud (
+                        aud_entity_type, aud_entity_id, aud_action,
+                        aud_user_id, aud_details, aud_timestamp
+                    ) VALUES (
+                        'STEP_EMAIL', :entityId, 'EMAIL_SENT',
+                        :userId, :details, CURRENT_TIMESTAMP
+                    )
+                '''
+                
+                sql.execute(auditInsert, [
+                    entityId: stepInstanceId,
+                    userId: userId,
+                    details: "Email sent to ${emailsSent} recipients"
+                ])
+                
+                return [
+                    success: true,
+                    emailsSent: emailsSent,
+                    recipientCount: recipients.size(),
+                    message: "Email sent successfully"
+                ]
+            }) as Map<String, Object>
+            
+            if (result.success as Boolean) {
+                return Response.ok(new JsonBuilder(result).toString()).build()
+            } else {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new JsonBuilder([error: result.error ?: "Failed to send email"]).toString())
+                    .build()
+            }
+            
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([error: "Invalid step instance ID format"]).toString())
+                .build()
+        } catch (Exception e) {
+            log.error("Error sending step email", e)
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder([error: "Failed to send email: ${e.message}"]).toString())
+                .build()
+        }
+    }
+    
+    return Response.status(Response.Status.NOT_FOUND)
+        .entity(new JsonBuilder([error: "Invalid email endpoint"]).toString())
+        .build()
+}
+
 // Helper method to get current user from Confluence context
-private def getCurrentUser() {
+private Object getCurrentUser() {
     try {
-        return com.atlassian.confluence.user.AuthenticatedUserThreadLocal.get()
+        return com.atlassian.confluence.user.AuthenticatedUserThreadLocal.get() as Object
     } catch (Exception e) {
         log.warn("StepsApi: Could not get current user", e)
-        return null
+        return null as Object
     }
 }
 
 // Helper method to get UserRepository instance
-private def getUserRepository() {
-    return new UserRepository()
+private UserRepository getUserRepository() {
+    return new UserRepository() as UserRepository
 }
 
 // Helper method to get StatusRepository instance
-private def getStatusRepository() {
-    return new StatusRepository()
+private StatusRepository getStatusRepository() {
+    return new StatusRepository() as StatusRepository
 }
 
 // Helper method to get StepRepository instance
-private def getStepRepository() {
-    return new StepRepository()
+private StepRepository getStepRepository() {
+    return new StepRepository() as StepRepository
 }
 
 /**

@@ -1,7 +1,7 @@
 # System Patterns
 
 **Last Updated**: 25 August 2025, updated for documentation consolidation achievement and troubleshooting pattern standardisation  
-**Sprint 5 Patterns**: Documentation Consolidation Excellence, Troubleshooting Framework Standardization, Enterprise Knowledge Management, Email Notification Infrastructure, System Configuration Management, Git Disaster Recovery, Audit Logging Enhancement, US-031 Admin GUI Integration Patterns, Authentication Blocker Investigation Patterns, PostgreSQL Type Casting Resolution, API Documentation Excellence, Static Type Checking Enhancement, Repository Pattern Evolution, Integration Testing Framework Standardization  
+**Sprint 5 Patterns**: Documentation Consolidation Excellence, Troubleshooting Framework Standardization, Enterprise Knowledge Management, Email Notification Infrastructure, System Configuration Management, Git Disaster Recovery, Audit Logging Enhancement, US-031 Admin GUI Integration Patterns, Authentication Blocker Investigation Patterns, PostgreSQL Type Casting Resolution, API Documentation Excellence, Static Type Checking Enhancement, Repository Pattern Evolution, Integration Testing Framework Standardization, Groovy 3.0.15 ScriptRunner Debugging Patterns  
 **Key Achievement**: DOCUMENTATION CONSOLIDATION COMPLETE - 7 technical documents consolidated into authoritative 2,598-line troubleshooting reference with 8 critical diagnostic patterns, production-ready email notification system with enterprise configuration management, successful git disaster recovery (53,826→51 files), audit logging entity type fixes, Admin GUI compatibility patterns for endpoint integration, comprehensive authentication investigation framework, API documentation completion achieving 100% UAT readiness, and static type checking compliance across all Groovy components
 
 ## 1. System Architecture
@@ -100,6 +100,38 @@ The system is designed as a **Confluence-Integrated Application**, leveraging th
   - **PostgreSQL Type Casting Excellence:** JDBC-compatible type handling preventing database integration issues
     - **java.sql.Timestamp Usage:** Mandatory for PostgreSQL datetime fields instead of java.util.Date
     - **Explicit Type Conversion:** UUID.fromString(), Integer.parseInt() patterns for all query parameters
+  - **Groovy 3.0.15 MultivaluedMap Syntax Pattern:** Critical ScriptRunner endpoint parameter declaration requiring explicit generic type parameters
+
+## API Development Critical Patterns (August 26, 2025)
+
+### Groovy 3.0.15 MultivaluedMap Generic Type Requirement
+
+**CRITICAL PATTERN**: All ScriptRunner REST endpoints must include explicit generic type parameters for MultivaluedMap declarations to prevent Groovy 3.0.15 compilation errors.
+
+**Problem Signature**: `"Unexpected input: '{' @ line X, column Y"` syntax error in endpoint parameter declarations
+
+**Required Pattern**:
+```groovy
+// ✅ CORRECT - Explicit generic types required
+endpointName(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    // Implementation
+}
+
+// ❌ INCORRECT - Missing generic types causes compilation error
+endpointName(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    // This will fail with Groovy 3.0.15 syntax error
+}
+```
+
+**Root Cause**: Groovy 3.0.15 static type checking requires explicit generic type parameters for MultivaluedMap in ScriptRunner REST endpoint closures
+
+**ADR Reference**: ADR-031 Type Safety Standards - All parameter types must be explicitly declared
+
+**Debugging Technique**: When encountering similar syntax errors, compare the problematic endpoint declaration with working reference APIs (StepsApi.groovy, TeamsApi.groovy) to identify missing type parameters
+
+**Impact Prevention**: This pattern prevents development blocking issues that require multiple debugging attempts to resolve
+
+**Verification Pattern**: All new API endpoints should be validated against existing working endpoints for consistent type parameter declarations
     - **Double Enrichment Prevention:** Single enrichment responsibility per layer (Repository enriches, API handles HTTP only)
   - **EntityConfig Extension Patterns:** Comprehensive entity configuration with 2,150+ lines covering 11 functional entities
     - **Custom Field Renderers:** Status color coding, date formatting, boolean display, UUID truncation
@@ -1572,6 +1604,98 @@ def updateEntity(Integer id, Map params) {  // Clear parameter types
 - StepRepository.groovy - Method signature standardisation
 - TeamRepository.groovy - Variable declaration improvements
 - AuthenticationService.groovy - Type safety in authentication logic
+
+## 10.1. Groovy 3.0.15 ScriptRunner Debugging Patterns (US-039 Resolution)
+
+### Critical Type Safety Debugging Framework
+
+**Context**: US-039 Enhanced Email Notifications critical blocker resolved through comprehensive debugging methodology discovering root causes behind persistent "Unexpected input: '{'" syntax errors.
+
+#### Misleading Error Pattern Recognition
+
+```groovy
+// ERROR SYMPTOM: "Unexpected input: '{' @ line 379, column 96"
+// ROOT CAUSES (not visible syntax error):
+// 1. Corrupted/orphaned file content
+// 2. Wrong package imports (umig.utils vs umig.service)
+// 3. Missing ADR-031 explicit type casting
+```
+
+#### Mandatory Type Casting Template (ADR-031 Compliant)
+
+```groovy
+// GOLD STANDARD: All ScriptRunner REST endpoints must follow this pattern
+entityName(httpMethod: "GET", groups: ["confluence-users"]) { 
+    MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+    
+    try {
+        // Parse with explicit casting
+        def filters = parseAndValidateFilters(queryParams)
+        def param1 = filters.param1 as String
+        def param2 = filters.param2 as Integer
+        
+        // Object property access requires Map casting
+        def statusRecord = repository.findStatus()
+        def statusId = (statusRecord as Map).id as Integer
+        
+        // Method parameters need explicit type casting
+        StepNotificationIntegration.updateStatus(stepId, statusId, userId as Integer)
+        
+        // Collections require item casting
+        def statusNames = availableStatuses.collect { (it as Map).name }.join(', ')
+        
+        return Response.ok(new JsonBuilder(result).toString()).build()
+    } catch (Exception e) {
+        return handleError(e, "GET /entityName")
+    }
+}
+```
+
+#### Package Structure Resolution Pattern
+
+```groovy
+// WRONG: Import resolution failures
+import umig.utils.UserService
+import umig.utils.EmailService
+
+// CORRECT: Exact package structure matching
+import umig.service.UserService
+import umig.service.EmailService
+
+// RULE: Services in umig.service, utilities in umig.utils - exact match required
+```
+
+#### Debugging Strategy Evolution (Proven Approach)
+
+1. **Pattern Comparison First**: Compare with StepsApi.groovy (gold standard reference)
+2. **Import Verification**: Check package structure matches project layout exactly
+3. **Type Safety Application**: Apply explicit type casting at every boundary
+4. **Complete Refactoring**: If incremental fixes fail, refactor completely
+5. **File Integrity Check**: Consider file corruption for persistent syntax errors
+
+#### Key Insight for Prevention
+
+**"The visible error message may not reflect the actual problem"**
+
+- Surface fixes (adding generic parameters) often fail with Groovy 3.0.15 + ScriptRunner
+- Pattern comparison and complete refactoring more effective than incremental debugging
+- ADR-031 compliance is mandatory, not optional for ScriptRunner compatibility
+
+#### Common Error Pattern Reference
+
+| Error Message | Root Cause | Solution |
+|---------------|------------|----------|
+| "Unexpected input: '{'" | File corruption, wrong imports, missing type casting | Complete refactoring with pattern comparison |
+| "unable to resolve class" | Incorrect package structure | Fix imports: umig.service not umig.utils |
+| "No such property for Object" | Missing explicit Map casting | Cast objects: (object as Map).property |
+| "Cannot find matching method" | Parameter types need casting | Cast parameters: methodCall(param as Integer) |
+
+#### Reference Implementation Requirements
+
+- **Gold Standard**: StepsApi.groovy for all ScriptRunner endpoint patterns
+- **Type Safety**: ADR-031 compliance mandatory for Groovy 3.0.15 compatibility
+- **Import Resolution**: Exact package structure matching required
+- **Repository Pattern**: All data access via repositories with explicit casting
 
 ## 11. Sprint 5 API Documentation Patterns (US-030)
 
