@@ -193,7 +193,9 @@ class StepsAPIv2Client {
     const url = `${this.baseUrl}${this.endpoint}/updates?${queryParams.toString()}`;
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: "same-origin", // Include cookies for authentication
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch updates: ${response.status}`);
       }
@@ -209,7 +211,9 @@ class StepsAPIv2Client {
    */
   async _retryRequest(url, attempt = 1) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: "same-origin", // Include cookies for authentication
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -625,7 +629,9 @@ const populateFilter = (selector, url, defaultOptionText) => {
   console.log(`populateFilter: Loading ${url} for ${selector}`);
   select.innerHTML = `<option value="">Loading...</option>`;
 
-  fetch(url)
+  fetch(url, {
+    credentials: "same-origin", // Include cookies for authentication
+  })
     .then((response) => {
       console.log(
         `populateFilter: Response for ${url}: ${response.status} ${response.statusText}`,
@@ -1021,6 +1027,9 @@ class IterationView {
     try {
       const response = await fetch(
         "/rest/scriptrunner/latest/custom/migrations",
+        {
+          credentials: "same-origin", // Include cookies for authentication
+        }
       );
       if (!response.ok) throw new Error("Failed to fetch");
       const responseData = await response.json();
@@ -1307,6 +1316,9 @@ class IterationView {
       // Use the new instance endpoint instead of the master data endpoint
       const response = await fetch(
         `/rest/scriptrunner/latest/custom/steps/instance/${encodeURIComponent(stepCode)}`,
+        {
+          credentials: "same-origin", // Include cookies for authentication
+        }
       );
 
       if (!response.ok) {
@@ -1346,6 +1358,9 @@ class IterationView {
     try {
       const response = await fetch(
         "/rest/scriptrunner/latest/custom/status?entityType=Step",
+        {
+          credentials: "same-origin", // Include cookies for authentication
+        }
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch statuses: ${response.status}`);
@@ -2389,7 +2404,10 @@ class IterationView {
       });
 
       // Use enhanced API client with caching
-      const sequences = await this.apiClient.fetchSteps(filters, options);
+      const flatSteps = await this.apiClient.fetchSteps(filters, options);
+
+      // Transform flat array to hierarchical structure
+      const sequences = this.transformStepsToHierarchy(flatSteps);
 
       // Track performance
       this.performanceMetrics.loadEndTime = performance.now();
@@ -2398,7 +2416,8 @@ class IterationView {
         this.performanceMetrics.loadStartTime;
       console.log(`IterationView: Steps loaded in ${loadTime.toFixed(2)}ms`);
 
-      if (!Array.isArray(sequences) || sequences.length === 0) {
+      // Enhanced data validation for API response
+      if (!Array.isArray(flatSteps) || flatSteps.length === 0) {
         runsheetContent.innerHTML = `
                     <div class="loading-message">
                         <p>📋 No steps found for current filters</p>
@@ -2408,7 +2427,37 @@ class IterationView {
         return;
       }
 
-      // Update team filter based on actual steps data
+      // Additional validation after transformation
+      if (!Array.isArray(sequences) || sequences.length === 0) {
+        runsheetContent.innerHTML = `
+                    <div class="loading-message">
+                        <p>📋 Steps were found but could not be organized into sequences</p>
+                        <p>Found ${flatSteps.length} steps that may need data structure updates</p>
+                    </div>
+                `;
+        this.updateStepCounts(0, 0, 0, 0, 0);
+        return;
+      }
+
+      // Validate the structure of the sequences data
+      const hasValidStructure = sequences.some(seq => 
+        seq && seq.phases && Array.isArray(seq.phases)
+      );
+      
+      if (!hasValidStructure) {
+        console.warn("IterationView: API returned invalid data structure", sequences);
+        runsheetContent.innerHTML = `
+                    <div class="error-message">
+                        <p>⚠️ API returned data in unexpected format</p>
+                        <p>Expected hierarchical structure with sequences/phases/steps</p>
+                        <button onclick="window.safeCallIterationView('retryLoadSteps')" class="btn btn-primary">Retry</button>
+                    </div>
+                `;
+        this.updateStepCounts(0, 0, 0, 0, 0);
+        return;
+      }
+
+      // Update team filter based on actual steps data (now with defensive checks)
       this.updateTeamFilterFromSteps(sequences);
 
       // Render with performance optimizations
@@ -2434,11 +2483,25 @@ class IterationView {
     } catch (error) {
       console.error("IterationView: Enhanced loadSteps error:", error);
 
+      // Provide specific error messaging based on error type
+      let errorDetails = "";
+      if (error.message.includes("404")) {
+        errorDetails = "<p>The steps endpoint could not be found. This might indicate a server configuration issue.</p>";
+      } else if (error.message.includes("HTTP")) {
+        errorDetails = `<p>Server returned error: ${error.message}</p>`;
+      } else if (error.message.includes("Failed to fetch")) {
+        errorDetails = "<p>Network error - unable to connect to the server.</p>";
+      } else {
+        errorDetails = `<p>Unexpected error: ${error.message}</p>`;
+      }
+
       runsheetContent.innerHTML = `
                 <div class="error-message">
-                    <p>❌ Error loading steps: ${error.message}</p>
-                    <p>Please try again or contact support.</p>
+                    <p>❌ Error loading steps</p>
+                    ${errorDetails}
+                    <p>Please check the console for more details and try again.</p>
                     <button onclick="window.safeCallIterationView('retryLoadSteps')" class="btn btn-primary">Retry</button>
+                    <button onclick="window.safeCallIterationView('clearCacheAndRetry')" class="btn btn-secondary">Clear Cache & Retry</button>
                 </div>
             `;
       this.updateStepCounts(0, 0, 0, 0, 0);
@@ -2454,6 +2517,13 @@ class IterationView {
   async retryLoadSteps() {
     this.apiClient.clearCache();
     await this.loadSteps();
+  }
+
+  /**
+   * Clear cache and retry - alias for retryLoadSteps for consistency
+   */
+  async clearCacheAndRetry() {
+    await this.retryLoadSteps();
   }
 
   /**
@@ -2490,12 +2560,19 @@ class IterationView {
     const sequenceDiv = document.createElement("div");
     sequenceDiv.className = "sequence-section";
 
+    // Defensive check for sequence structure
+    if (!sequence || !sequence.phases || !Array.isArray(sequence.phases)) {
+      console.warn("_createSequenceElement: Invalid sequence structure", sequence);
+      sequenceDiv.innerHTML = '<div class="error-message">Invalid sequence data</div>';
+      return sequenceDiv;
+    }
+
     // Create sequence header
     const headerDiv = document.createElement("div");
     headerDiv.className = "sequence-header";
     headerDiv.innerHTML = `
       <span class="expand-icon">▼</span>
-      <h3>SEQUENCE ${sequence.number}: ${sequence.name}</h3>
+      <h3>SEQUENCE ${sequence.number || 'Unknown'}: ${sequence.name || 'Unnamed Sequence'}</h3>
     `;
     sequenceDiv.appendChild(headerDiv);
 
@@ -2934,8 +3011,27 @@ class IterationView {
     let blocked = 0;
     let cancelled = 0;
 
+    // Defensive null checks - handle both undefined and non-array data
+    if (!sequences || !Array.isArray(sequences)) {
+      console.warn("calculateAndUpdateStepCounts: sequences is not a valid array", sequences);
+      this.updateStepCounts(0, 0, 0, 0, 0);
+      return;
+    }
+
     sequences.forEach((sequence) => {
+      // Additional null check for sequence structure
+      if (!sequence || !sequence.phases || !Array.isArray(sequence.phases)) {
+        console.warn("calculateAndUpdateStepCounts: Invalid sequence structure", sequence);
+        return;
+      }
+      
       sequence.phases.forEach((phase) => {
+        // Additional null check for phase structure
+        if (!phase || !phase.steps || !Array.isArray(phase.steps)) {
+          console.warn("calculateAndUpdateStepCounts: Invalid phase structure", phase);
+          return;
+        }
+        
         phase.steps.forEach((step) => {
           total++;
 
@@ -3058,11 +3154,29 @@ class IterationView {
     const teamFilter = document.getElementById("team-filter");
     if (!teamFilter) return;
 
+    // Defensive null checks - handle both undefined and non-array data
+    if (!sequences || !Array.isArray(sequences)) {
+      console.warn("updateTeamFilterFromSteps: sequences is not a valid array", sequences);
+      return;
+    }
+
     // Extract unique teams from steps
     const teamsMap = new Map();
 
     sequences.forEach((sequence) => {
+      // Additional null check for sequence structure
+      if (!sequence || !sequence.phases || !Array.isArray(sequence.phases)) {
+        console.warn("updateTeamFilterFromSteps: Invalid sequence structure", sequence);
+        return;
+      }
+      
       sequence.phases.forEach((phase) => {
+        // Additional null check for phase structure
+        if (!phase || !phase.steps || !Array.isArray(phase.steps)) {
+          console.warn("updateTeamFilterFromSteps: Invalid phase structure", phase);
+          return;
+        }
+        
         phase.steps.forEach((step) => {
           if (step.ownerTeamId && step.ownerTeamName) {
             teamsMap.set(step.ownerTeamId, step.ownerTeamName);
@@ -3771,6 +3885,77 @@ class IterationView {
     console.log(
       "IterationView: Cleanup completed - cleared all timeouts and references",
     );
+  }
+
+  /**
+   * Transform flat array of step objects into hierarchical structure
+   * @param {Array} flatSteps - Flat array of step objects from API
+   * @returns {Array} sequences - Hierarchical array with sequences containing phases containing steps
+   */
+  transformStepsToHierarchy(flatSteps) {
+    if (!Array.isArray(flatSteps) || flatSteps.length === 0) {
+      console.log("transformStepsToHierarchy: Empty or invalid step data");
+      return [];
+    }
+
+    console.log(`transformStepsToHierarchy: Transforming ${flatSteps.length} flat steps to hierarchical structure`);
+
+    // Group steps by sequence, then by phase
+    const sequenceMap = new Map();
+
+    flatSteps.forEach(step => {
+      // Get sequence info
+      const seqId = step.sequenceId;
+      const seqName = step.sequenceName;
+      const seqNumber = step.sequenceNumber;
+
+      // Get phase info
+      const phaseId = step.phaseId;
+      const phaseName = step.phaseName;
+      const phaseNumber = step.phaseNumber;
+
+      // Initialize sequence if it doesn't exist
+      if (!sequenceMap.has(seqId)) {
+        sequenceMap.set(seqId, {
+          id: seqId,
+          name: seqName,
+          number: seqNumber,
+          phases: new Map()
+        });
+      }
+
+      const sequence = sequenceMap.get(seqId);
+
+      // Initialize phase if it doesn't exist
+      if (!sequence.phases.has(phaseId)) {
+        sequence.phases.set(phaseId, {
+          id: phaseId,
+          name: phaseName,
+          number: phaseNumber,
+          steps: []
+        });
+      }
+
+      // Add step to phase
+      sequence.phases.get(phaseId).steps.push(step);
+    });
+
+    // Convert Maps to Arrays and sort by number
+    const hierarchicalSequences = Array.from(sequenceMap.values())
+      .map(seq => ({
+        ...seq,
+        phases: Array.from(seq.phases.values())
+          .sort((a, b) => a.number - b.number)
+          .map(phase => ({
+            ...phase,
+            steps: phase.steps.sort((a, b) => a.stmNumber - b.stmNumber)
+          }))
+      }))
+      .sort((a, b) => a.number - b.number);
+
+    console.log(`transformStepsToHierarchy: Created ${hierarchicalSequences.length} sequences with hierarchical structure`);
+    
+    return hierarchicalSequences;
   }
 }
 

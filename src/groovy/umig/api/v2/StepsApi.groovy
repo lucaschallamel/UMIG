@@ -112,6 +112,20 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
     def pathParts = extraPath?.split('/')?.findAll { it } ?: []
     
     try {
+        // GET /steps/instance/{sti_id} - get specific step instance with full details
+        if (pathParts.size() == 2 && pathParts[0] == 'instance') {
+            def stepInstanceId = UUID.fromString(pathParts[1])
+            def stepInstance = stepRepository.findStepInstanceById(stepInstanceId)
+            
+            if (!stepInstance) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder([error: "Step instance not found"]).toString())
+                    .build()
+            }
+            
+            return Response.ok(new JsonBuilder(stepInstance).toString()).build()
+        }
+        
         // GET /steps/master/{stm_id} - get specific master step
         if (pathParts.size() == 2 && pathParts[0] == 'master') {
             def stepId = UUID.fromString(pathParts[1])
@@ -139,16 +153,16 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
                 def value = queryParams.getFirst(param)
                 switch (param) {
                     case 'page':
-                        pageNumber = Integer.parseInt(value)
+                        pageNumber = Integer.parseInt(value as String)
                         break
                     case 'size':
-                        pageSize = Integer.parseInt(value)
+                        pageSize = Integer.parseInt(value as String)
                         break
                     case 'sort':
-                        sortField = value
+                        sortField = value as String
                         break
                     case 'direction':
-                        sortDirection = value
+                        sortDirection = value as String
                         break
                     default:
                         filters[param] = value
@@ -162,8 +176,95 @@ steps(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryPar
                     .build()
             }
 
-            def result = stepRepository.findMasterStepsWithFilters(filters, pageNumber as int, pageSize as int, sortField, sortDirection)
+            def result = stepRepository.findMasterStepsWithFilters(filters, pageNumber as int, pageSize as int, sortField as String, sortDirection as String)
             return Response.ok(new JsonBuilder(result).toString()).build()
+        }
+        
+        // GET /steps with hierarchical filtering - IterationView support
+        if (pathParts.empty) {
+            def filters = [:]
+            
+            // Handle hierarchical filtering query parameters for IterationView
+            if (queryParams.getFirst('migrationId')) {
+                try {
+                    filters.migrationId = UUID.fromString(queryParams.getFirst('migrationId') as String)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid migration ID format"]).toString())
+                        .build()
+                }
+            }
+            
+            if (queryParams.getFirst('iterationId')) {
+                try {
+                    filters.iterationId = UUID.fromString(queryParams.getFirst('iterationId') as String)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid iteration ID format"]).toString())
+                        .build()
+                }
+            }
+            
+            if (queryParams.getFirst('planId')) {
+                try {
+                    filters.planId = UUID.fromString(queryParams.getFirst('planId') as String)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid plan ID format"]).toString())
+                        .build()
+                }
+            }
+            
+            if (queryParams.getFirst('sequenceId')) {
+                try {
+                    filters.sequenceId = UUID.fromString(queryParams.getFirst('sequenceId') as String)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid sequence ID format"]).toString())
+                        .build()
+                }
+            }
+            
+            if (queryParams.getFirst('phaseId')) {
+                try {
+                    filters.phaseId = UUID.fromString(queryParams.getFirst('phaseId') as String)
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid phase ID format"]).toString())
+                        .build()
+                }
+            }
+            
+            // Handle other common filters
+            if (queryParams.getFirst('teamId')) {
+                try {
+                    filters.teamId = Integer.parseInt(queryParams.getFirst('teamId') as String)
+                } catch (NumberFormatException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid team ID format"]).toString())
+                        .build()
+                }
+            }
+            
+            if (queryParams.getFirst('labelId')) {
+                try {
+                    filters.labelId = Integer.parseInt(queryParams.getFirst('labelId') as String)
+                } catch (NumberFormatException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid label ID format"]).toString())
+                        .build()
+                }
+            }
+            
+            // Handle sorting (optional)
+            def sortField = queryParams.getFirst('sort') as String
+            if (sortField) {
+                filters.sort = sortField
+            }
+            
+            // Get filtered step instances for IterationView
+            def stepInstances = stepRepository.findFilteredStepInstances(filters)
+            return Response.ok(new JsonBuilder(stepInstances).toString()).build()
         }
         
         return Response.status(Response.Status.NOT_FOUND)

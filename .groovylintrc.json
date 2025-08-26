@@ -1,44 +1,90 @@
 {
-  "extends": "all",
+  "extends": "recommended",
   "rules": {
-    "basic.DeadCode": "error",
-    "convention.CompileStatic": {
-      "severity": "info"
+    "basic.DeadCode": {
+      "severity": "info",
+      "doNotFixInPlace": true
     },
+    "convention.CompileStatic": "off",
     "convention.FieldTypeRequired": "info",
-    "convention.IfStatementCouldBeTernary": "info",
+    "convention.IfStatementCouldBeTernary": "off",
     "convention.NoDef": "info",
     "convention.TrailingComma": "off",
     "convention.VariableTypeRequired": "info",
-    "dry.DuplicateListLiteral": "info",
-    "dry.DuplicateMapLiteral": "warning",
-    "dry.DuplicateNumberLiteral": {
-      "ignoreNumbers": [0, 1, 2, 3, -1],
-      "severity": "info"
-    },
-    "dry.DuplicateStringLiteral": "info",
-    "exceptions.ThrowException": "info",
-    "exceptions.ThrowNullPointerException": "info",
-    "exceptions.ThrowRuntimeException": "info",
-    "exceptions.ThrowThrowable": "info",
-    "formatting.BracesForClass": "info",
-    "formatting.BracesForForLoop": "info",
-    "formatting.BracesForIfElse": "info",
-    "formatting.BracesForMethod": "info",
-    "formatting.BracesForTryCatchFinally": "info",
+    "dry.DuplicateListLiteral": "off",
+    "dry.DuplicateMapLiteral": "info",
+    "dry.DuplicateNumberLiteral": "off",
+    "dry.DuplicateStringLiteral": "off",
+    "exceptions.CatchException": "info",
+    "exceptions.ThrowException": "off",
+    "exceptions.ThrowNullPointerException": "off",
+    "exceptions.ThrowRuntimeException": "off",
+    "exceptions.ThrowThrowable": "off",
+    "formatting.BracesForClass": "warning",
+    "formatting.BracesForForLoop": "warning",
+    "formatting.BracesForIfElse": "warning",
+    "formatting.BracesForMethod": "warning",
+    "formatting.BracesForTryCatchFinally": "warning",
     "formatting.Indentation": {
       "spacesPerIndentLevel": 4,
+      "severity": "warning"
+    },
+    "formatting.SpaceAfterComma": "warning",
+    "formatting.SpaceAroundMapEntryColon": "off",
+    "formatting.SpaceAroundOperator": "warning",
+    "formatting.TrailingWhitespace": "warning",
+    "groovyism.ExplicitCallToEqualsMethod": "off",
+    "groovyism.ExplicitHashMapInstantiation": "info",
+    "groovyism.GetterMethodCouldBeProperty": "off",
+    "imports.UnusedImport": "warning",
+    "imports.UnnecessaryGroovyImport": "warning",
+    "imports.ImportFromSamePackage": "warning",
+    "logging.Println": "off",
+    "logging.SystemOutPrint": "off",
+    "naming.MethodName": "warning",
+    "naming.VariableName": "warning",
+    "size.LineLength": {
+      "length": 150,
       "severity": "info"
     },
-    "formatting.SpaceAroundMapEntryColon": "off",
-    "groovyism.ExplicitCallToEqualsMethod": "info",
-    "logging.Println": "off",
-    "unused.UnusedArray": "error",
-    "unused.UnusedObject": "error",
-    "unused.UnusedPrivateField": "error",
-    "unused.UnusedPrivateMethod": "error",
-    "unused.UnusedPrivateMethodParameter": "error",
-    "unused.UnusedVariable": "error",
-    "unnecessary.UnnecessaryReturnKeyword": "off"
+    "size.MethodSize": {
+      "maxLines": 200,
+      "severity": "info"
+    },
+    "unnecessary.UnnecessaryGString": "warning",
+    "unnecessary.UnnecessaryGetter": "info",
+    "unnecessary.UnnecessaryObjectReferences": "off",
+    "unnecessary.UnnecessaryReturnKeyword": "off",
+    "unnecessary.UnnecessaryToString": "info",
+    "unnecessary.UnnecessarySemicolon": "warning",
+    "unused.UnusedArray": {
+      "severity": "info",
+      "doNotFixInPlace": true
+    },
+    "unused.UnusedImport": "warning",
+    "unused.UnusedMethodParameter": {
+      "severity": "info",
+      "doNotFixInPlace": true
+    },
+    "unused.UnusedObject": {
+      "severity": "info",
+      "doNotFixInPlace": true
+    },
+    "unused.UnusedPrivateField": {
+      "severity": "info",
+      "doNotFixInPlace": true
+    },
+    "unused.UnusedPrivateMethod": {
+      "severity": "info",
+      "doNotFixInPlace": true
+    },
+    "unused.UnusedPrivateMethodParameter": {
+      "severity": "info",
+      "doNotFixInPlace": true
+    },
+    "unused.UnusedVariable": {
+      "severity": "info",
+      "doNotFixInPlace": true
+    }
   }
 }

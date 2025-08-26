@@ -4,7 +4,7 @@ import umig.utils.DatabaseUtil
 import umig.utils.AuthenticationService
 // Note: Email notifications now handled by StepNotificationIntegration
 // Note: Audit logging is temporarily disabled
-// import umig.repository.InstructionRepository  // Not used
+import umig.repository.InstructionRepository
 // import umig.repository.AuditLogRepository      // Temporarily disabled
 import java.util.UUID
 import groovy.sql.Sql
@@ -25,6 +25,9 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 class StepRepository {
+    
+    private InstructionRepository instructionRepository = new InstructionRepository()
+    
     /**
      * Fetches master STEP data by code and number.
      */
@@ -419,6 +422,64 @@ class StepRepository {
                 enrichStepInstanceWithStatusMetadata(row as Map<String, Object>)
             } as List<Map<String, Object>>
         } as List<Map<String, Object>>
+    }
+
+    /**
+     * Find step instance by ID with full details including instructions and comments.
+     * @param stepInstanceId The UUID of the step instance
+     * @return Step instance with all details or null if not found
+     */
+    Map<String, Object> findStepInstanceById(UUID stepInstanceId) {
+        return DatabaseUtil.withSql { Sql sql ->
+            def stepData = sql.firstRow('''
+                SELECT 
+                    -- Step instance data
+                    sti.sti_id, stm.stt_code, stm.stm_number, sti.sti_name, sti.sti_status, 
+                    sti.sti_duration_minutes, stm.tms_id_owner,
+                    -- Master step data
+                    stm.stm_id, stm.stm_name as master_name,
+                    -- Sequence and phase hierarchy
+                    sqm.sqm_id, sqm.sqm_name, sqm.sqm_order,
+                    phm.phm_id, phm.phm_name, phm.phm_order,
+                    -- Plan hierarchy
+                    plm.plm_id, plm.plm_name,
+                    -- Instance hierarchy
+                    pli.pli_id, sqi.sqi_id, phi.phi_id,
+                    -- Team owner information
+                    tms.tms_name as owner_team_name,
+                    -- Iteration and migration context
+                    ite.ite_id, ite.ite_name,
+                    mig.mig_id, mig.mig_name
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
+                JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
+                JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
+                JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                WHERE sti.sti_id = :stepInstanceId
+            ''', [stepInstanceId: stepInstanceId])
+            
+            if (!stepData) {
+                return null
+            }
+            
+            // Enrich with status metadata and labels
+            def enrichedStep = enrichStepInstanceWithStatusMetadata(stepData as Map<String, Object>)
+            
+            // Add instructions and comments for detailed view
+            def instructions = instructionRepository.findInstanceInstructionsByStepInstanceId(stepInstanceId)
+            def comments = findCommentsByStepInstanceId(stepInstanceId)
+            
+            enrichedStep.instructions = instructions
+            enrichedStep.comments = comments
+            
+            return enrichedStep
+        } as Map<String, Object>
     }
 
     /**
@@ -1481,16 +1542,22 @@ class StepRepository {
             }
         }
         
+        // Load labels for this step
+        def labels = findLabelsByStepId(row['stm_id'] as UUID)
+        
         return [
             id: row['sti_id'],
             stmId: row['stm_id'],
             sttCode: row['stt_code'] as String,
+            code: row['stt_code'] as String, // UI compatibility - add 'code' property
             stmNumber: row['stm_number'] as Integer,
             name: (row['sti_name'] ?: row['master_name']) as String,
             status: statusName, // Backward compatibility - return status name as string
             durationMinutes: row['sti_duration_minutes'] as Integer,
             ownerTeamId: row['tms_id_owner'] as Integer,
             ownerTeamName: row['owner_team_name'] as String,
+            // Labels support for UI
+            labels: labels,
             // Hierarchy context
             sequenceId: row['sqm_id'],
             sequenceName: row['sqm_name'] as String,

@@ -4,8 +4,8 @@ import groovy.sql.Sql
 import groovy.sql.GroovyRowResult
 import java.util.UUID
 import umig.utils.DatabaseUtil
-import umig.utils.EmailService
-import umig.utils.EnhancedEmailNotificationService
+// Enhanced email service access via reflection to avoid circular dependencies and static type checking issues
+import java.lang.reflect.Method
 import umig.repository.StepRepository
 
 /**
@@ -331,20 +331,28 @@ class StepNotificationIntegration {
             String newStatus = getStatusNameById(sql, newStatusId)
             
             // Get teams for notification
-            List<Map> teams = getTeamsForStepNotification(sql, stepInstanceId)
+            List<Map<String, Object>> teams = getTeamsForStepNotification(sql, stepInstanceId)
             Map<String, Object> cutoverTeam = getCutoverTeam(sql)
             
-            // Send enhanced notification with mobile template (US-039 Phase 1)
-            EnhancedEmailNotificationService.sendAutomatedStatusChangeNotification(
-                stepInstance,
-                teams,
-                cutoverTeam,
-                oldStatus,
-                newStatus,
-                userId,
-                migrationCode,
-                iterationCode
-            )
+            // Send enhanced notification with mobile template using reflection (US-039 Phase 1)
+            try {
+                def enhancedEmailServiceClass = Class.forName('umig.utils.EnhancedEmailNotificationService')
+                def sendStatusChangeMethod = enhancedEmailServiceClass.getMethod('sendAutomatedStatusChangeNotification',
+                    Map.class, List.class, Map.class, String.class, String.class, Integer.class, String.class, String.class)
+                sendStatusChangeMethod.invoke(null,
+                    stepInstance as Map<String, Object>,
+                    teams as List<Map<String, Object>>,
+                    cutoverTeam as Map<String, Object>,
+                    oldStatus as String,
+                    newStatus as String,
+                    userId as Integer,
+                    migrationCode as String,
+                    iterationCode as String
+                )
+            } catch (Exception notificationError) {
+                println "StepNotificationIntegration: Error sending enhanced status change notification via reflection: ${notificationError.message}"
+                notificationError.printStackTrace()
+            }
             
         } catch (Exception e) {
             println "StepNotificationIntegration: Error sending enhanced status change notification: ${e.message}"
@@ -366,16 +374,24 @@ class StepNotificationIntegration {
             }
             
             // Get teams for notification
-            List<Map> teams = getTeamsForStepNotification(sql, stepInstanceId)
+            List<Map<String, Object>> teams = getTeamsForStepNotification(sql, stepInstanceId)
             
-            // Send enhanced notification with mobile template (US-039 Phase 1)
-            EnhancedEmailNotificationService.sendAutomatedStepOpenedNotification(
-                stepInstance,
-                teams,
-                userId,
-                migrationCode,
-                iterationCode
-            )
+            // Send enhanced notification with mobile template using reflection (US-039 Phase 1)
+            try {
+                def enhancedEmailServiceClass = Class.forName('umig.utils.EnhancedEmailNotificationService')
+                def sendStepOpenedMethod = enhancedEmailServiceClass.getMethod('sendAutomatedStepOpenedNotification',
+                    Map.class, List.class, Integer.class, String.class, String.class)
+                sendStepOpenedMethod.invoke(null,
+                    stepInstance as Map<String, Object>,
+                    teams as List<Map<String, Object>>,
+                    userId as Integer,
+                    migrationCode as String,
+                    iterationCode as String
+                )
+            } catch (Exception notificationError) {
+                println "StepNotificationIntegration: Error sending enhanced step opened notification via reflection: ${notificationError.message}"
+                notificationError.printStackTrace()
+            }
             
         } catch (Exception e) {
             println "StepNotificationIntegration: Error sending enhanced step opened notification: ${e.message}"
@@ -399,17 +415,25 @@ class StepNotificationIntegration {
             }
             
             // Get teams for notification
-            List<Map> teams = getTeamsForStepNotification(sql, stepInstanceId)
+            List<Map<String, Object>> teams = getTeamsForStepNotification(sql, stepInstanceId)
             
-            // Send enhanced notification with mobile template (US-039 Phase 1)
-            EnhancedEmailNotificationService.sendAutomatedInstructionCompletedNotification(
-                instruction,
-                stepInstance,
-                teams,
-                userId,
-                migrationCode,
-                iterationCode
-            )
+            // Send enhanced notification with mobile template using reflection (US-039 Phase 1)
+            try {
+                def enhancedEmailServiceClass = Class.forName('umig.utils.EnhancedEmailNotificationService')
+                def sendInstructionCompletedMethod = enhancedEmailServiceClass.getMethod('sendAutomatedInstructionCompletedNotification',
+                    Map.class, Map.class, List.class, Integer.class, String.class, String.class)
+                sendInstructionCompletedMethod.invoke(null,
+                    instruction as Map<String, Object>,
+                    stepInstance as Map<String, Object>,
+                    teams as List<Map<String, Object>>,
+                    userId as Integer,
+                    migrationCode as String,
+                    iterationCode as String
+                )
+            } catch (Exception notificationError) {
+                println "StepNotificationIntegration: Error sending enhanced instruction completed notification via reflection: ${notificationError.message}"
+                notificationError.printStackTrace()
+            }
             
         } catch (Exception e) {
             println "StepNotificationIntegration: Error sending enhanced instruction completed notification: ${e.message}"
@@ -478,7 +502,7 @@ class StepNotificationIntegration {
     /**
      * Get teams for step notifications
      */
-    private static List<Map> getTeamsForStepNotification(Sql sql, UUID stepInstanceId) {
+    private static List<Map<String, Object>> getTeamsForStepNotification(Sql sql, UUID stepInstanceId) {
         String query = '''
             SELECT DISTINCT tms.tms_id, tms.tms_name, tms.tms_email
             FROM teams_tms tms
@@ -503,8 +527,8 @@ class StepNotificationIntegration {
                 tms_id: row['tms_id'],
                 tms_name: row['tms_name'],
                 tms_email: row['tms_email']
-            ] as Map
-        } as List<Map>
+            ] as Map<String, Object>
+        } as List<Map<String, Object>>
     }
     
     /**
