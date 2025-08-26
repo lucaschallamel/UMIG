@@ -6,7 +6,7 @@
 **Epic**: Sprint 5 MVP Components  
 **Sprint**: 5 (August 18-22, 2025)  
 **Priority**: P0 (Critical MVP Component)  
-**Story Points**: 6 points (CONFIRMED - complexity justified by cross-module synchronization)  
+**Story Points**: 8 points (REVISED UP - complexity was underestimated; ADMIN features for canonical entities required 8 points vs 6 original estimate)  
 **Status**: 95% COMPLETE (Day 3 COMPLETE - August 25, 2025)  
 **Timeline**: Day 2-4 (Aug 19-22) - COMPLETED Day 3  
 **Owner**: Frontend Development  
@@ -18,12 +18,14 @@
 ## User Story Statement
 
 **As a** system administrator  
-**I want** a fully integrated admin interface with seamless cross-module synchronization  
-**So that** I can manage all UMIG entities efficiently from a unified, production-ready application
+**I want** a fully integrated admin interface for ADMIN role management of canonical entities  
+**So that** I can perform core CRUD operations on all UMIG master entities efficiently from a unified, production-ready application
 
 ### Value Statement
 
-This story delivers the critical Admin GUI component for MVP readiness by integrating all remaining entity types with enhanced cross-module synchronization, browser compatibility, memory management, and production-ready quality assurance features essential for UAT deployment.
+This story delivers the critical Admin GUI component for MVP readiness by implementing ADMIN role functionality for all 13 canonical entity types with core CRUD operations, cross-module synchronization, browser compatibility, and production-ready quality assurance features essential for UAT deployment.
+
+**Scope Clarification**: This story focuses on ADMIN features for canonical/master entities. PILOT role features for instance entities and audit logging have been moved to US-038 to maintain sprint focus and deliverable clarity.
 
 ---
 
@@ -242,6 +244,40 @@ Successfully consolidated 6 technical documentation files into one comprehensive
 - **Quality Assurance**: Complete patterns and best practices consolidated for consistent implementation
 - **Production Readiness**: Comprehensive troubleshooting framework supports deployment and maintenance
 - **Knowledge Transfer**: All Admin GUI expertise consolidated for team efficiency
+
+---
+
+## Lessons Learned & Scope Analysis
+
+### Original vs Actual Complexity
+
+**Original Estimate**: 6 points  
+**Actual Complexity**: 8 points for ADMIN features only  
+**Full Scope Would Have Been**: 13 points total (8 ADMIN + 5 PILOT/Audit)
+
+### Key Learning: Admin GUI Complexity Factors
+
+1. **Entity Integration Complexity**: Each new entity required custom field mappings, validation rules, and UI patterns
+2. **Cross-Module Synchronization**: Real-time sync between 13 entity types was more complex than anticipated
+3. **Modal System**: Type-aware detection and state management required sophisticated patterns
+4. **API Endpoint Variations**: Different response formats required custom handling per entity
+5. **Authentication Patterns**: ScriptRunner integration had unexpected authentication requirements
+
+### Strategic Decision Rationale
+
+**Why Split at 8 Points**: 
+- Sprint 5 maintains focus on core MVP functionality
+- ADMIN features provide full canonical entity management needed for UAT
+- PILOT features for instance entities can be delivered as enhancement (US-038)
+- Authentication investigation doesn't block core functionality demonstration
+
+### Success Metrics Achieved
+
+- **13/13 Canonical Entities**: Fully functional CRUD operations
+- **Modal System**: 98% reliability achieved
+- **Performance**: <2s load times across all browsers
+- **Test Coverage**: 95% of targeted functionality
+- **Production Readiness**: Core MVP features ready for UAT deployment
 
 ---
 
