@@ -1,18 +1,18 @@
-# US-039 Carve-out Tracking Document
+# US-040 Carve-out Tracking Document
 
 **Date**: August 21, 2025  
 **Author**: Development Team  
-**Purpose**: Track scope changes from US-036 to US-039
+**Purpose**: Track scope changes from US-036 to US-040
 
 ## Summary
 
-Email content features originally planned in US-036 (StepView UI Refactoring) have been carved out and moved to US-039 (Enhanced Email Notifications) to better manage scope and complexity.
+Email content features originally planned in US-036 (StepView UI Refactoring) have been carved out and moved to US-040 (Enhanced Email Notifications) to better manage scope and complexity.
 
-## Features Moved from US-036 to US-039
+## Features Moved from US-036 to US-040
 
 ### 1. Email Content Export Features
 
-- **PDF export for step details** - Now part of US-039 Phase 0 (email template enhancement)
+- **PDF export for step details** - Now part of US-040 Phase 0 (email template enhancement)
 - **Print-friendly view with optimized layout** - Transformed into mobile-responsive email templates
 - **Step data export for email distribution** - Incorporated into comprehensive email content
 
@@ -38,7 +38,7 @@ Email content features originally planned in US-036 (StepView UI Refactoring) ha
 - **Remaining Scope**: 3 points (unchanged, focused on UI within Confluence)
 - **Status**: Email export features removed, focus on in-app experience
 
-### US-039 (Enhanced Email Notifications)
+### US-040 (Enhanced Email Notifications)
 
 - **Original Points**: 3 points (clickable links only)
 - **Updated Points**: 5 points (full step content + clickable links)
@@ -47,7 +47,7 @@ Email content features originally planned in US-036 (StepView UI Refactoring) ha
 
 ## Technical Changes
 
-### New Phase 0 Added to US-039
+### New Phase 0 Added to US-040
 
 **Email Template Enhancement** (12 hours)
 
@@ -66,14 +66,14 @@ Email content features originally planned in US-036 (StepView UI Refactoring) ha
 ## Benefits of Carve-out
 
 1. **Better Scope Management**: Each story now has a clear, focused objective
-2. **Mobile-First Strategy**: US-039 can focus entirely on mobile email experience
+2. **Mobile-First Strategy**: US-040 can focus entirely on mobile email experience
 3. **Risk Mitigation**: Complex email rendering separated from UI refactoring
 4. **Parallel Development**: Teams can work on both stories independently
 5. **Clear Testing Boundaries**: Distinct acceptance criteria for each story
 
 ## Dependencies
 
-- US-039 does NOT depend on US-036 completion
+- US-040 does NOT depend on US-036 completion
 - Both stories can proceed in parallel
 - Shared components: StepsAPI v2 for data retrieval
 - No blocking dependencies between stories
@@ -81,7 +81,7 @@ Email content features originally planned in US-036 (StepView UI Refactoring) ha
 ## Timeline Impact
 
 - **US-036**: Remains in Sprint 5 (Days 3-4) with 3 points
-- **US-039**: Moved to backlog with 5 points, prioritized for next sprint
+- **US-040**: Moved to backlog with 5 points, prioritized for next sprint
 - **No impact** on Sprint 5 MVP delivery timeline
 
 ## Approval

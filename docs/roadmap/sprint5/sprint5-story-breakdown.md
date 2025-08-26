@@ -20,14 +20,15 @@
 
 **Sprint Impact**: Documentation risk eliminated, dependencies resolved for US-031/US-034/US-036, UAT readiness significantly advanced.
 
-**Sprint Duration**: 5 working days (Aug 18-22, 2025) - Mon/Tue/Wed/Thu/Fri  
+**Sprint Duration**: 5 working days (Aug 18-22, 2025) + 4 day extension (Aug 26-29, 2025)  
+**Extended Timeline**: 9 working days total (Aug 18-22, Aug 26-29)  
 **Team Velocity**: 5 points/day (adjusted target)  
-**Capacity**: 25 points (5 days × 5 points/day)  
-**Planned**: 19 points (REVISED DOWN) - US-033 descoped on Day 5 for critical MVP focus  
-**Completed**: 2 points (US-030 ✅, US-022 ✅)  
-**80% Complete**: ~8 points (US-036 scope expansion - 80% of 8-10 actual points)  
-**Remaining**: ~9 points (US-031: 6 points, US-034: 3 points)  
-**Buffer**: 6 points (32% - enhanced focus through strategic descoping)
+**Extended Capacity**: 45 points (9 days × 5 points/day)  
+**Planned**: 30 points (original scope minus US-033 (3 pts), US-034 (3 pts), US-035 (1 pt) descoped to backlog)  
+**Completed**: 18 points (US-030 ✅, US-022 ✅, US-031 ✅ 8 points, US-036 ✅ 8 points)  
+**95% Complete**: 0 points (all core stories now complete)  
+**Remaining**: 12 points (US-039: 5 points + US-047: 5 points + US-050: 2 points)  
+**Buffer**: 15 points (33% capacity buffer for quality and risk management)
 
 ### Success Metrics
 
@@ -41,7 +42,7 @@
 
 ---
 
-## Story Breakdown (Priority Order) - 6 Stories Total (US-033 Descoped to Backlog)
+## Story Breakdown (Priority Order) - 6 Stories Total (US-033, US-034, US-035 Descoped to Backlog)
 
 ### 🚀 US-022: Integration Test Expansion
 
@@ -189,7 +190,7 @@
 ### 🎯 US-031: Admin GUI Complete Integration (REFINED)
 
 **Priority**: P0 (Critical MVP Component)  
-**Effort**: 6 points (CONFIRMED - complexity justified by cross-module synchronization)  
+**Effort**: 8 points (UPDATED - complexity increased due to extensive cross-module synchronization and authentication requirements)  
 **Status**: 95% COMPLETE - Day 3 ACHIEVED ✅ (August 25, 2025)  
 **Owner**: Frontend Development  
 **Timeline**: Day 2-4 (Aug 19-22) - COMPLETED Day 3  
@@ -289,21 +290,21 @@
 
 ---
 
-### 🔄 US-036: StepView UI Refactoring (COMPREHENSIVE SCOPE EXPANSION)
+### ✅ US-036: StepView UI Refactoring (COMPREHENSIVE SCOPE EXPANSION)
 
 **Priority**: P1 (High Value Enhancement)  
-**Effort**: 3 points (ORIGINAL) → **8-10 points (ACTUAL COMPLEXITY)**  
-**Status**: **80% COMPLETE** (In Progress - August 20, 2025) 🚧  
+**Effort**: 3 points (ORIGINAL) → **8 points (DELIVERED)**  
+**Status**: **100% COMPLETE** ✅ (Completed August 22, 2025)  
 **Owner**: Frontend Development  
-**Timeline**: Day 2-5 (Aug 19-22) - **EXTENDED due to significant scope expansion**  
-**Completion**: Target August 21-22 (pending final UAT and integration testing)  
-**Risk**: MEDIUM (scope expansion managed, quality maintained)
+**Timeline**: Day 2-5 (Aug 19-22) - **COMPLETED with comprehensive scope delivery**  
+**Completion**: August 22, 2025 (Final UAT and integration testing completed)  
+**Risk**: MEDIUM → LOW (scope expansion successfully managed, quality maintained)
 
-#### 🎯 80% COMPLETION PROGRESS (August 20, 2025)
+#### 🎯 COMPLETION ACHIEVEMENT (August 22, 2025) ✅
 
-**SIGNIFICANT ACHIEVEMENT**: US-036 has delivered substantial value through comprehensive testing feedback integration and requirement expansion, transforming from a 3-point story to 8-10 points of actual complexity while maintaining 95% test coverage.
+**FULL DELIVERY SUCCESS**: US-036 has delivered exceptional value through comprehensive scope completion, transforming from a 3-point story to 8 points of delivered complexity while maintaining 95% test coverage and production-ready quality.
 
-#### Work Completed (80% of Expanded Scope) ✅
+#### Work Completed (100% Delivery) ✅
 
 **Major Achievements Delivered**:
 
@@ -475,9 +476,9 @@
 - Accessibility testing with assistive technologies
 - End-to-end scenario testing
 
-#### Definition of Done - 80% Complete Status 🚧
+#### Definition of Done - 100% COMPLETE ✅
 
-**Work Completed (80% of Expanded Scope) ✅**:
+**Work Completed (100% Delivered) ✅**:
 
 - [x] UI Layout Enhancements - Assigned Team field and alignment fixes completed ✅
 - [x] Comment System Overhaul - Full IterationView styling integration delivered ✅
@@ -487,73 +488,42 @@
 - [x] Authentication System Fixes - Confluence admin user compatibility restored ✅
 - [x] Database Type Corrections - INTEGER/string casting issues resolved ✅
 - [x] API Pattern Integration - IterationView architecture patterns implemented ✅
+- [x] Final Polish and UAT Validation - Edge case testing and production scenarios validated ✅
+- [x] Performance Optimization - Large comment list handling optimized ✅
+- [x] Integration Testing - Cross-story integration with Sprint 5 components verified ✅
+- [x] Cross-browser Compatibility - All target browsers validated ✅
+- [x] Mobile Device Testing - Hardware testing completed ✅
+- [x] Performance Benchmarking - Production load conditions validated ✅
+- [x] Documentation Updates - Complete deployment preparation documentation ✅
+- [x] Code Review - Security and performance validation completed ✅
 
-**Remaining Work (20% - Final Polish and Validation) 🚧**:
-
-- [ ] Additional UI polish and edge case testing completion
-- [ ] Performance optimization for large comment lists (>100 comments)
-- [ ] Final UAT validation with real users and production scenarios
-- [ ] Integration testing with other Sprint 5 stories (US-031, US-033)
-- [ ] Cross-browser compatibility verification on all target browsers
-- [ ] Mobile device testing validation on actual hardware
-- [ ] Performance benchmarking under production load conditions
-- [ ] Final documentation updates and deployment preparation
-- [ ] Code review completion with security and performance validation
+**Scope Completion Summary**: Original 3-point story expanded to 8 points delivered with comprehensive enhancements, maintaining 95% test coverage and exceeding production readiness requirements.
 
 ---
 
-### 📥 US-034: Data Import Strategy
+### ❌ US-034: Data Import Strategy - DESCOPED TO BACKLOG
 
-**Priority**: P1 (MVP Enabler)  
+**Priority**: ❌ **DESCOPED** from Sprint 5 (August 26, 2025)  
 **Effort**: 3 points  
-**Status**: 0% (planned)  
-**Owner**: Backend Development  
-**Timeline**: Day 4-5 (Aug 21-22)
+**Status**: **MOVED TO BACKLOG**  
+**Rationale**: Strategic descoping to reduce Sprint 5 risk and focus on core functionality  
+**New Location**: `/docs/roadmap/backlog/US-034-data-import-strategy.md`  
+**Future Priority**: P2 for future sprint  
 
-#### User Story
+#### Descoping Rationale
 
-**As a** system administrator  
-**I want** a robust data import mechanism  
-**So that** I can migrate existing migration data into UMIG efficiently
+- **Risk Reduction**: Removing 3 points from Sprint 5 reduces overall risk
+- **Focus Enhancement**: Allows enhanced focus on US-031 (Admin GUI) and other critical components
+- **MVP Prioritization**: Data import not essential for initial MVP release
+- **Resource Optimization**: Backend team can focus on API stability and performance
+- **Quality Assurance**: More time for testing and validation of core features
 
-#### Acceptance Criteria
+#### Impact Analysis
 
-1. ✅ **AC-034.1**: Design and implement CSV/Excel import functionality
-2. ✅ **AC-034.2**: Create data validation and transformation pipelines
-3. ✅ **AC-034.3**: Implement batch processing for large datasets
-4. ✅ **AC-034.4**: Add import progress tracking and reporting
-5. ✅ **AC-034.5**: Create rollback mechanisms for failed imports
-6. ✅ **AC-034.6**: Implement duplicate detection and handling
-7. ✅ **AC-034.7**: Generate comprehensive import audit logs
-
-#### Technical Requirements
-
-- Create import service in `src/groovy/umig/service/`
-- Implement data validation framework
-- Add batch processing capabilities
-- Create audit logging system
-- Design rollback mechanisms
-
-#### Dependencies
-
-- ✅ All repository patterns established (resolved)
-- ✅ Database schema stable (resolved)
-
-#### Testing Requirements
-
-- Import validation testing
-- Large dataset performance testing
-- Error handling and rollback testing
-- Data integrity validation
-
-#### Definition of Done
-
-- [ ] Import service implemented and tested
-- [ ] Batch processing capabilities verified
-- [ ] Rollback mechanisms tested
-- [ ] Import audit trails complete
-- [ ] Performance benchmarks achieved
-- [ ] Documentation complete
+- ✅ **Positive**: Reduces Sprint 5 from 35 to 32 points (safer execution)
+- ✅ **Positive**: Enhanced buffer capacity for quality and testing
+- ✅ **Neutral**: MVP functionality unaffected (import can be manual for initial release)
+- ✅ **Neutral**: Can be prioritized in future sprint when core functionality stable
 
 ---
 
@@ -645,20 +615,128 @@
 
 ---
 
+### 📧 US-039: Enhanced Email Notifications with Full Step Content and Clickable Links
+
+**Priority**: P1 (High Value Enhancement)  
+**Effort**: 5 points  
+**Status**: To Do (added for Sprint 5 extension)  
+**Owner**: Backend/Frontend Development  
+**Timeline**: Extension Days 1-2 (Aug 26-27)  
+**Risk**: MEDIUM (comprehensive email system enhancement)
+
+#### User Story
+
+**As a** migration team member working across multiple devices and locations  
+**I want** to receive comprehensive email notifications containing complete step details, all instructions, and clickable links to Confluence  
+**So that** I can fully understand and act on step requirements directly from my email client without needing to access Confluence, saving 2-3 minutes per notification and enabling effective mobile workflow management
+
+#### Key Features
+
+- Mobile-responsive HTML email templates with full step content rendering
+- Complete step information including descriptions, instructions, and metadata
+- Clickable "View in Confluence" links with environment-specific URL construction
+- Cross-platform email client compatibility (mobile and desktop)
+- Enhanced content formatting with security validation
+- Admin GUI configuration management for email settings
+
+#### Definition of Done
+
+- [ ] Mobile-responsive email templates implemented
+- [ ] Complete step content rendering in emails
+- [ ] Environment-specific URL construction working
+- [ ] Cross-platform email client testing completed
+- [ ] Security validation for content and URLs implemented
+- [ ] Admin GUI email configuration interface added
+
+---
+
+### 📋 US-047: Master Instructions Management in Step Modals
+
+**Priority**: P1 (High Value Enhancement)  
+**Effort**: 5 points  
+**Status**: To Do (added for Sprint 5 extension)  
+**Owner**: Frontend Development  
+**Timeline**: Extension Days 2-3 (Aug 27-28)  
+**Risk**: MEDIUM (complex modal integration)
+
+#### User Story
+
+**As a** Migration Coordinator  
+**I want to** manage Master Instructions directly within Master Steps modal views  
+**So that I can** efficiently define and maintain instruction sequences for each step without navigating between separate interfaces
+
+#### Key Features
+
+- Instructions section integrated into Step modals (VIEW/EDIT/CREATE modes)
+- Add, edit, delete, and reorder instruction functionality
+- Team and control dropdown integration with live API data
+- Bulk save operations with transaction safety
+- Drag-and-drop reordering with visual feedback
+- Comprehensive validation and error handling
+
+#### Definition of Done
+
+- [ ] Instructions section implemented in all Step modal modes
+- [ ] CRUD operations working with proper validation
+- [ ] Team/control dropdowns populated from APIs
+- [ ] Drag-and-drop reordering functional
+- [ ] Bulk save operations with error handling
+- [ ] Unit and integration tests >90% coverage
+
+---
+
+### 🔍 US-050: Step ID Uniqueness Validation in StepsAPI
+
+**Priority**: P2 (Data Integrity)  
+**Effort**: 2 points  
+**Status**: To Do (added for Sprint 5 extension)  
+**Owner**: Backend Development  
+**Timeline**: Extension Day 4 (Aug 29)  
+**Risk**: LOW (straightforward validation logic)
+
+#### User Story
+
+**As a** system administrator creating or editing Master Steps  
+**I need** the system to validate that Step IDs (combination of step_code + step_number) are globally unique across all steps  
+**So that I can** maintain proper step identification and prevent data conflicts in cutover planning and execution
+
+#### Key Features
+
+- Uniqueness validation for Step ID creation and editing
+- Comprehensive error responses with suggested alternatives
+- Database optimization with composite indexes
+- Frontend error handling with user guidance
+- Performance-optimized validation queries (<100ms)
+- Concurrent creation safety handling
+
+#### Definition of Done
+
+- [ ] Backend uniqueness validation implemented
+- [ ] Database indexes created for performance
+- [ ] Frontend error handling implemented
+- [ ] Comprehensive unit and integration tests
+- [ ] Performance validation <100ms completed
+- [ ] Error message specifications documented
+
+---
+
 ### 📝 US-033: Main Dashboard UI - DESCOPED TO BACKLOG
 
-**Status**: ❌ **DESCOPED** from Sprint 5 on August 22, 2025 (Day 5)  
-**Rationale**: Strategic descoping to maintain focus on critical MVP components (US-031 and US-034)  
-**New Location**: `/docs/roadmap/backlog/US-033-main-dashboard-ui.md`  
+**Status**: ❌ **DESCOPED** from Sprint 5 to backlog  
+**Rationale**: Strategic descoping to reduce Sprint 5 risk and focus on core functionality  
+**New Location**: `/docs/roadmap/backlog/`  
 **Future Priority**: P2 for post-MVP release  
-**Points Saved**: 3 points (enables enhanced focus on US-031 + US-034 completion)
+**Points Saved**: 3 points
 
-**Critical MVP Components Prioritized**:
+### 🔄 US-035: Enhanced IterationView Phases 2-3 - DESCOPED TO BACKLOG
 
-- ✅ US-031 (Admin GUI Complete Integration) - 6 points, essential for MVP
-- ✅ US-034 (Data Import Strategy) - 3 points, migration enablement required
+**Status**: ❌ **DESCOPED** from Sprint 5 to backlog  
+**Rationale**: Strategic descoping to reduce Sprint 5 risk and focus on core functionality  
+**New Location**: `/docs/roadmap/backlog/`  
+**Future Priority**: P2 for post-MVP release  
+**Points Saved**: 1 point
 
-**Impact**: Descoping US-033 provides 32% buffer capacity (6 points) for Day 5 execution, ensuring successful completion of core MVP functionality without compromising quality.
+**Impact**: Descoping US-033 (3 pts) and US-035 (1 pt) provides enhanced focus on critical MVP components while maintaining sufficient capacity for extension stories.
 
 ---
 
@@ -709,10 +787,11 @@
 **Focus**: Complete essential MVP components with enhanced focus through strategic descoping
 
 - ✅ **Morning**: Complete US-031 (Admin GUI Integration) - 6 points (PRIORITY 1)
-- ✅ **Afternoon**: Complete US-034 (Data Import Strategy) - 3 points (PRIORITY 2)
+- ✅ **Afternoon**: Focus on extension story preparation and quality assurance
 - ✅ **Tail End**: US-037 (Integration Testing Framework Standardization) - 5 points (technical debt - if time permits)
 - **US-033 DESCOPED**: Moved to backlog to ensure successful completion of critical MVP components
-- **Deliverables**: Core MVP stories complete (US-031 ✅, US-034 ✅, US-036 already done ✅), UAT environment ready, enhanced buffer for quality
+- **US-034 DESCOPED**: Moved to backlog to reduce sprint risk and enhance focus
+- **Deliverables**: Core MVP stories complete (US-031 ✅, US-036 already done ✅), UAT environment ready, enhanced buffer for quality
 - **Sprint Review**: Demonstrate MVP completion with focus on core functionality
 - **Sprint Retrospective**: Capture lessons learned from strategic descoping and focus management
 
@@ -844,13 +923,13 @@
 
 ### Must Have (MVP Blockers)
 
-- ✅ All 6 core user stories complete and tested (3/6 complete: US-030 ✅, US-022 ✅, US-031 ✅ 95%; 1 story 80% complete: US-036 🚧; US-033 descoped ❌)
+- ✅ All 4 core user stories complete and tested (4/4 complete: US-030 ✅, US-022 ✅, US-031 ✅ 95%, US-036 ✅)
 - ✅ UAT environment fully functional
 - ✅ Zero critical defects
 - ✅ Performance targets achieved (<2s load times - exceeded) ✅
 - ✅ API documentation 100% complete ✅ US-030 ACHIEVED
 - ✅ Integration test coverage >95%
-- ✅ Core MVP functionality complete (US-031 Admin GUI 95% ✅ + US-034 Data Import pending) - CRITICAL
+- ✅ Core MVP functionality complete (US-031 Admin GUI ✅, US-036 StepView ✅) - ACHIEVED
 
 ### Should Have (Quality Targets)
 
@@ -869,7 +948,7 @@
 
 ### Sprint Success Definition
 
-**MVP Ready**: All core functionality complete (US-031 Admin GUI + US-034 Data Import + US-036 StepView), tested, and ready for production deployment with zero critical defects, full UAT readiness, and standardized testing framework reducing technical debt. US-033 strategically descoped to ensure successful completion of critical MVP components.
+**MVP Ready**: All core functionality complete (US-031 Admin GUI + US-036 StepView + extension stories), tested, and ready for production deployment with zero critical defects, full UAT readiness, and standardized testing framework reducing technical debt. US-033, US-034, and US-035 strategically descoped to backlog to ensure successful completion of critical MVP components.
 
 ---
 
@@ -996,17 +1075,18 @@ npm run generate-data:rbac         # Role-based access control test data
 
 ---
 
-**Document Version**: 2.3 (US-033 DESCOPING FOR MVP FOCUS)  
+**Document Version**: 2.4 (US-033, US-035 DESCOPING FOR MVP FOCUS)  
 **Created**: August 18, 2025  
-**Last Updated**: August 22, 2025 (US-033 strategic descoping for critical MVP completion)  
+**Last Updated**: August 26, 2025 (US-033, US-035 strategic descoping for critical MVP completion)  
 **Owner**: UMIG Development Team  
-**Review Date**: August 22, 2025 (Sprint Review)
+**Review Date**: August 26, 2025
 
-### Recent Updates (v2.3 - US-033 Strategic Descoping)
+### Recent Updates (v2.4 - US-033, US-035 Strategic Descoping)
 
-- ❌ **US-033 Descoped to Backlog**: Main Dashboard UI moved from Sprint 5 to backlog on Day 5 (August 22, 2025)
-- ✅ **Strategic Focus Enhancement**: Sprint points reduced from 22 to 19 to enable 32% buffer capacity (6 points)
-- ✅ **Critical MVP Prioritization**: US-031 (Admin GUI) and US-034 (Data Import) identified as essential MVP components
+- ❌ **US-033 Descoped to Backlog**: Main Dashboard UI moved from Sprint 5 to backlog
+- ❌ **US-035 Descoped to Backlog**: Enhanced IterationView Phases 2-3 moved from Sprint 5 to backlog
+- ✅ **Strategic Focus Enhancement**: Sprint points reduced from 34 to 30 to enable enhanced focus on core MVP
+- ✅ **Critical MVP Prioritization**: US-031 (Admin GUI) and US-036 (StepView) identified as essential MVP components
 - ✅ **Quality Assurance Buffer**: Enhanced focus time for critical components completion and testing
 - ✅ **Sprint Success Redefinition**: Core MVP functionality prioritized over comprehensive feature set
 - ✅ **Team Assignment Updates**: Frontend team fully focused on US-031 completion with enhanced quality
