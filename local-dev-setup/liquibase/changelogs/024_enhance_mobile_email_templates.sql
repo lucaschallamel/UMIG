@@ -1,16 +1,17 @@
 --liquibase formatted sql
 
 --changeset lucas.challamel:024_enhance_mobile_email_templates
--- Enhance existing email templates with mobile-responsive design
--- US-039: Mobile Email Templates - Phase 0 Implementation
+-- Enhance existing email templates with mobile-responsive design up to 1000px desktop width
+-- US-039: Mobile Email Templates - Responsive Enhancement Implementation
 -- Building upon Enhanced Email Service foundation from US-036
+-- Responsive Strategy: Mobile (320px-600px) → Tablet (601px-768px) → Desktop (769px-1000px)
 
 -- Update constraint to allow new template type
 ALTER TABLE email_templates_emt DROP CONSTRAINT IF EXISTS email_templates_emt_emt_type_check;
 ALTER TABLE email_templates_emt ADD CONSTRAINT email_templates_emt_emt_type_check 
     CHECK (emt_type IN ('STEP_OPENED', 'INSTRUCTION_COMPLETED', 'INSTRUCTION_UNCOMPLETED', 'STEP_STATUS_CHANGED', 'STEP_NOTIFICATION_MOBILE', 'CUSTOM'));
 
--- Update STEP_STATUS_CHANGED template with mobile-responsive design
+-- Update STEP_STATUS_CHANGED template with mobile-responsive table format for instructions
 UPDATE email_templates_emt 
 SET 
     emt_body_html = '<!DOCTYPE html>
@@ -40,12 +41,14 @@ SET
         img { -ms-interpolation-mode: bicubic !important; border: 0 !important; outline: none !important; text-decoration: none !important; display: block !important; }
         
         .email-wrapper { width: 100% !important; background-color: #f8f9fa !important; padding: 20px 0 !important; }
-        .email-container { max-width: 600px !important; margin: 0 auto !important; background-color: #ffffff !important; border-radius: 8px !important; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; overflow: hidden !important; }
+        .email-container { width: 100% !important; max-width: 1000px !important; min-width: 320px !important; margin: 0 auto !important; background-color: #ffffff !important; border-radius: 8px !important; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; overflow: hidden !important; }
         
         .email-header { background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%) !important; color: #ffffff !important; padding: 32px 24px !important; text-align: center !important; }
         .header-title { font-size: 28px !important; font-weight: 700 !important; line-height: 1.2 !important; margin: 0 0 12px 0 !important; color: #ffffff !important; }
         .header-breadcrumb { font-size: 16px !important; opacity: 0.9 !important; line-height: 1.4 !important; color: #ffffff !important; margin: 12px 0 !important; }
-        .header-meta { font-size: 14px !important; opacity: 0.8 !important; margin-top: 16px !important; padding-top: 16px !important; border-top: 1px solid rgba(255,255,255,0.2) !important; color: #ffffff !important; }
+        .header-meta { font-size: 12px !important; opacity: 0.8 !important; margin-top: 16px !important; padding-top: 16px !important; border-top: 1px solid rgba(255,255,255,0.2) !important; color: #ffffff !important; line-height: 1.4 !important; }
+        .header-status-line { font-size: 14px !important; margin: 8px 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-wrap: wrap !important; gap: 8px !important; }
+        .header-info-line { font-size: 12px !important; margin: 4px 0 !important; opacity: 0.9 !important; }
         
         .email-content { padding: 32px 24px !important; }
         .content-section { margin-bottom: 32px !important; }
@@ -62,12 +65,26 @@ SET
         
         .status-badge { display: inline-block !important; padding: 8px 16px !important; border-radius: 20px !important; font-weight: 600 !important; font-size: 14px !important; color: #ffffff !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; background-color: ${statusColor ?: ''#6c757d''} !important; }
         
+        /* INSTRUCTIONS TABLE STYLES */
+        .instructions-table { width: 100% !important; border-collapse: collapse !important; border-spacing: 0 !important; }
+        .instructions-table thead th { background-color: #f8f9fa !important; padding: 12px 8px !important; font-weight: 700 !important; font-size: 13px !important; color: #495057 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; border-bottom: 2px solid #e9ecef !important; text-align: left !important; }
+        .instructions-table tbody tr { border-bottom: 1px solid #f1f3f4 !important; }
+        .instructions-table tbody tr:nth-child(even) { background-color: #f8f9fa !important; }
+        .instructions-table tbody td { padding: 12px 8px !important; vertical-align: middle !important; font-size: 14px !important; color: #212529 !important; }
+        .instruction-status { width: 20px !important; height: 20px !important; border-radius: 50% !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; font-size: 12px !important; font-weight: bold !important; }
+        .instruction-complete { background-color: #28a745 !important; color: #ffffff !important; }
+        .instruction-pending { background-color: #e9ecef !important; color: #6c757d !important; }
+        .instruction-text { font-size: 14px !important; line-height: 1.4 !important; color: #212529 !important; }
+        .instruction-completed-text { text-decoration: line-through !important; opacity: 0.6 !important; }
+        .instruction-duration, .instruction-team { font-size: 13px !important; color: #495057 !important; }
+        .instruction-control { font-size: 12px !important; color: #6c757d !important; font-family: monospace !important; }
+        
         .cta-container { text-align: center !important; margin: 32px 0 !important; padding: 24px !important; background-color: #f8f9fa !important; border-radius: 8px !important; }
         .cta-button { display: inline-block !important; padding: 16px 32px !important; background-color: #007bff !important; color: #ffffff !important; text-decoration: none !important; border-radius: 8px !important; font-weight: 600 !important; font-size: 16px !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; min-height: 44px !important; min-width: 200px !important; box-sizing: border-box !important; }
         .cta-button:hover { background-color: #0056b3 !important; color: #ffffff !important; text-decoration: none !important; }
         .cta-subtitle { font-size: 14px !important; color: #6c757d !important; margin-top: 12px !important; line-height: 1.4 !important; }
         
-        .description-box { background-color: #ffffff !important; border: 1px solid #e9ecef !important; border-radius: 6px !important; padding: 20px !important; margin: 16px 0 !important; line-height: 1.6 !important; color: #212529 !important; font-size: 15px !important; }
+        .description-box { background-color: #ffffff !important; border: 1px solid #e9ecef !important; border-radius: 6px !important; padding: 20px !important; margin: 16px 0 !important; line-height: 1.6 !important; color: #212529 !important; font-size: 15px !important; text-align: left !important; }
         
         .email-footer { background-color: #f8f9fa !important; border-top: 1px solid #e9ecef !important; padding: 32px 24px !important; text-align: center !important; color: #6c757d !important; font-size: 14px !important; line-height: 1.5 !important; }
         .footer-brand { font-weight: 600 !important; color: #212529 !important; margin-bottom: 16px !important; }
@@ -76,17 +93,21 @@ SET
         .footer-link:hover { color: #0056b3 !important; }
         .footer-disclaimer { font-size: 12px !important; color: #6c757d !important; margin-top: 20px !important; padding-top: 20px !important; border-top: 1px solid #e9ecef !important; line-height: 1.4 !important; }
         
-        /* MOBILE RESPONSIVE */
+        /* RESPONSIVE DESIGN STRATEGY - Mobile First: 320px - 600px */
         @media screen and (max-width: 600px) {
             .email-wrapper { padding: 10px 0 !important; }
             .email-container { margin: 0 10px !important; border-radius: 4px !important; }
             .email-header { padding: 24px 20px !important; }
             .header-title { font-size: 24px !important; }
             .header-breadcrumb { font-size: 14px !important; }
+            .header-status-line { flex-direction: column !important; gap: 4px !important; align-items: center !important; }
+            .header-info-line { font-size: 11px !important; }
             .email-content { padding: 24px 20px !important; }
             .step-details-card { padding: 20px !important; margin: 20px 0 !important; }
             .section-title { font-size: 18px !important; }
             .metadata-row { padding: 10px 0 !important; }
+            .instructions-table thead th { padding: 10px 6px !important; font-size: 12px !important; }
+            .instructions-table tbody td { padding: 10px 6px !important; font-size: 13px !important; }
             .cta-container { padding: 20px !important; margin: 24px 0 !important; }
             .cta-button { padding: 14px 28px !important; font-size: 15px !important; min-width: 160px !important; width: 80% !important; max-width: 280px !important; }
             .email-footer { padding: 24px 20px !important; }
@@ -98,7 +119,54 @@ SET
             .email-content { padding: 20px 16px !important; }
             .step-details-card { padding: 16px !important; }
             .metadata-value { font-size: 15px !important; }
+            .instructions-table thead th { padding: 8px 4px !important; font-size: 11px !important; }
+            .instructions-table tbody td { padding: 8px 4px !important; font-size: 12px !important; }
+            .instructions-table { display: block !important; overflow-x: auto !important; }
             .cta-button { width: 90% !important; padding: 12px 20px !important; }
+        }
+        /* Tablet: 601px - 768px (scale proportionally) */
+        @media screen and (min-width: 601px) and (max-width: 768px) {
+            .email-wrapper { padding: 15px 0 !important; }
+            .email-container { margin: 0 20px !important; max-width: 768px !important; border-radius: 6px !important; }
+            .email-header { padding: 28px 22px !important; }
+            .header-title { font-size: 26px !important; }
+            .header-breadcrumb { font-size: 15px !important; }
+            .email-content { padding: 28px 22px !important; }
+            .step-details-card { padding: 22px !important; margin: 22px 0 !important; }
+            .section-title { font-size: 19px !important; }
+            .instructions-table thead th { padding: 11px 7px !important; font-size: 12.5px !important; }
+            .instructions-table tbody td { padding: 11px 7px !important; font-size: 13.5px !important; }
+            .cta-button { padding: 15px 30px !important; font-size: 15.5px !important; min-width: 180px !important; }
+            .email-footer { padding: 28px 22px !important; }
+        }
+        /* Desktop: 769px+ (max 1000px) */
+        @media screen and (min-width: 769px) {
+            .email-wrapper { padding: 30px 0 !important; }
+            .email-container { margin: 0 auto !important; max-width: 1000px !important; border-radius: 12px !important; }
+            .email-header { padding: 40px 32px !important; }
+            .header-title { font-size: 32px !important; }
+            .header-breadcrumb { font-size: 18px !important; }
+            .header-status-line { font-size: 16px !important; }
+            .email-content { padding: 40px 32px !important; }
+            .step-details-card { padding: 32px !important; margin: 32px 0 !important; }
+            .section-title { font-size: 22px !important; }
+            .metadata-row { padding: 14px 0 !important; }
+            .metadata-value { font-size: 17px !important; }
+            .instructions-table thead th { padding: 14px 12px !important; font-size: 14px !important; }
+            .instructions-table tbody td { padding: 14px 12px !important; font-size: 15px !important; }
+            .instructions-table thead th:first-child { width: 25px !important; }
+            .instructions-table thead th:nth-child(3) { width: 100px !important; }
+            .instructions-table thead th:nth-child(4) { width: 140px !important; }
+            .instructions-table thead th:nth-child(5) { width: 100px !important; }
+            .cta-container { padding: 32px !important; margin: 40px 0 !important; }
+            .cta-button { padding: 18px 36px !important; font-size: 17px !important; min-width: 220px !important; }
+            .cta-subtitle { font-size: 15px !important; margin-top: 16px !important; }
+            .description-box { padding: 24px !important; font-size: 16px !important; line-height: 1.7 !important; }
+            .email-footer { padding: 40px 32px !important; font-size: 15px !important; }
+            .footer-brand { font-size: 18px !important; margin-bottom: 20px !important; }
+            .footer-links { margin: 24px 0 !important; }
+            .footer-link { margin: 0 20px !important; font-size: 15px !important; }
+            .footer-disclaimer { font-size: 13px !important; margin-top: 24px !important; padding-top: 24px !important; }
         }
         
         /* DARK MODE SUPPORT */
@@ -120,7 +188,11 @@ SET
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper">
         <tr>
             <td align="center" valign="top">
-                <div class="email-container">
+                <!--[if mso]>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                    <tr><td>
+                <![endif]-->
+                <div class="email-container" style="width: 100%; max-width: 1000px; min-width: 320px;">
                     <div class="email-header">
                         <h1 class="header-title">🔄 ${stepInstance.sti_code ?: ''STEP''} - Status Changed</h1>
                         <div class="header-breadcrumb">
@@ -130,22 +202,55 @@ SET
                             ${stepInstance.migration_name ?: ''Migration''} › ${stepInstance.iteration_name ?: ''Iteration''}
                             <% } %>
                         </div>
+                        <div class="header-status-line">
+                            <span>STATUS:</span>
+                            <span class="status-badge">${newStatus}</span>
+                        </div>
                         <div class="header-meta">
-                            Status changed on ${changedAt} by ${changedBy}
+                            <div class="header-info-line">
+                                LAST UPDATE: ${changedAt} | Changed from ${oldStatus}
+                            </div>
                         </div>
                     </div>
                     
                     <div class="email-content">
                         <div class="content-section">
                             <div class="step-details-card">
-                                <h2 class="section-title">📊 Status Update</h2>
+                                <h2 class="section-title">📊 Step Summary</h2>
                                 <table class="metadata-grid" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                    <!-- Duration & Environment (first row) -->
+                                    <% if (stepInstance.sti_duration_minutes || stepInstance.environment_name) { %>
                                     <tr>
                                         <td class="metadata-row">
-                                            <div class="metadata-label">Step Name</div>
-                                            <div class="metadata-value">${stepInstance.sti_name}</div>
+                                            <div class="metadata-label">Duration & Environment</div>
+                                            <div class="metadata-value">
+                                                <% if (stepInstance.sti_duration_minutes) { %>${stepInstance.sti_duration_minutes} min<% } %><% if (stepInstance.sti_duration_minutes && stepInstance.environment_name) { %> | <% } %><% if (stepInstance.environment_name) { %>${stepInstance.environment_name}<% } %>
+                                            </div>
                                         </td>
                                     </tr>
+                                    <% } %>
+                                    
+                                    <!-- Assigned Team -->
+                                    <% if (stepInstance.team_name) { %>
+                                    <tr>
+                                        <td class="metadata-row">
+                                            <div class="metadata-label">Assigned Team</div>
+                                            <div class="metadata-value">${stepInstance.team_name}</div>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                                    
+                                    <!-- Impacted Teams -->
+                                    <tr>
+                                        <td class="metadata-row">
+                                            <div class="metadata-label">Impacted Teams</div>
+                                            <div class="metadata-value">
+                                                <% if (stepInstance.impacted_teams && stepInstance.impacted_teams.trim()) { %>${stepInstance.impacted_teams}<% } else { %>-<% } %>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Status Change (for status change template) -->
                                     <tr>
                                         <td class="metadata-row">
                                             <div class="metadata-label">Status Change</div>
@@ -156,22 +261,6 @@ SET
                                             </div>
                                         </td>
                                     </tr>
-                                    <% if (stepInstance.sti_duration_minutes) { %>
-                                    <tr>
-                                        <td class="metadata-row">
-                                            <div class="metadata-label">Duration</div>
-                                            <div class="metadata-value">${stepInstance.sti_duration_minutes} minutes</div>
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                                    <% if (stepInstance.team_name) { %>
-                                    <tr>
-                                        <td class="metadata-row">
-                                            <div class="metadata-label">Assigned Team</div>
-                                            <div class="metadata-value">${stepInstance.team_name}</div>
-                                        </td>
-                                    </tr>
-                                    <% } %>
                                 </table>
                                 
                                 <% if (stepInstance.sti_description) { %>
@@ -195,37 +284,51 @@ SET
                             </div>
                         </div>
                         
-                        <% if (newStatus && newStatus.toUpperCase() in [''COMPLETED'', ''BLOCKED'', ''IN_PROGRESS'']) { %>
                         <div class="content-section">
                             <div class="step-details-card">
-                                <h3 class="section-title">💡 Next Steps</h3>
-                                <div class="description-box">
-                                    <% if (newStatus.toUpperCase() == ''COMPLETED'') { %>
-                                    <p><strong>✅ Step Complete:</strong> Verify deliverables and notify dependent teams.</p>
-                                    <% } else if (newStatus.toUpperCase() == ''BLOCKED'') { %>
-                                    <p><strong>⚠️ Attention Required:</strong> Review blocking issues and coordinate resolution.</p>
-                                    <% } else if (newStatus.toUpperCase() == ''IN_PROGRESS'') { %>
-                                    <p><strong>🔄 Work in Progress:</strong> Monitor progress and provide support as needed.</p>
+                                <h3 class="section-title">💬 Recent Comments</h3>
+                                <% if (recentComments && recentComments.size() > 0) { %>
+                                    <% recentComments.take(3).eachWithIndex { comment, index -> %>
+                                    <div class="comment-card" style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 16px; margin: ${index == 0 ? ''0'' : ''12px''} 0;">
+                                        <div class="comment-header" style="margin-bottom: 8px; border-bottom: 1px solid #e9ecef; padding-bottom: 8px; text-align: left;">
+                                            <span class="comment-author" style="font-weight: 600; color: #212529; font-size: 14px; text-align: left;">${comment.author_name ?: ''Anonymous''}</span>
+                                            <span class="comment-timestamp" style="font-size: 12px; color: #6c757d; margin-left: 8px; text-align: left;">${comment.created_at ?: ''Recent''}</span>
+                                        </div>
+                                        <div class="comment-text" style="color: #212529; font-size: 14px; line-height: 1.5; word-wrap: break-word; text-align: left;">
+                                            ${comment.comment_text ?: ''''}
+                                        </div>
+                                    </div>
                                     <% } %>
+                                <% } else { %>
+                                <div class="description-box">
+                                    <p style="text-align: center; color: #6c757d; font-style: italic; margin: 0;">
+                                        No comments yet. Be the first to add your insights!
+                                    </p>
                                 </div>
+                                <% } %>
                             </div>
                         </div>
-                        <% } %>
                     </div>
                     
                     <div class="email-footer">
                         <div class="footer-brand">UMIG - Unified Migration Implementation Guide</div>
                         <div class="footer-links">
                             <% if (hasStepViewUrl && stepViewUrl) { %>
-                            <a href="${stepViewUrl}" class="footer-link">View Step Details</a>
+                            <a href="${stepViewUrl}" class="footer-link">View in Confluence</a>
                             <% } %>
-                            <a href="#" class="footer-link">Help & Support</a>
+                            <a href="${documentationUrl ?: ''#''}" class="footer-link">${documentationLinkText ?: ''View Documentation''}</a>
+                            <a href="${supportUrl ?: ''#''}" class="footer-link">${supportLinkText ?: ''Support Portal''}</a>
                         </div>
                         <div class="footer-disclaimer">
-                            This is an automated notification. For questions, contact your project coordinator.
+                            This step is part of the migration "${migrationCode ?: ''CURRENT''}".<br>
+                            For questions or technical support, please contact your project coordinator.
                         </div>
                     </div>
                 </div>
+                <!--[if mso]>
+                    </td></tr>
+                </table>
+                <![endif]-->
             </td>
         </tr>
     </table>
@@ -259,7 +362,7 @@ SET
         body { margin: 0 !important; padding: 0 !important; width: 100% !important; min-width: 100% !important; -webkit-text-size-adjust: 100% !important; -ms-text-size-adjust: 100% !important; -webkit-font-smoothing: antialiased !important; background-color: #f8f9fa !important; color: #212529 !important; }
         
         .email-wrapper { width: 100% !important; background-color: #f8f9fa !important; padding: 20px 0 !important; }
-        .email-container { max-width: 600px !important; margin: 0 auto !important; background-color: #ffffff !important; border-radius: 8px !important; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; overflow: hidden !important; }
+        .email-container { width: 100% !important; max-width: 1000px !important; min-width: 320px !important; margin: 0 auto !important; background-color: #ffffff !important; border-radius: 8px !important; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important; overflow: hidden !important; }
         .email-header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important; color: #ffffff !important; padding: 32px 24px !important; text-align: center !important; }
         .header-title { font-size: 28px !important; font-weight: 700 !important; line-height: 1.2 !important; margin: 0 0 12px 0 !important; color: #ffffff !important; }
         .header-breadcrumb { font-size: 16px !important; opacity: 0.9 !important; line-height: 1.4 !important; color: #ffffff !important; margin: 12px 0 !important; }
@@ -286,7 +389,11 @@ SET
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper">
         <tr>
             <td align="center" valign="top">
-                <div class="email-container">
+                <!--[if mso]>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                    <tr><td>
+                <![endif]-->
+                <div class="email-container" style="width: 100%; max-width: 1000px; min-width: 320px;">
                     <div class="email-header">
                         <h1 class="header-title">🚀 ${stepInstance.sti_code ?: ''STEP''} - Ready for Execution</h1>
                         <div class="header-breadcrumb">
@@ -330,6 +437,10 @@ SET
                         This is an automated notification. For questions, contact your project coordinator.
                     </div>
                 </div>
+                <!--[if mso]>
+                    </td></tr>
+                </table>
+                <![endif]-->
             </td>
         </tr>
     </table>
@@ -382,7 +493,11 @@ SET
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="email-wrapper">
         <tr>
             <td align="center">
-                <div class="email-container">
+                <!--[if mso]>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600">
+                    <tr><td>
+                <![endif]-->
+                <div class="email-container" style="width: 100%; max-width: 1000px; min-width: 320px;">
                     <div class="email-header">
                         <h1 class="header-title">✅ Instruction Completed</h1>
                         <div style="font-size: 16px; opacity: 0.9;">
@@ -418,6 +533,10 @@ SET
                         This is an automated notification. For questions, contact your project coordinator.
                     </div>
                 </div>
+                <!--[if mso]>
+                    </td></tr>
+                </table>
+                <![endif]-->
             </td>
         </tr>
     </table>
@@ -454,7 +573,7 @@ WHERE NOT EXISTS (
     SELECT 1 FROM email_templates_emt WHERE emt_type = 'STEP_NOTIFICATION_MOBILE'
 );
 
--- Add audit log entry for template migration
+-- Add audit log entry for template migration (system operation - no specific user)
 INSERT INTO audit_log_aud (
     usr_id,
     aud_action,
@@ -462,11 +581,11 @@ INSERT INTO audit_log_aud (
     aud_entity_id,
     aud_details
 ) VALUES (
-    1,
+    NULL,
     'UPDATE',
     'email_templates_emt',
     'a0000000-0000-0000-0000-000000000024'::uuid,
-    '{"operation": "US-039: Updated email templates with mobile-responsive design", "old_values": {"templates": "basic HTML design"}, "new_values": {"templates": "mobile-responsive design with 8+ client compatibility, dark mode support, 600px container, touch-friendly buttons"}}'::jsonb
+    '{"operation": "US-039: Updated email templates with responsive design (320px-1000px) and enhanced compatibility", "old_values": {"container_width": "600px fixed", "responsive_strategy": "mobile-only", "breakpoints": "single 600px breakpoint"}, "new_values": {"container_width": "320px-1000px responsive", "responsive_strategy": "mobile-first with tablet and desktop scaling", "breakpoints": "mobile (≤600px), tablet (601px-768px), desktop (769px-1000px)", "compatibility": "Outlook MSO conditional comments, all major email clients", "features": "proportional scaling, optimized typography, enhanced touch targets"}}'::jsonb
 );
 
 --rollback UPDATE email_templates_emt SET emt_body_html = (SELECT emt_body_html FROM email_templates_emt WHERE emt_name LIKE 'Default%' AND emt_type = email_templates_emt.emt_type LIMIT 1), emt_name = REPLACE(emt_name, 'Mobile-Responsive', 'Default') WHERE emt_name LIKE 'Mobile-Responsive%';
