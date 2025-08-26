@@ -4,8 +4,13 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonOutput
 import groovy.text.SimpleTemplateEngine
 import groovy.sql.Sql
+import groovy.text.Template
 import java.util.Date
 import java.util.UUID
+import java.util.List
+import java.util.Map
+import java.util.HashMap
+import java.util.ArrayList
 
 // Confluence mail imports
 import com.atlassian.confluence.mail.ConfluenceMailServerManager
@@ -51,14 +56,14 @@ class EnhancedEmailService {
      * Send notification when a USER changes step-level status with dynamic URL construction
      * Recipients: Assigned TEAM + IMPACTED TEAMS + IT CUTOVER TEAM
      */
-    static void sendStepStatusChangedNotificationWithUrl(Map stepInstance, List<Map> teams, Map cutoverTeam, 
-                                                        String oldStatus, String newStatus, Integer userId = null,
-                                                        String migrationCode = null, String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+    static void sendStepStatusChangedNotificationWithUrl(Map<String, Object> stepInstance, List<Map<String, Object>> teams, 
+                                                        Map<String, Object> cutoverTeam, String oldStatus, String newStatus, 
+                                                        Integer userId = null, String migrationCode = null, String iterationCode = null) {
+        DatabaseUtil.withSql { Sql sql ->
             try {
                 // Debug logging
                 println "EnhancedEmailService.sendStepStatusChangedNotificationWithUrl called:"
-                println "  - Step: ${stepInstance?.sti_name}"
+                println "  - Step: ${stepInstance?.get('sti_name')}"
                 println "  - Old Status: ${oldStatus}"
                 println "  - New Status: ${newStatus}"
                 println "  - Teams count: ${teams?.size()}"
@@ -66,33 +71,34 @@ class EnhancedEmailService {
                 println "  - Iteration Code: ${iterationCode}"
                 
                 // Include cutover team in recipients
-                def allTeams = new ArrayList(teams)
+                List<Map<String, Object>> allTeams = new ArrayList<Map<String, Object>>(teams)
                 if (cutoverTeam) {
                     allTeams.add(cutoverTeam)
                 }
-                def recipients = extractTeamEmails(allTeams)
+                List<String> recipients = extractTeamEmails(allTeams)
                 
                 println "  - Recipients extracted: ${recipients}"
                 
-                if (!recipients) {
-                    println "EnhancedEmailService: No recipients found for step status change ${stepInstance.sti_name}"
+                if (!recipients || recipients.isEmpty()) {
+                    println "EnhancedEmailService: No recipients found for step status change ${stepInstance.get('sti_name')}"
                     return
                 }
                 
                 // Get email template
-                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
+                Map<String, Object> template = EmailTemplateRepository.findActiveByType(sql, 'STEP_STATUS_CHANGED')
                 if (!template) {
                     println "EnhancedEmailService: No active template found for STEP_STATUS_CHANGED"
                     return
                 }
                 
                 // Construct step view URL if migration and iteration codes are provided
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                String stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.get('sti_id')) {
                     try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
+                        Object stepIdValue = stepInstance.get('sti_id')
+                        UUID stepInstanceUuid = stepIdValue instanceof UUID ? 
+                            (UUID) stepIdValue : 
+                            UUID.fromString(stepIdValue.toString())
                         
                         stepViewUrl = UrlConstructionService.buildStepViewUrl(
                             stepInstanceUuid, 
@@ -112,95 +118,116 @@ class EnhancedEmailService {
                 }
                 
                 // Enhanced content formatting for mobile (US-039 Phase 1)
-                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
-                def stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
+                Map<String, Object> contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                Map<String, Object> stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
                 
                 // Prepare enhanced template variables with rich content and mobile support
-                def variables = [
-                    stepInstance: stepInstance,
-                    oldStatus: oldStatus,
-                    newStatus: newStatus,
-                    statusColor: getStatusColor(newStatus),
-                    changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
-                    changedBy: getUsernameById(sql, userId),
-                    stepViewUrl: stepViewUrl,
-                    hasStepViewUrl: stepViewUrl != null,
-                    migrationCode: migrationCode,
-                    iterationCode: iterationCode,
-                    // US-039 Phase 1: Rich content support
-                    stepDescription: contentDetails.stepDescription,
-                    instructionsHtml: contentDetails.instructionsHtml,
-                    instructionsCount: contentDetails.instructionsCount,
-                    instructionsDisplayed: contentDetails.instructionsDisplayed,
-                    contentTruncated: contentDetails.contentTruncated,
-                    estimatedDuration: contentDetails.estimatedDuration,
-                    stepMetadata: stepMetadata,
-                    // Mobile template indicators
-                    isMobileTemplate: true,
-                    notificationType: 'STEP_STATUS_CHANGED'
-                ]
+                Map<String, Object> variables = new HashMap<String, Object>()
+                variables.put('stepInstance', stepInstance)
+                variables.put('oldStatus', oldStatus)
+                variables.put('newStatus', newStatus)
+                variables.put('statusColor', getStatusColor(newStatus))
+                variables.put('changedAt', new Date().format('yyyy-MM-dd HH:mm:ss'))
+                variables.put('changedBy', getUsernameById(sql, userId))
+                variables.put('stepViewUrl', stepViewUrl)
+                variables.put('hasStepViewUrl', stepViewUrl != null)
+                variables.put('migrationCode', migrationCode)
+                variables.put('iterationCode', iterationCode)
+                // US-039 Phase 1: Rich content support
+                variables.put('stepDescription', contentDetails.get('stepDescription'))
+                variables.put('instructionsHtml', contentDetails.get('instructionsHtml'))
+                variables.put('instructionsCount', contentDetails.get('instructionsCount'))
+                variables.put('instructionsDisplayed', contentDetails.get('instructionsDisplayed'))
+                variables.put('contentTruncated', contentDetails.get('contentTruncated'))
+                variables.put('estimatedDuration', contentDetails.get('estimatedDuration'))
+                variables.put('stepMetadata', stepMetadata)
+                // Mobile template indicators
+                variables.put('isMobileTemplate', true)
+                variables.put('notificationType', 'STEP_STATUS_CHANGED')
                 
                 // Process template
-                def processedSubject = processTemplate(template.emt_subject as String, variables)
-                def processedBody = processTemplate(template.emt_body_html as String, variables)
+                Object subjectValue = template.get('emt_subject')
+                String subjectText = subjectValue != null ? subjectValue.toString() : ''
+                Object bodyValue = template.get('emt_body_html')
+                String bodyText = bodyValue != null ? bodyValue.toString() : ''
+                
+                String processedSubject = processTemplate(subjectText, variables)
+                String processedBody = processTemplate(bodyText, variables)
                 
                 // Send email
                 println "  - About to send email with subject: ${processedSubject}"
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                boolean emailSent = sendEmail(recipients, processedSubject, processedBody)
                 println "  - Email sent result: ${emailSent}"
                 
                 // Log the notification
                 if (emailSent) {
+                    Object stepIdForLogging = stepInstance.get('sti_id')
+                    UUID stepIdUuid = stepIdForLogging instanceof UUID ? 
+                        (UUID) stepIdForLogging : 
+                        UUID.fromString(stepIdForLogging.toString())
+                        
+                    Object templateIdValue = template.get('emt_id')
+                    UUID templateIdUuid = templateIdValue instanceof UUID ? 
+                        (UUID) templateIdValue : 
+                        UUID.fromString(templateIdValue.toString())
+                        
+                    Map<String, Object> auditData = new HashMap<String, Object>()
+                    auditData.put('notification_type', 'STEP_STATUS_CHANGED_WITH_URL')
+                    auditData.put('step_name', stepInstance.get('sti_name'))
+                    auditData.put('old_status', oldStatus)
+                    auditData.put('new_status', newStatus)
+                    auditData.put('step_view_url', stepViewUrl)
+                    auditData.put('migration_code', migrationCode)
+                    auditData.put('iteration_code', iterationCode)
+                    
                     AuditLogRepository.logEmailSent(
                         sql,
                         userId,
-                        UUID.fromString(stepInstance.sti_id as String),
+                        stepIdUuid,
                         recipients,
                         processedSubject,
-                        template.emt_id as UUID,
-                        [
-                            notification_type: 'STEP_STATUS_CHANGED_WITH_URL',
-                            step_name: stepInstance.sti_name,
-                            old_status: oldStatus,
-                            new_status: newStatus,
-                            step_view_url: stepViewUrl,
-                            migration_code: migrationCode,
-                            iteration_code: iterationCode
-                        ]
+                        templateIdUuid,
+                        auditData
                     )
                     
                     // Also log the status change itself
                     AuditLogRepository.logStepStatusChange(
                         sql,
                         userId,
-                        UUID.fromString(stepInstance.sti_id as String),
+                        stepIdUuid,
                         oldStatus,
                         newStatus
                     )
                 }
                 
             } catch (Exception e) {
-                logError('sendStepStatusChangedNotificationWithUrl', e, [
-                    stepId: stepInstance.sti_id,
-                    oldStatus: oldStatus,
-                    newStatus: newStatus,
-                    migrationCode: migrationCode,
-                    iterationCode: iterationCode
-                ])
+                Map<String, Object> errorContext = new HashMap<String, Object>()
+                errorContext.put('stepId', stepInstance.get('sti_id'))
+                errorContext.put('oldStatus', oldStatus)
+                errorContext.put('newStatus', newStatus)
+                errorContext.put('migrationCode', migrationCode)
+                errorContext.put('iterationCode', iterationCode)
+                logError('sendStepStatusChangedNotificationWithUrl', e, errorContext)
                 
                 // Log the failure
-                DatabaseUtil.withSql { errorSql ->
+                DatabaseUtil.withSql { Sql errorSql ->
                     // Rebuild allTeams list for error logging
-                    def errorTeams = new ArrayList(teams)
+                    List<Map<String, Object>> errorTeams = new ArrayList<Map<String, Object>>(teams)
                     if (cutoverTeam) {
                         errorTeams.add(cutoverTeam)
                     }
+                    
+                    Object stepIdForError = stepInstance.get('sti_id')
+                    UUID stepIdErrorUuid = stepIdForError instanceof UUID ? 
+                        (UUID) stepIdForError : 
+                        UUID.fromString(stepIdForError.toString())
+                        
                     AuditLogRepository.logEmailFailed(
                         errorSql,
                         userId,
-                        UUID.fromString(stepInstance.sti_id as String),
+                        stepIdErrorUuid,
                         extractTeamEmails(errorTeams),
-                        "[UMIG] Step Status Changed: ${stepInstance.sti_name}",
+                        "[UMIG] Step Status Changed: ${stepInstance.get('sti_name')}",
                         e.message
                     )
                 }
@@ -212,31 +239,32 @@ class EnhancedEmailService {
      * Send notification when a PILOT opens a step with dynamic URL construction
      * Recipients: Assigned TEAM + IMPACTED TEAMS
      */
-    static void sendStepOpenedNotificationWithUrl(Map stepInstance, List<Map> teams, Integer userId = null, 
-                                                 String migrationCode = null, String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+    static void sendStepOpenedNotificationWithUrl(Map<String, Object> stepInstance, List<Map<String, Object>> teams, 
+                                                 Integer userId = null, String migrationCode = null, String iterationCode = null) {
+        DatabaseUtil.withSql { Sql sql ->
             try {
-                def recipients = extractTeamEmails(teams)
+                List<String> recipients = extractTeamEmails(teams)
                 
-                if (!recipients) {
-                    println "EnhancedEmailService: No recipients found for step ${stepInstance.sti_name}"
+                if (!recipients || recipients.isEmpty()) {
+                    println "EnhancedEmailService: No recipients found for step ${stepInstance.get('sti_name')}"
                     return
                 }
                 
                 // Get email template
-                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_OPENED')
+                Map<String, Object> template = EmailTemplateRepository.findActiveByType(sql, 'STEP_OPENED')
                 if (!template) {
                     println "EnhancedEmailService: No active template found for STEP_OPENED"
                     return
                 }
                 
                 // Construct step view URL if migration and iteration codes are provided
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                String stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.get('sti_id')) {
                     try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
+                        Object stepIdValue = stepInstance.get('sti_id')
+                        UUID stepInstanceUuid = stepIdValue instanceof UUID ? 
+                            (UUID) stepIdValue : 
+                            UUID.fromString(stepIdValue.toString())
                         
                         stepViewUrl = UrlConstructionService.buildStepViewUrl(
                             stepInstanceUuid, 
@@ -254,69 +282,91 @@ class EnhancedEmailService {
                 }
                 
                 // Enhanced content formatting for mobile (US-039 Phase 1)
-                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
-                def stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
+                Map<String, Object> contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                Map<String, Object> stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
                 
                 // Prepare enhanced template variables with rich content
-                def variables = [
-                    stepInstance: stepInstance,
-                    stepViewUrl: stepViewUrl,
-                    hasStepViewUrl: stepViewUrl != null,
-                    openedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
-                    openedBy: getUsernameById(sql, userId),
-                    migrationCode: migrationCode,
-                    iterationCode: iterationCode,
-                    // US-039 Phase 1: Rich content support
-                    stepDescription: contentDetails.stepDescription,
-                    instructionsHtml: contentDetails.instructionsHtml,
-                    instructionsCount: contentDetails.instructionsCount,
-                    instructionsDisplayed: contentDetails.instructionsDisplayed,
-                    contentTruncated: contentDetails.contentTruncated,
-                    estimatedDuration: contentDetails.estimatedDuration,
-                    stepMetadata: stepMetadata,
-                    // Mobile template indicators
-                    isMobileTemplate: true,
-                    notificationType: 'STEP_OPENED'
-                ]
+                Map<String, Object> variables = new HashMap<String, Object>()
+                variables.put('stepInstance', stepInstance)
+                variables.put('stepViewUrl', stepViewUrl)
+                variables.put('hasStepViewUrl', stepViewUrl != null)
+                variables.put('openedAt', new Date().format('yyyy-MM-dd HH:mm:ss'))
+                variables.put('openedBy', getUsernameById(sql, userId))
+                variables.put('migrationCode', migrationCode)
+                variables.put('iterationCode', iterationCode)
+                // US-039 Phase 1: Rich content support
+                variables.put('stepDescription', contentDetails.get('stepDescription'))
+                variables.put('instructionsHtml', contentDetails.get('instructionsHtml'))
+                variables.put('instructionsCount', contentDetails.get('instructionsCount'))
+                variables.put('instructionsDisplayed', contentDetails.get('instructionsDisplayed'))
+                variables.put('contentTruncated', contentDetails.get('contentTruncated'))
+                variables.put('estimatedDuration', contentDetails.get('estimatedDuration'))
+                variables.put('stepMetadata', stepMetadata)
+                // Mobile template indicators
+                variables.put('isMobileTemplate', true)
+                variables.put('notificationType', 'STEP_OPENED')
                 
                 // Process template
-                def processedSubject = processTemplate(template.emt_subject as String, variables)
-                def processedBody = processTemplate(template.emt_body_html as String, variables)
+                Object subjectValue = template.get('emt_subject')
+                String subjectText = subjectValue != null ? subjectValue.toString() : ''
+                Object bodyValue = template.get('emt_body_html')
+                String bodyText = bodyValue != null ? bodyValue.toString() : ''
+                
+                String processedSubject = processTemplate(subjectText, variables)
+                String processedBody = processTemplate(bodyText, variables)
                 
                 // Send email
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                boolean emailSent = sendEmail(recipients, processedSubject, processedBody)
                 
                 // Log the notification
                 if (emailSent) {
+                    Object stepIdForLogging = stepInstance.get('sti_id')
+                    UUID stepIdUuid = stepIdForLogging instanceof UUID ? 
+                        (UUID) stepIdForLogging : 
+                        UUID.fromString(stepIdForLogging.toString())
+                        
+                    Object templateIdValue2 = template.get('emt_id')
+                    UUID templateIdUuid2 = templateIdValue2 instanceof UUID ? 
+                        (UUID) templateIdValue2 : 
+                        UUID.fromString(templateIdValue2.toString())
+                        
+                    Map<String, Object> auditData2 = new HashMap<String, Object>()
+                    auditData2.put('notification_type', 'STEP_OPENED_WITH_URL')
+                    auditData2.put('step_name', stepInstance.get('sti_name'))
+                    auditData2.put('migration_name', stepInstance.get('migration_name'))
+                    auditData2.put('step_view_url', stepViewUrl)
+                    auditData2.put('migration_code', migrationCode)
+                    auditData2.put('iteration_code', iterationCode)
+                        
                     AuditLogRepository.logEmailSent(
                         sql, 
                         userId, 
-                        UUID.fromString(stepInstance.sti_id as String),
+                        stepIdUuid,
                         recipients,
                         processedSubject,
-                        template.emt_id as UUID,
-                        [
-                            notification_type: 'STEP_OPENED_WITH_URL',
-                            step_name: stepInstance.sti_name,
-                            migration_name: stepInstance.migration_name,
-                            step_view_url: stepViewUrl,
-                            migration_code: migrationCode,
-                            iteration_code: iterationCode
-                        ]
+                        templateIdUuid2,
+                        auditData2
                     )
                 }
                 
             } catch (Exception e) {
-                logError('sendStepOpenedNotificationWithUrl', e, [stepId: stepInstance.sti_id])
+                Map<String, Object> errorContext2 = new HashMap<String, Object>()
+                errorContext2.put('stepId', stepInstance.get('sti_id'))
+                logError('sendStepOpenedNotificationWithUrl', e, errorContext2)
                 
                 // Log the failure
-                DatabaseUtil.withSql { errorSql ->
+                DatabaseUtil.withSql { Sql errorSql ->
+                    Object stepIdForError = stepInstance.get('sti_id')
+                    UUID stepIdErrorUuid = stepIdForError instanceof UUID ? 
+                        (UUID) stepIdForError : 
+                        UUID.fromString(stepIdForError.toString())
+                        
                     AuditLogRepository.logEmailFailed(
                         errorSql,
                         userId,
-                        UUID.fromString(stepInstance.sti_id as String),
+                        stepIdErrorUuid,
                         extractTeamEmails(teams),
-                        "[UMIG] Step Ready: ${stepInstance.sti_name}",
+                        "[UMIG] Step Ready: ${stepInstance.get('sti_name')}",
                         e.message
                     )
                 }
@@ -328,32 +378,33 @@ class EnhancedEmailService {
      * Send notification when a USER completes an instruction with dynamic URL construction
      * Recipients: Assigned TEAM + IMPACTED TEAMS
      */
-    static void sendInstructionCompletedNotificationWithUrl(Map instruction, Map stepInstance, List<Map> teams, 
-                                                           Integer userId = null, String migrationCode = null, 
-                                                           String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+    static void sendInstructionCompletedNotificationWithUrl(Map<String, Object> instruction, Map<String, Object> stepInstance, 
+                                                           List<Map<String, Object>> teams, Integer userId = null, 
+                                                           String migrationCode = null, String iterationCode = null) {
+        DatabaseUtil.withSql { Sql sql ->
             try {
-                def recipients = extractTeamEmails(teams)
+                List<String> recipients = extractTeamEmails(teams)
                 
-                if (!recipients) {
-                    println "EnhancedEmailService: No recipients found for instruction ${instruction.ini_name}"
+                if (!recipients || recipients.isEmpty()) {
+                    println "EnhancedEmailService: No recipients found for instruction ${instruction.get('ini_name')}"
                     return
                 }
                 
                 // Get email template
-                def template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
+                Map<String, Object> template = EmailTemplateRepository.findActiveByType(sql, 'INSTRUCTION_COMPLETED')
                 if (!template) {
                     println "EnhancedEmailService: No active template found for INSTRUCTION_COMPLETED"
                     return
                 }
                 
                 // Construct step view URL if migration and iteration codes are provided
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                String stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.get('sti_id')) {
                     try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
+                        Object stepIdValue = stepInstance.get('sti_id')
+                        UUID stepInstanceUuid = stepIdValue instanceof UUID ? 
+                            (UUID) stepIdValue : 
+                            UUID.fromString(stepIdValue.toString())
                         
                         stepViewUrl = UrlConstructionService.buildStepViewUrl(
                             stepInstanceUuid, 
@@ -366,73 +417,93 @@ class EnhancedEmailService {
                 }
                 
                 // Enhanced content formatting for mobile (US-039 Phase 1)
-                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
-                def stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
+                Map<String, Object> contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                Map<String, Object> stepMetadata = StepContentFormatter.formatStepMetadata(stepInstance)
                 
                 // Prepare enhanced template variables with rich content
-                def variables = [
-                    instruction: instruction,
-                    stepInstance: stepInstance,
-                    completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
-                    completedBy: getUsernameById(sql, userId),
-                    stepViewUrl: stepViewUrl,
-                    hasStepViewUrl: stepViewUrl != null,
-                    migrationCode: migrationCode,
-                    iterationCode: iterationCode,
-                    // US-039 Phase 1: Rich content support
-                    stepDescription: contentDetails.stepDescription,
-                    instructionsHtml: contentDetails.instructionsHtml,
-                    instructionsCount: contentDetails.instructionsCount,
-                    instructionsDisplayed: contentDetails.instructionsDisplayed,
-                    contentTruncated: contentDetails.contentTruncated,
-                    estimatedDuration: contentDetails.estimatedDuration,
-                    stepMetadata: stepMetadata,
-                    // Mobile template indicators
-                    isMobileTemplate: true,
-                    notificationType: 'INSTRUCTION_COMPLETED'
-                ]
+                Map<String, Object> variables = new HashMap<String, Object>()
+                variables.put('instruction', instruction)
+                variables.put('stepInstance', stepInstance)
+                variables.put('completedAt', new Date().format('yyyy-MM-dd HH:mm:ss'))
+                variables.put('completedBy', getUsernameById(sql, userId))
+                variables.put('stepViewUrl', stepViewUrl)
+                variables.put('hasStepViewUrl', stepViewUrl != null)
+                variables.put('migrationCode', migrationCode)
+                variables.put('iterationCode', iterationCode)
+                // US-039 Phase 1: Rich content support
+                variables.put('stepDescription', contentDetails.get('stepDescription'))
+                variables.put('instructionsHtml', contentDetails.get('instructionsHtml'))
+                variables.put('instructionsCount', contentDetails.get('instructionsCount'))
+                variables.put('instructionsDisplayed', contentDetails.get('instructionsDisplayed'))
+                variables.put('contentTruncated', contentDetails.get('contentTruncated'))
+                variables.put('estimatedDuration', contentDetails.get('estimatedDuration'))
+                variables.put('stepMetadata', stepMetadata)
+                // Mobile template indicators
+                variables.put('isMobileTemplate', true)
+                variables.put('notificationType', 'INSTRUCTION_COMPLETED')
                 
                 // Process template
-                def processedSubject = processTemplate(template.emt_subject as String, variables)
-                def processedBody = processTemplate(template.emt_body_html as String, variables)
+                Object subjectValue = template.get('emt_subject')
+                String subjectText = subjectValue != null ? subjectValue.toString() : ''
+                Object bodyValue = template.get('emt_body_html')
+                String bodyText = bodyValue != null ? bodyValue.toString() : ''
+                
+                String processedSubject = processTemplate(subjectText, variables)
+                String processedBody = processTemplate(bodyText, variables)
                 
                 // Send email
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                boolean emailSent = sendEmail(recipients, processedSubject, processedBody)
                 
                 // Log the notification
                 if (emailSent) {
+                    Object instructionIdValue = instruction.get('ini_id')
+                    UUID instructionIdUuid = instructionIdValue instanceof UUID ? 
+                        (UUID) instructionIdValue : 
+                        UUID.fromString(instructionIdValue.toString())
+                        
+                    Object templateIdValue3 = template.get('emt_id')
+                    UUID templateIdUuid3 = templateIdValue3 instanceof UUID ? 
+                        (UUID) templateIdValue3 : 
+                        UUID.fromString(templateIdValue3.toString())
+                        
+                    Map<String, Object> auditData3 = new HashMap<String, Object>()
+                    auditData3.put('notification_type', 'INSTRUCTION_COMPLETED_WITH_URL')
+                    auditData3.put('instruction_name', instruction.get('ini_name'))
+                    auditData3.put('step_name', stepInstance.get('sti_name'))
+                    auditData3.put('step_view_url', stepViewUrl)
+                    auditData3.put('migration_code', migrationCode)
+                    auditData3.put('iteration_code', iterationCode)
+                        
                     AuditLogRepository.logEmailSent(
                         sql,
                         userId,
-                        UUID.fromString(instruction.ini_id as String),
+                        instructionIdUuid,
                         recipients,
                         processedSubject,
-                        template.emt_id as UUID,
-                        [
-                            notification_type: 'INSTRUCTION_COMPLETED_WITH_URL',
-                            instruction_name: instruction.ini_name,
-                            step_name: stepInstance.sti_name,
-                            step_view_url: stepViewUrl,
-                            migration_code: migrationCode,
-                            iteration_code: iterationCode
-                        ]
+                        templateIdUuid3,
+                        auditData3
                     )
                 }
                 
             } catch (Exception e) {
-                logError('sendInstructionCompletedNotificationWithUrl', e, [
-                    instructionId: instruction.ini_id,
-                    stepId: stepInstance.sti_id
-                ])
+                Map<String, Object> errorContext3 = new HashMap<String, Object>()
+                errorContext3.put('instructionId', instruction.get('ini_id'))
+                errorContext3.put('stepId', stepInstance.get('sti_id'))
+                logError('sendInstructionCompletedNotificationWithUrl', e, errorContext3)
                 
                 // Log the failure
-                DatabaseUtil.withSql { errorSql ->
+                DatabaseUtil.withSql { Sql errorSql ->
+                    Object instructionIdForError = instruction.get('ini_id')
+                    UUID instructionIdErrorUuid = instructionIdForError instanceof UUID ? 
+                        (UUID) instructionIdForError : 
+                        UUID.fromString(instructionIdForError.toString())
+                        
                     AuditLogRepository.logEmailFailed(
                         errorSql,
                         userId,
-                        UUID.fromString(instruction.ini_id as String),
+                        instructionIdErrorUuid,
                         extractTeamEmails(teams),
-                        "[UMIG] Instruction Completed: ${instruction.ini_name}",
+                        "[UMIG] Instruction Completed: ${instruction.get('ini_name')}",
                         e.message
                     )
                 }
@@ -456,10 +527,10 @@ class EnhancedEmailService {
      * Process template with Groovy's SimpleTemplateEngine
      * Enhanced to handle URL construction variables
      */
-    private static String processTemplate(String templateText, Map variables) {
+    private static String processTemplate(String templateText, Map<String, Object> variables) {
         try {
-            def engine = new SimpleTemplateEngine()
-            def template = engine.createTemplate(templateText)
+            SimpleTemplateEngine engine = new SimpleTemplateEngine()
+            Template template = engine.createTemplate(templateText)
             return template.make(variables).toString()
         } catch (Exception e) {
             println "EnhancedEmailService: Template processing error - ${e.message}"
@@ -470,10 +541,22 @@ class EnhancedEmailService {
     /**
      * Extract email addresses from team objects
      */
-    private static List<String> extractTeamEmails(List<Map> teams) {
-        return teams?.collect { team ->
-            team.tms_email as String
-        }?.findAll { it && it.trim() } ?: []
+    private static List<String> extractTeamEmails(List<Map<String, Object>> teams) {
+        if (!teams) {
+            return new ArrayList<String>()
+        }
+        
+        List<String> emails = new ArrayList<String>()
+        for (Map<String, Object> team : teams) {
+            Object emailValue = team.get('tms_email')
+            if (emailValue != null) {
+                String email = emailValue.toString()
+                if (email && email.trim()) {
+                    emails.add(email)
+                }
+            }
+        }
+        return emails
     }
     
     /**
@@ -485,8 +568,12 @@ class EnhancedEmailService {
         }
         
         try {
-            def user = sql.firstRow('SELECT usr_username FROM users_usr WHERE usr_id = ?', [userId])
-            return user?.usr_username ?: "User ${userId}"
+            Map<String, Object> user = sql.firstRow('SELECT usr_username FROM users_usr WHERE usr_id = ?', [userId])
+            if (user && user.get('usr_username')) {
+                return user.get('usr_username').toString()
+            } else {
+                return "User ${userId}"
+            }
         } catch (Exception e) {
             return "User ${userId}"
         }
@@ -496,7 +583,12 @@ class EnhancedEmailService {
      * Get color for status display
      */
     private static String getStatusColor(String status) {
-        switch (status?.toUpperCase()) {
+        if (!status) {
+            return '#6c757d'
+        }
+        
+        String upperStatus = status.toUpperCase()
+        switch (upperStatus) {
             case 'OPEN':
             case 'IN_PROGRESS':
                 return '#0052cc'
@@ -528,7 +620,7 @@ class EnhancedEmailService {
     /**
      * Log errors for debugging and monitoring
      */
-    private static void logError(String method, Exception error, Map context = [:]) {
+    private static void logError(String method, Exception error, Map<String, Object> context = new HashMap<String, Object>()) {
         println "EnhancedEmailService ERROR in ${method}: ${error.message}"
         println "EnhancedEmailService ERROR context: ${context}"
         error.printStackTrace()
@@ -540,8 +632,9 @@ class EnhancedEmailService {
     static boolean isMobileTemplateEnhancementAvailable() {
         try {
             // Test if StepContentFormatter is available and functional
-            def healthCheck = StepContentFormatter.healthCheck()
-            return healthCheck.status == 'healthy'
+            Map<String, Object> healthCheck = StepContentFormatter.healthCheck()
+            Object statusValue = healthCheck.get('status')
+            return statusValue != null && statusValue.toString() == 'healthy'
         } catch (Exception e) {
             println "EnhancedEmailService: Mobile template enhancement not available: ${e.message}"
             return false
@@ -551,32 +644,36 @@ class EnhancedEmailService {
     /**
      * Health check for monitoring URL construction capabilities and mobile enhancements
      */
-    static Map healthCheck() {
+    static Map<String, Object> healthCheck() {
         try {
-            def urlServiceHealth = UrlConstructionService.healthCheck()
-            def configHealth = urlServiceHealth.status == 'healthy'
+            Map<String, Object> urlServiceHealth = UrlConstructionService.healthCheck()
+            Object statusValue = urlServiceHealth.get('status')
+            boolean configHealth = statusValue != null && statusValue.toString() == 'healthy'
             
-            return [
-                service: 'EnhancedEmailService',
-                status: configHealth ? 'healthy' : 'degraded',
-                urlConstruction: urlServiceHealth,
-                capabilities: [
-                    dynamicUrls: configHealth,
-                    emailTemplates: true,
-                    auditLogging: true,
-                    mobileTemplateEnhancements: isMobileTemplateEnhancementAvailable(),
-                    richContentFormatting: isMobileTemplateEnhancementAvailable(),
-                    htmlSanitization: isMobileTemplateEnhancementAvailable()
-                ],
-                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-            ]
+            Map<String, Object> capabilities = new HashMap<String, Object>()
+            capabilities.put('dynamicUrls', configHealth)
+            capabilities.put('emailTemplates', true)
+            capabilities.put('auditLogging', true)
+            capabilities.put('mobileTemplateEnhancements', isMobileTemplateEnhancementAvailable())
+            capabilities.put('richContentFormatting', isMobileTemplateEnhancementAvailable())
+            capabilities.put('htmlSanitization', isMobileTemplateEnhancementAvailable())
+            
+            Map<String, Object> result = new HashMap<String, Object>()
+            result.put('service', 'EnhancedEmailService')
+            result.put('status', configHealth ? 'healthy' : 'degraded')
+            result.put('urlConstruction', urlServiceHealth)
+            result.put('capabilities', capabilities)
+            result.put('timestamp', new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
+            
+            return result
         } catch (Exception e) {
-            return [
-                service: 'EnhancedEmailService',
-                status: 'error',
-                error: e.message,
-                timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-            ]
+            Map<String, Object> errorResult = new HashMap<String, Object>()
+            errorResult.put('service', 'EnhancedEmailService')
+            errorResult.put('status', 'error')
+            errorResult.put('error', e.message)
+            errorResult.put('timestamp', new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))
+            
+            return errorResult
         }
     }
     
@@ -593,37 +690,40 @@ class EnhancedEmailService {
      * @param iterationCode Iteration code for URL construction
      * @return Map with sending result
      */
-    static Map sendStepEmailWithRecipients(Map stepInstance, List<String> toRecipients, 
+    static Map<String, Object> sendStepEmailWithRecipients(Map<String, Object> stepInstance, List<String> toRecipients, 
                                           List<String> ccRecipients, List<String> bccRecipients,
                                           Integer userId = null, String migrationCode = null, 
                                           String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+        return DatabaseUtil.withSql { Sql sql ->
             try {
                 // Validate recipients
-                if (!toRecipients && !ccRecipients && !bccRecipients) {
-                    return [
-                        success: false,
-                        error: "No recipients specified"
-                    ]
+                if ((!toRecipients || toRecipients.isEmpty()) && 
+                    (!ccRecipients || ccRecipients.isEmpty()) && 
+                    (!bccRecipients || bccRecipients.isEmpty())) {
+                    Map<String, Object> errorResult = new HashMap<String, Object>()
+                    errorResult.put('success', false)
+                    errorResult.put('error', "No recipients specified")
+                    return errorResult
                 }
                 
                 // Get enhanced mobile email template
-                def template = EmailTemplateRepository.findActiveByType(sql, 'STEP_OPENED')
+                Map<String, Object> template = EmailTemplateRepository.findActiveByType(sql, 'STEP_OPENED')
                 if (!template) {
                     println "EnhancedEmailService: No active template found for STEP_OPENED"
-                    return [
-                        success: false,
-                        error: "No active email template found"
-                    ]
+                    Map<String, Object> errorResult = new HashMap<String, Object>()
+                    errorResult.put('success', false)
+                    errorResult.put('error', "No active email template found")
+                    return errorResult
                 }
                 
                 // Construct step view URL if migration and iteration codes are provided
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                String stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.get('sti_id')) {
                     try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
+                        Object stepIdValue = stepInstance.get('sti_id')
+                        UUID stepInstanceUuid = stepIdValue instanceof UUID ? 
+                            (UUID) stepIdValue : 
+                            UUID.fromString(stepIdValue.toString())
                         
                         stepViewUrl = UrlConstructionService.buildStepViewUrl(
                             stepInstanceUuid, 
@@ -635,45 +735,52 @@ class EnhancedEmailService {
                     }
                 }
                 
-                // Format step content using StepContentFormatter - Fix method signature
-                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                // Format step content using StepContentFormatter
+                Map<String, Object> contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
                 
-                // Build mobile-responsive HTML using enhanced template - Fix type casting
-                def templateEngine = new SimpleTemplateEngine()
-                def templateText = template.emt_body_html as String
-                def templateObject = templateEngine.createTemplate(templateText)
+                // Build mobile-responsive HTML using enhanced template
+                SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
+                Object templateTextValue = template.get('emt_body_html')
+                String templateText = templateTextValue != null ? templateTextValue.toString() : ''
+                Template templateObject = templateEngine.createTemplate(templateText)
                 
-                def binding = [
-                    stepName: stepInstance.sti_name ?: 'Step',
-                    stepNumber: stepInstance.stm_number ?: '',
-                    stepId: stepInstance.sti_id,
-                    stepDescription: stepInstance.sti_description ?: '',
-                    stepStartDate: formatDate(stepInstance.sti_start_date as Date),
-                    stepEndDate: formatDate(stepInstance.sti_end_date as Date),
-                    stepDuration: stepInstance.sti_duration_hour ?: 0,
-                    stepStatus: stepInstance.status_name ?: 'PENDING',
-                    stepStatusColor: getStatusColor(stepInstance.status_name as String),
-                    assignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
-                    stepUrl: stepViewUrl ?: '#',
-                    stepContent: contentDetails.instructionsHtml as String,
-                    migrationName: stepInstance.migration_name ?: 'Migration',
-                    iterationName: stepInstance.iteration_name ?: 'Iteration',
-                    phaseName: stepInstance.phase_name ?: '',
-                    sequenceName: stepInstance.sequence_name ?: '',
-                    planName: stepInstance.plan_name ?: '',
-                    year: new Date().format('yyyy')
-                ] as Map<String, Object>
+                Map<String, Object> binding = new HashMap<String, Object>()
+                binding.put('stepName', stepInstance.get('sti_name') ?: 'Step')
+                binding.put('stepNumber', stepInstance.get('stm_number') ?: '')
+                binding.put('stepId', stepInstance.get('sti_id'))
+                binding.put('stepDescription', stepInstance.get('sti_description') ?: '')
                 
-                def htmlContent = templateObject.make(binding).toString()
+                // Safe date handling
+                Object startDateValue = stepInstance.get('sti_start_date')
+                binding.put('stepStartDate', formatDate(startDateValue instanceof Date ? (Date) startDateValue : null))
+                Object endDateValue = stepInstance.get('sti_end_date')
+                binding.put('stepEndDate', formatDate(endDateValue instanceof Date ? (Date) endDateValue : null))
+                
+                binding.put('stepDuration', stepInstance.get('sti_duration_hour') ?: 0)
+                binding.put('stepStatus', stepInstance.get('status_name') ?: 'PENDING')
+                binding.put('stepStatusColor', getStatusColor(stepInstance.get('status_name') as String))
+                binding.put('assignedTeam', stepInstance.get('owner_team_name') ?: 'Unassigned')
+                binding.put('stepUrl', stepViewUrl ?: '#')
+                binding.put('stepContent', contentDetails.get('instructionsHtml') as String)
+                binding.put('migrationName', stepInstance.get('migration_name') ?: 'Migration')
+                binding.put('iterationName', stepInstance.get('iteration_name') ?: 'Iteration')
+                binding.put('phaseName', stepInstance.get('phase_name') ?: '')
+                binding.put('sequenceName', stepInstance.get('sequence_name') ?: '')
+                binding.put('planName', stepInstance.get('plan_name') ?: '')
+                binding.put('year', new Date().format('yyyy'))
+                
+                String htmlContent = templateObject.make(binding).toString()
                 
                 // Send email with proper recipient configuration
-                def subject = "Step ${stepInstance.stm_number ?: ''}: ${stepInstance.sti_name ?: 'Update'}"
+                String stepNumberStr = stepInstance.get('stm_number') ? stepInstance.get('stm_number').toString() : ''
+                String stepNameStr = stepInstance.get('sti_name') ? stepInstance.get('sti_name').toString() : 'Update'
+                String subject = "Step ${stepNumberStr}: ${stepNameStr}"
                 
                 // Configure email with TO, CC, BCC
-                def emailSent = EmailService.sendEmailWithCCAndBCC(
+                boolean emailSent = EmailService.sendEmailWithCCAndBCC(
                     toRecipients.join(','),
-                    ccRecipients ? ccRecipients.join(',') : null,
-                    bccRecipients ? bccRecipients.join(',') : null,
+                    ccRecipients && !ccRecipients.isEmpty() ? ccRecipients.join(',') : null,
+                    bccRecipients && !bccRecipients.isEmpty() ? bccRecipients.join(',') : null,
                     subject,
                     htmlContent,
                     true // isHtml
@@ -681,28 +788,37 @@ class EnhancedEmailService {
                 
                 if (emailSent) {
                     println "EnhancedEmailService: Email sent successfully to TO: ${toRecipients}, CC: ${ccRecipients}, BCC: ${bccRecipients}"
-                    return [
-                        success: true,
-                        recipients: [
-                            to: toRecipients,
-                            cc: ccRecipients,
-                            bcc: bccRecipients
-                        ],
-                        total: toRecipients.size() + ccRecipients.size() + bccRecipients.size()
-                    ]
+                    
+                    Map<String, Object> recipientsInfo = new HashMap<String, Object>()
+                    recipientsInfo.put('to', toRecipients)
+                    recipientsInfo.put('cc', ccRecipients)
+                    recipientsInfo.put('bcc', bccRecipients)
+                    
+                    int totalRecipients = (toRecipients ? toRecipients.size() : 0) + 
+                                          (ccRecipients ? ccRecipients.size() : 0) + 
+                                          (bccRecipients ? bccRecipients.size() : 0)
+                    
+                    Map<String, Object> successResult = new HashMap<String, Object>()
+                    successResult.put('success', true)
+                    successResult.put('recipients', recipientsInfo)
+                    successResult.put('total', totalRecipients)
+                    
+                    return successResult
                 } else {
-                    return [
-                        success: false,
-                        error: "Failed to send email"
-                    ]
+                    Map<String, Object> errorResult = new HashMap<String, Object>()
+                    errorResult.put('success', false)
+                    errorResult.put('error', "Failed to send email")
+                    return errorResult
                 }
                 
             } catch (Exception e) {
-                logError('sendStepEmailWithRecipients', e, [stepId: stepInstance.sti_id])
-                return [
-                    success: false,
-                    error: e.message
-                ]
+                Map<String, Object> errorContext4 = new HashMap<String, Object>()
+                errorContext4.put('stepId', stepInstance.get('sti_id'))
+                logError('sendStepEmailWithRecipients', e, errorContext4)
+                Map<String, Object> errorResult = new HashMap<String, Object>()
+                errorResult.put('success', false)
+                errorResult.put('error', e.message)
+                return errorResult
             }
         }
     }

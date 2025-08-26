@@ -1,7 +1,9 @@
 package umig.utils
 
 import groovy.sql.Sql
+import groovy.sql.GroovyRowResult
 import groovy.text.SimpleTemplateEngine
+import groovy.text.Template
 import umig.utils.DatabaseUtil
 import umig.utils.EmailService
 import umig.utils.UrlConstructionService
@@ -30,8 +32,6 @@ import java.util.UUID
  */
 class EnhancedEmailNotificationService {
     
-    private static final boolean DEBUG_MODE = true
-    
     /**
      * Send automated notification for step status changes
      * Uses mobile template with rich content formatting
@@ -41,17 +41,23 @@ class EnhancedEmailNotificationService {
      * - CC: Impacted teams
      * - BCC: IT Cutover team
      */
-    static void sendAutomatedStatusChangeNotification(Map stepInstance, List<Map> teams, Map cutoverTeam,
+    static void sendAutomatedStatusChangeNotification(Map<String, Object> stepInstance, List<Map<String, Object>> teams, Map<String, Object> cutoverTeam,
                                                      String oldStatus, String newStatus, Integer userId = null,
                                                      String migrationCode = null, String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+        DatabaseUtil.withSql { Sql sql ->
             try {
                 // Extract team emails by role
-                def assignedTeamEmails = teams.findAll { it.role_type == 'ASSIGNED' }
-                    .collect { it.tms_email as String }
-                def impactedTeamEmails = teams.findAll { it.role_type == 'IMPACTED' }
-                    .collect { it.tms_email as String }
-                def cutoverTeamEmail = cutoverTeam ? [cutoverTeam.tms_email as String] : []
+                List<String> assignedTeamEmails = teams.findAll { Map<String, Object> team -> 
+                    team.role_type == 'ASSIGNED' 
+                }.collect { Map<String, Object> team -> 
+                    team.tms_email as String
+                }
+                List<String> impactedTeamEmails = teams.findAll { Map<String, Object> team -> 
+                    team.role_type == 'IMPACTED' 
+                }.collect { Map<String, Object> team -> 
+                    team.tms_email as String
+                }
+                List<String> cutoverTeamEmail = cutoverTeam ? [cutoverTeam.tms_email as String] : [] as List<String>
                 
                 if (!assignedTeamEmails && !impactedTeamEmails) {
                     println "EnhancedEmailNotificationService: No recipients for status change"
@@ -59,11 +65,11 @@ class EnhancedEmailNotificationService {
                 }
                 
                 // Build step URL if context available
-                def stepViewUrl = null
+                String stepViewUrl = null
                 if (migrationCode && iterationCode && stepInstance.sti_id) {
                     try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ?
-                            stepInstance.sti_id : UUID.fromString(stepInstance.sti_id.toString())
+                        UUID stepInstanceUuid = stepInstance.sti_id instanceof UUID ?
+                            stepInstance.sti_id as UUID : UUID.fromString(stepInstance.sti_id.toString())
                         stepViewUrl = UrlConstructionService.buildStepViewUrl(
                             stepInstanceUuid, migrationCode, iterationCode
                         )
@@ -73,17 +79,26 @@ class EnhancedEmailNotificationService {
                 }
                 
                 // Format content for mobile email
-                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                Map<String, Object> contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
                 
                 // Get mobile email template
-                def template = getMobileEmailTemplate(sql)
+                GroovyRowResult template = getMobileEmailTemplate(sql)
                 if (!template) {
                     println "Mobile template not found - cannot send notification"
                     return
                 }
                 
                 // Prepare template binding with rich content
-                def binding = [
+                Map<String, Object> assignedTeam = teams.find { Map<String, Object> team -> 
+                    team.role_type == 'ASSIGNED' 
+                } as Map<String, Object>
+                List<String> impactedTeamNames = teams.findAll { Map<String, Object> team -> 
+                    team.role_type == 'IMPACTED' 
+                }.collect { Map<String, Object> team -> 
+                    team.tms_name as String
+                }
+                
+                Map<String, Object> binding = [
                     // Core step information
                     stepName: stepInstance.sti_name ?: 'Step',
                     stepNumber: stepInstance.stm_number ?: '',
@@ -101,8 +116,8 @@ class EnhancedEmailNotificationService {
                     estimatedDuration: contentDetails.estimatedDuration ?: 'N/A',
                     
                     // Team assignments
-                    assignedTeam: teams.find { it.role_type == 'ASSIGNED' }?.tms_name ?: 'Unassigned',
-                    impactedTeams: teams.findAll { it.role_type == 'IMPACTED' }*.tms_name?.join(', ') ?: 'None',
+                    assignedTeam: assignedTeam?.tms_name ?: 'Unassigned',
+                    impactedTeams: impactedTeamNames.join(', ') ?: 'None',
                     
                     // URL and navigation
                     stepUrl: stepViewUrl ?: '#',
@@ -122,12 +137,12 @@ class EnhancedEmailNotificationService {
                 ] as Map<String, Object>
                 
                 // Process mobile template
-                def templateEngine = new SimpleTemplateEngine()
-                def templateObject = templateEngine.createTemplate(template.emt_body_html as String)
-                def htmlContent = templateObject.make(binding).toString()
+                SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
+                Template templateObject = templateEngine.createTemplate(template.emt_body_html as String)
+                String htmlContent = templateObject.make(binding).toString()
                 
                 // Create subject line with status transition
-                def subject = "UMIG Step Status: ${stepInstance.sti_name} → ${newStatus}"
+                String subject = "UMIG Step Status: ${stepInstance.sti_name} → ${newStatus}"
                 if (newStatus == 'COMPLETED') {
                     subject = "✅ ${subject}"
                 } else if (newStatus == 'READY') {
@@ -137,7 +152,7 @@ class EnhancedEmailNotificationService {
                 }
                 
                 // Send email with proper routing
-                def emailSent = EmailService.sendEmailWithCCAndBCC(
+                boolean emailSent = EmailService.sendEmailWithCCAndBCC(
                     assignedTeamEmails.join(','),
                     impactedTeamEmails ? impactedTeamEmails.join(',') : null,
                     cutoverTeamEmail ? cutoverTeamEmail.join(',') : null,
@@ -164,15 +179,21 @@ class EnhancedEmailNotificationService {
      * Send automated notification when step is opened by PILOT
      * Uses mobile template with action-oriented formatting
      */
-    static void sendAutomatedStepOpenedNotification(Map stepInstance, List<Map> teams, Integer userId = null,
+    static void sendAutomatedStepOpenedNotification(Map<String, Object> stepInstance, List<Map<String, Object>> teams, Integer userId = null,
                                                    String migrationCode = null, String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+        DatabaseUtil.withSql { Sql sql ->
             try {
                 // Extract team emails
-                def assignedTeamEmails = teams.findAll { it.role_type == 'ASSIGNED' }
-                    .collect { it.tms_email as String }
-                def impactedTeamEmails = teams.findAll { it.role_type == 'IMPACTED' }
-                    .collect { it.tms_email as String }
+                List<String> assignedTeamEmails = teams.findAll { Map<String, Object> team -> 
+                    team.role_type == 'ASSIGNED' 
+                }.collect { Map<String, Object> team -> 
+                    team.tms_email as String
+                }
+                List<String> impactedTeamEmails = teams.findAll { Map<String, Object> team -> 
+                    team.role_type == 'IMPACTED' 
+                }.collect { Map<String, Object> team -> 
+                    team.tms_email as String
+                }
                 
                 if (!assignedTeamEmails) {
                     println "No assigned team for step opened notification"
@@ -180,19 +201,23 @@ class EnhancedEmailNotificationService {
                 }
                 
                 // Build step URL
-                def stepViewUrl = buildStepUrl(stepInstance.sti_id, migrationCode, iterationCode)
+                String stepViewUrl = buildStepUrl(stepInstance.sti_id, migrationCode, iterationCode)
                 
                 // Format content
-                def contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
+                Map<String, Object> contentDetails = StepContentFormatter.formatStepContentForEmail(stepInstance, stepViewUrl)
                 
                 // Get mobile template
-                def template = getMobileEmailTemplate(sql)
+                GroovyRowResult template = getMobileEmailTemplate(sql)
                 if (!template) {
                     return
                 }
                 
                 // Template binding
-                def binding = [
+                Map<String, Object> assignedTeamForStep = teams.find { Map<String, Object> team -> 
+                    team.role_type == 'ASSIGNED' 
+                } as Map<String, Object>
+                
+                Map<String, Object> binding = [
                     stepName: stepInstance.sti_name ?: 'Step',
                     stepNumber: stepInstance.stm_number ?: '',
                     stepStatus: 'READY',
@@ -201,7 +226,7 @@ class EnhancedEmailNotificationService {
                     instructionsHtml: contentDetails.instructionsHtml ?: '',
                     instructionsCount: contentDetails.instructionsCount ?: 0,
                     estimatedDuration: contentDetails.estimatedDuration ?: 'N/A',
-                    assignedTeam: teams.find { it.role_type == 'ASSIGNED' }?.tms_name ?: 'Unassigned',
+                    assignedTeam: assignedTeamForStep?.tms_name ?: 'Unassigned',
                     stepUrl: stepViewUrl ?: '#',
                     hasUrl: stepViewUrl != null,
                     openedBy: getUsernameById(sql, userId) ?: 'PILOT User',
@@ -211,18 +236,18 @@ class EnhancedEmailNotificationService {
                     notificationType: 'STEP_OPENED',
                     actionRequired: true,
                     year: new Date().format('yyyy')
-                ] as Map<String, Object>
+                ]
                 
                 // Process template
-                def templateEngine = new SimpleTemplateEngine()
-                def htmlContent = templateEngine.createTemplate(template.emt_body_html as String)
-                    .make(binding).toString()
+                SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
+                Template templateObj = templateEngine.createTemplate(template.emt_body_html as String)
+                String htmlContent = templateObj.make(binding).toString()
                 
                 // Subject with action indicator
-                def subject = "🔵 UMIG Step Ready: ${stepInstance.sti_name} - Action Required"
+                String subject = "🔵 UMIG Step Ready: ${stepInstance.sti_name} - Action Required"
                 
                 // Send to assigned team, CC impacted teams
-                def emailSent = EmailService.sendEmailWithCCAndBCC(
+                boolean emailSent = EmailService.sendEmailWithCCAndBCC(
                     assignedTeamEmails.join(','),
                     impactedTeamEmails ? impactedTeamEmails.join(',') : null,
                     null, // No BCC for step opened
@@ -248,31 +273,37 @@ class EnhancedEmailNotificationService {
      * Send automated notification when instruction is completed
      * Uses mobile template with progress tracking
      */
-    static void sendAutomatedInstructionCompletedNotification(Map instruction, Map stepInstance, List<Map> teams,
+    static void sendAutomatedInstructionCompletedNotification(Map<String, Object> instruction, Map<String, Object> stepInstance, List<Map<String, Object>> teams,
                                                              Integer userId = null, String migrationCode = null,
                                                              String iterationCode = null) {
-        DatabaseUtil.withSql { sql ->
+        DatabaseUtil.withSql { Sql sql ->
             try {
                 // Get all teams
-                def assignedTeamEmails = teams.findAll { it.role_type == 'ASSIGNED' }
-                    .collect { it.tms_email as String }
-                def impactedTeamEmails = teams.findAll { it.role_type == 'IMPACTED' }
-                    .collect { it.tms_email as String }
+                List<String> assignedTeamEmails = teams.findAll { Map<String, Object> team -> 
+                    team.role_type == 'ASSIGNED' 
+                }.collect { Map<String, Object> team -> 
+                    team.tms_email as String
+                }
+                List<String> impactedTeamEmails = teams.findAll { Map<String, Object> team -> 
+                    team.role_type == 'IMPACTED' 
+                }.collect { Map<String, Object> team -> 
+                    team.tms_email as String
+                }
                 
                 // Build URL
-                def stepViewUrl = buildStepUrl(stepInstance.sti_id, migrationCode, iterationCode)
+                String stepViewUrl = buildStepUrl(stepInstance.sti_id, migrationCode, iterationCode)
                 
                 // Get instruction progress
-                def progress = getInstructionProgress(sql, stepInstance.sti_id)
+                Map<String, Object> progress = getInstructionProgress(sql, stepInstance.sti_id)
                 
                 // Get mobile template
-                def template = getMobileEmailTemplate(sql)
+                GroovyRowResult template = getMobileEmailTemplate(sql)
                 if (!template) {
                     return
                 }
                 
                 // Template binding with progress information
-                def binding = [
+                Map<String, Object> binding = [
                     stepName: stepInstance.sti_name ?: 'Step',
                     stepNumber: stepInstance.stm_number ?: '',
                     instructionName: instruction.ini_name ?: 'Instruction',
@@ -290,21 +321,21 @@ class EnhancedEmailNotificationService {
                     iterationName: stepInstance.iteration_name ?: '',
                     notificationType: 'INSTRUCTION_COMPLETED',
                     year: new Date().format('yyyy')
-                ] as Map<String, Object>
+                ]
                 
                 // Process template
-                def templateEngine = new SimpleTemplateEngine()
-                def htmlContent = templateEngine.createTemplate(template.emt_body_html as String)
-                    .make(binding).toString()
+                SimpleTemplateEngine templateEngine = new SimpleTemplateEngine()
+                Template templateObj = templateEngine.createTemplate(template.emt_body_html as String)
+                String htmlContent = templateObj.make(binding).toString()
                 
                 // Subject with progress
-                def subject = "UMIG Progress: ${instruction.ini_name} completed (${progress.percentage}% done)"
+                String subject = "UMIG Progress: ${instruction.ini_name} completed (${progress.percentage}% done)"
                 if (progress.percentage == 100) {
                     subject = "✅ All instructions completed for ${stepInstance.sti_name}"
                 }
                 
                 // Send notification
-                def emailSent = EmailService.sendEmailWithCCAndBCC(
+                boolean emailSent = EmailService.sendEmailWithCCAndBCC(
                     assignedTeamEmails.join(','),
                     impactedTeamEmails ? impactedTeamEmails.join(',') : null,
                     null,
@@ -328,9 +359,9 @@ class EnhancedEmailNotificationService {
     
     // Helper methods
     
-    private static Map getMobileEmailTemplate(Sql sql) {
+    private static GroovyRowResult getMobileEmailTemplate(Sql sql) {
         try {
-            def template = sql.firstRow("""
+            GroovyRowResult template = sql.firstRow("""
                 SELECT emt_id, emt_type, emt_name, emt_subject, emt_body_html, emt_body_text
                 FROM email_templates_emt
                 WHERE emt_type = 'ENHANCED_MOBILE_STEP'
@@ -370,12 +401,12 @@ class EnhancedEmailNotificationService {
         }
     }
     
-    private static String buildStepUrl(stepId, String migrationCode, String iterationCode) {
+    private static String buildStepUrl(Object stepId, String migrationCode, String iterationCode) {
         if (!migrationCode || !iterationCode || !stepId) {
             return null
         }
         try {
-            def stepUuid = stepId instanceof UUID ? stepId : UUID.fromString(stepId.toString())
+            UUID stepUuid = stepId instanceof UUID ? (UUID) stepId : UUID.fromString(stepId.toString())
             return UrlConstructionService.buildStepViewUrl(stepUuid, migrationCode, iterationCode)
         } catch (Exception e) {
             println "Error building step URL: ${e.message}"
@@ -386,17 +417,17 @@ class EnhancedEmailNotificationService {
     private static String getUsernameById(Sql sql, Integer userId) {
         if (!userId) return 'System'
         try {
-            def user = sql.firstRow("SELECT usr_username FROM users_usr WHERE usr_id = ?", [userId])
+            GroovyRowResult user = sql.firstRow("SELECT usr_username FROM users_usr WHERE usr_id = ?", [userId])
             return user?.usr_username ?: 'Unknown User'
         } catch (Exception e) {
             return 'Unknown User'
         }
     }
     
-    private static Map getInstructionProgress(Sql sql, stepId) {
+    private static Map<String, Object> getInstructionProgress(Sql sql, Object stepId) {
         try {
-            def stepUuid = stepId instanceof UUID ? stepId : UUID.fromString(stepId.toString())
-            def result = sql.firstRow("""
+            UUID stepUuid = stepId instanceof UUID ? (UUID) stepId : UUID.fromString(stepId.toString())
+            GroovyRowResult result = sql.firstRow("""
                 SELECT 
                     COUNT(*) as total,
                     COUNT(CASE WHEN ini_status = 'COMPLETED' THEN 1 END) as completed
@@ -404,28 +435,28 @@ class EnhancedEmailNotificationService {
                 WHERE sti_id = ?
             """, [stepUuid])
             
-            def total = result?.total ?: 0
-            def completed = result?.completed ?: 0
-            def remaining = total - completed
-            def percentage = total > 0 ? Math.round((completed / total) * 100) : 0
+            Integer total = result?.total ?: 0
+            Integer completed = result?.completed ?: 0
+            Integer remaining = total - completed
+            Integer percentage = total > 0 ? Math.round((completed / (double) total) * 100) : 0
             
             return [
                 total: total,
                 completed: completed,
                 remaining: remaining,
                 percentage: percentage
-            ]
+            ] as Map<String, Object>
         } catch (Exception e) {
             println "Error getting instruction progress: ${e.message}"
-            return [total: 0, completed: 0, remaining: 0, percentage: 0]
+            return [total: 0, completed: 0, remaining: 0, percentage: 0] as Map<String, Object>
         }
     }
     
-    private static void logEmailAudit(Sql sql, Integer userId, stepId, String notificationType, 
+    private static void logEmailAudit(Sql sql, Integer userId, Object stepId, String notificationType, 
                                      String subject, Integer recipientCount) {
         try {
-            def stepUuid = stepId instanceof UUID ? stepId : UUID.fromString(stepId.toString())
-            def auditData = [
+            UUID stepUuid = stepId instanceof UUID ? (UUID) stepId : UUID.fromString(stepId.toString())
+            Map<String, Object> auditData = [
                 table_name: 'email_notifications',
                 entity_id: stepUuid,
                 action: 'SENT',
@@ -435,7 +466,7 @@ class EnhancedEmailNotificationService {
                     recipients: recipientCount,
                     timestamp: new Date()
                 ]
-            ]
+            ] as Map<String, Object>
             
             AuditLogRepository.createAuditLog(sql, 'EMAIL_SENT', auditData, userId)
         } catch (Exception e) {

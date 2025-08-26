@@ -26,7 +26,7 @@ class UrlConstructionService {
         '^https?://[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?$'
     )
     private static final Pattern PARAM_PATTERN = Pattern.compile(
-        '^[a-zA-Z0-9._-]+$'
+        '^[a-zA-Z0-9._\\s-]+$'  // Allow spaces for page titles
     )
     
     // Cache for configuration data to avoid repeated database queries

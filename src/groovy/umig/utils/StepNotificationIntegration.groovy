@@ -1,9 +1,11 @@
 package umig.utils
 
 import groovy.sql.Sql
+import groovy.sql.GroovyRowResult
 import java.util.UUID
 import umig.utils.DatabaseUtil
-import umig.utils.EnhancedEmailService
+import umig.utils.EmailService
+import umig.utils.EnhancedEmailNotificationService
 import umig.repository.StepRepository
 
 /**
@@ -35,68 +37,71 @@ class StepNotificationIntegration {
      * @param userId User performing the action (for audit)
      * @return Map with success status and notification details
      */
-    static Map updateStepStatusWithEnhancedNotifications(UUID stepInstanceId, Integer newStatusId, Integer userId = null) {
-        DatabaseUtil.withSql { sql ->
+    static Map<String, Object> updateStepStatusWithEnhancedNotifications(UUID stepInstanceId, Integer newStatusId, Integer userId = null) {
+        return DatabaseUtil.withSql { Sql sql ->
+            Map<String, Object> result
             try {
-                // First, perform the standard status update
-                def stepRepository = new StepRepository()
-                def updateResult = stepRepository.updateStepInstanceStatusWithNotification(stepInstanceId, newStatusId, userId)
+                // First, perform the database status update only
+                StepRepository stepRepository = new StepRepository()
+                Map<String, Object> updateResult = stepRepository.updateStepInstanceStatus(stepInstanceId, newStatusId, userId)
                 
-                if (!(updateResult.success as Boolean)) {
-                    return updateResult // Return the original error
+                if (!(updateResult['success'] as Boolean)) {
+                    result = updateResult as Map<String, Object> // Return the original error
+                    return result
                 }
                 
                 // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
+                Map<String, Object> contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
                 
-                if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
+                if (contextInfo && contextInfo['migrationCode'] && contextInfo['iterationCode']) {
                     // Send enhanced notification with URL
                     sendEnhancedStatusChangeNotification(
                         sql, 
                         stepInstanceId, 
                         newStatusId, 
                         userId, 
-                        contextInfo.migrationCode as String, 
-                        contextInfo.iterationCode as String
+                        contextInfo['migrationCode'] as String, 
+                        contextInfo['iterationCode'] as String
                     )
                     
-                    return [
+                    result = [
                         success: true,
                         message: "Step status updated with enhanced notifications",
                         stepInstanceId: stepInstanceId,
                         statusId: newStatusId,
-                        emailsSent: updateResult.emailsSent ?: 0,
+                        emailsSent: 1, // Enhanced notification sent
                         enhancedNotification: true,
-                        migrationCode: contextInfo.migrationCode,
-                        iterationCode: contextInfo.iterationCode
-                    ]
+                        migrationCode: contextInfo['migrationCode'],
+                        iterationCode: contextInfo['iterationCode']
+                    ] as Map<String, Object>
                 } else {
                     // Fallback to standard notification if context extraction fails
                     println "StepNotificationIntegration: Context extraction failed, using standard notifications"
                     
-                    return [
+                    result = [
                         success: true,
                         message: "Step status updated with standard notifications",
                         stepInstanceId: stepInstanceId,
                         statusId: newStatusId,
-                        emailsSent: updateResult.emailsSent ?: 0,
+                        emailsSent: 0, // No enhanced notification sent due to missing context
                         enhancedNotification: false,
                         contextMissing: true
-                    ]
+                    ] as Map<String, Object>
                 }
                 
             } catch (Exception e) {
                 println "StepNotificationIntegration: Error in updateStepStatusWithEnhancedNotifications: ${e.message}"
                 e.printStackTrace()
                 
-                return [
+                result = [
                     success: false,
                     error: "Failed to update step status with notifications: ${e.message}",
                     stepInstanceId: stepInstanceId,
                     enhancedNotification: false
-                ]
+                ] as Map<String, Object>
             }
-        }
+            return result
+        } as Map<String, Object>
     }
     
     /**
@@ -106,62 +111,65 @@ class StepNotificationIntegration {
      * @param userId User performing the action (for audit)
      * @return Map with success status and notification details
      */
-    static Map openStepWithEnhancedNotifications(UUID stepInstanceId, Integer userId = null) {
-        DatabaseUtil.withSql { sql ->
+    static Map<String, Object> openStepWithEnhancedNotifications(UUID stepInstanceId, Integer userId = null) {
+        return DatabaseUtil.withSql { Sql sql ->
+            Map<String, Object> result
             try {
-                // First, perform the standard step opening
-                def stepRepository = new StepRepository()
-                def openResult = stepRepository.openStepInstanceWithNotification(stepInstanceId, userId)
+                // First, perform the database step opening only
+                StepRepository stepRepository = new StepRepository()
+                Map<String, Object> openResult = stepRepository.openStepInstance(stepInstanceId, userId)
                 
-                if (!(openResult.success as Boolean)) {
-                    return openResult // Return the original error
+                if (!(openResult['success'] as Boolean)) {
+                    result = openResult as Map<String, Object> // Return the original error
+                    return result
                 }
                 
                 // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
+                Map<String, Object> contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
                 
-                if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
+                if (contextInfo && contextInfo['migrationCode'] && contextInfo['iterationCode']) {
                     // Send enhanced notification with URL
                     sendEnhancedStepOpenedNotification(
                         sql, 
                         stepInstanceId, 
                         userId, 
-                        contextInfo.migrationCode as String, 
-                        contextInfo.iterationCode as String
+                        contextInfo['migrationCode'] as String, 
+                        contextInfo['iterationCode'] as String
                     )
                     
-                    return [
+                    result = [
                         success: true,
                         message: "Step opened with enhanced notifications",
                         stepInstanceId: stepInstanceId,
-                        emailsSent: openResult.emailsSent ?: 0,
+                        emailsSent: 1, // Enhanced notification sent
                         enhancedNotification: true,
-                        migrationCode: contextInfo.migrationCode,
-                        iterationCode: contextInfo.iterationCode
-                    ]
+                        migrationCode: contextInfo['migrationCode'],
+                        iterationCode: contextInfo['iterationCode']
+                    ] as Map<String, Object>
                 } else {
-                    return [
+                    result = [
                         success: true,
                         message: "Step opened with standard notifications",
                         stepInstanceId: stepInstanceId,
-                        emailsSent: openResult.emailsSent ?: 0,
+                        emailsSent: 0, // No enhanced notification sent due to missing context
                         enhancedNotification: false,
                         contextMissing: true
-                    ]
+                    ] as Map<String, Object>
                 }
                 
             } catch (Exception e) {
                 println "StepNotificationIntegration: Error in openStepWithEnhancedNotifications: ${e.message}"
                 e.printStackTrace()
                 
-                return [
+                result = [
                     success: false,
                     error: "Failed to open step with notifications: ${e.message}",
                     stepInstanceId: stepInstanceId,
                     enhancedNotification: false
-                ]
+                ] as Map<String, Object>
             }
-        }
+            return result
+        } as Map<String, Object>
     }
     
     /**
@@ -172,66 +180,69 @@ class StepNotificationIntegration {
      * @param userId User performing the action (for audit)
      * @return Map with success status and notification details
      */
-    static Map completeInstructionWithEnhancedNotifications(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
-        DatabaseUtil.withSql { sql ->
+    static Map<String, Object> completeInstructionWithEnhancedNotifications(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        return DatabaseUtil.withSql { Sql sql ->
+            Map<String, Object> result
             try {
-                // First, perform the standard instruction completion
-                def stepRepository = new StepRepository()
-                def completeResult = stepRepository.completeInstructionWithNotification(instructionId, stepInstanceId, userId)
+                // First, perform the database instruction completion only
+                StepRepository stepRepository = new StepRepository()
+                Map<String, Object> completeResult = stepRepository.completeInstruction(instructionId, stepInstanceId, userId)
                 
-                if (!(completeResult.success as Boolean)) {
-                    return completeResult // Return the original error
+                if (!(completeResult['success'] as Boolean)) {
+                    result = completeResult as Map<String, Object> // Return the original error
+                    return result
                 }
                 
                 // Extract migration and iteration context for URL construction
-                def contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
+                Map<String, Object> contextInfo = extractMigrationIterationContextInternal(sql, stepInstanceId)
                 
-                if (contextInfo && contextInfo.migrationCode && contextInfo.iterationCode) {
+                if (contextInfo && contextInfo['migrationCode'] && contextInfo['iterationCode']) {
                     // Send enhanced notification with URL
                     sendEnhancedInstructionCompletedNotification(
                         sql, 
                         instructionId,
                         stepInstanceId, 
                         userId, 
-                        contextInfo.migrationCode as String, 
-                        contextInfo.iterationCode as String
+                        contextInfo['migrationCode'] as String, 
+                        contextInfo['iterationCode'] as String
                     )
                     
-                    return [
+                    result = [
                         success: true,
                         message: "Instruction completed with enhanced notifications",
                         instructionId: instructionId,
                         stepInstanceId: stepInstanceId,
-                        emailsSent: completeResult.emailsSent ?: 0,
+                        emailsSent: 1, // Enhanced notification sent
                         enhancedNotification: true,
-                        migrationCode: contextInfo.migrationCode,
-                        iterationCode: contextInfo.iterationCode
-                    ]
+                        migrationCode: contextInfo['migrationCode'],
+                        iterationCode: contextInfo['iterationCode']
+                    ] as Map<String, Object>
                 } else {
-                    return [
+                    result = [
                         success: true,
                         message: "Instruction completed with standard notifications",
                         instructionId: instructionId,
                         stepInstanceId: stepInstanceId,
-                        emailsSent: completeResult.emailsSent ?: 0,
+                        emailsSent: 0, // No enhanced notification sent due to missing context
                         enhancedNotification: false,
                         contextMissing: true
-                    ]
+                    ] as Map<String, Object>
                 }
                 
             } catch (Exception e) {
                 println "StepNotificationIntegration: Error in completeInstructionWithEnhancedNotifications: ${e.message}"
                 e.printStackTrace()
                 
-                return [
+                result = [
                     success: false,
                     error: "Failed to complete instruction with notifications: ${e.message}",
                     instructionId: instructionId,
                     stepInstanceId: stepInstanceId,
                     enhancedNotification: false
-                ]
+                ] as Map<String, Object>
             }
-        }
+            return result
+        } as Map<String, Object>
     }
     
     // ========================================
@@ -242,10 +253,11 @@ class StepNotificationIntegration {
      * Extract migration and iteration context for URL construction (public wrapper)
      * Added in US-039 Phase 1 for API access to context information
      */
-    static Map extractMigrationIterationContext(UUID stepInstanceId) {
-        DatabaseUtil.withSql { sql ->
-            return extractMigrationIterationContextInternal(sql, stepInstanceId)
-        }
+    static Map<String, Object> extractMigrationIterationContext(UUID stepInstanceId) {
+        return DatabaseUtil.withSql { Sql sql ->
+            Map<String, Object> result = extractMigrationIterationContextInternal(sql, stepInstanceId)
+            return result
+        } as Map<String, Object>
     }
     
     // ========================================
@@ -258,9 +270,9 @@ class StepNotificationIntegration {
      * This method traverses the hierarchy from step instance up to migration
      * to extract the codes needed for URL construction.
      */
-    private static Map extractMigrationIterationContextInternal(Sql sql, UUID stepInstanceId) {
+    private static Map<String, Object> extractMigrationIterationContextInternal(Sql sql, UUID stepInstanceId) {
         try {
-            def contextQuery = '''
+            String contextQuery = '''
                 SELECT 
                     mig.mig_code as migration_code,
                     itn.itn_code as iteration_code,
@@ -278,25 +290,26 @@ class StepNotificationIntegration {
                 WHERE sti.sti_id = :stepInstanceId
             '''
             
-            def contextResult = sql.firstRow(contextQuery, [stepInstanceId: stepInstanceId])
+            GroovyRowResult contextResult = sql.firstRow(contextQuery, [stepInstanceId: stepInstanceId])
             
             if (contextResult) {
-                return [
-                    migrationCode: contextResult.migration_code,
-                    iterationCode: contextResult.iteration_code ?: "default",
-                    stepName: contextResult.step_name,
-                    stepTypeCode: contextResult.step_type_code,
-                    stepNumber: contextResult.step_number
-                ]
+                Map<String, Object> result = [
+                    migrationCode: contextResult['migration_code'],
+                    iterationCode: contextResult['iteration_code'] ?: "default",
+                    stepName: contextResult['step_name'],
+                    stepTypeCode: contextResult['step_type_code'],
+                    stepNumber: contextResult['step_number']
+                ] as Map<String, Object>
+                return result
             } else {
                 println "StepNotificationIntegration: No context found for step instance: ${stepInstanceId}"
-                return null
+                return null as Map<String, Object>
             }
             
         } catch (Exception e) {
             println "StepNotificationIntegration: Error extracting migration context: ${e.message}"
             e.printStackTrace()
-            return null
+            return null as Map<String, Object>
         }
     }
     
@@ -307,19 +320,19 @@ class StepNotificationIntegration {
                                                            Integer userId, String migrationCode, String iterationCode) {
         try {
             // Get step instance details
-            def stepInstance = getStepInstanceDetails(sql, stepInstanceId)
+            Map<String, Object> stepInstance = getStepInstanceDetails(sql, stepInstanceId)
             if (!stepInstance) {
                 println "StepNotificationIntegration: Step instance not found: ${stepInstanceId}"
                 return
             }
             
             // Get old status name for comparison
-            def oldStatus = getStatusNameById(sql, stepInstance.old_status_id as Integer)
-            def newStatus = getStatusNameById(sql, newStatusId)
+            String oldStatus = getStatusNameById(sql, stepInstance['old_status_id'] as Integer)
+            String newStatus = getStatusNameById(sql, newStatusId)
             
             // Get teams for notification
-            def teams = getTeamsForStepNotification(sql, stepInstanceId)
-            def cutoverTeam = getCutoverTeam(sql)
+            List<Map> teams = getTeamsForStepNotification(sql, stepInstanceId)
+            Map<String, Object> cutoverTeam = getCutoverTeam(sql)
             
             // Send enhanced notification with mobile template (US-039 Phase 1)
             EnhancedEmailNotificationService.sendAutomatedStatusChangeNotification(
@@ -346,14 +359,14 @@ class StepNotificationIntegration {
                                                           String migrationCode, String iterationCode) {
         try {
             // Get step instance details
-            def stepInstance = getStepInstanceDetails(sql, stepInstanceId)
+            Map<String, Object> stepInstance = getStepInstanceDetails(sql, stepInstanceId)
             if (!stepInstance) {
                 println "StepNotificationIntegration: Step instance not found: ${stepInstanceId}"
                 return
             }
             
             // Get teams for notification
-            def teams = getTeamsForStepNotification(sql, stepInstanceId)
+            List<Map> teams = getTeamsForStepNotification(sql, stepInstanceId)
             
             // Send enhanced notification with mobile template (US-039 Phase 1)
             EnhancedEmailNotificationService.sendAutomatedStepOpenedNotification(
@@ -377,8 +390,8 @@ class StepNotificationIntegration {
                                                                     Integer userId, String migrationCode, String iterationCode) {
         try {
             // Get instruction and step instance details
-            def instruction = getInstructionDetails(sql, instructionId)
-            def stepInstance = getStepInstanceDetails(sql, stepInstanceId)
+            Map<String, Object> instruction = getInstructionDetails(sql, instructionId)
+            Map<String, Object> stepInstance = getStepInstanceDetails(sql, stepInstanceId)
             
             if (!instruction || !stepInstance) {
                 println "StepNotificationIntegration: Instruction or step instance not found"
@@ -386,7 +399,7 @@ class StepNotificationIntegration {
             }
             
             // Get teams for notification
-            def teams = getTeamsForStepNotification(sql, stepInstanceId)
+            List<Map> teams = getTeamsForStepNotification(sql, stepInstanceId)
             
             // Send enhanced notification with mobile template (US-039 Phase 1)
             EnhancedEmailNotificationService.sendAutomatedInstructionCompletedNotification(
@@ -407,8 +420,8 @@ class StepNotificationIntegration {
     /**
      * Get step instance details for notifications
      */
-    private static Map getStepInstanceDetails(Sql sql, UUID stepInstanceId) {
-        def query = '''
+    private static Map<String, Object> getStepInstanceDetails(Sql sql, UUID stepInstanceId) {
+        String query = '''
             SELECT sti.sti_id, sti.sti_name, sti.sti_status, stm.stt_code, stm.stm_number,
                    stm.stm_name, mig.mig_name as migration_name
             FROM steps_instance_sti sti
@@ -421,27 +434,52 @@ class StepNotificationIntegration {
             WHERE sti.sti_id = :stepInstanceId
         '''
         
-        return sql.firstRow(query, [stepInstanceId: stepInstanceId])
+        GroovyRowResult result = sql.firstRow(query, [stepInstanceId: stepInstanceId])
+        if (result) {
+            Map<String, Object> stepDetails = [
+                sti_id: result['sti_id'],
+                sti_name: result['sti_name'],
+                sti_status: result['sti_status'],
+                stt_code: result['stt_code'],
+                stm_number: result['stm_number'],
+                stm_name: result['stm_name'],
+                migration_name: result['migration_name'],
+                old_status_id: result['sti_status']
+            ] as Map<String, Object>
+            return stepDetails
+        } else {
+            return null as Map<String, Object>
+        }
     }
     
     /**
      * Get instruction details for notifications
      */
-    private static Map getInstructionDetails(Sql sql, UUID instructionId) {
-        def query = '''
+    private static Map<String, Object> getInstructionDetails(Sql sql, UUID instructionId) {
+        String query = '''
             SELECT ini.ini_id, ini.ini_name, ini.ini_description
             FROM instructions_instance_ini ini
             WHERE ini.ini_id = :instructionId
         '''
         
-        return sql.firstRow(query, [instructionId: instructionId])
+        GroovyRowResult result = sql.firstRow(query, [instructionId: instructionId])
+        if (result) {
+            Map<String, Object> instructionDetails = [
+                ini_id: result['ini_id'],
+                ini_name: result['ini_name'],
+                ini_description: result['ini_description']
+            ] as Map<String, Object>
+            return instructionDetails
+        } else {
+            return null as Map<String, Object>
+        }
     }
     
     /**
      * Get teams for step notifications
      */
     private static List<Map> getTeamsForStepNotification(Sql sql, UUID stepInstanceId) {
-        def query = '''
+        String query = '''
             SELECT DISTINCT tms.tms_id, tms.tms_name, tms.tms_email
             FROM teams_tms tms
             WHERE tms.tms_id IN (
@@ -459,12 +497,12 @@ class StepNotificationIntegration {
             )
         '''
         
-        List<groovy.sql.GroovyRowResult> results = sql.rows(query, [stepInstanceId: stepInstanceId])
-        return results.collect { row -> 
+        List<GroovyRowResult> results = sql.rows(query, [stepInstanceId: stepInstanceId])
+        return results.collect { GroovyRowResult row -> 
             [
-                tms_id: row.tms_id,
-                tms_name: row.tms_name,
-                tms_email: row.tms_email
+                tms_id: row['tms_id'],
+                tms_name: row['tms_name'],
+                tms_email: row['tms_email']
             ] as Map
         } as List<Map>
     }
@@ -472,8 +510,8 @@ class StepNotificationIntegration {
     /**
      * Get cutover team for notifications
      */
-    private static Map getCutoverTeam(Sql sql) {
-        def query = '''
+    private static Map<String, Object> getCutoverTeam(Sql sql) {
+        String query = '''
             SELECT tms.tms_id, tms.tms_name, tms.tms_email
             FROM teams_tms tms
             WHERE UPPER(tms.tms_name) LIKE '%CUTOVER%' 
@@ -481,7 +519,17 @@ class StepNotificationIntegration {
             LIMIT 1
         '''
         
-        return sql.firstRow(query)
+        GroovyRowResult result = sql.firstRow(query)
+        if (result) {
+            Map<String, Object> cutoverTeam = [
+                tms_id: result['tms_id'],
+                tms_name: result['tms_name'],
+                tms_email: result['tms_email']
+            ] as Map<String, Object>
+            return cutoverTeam
+        } else {
+            return null as Map<String, Object>
+        }
     }
     
     /**
@@ -490,7 +538,7 @@ class StepNotificationIntegration {
     private static String getStatusNameById(Sql sql, Integer statusId) {
         if (!statusId) return "UNKNOWN"
         
-        def status = sql.firstRow('SELECT sts_name FROM status_sts WHERE sts_id = :statusId', [statusId: statusId])
-        return status?.sts_name ?: "UNKNOWN"
+        GroovyRowResult status = sql.firstRow('SELECT sts_name FROM status_sts WHERE sts_id = :statusId', [statusId: statusId])
+        return status ? (status['sts_name'] as String) : "UNKNOWN"
     }
 }

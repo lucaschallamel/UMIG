@@ -156,7 +156,7 @@ class StepViewCache {
   }
 
   /**
-   * Fetch step data from API and cache it
+   * Fetch step data from API and cache it with fallback support
    */
   async fetchStepData(migrationName, iterationName, stepCode, retryCount = 0) {
     const config = window.UMIG_STEP_CONFIG || {
@@ -170,56 +170,133 @@ class StepViewCache {
       stepCode: stepCode || '',
     });
 
-    const apiUrl = `${config.api.baseUrl}/stepViewApi/instance?${queryParams}`;
-    console.log(`🔗 StepView: Fetching from URL: ${apiUrl}`);
+    // Primary API endpoint (matches stepViewApi.groovy)
+    const primaryUrl = `${config.api.baseUrl}/stepViewApi/instance?${queryParams}`;
+    console.log(`🔗 StepView: Fetching from URL: ${primaryUrl}`);
+
+    // Fallback endpoints for backward compatibility
+    const fallbackUrls = [
+      `${config.api.baseUrl}/steps/view/instance?${queryParams}`,
+      `${config.api.baseUrl}/api/v2/steps/view?${queryParams}`
+    ];
 
     try {
-      const response = await fetch(apiUrl);
+      // Try primary endpoint with proper headers
+      const response = await fetch(primaryUrl, {
+        headers: {
+          "X-Atlassian-Token": "no-check",
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+        credentials: "same-origin"
+      });
 
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ error: `HTTP ${response.status}` }));
-        throw new Error(
-          errorData.error || `Failed to load step: ${response.status}`,
-        );
+      if (response.ok) {
+        const stepData = await response.json();
+        
+        // Debug logging for DUM-003 status issue - enhanced
+        if (stepCode === "DUM-003" || stepCode === "DUM") {
+          console.log(
+            "🐛 DEBUG DUM API Response - Full data structure:",
+            stepData,
+          );
+          console.log(
+            "🐛 DEBUG DUM API Response - Summary only:",
+            stepData.summary,
+          );
+          if (stepData.summary) {
+            console.log("🐛 DEBUG DUM Summary fields:", {
+              StatusID: stepData.summary.StatusID,
+              Status: stepData.summary.Status,
+              sti_status: stepData.summary.sti_status,
+              AllKeys: Object.keys(stepData.summary),
+            });
+          }
+        }
+
+        if (stepData.error) {
+          throw new Error(stepData.error);
+        }
+
+        // Success - cache the data and return it
+        const cacheKey = `${migrationName}|${iterationName}|${stepCode}`;
+        this.cache.set(cacheKey, {
+          data: stepData,
+          timestamp: Date.now(),
+        });
+
+        this.lastRefreshTime = Date.now();
+        return stepData;
       }
 
-      const stepData = await response.json();
+      // If primary endpoint fails with 404, try fallbacks
+      if (response.status === 404) {
+        console.warn(`🚨 StepView: Primary endpoint returned 404, trying fallbacks...`);
+        
+        for (const fallbackUrl of fallbackUrls) {
+          try {
+            console.log(`🔄 StepView: Trying fallback: ${fallbackUrl}`);
+            const fallbackResponse = await fetch(fallbackUrl, {
+              headers: {
+                "X-Atlassian-Token": "no-check",
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+              },
+              credentials: "same-origin"
+            });
+            
+            if (fallbackResponse.ok) {
+              const stepData = await fallbackResponse.json();
+              console.log(`✅ StepView: Fallback endpoint successful: ${fallbackUrl}`);
+              
+              // Debug logging for DUM-003 status issue - enhanced
+              if (stepCode === "DUM-003" || stepCode === "DUM") {
+                console.log(
+                  "🐛 DEBUG DUM API Response (fallback) - Full data structure:",
+                  stepData,
+                );
+                console.log(
+                  "🐛 DEBUG DUM API Response (fallback) - Summary only:",
+                  stepData.summary,
+                );
+                if (stepData.summary) {
+                  console.log("🐛 DEBUG DUM Summary fields (fallback):", {
+                    StatusID: stepData.summary.StatusID,
+                    Status: stepData.summary.Status,
+                    sti_status: stepData.summary.sti_status,
+                    AllKeys: Object.keys(stepData.summary),
+                  });
+                }
+              }
 
-      // Debug logging for DUM-003 status issue - enhanced
-      if (stepCode === "DUM-003" || stepCode === "DUM") {
-        console.log(
-          "🐛 DEBUG DUM API Response - Full data structure:",
-          stepData,
-        );
-        console.log(
-          "🐛 DEBUG DUM API Response - Summary only:",
-          stepData.summary,
-        );
-        if (stepData.summary) {
-          console.log("🐛 DEBUG DUM Summary fields:", {
-            StatusID: stepData.summary.StatusID,
-            Status: stepData.summary.Status,
-            sti_status: stepData.summary.sti_status,
-            AllKeys: Object.keys(stepData.summary),
-          });
+              if (stepData.error) {
+                throw new Error(stepData.error);
+              }
+
+              // Success - cache the data and return it
+              const cacheKey = `${migrationName}|${iterationName}|${stepCode}`;
+              this.cache.set(cacheKey, {
+                data: stepData,
+                timestamp: Date.now(),
+              });
+
+              this.lastRefreshTime = Date.now();
+              return stepData;
+            }
+          } catch (fallbackError) {
+            console.warn(`🔄 StepView: Fallback failed: ${fallbackUrl}`, fallbackError);
+          }
         }
       }
 
-      if (stepData.error) {
-        throw new Error(stepData.error);
-      }
-
-      // Success - cache the data and return it
-      const cacheKey = `${migrationName}|${iterationName}|${stepCode}`;
-      this.cache.set(cacheKey, {
-        data: stepData,
-        timestamp: Date.now(),
-      });
-
-      this.lastRefreshTime = Date.now();
-      return stepData;
+      // If all endpoints fail, parse error and throw
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: `HTTP ${response.status} - ${response.statusText}` }));
+      
+      throw new Error(
+        errorData.error || `Failed to load step: ${response.status} ${response.statusText}`,
+      );
     } catch (error) {
       // Handle transient "object can not be found" errors with retry logic
       if (
@@ -1387,9 +1464,9 @@ class StepViewPilotFeatures {
         console.log("📧 Email button clicked");
         
         // Check permission first
-        if (!self.hasPermission("email_step_details")) {
+        if (!self.stepView.hasPermission("email_step_details")) {
           console.warn("❌ User lacks permission for email_step_details");
-          self.showNotification("You need PILOT or ADMIN permissions to email step details", "warning");
+          self.stepView.showNotification("You need PILOT or ADMIN permissions to email step details", "warning");
           return;
         }
         
@@ -2718,15 +2795,25 @@ class StepView {
         return;
       }
 
-      const response = await fetch(
-        `${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(username)}`,
-        {
-          headers: {
-            "X-Atlassian-Token": "no-check",
-          },
-          credentials: "same-origin",
+      // Primary endpoint (matches UsersApi.groovy user endpoint)
+      const primaryUrl = `${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(username)}`;
+      console.log(`🔗 StepView: Loading user context from: ${primaryUrl}`);
+
+      // Fallback endpoints for backward compatibility
+      const fallbackUrls = [
+        `${this.config.api.baseUrl}/users?userCode=${encodeURIComponent(username)}`,
+        `${this.config.api.baseUrl}/api/v2/users/context?username=${encodeURIComponent(username)}`
+      ];
+
+      // Try primary endpoint
+      const response = await fetch(primaryUrl, {
+        headers: {
+          "X-Atlassian-Token": "no-check",
+          "Accept": "application/json",
+          "Content-Type": "application/json"
         },
-      );
+        credentials: "same-origin",
+      });
 
       if (response.ok) {
         this.userContext = await response.json();
@@ -2734,14 +2821,84 @@ class StepView {
         this.userRole = this.userContext.role || this.userRole;
         this.isAdmin = this.userContext.isAdmin || this.isAdmin;
         this.userId = this.userContext.userId || this.userId;
-        console.log("User context loaded successfully:", this.userContext);
-      } else {
-        console.warn("Failed to load user context, using fallback");
-        this.userContext = { userId: this.userId, role: this.userRole };
+        console.log("✅ StepView: User context loaded successfully via primary endpoint:", this.userContext);
+        return;
       }
+
+      // If primary endpoint fails with 404, try fallbacks
+      if (response.status === 404) {
+        console.warn(`🚨 StepView: User context primary endpoint returned 404, trying fallbacks...`);
+        
+        for (const fallbackUrl of fallbackUrls) {
+          try {
+            console.log(`🔄 StepView: Trying user context fallback: ${fallbackUrl}`);
+            const fallbackResponse = await fetch(fallbackUrl, {
+              headers: {
+                "X-Atlassian-Token": "no-check",
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+              },
+              credentials: "same-origin"
+            });
+            
+            if (fallbackResponse.ok) {
+              const userData = await fallbackResponse.json();
+              console.log(`✅ StepView: User context fallback successful: ${fallbackUrl}`);
+              
+              // Handle different response formats
+              if (Array.isArray(userData) && userData.length > 0) {
+                // Response from /users?userCode=xxx (returns array)
+                const user = userData[0];
+                this.userContext = {
+                  userId: user.usr_id,
+                  username: user.usr_code,
+                  firstName: user.usr_first_name,
+                  lastName: user.usr_last_name,
+                  email: user.usr_email,
+                  isAdmin: user.usr_is_admin || false,
+                  roleId: user.rls_id,
+                  role: this.mapRoleIdToCode(user.rls_id),
+                  isActive: user.usr_active
+                };
+              } else {
+                // Direct user context response
+                this.userContext = userData;
+              }
+              
+              // Update local properties with context data
+              this.userRole = this.userContext.role || this.userRole;
+              this.isAdmin = this.userContext.isAdmin || this.isAdmin;
+              this.userId = this.userContext.userId || this.userId;
+              console.log("✅ StepView: User context processed from fallback:", this.userContext);
+              return;
+            }
+          } catch (fallbackError) {
+            console.warn(`🔄 StepView: User context fallback failed: ${fallbackUrl}`, fallbackError);
+          }
+        }
+      }
+
+      console.warn(`Failed to load user context for ${username}: ${response.status} ${response.statusText}, using fallback`);
+      // Fallback context
+      this.userContext = { userId: this.userId, role: this.userRole };
+      
     } catch (error) {
       console.error("Error loading user context:", error);
       this.userContext = { userId: this.userId, role: this.userRole };
+    }
+  }
+
+  /**
+   * Map role ID to role code (matches UsersApi.groovy logic)
+   * @param {number} roleId - Role ID
+   * @returns {string} Role code
+   */
+  mapRoleIdToCode(roleId) {
+    switch(roleId) {
+      case 1: return 'ADMIN';
+      case 2: return 'NORMAL';
+      case 3: return 'PILOT';
+      default: return 'NORMAL';
     }
   }
 

@@ -1,6 +1,7 @@
 package umig.tests.integration
 
 import umig.utils.StepNotificationIntegration
+import umig.utils.EmailService
 import umig.utils.EnhancedEmailNotificationService
 import umig.repository.StepRepository
 import umig.repository.StatusRepository

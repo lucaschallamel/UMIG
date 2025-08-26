@@ -1,63 +1,77 @@
 package umig.repository
 
 import umig.utils.DatabaseUtil
-import umig.utils.EmailService
 import umig.utils.AuthenticationService
+// Note: Email notifications now handled by StepNotificationIntegration
 // Note: Audit logging is temporarily disabled
 // import umig.repository.InstructionRepository  // Not used
 // import umig.repository.AuditLogRepository      // Temporarily disabled
 import java.util.UUID
 import groovy.sql.Sql
+import groovy.sql.GroovyRowResult
+import groovy.transform.CompileStatic
 
 /**
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.
+ * 
+ * NOTIFICATION HANDLING:
+ * This repository now focuses solely on database operations. Email notifications
+ * are handled by StepNotificationIntegration which provides enhanced notification
+ * capabilities with URL generation and improved templates.
+ * 
+ * Methods with "WithNotification" suffix are deprecated and maintained for backward
+ * compatibility only. Use the corresponding methods without the suffix for database
+ * operations and let the calling layer handle notifications through StepNotificationIntegration.
  */
+@CompileStatic
 class StepRepository {
     /**
      * Fetches master STEP data by code and number.
      */
-    def findStepMaster(String sttCode, Integer stmNumber) {
-        DatabaseUtil.withSql { sql ->
+    GroovyRowResult findStepMaster(String sttCode, Integer stmNumber) {
+        return DatabaseUtil.withSql { Sql sql ->
             return sql.firstRow('''
                 SELECT stm.stm_id, stm.stt_code, stm.stm_number, stm.stm_name, stm.stm_description
                 FROM steps_master_stm stm
                 WHERE stm.stt_code = :sttCode AND stm.stm_number = :stmNumber
             ''', [sttCode: sttCode, stmNumber: stmNumber])
-        }
+        } as GroovyRowResult
     }
 
     /**
      * Fetches all impacted team IDs for a STEP (from join table).
      */
-    def findImpactedTeamIds(UUID stmId) {
-        DatabaseUtil.withSql { sql ->
-            return sql.rows('''
+    List<Integer> findImpactedTeamIds(UUID stmId) {
+        return DatabaseUtil.withSql { Sql sql ->
+            def results = sql.rows('''
                 SELECT tms_id
                 FROM steps_master_stm_x_teams_tms_impacted
                 WHERE stm_id = :stmId
-            ''', [stmId: stmId])*.tms_id
-        }
+            ''', [stmId: stmId])
+            return results.collect { GroovyRowResult row -> row['tms_id'] as Integer }
+        } as List<Integer>
     }
 
     /**
      * Fetches all iteration types for a STEP (from join table).
      */
-    def findIterationScopes(String sttCode, Integer stmNumber) {
-        DatabaseUtil.withSql { sql ->
-            return sql.rows('''
+    List<Integer> findIterationScopes(String sttCode, Integer stmNumber) {
+        return DatabaseUtil.withSql { Sql sql ->
+            def results = sql.rows('''
                 SELECT itt_id
                 FROM steps_master_stm_x_iteration_types_itt
                 WHERE stt_code = :sttCode AND stm_number = :stmNumber
-            ''', [sttCode: sttCode, stmNumber: stmNumber])*.itt_id
-        }
+            ''', [sttCode: sttCode, stmNumber: stmNumber])
+            return results.collect { GroovyRowResult row -> row['itt_id'] as Integer }
+        } as List<Integer>
     }
 
     /**
      * Fetches all master steps with basic information for dropdowns
      * @return List of master steps with id, code, number, name, and type
      */
-    def findAllMasterSteps() {
-        DatabaseUtil.withSql { sql ->
+    List<GroovyRowResult> findAllMasterSteps() {
+        return DatabaseUtil.withSql { Sql sql ->
             return sql.rows('''
                 SELECT 
                     stm.stm_id,
@@ -69,7 +83,8 @@ class StepRepository {
                 FROM steps_master_stm stm
                 JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
                 ORDER BY stm.stt_code, stm.stm_number
-            ''')        }
+            ''')
+        } as List<GroovyRowResult>
     }
 
     /**
@@ -81,13 +96,13 @@ class StepRepository {
      * @param sortDirection Sort direction (asc/desc)
      * @return Map with data, pagination info, and filters
      */
-    def findMasterStepsWithFilters(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
-        DatabaseUtil.withSql { sql ->
+    Map<String, Object> findMasterStepsWithFilters(Map<String, Object> filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        return DatabaseUtil.withSql { Sql sql ->
             pageNumber = Math.max(1, pageNumber)
             pageSize = Math.min(100, Math.max(1, pageSize))
             
-            def whereConditions = []
-            def params = []
+            def whereConditions = [] as List<String>
+            def params = [] as List<Object>
             
             // Build dynamic WHERE clause
             // Note: Status filtering removed for master steps as they don't have status
@@ -95,15 +110,15 @@ class StepRepository {
             
             // Owner ID filtering (phases own steps via phm_id)
             if (filters.ownerId) {
-                whereConditions << "stm.phm_id = ?"
-                params << UUID.fromString(filters.ownerId as String)
+                whereConditions.add("stm.phm_id = ?")
+                params.add(UUID.fromString(filters.ownerId as String))
             }
             
             // Search functionality
             if (filters.search) {
-                whereConditions << "(stm.stm_name ILIKE ? OR stm.stm_description ILIKE ?)"
-                params << "%${filters.search}%".toString()
-                params << "%${filters.search}%".toString()
+                whereConditions.add("(stm.stm_name ILIKE ? OR stm.stm_description ILIKE ?)")
+                params.add("%${filters.search}%".toString())
+                params.add("%${filters.search}%".toString())
             }
             
             def whereClause = whereConditions ? "WHERE " + whereConditions.join(" AND ") : ""
@@ -117,7 +132,7 @@ class StepRepository {
                 JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
                 ${whereClause}
             """
-            def totalCount = sql.firstRow(countQuery, params)?.total ?: 0
+            def totalCount = (sql.firstRow(countQuery, params)?.total as Integer) ?: 0
             
             // Validate sort field (removed stm_status as master steps don't have status)
             def allowedSortFields = ['stm_id', 'stm_name', 'stm_number', 'stm_description', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name', 'team_name', 'step_code', 'environment_role_name', 'predecessor_name']
@@ -162,8 +177,8 @@ class StepRepository {
                 LIMIT ${pageSize} OFFSET ${offset}
             """
             
-            def steps = sql.rows(dataQuery, params)
-            def enrichedSteps = steps.collect { enrichMasterStepWithStatusMetadata(it) }
+            def steps = sql.rows(dataQuery, params) as List<GroovyRowResult>
+            def enrichedSteps = steps.collect { GroovyRowResult it -> enrichMasterStepWithStatusMetadata(it as Map<String, Object>) }
             
             return [
                 data: enrichedSteps,
@@ -174,8 +189,8 @@ class StepRepository {
                     totalPages: (int) Math.ceil((double) totalCount / (double) pageSize)
                 ],
                 filters: filters
-            ]
-        }
+            ] as Map<String, Object>
+        } as Map<String, Object>
     }
 
     /**
@@ -183,40 +198,40 @@ class StepRepository {
      * @param row Database row containing master step data
      * @return Enhanced step map suitable for Admin GUI
      */
-    private Map enrichMasterStepWithStatusMetadata(Map row) {
+    private Map<String, Object> enrichMasterStepWithStatusMetadata(Map<String, Object> row) {
         return [
-            stm_id: row.stm_id,
+            stm_id: row['stm_id'],
             // Core step fields
-            stm_name: row.stm_name,
-            stm_description: row.stm_description,
-            stm_number: row.stm_number,
-            stm_order: row.stm_number, // Frontend expects stm_order, which corresponds to stm_number in database
-            stm_duration_minutes: row.stm_duration_minutes,
-            phm_id: row.phm_id,
-            tms_id_owner: row.tms_id_owner,
-            stt_code: row.stt_code,
-            enr_id_target: row.enr_id_target,
-            stm_id_predecessor: row.stm_id_predecessor,
+            stm_name: row['stm_name'] as String,
+            stm_description: row['stm_description'] as String,
+            stm_number: row['stm_number'] as Integer,
+            stm_order: row['stm_number'] as Integer, // Frontend expects stm_order, which corresponds to stm_number in database
+            stm_duration_minutes: row['stm_duration_minutes'] as Integer,
+            phm_id: row['phm_id'],
+            tms_id_owner: row['tms_id_owner'] as Integer,
+            stt_code: row['stt_code'] as String,
+            enr_id_target: row['enr_id_target'] as Integer,
+            stm_id_predecessor: row['stm_id_predecessor'],
             // NEW FIELDS - Additional attributes for VIEW modal display
-            team_name: row.team_name,
-            step_code: row.step_code,
-            environment_role_name: row.environment_role_name,
-            predecessor_name: row.predecessor_name,
-            predecessor_code: row.predecessor_code,
+            team_name: row['team_name'] as String,
+            step_code: row['step_code'] as String,
+            environment_role_name: row['environment_role_name'] as String,
+            predecessor_name: row['predecessor_name'] as String,
+            predecessor_code: row['predecessor_code'] as String,
             // Audit fields - added for VIEW modal display
-            created_by: row.created_by,
-            created_at: row.created_at,
-            updated_by: row.updated_by,
-            updated_at: row.updated_at,
+            created_by: row['created_by'] as String,
+            created_at: row['created_at'],
+            updated_by: row['updated_by'] as String,
+            updated_at: row['updated_at'],
             // Hierarchy fields from JOINs
-            plm_name: row.plm_name,
-            sqm_name: row.sqm_name,
-            phm_name: row.phm_name,
+            plm_name: row['plm_name'] as String,
+            sqm_name: row['sqm_name'] as String,
+            phm_name: row['phm_name'] as String,
             // Computed fields from joins
-            instruction_count: row.instruction_count ?: 0,
-            instance_count: row.instance_count ?: 0
+            instruction_count: (row['instruction_count'] as Integer) ?: 0,
+            instance_count: (row['instance_count'] as Integer) ?: 0
             // Note: Master steps don't have status - status exists only on step instances
-        ]
+        ] as Map<String, Object>
     }
 
     /**
@@ -224,8 +239,8 @@ class StepRepository {
      * @param stepId The UUID of the master step
      * @return Map containing master step data or null if not found
      */
-    def findMasterStepById(UUID stepId) {
-        DatabaseUtil.withSql { sql ->
+    Map<String, Object> findMasterStepById(UUID stepId) {
+        return DatabaseUtil.withSql { Sql sql ->
             def result = sql.firstRow("""
                 SELECT DISTINCT stm.*,
                        phm.phm_name,
@@ -258,8 +273,8 @@ class StepRepository {
                 WHERE stm.stm_id = :stepId
             """, [stepId: stepId])
             
-            return result ? enrichMasterStepWithStatusMetadata(result) : null
-        }
+            return result ? enrichMasterStepWithStatusMetadata(result as Map<String, Object>) : null
+        } as Map<String, Object>
     }
 
     /**
@@ -267,8 +282,8 @@ class StepRepository {
      * @param migrationId The UUID of the migration to filter by
      * @return List of master steps that belong to the specified migration
      */
-    def findMasterStepsByMigrationId(UUID migrationId) {
-        DatabaseUtil.withSql { sql ->
+    List<GroovyRowResult> findMasterStepsByMigrationId(UUID migrationId) {
+        return DatabaseUtil.withSql { Sql sql ->
             return sql.rows('''
                 SELECT DISTINCT
                     stm.stm_id,
@@ -286,14 +301,14 @@ class StepRepository {
                 WHERE ite.mig_id = :migrationId
                 ORDER BY stm.stt_code, stm.stm_number
             ''', [migrationId: migrationId])
-        }
+        } as List<GroovyRowResult>
     }
 
     /**
      * Fetches the first step instance for a given master step, for the first plan instance of the first iteration/migration (per current MVP logic).
      */
-    def findFirstStepInstance(String sttCode, Integer stmNumber) {
-        DatabaseUtil.withSql { sql ->
+    GroovyRowResult findFirstStepInstance(String sttCode, Integer stmNumber) {
+        return DatabaseUtil.withSql { Sql sql ->
             return sql.firstRow('''
                 SELECT sti.*
                 FROM steps_instance_sti sti
@@ -305,15 +320,15 @@ class StepRepository {
                 ORDER BY mig.mig_id, ite.ite_id, plm.plm_id, pli.pli_id, sti.sti_id
                 LIMIT 1
             ''', [sttCode: sttCode, stmNumber: stmNumber])
-        }
+        } as GroovyRowResult
     }
 
     /**
      * Fetches filtered step instances for the runsheet with hierarchical filtering.
      * Returns steps grouped by sequence and phase with all required attributes.
      */
-    List<Map> findFilteredStepInstances(Map filters) {
-        DatabaseUtil.withSql { sql ->
+    List<Map<String, Object>> findFilteredStepInstances(Map<String, Object> filters) {
+        return DatabaseUtil.withSql { Sql sql ->
             def query = '''
                 SELECT 
                     -- Step instance data
@@ -347,7 +362,7 @@ class StepRepository {
                 WHERE 1=1
             '''
             
-            def params = [:]
+            def params = [:] as Map<String, Object>
             
             // Add hierarchical filters
             if (filters.migrationId) {
@@ -397,13 +412,13 @@ class StepRepository {
                 ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_number
             '''
             
-            def results = sql.rows(query, params)
+            def results = sql.rows(query, params) as List<GroovyRowResult>
             
             // Transform results to frontend-compatible format
-            return results.collect { row ->
-                enrichStepInstanceWithStatusMetadata(row)
-            } as List<Map>
-        }
+            return results.collect { GroovyRowResult row ->
+                enrichStepInstanceWithStatusMetadata(row as Map<String, Object>)
+            } as List<Map<String, Object>>
+        } as List<Map<String, Object>>
     }
 
     /**
@@ -411,8 +426,8 @@ class StepRepository {
      * @param stmId The UUID of the step master
      * @return A list of labels with id, name, description, and color
      */
-    def findLabelsByStepId(UUID stmId) {
-        DatabaseUtil.withSql { sql ->
+    List<Map<String, Object>> findLabelsByStepId(UUID stmId) {
+        return DatabaseUtil.withSql { Sql sql ->
             def results = sql.rows('''
                 SELECT l.lbl_id, l.lbl_name, l.lbl_description, l.lbl_color
                 FROM labels_lbl l
@@ -421,43 +436,43 @@ class StepRepository {
                 ORDER BY l.lbl_name
             ''', [stmId: stmId])
             
-            return results.collect { row ->
+            return results.collect { GroovyRowResult row ->
                 [
-                    id: row.lbl_id,
-                    name: row.lbl_name,
-                    description: row.lbl_description,
-                    color: row.lbl_color
-                ]
-            }
-        }
+                    id: row['lbl_id'] as Integer,
+                    name: row['lbl_name'] as String,
+                    description: row['lbl_description'] as String,
+                    color: row['lbl_color'] as String
+                ] as Map<String, Object>
+            } as List<Map<String, Object>>
+        } as List<Map<String, Object>>
     }
 
     /**
-     * Updates step instance status and sends notification emails.
+     * Updates step instance status (database only - no notifications).
      * @param stepInstanceId The UUID of the step instance
      * @param statusId The new status ID (Integer)
      * @param userId Optional user ID for audit logging
-     * @return Map with success status and email send results
+     * @return Map with success status and step data
      */
-    Map updateStepInstanceStatusWithNotification(UUID stepInstanceId, Integer statusId, Integer userId = null) {
-        DatabaseUtil.withSql { sql ->
+    Map<String, Object> updateStepInstanceStatus(UUID stepInstanceId, Integer statusId, Integer userId = null) {
+        return DatabaseUtil.withSql { Sql sql ->
             try {
-                println "StepRepository.updateStepInstanceStatusWithNotification called:"
+                println "StepRepository.updateStepInstanceStatus called:"
                 println "  - stepInstanceId: ${stepInstanceId}"
                 println "  - statusId: ${statusId}"
                 println "  - userId: ${userId}"
                 
                 // Validate status exists and get status name
                 def status = sql.firstRow("SELECT sts_id, sts_name FROM status_sts WHERE sts_id = :statusId AND sts_type = 'Step'", 
-                    [statusId: statusId])
+                    [statusId: statusId]) as GroovyRowResult
                 
                 if (!status) {
-                    return [success: false, error: "Invalid status ID: ${statusId}"]
+                    return [success: false, error: "Invalid status ID: ${statusId}"] as Map<String, Object>
                 }
                 
                 println "  - Status name: ${status.sts_name}"
                 
-                def statusName = status.sts_name
+                def statusName = status.sts_name as String
                 
                 // Get current step instance data
                 def stepInstance = sql.firstRow('''
@@ -476,16 +491,16 @@ class StepRepository {
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
                     WHERE sti.sti_id = :stepInstanceId
-                ''', [stepInstanceId: stepInstanceId])
+                ''', [stepInstanceId: stepInstanceId]) as GroovyRowResult
                 
                 if (!stepInstance) {
-                    return [success: false, error: "Step instance not found"]
+                    return [success: false, error: "Step instance not found"] as Map<String, Object>
                 }
                 
-                def oldStatusId = stepInstance.sti_status
+                def oldStatusId = stepInstance['sti_status'] as Integer
                 
-                // Get old status name for notification
-                def oldStatus = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :oldStatusId", [oldStatusId: oldStatusId])?.sts_name
+                // Get old status name for caller context
+                def oldStatus = (sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :oldStatusId", [oldStatusId: oldStatusId])?.sts_name as String)
                 
                 // Update the status with audit fields
                 def updateCount = sql.executeUpdate('''
@@ -498,41 +513,47 @@ class StepRepository {
                 ''', [statusId: statusId, statusName: statusName, userId: userId, stepInstanceId: stepInstanceId])
                 
                 if (updateCount != 1) {
-                    return [success: false, error: "Failed to update step status"]
+                    return [success: false, error: "Failed to update step status"] as Map<String, Object>
                 }
                 
-                // Get teams for notification (owner team + impacted teams)
-                def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
-                
-                // Get IT cutover team (for now, we'll skip this since we don't have role field)
-                def cutoverTeam = null
-                
-                // Send notification
-                EmailService.sendStepStatusChangedNotification(
-                    stepInstance as Map, 
-                    teams, 
-                    cutoverTeam as Map,
-                    oldStatus as String, 
-                    statusName as String,
-                    userId
-                )
-                
-                return [success: true, emailsSent: teams.size() + (cutoverTeam ? 1 : 0)]
+                return [success: true, stepInstance: stepInstance, oldStatus: oldStatus, newStatus: statusName] as Map<String, Object>
                 
             } catch (Exception e) {
-                return [success: false, error: e.message]
+                return [success: false, error: e.message] as Map<String, Object>
             }
+        } as Map<String, Object>
+    }
+
+    /**
+     * DEPRECATED: Updates step instance status with notification handling.
+     * NOTE: Email notifications are now handled by StepNotificationIntegration.
+     * This method remains for backward compatibility.
+     * @param stepInstanceId The UUID of the step instance
+     * @param statusId The new status ID (Integer)
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and mock email results for compatibility
+     */
+    @Deprecated
+    Map<String, Object> updateStepInstanceStatusWithNotification(UUID stepInstanceId, Integer statusId, Integer userId = null) {
+        // Call the new method that handles database operations only
+        Map<String, Object> result = updateStepInstanceStatus(stepInstanceId, statusId, userId)
+        
+        if (result['success'] as Boolean) {
+            // Return compatibility format with mock email count
+            return [success: true, emailsSent: 0] as Map<String, Object>
+        } else {
+            return result
         }
     }
 
     /**
-     * Marks a step instance as opened by a PILOT and sends notifications.
+     * Marks a step instance as opened by a PILOT (database only - no notifications).
      * @param stepInstanceId The UUID of the step instance
      * @param userId Optional user ID for audit logging
-     * @return Map with success status and email send results
+     * @return Map with success status and step data
      */
-    Map openStepInstanceWithNotification(UUID stepInstanceId, Integer userId = null) {
-        DatabaseUtil.withSql { sql ->
+    Map<String, Object> openStepInstance(UUID stepInstanceId, Integer userId = null) {
+        return DatabaseUtil.withSql { Sql sql ->
             try {
                 // Get step instance data
                 def stepInstance = sql.firstRow('''
@@ -551,17 +572,17 @@ class StepRepository {
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
                     WHERE sti.sti_id = :stepInstanceId
-                ''', [stepInstanceId: stepInstanceId])
+                ''', [stepInstanceId: stepInstanceId]) as GroovyRowResult
                 
                 if (!stepInstance) {
-                    return [success: false, error: "Step instance not found"]
+                    return [success: false, error: "Step instance not found"] as Map<String, Object>
                 }
                 
                 // Check if already opened
                 // Convert status ID to name for backward compatibility check
-                def statusName = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :statusId", [statusId: stepInstance.sti_status])?.sts_name
+                def statusName = sql.firstRow("SELECT sts_name FROM status_sts WHERE sts_id = :statusId", [statusId: stepInstance['sti_status']])?.sts_name
                 if (statusName in ['OPEN', 'IN_PROGRESS', 'COMPLETED']) {
-                    return [success: false, error: "Step has already been opened (status: ${stepInstance.sti_status})"]
+                    return [success: false, error: "Step has already been opened (status: ${stepInstance['sti_status']})"] as Map<String, Object>
                 }
                 
                 // Mark as opened by updating status to OPEN
@@ -574,36 +595,47 @@ class StepRepository {
                 ''', [userId: userId, stepInstanceId: stepInstanceId])
                 
                 if (updateCount != 1) {
-                    return [success: false, error: "Failed to open step"]
+                    return [success: false, error: "Failed to open step"] as Map<String, Object>
                 }
                 
-                // Get teams for notification
-                def teams = getTeamsForNotification(sql, stepInstance.stm_id as UUID, stepInstance.tms_id_owner as Integer)
-                
-                // Send notification
-                EmailService.sendStepOpenedNotification(
-                    stepInstance as Map,
-                    teams,
-                    userId
-                )
-                
-                return [success: true, emailsSent: teams.size()]
+                return [success: true, stepInstance: stepInstance] as Map<String, Object>
                 
             } catch (Exception e) {
-                return [success: false, error: e.message]
+                return [success: false, error: e.message] as Map<String, Object>
             }
+        } as Map<String, Object>
+    }
+
+    /**
+     * DEPRECATED: Marks a step instance as opened by a PILOT with notification handling.
+     * NOTE: Email notifications are now handled by StepNotificationIntegration.
+     * This method remains for backward compatibility.
+     * @param stepInstanceId The UUID of the step instance
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and mock email results for compatibility
+     */
+    @Deprecated
+    Map openStepInstanceWithNotification(UUID stepInstanceId, Integer userId = null) {
+        // Call the new method that handles database operations only
+        Map<String, Object> result = openStepInstance(stepInstanceId, userId)
+        
+        if (result['success'] as Boolean) {
+            // Return compatibility format with mock email count
+            return [success: true, emailsSent: 0] as Map<String, Object>
+        } else {
+            return result
         }
     }
 
     /**
-     * Marks an instruction as completed and sends notifications.
+     * Marks an instruction as completed (database only - no notifications).
      * @param instructionId The UUID of the instruction instance
      * @param stepInstanceId The UUID of the step instance
      * @param userId Optional user ID for audit logging
-     * @return Map with success status and email send results
+     * @return Map with success status and instruction data
      */
-    Map completeInstructionWithNotification(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
-        DatabaseUtil.withSql { sql ->
+    Map<String, Object> completeInstruction(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        return DatabaseUtil.withSql { Sql sql ->
             try {
                 // Get instruction data
                 def instruction = sql.firstRow('''
@@ -614,15 +646,15 @@ class StepRepository {
                     FROM instructions_instance_ini ini
                     JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
                     WHERE ini.ini_id = :instructionId
-                ''', [instructionId: instructionId])
+                ''', [instructionId: instructionId]) as GroovyRowResult
                 
                 if (!instruction) {
-                    return [success: false, error: "Instruction not found"]
+                    return [success: false, error: "Instruction not found"] as Map<String, Object>
                 }
                 
                 // Check if already completed
                 if (instruction.ini_is_completed) {
-                    return [success: false, error: "Instruction already completed"]
+                    return [success: false, error: "Instruction already completed"] as Map<String, Object>
                 }
                 
                 // Get step instance data
@@ -642,10 +674,10 @@ class StepRepository {
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
                     WHERE sti.sti_id = :stepInstanceId
-                ''', [stepInstanceId: stepInstanceId])
+                ''', [stepInstanceId: stepInstanceId]) as GroovyRowResult
                 
                 if (!stepInstance) {
-                    return [success: false, error: "Step instance not found"]
+                    return [success: false, error: "Step instance not found"] as Map<String, Object>
                 }
                 
                 // Complete instruction directly with audit logging
@@ -661,7 +693,7 @@ class StepRepository {
                 ''', [iniId: instructionId, userId: userId, updatedBy: AuthenticationService.getSystemUser()])
                 
                 if (updateCount != 1) {
-                    return [success: false, error: "Failed to complete instruction"]
+                    return [success: false, error: "Failed to complete instruction"] as Map<String, Object>
                 }
                 
                 // Log to audit trail if update was successful
@@ -693,39 +725,45 @@ class StepRepository {
                     auditError.printStackTrace()
                 }
                 
-                // Get teams for notification - including instruction team
-                def teams = getTeamsForNotificationWithInstructionTeam(
-                    sql, 
-                    stepInstance.stm_id as UUID, 
-                    stepInstance.tms_id_owner as Integer,
-                    instruction.instruction_team_id as Integer
-                )
-                
-                // Send notification
-                EmailService.sendInstructionCompletedNotification(
-                    instruction as Map,
-                    stepInstance as Map,
-                    teams,
-                    userId
-                )
-                
-                return [success: true, emailsSent: teams.size()]
+                return [success: true, instruction: instruction, stepInstance: stepInstance] as Map<String, Object>
                 
             } catch (Exception e) {
-                return [success: false, error: e.message]
+                return [success: false, error: e.message] as Map<String, Object>
             }
+        } as Map<String, Object>
+    }
+
+    /**
+     * DEPRECATED: Marks an instruction as completed with notification handling.
+     * NOTE: Email notifications are now handled by StepNotificationIntegration.
+     * This method remains for backward compatibility.
+     * @param instructionId The UUID of the instruction instance
+     * @param stepInstanceId The UUID of the step instance
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and mock email results for compatibility
+     */
+    @Deprecated
+    Map<String, Object> completeInstructionWithNotification(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        // Call the new method that handles database operations only
+        Map<String, Object> result = completeInstruction(instructionId, stepInstanceId, userId)
+        
+        if (result['success'] as Boolean) {
+            // Return compatibility format with mock email count
+            return [success: true, emailsSent: 0] as Map<String, Object>
+        } else {
+            return result
         }
     }
 
     /**
-     * Mark an instruction as incomplete and send notification to relevant teams.
+     * Mark an instruction as incomplete (database only - no notifications).
      * @param instructionId The UUID of the instruction instance
      * @param stepInstanceId The UUID of the step instance
      * @param userId Optional user ID for audit logging
-     * @return Map with success status and email send results
+     * @return Map with success status and instruction data
      */
-    Map uncompleteInstructionWithNotification(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
-        DatabaseUtil.withSql { sql ->
+    Map<String, Object> uncompleteInstruction(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        return DatabaseUtil.withSql { Sql sql ->
             try {
                 // Get instruction data
                 def instruction = sql.firstRow('''
@@ -736,15 +774,15 @@ class StepRepository {
                     FROM instructions_instance_ini ini
                     JOIN instructions_master_inm inm ON ini.inm_id = inm.inm_id
                     WHERE ini.ini_id = :instructionId
-                ''', [instructionId: instructionId])
+                ''', [instructionId: instructionId]) as GroovyRowResult
                 
                 if (!instruction) {
-                    return [success: false, error: "Instruction not found"]
+                    return [success: false, error: "Instruction not found"] as Map<String, Object>
                 }
                 
                 // Check if already incomplete
                 if (!instruction.ini_is_completed) {
-                    return [success: false, error: "Instruction is already incomplete"]
+                    return [success: false, error: "Instruction is already incomplete"] as Map<String, Object>
                 }
                 
                 // Get step instance data
@@ -764,10 +802,10 @@ class StepRepository {
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
                     WHERE sti.sti_id = :stepInstanceId
-                ''', [stepInstanceId: stepInstanceId])
+                ''', [stepInstanceId: stepInstanceId]) as GroovyRowResult
                 
                 if (!stepInstance) {
-                    return [success: false, error: "Step instance not found"]
+                    return [success: false, error: "Step instance not found"] as Map<String, Object>
                 }
                 
                 // Uncomplete instruction directly with audit logging
@@ -790,7 +828,7 @@ class StepRepository {
                 ''', [iniId: instructionId, updatedBy: AuthenticationService.getSystemUser()])
                 
                 if (updateCount != 1) {
-                    return [success: false, error: "Failed to mark instruction as incomplete"]
+                    return [success: false, error: "Failed to mark instruction as incomplete"] as Map<String, Object>
                 }
                 
                 // Log to audit trail if update was successful
@@ -824,27 +862,33 @@ class StepRepository {
                     auditError.printStackTrace()
                 }
                 
-                // Get teams for notification - including instruction team
-                def teams = getTeamsForNotificationWithInstructionTeam(
-                    sql, 
-                    stepInstance.stm_id as UUID, 
-                    stepInstance.tms_id_owner as Integer,
-                    instruction.instruction_team_id as Integer
-                )
-                
-                // Send notification
-                EmailService.sendInstructionUncompletedNotification(
-                    instruction as Map,
-                    stepInstance as Map,
-                    teams,
-                    userId
-                )
-                
-                return [success: true, emailsSent: teams.size()]
+                return [success: true, instruction: instruction, stepInstance: stepInstance] as Map<String, Object>
                 
             } catch (Exception e) {
-                return [success: false, error: e.message]
+                return [success: false, error: e.message] as Map<String, Object>
             }
+        } as Map<String, Object>
+    }
+
+    /**
+     * DEPRECATED: Mark an instruction as incomplete with notification handling.
+     * NOTE: Email notifications are now handled by StepNotificationIntegration.
+     * This method remains for backward compatibility.
+     * @param instructionId The UUID of the instruction instance
+     * @param stepInstanceId The UUID of the step instance
+     * @param userId Optional user ID for audit logging
+     * @return Map with success status and mock email results for compatibility
+     */
+    @Deprecated
+    Map<String, Object> uncompleteInstructionWithNotification(UUID instructionId, UUID stepInstanceId, Integer userId = null) {
+        // Call the new method that handles database operations only
+        Map<String, Object> result = uncompleteInstruction(instructionId, stepInstanceId, userId)
+        
+        if (result['success'] as Boolean) {
+            // Return compatibility format with mock email count
+            return [success: true, emailsSent: 0] as Map<String, Object>
+        } else {
+            return result
         }
     }
 
@@ -852,8 +896,8 @@ class StepRepository {
      * Helper method to get all teams that should receive notifications for a step.
      * Includes owner team and impacted teams.
      */
-    private List<Map> getTeamsForNotification(Sql sql, UUID stmId, Integer ownerTeamId) {
-        def teams = []
+    private List<Map<String, Object>> getTeamsForNotification(Sql sql, UUID stmId, Integer ownerTeamId) {
+        def teams = [] as List<Map<String, Object>>
         
         // Add owner team
         if (ownerTeamId) {
@@ -879,9 +923,9 @@ class StepRepository {
         teams.addAll(impactedTeams as List<Map>)
         
         // Remove duplicates by team ID
-        def uniqueTeams = teams.unique { team -> (team as Map).tms_id }
+        def uniqueTeams = teams.unique { Map<String, Object> team -> team.tms_id }
         
-        return uniqueTeams as List<Map>
+        return uniqueTeams as List<Map<String, Object>>
     }
     
     /**
@@ -889,8 +933,8 @@ class StepRepository {
      * including the instruction-specific team.
      * Includes owner team, impacted teams, and instruction team.
      */
-    private List<Map> getTeamsForNotificationWithInstructionTeam(Sql sql, UUID stmId, Integer ownerTeamId, Integer instructionTeamId) {
-        def teams = []
+    private List<Map<String, Object>> getTeamsForNotificationWithInstructionTeam(Sql sql, UUID stmId, Integer ownerTeamId, Integer instructionTeamId) {
+        def teams = [] as List<Map<String, Object>>
         
         // Add owner team
         if (ownerTeamId) {
@@ -929,9 +973,9 @@ class StepRepository {
         }
         
         // Remove duplicates by team ID
-        def uniqueTeams = teams.unique { team -> (team as Map).tms_id }
+        def uniqueTeams = teams.unique { Map<String, Object> team -> team.tms_id }
         
-        return uniqueTeams as List<Map>
+        return uniqueTeams as List<Map<String, Object>>
     }
     
     /**
@@ -939,8 +983,8 @@ class StepRepository {
      * @param stepInstanceId Step instance UUID
      * @return Step instance details with instructions and comments
      */
-    def findStepInstanceDetailsById(UUID stepInstanceId) {
-        DatabaseUtil.withSql { Sql sql ->
+    Map<String, Object> findStepInstanceDetailsById(UUID stepInstanceId) {
+        return DatabaseUtil.withSql { Sql sql ->
             // Get the step instance with master data and hierarchy
             def stepInstance = sql.firstRow('''
                 SELECT 
@@ -1023,20 +1067,20 @@ class StepRepository {
                 JOIN iteration_types_itt itt ON smit.itt_code = itt.itt_code
                 WHERE smit.stm_id = :stmId
                 ORDER BY itt.itt_code
-            ''', [stmId: stepInstance.stm_id])
+            ''', [stmId: stepInstance['stm_id']])
             
             // Get impacted teams using the master step ID
             def impactedTeamIds = sql.rows('''
                 SELECT tms_id
                 FROM steps_master_stm_x_teams_tms_impacted
                 WHERE stm_id = :stmId
-            ''', [stmId: stepInstance.stm_id])*.tms_id
+            ''', [stmId: stepInstance['stm_id']])*.tms_id
             
-            def impactedTeams = []
+            def impactedTeams = [] as List<String>
             impactedTeamIds.each { teamId ->
                 def team = sql.firstRow('SELECT tms_name FROM teams_tms WHERE tms_id = :teamId', [teamId: teamId])
                 if (team) {
-                    impactedTeams << team.tms_name
+                    impactedTeams.add(team['tms_name'] as String)
                 }
             }
             
@@ -1045,10 +1089,10 @@ class StepRepository {
             
             // Get labels for this step (using master step ID)
             List labels = []
-            if (stepInstance.stm_id) {
+            if (stepInstance['stm_id']) {
                 try {
-                    labels = findLabelsByStepId(stepInstance.stm_id as UUID) as List
-                    println "DEBUG: Found ${labels.size()} labels for step ${stepInstance.stm_id}"
+                    labels = findLabelsByStepId(stepInstance['stm_id'] as UUID) as List
+                    println "DEBUG: Found ${labels.size()} labels for step ${stepInstance['stm_id']}"
                 } catch (Exception e) {
                     println "ERROR fetching labels: ${e.message}"
                 }
@@ -1056,31 +1100,31 @@ class StepRepository {
             
             return [
                 stepSummary: [
-                    ID: stepInstance.sti_id,
-                    Name: stepInstance.sti_name ?: stepInstance.master_name,
-                    Description: stepInstance.stm_description,
-                    StatusID: stepInstance.sti_status,  // Changed from Status to StatusID for consistency
-                    Duration: stepInstance.sti_duration_minutes ?: stepInstance.master_duration,
-                    AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
-                    StepCode: "${stepInstance.stt_code}-${String.format('%03d', stepInstance.stm_number)}",
+                    ID: stepInstance['sti_id'],
+                    Name: stepInstance['sti_name'] ?: stepInstance['master_name'],
+                    Description: stepInstance['stm_description'],
+                    StatusID: stepInstance['sti_status'],  // Changed from Status to StatusID for consistency
+                    Duration: stepInstance['sti_duration_minutes'] ?: stepInstance['master_duration'],
+                    AssignedTeam: stepInstance['owner_team_name'] ?: 'Unassigned',
+                    StepCode: "${stepInstance['stt_code']}-${String.format('%03d', stepInstance['stm_number'] as Integer)}",
                     // Hierarchy information
-                    MigrationName: stepInstance.migration_name,
-                    IterationName: stepInstance.iteration_name,
-                    PlanName: stepInstance.plan_name,
-                    SequenceName: stepInstance.sequence_name,
-                    PhaseName: stepInstance.phase_name,
+                    MigrationName: stepInstance['migration_name'],
+                    IterationName: stepInstance['iteration_name'],
+                    PlanName: stepInstance['plan_name'],
+                    SequenceName: stepInstance['sequence_name'],
+                    PhaseName: stepInstance['phase_name'],
                     // Predecessor information
-                    PredecessorCode: stepInstance.predecessor_stt_code && stepInstance.predecessor_stm_number ? 
-                        "${stepInstance.predecessor_stt_code}-${String.format('%03d', stepInstance.predecessor_stm_number)}" : null,
-                    PredecessorName: stepInstance.predecessor_name,
+                    PredecessorCode: stepInstance['predecessor_stt_code'] && stepInstance['predecessor_stm_number'] ? 
+                        "${stepInstance['predecessor_stt_code']}-${String.format('%03d', stepInstance['predecessor_stm_number'] as Integer)}" : null,
+                    PredecessorName: stepInstance['predecessor_name'],
                     // Environment role
-                    TargetEnvironment: stepInstance.environment_role_name ? 
-                        (stepInstance.environment_name ? 
-                            "${stepInstance.environment_role_name} (${stepInstance.environment_name})" : 
-                            "${stepInstance.environment_role_name} (!No Environment Assigned Yet!)") : 
+                    TargetEnvironment: stepInstance['environment_role_name'] ? 
+                        (stepInstance['environment_name'] ? 
+                            "${stepInstance['environment_role_name']} (${stepInstance['environment_name']})" : 
+                            "${stepInstance['environment_role_name']} (!No Environment Assigned Yet!)") : 
                         'Not specified',
                     // Iteration types (scope)
-                    IterationTypes: iterationTypes.collect { it.itt_code },
+                    IterationTypes: iterationTypes.collect { it['itt_code'] as String },
                     // Labels
                     Labels: labels
                 ],
@@ -1109,8 +1153,8 @@ class StepRepository {
      * @param stepCode The step code (e.g., "APP-001")
      * @return Map containing step instance details and instructions
      */
-    def findStepInstanceDetailsByCode(String stepCode) {
-        DatabaseUtil.withSql { Sql sql ->
+    Map<String, Object> findStepInstanceDetailsByCode(String stepCode) {
+        return DatabaseUtil.withSql { Sql sql ->
             if (!stepCode || !stepCode.contains('-')) {
                 return null
             }
@@ -1178,21 +1222,21 @@ class StepRepository {
                 WHERE sti.stm_id = :stmId
                 ORDER BY sti.sti_id DESC
                 LIMIT 1
-            ''', [stmId: stepMaster.stm_id])
+            ''', [stmId: stepMaster['stm_id']])
             
             if (!stepInstance) {
                 // If no instance exists, return master data only
                 // Get owner team name for master
                 def ownerTeam = null
-                if (stepMaster.tms_id_owner) {
-                    ownerTeam = sql.firstRow('SELECT tms_name FROM teams_tms WHERE tms_id = :teamId', [teamId: stepMaster.tms_id_owner])
+                if (stepMaster['tms_id_owner']) {
+                    ownerTeam = sql.firstRow('SELECT tms_name FROM teams_tms WHERE tms_id = :teamId', [teamId: stepMaster['tms_id_owner']])
                 }
                 
                 return [
                     stepSummary: [
                         ID: stepCode,
-                        Name: stepMaster.stm_name,
-                        Description: stepMaster.stm_description,
+                        Name: stepMaster['stm_name'],
+                        Description: stepMaster['stm_description'],
                         StatusID: 1, // PENDING status ID
                         AssignedTeam: ownerTeam?.tms_name ?: 'Unassigned',
                         // Add empty hierarchical context for consistency
@@ -1227,32 +1271,32 @@ class StepRepository {
                 LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
                 WHERE ini.sti_id = :stiId
                 ORDER BY inm.inm_order
-            ''', [stiId: stepInstance.sti_id])
+            ''', [stiId: stepInstance['sti_id']])
             
             // Get impacted teams using the master step ID
             def impactedTeamIds = sql.rows('''
                 SELECT tms_id
                 FROM steps_master_stm_x_teams_tms_impacted
                 WHERE stm_id = :stmId
-            ''', [stmId: stepMaster.stm_id])*.tms_id
+            ''', [stmId: stepMaster['stm_id']])*.tms_id
             
-            def impactedTeams = []
+            def impactedTeams = [] as List<String>
             impactedTeamIds.each { teamId ->
                 def team = sql.firstRow('SELECT tms_name FROM teams_tms WHERE tms_id = :teamId', [teamId: teamId])
                 if (team) {
-                    impactedTeams << team.tms_name
+                    impactedTeams.add(team['tms_name'] as String)
                 }
             }
             
             // Get comments for this step instance
-            def comments = findCommentsByStepInstanceId(stepInstance.sti_id as UUID)
+            def comments = findCommentsByStepInstanceId(stepInstance['sti_id'] as UUID)
             
             // Get labels for this step (using master step ID) - ADDED
             List labels = []
-            if (stepMaster.stm_id) {
+            if (stepMaster['stm_id']) {
                 try {
-                    labels = findLabelsByStepId(stepMaster.stm_id as UUID) as List
-                    println "DEBUG: Found ${labels.size()} labels for step ${stepMaster.stm_id}"
+                    labels = findLabelsByStepId(stepMaster['stm_id'] as UUID) as List
+                    println "DEBUG: Found ${labels.size()} labels for step ${stepMaster['stm_id']}"
                 } catch (Exception e) {
                     println "ERROR fetching labels: ${e.message}"
                 }
@@ -1261,13 +1305,13 @@ class StepRepository {
             return [
                 stepSummary: [
                     ID: stepCode,
-                    Name: stepInstance.sti_name ?: stepMaster.stm_name,
-                    Description: stepMaster.stm_description,
+                    Name: stepInstance.sti_name ?: stepMaster['stm_name'],
+                    Description: stepMaster['stm_description'],
                     // Changed to StatusID for consistency with findStepInstanceDetailsById
-                    StatusID: stepInstance.sti_status,
+                    StatusID: stepInstance['sti_status'],
                     AssignedTeam: stepInstance.owner_team_name ?: 'Unassigned',
                     Duration: stepMaster.stm_duration_minutes,
-                    sti_id: stepInstance.sti_id?.toString(),  // Include step instance ID for comments
+                    sti_id: stepInstance['sti_id']?.toString(),  // Include step instance ID for comments
                     // ADDED: Complete hierarchical context
                     MigrationName: stepInstance.migration_name,
                     IterationName: stepInstance.iteration_name,
@@ -1415,51 +1459,51 @@ class StepRepository {
      * @param row Database row containing step instance data
      * @return Enhanced step instance map with statusMetadata
      */
-    private Map enrichStepInstanceWithStatusMetadata(Map row) {
+    private Map<String, Object> enrichStepInstanceWithStatusMetadata(Map<String, Object> row) {
         // Get status metadata if status is an ID
         def statusMetadata = null
-        def statusName = row.sti_status
+        def statusName = row['sti_status']
         
-        if (row.sti_status instanceof Number) {
+        if (row['sti_status'] instanceof Number) {
             // Status is already an ID, get the name and metadata
             def statusInfo = DatabaseUtil.withSql { sql ->
                 sql.firstRow("SELECT sts_name, sts_color, sts_type FROM status_sts WHERE sts_id = :statusId", 
-                    [statusId: row.sti_status])
+                    [statusId: row['sti_status']])
             }
             if (statusInfo) {
-                statusName = statusInfo.sts_name
+                statusName = statusInfo['sts_name'] as String
                 statusMetadata = [
-                    id: row.sti_status,
-                    name: statusInfo.sts_name,
-                    color: statusInfo.sts_color,
-                    type: statusInfo.sts_type
+                    id: row['sti_status'] as Integer,
+                    name: statusInfo['sts_name'] as String,
+                    color: statusInfo['sts_color'] as String,
+                    type: statusInfo['sts_type'] as String
                 ]
             }
         }
         
         return [
-            id: row.sti_id,
-            stmId: row.stm_id,
-            sttCode: row.stt_code,
-            stmNumber: row.stm_number,
-            name: row.sti_name ?: row.master_name,
+            id: row['sti_id'],
+            stmId: row['stm_id'],
+            sttCode: row['stt_code'] as String,
+            stmNumber: row['stm_number'] as Integer,
+            name: (row['sti_name'] ?: row['master_name']) as String,
             status: statusName, // Backward compatibility - return status name as string
-            durationMinutes: row.sti_duration_minutes,
-            ownerTeamId: row.tms_id_owner,
-            ownerTeamName: row.owner_team_name,
+            durationMinutes: row['sti_duration_minutes'] as Integer,
+            ownerTeamId: row['tms_id_owner'] as Integer,
+            ownerTeamName: row['owner_team_name'] as String,
             // Hierarchy context
-            sequenceId: row.sqm_id,
-            sequenceName: row.sqm_name,
-            sequenceNumber: row.sqm_order,
-            phaseId: row.phm_id,
-            phaseName: row.phm_name,
-            phaseNumber: row.phm_order,
-            planId: row.plm_id,
-            planName: row.plm_name,
-            iterationId: row.ite_id,
-            iterationName: row.ite_name,
-            migrationId: row.mig_id,
-            migrationName: row.mig_name,
+            sequenceId: row['sqm_id'],
+            sequenceName: row['sqm_name'] as String,
+            sequenceNumber: row['sqm_order'] as Integer,
+            phaseId: row['phm_id'],
+            phaseName: row['phm_name'] as String,
+            phaseNumber: row['phm_order'] as Integer,
+            planId: row['plm_id'],
+            planName: row['plm_name'] as String,
+            iterationId: row['ite_id'],
+            iterationName: row['ite_name'] as String,
+            migrationId: row['mig_id'],
+            migrationName: row['mig_name'] as String,
             // Enhanced status metadata
             statusMetadata: statusMetadata
         ] as Map
@@ -1860,7 +1904,7 @@ class StepRepository {
                                 return
                             }
                             
-                            def oldStatusId = stepInstance.sti_status
+                            def oldStatusId = stepInstance['sti_status']
                             
                             // Update the status
                             def updateCount = sql.executeUpdate('''
@@ -1949,7 +1993,7 @@ class StepRepository {
                                     updated_by = :userId,
                                     updated_at = CURRENT_TIMESTAMP
                                 WHERE stm_id = :stmId
-                            ''', [teamId: teamId, userId: userId ?: 'system', stmId: stepData.stm_id])
+                            ''', [teamId: teamId, userId: userId ?: 'system', stmId: stepData['stm_id']])
                             
                             if (updateCount == 1) {
                                 results.add([stepId: stepId, success: true, oldTeamId: oldTeamId, newTeamId: teamId])
@@ -2077,44 +2121,44 @@ class StepRepository {
     /**
      * Enhanced step instance enrichment with advanced metadata.
      */
-    private Map enrichStepInstanceWithAdvancedMetadata(Map row) {
+    private Map<String, Object> enrichStepInstanceWithAdvancedMetadata(Map<String, Object> row) {
         return [
-            id: row.sti_id,
-            stmId: row.stm_id,
-            sttCode: row.stt_code,
-            stmNumber: row.stm_number,
-            stepCode: "${row.stt_code}-${String.format('%03d', row.stm_number)}",
-            name: row.sti_name ?: row.master_name,
-            description: row.stm_description,
-            status: row.status_name ?: row.sti_status, // Backward compatibility
-            statusMetadata: row.status_name ? [
-                id: row.sti_status,
-                name: row.status_name,
-                color: row.sts_color,
-                type: row.sts_type
+            id: row['sti_id'],
+            stmId: row['stm_id'],
+            sttCode: row['stt_code'] as String,
+            stmNumber: row['stm_number'] as Integer,
+            stepCode: "${row['stt_code']}-${String.format('%03d', row['stm_number'] as Integer)}",
+            name: (row['sti_name'] ?: row['master_name']) as String,
+            description: row['stm_description'] as String,
+            status: (row['status_name'] ?: row['sti_status']) as String, // Backward compatibility
+            statusMetadata: row['status_name'] ? [
+                id: row['sti_status'] as Integer,
+                name: row['status_name'] as String,
+                color: row['sts_color'] as String,
+                type: row['sts_type'] as String
             ] : null,
-            durationMinutes: row.sti_duration_minutes,
-            startTime: row.sti_start_time,
-            endTime: row.sti_end_time,
-            ownerTeamId: row.tms_id_owner,
-            ownerTeamName: row.owner_team_name,
+            durationMinutes: row['sti_duration_minutes'] as Integer,
+            startTime: row['sti_start_time'],
+            endTime: row['sti_end_time'],
+            ownerTeamId: row['tms_id_owner'] as Integer,
+            ownerTeamName: row['owner_team_name'] as String,
             // Hierarchy context
-            sequenceId: row.sqm_id,
-            sequenceName: row.sqm_name,
-            sequenceOrder: row.sqm_order,
-            phaseId: row.phm_id,
-            phaseName: row.phm_name,
-            phaseOrder: row.phm_order,
-            planId: row.plm_id,
-            planName: row.plm_name,
+            sequenceId: row['sqm_id'],
+            sequenceName: row['sqm_name'] as String,
+            sequenceOrder: row['sqm_order'] as Integer,
+            phaseId: row['phm_id'],
+            phaseName: row['phm_name'] as String,
+            phaseOrder: row['phm_order'] as Integer,
+            planId: row['plm_id'],
+            planName: row['plm_name'] as String,
             // Instance IDs for hierarchical filtering
-            planInstanceId: row.pli_id,
-            sequenceInstanceId: row.sqi_id,
-            phaseInstanceId: row.phi_id,
-            iterationId: row.ite_id,
-            iterationName: row.ite_name,
-            migrationId: row.mig_id,
-            migrationName: row.mig_name
+            planInstanceId: row['pli_id'],
+            sequenceInstanceId: row['sqi_id'],
+            phaseInstanceId: row['phi_id'],
+            iterationId: row['ite_id'],
+            iterationName: row['ite_name'] as String,
+            migrationId: row['mig_id'],
+            migrationName: row['mig_name'] as String
         ] as Map
     }
 }

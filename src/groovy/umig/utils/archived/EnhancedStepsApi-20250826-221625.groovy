@@ -4,9 +4,8 @@ import com.onresolve.scriptrunner.runner.rest.common.CustomEndpointDelegate
 import umig.repository.StepRepository
 import umig.repository.StatusRepository
 import umig.repository.UserRepository
-import umig.service.UserService
+import umig.utils.UserService
 import umig.utils.StepNotificationIntegration
-import umig.utils.EnhancedEmailService
 import umig.utils.StepContentFormatter
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
@@ -43,7 +42,7 @@ import java.sql.SQLException
  * Enhanced PUT endpoint for step status updates with URL-aware notifications
  * - PUT /enhanced-steps/{stepInstanceId}/status -> individual step status update with URLs
  */
-steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+enhancedSteps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
     String extraPath = getAdditionalPath(request) as String
     List<String> pathParts = extraPath?.split('/')?.findAll { String it -> it } as List<String> ?: [] as List<String>
     
@@ -215,7 +214,7 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
  * - POST /enhanced-steps/{stepInstanceId}/open -> marks step as opened with URLs
  * - POST /enhanced-steps/{stepInstanceId}/instructions/{instructionId}/complete -> marks instruction as completed with URLs
  */
-steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
+enhancedSteps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap<String, String> queryParams, String body, HttpServletRequest request ->
     String extraPath = getAdditionalPath(request) as String
     List<String> pathParts = extraPath?.split('/')?.findAll { String it -> it } as List<String> ?: [] as List<String>
     
