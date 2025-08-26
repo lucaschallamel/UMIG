@@ -4,6 +4,8 @@
 
 import com.atlassian.confluence.user.AuthenticatedUserThreadLocal
 import com.atlassian.user.User
+import umig.utils.UrlConstructionService
+import groovy.json.JsonBuilder
 
 // Get the current Confluence user context
 User currentUser = AuthenticatedUserThreadLocal.get()
@@ -12,6 +14,10 @@ String confluenceFullName = currentUser?.getFullName() ?: ""
 String confluenceEmail = currentUser?.getEmail() ?: ""
 
 def webRoot = System.getenv('UMIG_WEB_ROOT') ?: '/rest/scriptrunner/latest/custom/web'
+
+// Get URL configuration for StepView using the UrlConstructionService
+def urlConfig = UrlConstructionService.getUrlConfigurationForEnvironment()
+def stepViewBaseUrl = UrlConstructionService.buildStepViewUrlTemplate()
 
 return """
 <!-- Canonical CSS for Iteration View -->
@@ -30,6 +36,10 @@ return """
         },
         ui: {
             roleBasedControls: true
+        },
+        stepView: {
+            baseUrl: "${stepViewBaseUrl ?: ''}",
+            urlConfig: ${urlConfig ? new JsonBuilder(urlConfig).toString() : 'null'}
         }
     };
     console.log('IterationView: Configuration loaded', window.UMIG_ITERATION_CONFIG);

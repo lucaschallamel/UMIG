@@ -20,7 +20,7 @@ UMIG addresses the critical need for structured, auditable, and collaborative ma
 - **Hierarchical Implementation Plans**: Structured organization of migrations → iterations → plans → sequences → phases → steps → instructions
 - **Real-time Collaboration**: Multi-user environment with role-based access and team management
 - **Status Tracking**: Complete audit trail of execution progress with commenting system
-- **Email Notifications**: Production-ready automated notifications with system configuration and template management
+- **Enhanced Email Notifications**: Mobile-responsive email templates with complete step content, cross-platform compatibility (8+ email clients), and environment-specific Confluence integration
 - **Interactive Runsheets**: Dynamic, filterable views for live cutover event management
 - **Responsive Design**: Mobile-friendly interface for field operations
 - **Pure ScriptRunner Integration**: Native Confluence plugin architecture

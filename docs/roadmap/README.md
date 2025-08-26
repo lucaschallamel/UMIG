@@ -1,7 +1,7 @@
 # UMIG Roadmap Directory
 
-**Last Updated**: August 18, 2025  
-**Project Status**: Sprint 5 - 🚀 EXECUTION PHASE (MVP Completion, 8 stories, 23 points, 92% capacity utilization)
+**Last Updated**: August 26, 2025  
+**Project Status**: Sprint 5 - 🚀 EXTENSION PHASE (MVP Complete + Extension Stories: US-039, US-047, US-050, 18 points remaining, 60% buffer capacity)
 
 This directory contains the comprehensive development roadmap, sprint planning, and UI/UX specifications for the UMIG project, organized into focused subfolders for scalable project management.
 
@@ -18,27 +18,35 @@ Sprint-based development planning with detailed user stories, technical specific
 - **[sprint5/sprint5-story-breakdown.md](./sprint5/sprint5-story-breakdown.md)** - Complete user story specifications (8 stories, 23 points)
 - **[sprint5/US-037-TECHNICAL-DEBT-Integration-Testing-Framework-Standardization.md](./sprint5/US-037-TECHNICAL-DEBT-Integration-Testing-Framework-Standardization.md)** - Technical debt acceleration (moved from Sprint 6)
 
-**Sprint 5 Stories (8 stories, 23 points - SCOPE EXPANDED)**:
+**Sprint 5 Stories - MVP CORE COMPLETE (Original 8 stories, 23 points):**
 
-**📋 P0 Critical (Day 1):**
+**✅ P0 Critical COMPLETED:**
 
-- US-022: Integration Test Expansion (1 point) - Foundation completion
-- US-030: API Documentation Completion (1 point) - UAT preparation
+- ✅ US-022: Integration Test Expansion (1 point) - Foundation completion COMPLETE
+- ✅ US-030: API Documentation Completion (1 point) - UAT preparation COMPLETE
 
-**🎯 P0 MVP Core (Days 2-4):**
+**✅ P0 MVP Core COMPLETED:**
 
-- US-031: Admin GUI Complete Integration (6 points) - Cross-module synchronization
-- US-036: StepView UI Refactoring (3 points) - Enhanced interface
+- ✅ US-031: Admin GUI Complete Integration (8 points) - 95% COMPLETE (13/13 endpoints functional, authentication investigation)
+- ✅ US-036: StepView UI Refactoring (8 points) - 100% COMPLETE (comprehensive scope expansion)
 
-**📊 P1 MVP Enablers (Days 4-5):**
+**❌ P1 MVP Enablers DESCOPED TO BACKLOG:**
 
-- US-034: Data Import Strategy (3 points) - Migration enablement
-- US-033: Main Dashboard UI (3 points) - Central command center
+- ❌ US-034: Data Import Strategy (3 points) - Moved to backlog for risk reduction
+- ❌ US-033: Main Dashboard UI (3 points) - Moved to backlog for MVP focus
 
-**🔧 P2-P3 Enhancement & Technical Debt (Day 5):**
+**✅ P2-P3 Enhancement & Technical Debt COMPLETED:**
 
-- US-035: Enhanced IterationView Phases 2-3 (1 point) - Advanced features
-- US-037: Integration Testing Framework Standardization (5 points) - **MOVED FROM SPRINT 6** - Technical debt acceleration (ADR-041)
+- ❌ US-035: Enhanced IterationView Phases 2-3 (1 point) - Descoped to backlog
+- 🔄 US-037: Integration Testing Framework Standardization (5 points) - Technical debt acceleration (ADR-041)
+
+**🚀 SPRINT 5 EXTENSION STORIES (NEW - 12 points):**
+
+**📧 P1 High Value Enhancement:**
+
+- 📧 US-039: Enhanced Email Notifications (5 points) - Mobile-responsive email templates with full step content ([Implementation Plan](./sprint5/sprint5-US-39.md))
+- 📋 US-047: Master Instructions Management (5 points) - Step modal integration with CRUD operations
+- 🔍 US-050: Step ID Uniqueness Validation (2 points) - Data integrity enhancement
 
 **Previous Sprint**: Sprint 4 - Strategic Triumph (Aug 7-15, 2025) ✅ COMPLETED
 

@@ -10,12 +10,13 @@ const SEQUENCE_NAMES = [
 const ITERATION_TYPES = ["RUN", "DR", "CUTOVER"];
 const ITERATION_WINDOW_DAYS = 13;
 const ENVIRONMENTS = [
-  { name: "PROD" },
-  { name: "EV1" },
-  { name: "EV2" },
-  { name: "EV3" },
-  { name: "EV4" },
-  { name: "EV5" },
+  { name: "DEV", env_id: 1, description: "Development environment (created by migration)" },
+  { name: "PROD", env_id: 2, description: "Production environment" },
+  { name: "EV1", env_id: 3, description: "Environment 1" },
+  { name: "EV2", env_id: 4, description: "Environment 2" },
+  { name: "EV3", env_id: 5, description: "Environment 3" },
+  { name: "EV4", env_id: 6, description: "Environment 4" },
+  { name: "EV5", env_id: 7, description: "Environment 5" },
 ];
 
 function randomDateInRange(startStr, endStr) {

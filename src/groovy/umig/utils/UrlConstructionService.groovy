@@ -313,6 +313,100 @@ class UrlConstructionService {
     }
     
     /**
+     * Constructs a stepView URL template for dynamic parameter injection
+     * Used by macros that need to build URLs client-side with user selections
+     * 
+     * @param environmentCode Environment code (e.g., "EV1", "PROD") - defaults to auto-detection
+     * @return Base URL template without step-specific parameters, or null if construction fails
+     */
+    static String buildStepViewUrlTemplate(String environmentCode = null) {
+        try {
+            // Auto-detect environment if not provided
+            if (!environmentCode) {
+                environmentCode = detectEnvironment()
+            }
+            
+            // Get system configuration for the environment
+            def config = getSystemConfiguration(environmentCode)
+            if (!config) {
+                println "UrlConstructionService: No configuration found for environment: ${environmentCode}"
+                return null
+            }
+            
+            // Validate and sanitize configuration components
+            def baseUrl = sanitizeBaseUrl(config.scf_base_url as String)
+            def spaceKey = sanitizeParameter(config.scf_space_key as String)
+            def pageId = sanitizeParameter(config.scf_page_id as String)
+            def pageTitle = sanitizeParameter(config.scf_page_title as String)
+            
+            if (!baseUrl || !spaceKey || !pageId || !pageTitle) {
+                println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}"
+                return null
+            }
+            
+            // Build the template URL without query parameters
+            def urlBuilder = new StringBuilder()
+            urlBuilder.append(baseUrl)
+            if (!baseUrl.endsWith('/')) {
+                urlBuilder.append('/')
+            }
+            urlBuilder.append("spaces/${spaceKey}/pages/${pageId}/${URLEncoder.encode(pageTitle, StandardCharsets.UTF_8.toString())}")
+            
+            def templateUrl = urlBuilder.toString()
+            
+            // Final validation
+            if (!isValidUrl("${templateUrl}?test=value")) {
+                println "UrlConstructionService: Template URL validation failed: ${templateUrl}"
+                return null
+            }
+            
+            return templateUrl
+            
+        } catch (Exception e) {
+            println "UrlConstructionService: Error constructing URL template for environment ${environmentCode}: ${e.message}"
+            e.printStackTrace()
+            return null
+        }
+    }
+    
+    /**
+     * Gets the base URL configuration for a specific environment
+     * Used by macros to expose configuration to client-side JavaScript
+     * 
+     * @param environmentCode Environment code (e.g., "EV1", "PROD") - defaults to auto-detection
+     * @return Map containing URL configuration components, or null if not available
+     */
+    static Map getUrlConfigurationForEnvironment(String environmentCode = null) {
+        try {
+            // Auto-detect environment if not provided
+            if (!environmentCode) {
+                environmentCode = detectEnvironment()
+            }
+            
+            // Get system configuration for the environment
+            def config = getSystemConfiguration(environmentCode)
+            if (!config) {
+                println "UrlConstructionService: No configuration found for environment: ${environmentCode}"
+                return null
+            }
+            
+            return [
+                baseUrl: config.scf_base_url as String,
+                spaceKey: config.scf_space_key as String,
+                pageId: config.scf_page_id as String,
+                pageTitle: config.scf_page_title as String,
+                environment: environmentCode,
+                isActive: config.scf_is_active as Boolean
+            ]
+            
+        } catch (Exception e) {
+            println "UrlConstructionService: Error retrieving URL configuration for environment ${environmentCode}: ${e.message}"
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    /**
      * Health check method for monitoring
      */
     static Map healthCheck() {

@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
---changeset lucas.challamel:022_create_system_configuration_table_simple context:all
---comment: Create system_configuration_scf table for Confluence macro locations and runtime configuration management (simplified version)
+--changeset lucas.challamel:022_create_system_configuration_scf context:all
+--comment: Create system_configuration_scf table for Confluence macro locations and runtime configuration management
 
 --
 -- DROP EXISTING TABLE IF IT EXISTS
@@ -37,6 +37,14 @@ CREATE INDEX idx_scf_env_category ON system_configuration_scf(env_id, scf_catego
 CREATE INDEX idx_scf_key_active ON system_configuration_scf(scf_key, scf_is_active);
 CREATE INDEX idx_scf_category_active ON system_configuration_scf(scf_category, scf_is_active);
 CREATE INDEX idx_scf_audit ON system_configuration_scf(created_at);
+
+--
+-- CREATE DEFAULT DEV ENVIRONMENT FOR CONFIGURATION DATA
+-- This ensures we have at least one environment to configure during migration
+--
+INSERT INTO environments_env (env_id, env_code, env_name, env_description, created_by, created_at, updated_by, updated_at)
+VALUES (1, 'DEV', 'Development', 'Local development environment created by system migration', 'system', CURRENT_TIMESTAMP, 'system', CURRENT_TIMESTAMP)
+ON CONFLICT (env_id) DO NOTHING; -- Safe if already exists
 
 --
 -- DEFAULT CONFLUENCE MACRO CONFIGURATION DATA
