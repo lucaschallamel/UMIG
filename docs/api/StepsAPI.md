@@ -43,6 +43,8 @@ All endpoints are relative to the ScriptRunner custom REST base:
 | GET    | /steps                                                          | Get Step Instances with Hierarchical Filtering |
 | GET    | /steps/master                                                   | Get Master Steps with Admin GUI Support        |
 | GET    | /steps/master/{id}                                              | Get Single Master Step                         |
+| POST   | /steps/master                                                   | Create New Master Step                         |
+| PUT    | /steps/master/{id}                                              | Update Existing Master Step                    |
 | GET    | /steps/instance/{stepInstanceId}                                | Get Step Instance Details                      |
 | GET    | /steps/summary                                                  | Get Dashboard Summary Metrics                  |
 | GET    | /steps/progress                                                 | Get Progress Tracking Data                     |
@@ -120,6 +122,46 @@ All endpoints are relative to the ScriptRunner custom REST base:
 }
 ```
 
+#### Master Step Create Request
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "phm_id": "string (UUID, required)",
+  "tms_id_owner": "integer (required)",
+  "stt_code": "string (required)",
+  "stm_number": "integer (required)",
+  "stm_name": "string (required)",
+  "stm_description": "string (optional)",
+  "stm_duration_minutes": "integer (optional)",
+  "enr_id_target": "integer (required)",
+  "enr_id": "integer (optional)",
+  "stm_id_predecessor": "string (UUID, optional)"
+}
+```
+
+#### Master Step Update Request
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "phm_id": "string (UUID, optional)",
+  "tms_id_owner": "integer (optional)",
+  "stt_code": "string (optional)",
+  "stm_number": "integer (optional)",
+  "stm_name": "string (optional)",
+  "stm_description": "string (optional)",
+  "stm_duration_minutes": "integer (optional)",
+  "enr_id_target": "integer (optional)",
+  "enr_id": "integer (optional)",
+  "stm_id_predecessor": "string (UUID, optional)"
+}
+```
+
 #### Comment Request
 
 - **Content-Type:** application/json
@@ -189,6 +231,38 @@ All endpoints are relative to the ScriptRunner custom REST base:
 }
 ```
 
+#### Master Step Response (Create/Update)
+
+- **Status Code:** 201 Created (for POST), 200 OK (for PUT)
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "stm_id": "string (UUID)",
+  "phm_id": "string (UUID)",
+  "tms_id_owner": "integer",
+  "stt_code": "string",
+  "stm_number": "integer",
+  "stm_name": "string",
+  "stm_description": "string",
+  "stm_duration_minutes": "integer",
+  "enr_id_target": "integer",
+  "enr_id": "integer",
+  "stm_id_predecessor": "string (UUID)",
+  "created_by": "string",
+  "created_at": "string (ISO datetime)",
+  "updated_by": "string",
+  "updated_at": "string (ISO datetime)",
+  "phm_name": "string",
+  "sqm_name": "string",
+  "plm_name": "string",
+  "owner_team_name": "string",
+  "instruction_count": "integer",
+  "instance_count": "integer"
+}
+```
+
 #### Status Update Response
 
 - **Status Code:** 200 OK
@@ -207,12 +281,12 @@ All endpoints are relative to the ScriptRunner custom REST base:
 
 ### 4.2. Error Responses
 
-| Status Code | Content-Type     | Schema              | Example                                                      | Description                                      |
-| ----------- | ---------------- | ------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
-| 400         | application/json | {"error": "string"} | {"error": "Invalid step ID format"}                          | Invalid UUID format, missing required fields     |
-| 404         | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"}            | Step instance, instruction, or comment not found |
-| 409         | application/json | {"error": "string"} | {"error": "Duplicate entry"}                                 | Unique constraint violation (23505)              |
-| 500         | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"} | Database or server errors                        |
+| Status Code | Content-Type     | Schema              | Example                                                                                                                                                     | Description                                                   |
+| ----------- | ---------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 400         | application/json | {"error": "string"} | {"error": "Invalid step ID format"}, {"error": "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"} | Invalid UUID format, missing required fields                  |
+| 404         | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"}, {"error": "Step not found with ID: {stepId}"}                                                            | Step instance, master step, instruction, or comment not found |
+| 409         | application/json | {"error": "string"} | {"error": "Duplicate entry"}, {"error": "A step with the same phase, type, and number already exists"}                                                      | Unique constraint violation (23505)                           |
+| 500         | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"}, {"error": "An unexpected error occurred"}                                                     | Database or server errors                                     |
 
 ## 5. Authentication & Authorization
 
@@ -393,6 +467,38 @@ curl -X GET "/rest/scriptrunner/latest/custom/steps/export?migrationId=mig-001&f
   -H "Authorization: Basic [credentials]"
 ```
 
+### Create Master Step
+
+```bash
+curl -X POST "/rest/scriptrunner/latest/custom/steps/master" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Basic [credentials]" \
+  -d '{
+    "phm_id": "f9aa535d-4d8b-447c-9d89-16494f678702",
+    "tms_id_owner": 15,
+    "stt_code": "APP",
+    "stm_number": 101,
+    "stm_name": "Deploy Application Components",
+    "stm_description": "Deploy all application components to target environment",
+    "stm_duration_minutes": 45,
+    "enr_id_target": 3
+  }'
+```
+
+### Update Master Step
+
+```bash
+curl -X PUT "/rest/scriptrunner/latest/custom/steps/master/f9aa535d-4d8b-447c-9d89-16494f678702" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Basic [credentials]" \
+  -d '{
+    "stm_name": "Deploy Application Components - Updated",
+    "stm_description": "Deploy and validate all application components to target environment",
+    "stm_duration_minutes": 60,
+    "tms_id_owner": 18
+  }'
+```
+
 ## 13. Notes
 
 - **Performance Optimization**: Use hierarchical filtering to reduce payload sizes. Filter at appropriate hierarchy level rather than over-fetching.
@@ -413,6 +519,17 @@ curl -X GET "/rest/scriptrunner/latest/custom/steps/export?migrationId=mig-001&f
 - **Status API**: Dynamic status management with color coding accessed through embedded status endpoints
 
 ## 15. Change Log
+
+### Version 2.3.0 (August 27, 2025 - Master Steps Management)
+
+- **Master Steps CRUD Operations**: Added POST `/steps/master` endpoint for creating new master step templates
+- **Master Steps Updates**: Added PUT `/steps/master/{id}` endpoint for updating existing master step templates
+- **Admin GUI Integration**: New endpoints support full CREATE and EDIT functionality for Master Steps in Admin GUI
+- **Comprehensive Validation**: Required fields validation with specific error messages for foreign key violations
+- **Audit Trail Support**: Automatic audit field handling (created_by, updated_by, timestamps)
+- **SQL State Error Mapping**: Enhanced error responses with specific messages for common database constraint violations
+- **Response Structure**: Complete master step details with computed fields (instruction_count, instance_count)
+- **Hierarchical Context**: Response includes phase, sequence, and plan names for full hierarchical context
 
 ### Version 2.2.0 (August 25, 2025 - US-031)
 

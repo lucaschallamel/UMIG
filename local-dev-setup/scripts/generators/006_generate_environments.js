@@ -3,17 +3,17 @@ import { client } from "../lib/db.js";
 
 /**
  * Environment Generator - Smart Preservation Pattern
- * 
+ *
  * CRITICAL DEPENDENCY: This generator depends on migration 022 which creates:
  * - DEV environment (env_id=1, env_code='DEV', env_name='Development')
  * - System configuration entries linked to env_id=1
- * 
+ *
  * PRESERVATION STRATEGY:
  * - NEVER truncate environments_env table (would break foreign key constraints)
- * - DELETE only non-DEV environments (env_id != 1) for clean regeneration  
+ * - DELETE only non-DEV environments (env_id != 1) for clean regeneration
  * - SKIP creation of DEV environment (use existing env_id=1)
  * - PRESERVE all migration-created data while enabling generator flexibility
- * 
+ *
  * This pattern prevents foreign key violations while allowing repeatable generation.
  */
 
@@ -24,14 +24,16 @@ import { client } from "../lib/db.js";
  */
 async function eraseEnvironmentsTable(client) {
   console.log("Erasing generator-created environments and associations...");
-  
+
   try {
     // First, remove join table associations for non-DEV environments
     await client.query(`
       DELETE FROM environments_env_x_applications_app 
       WHERE env_id != 1
     `);
-    console.log("  - Removed application associations for non-DEV environments");
+    console.log(
+      "  - Removed application associations for non-DEV environments",
+    );
 
     await client.query(`
       DELETE FROM environments_env_x_iterations_ite 
@@ -44,9 +46,13 @@ async function eraseEnvironmentsTable(client) {
       DELETE FROM environments_env 
       WHERE env_id != 1
     `);
-    console.log(`  - Deleted ${deleteResult.rowCount} generator-created environments (preserved DEV from migration)`);
-    
-    console.log("Finished erasing generator-created environments (DEV environment preserved).");
+    console.log(
+      `  - Deleted ${deleteResult.rowCount} generator-created environments (preserved DEV from migration)`,
+    );
+
+    console.log(
+      "Finished erasing generator-created environments (DEV environment preserved).",
+    );
   } catch (error) {
     console.error(`Error erasing environments table: ${error}`);
     throw error;
@@ -69,11 +75,11 @@ async function generateAllEnvironments(environments, options = {}) {
 
   // Verify DEV environment exists (created by migration 022)
   const devCheck = await client.query(
-    "SELECT env_id, env_name FROM environments_env WHERE env_id = 1"
+    "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
   );
   if (devCheck.rows.length === 0) {
     throw new Error(
-      "DEV environment (env_id=1) not found. Please ensure migration 022 has been executed."
+      "DEV environment (env_id=1) not found. Please ensure migration 022 has been executed.",
     );
   }
   console.log(`  ✓ Verified DEV environment exists (created by migration 022)`);
@@ -84,7 +90,9 @@ async function generateAllEnvironments(environments, options = {}) {
   for (const env of environments) {
     // Skip DEV environment - it's created by migration 022
     if (env.name === "DEV") {
-      console.log(`  - Skipping ${env.name} environment (preserved from migration 022)`);
+      console.log(
+        `  - Skipping ${env.name} environment (preserved from migration 022)`,
+      );
       envByName[env.name] = 1; // DEV always has env_id = 1 from migration
       continue;
     }
@@ -111,7 +119,7 @@ async function generateAllEnvironments(environments, options = {}) {
       // Environment already exists, fetch its ID
       const existingRes = await client.query(
         "SELECT env_id, env_name FROM environments_env WHERE env_id = $1",
-        [env.env_id]
+        [env.env_id],
       );
       if (existingRes.rows.length > 0) {
         envByName[existingRes.rows[0].env_name] = existingRes.rows[0].env_id;
@@ -132,18 +140,22 @@ async function generateAllEnvironments(environments, options = {}) {
   // Final safety check: Ensure DEV environment is always available for linking
   if (!envByName["DEV"]) {
     const devFinalCheck = await client.query(
-      "SELECT env_id FROM environments_env WHERE env_id = 1"
+      "SELECT env_id FROM environments_env WHERE env_id = 1",
     );
     if (devFinalCheck.rows.length > 0) {
       envByName["DEV"] = 1;
       console.log("  ✓ Added DEV environment to mapping (env_id=1)");
     } else {
-      throw new Error("CRITICAL: DEV environment (env_id=1) missing - migration 022 may not have run");
+      throw new Error(
+        "CRITICAL: DEV environment (env_id=1) missing - migration 022 may not have run",
+      );
     }
   }
 
   console.log("Finished generating environments.");
-  console.log(`  ✓ Environment mapping: ${Object.keys(envByName).length} environments available for linking`);
+  console.log(
+    `  ✓ Environment mapping: ${Object.keys(envByName).length} environments available for linking`,
+  );
 
   if (Object.keys(envByName).length === 0) {
     console.log("No environments found or created, skipping linking.");

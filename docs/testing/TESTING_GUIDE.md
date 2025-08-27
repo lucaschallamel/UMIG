@@ -1,6 +1,6 @@
 # UMIG Testing Guide
 
-**Version**: 2.0 | **Updated**: August 18, 2025 | **Status**: Production Ready
+**Version**: 2.1 | **Updated**: August 27, 2025 | **Status**: Production Ready
 
 ## Overview
 
@@ -36,6 +36,11 @@ npm run test:iterationview        # IterationView UI component tests
 # Story-Specific Testing
 npm run test:us022               # US-022 integration test expansion
 npm run test:us028               # US-028 enhanced IterationView tests
+
+# Email Testing (NEW - MailHog Integration)
+npm run mailhog:test             # Test SMTP connectivity to MailHog
+npm run mailhog:check            # Check MailHog inbox message count
+npm run mailhog:clear            # Clear all messages from MailHog inbox
 ```
 
 ## Testing Framework Architecture

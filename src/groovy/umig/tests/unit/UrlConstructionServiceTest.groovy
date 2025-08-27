@@ -166,7 +166,7 @@ class UrlConstructionServiceTest extends Specification {
         def validParam = UrlConstructionService.sanitizeParameter("valid-param_123")
         def scriptInjection = UrlConstructionService.sanitizeParameter("<script>alert('xss')</script>")
         def sqlInjection = UrlConstructionService.sanitizeParameter("'; DROP TABLE users; --")
-        def specialChars = UrlConstructionService.sanitizeParameter("param@#$%^&*()")
+        def specialChars = UrlConstructionService.sanitizeParameter("param@#\$%^&*()")
         
         then: "Should sanitize appropriately"
         validParam == "valid-param_123"
@@ -215,28 +215,128 @@ class UrlConstructionServiceTest extends Specification {
         afterClear.size() == 0
     }
     
+    def "should query database with fixed key-value pair structure without SQL errors"() {
+        given: "A fresh configuration request that will hit the database"
+        UrlConstructionService.clearCache()
+        
+        // Track SQL queries to verify the fix
+        def queriesCalled = []
+        
+        DatabaseUtil.metaClass.static.withSql = { closure ->
+            def mockSql = [
+                rows: { query, params ->
+                    // Record the query for verification
+                    queriesCalled << [query: query, params: params]
+                    
+                    // Verify the fixed query structure
+                    assert query.contains('INNER JOIN environments_env e ON scf.env_id = e.env_id')
+                    assert query.contains('WHERE e.env_code = :envCode')
+                    assert query.contains('scf_category = \'MACRO_LOCATION\'')
+                    assert !query.contains('scf_environment_code') // Should NOT contain old buggy column
+                    
+                    // Return proper key-value pairs
+                    if (params.envCode == "DEV") {
+                        return [
+                            [scf_key: 'stepview.confluence.base.url', scf_value: 'http://localhost:8090'],
+                            [scf_key: 'stepview.confluence.space.key', scf_value: 'UMIG'],
+                            [scf_key: 'stepview.confluence.page.id', scf_value: '123456789'],
+                            [scf_key: 'stepview.confluence.page.title', scf_value: 'StepView']
+                        ]
+                    }
+                    return []
+                },
+                firstRow: { query, params ->
+                    return null // Not needed for this test
+                }
+            ]
+            return closure.call(mockSql)
+        }
+        
+        when: "Getting system configuration"
+        def config = UrlConstructionService.getSystemConfiguration("DEV")
+        
+        then: "Configuration is retrieved successfully with fixed query structure"
+        queriesCalled.size() == 1
+        config != null
+        config.scf_environment_code == "DEV"
+        config.scf_base_url == "http://localhost:8090"
+        config.scf_space_key == "UMIG" 
+        config.scf_page_id == "123456789"
+        config.scf_page_title == "StepView"
+        config.scf_is_active == true
+        
+        and: "No SQL exceptions are thrown"
+        notThrown(Exception)
+        
+        cleanup:
+        // Restore original mock
+        mockDatabaseConfiguration()
+    }
+    
+    def "should handle incomplete configuration keys properly"() {
+        given: "Database returns partial configuration"
+        UrlConstructionService.clearCache()
+        
+        DatabaseUtil.metaClass.static.withSql = { closure ->
+            def mockSql = [
+                rows: { query, params ->
+                    // Return incomplete configuration (missing page.title)
+                    if (params.envCode == "PARTIAL") {
+                        return [
+                            [scf_key: 'stepview.confluence.base.url', scf_value: 'http://localhost:8090'],
+                            [scf_key: 'stepview.confluence.space.key', scf_value: 'UMIG'],
+                            [scf_key: 'stepview.confluence.page.id', scf_value: '123456789']
+                            // Missing: stepview.confluence.page.title
+                        ]
+                    }
+                    return []
+                },
+                firstRow: { query, params -> return null }
+            ]
+            return closure.call(mockSql)
+        }
+        
+        when: "Getting configuration for environment with partial data"
+        def config = UrlConstructionService.getSystemConfiguration("PARTIAL")
+        
+        then: "Should return null for incomplete configuration"
+        config == null
+        
+        and: "No exceptions are thrown" 
+        notThrown(Exception)
+        
+        cleanup:
+        // Restore original mock
+        mockDatabaseConfiguration()
+    }
+    
     // ===========================================
     // HELPER METHODS FOR TESTING
     // ===========================================
     
     private void mockDatabaseConfiguration() {
-        // Mock the database configuration for testing
-        // This would typically use a test database or mock framework
+        // Mock the database configuration for testing - Updated for key-value pair structure
+        // This mock now properly reflects the fixed SQL query structure
         
         DatabaseUtil.metaClass.static.withSql = { closure ->
             // Mock SQL connection and configuration data
             def mockSql = [
-                firstRow: { query, params ->
-                    if (params.envCode == "DEV") {
+                rows: { query, params ->
+                    // Mock the new key-value pair structure query
+                    if (params.envCode == "DEV" && query.contains('MACRO_LOCATION')) {
                         return [
-                            scf_environment_code: "DEV",
-                            scf_base_url: "http://localhost:8090",
-                            scf_space_key: "UMIG", 
-                            scf_page_id: "123456789",
-                            scf_page_title: "StepView",
-                            scf_is_active: true
+                            [scf_key: 'stepview.confluence.base.url', scf_value: 'http://localhost:8090'],
+                            [scf_key: 'stepview.confluence.space.key', scf_value: 'UMIG'],
+                            [scf_key: 'stepview.confluence.page.id', scf_value: '123456789'],
+                            [scf_key: 'stepview.confluence.page.title', scf_value: 'StepView']
                         ]
-                    } else if (params.stepId) {
+                    } else if (params.envCode == "NONEXISTENT") {
+                        return []  // Empty result for non-existent environment
+                    }
+                    return []
+                },
+                firstRow: { query, params ->
+                    if (params.stepId) {
                         return [
                             sti_id: params.stepId,
                             stt_code: "DUM",

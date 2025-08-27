@@ -4,7 +4,7 @@
 **Title**: Dynamic Migration Types Management System  
 **Epic**: Admin GUI Enhancement  
 **Priority**: High  
-**Story Points**: 3-4  
+**Story Points**: 3-4
 
 ## Story Overview
 
@@ -53,11 +53,12 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ### Database Changes
 
 **New Table: `tbl_migration_types_master`**
+
 ```sql
 - mgt_name VARCHAR(50) PRIMARY KEY  -- Migration type name as primary key
 - mgt_description TEXT
 - mgt_color_code VARCHAR(7)         -- Hex color for UI
-- mgt_icon_name VARCHAR(50)         -- Icon identifier  
+- mgt_icon_name VARCHAR(50)         -- Icon identifier
 - mgt_is_active BOOLEAN DEFAULT true
 - mgt_display_order INTEGER
 - mgt_created_at TIMESTAMP
@@ -67,11 +68,13 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ```
 
 **No Changes to Existing Tables**
+
 - `tbl_migrations_master` remains unchanged
 - Existing migration_type field continues to work
 - No foreign key relationships needed
 
 **Migration Scripts**
+
 - Liquibase changeset to create new table
 - Data migration script to populate initial Migration Types from existing data
 - Foreign key constraints and indexes
@@ -87,6 +90,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 - **DELETE** `/api/v2/migration-types/{name}` - Delete migration type (with validation)
 
 **Request/Response Formats**
+
 ```json
 {
   "name": "string (50 chars max, primary key)",
@@ -103,11 +107,13 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ```
 
 **Error Handling**
+
 - 409 Conflict for duplicate names
 - 400 Bad Request for validation errors
 - 409 Conflict when attempting to delete types still in use
 
 **No Changes to Existing APIs**
+
 - `/api/v2/migrations` remains unchanged
 - All existing integrations continue to work
 - Type names are already used as identifiers
@@ -115,6 +121,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ### Frontend Changes
 
 **New Admin GUI Component: Migration Types Management**
+
 - Table view with sorting and filtering
 - Create/Edit modal forms
 - Delete confirmation dialogs with usage validation
@@ -123,10 +130,12 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 - Drag-and-drop ordering capability
 
 **New Components Only**
+
 - Migration Types management component for Admin GUI
 - No changes needed to existing migration forms or displays
 
 **User Interaction Flows**
+
 1. Navigation: Admin GUI → Migration Types
 2. View: Paginated table with search/filter
 3. Create: Modal form with validation
@@ -137,31 +146,37 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ### Integration Points
 
 **Internal Components**
+
 - New Migration Types API for management operations
 - New Admin GUI component for Migration Types management
 - Optional: Fake data generators can query dynamic types (existing static approach works)
 
 **External Systems**
+
 - Email templates continue to work unchanged
 - Audit logs will track Migration Types management changes
 
 ## Dependencies
 
 ### Prerequisites
+
 - ADR-044: Endpoint Registration Patterns (completed)
 - Authentication resolution for Admin GUI (US-031)
 - PostgreSQL patterns established (ADR-047)
 
 ### Parallel Work
+
 - Can work on database schema while Admin GUI authentication is resolved
 - API development can proceed independently of UI work
 
 ### Blocked By
+
 - None (authentication resolution enables full testing but not development)
 
 ## Risk Assessment
 
 ### Technical Risks
+
 - **Minimal Data Migration**: Only need to populate new management table
   - **Mitigation**: Simple INSERT operations from existing migration types
 - **No Performance Impact**: No JOIN operations needed for existing queries
@@ -170,12 +185,14 @@ Currently, Migration Types are hardcoded in the database and statically implemen
   - **Mitigation**: Complete backward compatibility guaranteed by design
 
 ### Business Risks
+
 - **User Adoption**: Admins may resist changing from familiar hardcoded types
   - **Mitigation**: Clear documentation, training materials, gradual rollout
 - **Data Integrity**: Risk of accidental deletion of referenced types
   - **Mitigation**: Robust validation, confirmation dialogs, audit trails
 
 ### Timeline Risks
+
 - **Database Migration Complexity**: Data migration may take longer than expected
   - **Mitigation**: Thorough testing in dev environment, phased approach
 - **Integration Testing**: Multiple systems require coordinated testing
@@ -184,6 +201,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ## Testing Strategy
 
 ### Unit Testing
+
 - MigrationTypesApi endpoint validation
 - Repository layer CRUD operations
 - Business logic validation rules
@@ -191,12 +209,14 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 - Frontend component behavior
 
 **Specific Edge Cases**
+
 - Duplicate migration type names
 - Deletion of referenced types
 - Invalid color codes or icon names
 - Concurrent modification scenarios
 
 ### Integration Testing
+
 - Migration Types API with database
 - Migrations API integration with new types
 - Admin GUI end-to-end workflows
@@ -204,6 +224,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 - Fake data generation with dynamic types
 
 ### User Acceptance Testing
+
 - PILOT user migration type management workflows
 - ADMIN user full CRUD operations
 - Migration creation using new dynamic types
@@ -211,6 +232,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 - Performance under realistic data loads
 
 ### Performance Testing
+
 - CRUD operations response times
 - Migration listing with dynamic types
 - Database query performance with JOINs
@@ -221,29 +243,34 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ### Development Approach
 
 **Phase 1: Database Foundation**
+
 1. Create new migration_types_master table
 2. Implement data migration from existing static types
 3. Add foreign key relationships
 
 **Phase 2: API Development**
+
 1. Create MigrationTypesApi following established patterns
 2. Create MigrationTypesRepository with standard CRUD operations
 3. Update MigrationsApi to use dynamic types
 4. Implement comprehensive error handling
 
 **Phase 3: Frontend Integration**
+
 1. Create Migration Types management component
 2. Update migration forms to use dynamic types
 3. Implement UI for type colors and icons
 4. Add validation and user feedback
 
 **Phase 4: Integration & Testing**
+
 1. Update fake data generation scripts
 2. Comprehensive integration testing
 3. Performance optimization
 4. Documentation updates
 
 ### Code Patterns to Follow
+
 - Repository pattern for data access (ADR-031)
 - DatabaseUtil.withSql for all database operations
 - Explicit type casting for query parameters
@@ -251,6 +278,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 - Admin GUI modular component architecture
 
 ### UI/UX Guidelines
+
 - Follow existing Admin GUI design patterns
 - Use consistent color scheme and typography
 - Implement responsive design for mobile compatibility
@@ -260,6 +288,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 ### Data Migration Strategy
 
 **Simplified Migration Script**
+
 ```sql
 -- Step 1: Create migration_types_master table
 CREATE TABLE tbl_migration_types_master (
@@ -277,20 +306,22 @@ CREATE TABLE tbl_migration_types_master (
 
 -- Step 2: Insert existing migration types
 INSERT INTO tbl_migration_types_master (mgt_name, mgt_description, mgt_display_order)
-SELECT DISTINCT 
+SELECT DISTINCT
     migration_type,
     'Standard migration type',
     ROW_NUMBER() OVER (ORDER BY migration_type)
-FROM tbl_migrations_master 
+FROM tbl_migrations_master
 WHERE migration_type IS NOT NULL AND migration_type != '';
 ```
 
 **Complete Backward Compatibility**
+
 - No changes to existing tables or columns
 - All existing APIs work unchanged
 - No versioning or deprecation needed
 
 **Simple Rollback**
+
 - Just DROP the new migration_types_master table
 - Zero impact on existing functionality
 - No data restoration needed
@@ -298,6 +329,7 @@ WHERE migration_type IS NOT NULL AND migration_type != '';
 ## Success Metrics
 
 ### Quantitative Metrics
+
 - Migration Types CRUD operations complete in <2 seconds
 - Zero data integrity issues during migration
 - 100% of existing migrations maintain proper type references
@@ -305,6 +337,7 @@ WHERE migration_type IS NOT NULL AND migration_type != '';
 - 90%+ test coverage for new code
 
 ### Qualitative Metrics
+
 - PILOT/ADMIN users can successfully manage types without training
 - Reduced maintenance overhead for adding new migration types
 - Improved system flexibility and configurability
@@ -322,6 +355,7 @@ WHERE migration_type IS NOT NULL AND migration_type != '';
 ## Story Breakdown
 
 ### Sub-tasks
+
 1. **Database Schema & Migration** (1 point)
    - Create migration_types_master table
    - Simple data population script
@@ -343,6 +377,7 @@ WHERE migration_type IS NOT NULL AND migration_type != '';
    - No existing system changes to test
 
 ### Recommended Sprint Distribution
+
 - **Single Sprint Implementation** (3-4 points total)
   - Database schema and migration (Day 1)
   - API development (Days 1-2)
@@ -351,10 +386,10 @@ WHERE migration_type IS NOT NULL AND migration_type != '';
 
 ## Change Log
 
-| Date | Version | Changes | Author |
-|------|---------|---------|--------|
-| 2025-08-26 | 1.0 | Initial story creation with comprehensive requirements | System |
-| 2025-08-26 | 2.0 | Simplified implementation using string primary key approach | System |
+| Date       | Version | Changes                                                     | Author |
+| ---------- | ------- | ----------------------------------------------------------- | ------ |
+| 2025-08-26 | 1.0     | Initial story creation with comprehensive requirements      | System |
+| 2025-08-26 | 2.0     | Simplified implementation using string primary key approach | System |
 
 ---
 

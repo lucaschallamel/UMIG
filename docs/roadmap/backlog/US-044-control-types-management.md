@@ -9,7 +9,7 @@
 **Story Points**: 3  
 **Sprint**: Future (Backlog)  
 **Priority**: Medium  
-**Category**: Data Management Enhancement  
+**Category**: Data Management Enhancement
 
 ## Business Context
 
@@ -106,29 +106,32 @@ controlTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) { requ
 
 ### Control Type Examples
 
-| Control Type | Description | Color | Severity | Icon |
-|--------------|-------------|--------|----------|------|
-| Technical | System checks, automated validations | #3498DB | MEDIUM | aui-icon-tools |
-| Business | Approval gates, sign-offs | #E67E22 | HIGH | aui-icon-approval |
-| Compliance | Regulatory checks, audit points | #E74C3C | CRITICAL | aui-icon-compliance |
-| Quality | Testing gates, performance checks | #27AE60 | MEDIUM | aui-icon-quality |
-| Security | Security validations, access controls | #8E44AD | HIGH | aui-icon-locked |
+| Control Type | Description                           | Color   | Severity | Icon                |
+| ------------ | ------------------------------------- | ------- | -------- | ------------------- |
+| Technical    | System checks, automated validations  | #3498DB | MEDIUM   | aui-icon-tools      |
+| Business     | Approval gates, sign-offs             | #E67E22 | HIGH     | aui-icon-approval   |
+| Compliance   | Regulatory checks, audit points       | #E74C3C | CRITICAL | aui-icon-compliance |
+| Quality      | Testing gates, performance checks     | #27AE60 | MEDIUM   | aui-icon-quality    |
+| Security     | Security validations, access controls | #8E44AD | HIGH     | aui-icon-locked     |
 
 ## Implementation Plan
 
 ### Phase 1: Database & Repository (Day 1)
+
 - Create `tbl_control_types_master` table via Liquibase
 - Implement `ControlTypesRepository.groovy`
 - Data migration with initial control types
 - Unit tests for repository layer
 
 ### Phase 2: API Development (Day 2)
+
 - Create `ControlTypesApi.groovy` following established patterns
 - CRUD operations with validation
 - Integration with existing ControlsApi
 - API integration tests
 
 ### Phase 3: Admin GUI & Testing (Day 3)
+
 - Admin GUI component for control types management
 - Color picker and icon selection functionality
 - Display order management (drag-and-drop)
@@ -143,11 +146,13 @@ controlTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) { requ
 ## Risks & Mitigations
 
 ### Low Risk Profile
+
 - **Proven Pattern**: Following successful US-042/US-043 implementation
 - **Non-Breaking**: Zero impact on existing functionality
 - **Simple Schema**: Straightforward table design
 
 ### Potential Considerations
+
 - **Control Type Usage**: Validate control types are not in use before deletion
 - **Migration Safety**: Ensure existing controls maintain functionality
 - **UI Performance**: Optimize for large numbers of control types

@@ -459,28 +459,56 @@ class StepRepository {
                 
                 def statusName = status.sts_name
                 
-                // Get current step instance data
+                // Get current step instance data with all fields needed for email templates
                 def stepInstance = sql.firstRow('''
                     SELECT 
-                        sti.sti_id, sti.sti_name, sti.sti_status, sti.stm_id,
-                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        sti.sti_id, sti.sti_name, sti.sti_status, sti.stm_id, sti.sti_duration_minutes,
+                        stm.stt_code as sti_code, stm.stm_number, stm.tms_id_owner, stm.stm_description as sti_description,
                         mig.mig_name as migration_name,
                         ite.ite_name as iteration_name,
-                        plm.plm_name as plan_name
+                        plm.plm_name as plan_name,
+                        owner_team.tms_name as team_name,
+                        -- Environment information
+                        enr.enr_name as environment_role_name,
+                        env.env_name as environment_name,
+                        -- Impacted teams (comma-separated list)
+                        COALESCE(
+                            STRING_AGG(impacted_team.tms_name, ', ' ORDER BY impacted_team.tms_name), 
+                            ''
+                        ) as impacted_teams,
+                        -- Recent comments (for email template) - simple empty list for compatibility
+                        '' as recentComments
                     FROM steps_instance_sti sti
                     JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                    LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
                     JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
                     JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                     JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                     JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    -- Join to get actual environment name for this iteration and role
+                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                    LEFT JOIN environments_env env ON eei.env_id = env.env_id
+                    -- Join to get impacted teams  
+                    LEFT JOIN steps_master_stm_x_teams_tms_impacted impacted_rel ON stm.stm_id = impacted_rel.stm_id
+                    LEFT JOIN teams_tms impacted_team ON impacted_rel.tms_id = impacted_team.tms_id
                     WHERE sti.sti_id = :stepInstanceId
+                    GROUP BY sti.sti_id, sti.sti_name, sti.sti_status, sti.stm_id, sti.sti_duration_minutes,
+                             stm.stt_code, stm.stm_number, stm.tms_id_owner, stm.stm_description,
+                             mig.mig_name, ite.ite_name, plm.plm_name, owner_team.tms_name,
+                             enr.enr_name, env.env_name
                 ''', [stepInstanceId: stepInstanceId])
                 
                 if (!stepInstance) {
                     return [success: false, error: "Step instance not found"]
                 }
+                
+                // Debug: Log all fields available in stepInstance
+                println "  - Repository stepInstance fields: ${stepInstance.keySet()}"
+                println "  - Repository stepInstance.recentComments: ${stepInstance.recentComments}"
+                println "  - Repository stepInstance.impacted_teams: ${stepInstance.impacted_teams}"
                 
                 def oldStatusId = stepInstance.sti_status
                 
@@ -534,23 +562,46 @@ class StepRepository {
     Map openStepInstanceWithNotification(UUID stepInstanceId, Integer userId = null) {
         DatabaseUtil.withSql { sql ->
             try {
-                // Get step instance data
+                // Get step instance data with all fields needed for email templates
                 def stepInstance = sql.firstRow('''
                     SELECT 
-                        sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_status,
-                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_status, sti.sti_duration_minutes,
+                        stm.stt_code as sti_code, stm.stm_number, stm.tms_id_owner, stm.stm_description as sti_description,
                         mig.mig_name as migration_name,
                         ite.ite_name as iteration_name,
-                        plm.plm_name as plan_name
+                        plm.plm_name as plan_name,
+                        owner_team.tms_name as team_name,
+                        -- Environment information
+                        enr.enr_name as environment_role_name,
+                        env.env_name as environment_name,
+                        -- Impacted teams (comma-separated list)
+                        COALESCE(
+                            STRING_AGG(impacted_team.tms_name, ', ' ORDER BY impacted_team.tms_name), 
+                            ''
+                        ) as impacted_teams,
+                        -- Recent comments (for email template) - simple empty list for compatibility
+                        '' as recentComments
                     FROM steps_instance_sti sti
                     JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                    LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
                     JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
                     JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                     JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                     JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    -- Join to get actual environment name for this iteration and role
+                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                    LEFT JOIN environments_env env ON eei.env_id = env.env_id
+                    -- Join to get impacted teams  
+                    LEFT JOIN steps_master_stm_x_teams_tms_impacted impacted_rel ON stm.stm_id = impacted_rel.stm_id
+                    LEFT JOIN teams_tms impacted_team ON impacted_rel.tms_id = impacted_team.tms_id
                     WHERE sti.sti_id = :stepInstanceId
+                    GROUP BY sti.sti_id, sti.sti_name, sti.sti_status, sti.stm_id, sti.sti_duration_minutes,
+                             stm.stt_code, stm.stm_number, stm.tms_id_owner, stm.stm_description,
+                             mig.mig_name, ite.ite_name, plm.plm_name, owner_team.tms_name,
+                             enr.enr_name, env.env_name
                 ''', [stepInstanceId: stepInstanceId])
                 
                 if (!stepInstance) {
@@ -625,23 +676,46 @@ class StepRepository {
                     return [success: false, error: "Instruction already completed"]
                 }
                 
-                // Get step instance data
+                // Get step instance data with all fields needed for email templates
                 def stepInstance = sql.firstRow('''
                     SELECT 
-                        sti.sti_id, sti.sti_name, sti.stm_id,
-                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_duration_minutes,
+                        stm.stt_code as sti_code, stm.stm_number, stm.tms_id_owner, stm.stm_description as sti_description,
                         mig.mig_name as migration_name,
                         ite.ite_name as iteration_name,
-                        plm.plm_name as plan_name
+                        plm.plm_name as plan_name,
+                        owner_team.tms_name as team_name,
+                        -- Environment information
+                        enr.enr_name as environment_role_name,
+                        env.env_name as environment_name,
+                        -- Impacted teams (comma-separated list)
+                        COALESCE(
+                            STRING_AGG(impacted_team.tms_name, ', ' ORDER BY impacted_team.tms_name), 
+                            ''
+                        ) as impacted_teams,
+                        -- Recent comments (for email template) - simple empty list for compatibility
+                        '' as recentComments
                     FROM steps_instance_sti sti
                     JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                    LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
                     JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
                     JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                     JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                     JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    -- Join to get actual environment name for this iteration and role
+                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                    LEFT JOIN environments_env env ON eei.env_id = env.env_id
+                    -- Join to get impacted teams  
+                    LEFT JOIN steps_master_stm_x_teams_tms_impacted impacted_rel ON stm.stm_id = impacted_rel.stm_id
+                    LEFT JOIN teams_tms impacted_team ON impacted_rel.tms_id = impacted_team.tms_id
                     WHERE sti.sti_id = :stepInstanceId
+                    GROUP BY sti.sti_id, sti.sti_name, sti.sti_status, sti.stm_id, sti.sti_duration_minutes,
+                             stm.stt_code, stm.stm_number, stm.tms_id_owner, stm.stm_description,
+                             mig.mig_name, ite.ite_name, plm.plm_name, owner_team.tms_name,
+                             enr.enr_name, env.env_name
                 ''', [stepInstanceId: stepInstanceId])
                 
                 if (!stepInstance) {
@@ -747,23 +821,46 @@ class StepRepository {
                     return [success: false, error: "Instruction is already incomplete"]
                 }
                 
-                // Get step instance data
+                // Get step instance data with all fields needed for email templates
                 def stepInstance = sql.firstRow('''
                     SELECT 
-                        sti.sti_id, sti.sti_name, sti.stm_id,
-                        stm.stt_code, stm.stm_number, stm.tms_id_owner,
+                        sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_duration_minutes,
+                        stm.stt_code as sti_code, stm.stm_number, stm.tms_id_owner, stm.stm_description as sti_description,
                         mig.mig_name as migration_name,
                         ite.ite_name as iteration_name,
-                        plm.plm_name as plan_name
+                        plm.plm_name as plan_name,
+                        owner_team.tms_name as team_name,
+                        -- Environment information
+                        enr.enr_name as environment_role_name,
+                        env.env_name as environment_name,
+                        -- Impacted teams (comma-separated list)
+                        COALESCE(
+                            STRING_AGG(impacted_team.tms_name, ', ' ORDER BY impacted_team.tms_name), 
+                            ''
+                        ) as impacted_teams,
+                        -- Recent comments (for email template) - simple empty list for compatibility
+                        '' as recentComments
                     FROM steps_instance_sti sti
                     JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                    LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
+                    LEFT JOIN environment_roles_enr enr ON sti.enr_id = enr.enr_id
                     JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
                     JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
                     JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
                     JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
                     JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
                     JOIN migrations_mig mig ON ite.mig_id = mig.mig_id
+                    -- Join to get actual environment name for this iteration and role
+                    LEFT JOIN environments_env_x_iterations_ite eei ON eei.ite_id = ite.ite_id AND eei.enr_id = sti.enr_id
+                    LEFT JOIN environments_env env ON eei.env_id = env.env_id
+                    -- Join to get impacted teams  
+                    LEFT JOIN steps_master_stm_x_teams_tms_impacted impacted_rel ON stm.stm_id = impacted_rel.stm_id
+                    LEFT JOIN teams_tms impacted_team ON impacted_rel.tms_id = impacted_team.tms_id
                     WHERE sti.sti_id = :stepInstanceId
+                    GROUP BY sti.sti_id, sti.sti_name, sti.sti_status, sti.stm_id, sti.sti_duration_minutes,
+                             stm.stt_code, stm.stm_number, stm.tms_id_owner, stm.stm_description,
+                             mig.mig_name, ite.ite_name, plm.plm_name, owner_team.tms_name,
+                             enr.enr_name, env.env_name
                 ''', [stepInstanceId: stepInstanceId])
                 
                 if (!stepInstance) {
@@ -1844,13 +1941,15 @@ class StepRepository {
                     
                     stepIds.each { stepId ->
                         try {
-                            // Get current step data for notification
+                            // Get current step data for notification with all fields needed for email templates
                             def stepInstance = sql.firstRow('''
                                 SELECT 
-                                    sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_status,
-                                    stm.stt_code, stm.stm_number, stm.tms_id_owner
+                                    sti.sti_id, sti.sti_name, sti.stm_id, sti.sti_status, sti.sti_duration_minutes,
+                                    stm.stt_code as sti_code, stm.stm_number, stm.tms_id_owner, stm.stm_description as sti_description,
+                                    owner_team.tms_name as team_name
                                 FROM steps_instance_sti sti
                                 JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                                LEFT JOIN teams_tms owner_team ON stm.tms_id_owner = owner_team.tms_id
                                 WHERE sti.sti_id = :stepId
                             ''', [stepId: stepId])
                             

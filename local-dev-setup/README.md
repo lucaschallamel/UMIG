@@ -12,7 +12,7 @@ by the orchestration layer.
 
 ### Groovy 3.0.15 Installation
 
-Install Groovy version 3.0.15 for command-line testing and development. This specific version is required for compatibility with ScriptRunner 9.21.0 and ensures consistency with the containerized ScriptRunner environment.
+Install Groovy version 3.0.15 for command-line testing and development. This specific version is **required** for compatibility with ScriptRunner 9.21.0 and ensures consistency with the containerized ScriptRunner environment.
 
 **Why Groovy 3.0.15 Specifically:**
 
@@ -210,26 +210,23 @@ target specific volumes.
 
 Generators execute in numerical order, respecting dependencies:
 
-1. `001_generate_core_metadata.js` - Core lookup tables and roles
-2. `002_generate_teams_apps.js` - Teams and applications
-3. `003_generate_users.js` - Users and team assignments
-4. `004_generate_canonical_plans.js` - Master plan hierarchy (plans, sequences,
-   phases, steps)
-5. `005_generate_migrations.js` - Migrations and iterations
-6. `006_generate_environments.js` - Environments with iteration type rules:
+1. **`001_generate_core_metadata.js`** - Core lookup tables and roles
+2. **`002_generate_teams_apps.js`** - Teams and applications
+3. **`003_generate_users.js`** - Users and team assignments
+4. **`004_generate_canonical_plans.js`** - Master plan hierarchy (plans, sequences, phases, steps)
+5. **`005_generate_migrations.js`** - Migrations and iterations
+6. **`006_generate_environments.js`** - Environments with iteration type rules:
    - Every iteration gets all 3 roles (PROD, TEST, BACKUP)
    - RUN/DR iterations: Never use PROD environment, only EV1-EV5
    - CUTOVER iterations: Always assign PROD environment to PROD role
-7. `007_generate_controls.js` - Master controls
-8. `008_generate_labels.js` - Labels with uniqueness per migration
-9. `009_generate_step_pilot_comments.js` - Pilot comments for steps
-10. `098_generate_instructions.js` - Master instructions for steps
-11. `099_generate_instance_data.js` - All instance records (plans, sequences,
-    phases, steps, instructions, controls)
-12. `100_generate_step_instance_comments.js` - Comments for step instances
+7. **`007_generate_controls.js`** - Master controls
+8. **`008_generate_labels.js`** - Labels with uniqueness per migration
+9. **`009_generate_step_pilot_comments.js`** - Pilot comments for steps
+10. **`098_generate_instructions.js`** - Master instructions for steps
+11. **`099_generate_instance_data.js`** - All instance records (plans, sequences, phases, steps, instructions, controls)
+12. **`100_generate_step_instance_comments.js`** - Comments for step instances
 
-**Important**: The generator order is critical - master data (templates) must
-exist before creating instance data.
+**⚠️ Critical**: The generator order is **mandatory** - master data (templates) must exist before creating instance data. Breaking this order will cause foreign key constraint violations.
 
 #### Master-Instance Data Pattern
 
@@ -262,26 +259,22 @@ UMIG follows a canonical-instance pattern for data:
 
 ### Testing
 
-The project now includes comprehensive NPM-based testing commands that replaced shell scripts in August 2025.
+The project includes comprehensive NPM-based testing commands with a complete JavaScript test infrastructure that replaced shell scripts in August 2025. Testing is organized into orchestrated test runners and feature-based test organization.
 
 #### Core Test Commands
 
-- **Run All Tests:**
+- **Run All Tests (Node.js/Jest):**
 
   ```bash
   npm test
   ```
 
-- **Node.js Tests (Jest):**
-
-  ```bash
-  npm test
-  ```
-
-- **Groovy Unit Tests:**
+- **Groovy Unit Tests (via JavaScript orchestrator):**
 
   ```bash
   npm run test:unit
+  npm run test:unit:pattern    # Pattern-based unit testing
+  npm run test:unit:category   # Category-based unit testing
   ```
 
 #### Integration Testing
@@ -352,12 +345,48 @@ The project now includes comprehensive NPM-based testing commands that replaced 
   npm run test:groovy
   ```
 
-#### IterationView Testing
+#### Email Testing (US-039)
+
+- **Comprehensive Email Testing:**
+
+  ```bash
+  npm run email:test           # Database templates + MailHog validation
+  npm run email:test:database  # Database-driven email testing
+  npm run email:test:jest      # Jest-based email validation
+  npm run email:test:enhanced  # Enhanced email test orchestrator
+  npm run email:demo           # Interactive email demonstration
+  ```
+
+#### Quality and Health Monitoring
+
+- **System Health and Quality:**
+
+  ```bash
+  npm run health:check         # System health monitoring
+  npm run quality:check        # Master quality validation
+  npm run quality:api          # API smoke tests
+  npm run test:admin-gui       # Admin GUI validation
+  npm run test:stepview-fixes  # StepView fix validation
+  npm run validate:stepview    # StepView status validation
+  ```
+
+#### Component-Specific Testing
 
 - **Enhanced IterationView Tests:**
 
   ```bash
   npm run test:iterationview
+  ```
+
+- **StepView Testing:**
+
+  ```bash
+  npm run test:stepview                 # Complete StepView test suite
+  npm run test:stepview:unit           # Unit tests only
+  npm run test:stepview:integration    # Integration tests only
+  npm run test:stepview:uat            # User acceptance testing
+  npm run test:stepview:url-fix        # URL fix regression tests
+  npm run test:stepview:regression     # Full regression test suite
   ```
 
 ### Code Quality & Linting
@@ -589,6 +618,62 @@ completions, and other workflow events.
 - The EmailService will automatically use this configured mail server for all
   notifications
 
+## Script Organization (Reorganized August 2025)
+
+The local development setup now follows a clean architecture with organized script categories:
+
+### Scripts Directory Structure
+
+```
+scripts/
+├── generators/           # Data generation scripts (001-100)
+├── test-runners/         # Test orchestration scripts
+├── services/            # Reusable service classes
+│   └── email/          # Email-related services
+├── utilities/           # Standalone utility tools
+├── lib/                # Shared libraries and utilities
+├── start.js            # Environment startup
+├── stop.js             # Environment shutdown
+├── restart.js          # Environment restart
+├── umig_generate_fake_data.js  # Main data generation
+└── umig_csv_importer.js        # CSV import functionality
+```
+
+### Test Organization Structure
+
+```
+__tests__/
+├── email/              # Email testing (US-039)
+├── regression/         # Regression prevention tests
+├── generators/         # Data generator validation
+├── fixtures/           # Test data and fixtures
+└── migrations/         # Database migration tests
+```
+
+### Key Benefits of Reorganization
+
+- **Clear Separation of Concerns**: Services, utilities, test runners clearly separated
+- **Feature-based Testing**: Tests organized by feature area (email, regression, etc.)
+- **Reusable Components**: Services can be easily imported across scripts
+- **Scalable Architecture**: New features follow established organizational patterns
+- **Enhanced Maintainability**: Logical grouping makes codebase easier to navigate
+
+### Recent Reorganization Changes (August 27, 2025)
+
+**Files Moved for Better Organization**:
+
+| Original Location                                     | New Location                                                | Purpose                 |
+| ----------------------------------------------------- | ----------------------------------------------------------- | ----------------------- |
+| `scripts/template-retrieval-service.js`               | `scripts/services/email/TemplateRetrievalService.js`        | Service organization    |
+| `scripts/run-enhanced-email-test.js`                  | `scripts/test-runners/EnhancedEmailTestRunner.js`           | Test runner consistency |
+| `scripts/email-database-sender.js`                    | `scripts/utilities/email-database-sender.js`                | Utility classification  |
+| `scripts/demo-enhanced-email.js`                      | `scripts/utilities/demo-enhanced-email.js`                  | Demo tool organization  |
+| `__tests__/enhanced-email-database-templates.test.js` | `__tests__/email/enhanced-email-database-templates.test.js` | Feature-based grouping  |
+| `__tests__/enhanced-email-mailhog.test.js`            | `__tests__/email/enhanced-email-mailhog.test.js`            | Feature-based grouping  |
+| `__tests__/StepViewUrlFixRegressionTest.test.js`      | `__tests__/regression/StepViewUrlFixRegressionTest.test.js` | Regression prevention   |
+
+**NPM Scripts Updated**: All npm commands have been updated to reference the new file locations while maintaining backward compatibility.
+
 ## Services
 
 - **Confluence:** [http://localhost:8090](http://localhost:8090)
@@ -600,31 +685,31 @@ completions, and other workflow events.
 
 ### Current Sprint Progress
 
-**Sprint 5**: MVP Completion Focus (August 18-22, 2025)  
-**Timeline**: 5 working days  
+**Sprint 5**: MVP Completion Focus (August 18-22, 2025) - **Extended to August 28, 2025**  
+**Timeline**: 5 working days (extended due to authentication investigation)  
 **Total Points**: 23 (18 original + 5 US-037)  
-**Status**: 2 of 8 stories complete, 1 in active progress
+**Status**: 2 of 8 stories complete, 1 in active progress with technical blocker
 
-#### ✅ Completed Stories
+#### ✅ Completed Stories (Day 1-2)
 
-- **US-022**: Integration Test Suite Expansion (1 point) ✅ COMPLETE
-- **US-030**: API Documentation Completion (1 point) ✅ COMPLETE
+- **US-022**: Integration Test Suite Expansion (1 point) ✅ **COMPLETE** - Enhanced test coverage and automation
+- **US-030**: API Documentation Completion (1 point) ✅ **COMPLETE** - 100% OpenAPI specification
 
-#### 🚧 Active Progress
+#### 🚧 Active Progress (Day 3 - Authentication Investigation)
 
-- **US-031**: Admin GUI Complete Integration (6 points) - Day 2/3 COMPLETE
-  - **Status**: 11 of 13 endpoints functional (85% complete)
-  - **Blocker**: HTTP 401 authentication issue identified and isolated
-  - **Technical Achievement**: Production-ready code with comprehensive testing framework
-  - **Next Steps**: Authentication resolution for complete integration
+- **US-031**: Admin GUI Complete Integration (6 points) - **Day 3 COMPLETE**
+  - **Technical Status**: 13/13 endpoints functional with comprehensive validation framework
+  - **Quality Achievement**: Production-ready code with enterprise-grade testing
+  - **Current Blocker**: HTTP 401 authentication issue isolated and under investigation
+  - **Resolution Path**: Authentication patterns and endpoint registration procedures identified
 
-#### 🚧 Remaining Stories
+#### 📋 Remaining Stories (Days 4-5)
 
-- **US-036**: StepView UI Refactoring (3 points) - Enhancement interface
-- **US-034**: Data Import Strategy (3 points) - Migration enablement
-- **US-033**: Main Dashboard UI (3 points) - Final MVP component
-- **US-035**: Enhanced IterationView Phases 2-3 (1 point) - Enhancement features
-- **US-037**: Integration Testing Framework Standardization (5 points) - Technical debt
+- **US-036**: StepView UI Refactoring (3 points) - Enhanced interface components
+- **US-034**: Data Import Strategy (3 points) - CSV/Excel migration enablement
+- **US-033**: Main Dashboard UI (3 points) - Final MVP dashboard component
+- **US-035**: Enhanced IterationView Phases 2-3 (1 point) - Additional enhancement features
+- **US-037**: Integration Testing Framework Standardization (5 points) - Technical debt acceleration
 
 ### Key Achievements
 

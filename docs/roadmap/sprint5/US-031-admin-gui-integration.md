@@ -265,7 +265,8 @@ Successfully consolidated 6 technical documentation files into one comprehensive
 
 ### Strategic Decision Rationale
 
-**Why Split at 8 Points**: 
+**Why Split at 8 Points**:
+
 - Sprint 5 maintains focus on core MVP functionality
 - ADMIN features provide full canonical entity management needed for UAT
 - PILOT features for instance entities can be delivered as enhancement (US-038)
