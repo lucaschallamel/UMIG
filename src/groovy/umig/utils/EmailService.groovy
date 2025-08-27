@@ -22,6 +22,7 @@ import java.util.Properties
 import umig.repository.AuditLogRepository
 import umig.repository.EmailTemplateRepository
 import umig.utils.DatabaseUtil
+import umig.utils.UrlConstructionService
 
 /**
  * EmailService - Centralized email notification service for UMIG
@@ -45,7 +46,7 @@ class EmailService {
      * Send notification when a PILOT opens a step
      * Recipients: Assigned TEAM + IMPACTED TEAMS
      */
-    static void sendStepOpenedNotification(Map stepInstance, List<Map> teams, Integer userId = null, String baseUrl = BASE_URL) {
+    static void sendStepOpenedNotification(Map stepInstance, List<Map> teams, Integer userId = null, String migrationCode = null, String iterationCode = null) {
         DatabaseUtil.withSql { sql ->
             try {
                 def recipients = extractTeamEmails(teams)
@@ -62,17 +63,44 @@ class EmailService {
                     return
                 }
                 
+                // Construct step view URL using UrlConstructionService
+                def stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                    try {
+                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
+                            stepInstance.sti_id : 
+                            UUID.fromString(stepInstance.sti_id.toString())
+                        
+                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
+                            stepInstanceUuid, 
+                            migrationCode, 
+                            iterationCode
+                        )
+                        
+                        if (stepViewUrl) {
+                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
+                        } else {
+                            println "EmailService: Step view URL construction failed, will use fallback"
+                        }
+                    } catch (Exception urlException) {
+                        println "EmailService: Error constructing step view URL: ${urlException.message}"
+                        // Continue with null URL - template should handle gracefully
+                    }
+                }
+                
                 // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     stepInstance: stepInstance,
-                    stepUrl: "${baseUrl}/display/SPACE/IterationView?stepId=${stepInstance.sti_id}",
+                    stepUrl: stepViewUrl, // Legacy compatibility
+                    stepViewUrl: stepViewUrl,
+                    hasStepViewUrl: stepViewUrl != null,
                     // Additional variables that templates might expect
                     openedBy: getUsernameById(sql, userId ?: 0),
                     openedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
-                    migrationCode: stepInstance?.migration_name ?: '',
-                    iterationCode: stepInstance?.iteration_name ?: '',
-                    hasStepViewUrl: true,  // This one has a URL
-                    stepViewUrl: "${baseUrl}/display/SPACE/IterationView?stepId=${stepInstance.sti_id}"
+                    migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
+                    iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
+                    // Template-specific variables (must be top-level for template access)
+                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
                 ]
                 
                 // Process template
@@ -121,7 +149,7 @@ class EmailService {
      * Send notification when a USER completes an instruction
      * Recipients: Assigned TEAM + IMPACTED TEAMS
      */
-    static void sendInstructionCompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null) {
+    static void sendInstructionCompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null, String migrationCode = null, String iterationCode = null) {
         DatabaseUtil.withSql { sql ->
             try {
                 // Debug logging
@@ -147,17 +175,44 @@ class EmailService {
                     return
                 }
                 
+                // Construct step view URL using UrlConstructionService
+                def stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                    try {
+                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
+                            stepInstance.sti_id : 
+                            UUID.fromString(stepInstance.sti_id.toString())
+                        
+                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
+                            stepInstanceUuid, 
+                            migrationCode, 
+                            iterationCode
+                        )
+                        
+                        if (stepViewUrl) {
+                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
+                        } else {
+                            println "EmailService: Step view URL construction failed, will use fallback"
+                        }
+                    } catch (Exception urlException) {
+                        println "EmailService: Error constructing step view URL: ${urlException.message}"
+                        // Continue with null URL - template should handle gracefully
+                    }
+                }
+                
                 // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     instruction: instruction,
                     stepInstance: stepInstance,
                     completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     completedBy: getUsernameById(sql, userId),
+                    stepViewUrl: stepViewUrl,
+                    hasStepViewUrl: stepViewUrl != null,
                     // Additional variables that templates might expect
-                    migrationCode: stepInstance?.migration_name ?: '',
-                    iterationCode: stepInstance?.iteration_name ?: '',
-                    hasStepViewUrl: false,  // For now, disable URL until we implement proper URL generation
-                    stepViewUrl: ''  // Empty for now
+                    migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
+                    iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
+                    // Template-specific variables (must be top-level for template access)
+                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
                 ]
                 
                 // Process template
@@ -211,7 +266,7 @@ class EmailService {
      * Send notification when a USER uncompletes an instruction
      * Recipients: Assigned TEAM + IMPACTED TEAMS + INSTRUCTION TEAM (if different)
      */
-    static void sendInstructionUncompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null) {
+    static void sendInstructionUncompletedNotification(Map instruction, Map stepInstance, List<Map> teams, Integer userId = null, String migrationCode = null, String iterationCode = null) {
         DatabaseUtil.withSql { sql ->
             try {
                 // Debug logging
@@ -245,6 +300,31 @@ class EmailService {
                 }
                 println "  - Using template type: ${template.emt_type}"
                 
+                // Construct step view URL using UrlConstructionService
+                def stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                    try {
+                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
+                            stepInstance.sti_id : 
+                            UUID.fromString(stepInstance.sti_id.toString())
+                        
+                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
+                            stepInstanceUuid, 
+                            migrationCode, 
+                            iterationCode
+                        )
+                        
+                        if (stepViewUrl) {
+                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
+                        } else {
+                            println "EmailService: Step view URL construction failed, will use fallback"
+                        }
+                    } catch (Exception urlException) {
+                        println "EmailService: Error constructing step view URL: ${urlException.message}"
+                        // Continue with null URL - template should handle gracefully
+                    }
+                }
+                
                 // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     instruction: instruction,
@@ -252,11 +332,13 @@ class EmailService {
                     completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),  // Use completedAt for template compatibility
                     completedBy: getUsernameById(sql, userId),  // Use completedBy for template compatibility
                     actionType: 'uncompleted', // To differentiate in template
+                    stepViewUrl: stepViewUrl,
+                    hasStepViewUrl: stepViewUrl != null,
                     // Additional variables that templates might expect
-                    migrationCode: stepInstance?.migration_name ?: '',
-                    iterationCode: stepInstance?.iteration_name ?: '',
-                    hasStepViewUrl: false,  // For now, disable URL until we implement proper URL generation
-                    stepViewUrl: ''  // Empty for now
+                    migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
+                    iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
+                    // Template-specific variables (must be top-level for template access)
+                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
                 ]
                 
                 // Process template
@@ -324,7 +406,7 @@ class EmailService {
      * Recipients: Assigned TEAM + IMPACTED TEAMS + IT CUTOVER TEAM
      */
     static void sendStepStatusChangedNotification(Map stepInstance, List<Map> teams, Map cutoverTeam, 
-                                                 String oldStatus, String newStatus, Integer userId = null) {
+                                                 String oldStatus, String newStatus, Integer userId = null, String migrationCode = null, String iterationCode = null) {
         DatabaseUtil.withSql { sql ->
             try {
                 // Debug logging
@@ -357,6 +439,37 @@ class EmailService {
                     return
                 }
                 
+                // Debug: Log the stepInstance content  
+                println "EmailService.sendStepStatusChangedNotification - stepInstance fields:"
+                stepInstance.each { key, value ->
+                    println "  ${key}: ${value}"
+                }
+                
+                // Construct step view URL using UrlConstructionService
+                def stepViewUrl = null
+                if (migrationCode && iterationCode && stepInstance.sti_id) {
+                    try {
+                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
+                            stepInstance.sti_id : 
+                            UUID.fromString(stepInstance.sti_id.toString())
+                        
+                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
+                            stepInstanceUuid, 
+                            migrationCode, 
+                            iterationCode
+                        )
+                        
+                        if (stepViewUrl) {
+                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
+                        } else {
+                            println "EmailService: Step view URL construction failed, will use fallback"
+                        }
+                    } catch (Exception urlException) {
+                        println "EmailService: Error constructing step view URL: ${urlException.message}"
+                        // Continue with null URL - template should handle gracefully
+                    }
+                }
+                
                 // Prepare template variables - Include all variables that the template might expect
                 def variables = [
                     stepInstance: stepInstance,
@@ -365,12 +478,20 @@ class EmailService {
                     statusColor: getStatusColor(newStatus),
                     changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     changedBy: getUsernameById(sql, userId),
+                    stepViewUrl: stepViewUrl,
+                    hasStepViewUrl: stepViewUrl != null,
                     // Additional variables that templates might expect
-                    migrationCode: stepInstance?.migration_name ?: '',
-                    iterationCode: stepInstance?.iteration_name ?: '',
-                    hasStepViewUrl: false,  // For now, disable URL until we implement proper URL generation
-                    stepViewUrl: ''  // Empty for now
+                    migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
+                    iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
+                    // Template-specific variables (must be top-level for template access)
+                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
                 ]
+                
+                // Debug: Log template variables
+                println "EmailService.sendStepStatusChangedNotification - template variables:"
+                variables.each { key, value ->
+                    println "  ${key}: ${value}"
+                }
                 
                 // Process template
                 def processedSubject = processTemplate(template.emt_subject as String, variables)
@@ -567,13 +688,43 @@ class EmailService {
             return template.make(variables).toString()
         } catch (Exception e) {
             println "EmailService: Template processing error - ${e.message}"
+            println "EmailService: Error type: ${e.class.simpleName}"
             println "EmailService: Template variables provided: ${variables.keySet()}"
+            
+            // Enhanced debugging for stepInstance variable structure
+            if (variables.stepInstance) {
+                // Explicit casting to Map for static type checking compatibility
+                Map stepInstanceMap = variables.stepInstance as Map
+                println "EmailService: stepInstance structure: ${stepInstanceMap.keySet()}"
+                
+                // Safe property access with explicit casting
+                def stepInstance = stepInstanceMap
+                println "EmailService: stepInstance.sti_code = ${stepInstance.sti_code}"
+                println "EmailService: stepInstance.sti_name = ${stepInstance.sti_name}"
+                
+                if (!stepInstance.sti_code) {
+                    println "EmailService: WARNING - sti_code is missing from stepInstance data!"
+                    // Convert keySet to List for join() method availability
+                    Set keySet = stepInstanceMap.keySet()
+                    List<String> keyList = keySet.collect { it.toString() }
+                    println "EmailService: Available fields: ${keyList.join(', ')}"
+                }
+            }
+            
             println "EmailService: Template text length: ${templateText?.length() ?: 0}"
-            if (templateText && templateText.length() > 100) {
-                println "EmailService: Template preview: ${templateText.substring(0, 100)}..."
+            if (templateText && templateText.length() > 200) {
+                println "EmailService: Template preview: ${templateText.substring(0, 200)}..."
             } else {
                 println "EmailService: Full template: ${templateText}"
             }
+            
+            // Check for common template issues
+            if (e.message?.contains('No such property')) {
+                println "EmailService: PROPERTY ACCESS ERROR detected!"
+                println "EmailService: This typically indicates a missing field in the database query results"
+                println "EmailService: Check that SQL queries include all fields referenced in email templates"
+            }
+            
             e.printStackTrace()
             throw new RuntimeException("Failed to process email template: ${e.message}", e)
         }

@@ -1161,6 +1161,15 @@ class StepViewPilotFeatures {
       return;
     }
 
+    // Check if advanced controls already exist to prevent duplication
+    const existing = stepHeader.querySelector(".pilot-advanced-controls");
+    if (existing) {
+      console.log(
+        "🔄 StepView: Advanced controls already exist, skipping creation",
+      );
+      return;
+    }
+
     // Add advanced controls panel
     const advancedControls = document.createElement("div");
     advancedControls.className = "pilot-advanced-controls";
@@ -2567,6 +2576,21 @@ class StepView {
         return;
       }
 
+      // TEMPORARY: Skip API call until endpoint is implemented
+      // TODO: Implement /user/context endpoint in future sprint
+      console.log(
+        "🔄 StepView: Using fallback user context (endpoint not implemented)",
+      );
+      this.userContext = {
+        userId: this.userId,
+        role: this.userRole,
+        username: username,
+        isAdmin: this.isAdmin,
+      };
+      return;
+
+      // Original API call commented out to prevent 404 errors:
+      /*
       const response = await fetch(
         `${this.config.api.baseUrl}/user/context?username=${encodeURIComponent(username)}`,
         {
@@ -2588,6 +2612,7 @@ class StepView {
         console.warn("Failed to load user context, using fallback");
         this.userContext = { userId: this.userId, role: this.userRole };
       }
+      */
     } catch (error) {
       console.error("Error loading user context:", error);
       this.userContext = { userId: this.userId, role: this.userRole };

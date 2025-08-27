@@ -880,6 +880,159 @@ steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators
         }
     }
     
+    // PUT /steps/master/{id} - master step update
+    if (pathParts.size() == 2 && pathParts[0] == 'master') {
+        try {
+            // Parse step ID from path
+            def stepId = UUID.fromString(pathParts[1])
+            
+            // Parse request body
+            def json = new groovy.json.JsonSlurper()
+            def stepData = json.parseText(body) as Map
+            
+            // Update master step using direct SQL
+            def result = DatabaseUtil.withSql { sql ->
+                try {
+                    // Build dynamic update query based on provided fields
+                    def updateFields = []
+                    def updateParams = []
+                    
+                    // Add fields to update if provided
+                    if (stepData.containsKey('phm_id')) {
+                        updateFields << "phm_id = ?"
+                        updateParams << UUID.fromString(stepData.phm_id as String)
+                    }
+                    if (stepData.containsKey('tms_id_owner')) {
+                        updateFields << "tms_id_owner = ?"
+                        updateParams << (stepData.tms_id_owner as Integer)
+                    }
+                    if (stepData.containsKey('stt_code')) {
+                        updateFields << "stt_code = ?"
+                        updateParams << (stepData.stt_code as String)
+                    }
+                    if (stepData.containsKey('stm_number')) {
+                        updateFields << "stm_number = ?"
+                        updateParams << (stepData.stm_number as Integer)
+                    }
+                    if (stepData.containsKey('stm_name')) {
+                        updateFields << "stm_name = ?"
+                        updateParams << (stepData.stm_name as String)
+                    }
+                    if (stepData.containsKey('stm_description')) {
+                        updateFields << "stm_description = ?"
+                        updateParams << stepData.stm_description
+                    }
+                    if (stepData.containsKey('stm_duration_minutes')) {
+                        updateFields << "stm_duration_minutes = ?"
+                        updateParams << (stepData.stm_duration_minutes as Integer)
+                    }
+                    if (stepData.containsKey('enr_id_target')) {
+                        updateFields << "enr_id_target = ?"
+                        updateParams << (stepData.enr_id_target as Integer)
+                    }
+                    if (stepData.containsKey('enr_id')) {
+                        updateFields << "enr_id = ?"
+                        updateParams << (stepData.enr_id as Integer)
+                    }
+                    if (stepData.containsKey('stm_id_predecessor')) {
+                        updateFields << "stm_id_predecessor = ?"
+                        updateParams << (stepData.stm_id_predecessor ? UUID.fromString(stepData.stm_id_predecessor as String) : null)
+                    }
+                    
+                    // Always update audit fields
+                    updateFields << "updated_by = ?"
+                    updateFields << "updated_at = CURRENT_TIMESTAMP"
+                    updateParams << 'admin'
+                    
+                    // Add the step ID for the WHERE clause
+                    updateParams << stepId
+                    
+                    if (updateFields.size() > 2) { // More than just audit fields
+                        // Execute update
+                        def updateQuery = """
+                            UPDATE steps_master_stm 
+                            SET ${updateFields.join(', ')}
+                            WHERE stm_id = ?
+                        """
+                        
+                        def rowsUpdated = sql.executeUpdate(updateQuery, updateParams)
+                        
+                        if (rowsUpdated == 0) {
+                            throw new IllegalArgumentException("Step not found with ID: ${stepId}")
+                        }
+                    }
+                    
+                    // Fetch the updated step with all details
+                    def query = '''
+                        SELECT 
+                            stm.stm_id,
+                            stm.phm_id,
+                            stm.tms_id_owner,
+                            stm.stt_code,
+                            stm.stm_number,
+                            stm.stm_name,
+                            stm.stm_description,
+                            stm.stm_duration_minutes,
+                            stm.enr_id_target,
+                            stm.enr_id,
+                            stm.stm_id_predecessor,
+                            stm.created_by,
+                            stm.created_at,
+                            stm.updated_by,
+                            stm.updated_at,
+                            phm.phm_name,
+                            sqm.sqm_name,
+                            plm.plm_name,
+                            tms.tms_name as owner_team_name,
+                            (SELECT COUNT(*) FROM instructions_master_inm WHERE stm_id = stm.stm_id) as instruction_count,
+                            (SELECT COUNT(*) FROM steps_instance_sti WHERE stm_id = stm.stm_id) as instance_count
+                        FROM steps_master_stm stm
+                        JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                        JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                        JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                        LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                        WHERE stm.stm_id = ?
+                    '''
+                    
+                    def updatedStep = sql.firstRow(query, [stepId])
+                    return updatedStep
+                } catch (SQLException e) {
+                    log.error("Database error updating master step", e)
+                    throw e
+                }
+            }
+            
+            return Response.ok(new JsonBuilder(result).toString()).build()
+            
+        } catch (IllegalArgumentException e) {
+            return handleError(e, "PUT /steps/master/{id}")
+        } catch (SQLException e) {
+            def httpStatus = mapSqlStateToHttpStatus(e.getSQLState())
+            def errorMessage = e.getMessage()
+            
+            // Provide more specific error messages for common violations
+            if (e.getSQLState() == '23505') {
+                errorMessage = "A step with the same phase, type, and number already exists"
+            } else if (e.getSQLState() == '23503') {
+                if (errorMessage.contains("phm_id")) {
+                    errorMessage = "Invalid phase ID"
+                } else if (errorMessage.contains("tms_id")) {
+                    errorMessage = "Invalid team ID"
+                } else if (errorMessage.contains("stt_code")) {
+                    errorMessage = "Invalid step type code"
+                } else if (errorMessage.contains("enr_id")) {
+                    errorMessage = "Invalid environment role ID"
+                }
+            }
+            
+            return Response.status(httpStatus)
+                .entity(new JsonBuilder([error: errorMessage]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e, "PUT /steps/master/{id}")
+        }
+    }
+    
     // PUT /steps/{stepInstanceId}/status - individual step status update
     if (pathParts.size() == 2 && pathParts[1] == 'status') {
         try {
@@ -1074,6 +1227,130 @@ steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrator
                 timestamp: new Date().format("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             ]).toString())
             .build()
+    }
+    
+    // POST /steps/master - create a new master step
+    if (pathParts.size() == 1 && pathParts[0] == 'master') {
+        try {
+            // Parse request body
+            def json = new groovy.json.JsonSlurper()
+            def stepData = json.parseText(body) as Map
+            
+            // Create master step using direct SQL
+            def result = DatabaseUtil.withSql { sql ->
+                try {
+                    // Generate UUID for the new step
+                    def stepId = UUID.randomUUID()
+                    
+                    // Extract and validate required fields
+                    def phmId = stepData.phm_id ? UUID.fromString(stepData.phm_id as String) : null
+                    def tmsIdOwner = stepData.tms_id_owner as Integer
+                    def sttCode = stepData.stt_code as String
+                    def stmNumber = stepData.stm_number as Integer
+                    def stmName = stepData.stm_name as String
+                    def stmDescription = stepData.stm_description
+                    def stmDurationMinutes = stepData.stm_duration_minutes as Integer
+                    def enrIdTarget = stepData.enr_id_target as Integer
+                    def enrId = stepData.enr_id as Integer
+                    def stmIdPredecessor = stepData.stm_id_predecessor ? UUID.fromString(stepData.stm_id_predecessor as String) : null
+                    
+                    // Validate required fields
+                    if (!phmId || !tmsIdOwner || !sttCode || !stmNumber || !stmName || !enrIdTarget) {
+                        throw new IllegalArgumentException("Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required")
+                    }
+                    
+                    // Insert the new master step
+                    def insertQuery = '''
+                        INSERT INTO steps_master_stm (
+                            stm_id, phm_id, tms_id_owner, stt_code, stm_number, 
+                            stm_name, stm_description, stm_duration_minutes, 
+                            enr_id_target, enr_id, stm_id_predecessor,
+                            created_by, created_at, updated_by, updated_at
+                        ) VALUES (
+                            ?, ?, ?, ?, ?, 
+                            ?, ?, ?, 
+                            ?, ?, ?,
+                            'admin', CURRENT_TIMESTAMP, 'admin', CURRENT_TIMESTAMP
+                        )
+                    '''
+                    
+                    sql.execute(insertQuery, [
+                        stepId, phmId, tmsIdOwner, sttCode, stmNumber,
+                        stmName, stmDescription, stmDurationMinutes,
+                        enrIdTarget, enrId, stmIdPredecessor
+                    ])
+                    
+                    // Fetch the created step with all details
+                    def query = '''
+                        SELECT 
+                            stm.stm_id,
+                            stm.phm_id,
+                            stm.tms_id_owner,
+                            stm.stt_code,
+                            stm.stm_number,
+                            stm.stm_name,
+                            stm.stm_description,
+                            stm.stm_duration_minutes,
+                            stm.enr_id_target,
+                            stm.enr_id,
+                            stm.stm_id_predecessor,
+                            stm.created_by,
+                            stm.created_at,
+                            stm.updated_by,
+                            stm.updated_at,
+                            phm.phm_name,
+                            sqm.sqm_name,
+                            plm.plm_name,
+                            tms.tms_name as owner_team_name,
+                            (SELECT COUNT(*) FROM instructions_master_inm WHERE stm_id = stm.stm_id) as instruction_count,
+                            (SELECT COUNT(*) FROM steps_instance_sti WHERE stm_id = stm.stm_id) as instance_count
+                        FROM steps_master_stm stm
+                        JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                        JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                        JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                        LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                        WHERE stm.stm_id = ?
+                    '''
+                    
+                    def createdStep = sql.firstRow(query, [stepId])
+                    return createdStep
+                } catch (SQLException e) {
+                    log.error("Database error creating master step", e)
+                    throw e
+                }
+            }
+            
+            return Response.status(Response.Status.CREATED)
+                .entity(new JsonBuilder(result).toString())
+                .build()
+                
+        } catch (IllegalArgumentException e) {
+            return handleError(e, "POST /steps/master")
+        } catch (SQLException e) {
+            def httpStatus = mapSqlStateToHttpStatus(e.getSQLState())
+            def errorMessage = e.getMessage()
+            
+            // Provide more specific error messages for common violations
+            if (e.getSQLState() == '23505') {
+                errorMessage = "A step with the same phase, type, and number already exists"
+            } else if (e.getSQLState() == '23503') {
+                if (errorMessage.contains("phm_id")) {
+                    errorMessage = "Invalid phase ID"
+                } else if (errorMessage.contains("tms_id")) {
+                    errorMessage = "Invalid team ID"
+                } else if (errorMessage.contains("stt_code")) {
+                    errorMessage = "Invalid step type code"
+                } else if (errorMessage.contains("enr_id")) {
+                    errorMessage = "Invalid environment role ID"
+                }
+            }
+            
+            return Response.status(httpStatus)
+                .entity(new JsonBuilder([error: errorMessage]).toString())
+                .build()
+        } catch (Exception e) {
+            return handleError(e, "POST /steps/master")
+        }
     }
     
     // POST /steps/{stepInstanceId}/open
@@ -1656,328 +1933,7 @@ private def getStepRepository() {
     return new StepRepository()
 }
 
-/**
- * Handles POST requests for Steps.
- * - POST /steps/master -> creates a new master step
- */
-steps(httpMethod: "POST", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-    
-    // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
-    
-    try {
-        // Check if this is a master step creation
-        if (pathParts.size() == 1 && pathParts[0] == 'master') {
-            // Parse request body
-            def json = new groovy.json.JsonSlurper()
-            def stepData = json.parseText(body) as Map
-            
-            // Create master step using direct SQL
-            def result = DatabaseUtil.withSql { sql ->
-                try {
-                    // Generate UUID for the new step
-                    def stepId = UUID.randomUUID()
-                    
-                    // Extract and validate required fields
-                    def phmId = stepData.phm_id ? UUID.fromString(stepData.phm_id as String) : null
-                    def tmsIdOwner = stepData.tms_id_owner as Integer
-                    def sttCode = stepData.stt_code as String
-                    def stmNumber = stepData.stm_number as Integer
-                    def stmName = stepData.stm_name as String
-                    def stmDescription = stepData.stm_description
-                    def stmDurationMinutes = stepData.stm_duration_minutes as Integer
-                    def enrIdTarget = stepData.enr_id_target as Integer
-                    def enrId = stepData.enr_id as Integer
-                    def stmIdPredecessor = stepData.stm_id_predecessor ? UUID.fromString(stepData.stm_id_predecessor as String) : null
-                    
-                    // Validate required fields
-                    if (!phmId || !tmsIdOwner || !sttCode || !stmNumber || !stmName || !enrIdTarget) {
-                        throw new IllegalArgumentException("Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required")
-                    }
-                    
-                    // Insert the new master step
-                    def insertQuery = '''
-                        INSERT INTO steps_master_stm (
-                            stm_id, phm_id, tms_id_owner, stt_code, stm_number, 
-                            stm_name, stm_description, stm_duration_minutes, 
-                            enr_id_target, enr_id, stm_id_predecessor,
-                            created_by, created_at, updated_by, updated_at
-                        ) VALUES (
-                            ?, ?, ?, ?, ?, 
-                            ?, ?, ?, 
-                            ?, ?, ?,
-                            'admin', CURRENT_TIMESTAMP, 'admin', CURRENT_TIMESTAMP
-                        )
-                    '''
-                    
-                    sql.execute(insertQuery, [
-                        stepId, phmId, tmsIdOwner, sttCode, stmNumber,
-                        stmName, stmDescription, stmDurationMinutes,
-                        enrIdTarget, enrId, stmIdPredecessor
-                    ])
-                    
-                    // Fetch the created step with all details
-                    def query = '''
-                        SELECT 
-                            stm.stm_id,
-                            stm.phm_id,
-                            stm.tms_id_owner,
-                            stm.stt_code,
-                            stm.stm_number,
-                            stm.stm_name,
-                            stm.stm_description,
-                            stm.stm_duration_minutes,
-                            stm.enr_id_target,
-                            stm.enr_id,
-                            stm.stm_id_predecessor,
-                            stm.created_by,
-                            stm.created_at,
-                            stm.updated_by,
-                            stm.updated_at,
-                            phm.phm_name,
-                            sqm.sqm_name,
-                            plm.plm_name,
-                            tms.tms_name as owner_team_name,
-                            (SELECT COUNT(*) FROM instructions_master_inm WHERE stm_id = stm.stm_id) as instruction_count,
-                            (SELECT COUNT(*) FROM steps_instance_sti WHERE stm_id = stm.stm_id) as instance_count
-                        FROM steps_master_stm stm
-                        JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
-                        JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
-                        JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
-                        LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
-                        WHERE stm.stm_id = ?
-                    '''
-                    
-                    def createdStep = sql.firstRow(query, [stepId])
-                    return createdStep
-                } catch (SQLException e) {
-                    log.error("Database error creating master step", e)
-                    throw e
-                }
-            }
-            
-            return Response.status(Response.Status.CREATED)
-                .entity(new JsonBuilder(result).toString())
-                .build()
-                
-        } else {
-            return Response.status(Response.Status.NOT_FOUND)
-                .entity(new JsonBuilder([error: "Invalid endpoint path"]).toString())
-                .build()
-        }
-    } catch (IllegalArgumentException e) {
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder([error: e.message]).toString())
-            .build()
-    } catch (SQLException e) {
-        def httpStatus = mapSqlStateToHttpStatus(e.getSQLState())
-        def errorMessage = e.getMessage()
-        
-        // Provide more specific error messages for common violations
-        if (e.getSQLState() == '23505') {
-            errorMessage = "A step with the same phase, type, and number already exists"
-        } else if (e.getSQLState() == '23503') {
-            if (errorMessage.contains("phm_id")) {
-                errorMessage = "Invalid phase ID"
-            } else if (errorMessage.contains("tms_id")) {
-                errorMessage = "Invalid team ID"
-            } else if (errorMessage.contains("stt_code")) {
-                errorMessage = "Invalid step type code"
-            } else if (errorMessage.contains("enr_id")) {
-                errorMessage = "Invalid environment role ID"
-            }
-        }
-        
-        return Response.status(httpStatus)
-            .entity(new JsonBuilder([error: errorMessage]).toString())
-            .build()
-    } catch (Exception e) {
-        log.error("Unexpected error creating master step", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "An unexpected error occurred"]).toString())
-            .build()
-    }
-}
-
-/**
- * Handles PUT requests for Steps.
- * - PUT /steps/master/{id} -> updates a master step
- */
-steps(httpMethod: "PUT", groups: ["confluence-users", "confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def extraPath = getAdditionalPath(request)
-    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
-    
-    // Lazy load repositories to avoid class loading issues
-    def getStepRepository = { ->
-        return new StepRepository()
-    }
-    
-    try {
-        // Check if this is a master step update
-        if (pathParts.size() == 2 && pathParts[0] == 'master') {
-            // Parse step ID from path
-            def stepId = UUID.fromString(pathParts[1])
-            
-            // Parse request body
-            def json = new groovy.json.JsonSlurper()
-            def stepData = json.parseText(body) as Map
-            
-            // Update master step using direct SQL
-            def result = DatabaseUtil.withSql { sql ->
-                try {
-                    // Build dynamic update query based on provided fields
-                    def updateFields = []
-                    def updateParams = []
-                    
-                    // Add fields to update if provided
-                    if (stepData.containsKey('phm_id')) {
-                        updateFields << "phm_id = ?"
-                        updateParams << UUID.fromString(stepData.phm_id as String)
-                    }
-                    if (stepData.containsKey('tms_id_owner')) {
-                        updateFields << "tms_id_owner = ?"
-                        updateParams << (stepData.tms_id_owner as Integer)
-                    }
-                    if (stepData.containsKey('stt_code')) {
-                        updateFields << "stt_code = ?"
-                        updateParams << (stepData.stt_code as String)
-                    }
-                    if (stepData.containsKey('stm_number')) {
-                        updateFields << "stm_number = ?"
-                        updateParams << (stepData.stm_number as Integer)
-                    }
-                    if (stepData.containsKey('stm_name')) {
-                        updateFields << "stm_name = ?"
-                        updateParams << (stepData.stm_name as String)
-                    }
-                    if (stepData.containsKey('stm_description')) {
-                        updateFields << "stm_description = ?"
-                        updateParams << stepData.stm_description
-                    }
-                    if (stepData.containsKey('stm_duration_minutes')) {
-                        updateFields << "stm_duration_minutes = ?"
-                        updateParams << (stepData.stm_duration_minutes as Integer)
-                    }
-                    if (stepData.containsKey('enr_id_target')) {
-                        updateFields << "enr_id_target = ?"
-                        updateParams << (stepData.enr_id_target as Integer)
-                    }
-                    if (stepData.containsKey('enr_id')) {
-                        updateFields << "enr_id = ?"
-                        updateParams << (stepData.enr_id as Integer)
-                    }
-                    if (stepData.containsKey('stm_id_predecessor')) {
-                        updateFields << "stm_id_predecessor = ?"
-                        updateParams << (stepData.stm_id_predecessor ? UUID.fromString(stepData.stm_id_predecessor as String) : null)
-                    }
-                    
-                    // Always update audit fields
-                    updateFields << "updated_by = ?"
-                    updateFields << "updated_at = CURRENT_TIMESTAMP"
-                    updateParams << 'admin'
-                    
-                    // Add the step ID for the WHERE clause
-                    updateParams << stepId
-                    
-                    if (updateFields.size() > 2) { // More than just audit fields
-                        // Execute update
-                        def updateQuery = """
-                            UPDATE steps_master_stm 
-                            SET ${updateFields.join(', ')}
-                            WHERE stm_id = ?
-                        """
-                        
-                        def rowsUpdated = sql.executeUpdate(updateQuery, updateParams)
-                        
-                        if (rowsUpdated == 0) {
-                            throw new IllegalArgumentException("Step not found with ID: ${stepId}")
-                        }
-                    }
-                    
-                    // Fetch the updated step with all details
-                    def query = '''
-                        SELECT 
-                            stm.stm_id,
-                            stm.phm_id,
-                            stm.tms_id_owner,
-                            stm.stt_code,
-                            stm.stm_number,
-                            stm.stm_name,
-                            stm.stm_description,
-                            stm.stm_duration_minutes,
-                            stm.enr_id_target,
-                            stm.enr_id,
-                            stm.stm_id_predecessor,
-                            stm.created_by,
-                            stm.created_at,
-                            stm.updated_by,
-                            stm.updated_at,
-                            phm.phm_name,
-                            sqm.sqm_name,
-                            plm.plm_name,
-                            tms.tms_name as owner_team_name,
-                            (SELECT COUNT(*) FROM instructions_master_inm WHERE stm_id = stm.stm_id) as instruction_count,
-                            (SELECT COUNT(*) FROM steps_instance_sti WHERE stm_id = stm.stm_id) as instance_count
-                        FROM steps_master_stm stm
-                        JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
-                        JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
-                        JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
-                        LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
-                        WHERE stm.stm_id = ?
-                    '''
-                    
-                    def updatedStep = sql.firstRow(query, [stepId])
-                    return updatedStep
-                } catch (SQLException e) {
-                    log.error("Database error updating master step", e)
-                    throw e
-                }
-            }
-            
-            return Response.ok(new JsonBuilder(result).toString()).build()
-                
-        } else {
-            return Response.status(Response.Status.NOT_FOUND)
-                .entity(new JsonBuilder([error: "Invalid endpoint path"]).toString())
-                .build()
-        }
-    } catch (IllegalArgumentException e) {
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder([error: e.message]).toString())
-            .build()
-    } catch (SQLException e) {
-        def httpStatus = mapSqlStateToHttpStatus(e.getSQLState())
-        def errorMessage = e.getMessage()
-        
-        // Provide more specific error messages for common violations
-        if (e.getSQLState() == '23505') {
-            errorMessage = "A step with the same phase, type, and number already exists"
-        } else if (e.getSQLState() == '23503') {
-            if (errorMessage.contains("phm_id")) {
-                errorMessage = "Invalid phase ID"
-            } else if (errorMessage.contains("tms_id")) {
-                errorMessage = "Invalid team ID"
-            } else if (errorMessage.contains("stt_code")) {
-                errorMessage = "Invalid step type code"
-            } else if (errorMessage.contains("enr_id")) {
-                errorMessage = "Invalid environment role ID"
-            }
-        }
-        
-        return Response.status(httpStatus)
-            .entity(new JsonBuilder([error: errorMessage]).toString())
-            .build()
-    } catch (Exception e) {
-        log.error("Unexpected error updating master step", e)
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder([error: "An unexpected error occurred"]).toString())
-            .build()
-    }
-}
+// Master step POST and PUT functionality moved to the main handlers above to avoid conflicts
 
 /**
  * Maps SQL state codes to appropriate HTTP status codes
