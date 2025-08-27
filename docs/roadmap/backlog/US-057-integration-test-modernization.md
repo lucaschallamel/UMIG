@@ -7,7 +7,7 @@
 **Priority**: Medium  
 **Sprint Target**: Sprint 6-7  
 **Status**: Backlog  
-**Created**: 2025-08-27  
+**Created**: 2025-08-27
 
 ## Story Overview
 
@@ -30,8 +30,9 @@ Build upon the successful US-037 framework by migrating the remaining high-value
 ## Acceptance Criteria
 
 ### Phase A: Core API Tests Migration (5 points)
+
 - [ ] Migrate PlansApiIntegrationTest.groovy to BaseIntegrationTest framework
-- [ ] Migrate SequencesApiIntegrationTest.groovy to BaseIntegrationTest framework  
+- [ ] Migrate SequencesApiIntegrationTest.groovy to BaseIntegrationTest framework
 - [ ] Migrate InstructionsApiIntegrationTestWorking.groovy to BaseIntegrationTest framework
 - [ ] Migrate StepsApiIntegrationTest.groovy to BaseIntegrationTest framework (critical endpoint)
 - [ ] Migrate TeamsApiIntegrationTest.groovy to BaseIntegrationTest framework
@@ -40,6 +41,7 @@ Build upon the successful US-037 framework by migrating the remaining high-value
 - [ ] Performance validation (<500ms API responses) built into all Phase A tests
 
 ### Phase B: Specialized Tests Migration (3 points)
+
 - [ ] Migrate StatusValidationIntegrationTest.groovy to BaseIntegrationTest framework
 - [ ] Migrate stepViewApiIntegrationTest.groovy to BaseIntegrationTest framework
 - [ ] Migrate PlanDeletionTest.groovy to BaseIntegrationTest framework
@@ -49,6 +51,7 @@ Build upon the successful US-037 framework by migrating the remaining high-value
 - [ ] Specialized test requirements accommodated within framework
 
 ### Framework Standards Compliance
+
 - [ ] All migrated tests extend BaseIntegrationTest class
 - [ ] All migrated tests use IntegrationTestHttpClient for HTTP operations
 - [ ] All migrated tests use DatabaseUtil.withSql for database operations
@@ -60,10 +63,11 @@ Build upon the successful US-037 framework by migrating the remaining high-value
 ## Technical Requirements
 
 ### Migration Standards
+
 ```groovy
 // Required base class extension
 class MigratedTest extends BaseIntegrationTest {
-    
+
     @Override
     void setupTestData() {
         // Use inherited database utilities
@@ -71,12 +75,12 @@ class MigratedTest extends BaseIntegrationTest {
             // Test data setup with automatic cleanup tracking
         }
     }
-    
+
     @Test
     void testApiEndpoint() {
         // Use inherited HTTP client
         def response = httpClient.get('/api/v2/endpoint')
-        
+
         // ADR-031 compliant type casting
         def responseData = response.data as Map
         def id = UUID.fromString(responseData.id as String)
@@ -85,6 +89,7 @@ class MigratedTest extends BaseIntegrationTest {
 ```
 
 ### Framework Integration
+
 - **HTTP Operations**: Use IntegrationTestHttpClient for all API calls
 - **Database Operations**: Use DatabaseUtil.withSql pattern exclusively
 - **Test Data Management**: Implement automatic cleanup tracking
@@ -92,6 +97,7 @@ class MigratedTest extends BaseIntegrationTest {
 - **Performance Validation**: Built-in response time assertions (<500ms)
 
 ### Quality Standards
+
 - **Zero @Grab Dependencies**: Complete elimination from migrated tests
 - **Static Type Checking**: 100% ADR-031 compliance with explicit casting
 - **Test Coverage**: Maintain 100% test coverage for migrated functionality
@@ -100,6 +106,7 @@ class MigratedTest extends BaseIntegrationTest {
 ## Target Tests for Migration
 
 ### Priority 1 - Core API Tests (Phase A - 5 points)
+
 1. **PlansApiIntegrationTest.groovy** - Core API functionality, high business value
 2. **SequencesApiIntegrationTest.groovy** - Core API functionality, critical workflow
 3. **InstructionsApiIntegrationTestWorking.groovy** - Working test version, proven functionality
@@ -107,6 +114,7 @@ class MigratedTest extends BaseIntegrationTest {
 5. **TeamsApiIntegrationTest.groovy** - Core API functionality, no framework currently
 
 ### Priority 2 - Specialized Tests (Phase B - 3 points)
+
 6. **StatusValidationIntegrationTest.groovy** - System health validation
 7. **stepViewApiIntegrationTest.groovy** - UI integration testing
 8. **PlanDeletionTest.groovy** - Specialized delete operations testing
@@ -116,18 +124,21 @@ class MigratedTest extends BaseIntegrationTest {
 ## Implementation Strategy
 
 ### Phase A Approach (Sprint 6)
+
 1. **Assessment Phase** (Day 1): Analyze each core API test for framework compatibility
 2. **Migration Execution** (Days 2-4): Migrate tests using proven US-037 patterns
 3. **Integration Validation** (Day 5): Ensure all tests work with npm test execution
 4. **Performance Validation**: Confirm <500ms API response requirements
 
 ### Phase B Approach (Sprint 7)
+
 1. **Specialized Requirements Analysis** (Day 1): Identify unique requirements for specialized tests
 2. **Framework Extensions** (Days 2-3): Extend framework as needed for specialized use cases
 3. **Migration Implementation** (Days 4-5): Complete remaining test migrations
 4. **Final Validation**: Confirm 50% framework adoption achieved
 
 ### Migration Pattern (from US-037)
+
 ```groovy
 // Before (Legacy Pattern)
 @Grab('io.rest-assured:rest-assured:4.3.3')
@@ -145,12 +156,14 @@ class MigratedTest extends BaseIntegrationTest {
 ## Dependencies
 
 ### Required Completions
+
 - **US-037**: Integration Testing Framework Standardization (COMPLETE)
 - **BaseIntegrationTest Framework**: Production-ready and validated
 - **IntegrationTestHttpClient**: Available and tested
 - **DatabaseUtil**: Established database patterns
 
 ### Infrastructure Dependencies
+
 - **NPM Test Scripts**: Integration with existing test execution framework
 - **Database Access**: PostgreSQL test database availability
 - **ScriptRunner Environment**: Confluence + ScriptRunner testing environment
@@ -158,6 +171,7 @@ class MigratedTest extends BaseIntegrationTest {
 ## Success Metrics & KPIs
 
 ### Quantitative Metrics
+
 - **Framework Adoption**: 19% → 50% (6/32 → 16/32 tests)
 - **Legacy Dependencies**: 10 → 0 @Grab dependencies (in migrated tests)
 - **Code Reduction**: 80% reduction in test boilerplate and setup code
@@ -165,6 +179,7 @@ class MigratedTest extends BaseIntegrationTest {
 - **Maintenance Overhead**: 80% reduction in test maintenance effort
 
 ### Qualitative Metrics
+
 - **Static Type Checking**: 100% compliance across all migrated tests
 - **Performance Standards**: <500ms API responses, <2min test suites
 - **Code Quality**: Zero external dependencies, consistent patterns
@@ -172,6 +187,7 @@ class MigratedTest extends BaseIntegrationTest {
 - **Team Efficiency**: Standardized patterns reduce learning curve
 
 ### Framework Health Metrics
+
 - **Test Reliability**: Consistent pass rates across migrated tests
 - **Framework Stability**: Zero framework-related test failures
 - **Integration Quality**: Seamless npm test execution for all migrated tests
@@ -180,35 +196,40 @@ class MigratedTest extends BaseIntegrationTest {
 ## Risk Assessment & Mitigation
 
 ### Technical Risks
-| Risk | Impact | Probability | Mitigation Strategy |
-|------|---------|-------------|-------------------|
-| **Framework Limitations** | Medium | Low | Extend framework incrementally as needed |
-| **Specialized Test Requirements** | Medium | Medium | Analyze each test individually, create framework extensions |
-| **Migration Complexity** | Low | Low | Use proven US-037 patterns, iterative approach |
-| **Performance Regression** | High | Low | Built-in performance validation, early testing |
+
+| Risk                              | Impact | Probability | Mitigation Strategy                                         |
+| --------------------------------- | ------ | ----------- | ----------------------------------------------------------- |
+| **Framework Limitations**         | Medium | Low         | Extend framework incrementally as needed                    |
+| **Specialized Test Requirements** | Medium | Medium      | Analyze each test individually, create framework extensions |
+| **Migration Complexity**          | Low    | Low         | Use proven US-037 patterns, iterative approach              |
+| **Performance Regression**        | High   | Low         | Built-in performance validation, early testing              |
 
 ### Business Risks
-| Risk | Impact | Probability | Mitigation Strategy |
-|------|---------|-------------|-------------------|
-| **Resource Allocation** | Medium | Low | Phase approach allows flexible scheduling |
-| **Timeline Pressure** | Low | Low | Medium priority allows Sprint 6-7 flexibility |
-| **Quality Impact** | High | Very Low | Framework proven in US-037, extensive testing |
+
+| Risk                    | Impact | Probability | Mitigation Strategy                           |
+| ----------------------- | ------ | ----------- | --------------------------------------------- |
+| **Resource Allocation** | Medium | Low         | Phase approach allows flexible scheduling     |
+| **Timeline Pressure**   | Low    | Low         | Medium priority allows Sprint 6-7 flexibility |
+| **Quality Impact**      | High   | Very Low    | Framework proven in US-037, extensive testing |
 
 ## Business Value & ROI
 
 ### Immediate Benefits
+
 - **Technical Debt Reduction**: Eliminate 10 legacy test patterns
 - **Development Velocity**: 80% code reduction in test development
 - **Quality Assurance**: Consistent validation across all major APIs
 - **Maintainability**: Single point of change for testing infrastructure
 
 ### Long-term Strategic Value
+
 - **Framework Maturity**: Achieve 50% adoption milestone
 - **Team Efficiency**: Standardized patterns reduce learning curve
 - **Scalability**: Foundation for future test development
 - **Knowledge Transfer**: Reduced complexity for new team members
 
 ### Cost-Benefit Analysis
+
 - **Investment**: 8 story points (1.6 developer days)
 - **Return**: 80% reduction in ongoing test maintenance
 - **Payback Period**: 2 sprints through reduced maintenance overhead
@@ -217,6 +238,7 @@ class MigratedTest extends BaseIntegrationTest {
 ## Definition of Done
 
 ### Technical Completion
+
 - [ ] All 10 identified legacy tests successfully migrated to BaseIntegrationTest framework
 - [ ] Zero @Grab dependencies in any migrated test files
 - [ ] All migrated tests pass static type checking (ADR-031 compliant)
@@ -224,12 +246,14 @@ class MigratedTest extends BaseIntegrationTest {
 - [ ] Framework adoption reaches 50% milestone (16/32 tests)
 
 ### Quality Assurance
+
 - [ ] All migrated tests pass in isolation and as part of full test suite
 - [ ] Integration with npm run test:integration confirmed for all migrated tests
 - [ ] Automatic cleanup functionality validated for all tests
 - [ ] Performance benchmarks met for all API endpoints tested
 
 ### Documentation & Knowledge Transfer
+
 - [ ] Migration patterns documented with examples
 - [ ] Framework extension guidelines created
 - [ ] Best practices guide updated
@@ -237,6 +261,7 @@ class MigratedTest extends BaseIntegrationTest {
 - [ ] Framework adoption roadmap updated for remaining tests
 
 ### Business Value Validation
+
 - [ ] Framework health metrics established and baseline recorded
 - [ ] Development velocity improvements documented
 - [ ] Technical debt reduction quantified and reported
@@ -245,14 +270,17 @@ class MigratedTest extends BaseIntegrationTest {
 ## Related Stories & Dependencies
 
 ### Prerequisite Stories
+
 - **US-037**: Integration Testing Framework Standardization ✅ COMPLETE
 
 ### Follow-up Opportunities
+
 - **US-058**: Complete Integration Test Framework Adoption (remaining 16 tests)
 - **Future**: Framework extension for end-to-end testing
 - **Future**: Performance testing framework integration
 
 ### Cross-Epic Dependencies
+
 - **Quality Assurance Epic**: Enhanced testing capability
 - **Technical Debt Epic**: Systematic debt reduction
 - **Developer Experience Epic**: Improved development workflows
@@ -260,16 +288,19 @@ class MigratedTest extends BaseIntegrationTest {
 ## Implementation Timeline
 
 ### Sprint 6 (Phase A - 5 points)
+
 - **Week 1**: Core API tests migration (Plans, Sequences, Instructions)
 - **Week 2**: Critical endpoint tests migration (Steps, Teams)
 - **Milestone**: 35% framework adoption achieved
 
-### Sprint 7 (Phase B - 3 points)  
+### Sprint 7 (Phase B - 3 points)
+
 - **Week 1**: Specialized tests analysis and framework extension
 - **Week 2**: Specialized tests migration completion
 - **Milestone**: 50% framework adoption achieved
 
 ### Success Checkpoint
+
 - **Framework Adoption**: 19% → 50%
 - **Technical Debt**: 10 legacy patterns eliminated
 - **Development Velocity**: 80% improvement in test development
@@ -280,7 +311,7 @@ class MigratedTest extends BaseIntegrationTest {
 **Story Champion**: QA Engineering Team  
 **Technical Lead**: Development Team  
 **Stakeholders**: QA Engineers, Backend Developers, DevOps Team  
-**Business Sponsor**: Technical Leadership  
+**Business Sponsor**: Technical Leadership
 
 **Last Updated**: 2025-08-27  
 **Next Review**: Sprint 6 Planning Session
