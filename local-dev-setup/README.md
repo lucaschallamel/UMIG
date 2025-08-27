@@ -259,7 +259,7 @@ UMIG follows a canonical-instance pattern for data:
 
 ### Testing
 
-The project includes comprehensive NPM-based testing commands with a complete JavaScript test infrastructure that replaced shell scripts in August 2025. Testing is organized into orchestrated test runners and feature-based test organization.
+The project includes comprehensive NPM-based testing commands with a complete JavaScript test infrastructure that replaced shell scripts in August 2025. Testing is organized into orchestrated test runners and feature-based test organization, now supporting US-056 service layer architecture testing.
 
 #### Core Test Commands
 

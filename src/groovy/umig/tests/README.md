@@ -18,6 +18,8 @@ npm run test:uat                    # UAT validation suite
 # User Story Shortcuts
 npm run test:us022                  # US-022 Integration Test Expansion
 npm run test:us028                  # US-028 Enhanced IterationView + UAT
+npm run test:us056                  # US-056 Service Layer Standardization
+npm run test:us037                  # US-037 Integration Testing Framework
 
 # Feature-Specific
 npm run test:iterationview          # Enhanced IterationView tests
@@ -53,6 +55,7 @@ The NPM-based testing framework uses specialized JavaScript runners built on a c
 **IntegrationTestRunner**: Authentication, database connectivity, sequential execution for data integrity
 **UnitTestRunner**: Parallel execution (4x faster), pattern/category filtering, development-optimized
 **UATValidationRunner**: End-to-end validation, browser test integration, comprehensive reporting
+**BaseIntegrationTest**: Framework foundation for standardized integration testing (US-037)
 
 ### Key Improvements from Migration
 

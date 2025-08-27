@@ -1,12 +1,21 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.5.0
+  version: 2.6.0
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
+
+    **Version 2.6.0 - August 27, 2025:**
+    **URL Configuration API v1.0.0:** Added complete URL Configuration API with 4 endpoints for client-side URL construction.
+    GET /api/v2/urlConfiguration for retrieving configuration with optional environment parameter support.
+    GET /api/v2/urlConfiguration/health for service health monitoring with status reporting.
+    POST /api/v2/urlConfiguration/clearCache for cache management and immediate configuration updates.
+    GET /api/v2/urlConfiguration/debug for comprehensive troubleshooting with service diagnostics.
+    Enhanced with comprehensive input validation, error handling, and security integration.
+    Full environment-specific configuration support with defensive type checking patterns.
 
     **Version 2.5.0 - August 27, 2025:**
     **Steps API v2.3.0 Master Steps Management:** Added POST /steps/master endpoint for creating new master step templates.
@@ -88,6 +97,8 @@ tags:
     description: Operations about status management for different entity types.
   - name: WebApp
     description: Serves static web assets.
+  - name: UrlConfiguration
+    description: Operations about URL configuration management and client-side URL construction.
 
 paths:
   # ==================== NEW V2 ITERATIONS API ====================
@@ -6397,6 +6408,166 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  # ==================== URL CONFIGURATION API ====================
+  /api/v2/urlConfiguration:
+    get:
+      tags:
+        - UrlConfiguration
+      summary: Get URL configuration for client-side construction
+      description: |
+        Retrieves URL configuration settings that clients can use to construct proper URLs
+        for navigation and links within the UMIG application. Supports environment-specific
+        configuration retrieval for multi-environment deployments.
+      operationId: getUrlConfiguration
+      parameters:
+        - name: environment
+          in: query
+          required: false
+          description: Environment identifier (2-5 alphanumeric characters)
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9]{2,5}$"
+            example: "DEV"
+      responses:
+        "200":
+          description: URL configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlConfiguration"
+              example:
+                baseUrl: "http://localhost:8090"
+                spaceKey: "UMIG"
+                pageId: "123456789"
+                pageTitle: "UMIG Application"
+                environment: "DEV"
+                isActive: true
+                urlTemplate: "{{baseUrl}}/spaces/{{spaceKey}}/pages/{{pageId}}"
+        "400":
+          description: Invalid environment parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                error: "VALIDATION_ERROR"
+                message: "Environment parameter must be 2-5 alphanumeric characters"
+                timestamp: "2025-08-27T14:30:00Z"
+        "404":
+          description: Configuration not found for specified environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+              example:
+                error: "NOT_FOUND"
+                message: "URL configuration not found for environment: PROD"
+                timestamp: "2025-08-27T14:30:00Z"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+  /api/v2/urlConfiguration/health:
+    get:
+      tags:
+        - UrlConfiguration
+      summary: Health check for URL configuration service
+      description: |
+        Performs a health check on the URL configuration service, verifying that
+        the service is operational and can retrieve configuration data.
+      operationId: getUrlConfigurationHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlConfigurationHealth"
+              example:
+                status: "healthy"
+                timestamp: "2025-08-27T14:30:00Z"
+                details: "All configuration services operational"
+        "503":
+          description: Service is degraded or unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlConfigurationHealth"
+              example:
+                status: "degraded"
+                timestamp: "2025-08-27T14:30:00Z"
+                details: "Database connection slow"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+  /api/v2/urlConfiguration/clearCache:
+    post:
+      tags:
+        - UrlConfiguration
+      summary: Clear URL configuration cache
+      description: |
+        Clears the URL configuration cache, forcing the service to reload
+        configuration from the database on the next request. Useful for
+        applying configuration changes immediately.
+      operationId: clearUrlConfigurationCache
+      responses:
+        "200":
+          description: Cache cleared successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CacheClearResponse"
+              example:
+                message: "URL configuration cache cleared successfully"
+                timestamp: "2025-08-27T14:30:00Z"
+                nextCacheRefresh: "2025-08-27T14:35:00Z"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
+  /api/v2/urlConfiguration/debug:
+    get:
+      tags:
+        - UrlConfiguration
+      summary: Debug information for URL configuration troubleshooting
+      description: |
+        Provides comprehensive debug information about the URL configuration service,
+        including service health, cached configurations, environment detection status,
+        and system diagnostics. Intended for troubleshooting and system monitoring.
+      operationId: getUrlConfigurationDebug
+      responses:
+        "200":
+          description: Debug information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlConfigurationDebug"
+              example:
+                serviceHealth:
+                  status: "healthy"
+                  databaseConnected: true
+                  cacheEnabled: true
+                cachedConfigurations:
+                  - environment: "DEV"
+                    lastRefresh: "2025-08-27T14:25:00Z"
+                    entryCount: 1
+                  - environment: "TEST"
+                    lastRefresh: "2025-08-27T14:20:00Z"
+                    entryCount: 1
+                environmentDetection:
+                  currentEnvironment: "DEV"
+                  detectionMethod: "CONFLUENCE_BASE_URL"
+                  fallbackUsed: false
+                timestamp: "2025-08-27T14:30:00Z"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
+
 components:
   schemas:
     # --- View Models ---
@@ -6411,6 +6582,170 @@ components:
           type: string
         status:
           type: string
+
+    # --- URL Configuration Models ---
+    UrlConfiguration:
+      type: object
+      description: URL configuration settings for client-side URL construction
+      properties:
+        baseUrl:
+          type: string
+          description: Base URL of the Confluence instance
+          example: "http://localhost:8090"
+        spaceKey:
+          type: string
+          description: Confluence space key where UMIG is deployed
+          example: "UMIG"
+        pageId:
+          type: string
+          description: Page ID where the UMIG application is hosted
+          example: "123456789"
+        pageTitle:
+          type: string
+          description: Title of the page hosting UMIG
+          example: "UMIG Application"
+        environment:
+          type: string
+          description: Current environment identifier
+          example: "DEV"
+        isActive:
+          type: boolean
+          description: Whether this configuration is currently active
+          example: true
+        urlTemplate:
+          type: string
+          description: Template for constructing URLs using configuration values
+          example: "{{baseUrl}}/spaces/{{spaceKey}}/pages/{{pageId}}"
+      required:
+        - baseUrl
+        - spaceKey
+        - pageId
+        - pageTitle
+        - environment
+        - isActive
+        - urlTemplate
+
+    UrlConfigurationHealth:
+      type: object
+      description: Health status of the URL configuration service
+      properties:
+        status:
+          type: string
+          enum: ["healthy", "degraded", "error"]
+          description: Current health status of the service
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when health check was performed
+          example: "2025-08-27T14:30:00Z"
+        details:
+          type: string
+          description: Additional details about the health status
+          example: "All configuration services operational"
+      required:
+        - status
+        - timestamp
+
+    CacheClearResponse:
+      type: object
+      description: Response after clearing URL configuration cache
+      properties:
+        message:
+          type: string
+          description: Confirmation message
+          example: "URL configuration cache cleared successfully"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when cache was cleared
+          example: "2025-08-27T14:30:00Z"
+        nextCacheRefresh:
+          type: string
+          format: date-time
+          description: Estimated time for next cache refresh
+          example: "2025-08-27T14:35:00Z"
+      required:
+        - message
+        - timestamp
+
+    UrlConfigurationDebug:
+      type: object
+      description: Debug information for URL configuration troubleshooting
+      properties:
+        serviceHealth:
+          type: object
+          description: Service health information
+          properties:
+            status:
+              type: string
+              description: Service status
+              example: "healthy"
+            databaseConnected:
+              type: boolean
+              description: Database connection status
+              example: true
+            cacheEnabled:
+              type: boolean
+              description: Whether caching is enabled
+              example: true
+          required:
+            - status
+            - databaseConnected
+            - cacheEnabled
+        cachedConfigurations:
+          type: array
+          description: Information about cached configurations
+          items:
+            type: object
+            properties:
+              environment:
+                type: string
+                description: Environment identifier
+                example: "DEV"
+              lastRefresh:
+                type: string
+                format: date-time
+                description: When this cache entry was last refreshed
+                example: "2025-08-27T14:25:00Z"
+              entryCount:
+                type: integer
+                description: Number of cached entries for this environment
+                example: 1
+            required:
+              - environment
+              - lastRefresh
+              - entryCount
+        environmentDetection:
+          type: object
+          description: Environment detection information
+          properties:
+            currentEnvironment:
+              type: string
+              description: Currently detected environment
+              example: "DEV"
+            detectionMethod:
+              type: string
+              description: Method used to detect environment
+              example: "CONFLUENCE_BASE_URL"
+            fallbackUsed:
+              type: boolean
+              description: Whether fallback detection was used
+              example: false
+          required:
+            - currentEnvironment
+            - detectionMethod
+            - fallbackUsed
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when debug information was generated
+          example: "2025-08-27T14:30:00Z"
+      required:
+        - serviceHealth
+        - cachedConfigurations
+        - environmentDetection
+        - timestamp
 
     MigrationSummary:
       type: object
