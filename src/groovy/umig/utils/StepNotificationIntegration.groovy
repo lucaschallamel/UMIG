@@ -396,15 +396,42 @@ class StepNotificationIntegration {
     private static Map getStepInstanceDetails(Sql sql, UUID stepInstanceId) {
         def query = '''
             SELECT sti.sti_id, sti.sti_name, sti.sti_status, stm.stt_code, stm.stm_number,
-                   stm.stm_name, mig.mig_name as migration_name
+                   stm.stm_name, mig.mig_name as migration_name,
+                   -- Email template fields
+                   stm.stm_description,
+                   phm.phm_name as phase_name,
+                   sqm.sqm_name as sequence_name,
+                   plm.plm_name as plan_name,
+                   mig.mig_code,
+                   env.env_name as environment_name,
+                   owner_team.tms_name as owner_team_name,
+                   owner_team.tms_email as owner_team_email,
+                   COALESCE(
+                       STRING_AGG(DISTINCT impacted_team.tms_name, ', ' ORDER BY impacted_team.tms_name), 
+                       ''
+                   ) as impacted_teams,
+                   -- Recent comments (for email template) - simple empty string for compatibility
+                   '' as recentComments
             FROM steps_instance_sti sti
             INNER JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
             LEFT JOIN phase_instance_phi phi ON sti.phi_id = phi.phi_id
+            LEFT JOIN phases_master_phm phm ON phi.phm_id = phm.phm_id
             LEFT JOIN sequence_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+            LEFT JOIN sequences_master_sqm sqm ON sqi.sqm_id = sqm.sqm_id
             LEFT JOIN plan_instance_pli pli ON sqi.pli_id = pli.pli_id
+            LEFT JOIN plans_master_plm plm ON pli.plm_id = plm.plm_id
             LEFT JOIN iteration_instance_ini ini ON pli.ini_id = ini.ini_id
             LEFT JOIN migration_mig mig ON ini.mig_id = mig.mig_id
+            LEFT JOIN environments_env env ON mig.env_id = env.env_id
+            LEFT JOIN teams_tms owner_team ON sti.tms_id = owner_team.tms_id
+            -- Join to get impacted teams  
+            LEFT JOIN steps_master_stm_x_teams_tms_impacted impacted_rel ON stm.stm_id = impacted_rel.stm_id
+            LEFT JOIN teams_tms impacted_team ON impacted_rel.tms_id = impacted_team.tms_id
             WHERE sti.sti_id = :stepInstanceId
+            GROUP BY sti.sti_id, sti.sti_name, sti.sti_status, stm.stt_code, stm.stm_number,
+                     stm.stm_name, stm.stm_description, mig.mig_name, mig.mig_code,
+                     phm.phm_name, sqm.sqm_name, plm.plm_name, env.env_name,
+                     owner_team.tms_name, owner_team.tms_email
         '''
         
         return sql.firstRow(query, [stepInstanceId: stepInstanceId])

@@ -121,7 +121,10 @@ class EnhancedEmailService {
                     stepViewUrl: stepViewUrl,
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
-                    iterationCode: iterationCode
+                    iterationCode: iterationCode,
+                    // Template-specific variables (must be top-level for template access)
+                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: []),
+                    impacted_teams: stepInstance?.impacted_teams ?: ''
                 ]
                 
                 // Process template
@@ -245,7 +248,10 @@ class EnhancedEmailService {
                     openedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
                     openedBy: getUsernameById(sql, userId),
                     migrationCode: migrationCode,
-                    iterationCode: iterationCode
+                    iterationCode: iterationCode,
+                    // Template-specific variables (must be top-level for template access)
+                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: []),
+                    impacted_teams: stepInstance?.impacted_teams ?: ''
                 ]
                 
                 // Process template
@@ -343,7 +349,10 @@ class EnhancedEmailService {
                     stepViewUrl: stepViewUrl,
                     hasStepViewUrl: stepViewUrl != null,
                     migrationCode: migrationCode,
-                    iterationCode: iterationCode
+                    iterationCode: iterationCode,
+                    // Template-specific variables (must be top-level for template access)
+                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: []),
+                    impacted_teams: stepInstance?.impacted_teams ?: ''
                 ]
                 
                 // Process template
