@@ -5,6 +5,7 @@ import java.util.UUID
 import java.util.regex.Pattern
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import umig.utils.DatabaseUtil
 
 /**
  * UrlConstructionService - Constructs secure URLs for UMIG step views
@@ -13,7 +14,7 @@ import java.nio.charset.StandardCharsets
  * and step context. Handles environment-specific URL construction with security
  * validation and parameter sanitization.
  * 
- * URL Format: {baseURL}/spaces/{spaceKey}/pages/{pageId}/{pageTitle}?mig={migrationCode}&ite={iterationCode}&stepid={stepCode}
+ * URL Format: {baseURL}/pages/viewpage.action?pageId={pageId}&mig={migrationCode}&ite={iterationCode}&stepid={stepCode}
  * 
  * @author UMIG Project Team
  * @since 2025-08-21
@@ -25,7 +26,11 @@ class UrlConstructionService {
         '^https?://[a-zA-Z0-9.-]+(:[0-9]+)?(/.*)?$'
     )
     private static final Pattern PARAM_PATTERN = Pattern.compile(
-        '^[a-zA-Z0-9._-]+$'
+        '^[a-zA-Z0-9._\\-\\s]+$'  // Allow spaces for iteration names (\\s for all whitespace)
+    )
+    // More permissive pattern for page titles (allows spaces and common punctuation)
+    private static final Pattern PAGE_TITLE_PATTERN = Pattern.compile(
+        '^[a-zA-Z0-9\\s._-]+$'
     )
     
     // Cache for configuration data to avoid repeated database queries
@@ -67,7 +72,7 @@ class UrlConstructionService {
             def sanitizedParams = sanitizeUrlParameters([
                 mig: migrationCode,
                 ite: iterationCode, 
-                stepid: stepDetails.stepCode
+                stepid: stepDetails.step_code  // Fixed: use step_code (lowercase) from SQL query
             ])
             
             if (!sanitizedParams) {
@@ -79,7 +84,7 @@ class UrlConstructionService {
             def baseUrl = sanitizeBaseUrl(config.scf_base_url as String)
             def spaceKey = sanitizeParameter(config.scf_space_key as String)
             def pageId = sanitizeParameter(config.scf_page_id as String)
-            def pageTitle = sanitizeParameter(config.scf_page_title as String)
+            def pageTitle = sanitizePageTitle(config.scf_page_title as String)
             
             if (!baseUrl || !spaceKey || !pageId || !pageTitle) {
                 println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}"
@@ -92,10 +97,11 @@ class UrlConstructionService {
             if (!baseUrl.endsWith('/')) {
                 urlBuilder.append('/')
             }
-            urlBuilder.append("spaces/${spaceKey}/pages/${pageId}/${URLEncoder.encode(pageTitle, StandardCharsets.UTF_8.toString())}")
+            urlBuilder.append("pages/viewpage.action")
             
-            // Add query parameters
-            def queryParams = sanitizedParams.collect { key, value ->
+            // Add query parameters including pageId
+            def allParams = [pageId: pageId] + sanitizedParams
+            def queryParams = allParams.collect { key, value ->
                 "${key}=${URLEncoder.encode(value as String, StandardCharsets.UTF_8.toString())}"
             }.join('&')
             
@@ -283,6 +289,24 @@ class UrlConstructionService {
     }
     
     /**
+     * Sanitizes page title value (allows spaces and common punctuation)
+     */
+    private static String sanitizePageTitle(String pageTitle) {
+        if (!pageTitle) return null
+        
+        def trimmed = pageTitle.trim()
+        if (trimmed.isEmpty()) return null
+        
+        // Allow alphanumeric, spaces, dots, underscores, hyphens
+        if (!PAGE_TITLE_PATTERN.matcher(trimmed).matches()) {
+            println "UrlConstructionService: Page title validation failed for: ${trimmed}"
+            return null
+        }
+        
+        return trimmed
+    }
+    
+    /**
      * Sanitizes and validates base URL
      */
     private static String sanitizeBaseUrl(String url) {
@@ -377,7 +401,7 @@ class UrlConstructionService {
             def baseUrl = sanitizeBaseUrl(config.scf_base_url as String)
             def spaceKey = sanitizeParameter(config.scf_space_key as String)
             def pageId = sanitizeParameter(config.scf_page_id as String)
-            def pageTitle = sanitizeParameter(config.scf_page_title as String)
+            def pageTitle = sanitizePageTitle(config.scf_page_title as String)
             
             if (!baseUrl || !spaceKey || !pageId || !pageTitle) {
                 println "UrlConstructionService: Configuration validation failed for environment: ${environmentCode}"
@@ -390,12 +414,12 @@ class UrlConstructionService {
             if (!baseUrl.endsWith('/')) {
                 urlBuilder.append('/')
             }
-            urlBuilder.append("spaces/${spaceKey}/pages/${pageId}/${URLEncoder.encode(pageTitle, StandardCharsets.UTF_8.toString())}")
+            urlBuilder.append("pages/viewpage.action?pageId=${pageId}")
             
             def templateUrl = urlBuilder.toString()
             
             // Final validation
-            if (!isValidUrl("${templateUrl}?test=value")) {
+            if (!isValidUrl("${templateUrl}&test=value")) {
                 println "UrlConstructionService: Template URL validation failed: ${templateUrl}"
                 return null
             }
@@ -469,5 +493,12 @@ class UrlConstructionService {
                 configurationFound: false
             ]
         }
+    }
+    
+    /**
+     * Public method to get current environment detection result for debugging
+     */
+    static String getCurrentEnvironment() {
+        return detectEnvironment()
     }
 }

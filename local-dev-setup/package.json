@@ -44,6 +44,7 @@
     "test:stepview:uat:performance": "playwright test stepview-alignment-uat.test.js --grep 'load StepView page'",
     "test:stepview:all": "npm run test:stepview:unit && npm run test:stepview:integration && npm run test:stepview:uat",
     "test:stepview:regression": "npm run test:stepview:all && npm run test:uat:quick",
+    "test:stepview:url-fix": "npx jest __tests__/StepViewUrlFixRegressionTest.test.js --verbose",
     "test:stepview:dom-refresh": "node test-stepview-dom-refresh-fix.cjs",
     "test:us036": "npm run test:stepview:all",
     "test:us036:quick": "npm run test:stepview:unit && npm run test:stepview:uat:performance",
@@ -56,7 +57,10 @@
     "lint:md:fix": "prettier --write '**/*.md' --prose-wrap always --print-width 80",
     "lint:md:aggressive": "prettier --check '**/*.md' --prose-wrap always --print-width 80 --tab-width 2 --single-quote --trailing-comma all",
     "markdownlint": "markdownlint '../**/*.md' --ignore '../node_modules/**' --ignore '../local-dev-setup/node_modules/**'",
-    "markdownlint:fix": "markdownlint '../**/*.md' --ignore '../node_modules/**' --ignore '../local-dev-setup/node_modules/**' --fix"
+    "markdownlint:fix": "markdownlint '../**/*.md' --ignore '../node_modules/**' --ignore '../local-dev-setup/node_modules/**' --fix",
+    "mailhog:test": "bash scripts/utilities/test-mailhog-smtp.sh",
+    "mailhog:check": "curl -s http://localhost:8025/api/v2/messages | jq '.count'",
+    "mailhog:clear": "curl -X DELETE http://localhost:8025/api/v1/messages && echo 'MailHog inbox cleared'"
   },
   "author": "Lucas Challamel",
   "license": "ISC",

@@ -1,6 +1,7 @@
-package umig.utils
+package umig.tests.unit
 
 import java.sql.Timestamp
+import umig.utils.AuditFieldsUtil
 
 /**
  * Unit tests for AuditFieldsUtil class.
@@ -86,7 +87,7 @@ class AuditFieldsUtilTest {
     // Test setCreateAuditFields
     boolean testSetCreateAuditFields() {
         try {
-            def params = [:]
+            Map<String, Object> params = [:]
             AuditFieldsUtil.setCreateAuditFields(params)
             
             assert params.created_by == 'system' : "created_by should be 'system'"
@@ -105,7 +106,7 @@ class AuditFieldsUtilTest {
     
     boolean testSetCreateAuditFieldsWithUsername() {
         try {
-            def params = [:]
+            Map<String, Object> params = [:]
             AuditFieldsUtil.setCreateAuditFields(params, 'testuser')
             
             assert params.created_by == 'testuser' : "created_by should be 'testuser'"
@@ -121,7 +122,7 @@ class AuditFieldsUtilTest {
     
     boolean testSetCreateAuditFieldsPreservesExisting() {
         try {
-            def params = [name: 'test', value: 123]
+            Map<String, Object> params = [name: 'test', value: 123]
             AuditFieldsUtil.setCreateAuditFields(params)
             
             assert params.name == 'test' : "Existing field 'name' should be preserved"
@@ -139,7 +140,7 @@ class AuditFieldsUtilTest {
     // Test setUpdateAuditFields
     boolean testSetUpdateAuditFields() {
         try {
-            def params = [:]
+            Map<String, Object> params = [:]
             AuditFieldsUtil.setUpdateAuditFields(params)
             
             assert params.updated_by == 'system' : "updated_by should be 'system'"
@@ -157,7 +158,7 @@ class AuditFieldsUtilTest {
     
     boolean testSetUpdateAuditFieldsWithUsername() {
         try {
-            def params = [:]
+            Map<String, Object> params = [:]
             AuditFieldsUtil.setUpdateAuditFields(params, 'updateuser')
             
             assert params.updated_by == 'updateuser' : "updated_by should be 'updateuser'"
@@ -172,9 +173,9 @@ class AuditFieldsUtilTest {
     
     boolean testSetUpdateAuditFieldsDoesNotAddCreateFields() {
         try {
-            def params = [created_by: 'original', created_at: new Timestamp(1000)]
-            def originalCreatedBy = params.created_by
-            def originalCreatedAt = params.created_at
+            Map<String, Object> params = [created_by: 'original', created_at: new Timestamp(1000)]
+            String originalCreatedBy = params.created_by as String
+            Timestamp originalCreatedAt = params.created_at as Timestamp
             
             AuditFieldsUtil.setUpdateAuditFields(params)
             
@@ -192,7 +193,7 @@ class AuditFieldsUtilTest {
     // Test validateAuditFields
     boolean testValidateAuditFieldsComplete() {
         try {
-            def params = [
+            Map<String, Object> params = [
                 created_by: 'test',
                 created_at: new Timestamp(System.currentTimeMillis()),
                 updated_by: 'test',
@@ -212,7 +213,7 @@ class AuditFieldsUtilTest {
     
     boolean testValidateAuditFieldsUpdateOnly() {
         try {
-            def params = [
+            Map<String, Object> params = [
                 updated_by: 'test',
                 updated_at: new Timestamp(System.currentTimeMillis())
             ]
@@ -230,7 +231,7 @@ class AuditFieldsUtilTest {
     
     boolean testValidateAuditFieldsMissingFields() {
         try {
-            def params = [created_by: 'test']
+            Map<String, Object> params = [created_by: 'test']
             
             assert !AuditFieldsUtil.validateAuditFields(params) : "Should fail with missing fields"
             assert !AuditFieldsUtil.validateAuditFields(params, true) : "Should fail update validation"
@@ -246,8 +247,8 @@ class AuditFieldsUtilTest {
     // Test addAuditFields
     boolean testAddAuditFieldsPreservesExisting() {
         try {
-            def existingTime = new Timestamp(1000)
-            def params = [
+            Timestamp existingTime = new Timestamp(1000)
+            Map<String, Object> params = [
                 created_by: 'existing',
                 created_at: existingTime,
                 data: 'test'
@@ -270,7 +271,7 @@ class AuditFieldsUtilTest {
     
     boolean testAddAuditFieldsForUpdate() {
         try {
-            def params = [data: 'test']
+            Map<String, Object> params = [data: 'test']
             AuditFieldsUtil.addAuditFields(params, 'updater', true)
             
             assert !params.containsKey('created_by') : "Should not add created_by for update"
@@ -288,7 +289,7 @@ class AuditFieldsUtilTest {
     
     boolean testAddAuditFieldsWithEmptyMap() {
         try {
-            def params = [:]
+            Map<String, Object> params = [:]
             AuditFieldsUtil.addAuditFields(params)
             
             assert params.size() == 4 : "Should add all 4 audit fields"
@@ -306,8 +307,8 @@ class AuditFieldsUtilTest {
     // Test SQL generation methods
     boolean testCreateInsertWithAudit() {
         try {
-            def fields = [name: 'test', value: 123]
-            def sql = AuditFieldsUtil.createInsertWithAudit('test_table', fields)
+            Map<String, Object> fields = [name: 'test', value: 123]
+            String sql = AuditFieldsUtil.createInsertWithAudit('test_table', fields)
             
             assert sql.contains('INSERT INTO test_table') : "Should contain INSERT statement"
             assert sql.contains('created_by') : "Should include created_by"
@@ -326,8 +327,8 @@ class AuditFieldsUtilTest {
     
     boolean testCreateUpdateWithAudit() {
         try {
-            def fields = [name: 'updated']
-            def sql = AuditFieldsUtil.createUpdateWithAudit('test_table', fields, 'id = :id')
+            Map<String, Object> fields = [name: 'updated']
+            String sql = AuditFieldsUtil.createUpdateWithAudit('test_table', fields, 'id = :id')
             
             assert sql.contains('UPDATE test_table') : "Should contain UPDATE statement"
             assert sql.contains('updated_by = :updated_by') : "Should include updated_by"
@@ -344,8 +345,8 @@ class AuditFieldsUtilTest {
     
     boolean testCreateInsertWithAuditCustomUsername() {
         try {
-            def fields = [name: 'test']
-            def sql = AuditFieldsUtil.createInsertWithAudit('test_table', fields, 'customuser')
+            Map<String, Object> fields = [name: 'test']
+            String sql = AuditFieldsUtil.createInsertWithAudit('test_table', fields, 'customuser')
             
             // The SQL contains placeholders, but the method should have set up the audit fields
             assert sql.contains('created_by') : "Should include created_by field"
@@ -361,7 +362,7 @@ class AuditFieldsUtilTest {
     // Test getCurrentUsername
     boolean testGetCurrentUsername() {
         try {
-            def username = AuditFieldsUtil.getCurrentUsername()
+            String username = AuditFieldsUtil.getCurrentUsername()
             
             assert username == 'system' : "Default should be 'system'"
             
@@ -375,8 +376,8 @@ class AuditFieldsUtilTest {
     
     boolean testGetCurrentUsernameWithContext() {
         try {
-            def mockContext = [user: 'contextuser']
-            def username = AuditFieldsUtil.getCurrentUsername(mockContext)
+            Map<String, Object> mockContext = [user: 'contextuser']
+            String username = AuditFieldsUtil.getCurrentUsername(mockContext)
             
             // Currently returns 'system' as TODO implementation
             assert username == 'system' : "Should return 'system' until implemented"
@@ -392,14 +393,14 @@ class AuditFieldsUtilTest {
     // Test formatAuditInfo
     boolean testFormatAuditInfo() {
         try {
-            def params = [
+            Map<String, Object> params = [
                 created_by: 'creator',
                 created_at: new Timestamp(System.currentTimeMillis()),
                 updated_by: 'updater',
                 updated_at: new Timestamp(System.currentTimeMillis())
             ]
             
-            def info = AuditFieldsUtil.formatAuditInfo(params)
+            String info = AuditFieldsUtil.formatAuditInfo(params)
             
             assert info.contains('creator') : "Should contain created_by"
             assert info.contains('updater') : "Should contain updated_by"
@@ -416,8 +417,8 @@ class AuditFieldsUtilTest {
     
     boolean testFormatAuditInfoWithNulls() {
         try {
-            def params = [:]
-            def info = AuditFieldsUtil.formatAuditInfo(params)
+            Map<String, Object> params = [:]
+            String info = AuditFieldsUtil.formatAuditInfo(params)
             
             assert info.contains('null') : "Should handle null values"
             
@@ -432,7 +433,7 @@ class AuditFieldsUtilTest {
     // Test getDefaultAuditFields
     boolean testGetDefaultAuditFields() {
         try {
-            def fields = AuditFieldsUtil.getDefaultAuditFields()
+            Map<String, Object> fields = AuditFieldsUtil.getDefaultAuditFields()
             
             assert fields.size() == 4 : "Should return 4 audit fields"
             assert fields.created_by == 'system'
@@ -450,7 +451,7 @@ class AuditFieldsUtilTest {
     
     boolean testGetDefaultAuditFieldsWithUsername() {
         try {
-            def fields = AuditFieldsUtil.getDefaultAuditFields('testuser')
+            Map<String, Object> fields = AuditFieldsUtil.getDefaultAuditFields('testuser')
             
             assert fields.created_by == 'testuser'
             assert fields.updated_by == 'testuser'
@@ -466,8 +467,8 @@ class AuditFieldsUtilTest {
     // Test integration helpers
     boolean testPrepareInsertParams() {
         try {
-            def params = [name: 'test', value: 123]
-            def result = AuditFieldsUtil.prepareInsertParams(params)
+            Map<String, Object> params = [name: 'test', value: 123]
+            Map<String, Object> result = AuditFieldsUtil.prepareInsertParams(params)
             
             assert result.name == 'test' : "Should preserve original fields"
             assert result.created_by == 'system' : "Should add audit fields"
@@ -483,8 +484,8 @@ class AuditFieldsUtilTest {
     
     boolean testPrepareUpdateParams() {
         try {
-            def params = [name: 'updated']
-            def result = AuditFieldsUtil.prepareUpdateParams(params, 'updater')
+            Map<String, Object> params = [name: 'updated']
+            Map<String, Object> result = AuditFieldsUtil.prepareUpdateParams(params, 'updater')
             
             assert result.name == 'updated' : "Should preserve original fields"
             assert result.updated_by == 'updater' : "Should add update audit fields"
@@ -502,7 +503,7 @@ class AuditFieldsUtilTest {
     boolean testNullParameterMap() {
         try {
             // This should handle gracefully or throw meaningful error
-            def params = null
+            Map<String, Object> params = null
             try {
                 AuditFieldsUtil.setCreateAuditFields(params)
                 assert false : "Should handle null params"
@@ -521,7 +522,7 @@ class AuditFieldsUtilTest {
     
     boolean testEmptyStringUsername() {
         try {
-            def params = [:]
+            Map<String, Object> params = [:]
             AuditFieldsUtil.setCreateAuditFields(params, '')
             
             assert params.created_by == 'system' : "Empty string should default to 'system'"
@@ -536,13 +537,13 @@ class AuditFieldsUtilTest {
     
     boolean testLongUsername() {
         try {
-            def longUsername = 'a' * 300 // Exceeds VARCHAR(255)
-            def params = [:]
+            String longUsername = 'a' * 300 // Exceeds VARCHAR(255)
+            Map<String, Object> params = [:]
             AuditFieldsUtil.setCreateAuditFields(params, longUsername)
             
             // Should accept but database will truncate/error
             assert params.created_by == longUsername : "Should accept long username"
-            assert params.created_by.length() == 300 : "Util doesn't truncate"
+            assert (params.created_by as String).length() == 300 : "Util doesn't truncate"
             
             println "✅ testLongUsername passed"
             return true
@@ -554,8 +555,8 @@ class AuditFieldsUtilTest {
     
     boolean testTimestampPrecision() {
         try {
-            def params1 = [:]
-            def params2 = [:]
+            Map<String, Object> params1 = [:]
+            Map<String, Object> params2 = [:]
             
             Thread.sleep(10) // Ensure different timestamps
             
@@ -575,15 +576,15 @@ class AuditFieldsUtilTest {
     
     boolean testConcurrentTimestamps() {
         try {
-            def params = [:]
+            Map<String, Object> params = [:]
             AuditFieldsUtil.setCreateAuditFields(params)
             
-            assert params.created_at.equals(params.updated_at) : "Create timestamps should match"
+            assert ((Timestamp) params.created_at).equals((Timestamp) params.updated_at) : "Create timestamps should match"
             
             Thread.sleep(100)
             AuditFieldsUtil.setUpdateAuditFields(params)
             
-            assert params.updated_at.after(params.created_at) : "Update should be after create"
+            assert ((Timestamp) params.updated_at).after((Timestamp) params.created_at) : "Update should be after create"
             
             println "✅ testConcurrentTimestamps passed"
             return true
@@ -596,14 +597,14 @@ class AuditFieldsUtilTest {
     boolean testDatabaseUtilIntegration() {
         try {
             // Test that our util works with DatabaseUtil patterns
-            def params = [
+            Map<String, Object> params = [
                 plm_id: 'test-id',
                 plm_name: 'Test Plan',
                 plm_description: 'Test Description'
             ]
             
             // Simulate DatabaseUtil.withSql pattern
-            def preparedParams = AuditFieldsUtil.prepareInsertParams(params)
+            Map<String, Object> preparedParams = AuditFieldsUtil.prepareInsertParams(params)
             
             assert preparedParams.containsKey('plm_id') : "Original fields preserved"
             assert preparedParams.containsKey('created_by') : "Audit fields added"

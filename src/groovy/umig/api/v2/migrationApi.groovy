@@ -216,6 +216,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
                     id: iteration['ite_id'],
                     migrationId: iteration['mig_id'],
                     name: iteration['ite_name'],
+                    code: iteration['itt_code'],  // Add iteration type code for URL construction
                     description: iteration['ite_description'],
                     status: iteration['ite_status'],
                     staticCutoverDate: iteration['ite_static_cutover_date'],
@@ -235,6 +236,7 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
                         id: iteration['ite_id'],
                         migrationId: iteration['mig_id'],
                         name: iteration['ite_name'],
+                        code: iteration['itt_code'],  // Add iteration type code for URL construction
                         description: iteration['ite_description'],
                         status: iteration['ite_status'],
                         staticCutoverDate: iteration['ite_static_cutover_date'],
@@ -381,6 +383,22 @@ migrations(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap que
             
             // Get filtered and paginated migrations using the existing method
             def result = migrationRepository.findMigrationsWithFilters(filters, pageNumber, pageSize, sortField, sortDirection)
+            
+            // If this is a simple request without pagination parameters (used by iteration-view.js populateFilter),
+            // return the data array directly in the expected format for backward compatibility
+            if (!page && !size && !search && !sort && !direction && !status && !dateFrom && !dateTo && !teamId && !ownerId) {
+                // Cast to Map for static type checking compliance
+                Map<String, Object> resultMap = result as Map<String, Object>
+                List<Map> dataList = resultMap.data as List<Map>
+                def simplifiedMigrations = dataList.collect { Map migration ->
+                    [
+                        id: migration.mig_id,
+                        name: migration.mig_name
+                    ]
+                }
+                return Response.ok(new JsonBuilder(simplifiedMigrations).toString()).build()
+            }
+            
             return Response.ok(new JsonBuilder(result).toString()).build()
         } else {
             return Response.status(Response.Status.NOT_FOUND).entity(new JsonBuilder([error: "Unknown endpoint"]).toString()).build()
