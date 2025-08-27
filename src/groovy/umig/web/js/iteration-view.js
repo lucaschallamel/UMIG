@@ -673,10 +673,12 @@ const populateFilter = (selector, url, defaultOptionText) => {
 // Specialized function for populating iterations with code-based values
 const populateIterations = (selector, url, defaultOptionText) => {
   console.log(`populateIterations: Loading ${url} for ${selector}`);
-  
+
   const select = document.querySelector(selector);
   if (!select) {
-    console.error(`populateIterations: Selector "${selector}" not found in DOM`);
+    console.error(
+      `populateIterations: Selector "${selector}" not found in DOM`,
+    );
     return;
   }
 
@@ -684,14 +686,21 @@ const populateIterations = (selector, url, defaultOptionText) => {
 
   fetch(url)
     .then((response) => {
-      console.log(`populateIterations: Response for ${url}: ${response.status} ${response.statusText}`);
+      console.log(
+        `populateIterations: Response for ${url}: ${response.status} ${response.statusText}`,
+      );
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText} for ${url}`);
+        throw new Error(
+          `HTTP ${response.status}: ${response.statusText} for ${url}`,
+        );
       }
       return response.json();
     })
     .then((items) => {
-      console.log(`populateIterations: Received ${Array.isArray(items) ? items.length : "non-array"} items for ${selector}`, items);
+      console.log(
+        `populateIterations: Received ${Array.isArray(items) ? items.length : "non-array"} items for ${selector}`,
+        items,
+      );
       select.innerHTML = `<option value="">${defaultOptionText}</option>`;
 
       if (Array.isArray(items)) {
@@ -705,13 +714,21 @@ const populateIterations = (selector, url, defaultOptionText) => {
           option.dataset.iteCode = item.code || "";
           select.appendChild(option);
         });
-        console.log(`populateIterations: Successfully populated ${items.length} options for ${selector}`);
+        console.log(
+          `populateIterations: Successfully populated ${items.length} options for ${selector}`,
+        );
       } else {
-        console.warn(`populateIterations: Items is not an array for ${selector}:`, items);
+        console.warn(
+          `populateIterations: Items is not an array for ${selector}:`,
+          items,
+        );
       }
     })
     .catch((error) => {
-      console.error(`populateIterations: Error loading ${url} for ${selector}:`, error);
+      console.error(
+        `populateIterations: Error loading ${url} for ${selector}:`,
+        error,
+      );
       select.innerHTML = `<option value="">Failed to load: ${error.message}</option>`;
     });
 };
@@ -3308,61 +3325,76 @@ class IterationView {
   buildStepViewURL() {
     const migrationSelect = document.getElementById("migration-select");
     const iterationSelect = document.getElementById("iteration-select");
-    
+
     // Get the migration name from data attribute (since we don't have migration codes)
-    const selectedMigOption = migrationSelect ? migrationSelect.selectedOptions[0] : null;
-    const migrationName = selectedMigOption ? selectedMigOption.dataset.migName : "";
-    
+    const selectedMigOption = migrationSelect
+      ? migrationSelect.selectedOptions[0]
+      : null;
+    const migrationName = selectedMigOption
+      ? selectedMigOption.dataset.migName
+      : "";
+
     // Get iteration name from data attribute (user wants name, not code, in the URL)
-    const selectedIteOption = iterationSelect ? iterationSelect.selectedOptions[0] : null;
-    const iterationName = selectedIteOption ? selectedIteOption.dataset.iteName : "";
+    const selectedIteOption = iterationSelect
+      ? iterationSelect.selectedOptions[0]
+      : null;
+    const iterationName = selectedIteOption
+      ? selectedIteOption.dataset.iteName
+      : "";
     const stepCode = this.selectedStepCode || "";
-    
+
     if (!migrationName || !iterationName || !stepCode) {
       console.warn("buildStepViewURL: Missing required parameters", {
         migration: migrationName,
         iteration: iterationName,
-        stepCode: stepCode
+        stepCode: stepCode,
       });
       return null;
     }
-    
+
     // Use server-provided configuration from UrlConstructionService
     const stepViewConfig = window.UMIG_ITERATION_CONFIG?.stepView;
-    if (!stepViewConfig?.baseUrl || stepViewConfig.baseUrl.trim() === '') {
+    if (!stepViewConfig?.baseUrl || stepViewConfig.baseUrl.trim() === "") {
       console.error("buildStepViewURL: Server configuration not available", {
         available: !!window.UMIG_ITERATION_CONFIG,
         stepViewConfig: stepViewConfig,
         baseUrl: stepViewConfig?.baseUrl,
-        message: "Configuration must be loaded from server before building step URLs"
+        message:
+          "Configuration must be loaded from server before building step URLs",
       });
-      
+
       // Show user-friendly error message
-      this.showNotification("Step view configuration is not available. Please contact your administrator.", "error");
-      
+      this.showNotification(
+        "Step view configuration is not available. Please contact your administrator.",
+        "error",
+      );
+
       // Return null to indicate failure - no hardcoded fallback
       return null;
     }
-    
+
     // Build URL using server-provided base URL template
     // Server provides format like: http://localhost:8090/pages/viewpage.action?pageId=1114120
     // We need to append our parameters to this
     const params = new URLSearchParams();
     // Don't sanitize - let URLSearchParams handle proper URL encoding
-    params.set('mig', migrationName);
-    params.set('ite', iterationName);  // Use iteration name, not code
-    params.set('stepid', stepCode);
-    
+    params.set("mig", migrationName);
+    params.set("ite", iterationName); // Use iteration name, not code
+    params.set("stepid", stepCode);
+
     // Check if baseUrl already has query parameters
-    const separator = stepViewConfig.baseUrl.includes('?') ? '&' : '?';
+    const separator = stepViewConfig.baseUrl.includes("?") ? "&" : "?";
     const constructedUrl = `${stepViewConfig.baseUrl}${separator}${params.toString()}`;
-    
-    console.log("buildStepViewURL: Constructed URL using server configuration", {
-      baseUrl: stepViewConfig.baseUrl,
-      parameters: Object.fromEntries(params),
-      finalUrl: constructedUrl
-    });
-    
+
+    console.log(
+      "buildStepViewURL: Constructed URL using server configuration",
+      {
+        baseUrl: stepViewConfig.baseUrl,
+        parameters: Object.fromEntries(params),
+        finalUrl: constructedUrl,
+      },
+    );
+
     return constructedUrl;
   }
 
@@ -3371,11 +3403,11 @@ class IterationView {
    * Basic client-side validation to match server-side sanitization
    */
   _sanitizeParameter(param) {
-    if (!param || typeof param !== 'string') return '';
-    
+    if (!param || typeof param !== "string") return "";
+
     // Allow alphanumeric, dots, underscores, hyphens, and spaces (for iteration names)
     // Spaces will be URL-encoded by URLSearchParams
-    const sanitized = param.trim().replace(/[^a-zA-Z0-9._\- ]/g, '');
+    const sanitized = param.trim().replace(/[^a-zA-Z0-9._\- ]/g, "");
     return sanitized;
   }
 
@@ -3384,12 +3416,15 @@ class IterationView {
    */
   openStepView() {
     const stepViewURL = this.buildStepViewURL();
-    
+
     if (stepViewURL) {
       console.log("Opening StepView:", stepViewURL);
-      window.open(stepViewURL, '_blank', 'noopener,noreferrer');
+      window.open(stepViewURL, "_blank", "noopener,noreferrer");
     } else {
-      this.showNotification("Unable to open StepView - missing context information", "warning");
+      this.showNotification(
+        "Unable to open StepView - missing context information",
+        "warning",
+      );
     }
   }
 

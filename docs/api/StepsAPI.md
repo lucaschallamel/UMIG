@@ -281,12 +281,12 @@ All endpoints are relative to the ScriptRunner custom REST base:
 
 ### 4.2. Error Responses
 
-| Status Code | Content-Type     | Schema              | Example                                                      | Description                                      |
-| ----------- | ---------------- | ------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
-| 400         | application/json | {"error": "string"} | {"error": "Invalid step ID format"}, {"error": "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"} | Invalid UUID format, missing required fields     |
-| 404         | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"}, {"error": "Step not found with ID: {stepId}"} | Step instance, master step, instruction, or comment not found |
-| 409         | application/json | {"error": "string"} | {"error": "Duplicate entry"}, {"error": "A step with the same phase, type, and number already exists"} | Unique constraint violation (23505)              |
-| 500         | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"}, {"error": "An unexpected error occurred"} | Database or server errors                        |
+| Status Code | Content-Type     | Schema              | Example                                                                                                                                                     | Description                                                   |
+| ----------- | ---------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 400         | application/json | {"error": "string"} | {"error": "Invalid step ID format"}, {"error": "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"} | Invalid UUID format, missing required fields                  |
+| 404         | application/json | {"error": "string"} | {"error": "Step instance not found for ID: {id}"}, {"error": "Step not found with ID: {stepId}"}                                                            | Step instance, master step, instruction, or comment not found |
+| 409         | application/json | {"error": "string"} | {"error": "Duplicate entry"}, {"error": "A step with the same phase, type, and number already exists"}                                                      | Unique constraint violation (23505)                           |
+| 500         | application/json | {"error": "string"} | {"error": "Failed to retrieve master step: {error_message}"}, {"error": "An unexpected error occurred"}                                                     | Database or server errors                                     |
 
 ## 5. Authentication & Authorization
 
@@ -523,7 +523,7 @@ curl -X PUT "/rest/scriptrunner/latest/custom/steps/master/f9aa535d-4d8b-447c-9d
 ### Version 2.3.0 (August 27, 2025 - Master Steps Management)
 
 - **Master Steps CRUD Operations**: Added POST `/steps/master` endpoint for creating new master step templates
-- **Master Steps Updates**: Added PUT `/steps/master/{id}` endpoint for updating existing master step templates  
+- **Master Steps Updates**: Added PUT `/steps/master/{id}` endpoint for updating existing master step templates
 - **Admin GUI Integration**: New endpoints support full CREATE and EDIT functionality for Master Steps in Admin GUI
 - **Comprehensive Validation**: Required fields validation with specific error messages for foreign key violations
 - **Audit Trail Support**: Automatic audit field handling (created_by, updated_by, timestamps)

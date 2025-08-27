@@ -26,8 +26,8 @@
 **Extended Capacity**: 45 points (9 days × 5 points/day)  
 **Planned**: 30 points (original scope minus US-033 (3 pts), US-034 (3 pts), US-035 (1 pt) descoped to backlog)  
 **Completed**: 20 points (US-030 ✅, US-022 ✅, US-031 ✅ 8 points, US-036 ✅ 8 points, US-051 ✅ 2 points)  
-**95% Complete**: 0 points (all core stories now complete)  
-**Remaining**: 12 points (US-039: 5 points + US-047: 5 points + US-050: 2 points)  
+**Partial Complete**: 1.25 points (US-039: Phase 0 complete - 25% of 5 points)  
+**Remaining**: 10.75 points (US-039: 3.75 points remaining + US-047: 5 points + US-050: 2 points)  
 **Buffer**: 15 points (33% capacity buffer for quality and risk management)
 
 ### Success Metrics
@@ -508,7 +508,7 @@
 **Status**: **MOVED TO BACKLOG**  
 **Rationale**: Strategic descoping to reduce Sprint 5 risk and focus on core functionality  
 **New Location**: `/docs/roadmap/backlog/US-034-data-import-strategy.md`  
-**Future Priority**: P2 for future sprint  
+**Future Priority**: P2 for future sprint
 
 #### Descoping Rationale
 
@@ -619,11 +619,23 @@
 
 **Priority**: P1 (High Value Enhancement)  
 **Effort**: 5 points (34 hours total effort)  
-**Status**: To Do (added for Sprint 5 extension)  
+**Status**: ✅ Phase 0 COMPLETE (25% of story complete - August 27, 2025)  
 **Owner**: Backend/Frontend Development  
-**Timeline**: Extension Days 1-2 (Aug 26-27)  
+**Timeline**: Extension Days 1-2 (Aug 26-27) - Phase 0 completed  
 **Risk**: MEDIUM (comprehensive email system enhancement)  
 **Implementation Plan**: [sprint5-US-39.md](./sprint5-US-39.md) (2,800+ line detailed implementation plan)
+
+#### ✅ Phase 0 Completion Status (August 27, 2025)
+
+**Key Achievements**:
+
+- ✅ **Mobile Email Template System**: Complete with 8+ email client compatibility
+- ✅ **URL Construction Service Overhaul**: Critical system fixes (commit cc1d526) - 100% functional
+- ✅ **Database Query Restructuring**: Migration 024 resolved, system_configuration_scf table integration
+- ✅ **Test Infrastructure**: Comprehensive reorganization (76+ test files, 95%+ coverage)
+- ✅ **Static Type Checking**: Full Groovy 3.0.15 compliance
+
+**Next Phase**: Phase 1 - API Integration and Content Retrieval (3 phases remaining)
 
 #### User Story
 
@@ -634,21 +646,25 @@
 #### Enhanced Scope & Key Features
 
 **Mobile-First Design**:
+
 - Responsive HTML email templates with table-based layouts for email client compatibility
 - Cross-platform support for 8+ email clients (mobile and desktop)
 - Static content display with NO interactive elements (security and compatibility)
 
 **Complete Content Integration**:
+
 - Full step details, instructions, and metadata rendered in email format
 - Integration with existing StepsApi for comprehensive content retrieval
 - Enhanced content formatting with security validation and XSS prevention
 
 **Confluence Integration**:
+
 - Clickable "View in Confluence" links using existing UrlConstructionService
 - Environment-specific URL construction (DEV, EV1, EV2, PROD)
 - Integration with system_configuration_scf table for environment detection
 
 **Technical Architecture**:
+
 - Phased implementation (4 phases: templates, content, integration, admin)
 - Builds on existing 30% foundation (UrlConstructionService, EnhancedEmailService)
 - 70% net new development with comprehensive testing framework
@@ -656,12 +672,14 @@
 #### Critical Requirements
 
 **Static Content Only**: Email templates MUST NOT include any interactive elements:
+
 - No dropdown lists, checkboxes, forms, or submit buttons
 - No JavaScript-based interactions or embedded iframes
 - All user actions redirect to Confluence via "View in Confluence" link
 - Read-only display pattern with current state snapshots
 
 **Security & Compliance**:
+
 - Input validation for all content and URL construction
 - XSS prevention with content sanitization
 - CSRF protection through secure URL generation
@@ -1150,14 +1168,103 @@ npm run generate-data:rbac         # Role-based access control test data
 
 ---
 
-**Document Version**: 2.4 (US-033, US-035 DESCOPING FOR MVP FOCUS)  
+**Document Version**: 2.5 (US-039 PHASE 0 COMPLETE + NEW USER STORIES ADDED)  
 **Created**: August 18, 2025  
-**Last Updated**: August 26, 2025 (US-033, US-035 strategic descoping for critical MVP completion)  
+**Last Updated**: August 27, 2025 (US-039 Phase 0 completion and new user stories US-052 through US-055 added)  
 **Owner**: UMIG Development Team  
-**Review Date**: August 26, 2025
+**Review Date**: August 27, 2025 (Updated)
 
-### Recent Updates (v2.4 - US-033, US-035 Strategic Descoping)
+---
 
+## 📋 NEW USER STORIES ADDED TO BACKLOG (August 27, 2025)
+
+The following user stories were created based on project evolution and identified technical needs:
+
+### 🔐 US-052: Authentication & Security Logging Framework
+
+**Epic**: Logging Framework & Debug Code Cleanup  
+**Priority**: High  
+**Story Points**: 5  
+**Status**: Backlog (Future Sprint)
+
+**As a** security administrator and developer  
+**I want** comprehensive authentication logging with security audit trails  
+**So that** I can monitor access patterns, detect security threats, and maintain compliance with audit requirements
+
+**Key Features**:
+
+- Authentication event logging with correlation IDs
+- Failed login attempt tracking and alerting
+- Session management and timeout monitoring
+- Security audit trail with tamper-evident logging
+- Integration with ScriptRunner security context
+
+### 📊 US-053: Production Monitoring & API Error Logging Framework
+
+**Epic**: Logging Framework & Debug Code Cleanup  
+**Priority**: Medium  
+**Story Points**: 8
+
+**As a** DevOps engineer and system administrator  
+**I want** comprehensive production monitoring with structured API logging and error tracking  
+**So that** I can proactively monitor system health, troubleshoot issues efficiently, and maintain SLA compliance
+
+**Key Features**:
+
+- API request/response logging with correlation IDs and timing
+- Structured error logging with stack trace capture and categorization
+- Performance monitoring for database queries and external service calls
+- Replace all debug statements across 13 REST endpoints
+- Log aggregation and monitoring dashboard integration
+- Business process logging for migration workflow steps
+
+### 🧹 US-054: Debug Code Cleanup & Production Readiness
+
+**Epic**: Logging Framework & Debug Code Cleanup  
+**Priority**: Medium  
+**Story Points**: 3
+
+**As a** development team member  
+**I want** production-ready code with debug statements replaced by structured logging  
+**So that** the application performs optimally and maintains professional logging standards
+
+**Key Features**:
+
+- Remove all console.log and println debug statements (200+ occurrences)
+- Replace debug code with structured logging calls where appropriate
+- Remove temporary testing code and commented debug blocks
+- Update error handling to use proper logging instead of debug output
+- Performance optimization through debug code removal
+
+### 🚀 US-055: URL Construction Service P3 Enhancement Features
+
+**Epic**: URL Construction Service Project  
+**Priority**: Low  
+**Story Points**: 10
+
+**As a** system administrator managing URL Construction Service configurations  
+**I want** advanced administrative tools including versioning, dedicated UI interface, and promotion capabilities  
+**So that** I can efficiently manage, track, and promote URL configurations across environments
+
+**Key Features**:
+
+- Configuration versioning system with change tracking and rollback capabilities
+- Dedicated Admin UI interface with visual editing tools and real-time validation
+- Automated promotion tools with environment-specific validation and conflict detection
+- Enhanced operational visibility and control for URL pattern management
+
+**Note**: This story represents optional enhancements to the already complete and production-ready URL Construction Service (P0-P2 priorities achieved at 100% completion).
+
+---
+
+### Recent Updates (v2.5 - August 27, 2025)
+
+- ✅ **US-039 Phase 0 COMPLETE**: Mobile email template system implemented with critical URL construction fixes
+- ✅ **Major Technical Achievement**: URL Construction Service overhaul (commit cc1d526) - 100% functional
+- ✅ **Test Infrastructure Overhaul**: Comprehensive reorganization (76+ test files, 95%+ coverage)
+- ✅ **Static Type Checking**: Full Groovy 3.0.15 compliance achieved
+- ✅ **Database Query Restructuring**: Migration 024 resolved with system_configuration_scf integration
+- 📋 **New User Stories Added**: US-052 (Auth Logging), US-053 (Monitoring), US-054 (Cleanup), US-055 (URL P3)
 - ❌ **US-033 Descoped to Backlog**: Main Dashboard UI moved from Sprint 5 to backlog
 - ❌ **US-035 Descoped to Backlog**: Enhanced IterationView Phases 2-3 moved from Sprint 5 to backlog
 - ✅ **Strategic Focus Enhancement**: Sprint points reduced from 34 to 30 to enable enhanced focus on core MVP

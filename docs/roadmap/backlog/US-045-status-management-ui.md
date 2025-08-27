@@ -4,7 +4,7 @@
 **Story Points**: 1  
 **Priority**: Medium  
 **Sprint**: Sprint 6  
-**Status**: BACKLOG  
+**Status**: BACKLOG
 
 ## Summary
 
@@ -26,12 +26,14 @@ Add Status management component to the PILOT Admin GUI to enable visual manageme
 ## Acceptance Criteria
 
 ### AC1: Status List Display
+
 - **Given** I access the Status management section in Admin GUI
 - **When** the page loads
 - **Then** I should see all statuses organized by type (Plan, Sequence, Phase, Step, Control)
 - **And** each status displays name, description, color preview, type, and active status
 
 ### AC2: Status Editing
+
 - **Given** I am viewing the status list
 - **When** I click "Edit" on any status
 - **Then** I can modify description, color (color picker), and active status
@@ -39,6 +41,7 @@ Add Status management component to the PILOT Admin GUI to enable visual manageme
 - **And** the UI reflects changes immediately
 
 ### AC3: Status Grouping and Filtering
+
 - **Given** I am on the Status management page
 - **When** I want to organize the view
 - **Then** statuses are grouped by type with collapsible sections
@@ -46,6 +49,7 @@ Add Status management component to the PILOT Admin GUI to enable visual manageme
 - **And** color changes are visually previewed before saving
 
 ### AC4: Error Handling and Validation
+
 - **Given** I am editing a status
 - **When** an error occurs (network, validation)
 - **Then** appropriate error messages are displayed
@@ -55,17 +59,20 @@ Add Status management component to the PILOT Admin GUI to enable visual manageme
 ## Technical Requirements
 
 ### Frontend Implementation
+
 - **Component**: `admin-gui/status-management.js` (new)
 - **API Integration**: Use existing `/api/v2/status` endpoints
 - **UI Pattern**: Follow established Admin GUI component patterns
 - **Styling**: Consistent with existing admin-gui components
 
 ### API Endpoints (EXISTING - NO CHANGES NEEDED)
+
 - `GET /api/v2/status` - List all statuses ✅ Already implemented
 - `PUT /api/v2/status/{id}` - Update status ✅ Already implemented
 - All CRUD operations already functional
 
 ### Data Model (EXISTING - NO CHANGES NEEDED)
+
 - `status_sts` table ✅ Already exists with all required fields
 - Status types already defined and in use
 - Color and description fields already available
@@ -73,21 +80,29 @@ Add Status management component to the PILOT Admin GUI to enable visual manageme
 ## Implementation Notes
 
 ### Status Types to Display
+
 ```javascript
 // Status types from existing database
 const STATUS_TYPES = [
-    'Plan', 'Sequence', 'Phase', 'Step', 
-    'Control', 'Iteration', 'Migration'
+  "Plan",
+  "Sequence",
+  "Phase",
+  "Step",
+  "Control",
+  "Iteration",
+  "Migration",
 ];
 ```
 
 ### UI Components Needed
+
 1. **Status List Component** - Grouped display by type
 2. **Status Edit Form** - Inline editing with color picker
 3. **Color Preview** - Visual representation of status colors
 4. **Filter Controls** - Active/inactive filtering
 
 ### Development Approach
+
 1. Create `admin-gui/status-management.js` component
 2. Integrate with existing StatusApi endpoints
 3. Follow established admin-gui patterns from other components
@@ -105,11 +120,13 @@ const STATUS_TYPES = [
 **Risk Level**: LOW
 
 ### Technical Risks
+
 - **Minimal**: Only frontend development required
 - **API Integration**: StatusApi already tested and functional
 - **Pattern Reuse**: Following established admin-gui patterns
 
 ### Mitigation Strategies
+
 - Leverage existing admin-gui component patterns
 - Use established error handling approaches
 - Follow consistent styling and UX patterns
@@ -117,6 +134,7 @@ const STATUS_TYPES = [
 ## Definition of Done
 
 ### Development
+
 - [ ] Status management component implemented
 - [ ] Status editing functionality working
 - [ ] Color picker integration complete
@@ -124,6 +142,7 @@ const STATUS_TYPES = [
 - [ ] Error handling and validation added
 
 ### Quality Assurance
+
 - [ ] All acceptance criteria verified
 - [ ] UI consistency with other admin components
 - [ ] Color changes reflected correctly
@@ -131,6 +150,7 @@ const STATUS_TYPES = [
 - [ ] Cross-browser compatibility confirmed
 
 ### Documentation
+
 - [ ] Component added to admin-gui documentation
 - [ ] User interface patterns documented
 - [ ] No API documentation changes needed (existing endpoints)
@@ -151,6 +171,6 @@ const STATUS_TYPES = [
 
 ---
 
-*Created: August 26, 2025*  
-*Epic: Admin GUI Complete Integration*  
-*Dependencies: StatusApi (✅ Complete), Database (✅ Complete)*
+_Created: August 26, 2025_  
+_Epic: Admin GUI Complete Integration_  
+_Dependencies: StatusApi (✅ Complete), Database (✅ Complete)_

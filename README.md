@@ -348,6 +348,11 @@ npm run test:unit           # Unit tests
 npm run test:integration:auth # Authenticated integration tests
 npm run test:uat            # UAT validation tests
 npm run test:iterationview  # Enhanced IterationView tests
+
+# Email testing (NEW - MailHog Integration)
+npm run mailhog:test        # Test SMTP connectivity
+npm run mailhog:check       # Check message count
+npm run mailhog:clear       # Clear test inbox
 ```
 
 ### Database Operations

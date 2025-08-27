@@ -76,16 +76,16 @@ instruction: [
 
 ### ✅ Supported Email Clients (8+)
 
-| Client | Version | Mobile | Desktop | Notes |
-|--------|---------|---------|---------|--------|
-| **Outlook** | 2013/2016/2019/365 | ✅ | ✅ | MSO conditional styles included |
-| **Gmail** | Web/Mobile | ✅ | ✅ | Responsive design optimized |
-| **Apple Mail** | iOS/macOS | ✅ | ✅ | Webkit optimizations |
-| **Yahoo Mail** | Web/Mobile | ✅ | ✅ | Table-based layout |
-| **Android Mail** | Native | ✅ | N/A | Touch-friendly buttons |
-| **Thunderbird** | 78+ | ✅ | ✅ | Standards compliant |
-| **Protonmail** | Web/Mobile | ✅ | ✅ | Security-focused design |
-| **Office 365** | Web/Mobile | ✅ | ✅ | Exchange integration |
+| Client           | Version            | Mobile | Desktop | Notes                           |
+| ---------------- | ------------------ | ------ | ------- | ------------------------------- |
+| **Outlook**      | 2013/2016/2019/365 | ✅     | ✅      | MSO conditional styles included |
+| **Gmail**        | Web/Mobile         | ✅     | ✅      | Responsive design optimized     |
+| **Apple Mail**   | iOS/macOS          | ✅     | ✅      | Webkit optimizations            |
+| **Yahoo Mail**   | Web/Mobile         | ✅     | ✅      | Table-based layout              |
+| **Android Mail** | Native             | ✅     | N/A     | Touch-friendly buttons          |
+| **Thunderbird**  | 78+                | ✅     | ✅      | Standards compliant             |
+| **Protonmail**   | Web/Mobile         | ✅     | ✅      | Security-focused design         |
+| **Office 365**   | Web/Mobile         | ✅     | ✅      | Exchange integration            |
 
 ### 🎯 Design Specifications
 
@@ -137,8 +137,8 @@ The Enhanced Email Service automatically constructs stepView URLs:
 ```groovy
 // URL construction (already implemented)
 stepViewUrl = UrlConstructionService.buildStepViewUrl(
-    stepInstanceUuid, 
-    migrationCode, 
+    stepInstanceUuid,
+    migrationCode,
     iterationCode
 )
 
@@ -154,16 +154,28 @@ stepViewUrl: 'https://confluence.company.com/...'
 ```css
 /* Tablet (600px and below) */
 @media screen and (max-width: 600px) {
-    .email-container { margin: 0 10px !important; }
-    .header-title { font-size: 24px !important; }
-    .cta-button { width: 80% !important; }
+  .email-container {
+    margin: 0 10px !important;
+  }
+  .header-title {
+    font-size: 24px !important;
+  }
+  .cta-button {
+    width: 80% !important;
+  }
 }
 
 /* Mobile (480px and below) */
 @media screen and (max-width: 480px) {
-    .email-container { margin: 0 5px !important; }
-    .header-title { font-size: 22px !important; }
-    .cta-button { width: 90% !important; }
+  .email-container {
+    margin: 0 5px !important;
+  }
+  .header-title {
+    font-size: 22px !important;
+  }
+  .cta-button {
+    width: 90% !important;
+  }
 }
 ```
 
@@ -187,22 +199,28 @@ stepViewUrl: 'https://confluence.company.com/...'
 
 ```css
 @media (prefers-color-scheme: dark) {
-    body { background-color: #1a1a1a !important; }
-    .email-container { background-color: #2d2d2d !important; }
-    .section-title { color: #ffffff !important; }
-    /* ... additional dark mode styles */
+  body {
+    background-color: #1a1a1a !important;
+  }
+  .email-container {
+    background-color: #2d2d2d !important;
+  }
+  .section-title {
+    color: #ffffff !important;
+  }
+  /* ... additional dark mode styles */
 }
 ```
 
 ### Color Palette
 
-| Element | Light Mode | Dark Mode |
-|---------|------------|-----------|
-| Background | #f8f9fa | #1a1a1a |
-| Container | #ffffff | #2d2d2d |
-| Cards | #f8f9fa | #3a3a3a |
-| Text | #212529 | #ffffff |
-| Muted Text | #6c757d | #cccccc |
+| Element    | Light Mode | Dark Mode |
+| ---------- | ---------- | --------- |
+| Background | #f8f9fa    | #1a1a1a   |
+| Container  | #ffffff    | #2d2d2d   |
+| Cards      | #f8f9fa    | #3a3a3a   |
+| Text       | #212529    | #ffffff   |
+| Muted Text | #6c757d    | #cccccc   |
 
 ## Database Migration Required
 
@@ -210,9 +228,9 @@ Update existing templates to use the enhanced mobile template:
 
 ```sql
 -- Update existing templates with mobile-responsive design
-UPDATE email_templates_emt 
+UPDATE email_templates_emt
 SET emt_body_html = '<!-- Content from enhanced-mobile-email-template.html -->'
-WHERE emt_type IN ('STEP_STATUS_CHANGED', 'STEP_OPENED', 'INSTRUCTION_COMPLETED') 
+WHERE emt_type IN ('STEP_STATUS_CHANGED', 'STEP_OPENED', 'INSTRUCTION_COMPLETED')
   AND emt_is_active = true;
 ```
 

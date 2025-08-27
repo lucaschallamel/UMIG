@@ -12,6 +12,7 @@
 ## Business Context
 
 Currently, iteration types (RUN, DR, CUTOVER) are hardcoded in the database and IterationsApi. This limits the ability to:
+
 - Add new iteration types (TEST, PILOT, REHEARSAL)
 - Provide visual differentiation (colors, icons)
 - Document iteration purposes clearly
@@ -20,6 +21,7 @@ Currently, iteration types (RUN, DR, CUTOVER) are hardcoded in the database and 
 ## Acceptance Criteria
 
 ### 1. Database Schema Design
+
 - [ ] **Primary Key**: Use `itt_name VARCHAR(50) PRIMARY KEY` (e.g., 'RUN', 'DR', 'CUTOVER')
 - [ ] **Table**: `tbl_iteration_types_master` with fields:
   - `itt_name` (VARCHAR(50), PRIMARY KEY)
@@ -31,6 +33,7 @@ Currently, iteration types (RUN, DR, CUTOVER) are hardcoded in the database and 
   - Standard audit fields (`created_by`, `created_date`, `updated_by`, `updated_date`)
 
 ### 2. API Development
+
 - [ ] **New REST API**: `/api/v2/iteration-types`
   - GET (list all active types)
   - POST (create new type)
@@ -44,6 +47,7 @@ Currently, iteration types (RUN, DR, CUTOVER) are hardcoded in the database and 
 - [ ] **Error Handling**: Standard HTTP status codes and error messages
 
 ### 3. Admin GUI Component
+
 - [ ] **Management Interface**: CRUD operations for iteration types
 - [ ] **Visual Preview**: Show color and icon selections
 - [ ] **Usage Validation**: Warning when attempting to delete types in use
@@ -51,11 +55,13 @@ Currently, iteration types (RUN, DR, CUTOVER) are hardcoded in the database and 
 - [ ] **Integration**: Add to Admin GUI navigation and routing
 
 ### 4. Data Migration & Compatibility
+
 - [ ] **Seed Data**: Populate existing types (RUN, DR, CUTOVER) with default values
 - [ ] **Zero Breaking Changes**: Existing IterationsApi continues to work unchanged
 - [ ] **Foreign Key Updates**: Update iterations table if needed for referential integrity
 
 ### 5. Testing & Validation
+
 - [ ] **Unit Tests**: Repository and API endpoint testing
 - [ ] **Integration Tests**: Full CRUD workflow validation
 - [ ] **Admin GUI Tests**: Component functionality and data flow
@@ -64,6 +70,7 @@ Currently, iteration types (RUN, DR, CUTOVER) are hardcoded in the database and 
 ## Technical Requirements
 
 ### Database Implementation
+
 ```sql
 CREATE TABLE tbl_iteration_types_master (
     itt_name VARCHAR(50) PRIMARY KEY,
@@ -86,6 +93,7 @@ INSERT INTO tbl_iteration_types_master (itt_name, itt_description, itt_color, it
 ```
 
 ### API Pattern (Following UMIG Standards)
+
 ```groovy
 // IterationTypesApi.groovy
 @BaseScript CustomEndpointDelegate delegate
@@ -100,6 +108,7 @@ iterationTypes(httpMethod: "POST", groups: ["confluence-users"]) { request, bind
 ```
 
 ### Repository Pattern
+
 ```groovy
 // IterationTypesRepository.groovy
 class IterationTypesRepository {
@@ -109,8 +118,8 @@ class IterationTypesRepository {
                 SELECT itt_name as name, itt_description as description,
                        itt_color as color, itt_icon as icon,
                        itt_display_order as displayOrder, itt_active as active
-                FROM tbl_iteration_types_master 
-                WHERE itt_active = true 
+                FROM tbl_iteration_types_master
+                WHERE itt_active = true
                 ORDER BY itt_display_order, itt_name
             """)
         }
@@ -120,42 +129,46 @@ class IterationTypesRepository {
 ```
 
 ### Admin GUI Component
+
 ```javascript
 // admin-gui/iteration-types.js
 class IterationTypesManager {
-    constructor() {
-        this.apiClient = new APIClient('/api/v2/iteration-types');
-    }
-    
-    async loadTypes() {
-        // Load and display iteration types with colors/icons
-    }
-    
-    async createType(typeData) {
-        // Create new iteration type with validation
-    }
-    
-    renderTypePreview(type) {
-        // Show visual preview with color and icon
-    }
+  constructor() {
+    this.apiClient = new APIClient("/api/v2/iteration-types");
+  }
+
+  async loadTypes() {
+    // Load and display iteration types with colors/icons
+  }
+
+  async createType(typeData) {
+    // Create new iteration type with validation
+  }
+
+  renderTypePreview(type) {
+    // Show visual preview with color and icon
+  }
 }
 ```
 
 ## Implementation Phases
 
 ### Phase 1: Database & API Foundation (1-2 days)
+
 - Create database table and seed data
 - Implement IterationTypesRepository with CRUD operations
 - Develop REST API endpoints with validation
 - Unit testing for repository and API
 
-### Phase 2: Admin GUI Integration (1-2 days)  
+### Phase 2: Admin GUI Integration (1-2 days)
+
 - Create iteration types management component
 - Implement CRUD interface with visual previews
 - Add to Admin GUI navigation and routing
 - Integration testing and validation
 
 ### Phase 3: Testing & Polish (0.5-1 day)
+
 - Comprehensive testing suite
 - Error handling and edge cases
 - Documentation updates
@@ -164,22 +177,26 @@ class IterationTypesManager {
 ## Dependencies
 
 ### Prerequisites
+
 - **US-042**: Teams Management (for consistency in patterns and approach)
 - Current database schema and IterationsApi understanding
 
 ### Related Stories
+
 - Future UI enhancements can leverage type colors and icons
 - Migration workflow extensions may utilize new iteration types
 
 ## Risk Assessment
 
 ### Low Risk Factors
+
 - **Simple Implementation**: String primary key avoids complex retrofitting
 - **Zero Breaking Changes**: Existing functionality remains untouched
 - **Proven Patterns**: Following established UMIG API and database patterns
 - **Small Scope**: Limited to basic CRUD operations
 
 ### Mitigation Strategies
+
 - **Database Migration**: Test thoroughly in development environment
 - **API Validation**: Prevent deletion of types currently in use by iterations
 - **Rollback Plan**: Simple database rollback if issues arise
@@ -199,12 +216,14 @@ class IterationTypesManager {
 ## Business Value
 
 ### Immediate Benefits
+
 - **Administrative Control**: Full CRUD management of iteration types
 - **Visual Differentiation**: Colors and icons improve UX
 - **Documentation**: Better clarity on iteration purposes
 - **Extensibility**: Easy addition of new iteration types
 
 ### Future Opportunities
+
 - **Workflow Rules**: Type-specific business logic
 - **Reporting**: Enhanced analytics by iteration type
 - **Integration**: External system mappings via iteration types
