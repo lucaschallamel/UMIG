@@ -1,12 +1,19 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.4.1
+  version: 2.5.0
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
+
+    **Version 2.5.0 - August 27, 2025:**
+    **Steps API v2.3.0 Master Steps Management:** Added POST /steps/master endpoint for creating new master step templates.
+    Added PUT /steps/master/{id} endpoint for updating existing master step templates. Enhanced Admin GUI with full CREATE 
+    and EDIT functionality for Master Steps. Comprehensive validation with specific error messages for foreign key violations.
+    Automatic audit field handling (created_by, updated_by, timestamps). SQL state error mapping with enhanced error responses.
+    Complete master step details with computed fields (instruction_count, instance_count) and hierarchical context.
 
     **Version 2.4.1 - August 25, 2025:**
     **Controls API v2.1.0 Admin GUI Enhancement:** Enhanced GET /controls/master with comprehensive pagination, filtering, and sorting support.
@@ -1972,6 +1979,67 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Steps
+      summary: Create new master step
+      description: |
+        Creates a new master step template with comprehensive validation.
+        Supports full CREATE functionality for Master Steps in the Admin GUI.
+        Validates required fields and foreign key relationships.
+      operationId: createMasterStep
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMasterStepRequest"
+            example:
+              phm_id: "f9aa535d-4d8b-447c-9d89-16494f678702"
+              tms_id_owner: 15
+              stt_code: "APP"
+              stm_number: 101
+              stm_name: "Deploy Application Components"
+              stm_description: "Deploy all application components to target environment"
+              stm_duration_minutes: 45
+              enr_id_target: 3
+              enr_id: 2
+      responses:
+        "201":
+          description: Master step created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterStepResponse"
+        "400":
+          description: Invalid request data or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missing_required:
+                  summary: Missing required fields
+                  value:
+                    error: "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"
+                invalid_phase:
+                  summary: Invalid phase ID
+                  value:
+                    error: "Invalid phase ID"
+                invalid_team:
+                  summary: Invalid team ID
+                  value:
+                    error: "Invalid team ID"
+        "409":
+          description: Unique constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "A step with the same phase, type, and number already exists"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
   /steps/master/{id}:
     get:
@@ -2009,6 +2077,78 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      tags:
+        - Steps
+      summary: Update existing master step
+      description: |
+        Updates an existing master step template with partial data support.
+        Supports full EDIT functionality for Master Steps in the Admin GUI.
+        Only provided fields will be updated, others remain unchanged.
+      operationId: updateMasterStep
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Master step UUID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMasterStepRequest"
+            example:
+              stm_name: "Deploy Application Components - Updated"
+              stm_description: "Deploy and validate all application components to target environment"
+              stm_duration_minutes: 60
+              tms_id_owner: 18
+      responses:
+        "200":
+          description: Master step updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterStepResponse"
+        "400":
+          description: Invalid request data or step ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalid_id:
+                  summary: Invalid step ID
+                  value:
+                    error: "Invalid step ID format"
+                invalid_phase:
+                  summary: Invalid phase ID
+                  value:
+                    error: "Invalid phase ID"
+                invalid_team:
+                  summary: Invalid team ID
+                  value:
+                    error: "Invalid team ID"
+        "404":
+          description: Master step not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Step not found with ID: f9aa535d-4d8b-447c-9d89-16494f678702"
+        "409":
+          description: Unique constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "A step with the same phase, type, and number already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -9984,6 +10124,200 @@ components:
           type: string
           format: date-time
           description: Last update timestamp
+
+    CreateMasterStepRequest:
+      type: object
+      required:
+        - phm_id
+        - tms_id_owner
+        - stt_code
+        - stm_number
+        - stm_name
+        - enr_id_target
+      properties:
+        phm_id:
+          type: string
+          format: uuid
+          description: Phase master ID (required)
+          example: "f9aa535d-4d8b-447c-9d89-16494f678702"
+        tms_id_owner:
+          type: integer
+          description: Owning team ID (required)
+          example: 15
+        stt_code:
+          type: string
+          description: Step type code (required)
+          example: "APP"
+        stm_number:
+          type: integer
+          description: Step number within phase (required)
+          example: 101
+        stm_name:
+          type: string
+          description: Step name/title (required)
+          example: "Deploy Application Components"
+        stm_description:
+          type: string
+          description: Detailed step description (optional)
+          example: "Deploy all application components to target environment"
+        stm_duration_minutes:
+          type: integer
+          description: Expected duration in minutes (optional)
+          example: 45
+        enr_id_target:
+          type: integer
+          description: Target environment role ID (required)
+          example: 3
+        enr_id:
+          type: integer
+          description: Source environment role ID (optional)
+          example: 2
+        stm_id_predecessor:
+          type: string
+          format: uuid
+          description: Predecessor step ID for dependencies (optional)
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
+    UpdateMasterStepRequest:
+      type: object
+      description: All fields are optional for partial updates
+      properties:
+        phm_id:
+          type: string
+          format: uuid
+          description: Phase master ID
+          example: "f9aa535d-4d8b-447c-9d89-16494f678702"
+        tms_id_owner:
+          type: integer
+          description: Owning team ID
+          example: 18
+        stt_code:
+          type: string
+          description: Step type code
+          example: "APP"
+        stm_number:
+          type: integer
+          description: Step number within phase
+          example: 102
+        stm_name:
+          type: string
+          description: Step name/title
+          example: "Deploy Application Components - Updated"
+        stm_description:
+          type: string
+          description: Detailed step description
+          example: "Deploy and validate all application components to target environment"
+        stm_duration_minutes:
+          type: integer
+          description: Expected duration in minutes
+          example: 60
+        enr_id_target:
+          type: integer
+          description: Target environment role ID
+          example: 4
+        enr_id:
+          type: integer
+          description: Source environment role ID
+          example: 2
+        stm_id_predecessor:
+          type: string
+          format: uuid
+          description: Predecessor step ID for dependencies
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
+    MasterStepResponse:
+      type: object
+      description: Complete master step details with computed fields and hierarchical context
+      properties:
+        stm_id:
+          type: string
+          format: uuid
+          description: Master step ID
+          example: "f9aa535d-4d8b-447c-9d89-16494f678702"
+        phm_id:
+          type: string
+          format: uuid
+          description: Phase master ID
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        tms_id_owner:
+          type: integer
+          description: Owning team ID
+          example: 15
+        stt_code:
+          type: string
+          description: Step type code
+          example: "APP"
+        stm_number:
+          type: integer
+          description: Step number within phase
+          example: 101
+        stm_name:
+          type: string
+          description: Step name/title
+          example: "Deploy Application Components"
+        stm_description:
+          type: string
+          description: Detailed step description
+          example: "Deploy all application components to target environment"
+        stm_duration_minutes:
+          type: integer
+          description: Expected duration in minutes
+          example: 45
+        enr_id_target:
+          type: integer
+          description: Target environment role ID
+          example: 3
+        enr_id:
+          type: integer
+          description: Source environment role ID
+          example: 2
+        stm_id_predecessor:
+          type: string
+          format: uuid
+          description: Predecessor step ID
+          example: null
+        created_by:
+          type: string
+          description: User who created the step
+          example: "admin"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-08-27T10:30:00.000Z"
+        updated_by:
+          type: string
+          description: User who last updated the step
+          example: "admin"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-08-27T11:15:00.000Z"
+        phm_name:
+          type: string
+          description: Phase master name
+          example: "Pre-Migration Preparation"
+        sqm_name:
+          type: string
+          description: Sequence master name
+          example: "Infrastructure Preparation"
+        plm_name:
+          type: string
+          description: Plan master name
+          example: "Data Center Migration Plan"
+        owner_team_name:
+          type: string
+          description: Owning team name
+          example: "Infrastructure Team"
+        instruction_count:
+          type: integer
+          description: Number of associated instructions
+          example: 5
+        instance_count:
+          type: integer
+          description: Number of step instances
+          example: 12
 
     StepsSummary:
       type: object

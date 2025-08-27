@@ -44,14 +44,20 @@ describe("Environments Generator (06_generate_environments.js)", () => {
     // Mock DEV environment existence (created by migration 022)
     client.query.mockImplementation((sql, params) => {
       // Always return DEV environment for existence checks
-      if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
-        return Promise.resolve({ 
-          rows: [{ env_id: 1, env_name: "DEV" }] 
+      if (
+        sql.includes(
+          "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+        )
+      ) {
+        return Promise.resolve({
+          rows: [{ env_id: 1, env_name: "DEV" }],
         });
       }
-      if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
-        return Promise.resolve({ 
-          rows: [{ env_id: 1 }] 
+      if (
+        sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+      ) {
+        return Promise.resolve({
+          rows: [{ env_id: 1 }],
         });
       }
       // Reset to default mock behavior for other queries
@@ -86,22 +92,28 @@ describe("Environments Generator (06_generate_environments.js)", () => {
 
     client.query.mockImplementation((sql, params) => {
       // DEV environment existence checks (migration 022 dependency)
-      if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
-        return Promise.resolve({ 
-          rows: [{ env_id: 1, env_name: "DEV" }] 
+      if (
+        sql.includes(
+          "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+        )
+      ) {
+        return Promise.resolve({
+          rows: [{ env_id: 1, env_name: "DEV" }],
         });
       }
-      if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
-        return Promise.resolve({ 
-          rows: [{ env_id: 1 }] 
+      if (
+        sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+      ) {
+        return Promise.resolve({
+          rows: [{ env_id: 1 }],
         });
       }
-      
+
       // DELETE operations for erase functionality
       if (sql.includes("DELETE FROM") && sql.includes("WHERE env_id != 1")) {
         return Promise.resolve({ rowCount: 5 }); // Mock deletion of 5 environments
       }
-      
+
       if (sql.includes("SELECT app_id FROM applications_app"))
         return Promise.resolve({ rows: dbData.apps });
       if (sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite"))
@@ -114,7 +126,7 @@ describe("Environments Generator (06_generate_environments.js)", () => {
         if (envCode === "DEV") {
           return Promise.resolve({ rows: [] }); // DEV skipped
         }
-        
+
         envInsertCount++;
         const envId = `env-${envInsertCount + 1}`; // Start from env-2 since env-1 is DEV
         envByName[envCode] = envId;
@@ -157,31 +169,41 @@ describe("Environments Generator (06_generate_environments.js)", () => {
     it("should call eraseEnvironmentsTable when erase option is true", async () => {
       mockDbWithData();
       await generateAllEnvironments(mockEnvironments, { erase: true });
-      
+
       // Check for DELETE queries that preserve DEV environment (env_id=1)
-      const deleteCalls = client.query.mock.calls.filter((c) =>
-        c[0] && c[0].includes("DELETE FROM") && c[0].includes("WHERE env_id != 1"),
+      const deleteCalls = client.query.mock.calls.filter(
+        (c) =>
+          c[0] &&
+          c[0].includes("DELETE FROM") &&
+          c[0].includes("WHERE env_id != 1"),
       );
-      
+
       expect(deleteCalls.length).toBe(3);
       expect(deleteCalls.map((c) => c[0])).toEqual(
         expect.arrayContaining([
-          expect.stringContaining('DELETE FROM environments_env_x_applications_app'),
-          expect.stringContaining('DELETE FROM environments_env_x_iterations_ite'),
-          expect.stringContaining('DELETE FROM environments_env'),
+          expect.stringContaining(
+            "DELETE FROM environments_env_x_applications_app",
+          ),
+          expect.stringContaining(
+            "DELETE FROM environments_env_x_iterations_ite",
+          ),
+          expect.stringContaining("DELETE FROM environments_env"),
         ]),
       );
-      
+
       // Verify all DELETE queries preserve DEV environment
       deleteCalls.forEach((call) => {
-        expect(call[0]).toContain('WHERE env_id != 1');
+        expect(call[0]).toContain("WHERE env_id != 1");
       });
     });
 
     it("should insert all environments from config except DEV", async () => {
       // Add DEV environment to mock config to test skipping behavior
-      const environmentsWithDev = [{ name: "DEV", description: "Development environment" }, ...mockEnvironments];
-      
+      const environmentsWithDev = [
+        { name: "DEV", description: "Development environment" },
+        ...mockEnvironments,
+      ];
+
       await generateAllEnvironments(environmentsWithDev, {});
 
       const insertCalls = client.query.mock.calls.filter(
@@ -190,14 +212,14 @@ describe("Environments Generator (06_generate_environments.js)", () => {
           c[0].includes("INSERT INTO environments_env") &&
           c[0].includes("env_code"),
       );
-      
+
       // Should skip DEV environment, so only insert original mockEnvironments
       expect(insertCalls.length).toBe(mockEnvironments.length);
-      
+
       // Verify DEV environment is not in insert calls
-      const insertedEnvCodes = insertCalls.map(call => call[1][1]); // env_code is 2nd parameter
+      const insertedEnvCodes = insertCalls.map((call) => call[1][1]); // env_code is 2nd parameter
       expect(insertedEnvCodes).not.toContain("DEV");
-      
+
       // Check first environment parameters (env_id, env_code, env_name, env_description), audit fields are dynamic
       expect(insertCalls[0][1].slice(1, 4)).toEqual([
         "PROD",
@@ -217,77 +239,93 @@ describe("Environments Generator (06_generate_environments.js)", () => {
 
     it("should link environments to apps including DEV", async () => {
       // Set up environment by name mapping including DEV
-      const envByNameTest = { 
-        "DEV": 1, 
-        "PROD": "env-2", 
-        "EV1": "env-3", 
-        "EV2": "env-4",
-        "EV3": "env-5",
-        "EV4": "env-6",
-        "EV5": "env-7"
+      const envByNameTest = {
+        DEV: 1,
+        PROD: "env-2",
+        EV1: "env-3",
+        EV2: "env-4",
+        EV3: "env-5",
+        EV4: "env-6",
+        EV5: "env-7",
       };
-      
+
       client.query.mockImplementation((sql, params) => {
         // DEV environment checks
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1, env_name: "DEV" }] });
         }
-        if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1 }] });
         }
-        
+
         // Environment creation
         if (sql.includes("INSERT INTO environments_env") && params) {
           const envCode = params[1];
           if (envCode !== "DEV") {
             const envId = envByNameTest[envCode];
-            return Promise.resolve({ rows: [{ env_id: envId, env_name: envCode }] });
+            return Promise.resolve({
+              rows: [{ env_id: envId, env_name: envCode }],
+            });
           }
           return Promise.resolve({ rows: [] });
         }
-        
+
         // Environment selection
-        if (sql.includes("SELECT env_id, env_name FROM environments_env") && !sql.includes("WHERE")) {
-          return Promise.resolve({ 
-            rows: Object.entries(envByNameTest).map(([name, id]) => ({ env_id: id, env_name: name }))
+        if (
+          sql.includes("SELECT env_id, env_name FROM environments_env") &&
+          !sql.includes("WHERE")
+        ) {
+          return Promise.resolve({
+            rows: Object.entries(envByNameTest).map(([name, id]) => ({
+              env_id: id,
+              env_name: name,
+            })),
           });
         }
-        
+
         // Other standard mocks
         if (sql.includes("SELECT app_id FROM applications_app"))
           return Promise.resolve({ rows: dbData.apps });
-        if (sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite"))
+        if (
+          sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite")
+        )
           return Promise.resolve({ rows: dbData.iterations });
         if (sql.includes("SELECT enr_id, enr_name FROM environment_roles_enr"))
           return Promise.resolve({ rows: dbData.envRoles });
-          
+
         // Linking operations - accept all INSERT statements
-        if (sql.includes("INSERT INTO"))
-          return Promise.resolve({ rows: [] });
-          
+        if (sql.includes("INSERT INTO")) return Promise.resolve({ rows: [] });
+
         return Promise.resolve({ rows: [] });
       });
-      
+
       await generateAllEnvironments(mockEnvironments, {});
 
       const appLinks = client.query.mock.calls.filter(
-        (c) => c[0] && c[0].includes("environments_env_x_applications_app") && c[1],
+        (c) =>
+          c[0] && c[0].includes("environments_env_x_applications_app") && c[1],
       );
       // Each environment gets linked to 1 app (based on our faker mock)
-      // This includes DEV environment from migration + generated environments  
+      // This includes DEV environment from migration + generated environments
       // Expected: DEV (from migration) + 6 generated environments = 7 environments total
       expect(appLinks.length).toBeGreaterThanOrEqual(6); // At least the generated environments
     });
 
     it("should assign environments to iterations based on iteration type", async () => {
       // Set up environment by name mapping including DEV
-      const envByNameTest = { 
-        "DEV": 1, 
-        "PROD": "env-2", 
-        "EV1": "env-3", 
-        "EV2": "env-4" 
+      const envByNameTest = {
+        DEV: 1,
+        PROD: "env-2",
+        EV1: "env-3",
+        EV2: "env-4",
       };
-      
+
       // Set up faker to return predictable non-PROD environments
       faker.helpers.arrayElement.mockImplementation((arr) => {
         // For non-PROD selections, always return first non-PROD option
@@ -296,56 +334,75 @@ describe("Environments Generator (06_generate_environments.js)", () => {
         }
         return arr[0];
       });
-      
+
       client.query.mockImplementation((sql, params) => {
         // DEV environment checks
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1, env_name: "DEV" }] });
         }
-        if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1 }] });
         }
-        
+
         // Environment creation
         if (sql.includes("INSERT INTO environments_env") && params) {
           const envCode = params[1];
           if (envCode !== "DEV") {
             const envId = envByNameTest[envCode];
-            return Promise.resolve({ rows: [{ env_id: envId, env_name: envCode }] });
+            return Promise.resolve({
+              rows: [{ env_id: envId, env_name: envCode }],
+            });
           }
           return Promise.resolve({ rows: [] });
         }
-        
+
         // Environment selection
-        if (sql.includes("SELECT env_id, env_name FROM environments_env") && !sql.includes("WHERE")) {
-          return Promise.resolve({ 
-            rows: Object.entries(envByNameTest).map(([name, id]) => ({ env_id: id, env_name: name }))
+        if (
+          sql.includes("SELECT env_id, env_name FROM environments_env") &&
+          !sql.includes("WHERE")
+        ) {
+          return Promise.resolve({
+            rows: Object.entries(envByNameTest).map(([name, id]) => ({
+              env_id: id,
+              env_name: name,
+            })),
           });
         }
-        
+
         // Other standard mocks
         if (sql.includes("SELECT app_id FROM applications_app"))
           return Promise.resolve({ rows: dbData.apps });
-        if (sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite"))
+        if (
+          sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite")
+        )
           return Promise.resolve({ rows: dbData.iterations });
         if (sql.includes("SELECT enr_id, enr_name FROM environment_roles_enr"))
           return Promise.resolve({ rows: dbData.envRoles });
-          
+
         // Linking operations - accept all INSERT statements
-        if (sql.includes("INSERT INTO"))
-          return Promise.resolve({ rows: [] });
-          
+        if (sql.includes("INSERT INTO")) return Promise.resolve({ rows: [] });
+
         // Summary query
         if (sql.includes("SELECT") && sql.includes("ite.itt_code")) {
           return Promise.resolve({
             rows: [
               { itt_code: "RUN", iteration_count: 1, iterations_with_envs: 1 },
               { itt_code: "DR", iteration_count: 1, iterations_with_envs: 1 },
-              { itt_code: "CUTOVER", iteration_count: 1, iterations_with_envs: 1 },
+              {
+                itt_code: "CUTOVER",
+                iteration_count: 1,
+                iterations_with_envs: 1,
+              },
             ],
           });
         }
-          
+
         return Promise.resolve({ rows: [] });
       });
 
@@ -381,10 +438,16 @@ describe("Environments Generator (06_generate_environments.js)", () => {
     it("should handle cases with no iterations to link", async () => {
       client.query.mockImplementation((sql) => {
         // DEV environment checks
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1, env_name: "DEV" }] });
         }
-        if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1 }] });
         }
         if (
@@ -408,31 +471,37 @@ describe("Environments Generator (06_generate_environments.js)", () => {
     it("should throw error if DEV environment is missing", async () => {
       client.query.mockImplementation((sql) => {
         // Simulate missing DEV environment
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [] }); // No DEV environment
         }
         return Promise.resolve({ rows: [] });
       });
 
-      await expect(generateAllEnvironments(mockEnvironments, {})).rejects.toThrow(
-        "DEV environment (env_id=1) not found. Please ensure migration 022 has been executed."
+      await expect(
+        generateAllEnvironments(mockEnvironments, {}),
+      ).rejects.toThrow(
+        "DEV environment (env_id=1) not found. Please ensure migration 022 has been executed.",
       );
     });
 
     it("should skip DEV environment creation if it exists in config", async () => {
       const environmentsWithDev = [
         { name: "DEV", description: "Development environment" },
-        ...mockEnvironments
+        ...mockEnvironments,
       ];
-      
+
       await generateAllEnvironments(environmentsWithDev, {});
 
       // Verify DEV environment was not inserted
       const insertCalls = client.query.mock.calls.filter(
-        (c) => c[0] && c[0].includes("INSERT INTO environments_env") && c[1]
+        (c) => c[0] && c[0].includes("INSERT INTO environments_env") && c[1],
       );
-      
-      const insertedEnvCodes = insertCalls.map(call => call[1][1]); // env_code parameter
+
+      const insertedEnvCodes = insertCalls.map((call) => call[1][1]); // env_code parameter
       expect(insertedEnvCodes).not.toContain("DEV");
     });
 
@@ -442,20 +511,29 @@ describe("Environments Generator (06_generate_environments.js)", () => {
         ...mockEnvironments.map((env, i) => ({
           env_id: `existing-${i + 2}`, // Start from 2 since DEV is 1
           env_name: env.name,
-        }))
+        })),
       ];
 
       client.query.mockImplementation((sql, params) => {
         // DEV environment existence checks
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1, env_name: "DEV" }] });
         }
-        if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1 }] });
         }
         if (sql.includes("INSERT INTO environments_env"))
           return Promise.resolve({ rows: [] }); // No new envs
-        if (sql.includes("SELECT env_id, env_name FROM environments_env") && !sql.includes("WHERE"))
+        if (
+          sql.includes("SELECT env_id, env_name FROM environments_env") &&
+          !sql.includes("WHERE")
+        )
           return Promise.resolve({ rows: existingEnvs });
         if (sql.includes("SELECT app_id FROM applications_app"))
           return Promise.resolve({ rows: dbData.apps });
@@ -481,17 +559,21 @@ describe("Environments Generator (06_generate_environments.js)", () => {
       client.query.mockResolvedValue({ rowCount: 5 });
       await eraseEnvironmentsTable(client);
       const calls = client.query.mock.calls.map((c) => c[0].trim());
-      
+
       expect(calls).toEqual([
-        expect.stringContaining('DELETE FROM environments_env_x_applications_app'),
-        expect.stringContaining('DELETE FROM environments_env_x_iterations_ite'),
-        expect.stringContaining('DELETE FROM environments_env'),
+        expect.stringContaining(
+          "DELETE FROM environments_env_x_applications_app",
+        ),
+        expect.stringContaining(
+          "DELETE FROM environments_env_x_iterations_ite",
+        ),
+        expect.stringContaining("DELETE FROM environments_env"),
       ]);
-      
+
       // Verify all DELETE queries preserve DEV environment (env_id=1)
       calls.forEach((call) => {
-        if (call.includes('DELETE FROM')) {
-          expect(call).toContain('WHERE env_id != 1');
+        if (call.includes("DELETE FROM")) {
+          expect(call).toContain("WHERE env_id != 1");
         }
       });
     });
@@ -506,54 +588,69 @@ describe("Environments Generator (06_generate_environments.js)", () => {
   describe("iteration type rules", () => {
     it("should ensure every iteration gets all three roles", async () => {
       // Set up environment by name mapping including DEV
-      const envByNameTest = { 
-        "DEV": 1, 
-        "PROD": "env-2", 
-        "EV1": "env-3", 
-        "EV2": "env-4" 
+      const envByNameTest = {
+        DEV: 1,
+        PROD: "env-2",
+        EV1: "env-3",
+        EV2: "env-4",
       };
-      
+
       client.query.mockImplementation((sql, params) => {
         // DEV environment checks
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1, env_name: "DEV" }] });
         }
-        if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1 }] });
         }
-        
+
         // Environment creation
         if (sql.includes("INSERT INTO environments_env") && params) {
           const envCode = params[1];
           if (envCode !== "DEV") {
             const envId = envByNameTest[envCode];
-            return Promise.resolve({ rows: [{ env_id: envId, env_name: envCode }] });
+            return Promise.resolve({
+              rows: [{ env_id: envId, env_name: envCode }],
+            });
           }
           return Promise.resolve({ rows: [] });
         }
-        
+
         // Environment selection
-        if (sql.includes("SELECT env_id, env_name FROM environments_env") && !sql.includes("WHERE")) {
-          return Promise.resolve({ 
-            rows: Object.entries(envByNameTest).map(([name, id]) => ({ env_id: id, env_name: name }))
+        if (
+          sql.includes("SELECT env_id, env_name FROM environments_env") &&
+          !sql.includes("WHERE")
+        ) {
+          return Promise.resolve({
+            rows: Object.entries(envByNameTest).map(([name, id]) => ({
+              env_id: id,
+              env_name: name,
+            })),
           });
         }
-        
+
         // Other standard mocks
         if (sql.includes("SELECT app_id FROM applications_app"))
           return Promise.resolve({ rows: dbData.apps });
-        if (sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite"))
+        if (
+          sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite")
+        )
           return Promise.resolve({ rows: dbData.iterations });
         if (sql.includes("SELECT enr_id, enr_name FROM environment_roles_enr"))
           return Promise.resolve({ rows: dbData.envRoles });
-          
+
         // Linking operations
-        if (sql.includes("INSERT INTO"))
-          return Promise.resolve({ rows: [] });
-          
+        if (sql.includes("INSERT INTO")) return Promise.resolve({ rows: [] });
+
         return Promise.resolve({ rows: [] });
       });
-      
+
       await generateAllEnvironments(mockEnvironments, {});
 
       const iterLinks = client.query.mock.calls.filter(
@@ -583,54 +680,69 @@ describe("Environments Generator (06_generate_environments.js)", () => {
 
     it("should never assign PROD environment to RUN/DR iterations", async () => {
       // Set up environment by name mapping
-      const envByNameTest = { 
-        "DEV": 1, 
-        "PROD": "env-2", 
-        "EV1": "env-3", 
-        "EV2": "env-4" 
+      const envByNameTest = {
+        DEV: 1,
+        PROD: "env-2",
+        EV1: "env-3",
+        EV2: "env-4",
       };
-      
+
       client.query.mockImplementation((sql, params) => {
         // DEV environment checks
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1, env_name: "DEV" }] });
         }
-        if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1 }] });
         }
-        
+
         // Environment creation
         if (sql.includes("INSERT INTO environments_env") && params) {
           const envCode = params[1];
           if (envCode !== "DEV") {
             const envId = envByNameTest[envCode];
-            return Promise.resolve({ rows: [{ env_id: envId, env_name: envCode }] });
+            return Promise.resolve({
+              rows: [{ env_id: envId, env_name: envCode }],
+            });
           }
           return Promise.resolve({ rows: [] });
         }
-        
+
         // Environment selection
-        if (sql.includes("SELECT env_id, env_name FROM environments_env") && !sql.includes("WHERE")) {
-          return Promise.resolve({ 
-            rows: Object.entries(envByNameTest).map(([name, id]) => ({ env_id: id, env_name: name }))
+        if (
+          sql.includes("SELECT env_id, env_name FROM environments_env") &&
+          !sql.includes("WHERE")
+        ) {
+          return Promise.resolve({
+            rows: Object.entries(envByNameTest).map(([name, id]) => ({
+              env_id: id,
+              env_name: name,
+            })),
           });
         }
-        
+
         // Other standard mocks
         if (sql.includes("SELECT app_id FROM applications_app"))
           return Promise.resolve({ rows: dbData.apps });
-        if (sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite"))
+        if (
+          sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite")
+        )
           return Promise.resolve({ rows: dbData.iterations });
         if (sql.includes("SELECT enr_id, enr_name FROM environment_roles_enr"))
           return Promise.resolve({ rows: dbData.envRoles });
-          
+
         // Linking operations
-        if (sql.includes("INSERT INTO"))
-          return Promise.resolve({ rows: [] });
-          
+        if (sql.includes("INSERT INTO")) return Promise.resolve({ rows: [] });
+
         return Promise.resolve({ rows: [] });
       });
-      
+
       await generateAllEnvironments(mockEnvironments, {});
 
       const iterLinks = client.query.mock.calls.filter(
@@ -650,54 +762,69 @@ describe("Environments Generator (06_generate_environments.js)", () => {
 
     it("should always assign PROD environment to PROD role in CUTOVER iterations", async () => {
       // Set up environment by name mapping
-      const envByNameTest = { 
-        "DEV": 1, 
-        "PROD": "env-2", 
-        "EV1": "env-3", 
-        "EV2": "env-4" 
+      const envByNameTest = {
+        DEV: 1,
+        PROD: "env-2",
+        EV1: "env-3",
+        EV2: "env-4",
       };
-      
+
       client.query.mockImplementation((sql, params) => {
         // DEV environment checks
-        if (sql.includes("SELECT env_id, env_name FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes(
+            "SELECT env_id, env_name FROM environments_env WHERE env_id = 1",
+          )
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1, env_name: "DEV" }] });
         }
-        if (sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")) {
+        if (
+          sql.includes("SELECT env_id FROM environments_env WHERE env_id = 1")
+        ) {
           return Promise.resolve({ rows: [{ env_id: 1 }] });
         }
-        
+
         // Environment creation
         if (sql.includes("INSERT INTO environments_env") && params) {
           const envCode = params[1];
           if (envCode !== "DEV") {
             const envId = envByNameTest[envCode];
-            return Promise.resolve({ rows: [{ env_id: envId, env_name: envCode }] });
+            return Promise.resolve({
+              rows: [{ env_id: envId, env_name: envCode }],
+            });
           }
           return Promise.resolve({ rows: [] });
         }
-        
+
         // Environment selection
-        if (sql.includes("SELECT env_id, env_name FROM environments_env") && !sql.includes("WHERE")) {
-          return Promise.resolve({ 
-            rows: Object.entries(envByNameTest).map(([name, id]) => ({ env_id: id, env_name: name }))
+        if (
+          sql.includes("SELECT env_id, env_name FROM environments_env") &&
+          !sql.includes("WHERE")
+        ) {
+          return Promise.resolve({
+            rows: Object.entries(envByNameTest).map(([name, id]) => ({
+              env_id: id,
+              env_name: name,
+            })),
           });
         }
-        
+
         // Other standard mocks
         if (sql.includes("SELECT app_id FROM applications_app"))
           return Promise.resolve({ rows: dbData.apps });
-        if (sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite"))
+        if (
+          sql.includes("SELECT ite_id, itt_code, ite_name FROM iterations_ite")
+        )
           return Promise.resolve({ rows: dbData.iterations });
         if (sql.includes("SELECT enr_id, enr_name FROM environment_roles_enr"))
           return Promise.resolve({ rows: dbData.envRoles });
-          
+
         // Linking operations
-        if (sql.includes("INSERT INTO"))
-          return Promise.resolve({ rows: [] });
-          
+        if (sql.includes("INSERT INTO")) return Promise.resolve({ rows: [] });
+
         return Promise.resolve({ rows: [] });
       });
-      
+
       await generateAllEnvironments(mockEnvironments, {});
 
       const iterLinks = client.query.mock.calls.filter(
