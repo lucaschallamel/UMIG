@@ -148,8 +148,9 @@ class UrlConstructionService {
     
     /**
      * Retrieves system configuration for the specified environment with caching
+     * Package-private for testing access
      */
-    private static Map getSystemConfiguration(String environmentCode) {
+    static Map getSystemConfiguration(String environmentCode) {
         def now = System.currentTimeMillis()
         
         // Check cache first
@@ -159,23 +160,62 @@ class UrlConstructionService {
         
         try {
             DatabaseUtil.withSql { sql ->
-                def config = sql.firstRow('''
-                    SELECT scf_environment_code, scf_base_url, scf_space_key, 
-                           scf_page_id, scf_page_title, scf_is_active
-                    FROM system_configuration_scf 
-                    WHERE scf_environment_code = :envCode 
-                      AND scf_is_active = true
+                // Get all MACRO_LOCATION configurations for this environment
+                def configs = sql.rows('''
+                    SELECT scf.scf_key, scf.scf_value
+                    FROM system_configuration_scf scf
+                    INNER JOIN environments_env e ON scf.env_id = e.env_id
+                    WHERE e.env_code = :envCode 
+                      AND scf.scf_is_active = true
+                      AND scf.scf_category = 'MACRO_LOCATION'
+                      AND scf.scf_key IN ('stepview.confluence.base.url', 
+                                         'stepview.confluence.space.key',
+                                         'stepview.confluence.page.id', 
+                                         'stepview.confluence.page.title')
                 ''', [envCode: environmentCode])
                 
-                if (config) {
-                    configurationCache[environmentCode] = config
-                    cacheLastUpdated = now
+                if (configs && configs.size() > 0) {
+                    // Convert key-value pairs to expected structure
+                    def config = [
+                        scf_environment_code: environmentCode,
+                        scf_is_active: true
+                    ]
+                    
+                    configs.each { row ->
+                        def configMap = row as Map
+                        switch (configMap.scf_key as String) {
+                            case 'stepview.confluence.base.url':
+                                config.scf_base_url = configMap.scf_value as String
+                                break
+                            case 'stepview.confluence.space.key':
+                                config.scf_space_key = configMap.scf_value as String
+                                break
+                            case 'stepview.confluence.page.id':
+                                config.scf_page_id = configMap.scf_value as String
+                                break
+                            case 'stepview.confluence.page.title':
+                                config.scf_page_title = configMap.scf_value as String
+                                break
+                        }
+                    }
+                    
+                    // Only cache if we have all required configuration values
+                    if (config.scf_base_url && config.scf_space_key && config.scf_page_id && config.scf_page_title) {
+                        configurationCache[environmentCode] = config
+                        cacheLastUpdated = now
+                        return config
+                    } else {
+                        println "UrlConstructionService: Incomplete configuration for ${environmentCode}. Found configs: ${configs}"
+                        return null
+                    }
+                } else {
+                    println "UrlConstructionService: No MACRO_LOCATION configurations found for ${environmentCode}"
+                    return null
                 }
-                
-                return config
             }
         } catch (Exception e) {
             println "UrlConstructionService: Error retrieving configuration for ${environmentCode}: ${e.message}"
+            e.printStackTrace()
             return null
         }
     }

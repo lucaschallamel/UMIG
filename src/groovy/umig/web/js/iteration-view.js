@@ -3281,22 +3281,15 @@ class IterationView {
     if (!stepViewConfig?.baseUrl) {
       console.error("buildStepViewURL: Server configuration not available", {
         available: !!window.UMIG_ITERATION_CONFIG,
-        stepViewConfig: stepViewConfig
+        stepViewConfig: stepViewConfig,
+        message: "Configuration must be loaded from server before building step URLs"
       });
-      // Fallback to client-side construction for development using full Confluence page URL
-      console.warn("buildStepViewURL: Falling back to client-side URL construction with full Confluence page URL");
       
-      // Construct full Confluence page URL format
-      // Expected: http://localhost:8090/spaces/UMIG/pages/1048581/UMIG+-+Step+View?mig=migrationName&ite=iterationName&stepid=stepCode
-      const origin = window.location.origin; // e.g., http://localhost:8090
-      const fullPageUrl = `${origin}/spaces/UMIG/pages/1048581/UMIG+-+Step+View`;
+      // Show user-friendly error message
+      this.showNotification("Step view configuration is not available. Please contact your administrator.", "error");
       
-      const params = new URLSearchParams();
-      params.set('mig', migrationName);
-      params.set('ite', iterationName);  
-      params.set('stepid', stepCode);
-      
-      return `${fullPageUrl}?${params.toString()}`;
+      // Return null to indicate failure - no hardcoded fallback
+      return null;
     }
     
     // Build URL using server-provided base URL template with validated parameters
