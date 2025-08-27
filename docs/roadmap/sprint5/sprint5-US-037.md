@@ -15,11 +15,13 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 ## Business Value & Justification
 
 ### Immediate Impact
+
 - **MVP Unblocking**: Fix 6 failing tests (45% → 100% pass rate) enabling deployment
 - **Quality Assurance**: Establish consistent testing patterns across all 31 integration tests
 - **Performance Guarantee**: Validate <500ms response time for all endpoints
 
 ### Long-term Benefits
+
 - **60% Code Reduction**: Eliminate ~450 lines of duplicated HTTP client code
 - **40% Faster Development**: New integration tests created in <2 hours vs 3.5 hours
 - **Maintenance Efficiency**: Single point of update for testing utilities
@@ -28,6 +30,7 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 ## Current State Assessment
 
 ### Test Framework Analysis
+
 - **Total Integration Tests**: 31 Groovy files across `/src/groovy/umig/tests/integration/`
 - **Current Pass Rate**: 45% (6 of 11 critical tests failing)
 - **Code Duplication**: ~60% duplicate code across authentication, HTTP clients, database connections
@@ -37,6 +40,7 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 ### Critical Issues Blocking MVP
 
 #### Priority 1: Test Failures (6 tests)
+
 1. **MigrationsApiBulkOperationsTest** - Database constraint violations
 2. **CrossApiIntegrationTest** - Authentication failures
 3. **ApplicationsApiIntegrationTest** - XML parser conflicts
@@ -45,12 +49,14 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 6. **PhasesApiIntegrationTest** - Response validation errors
 
 #### Priority 2: Code Quality Issues
+
 - HTTP client code duplicated 3x (~150 lines per test file)
 - Inconsistent error handling across test files
 - Mixed test data setup approaches
 - No systematic cleanup procedures
 
 #### Priority 3: Enhancement Opportunities
+
 - Missing bulk operation tests
 - Performance validation only in Teams API
 - Limited debugging information on failures
@@ -60,11 +66,11 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 
 ### Phase Overview
 
-| Phase | Focus | Timeline | Key Deliverables | Success Metrics |
-|-------|-------|----------|------------------|-----------------|
-| **Phase 1-2** | Not Applicable | Skipped | Direct to Phase 3 approach taken | N/A |
-| **Phase 3** | Foundation Framework | Complete | BaseIntegrationTest + IntegrationTestHttpClient + Analysis | ✅ COMPLETE |
-| **Phase 4** | Apply to Failing Tests | Remaining | Fix 6 failing tests using framework | 🔄 TODO |
+| Phase         | Focus                  | Timeline  | Key Deliverables                                           | Success Metrics |
+| ------------- | ---------------------- | --------- | ---------------------------------------------------------- | --------------- |
+| **Phase 1-2** | Not Applicable         | Skipped   | Direct to Phase 3 approach taken                           | N/A             |
+| **Phase 3**   | Foundation Framework   | Complete  | BaseIntegrationTest + IntegrationTestHttpClient + Analysis | ✅ COMPLETE     |
+| **Phase 4**   | Apply to Failing Tests | Remaining | Fix 6 failing tests using framework                        | 🔄 TODO         |
 
 ## ✅ Phase 3: Foundation Framework (COMPLETE)
 
@@ -92,9 +98,11 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 ### Priority Implementation (5 hours estimated)
 
 #### Task 1.1: Fix 6 Failing Integration Tests (2.5 hours)
+
 **Priority**: MVP BLOCKER - Must complete first
 
 **Implementation Checklist**:
+
 ```groovy
 // Pattern to apply from successful SequencesApiIntegrationTest fix:
 1. Update authentication to use AuthenticationHelper.groovy
@@ -104,6 +112,7 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 ```
 
 **Specific Fixes**:
+
 - **MigrationsApiBulkOperationsTest**: Add transaction rollback for constraint violations
 - **CrossApiIntegrationTest**: Update all endpoints to use AuthenticationHelper
 - **ApplicationsApiIntegrationTest**: Add @GrabExclude for XML parsers
@@ -112,12 +121,14 @@ US-037 addresses critical technical debt in the UMIG integration testing framewo
 - **PhasesApiIntegrationTest**: Fix response schema validation
 
 **Validation Command**:
+
 ```bash
 npm run test:integration:core
 # Expected: All 31 tests passing
 ```
 
 #### Task 1.2: Create IntegrationTestHttpClient.groovy (1.5 hours)
+
 **Location**: `/src/groovy/umig/tests/utils/IntegrationTestHttpClient.groovy`
 
 ```groovy
@@ -130,7 +141,7 @@ import umig.tests.integration.AuthenticationHelper
 /**
  * Standardized HTTP client for all integration tests
  * Eliminates code duplication and ensures consistent patterns
- * 
+ *
  * Usage:
  * def client = new IntegrationTestHttpClient()
  * def response = client.get("/migrations")
@@ -140,82 +151,82 @@ class IntegrationTestHttpClient {
     private static final String BASE_URL = "http://localhost:8090/rest/scriptrunner/latest/custom"
     private static final int DEFAULT_TIMEOUT = 5000
     private static final int PERFORMANCE_THRESHOLD = 500
-    
+
     private JsonSlurper jsonSlurper = new JsonSlurper()
     private AuthenticationHelper auth = new AuthenticationHelper()
-    
+
     /**
      * Execute GET request with automatic authentication
      */
     Object get(String endpoint, Map<String, Object> params = [:]) {
         long startTime = System.currentTimeMillis()
         HttpURLConnection connection = createConnection("GET", endpoint, params)
-        
+
         def response = executeRequest(connection)
         validatePerformance(startTime, endpoint)
         return response
     }
-    
+
     /**
      * Execute POST request with JSON payload
      */
     Object post(String endpoint, Object payload) {
         long startTime = System.currentTimeMillis()
         HttpURLConnection connection = createConnection("POST", endpoint)
-        
+
         if (payload) {
             connection.doOutput = true
             connection.outputStream.withWriter { it.write(new JsonBuilder(payload).toString()) }
         }
-        
+
         def response = executeRequest(connection)
         validatePerformance(startTime, endpoint)
         return response
     }
-    
+
     /**
      * Execute PUT request with JSON payload
      */
     Object put(String endpoint, Object payload) {
         long startTime = System.currentTimeMillis()
         HttpURLConnection connection = createConnection("PUT", endpoint)
-        
+
         connection.doOutput = true
         connection.outputStream.withWriter { it.write(new JsonBuilder(payload).toString()) }
-        
+
         def response = executeRequest(connection)
         validatePerformance(startTime, endpoint)
         return response
     }
-    
+
     /**
      * Execute DELETE request
      */
     Object delete(String endpoint, Map<String, Object> params = [:]) {
         long startTime = System.currentTimeMillis()
         HttpURLConnection connection = createConnection("DELETE", endpoint, params)
-        
+
         def response = executeRequest(connection)
         validatePerformance(startTime, endpoint)
         return response
     }
-    
+
     private HttpURLConnection createConnection(String method, String endpoint, Map params = [:]) {
         String url = buildUrl(endpoint, params)
         HttpURLConnection connection = new URL(url).openConnection() as HttpURLConnection
-        
+
         connection.requestMethod = method
         connection.setRequestProperty("Content-Type", "application/json")
         connection.setRequestProperty("Accept", "application/json")
         connection.connectTimeout = DEFAULT_TIMEOUT
         connection.readTimeout = DEFAULT_TIMEOUT
-        
+
         // Apply authentication
         auth.authenticate(connection)
-        
+
         return connection
     }
-    
+
     private String buildUrl(String endpoint, Map params) {
         String url = "${BASE_URL}${endpoint}"
         if (params) {
@@ -224,11 +235,11 @@ class IntegrationTestHttpClient {
         }
         return url
     }
-    
+
     private Object executeRequest(HttpURLConnection connection) {
         try {
             int responseCode = connection.responseCode
-            
+
             if (responseCode >= 200 && responseCode < 300) {
                 String responseText = connection.inputStream.text
                 return [
@@ -248,7 +259,7 @@ class IntegrationTestHttpClient {
             connection.disconnect()
         }
     }
-    
+
     private void validatePerformance(long startTime, String endpoint) {
         long duration = System.currentTimeMillis() - startTime
         if (duration > PERFORMANCE_THRESHOLD) {
@@ -261,6 +272,7 @@ class IntegrationTestHttpClient {
 ### Afternoon Session (4 Hours): Foundation Framework
 
 #### Task 1.3: Create BaseIntegrationTest.groovy (2 hours)
+
 **Location**: `/src/groovy/umig/tests/utils/BaseIntegrationTest.groovy`
 
 ```groovy
@@ -277,7 +289,7 @@ abstract class BaseIntegrationTest {
     protected IntegrationTestHttpClient httpClient
     protected static Properties ENV
     protected static final String TEST_PREFIX = "TEST_"
-    
+
     /**
      * Setup method called before each test
      */
@@ -286,7 +298,7 @@ abstract class BaseIntegrationTest {
         loadEnvironment()
         setupDatabase()
     }
-    
+
     /**
      * Cleanup method called after each test
      */
@@ -294,7 +306,7 @@ abstract class BaseIntegrationTest {
         cleanupTestData()
         closeConnections()
     }
-    
+
     /**
      * Load environment configuration
      */
@@ -307,14 +319,14 @@ abstract class BaseIntegrationTest {
             }
         }
     }
-    
+
     /**
      * Setup database connection
      */
     private void setupDatabase() {
         // Database setup handled by DatabaseUtil
     }
-    
+
     /**
      * Execute database operation with proper resource management
      */
@@ -323,7 +335,7 @@ abstract class BaseIntegrationTest {
             closure(sql)
         }
     }
-    
+
     /**
      * Clean up test data from specified tables
      */
@@ -338,27 +350,27 @@ abstract class BaseIntegrationTest {
                 'iterations_ite',
                 'migrations_mig'
             ]
-            
+
             tables.each { table ->
                 sql.execute("DELETE FROM ${table} WHERE mig_name LIKE '${TEST_PREFIX}%'")
             }
         }
     }
-    
+
     /**
      * Close all connections
      */
     private void closeConnections() {
         // Connections auto-closed by DatabaseUtil
     }
-    
+
     /**
      * Assert response time meets performance requirements
      */
     protected void assertResponseTime(long duration, int maxMs = 500) {
         assert duration <= maxMs : "Response time ${duration}ms exceeded maximum ${maxMs}ms"
     }
-    
+
     /**
      * Validate standard API response structure
      */
@@ -367,7 +379,7 @@ abstract class BaseIntegrationTest {
         assert response.status >= 200 && response.status < 300
         assert response.data != null || response.status == 204
     }
-    
+
     /**
      * Create test migration with proper cleanup tracking
      */
@@ -381,7 +393,7 @@ abstract class BaseIntegrationTest {
         }
         return migrationId
     }
-    
+
     /**
      * Create test iteration
      */
@@ -395,7 +407,7 @@ abstract class BaseIntegrationTest {
         }
         return iterationId
     }
-    
+
     /**
      * Delete test entity by ID
      */
@@ -422,10 +434,10 @@ protected Object measurePerformance(String operation, Closure closure) {
     long startTime = System.currentTimeMillis()
     def result = closure()
     long duration = System.currentTimeMillis() - startTime
-    
+
     println "Performance: ${operation} completed in ${duration}ms"
     assertResponseTime(duration)
-    
+
     return result
 }
 
@@ -434,11 +446,11 @@ protected Object measurePerformance(String operation, Closure closure) {
  */
 protected void validateBatchPerformance(Map<String, Closure> operations, int maxTotalMs = 2000) {
     long totalStart = System.currentTimeMillis()
-    
+
     operations.each { name, operation ->
         measurePerformance(name, operation)
     }
-    
+
     long totalDuration = System.currentTimeMillis() - totalStart
     assert totalDuration <= maxTotalMs : "Batch operations took ${totalDuration}ms (max: ${maxTotalMs}ms)"
 }
@@ -449,6 +461,7 @@ protected void validateBatchPerformance(Map<String, Closure> operations, int max
 **Documentation Location**: `/docs/testing/integration-framework.md`
 
 Create comprehensive documentation covering:
+
 - Framework architecture and design decisions
 - Usage patterns and examples
 - Migration guide from legacy tests
@@ -457,39 +470,45 @@ Create comprehensive documentation covering:
 
 ### Phase 1 Quality Gates
 
-| Criteria | Target | Validation Command |
-|----------|--------|-------------------|
-| Test Pass Rate | 100% | `npm run test:integration:core` |
-| Performance | <500ms per endpoint | `npm run quality:api` |
-| Code Coverage | New utilities 100% tested | `npm run test:groovy` |
-| MVP Blocker | No failing tests | `npm run test:all` |
+| Criteria       | Target                    | Validation Command              |
+| -------------- | ------------------------- | ------------------------------- |
+| Test Pass Rate | 100%                      | `npm run test:integration:core` |
+| Performance    | <500ms per endpoint       | `npm run quality:api`           |
+| Code Coverage  | New utilities 100% tested | `npm run test:groovy`           |
+| MVP Blocker    | No failing tests          | `npm run test:all`              |
 
 ## Phase 2: Framework Standardization (Day 2 - 8 Hours)
 
 ### Morning Session (4 Hours): Advanced Framework Features
 
 #### Task 2.1: Enhanced Error Handling Framework (1.5 hours)
+
 **Location**: `/src/groovy/umig/tests/utils/IntegrationTestErrorHandler.groovy`
 
 Comprehensive error management system providing:
+
 - Standardized HTTP error processing
 - Database error handling patterns
 - Meaningful error messages for debugging
 - Test failure logging and reporting
 
 #### Task 2.2: Database Testing Utilities (1.5 hours)
+
 **Location**: `/src/groovy/umig/tests/utils/IntegrationTestDatabaseUtil.groovy`
 
 Advanced database interaction patterns:
+
 - Transaction management for test isolation
 - Bulk data operations for performance testing
 - Database state verification methods
 - Referential integrity validation
 
 #### Task 2.3: Test Data Factory System (1 hour)
+
 **Location**: `/src/groovy/umig/tests/utils/TestDataFactory.groovy`
 
 Consistent test data generation:
+
 - Entity builders for all domain objects
 - Relationship management between entities
 - Cleanup tracking and automation
@@ -500,6 +519,7 @@ Consistent test data generation:
 #### Task 2.4: Response Validation Framework (1.5 hours)
 
 Implement comprehensive response validation:
+
 - Schema validation for API responses
 - Field-level validation rules
 - Collection validation patterns
@@ -508,6 +528,7 @@ Implement comprehensive response validation:
 #### Task 2.5: Cross-API Workflow Testing (1.5 hours)
 
 Support for complex multi-API scenarios:
+
 - Workflow orchestration utilities
 - State management across API calls
 - Transaction boundary validation
@@ -516,6 +537,7 @@ Support for complex multi-API scenarios:
 #### Task 2.6: Framework Documentation & Examples (1 hour)
 
 Complete framework documentation:
+
 - API reference for all utilities
 - Code examples for common scenarios
 - Best practices guide
@@ -523,12 +545,12 @@ Complete framework documentation:
 
 ### Phase 2 Quality Gates
 
-| Criteria | Target | Validation |
-|----------|--------|------------|
-| Framework Completeness | All utilities implemented | Code review |
-| Documentation Coverage | 100% of features documented | Documentation review |
-| Integration Testing | All utilities work together | Integration tests |
-| Performance Overhead | <50ms per test | Performance profiling |
+| Criteria               | Target                      | Validation            |
+| ---------------------- | --------------------------- | --------------------- |
+| Framework Completeness | All utilities implemented   | Code review           |
+| Documentation Coverage | 100% of features documented | Documentation review  |
+| Integration Testing    | All utilities work together | Integration tests     |
+| Performance Overhead   | <50ms per test              | Performance profiling |
 
 ## Phase 3: Comprehensive Refactoring (Day 3 - 4 Hours)
 
@@ -554,6 +576,7 @@ Complete framework documentation:
 ### Task 3.2: Migrate Remaining Tests (2 hours)
 
 Migrate all 28 remaining test files to use the standardized framework:
+
 - Apply consistent patterns across all tests
 - Remove all duplicate HTTP client code
 - Implement performance validation
@@ -562,6 +585,7 @@ Migrate all 28 remaining test files to use the standardized framework:
 ### Task 3.3: Final Validation & Documentation
 
 Complete validation of the refactored test suite:
+
 - Run full test suite multiple times
 - Verify performance requirements
 - Update documentation with final patterns
@@ -569,12 +593,12 @@ Complete validation of the refactored test suite:
 
 ### Phase 3 Quality Gates
 
-| Criteria | Target | Validation |
-|----------|--------|------------|
-| Migration Complete | All 31 tests using framework | Code review |
-| Code Reduction | 60% less duplicate code | Line count analysis |
-| Performance | 100% tests <500ms | Performance report |
-| Documentation | Complete migration guide | Documentation review |
+| Criteria           | Target                       | Validation           |
+| ------------------ | ---------------------------- | -------------------- |
+| Migration Complete | All 31 tests using framework | Code review          |
+| Code Reduction     | 60% less duplicate code      | Line count analysis  |
+| Performance        | 100% tests <500ms            | Performance report   |
+| Documentation      | Complete migration guide     | Documentation review |
 
 ## Integration with US-056-A Service Layer Standardization
 
@@ -583,12 +607,14 @@ Complete validation of the refactored test suite:
 Both US-037 and US-056-A establish complementary standardization:
 
 #### Common Components
+
 - **Error Handling**: Unified exception management patterns
 - **Data Transfer Objects**: Shared validation for UnifiedStepDataTransferObject
 - **Response Processing**: Consistent JSON handling utilities
 - **Performance Monitoring**: Integrated metrics collection
 
 #### Integration Points
+
 1. **Service Testing**: Framework supports service layer validation
 2. **Mock Capabilities**: Test utilities for service abstractions
 3. **Data Validation**: Shared validation logic
@@ -605,21 +631,23 @@ Both US-037 and US-056-A establish complementary standardization:
 
 ### Risk Matrix
 
-| Risk | Probability | Impact | Mitigation |
-|------|------------|--------|------------|
-| Test Failures During Migration | Medium | High | Phase 1 fixes first, rollback capability |
-| Performance Regression | Low | Medium | Built-in monitoring, connection pooling |
-| US-056-A Conflicts | Low | Medium | Daily coordination, shared patterns |
-| Legacy Test Complexity | Low | Low | Prioritized migration, backward compatibility |
+| Risk                           | Probability | Impact | Mitigation                                    |
+| ------------------------------ | ----------- | ------ | --------------------------------------------- |
+| Test Failures During Migration | Medium      | High   | Phase 1 fixes first, rollback capability      |
+| Performance Regression         | Low         | Medium | Built-in monitoring, connection pooling       |
+| US-056-A Conflicts             | Low         | Medium | Daily coordination, shared patterns           |
+| Legacy Test Complexity         | Low         | Low    | Prioritized migration, backward compatibility |
 
 ### Rollback Strategy
 
 **Safe Points**:
+
 1. After Phase 1: All tests passing with current patterns
 2. After Phase 2: Framework available but not required
 3. Per-Test: Individual test rollback capability
 
 **Rollback Commands**:
+
 ```bash
 # Rollback specific test
 git checkout HEAD~1 -- src/groovy/umig/tests/integration/SpecificTest.groovy
@@ -635,13 +663,13 @@ npm run test:integration:core
 
 ### Quantitative Metrics
 
-| Metric | Baseline | Target | Measurement |
-|--------|----------|--------|-------------|
-| Test Pass Rate | 45% | 100% | `npm run test:integration:core` |
-| Code Duplication | ~450 lines | <180 lines | Line count analysis |
-| Response Time | Varies | <500ms all | Performance reports |
-| Test Development Time | 3.5 hours | <2 hours | Time tracking |
-| Maintenance Effort | 5 hours/week | 2 hours/week | Time tracking |
+| Metric                | Baseline     | Target       | Measurement                     |
+| --------------------- | ------------ | ------------ | ------------------------------- |
+| Test Pass Rate        | 45%          | 100%         | `npm run test:integration:core` |
+| Code Duplication      | ~450 lines   | <180 lines   | Line count analysis             |
+| Response Time         | Varies       | <500ms all   | Performance reports             |
+| Test Development Time | 3.5 hours    | <2 hours     | Time tracking                   |
+| Maintenance Effort    | 5 hours/week | 2 hours/week | Time tracking                   |
 
 ### Qualitative Metrics
 
@@ -667,11 +695,13 @@ npm run health:check          # System health
 ## Resource Requirements
 
 ### Developer Resources
+
 - **Primary Developer**: 20 hours over 3 days
 - **Code Review**: 2 hours from senior developer
 - **QA Validation**: 1 hour final validation
 
 ### Environment Requirements
+
 - **Development Stack**: UMIG services running
 - **Database**: PostgreSQL with test data
 - **Authentication**: .env properly configured
@@ -679,11 +709,11 @@ npm run health:check          # System health
 
 ### Timeline Summary
 
-| Day | Phase | Hours | Key Deliverables |
-|-----|-------|-------|------------------|
-| Day 1 | Phase 1 | 8h | Fix 6 tests, Create base framework |
-| Day 2 | Phase 2 | 8h | Complete framework, Advanced features |
-| Day 3 | Phase 3 | 4h | Migrate all tests, Documentation |
+| Day   | Phase   | Hours | Key Deliverables                      |
+| ----- | ------- | ----- | ------------------------------------- |
+| Day 1 | Phase 1 | 8h    | Fix 6 tests, Create base framework    |
+| Day 2 | Phase 2 | 8h    | Complete framework, Advanced features |
+| Day 3 | Phase 3 | 4h    | Migrate all tests, Documentation      |
 
 ## Documentation Deliverables
 
@@ -714,12 +744,14 @@ npm run health:check          # System health
 ## Post-Implementation Monitoring
 
 ### Week 1 Monitoring
+
 - Daily test execution monitoring
 - Performance metric tracking
 - Developer feedback collection
 - Issue resolution tracking
 
 ### Month 1 Review
+
 - Maintenance effort analysis
 - New test development metrics
 - Code quality assessment
@@ -732,11 +764,13 @@ US-037 transforms the UMIG integration testing framework from a fragmented, main
 ### Expected Outcomes
 
 ✅ **Immediate Benefits**:
+
 - 100% test pass rate enabling MVP deployment
 - Consistent testing patterns across all APIs
 - Performance validation for all endpoints
 
 ✅ **Long-term Value**:
+
 - 60% reduction in test code duplication
 - 40% faster integration test development
 - Simplified maintenance and debugging
@@ -761,6 +795,7 @@ US-037 transforms the UMIG integration testing framework from a fragmented, main
 **Dependencies**: Independent - Framework self-contained
 
 ### Phase 3 Achievements Summary
+
 - ✅ **BaseIntegrationTest.groovy**: 380 lines of comprehensive test foundation
 - ✅ **IntegrationTestHttpClient.groovy**: 264 lines of standardized HTTP client
 - ✅ **IntegrationTestFailureAnalysis.md**: Complete root cause analysis and conversion guidance
@@ -770,11 +805,12 @@ US-037 transforms the UMIG integration testing framework from a fragmented, main
 
 ---
 
-*Implementation plan coordinated by GENDEV agents:*
-- *Project Orchestrator: Strategic coordination and integration*
-- *Requirements Analyst: Comprehensive requirements validation*
-- *Project Planner: Detailed implementation roadmap*
+_Implementation plan coordinated by GENDEV agents:_
 
-*Date: August 27, 2025*  
-*Sprint: 5 (MVP Critical Path)*  
-*Progress Update: Phase 3 Complete - Framework Foundation Delivered*
+- _Project Orchestrator: Strategic coordination and integration_
+- _Requirements Analyst: Comprehensive requirements validation_
+- _Project Planner: Detailed implementation roadmap_
+
+_Date: August 27, 2025_  
+_Sprint: 5 (MVP Critical Path)_  
+_Progress Update: Phase 3 Complete - Framework Foundation Delivered_

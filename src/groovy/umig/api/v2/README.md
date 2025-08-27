@@ -41,6 +41,7 @@ This folder contains all V2 REST API endpoints implemented using ScriptRunner Cu
 | **StatusApi.groovy**              | ✅     | Status               | Centralized status with color coding          |
 | **EmailTemplatesApi.groovy**      | ✅     | Email Templates      | Template management, rendering support        |
 | **SystemConfigurationApi.groovy** | ✅     | System Configuration | Application settings, feature flags           |
+| **UrlConstructionService**        | ✅     | URL Generation       | Environment-aware URL construction (ADR-048)  |
 
 ### UI Component APIs
 
@@ -226,16 +227,18 @@ All APIs include comprehensive testing:
 
 ### Recently Completed (Sprint 5)
 
-- ✅ **US-031**: Admin GUI Complete Integration (11/13 endpoints functional)
+- ✅ **US-056-A**: Service Layer Standardization with DTO architecture
+- ✅ **US-039**: Enhanced Email Notifications with mobile-responsive templates
+- ✅ **US-031**: Admin GUI Complete Integration (13/13 endpoints functional)
 - ✅ **US-036**: StepView UI Refactoring (100% complete with RBAC)
 - ✅ **Steps API v2.2.0**: 6 new endpoints, enhanced bulk operations
 - ✅ **Users API v2.1.0**: Role mapping and enhanced context
 
 ### Current Focus
 
-- Authentication blocker resolution (HTTP 401 investigation)
-- Manual endpoint registration completion (2/13 remaining)
-- Production deployment preparation
+- US-056-B: Template Integration (3 story points)
+- US-037: Integration Testing Framework (60% complete)
+- Production deployment preparation with service layer architecture
 
 ### API Implementation Maturity
 

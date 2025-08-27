@@ -5,11 +5,7 @@
   "description": "Comprehensive JSON schema for UMIG StepDataTransferObject validation (US-056-A Service Layer Standardization)",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "stepId",
-    "stepName", 
-    "stepStatus"
-  ],
+  "required": ["stepId", "stepName", "stepStatus"],
   "properties": {
     "stepId": {
       "type": "string",
@@ -58,7 +54,7 @@
       "description": "Migration code for display"
     },
     "iterationId": {
-      "type": ["string", "null"], 
+      "type": ["string", "null"],
       "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "description": "Parent iteration identifier"
     },

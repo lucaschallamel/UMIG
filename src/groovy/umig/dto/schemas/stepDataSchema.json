@@ -8,140 +8,145 @@
   "required": ["stepId", "stepName", "stepStatus"],
   "additionalProperties": false,
   "properties": {
-    
     "_comment_core_identification": {
       "type": "null",
       "description": "Core step identification fields"
     },
-    
+
     "stepId": {
       "type": "string",
       "format": "uuid",
       "description": "Primary step identifier (UUID format)",
       "examples": ["550e8400-e29b-41d4-a716-446655440000"]
     },
-    
+
     "stepInstanceId": {
       "type": ["string", "null"],
       "format": "uuid",
       "description": "Step instance identifier for specific executions",
       "examples": ["550e8400-e29b-41d4-a716-446655440001"]
     },
-    
+
     "stepName": {
       "type": "string",
       "minLength": 1,
       "maxLength": 255,
       "description": "Human-readable step name",
-      "examples": ["Database Migration", "Application Deployment", "Service Validation"]
+      "examples": [
+        "Database Migration",
+        "Application Deployment",
+        "Service Validation"
+      ]
     },
-    
+
     "stepDescription": {
       "type": ["string", "null"],
       "maxLength": 2000,
       "description": "Detailed step description",
-      "examples": ["Migrate user data from legacy system to new database schema"]
+      "examples": [
+        "Migrate user data from legacy system to new database schema"
+      ]
     },
-    
+
     "stepStatus": {
       "type": "string",
       "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"],
       "description": "Current step execution status",
       "examples": ["PENDING", "IN_PROGRESS", "COMPLETED"]
     },
-    
+
     "_comment_team_assignment": {
-      "type": "null", 
+      "type": "null",
       "description": "Team assignment and ownership fields"
     },
-    
+
     "assignedTeamId": {
       "type": ["string", "null"],
       "format": "uuid",
       "description": "Assigned team identifier",
       "examples": ["550e8400-e29b-41d4-a716-446655440002"]
     },
-    
+
     "assignedTeamName": {
       "type": ["string", "null"],
       "maxLength": 100,
       "description": "Assigned team display name",
       "examples": ["Database Team", "Infrastructure Team", "Application Team"]
     },
-    
+
     "_comment_hierarchical_context": {
       "type": "null",
       "description": "Hierarchical context and parent entity references"
     },
-    
+
     "migrationId": {
       "type": ["string", "null"],
       "format": "uuid",
       "description": "Parent migration identifier",
       "examples": ["550e8400-e29b-41d4-a716-446655440003"]
     },
-    
+
     "migrationCode": {
       "type": ["string", "null"],
       "pattern": "^[A-Z0-9-]{1,20}$",
       "description": "Migration code for display (uppercase alphanumeric)",
       "examples": ["MIG-2025-001", "PROD-CUTOVER-Q1"]
     },
-    
+
     "iterationId": {
       "type": ["string", "null"],
-      "format": "uuid", 
+      "format": "uuid",
       "description": "Parent iteration identifier",
       "examples": ["550e8400-e29b-41d4-a716-446655440004"]
     },
-    
+
     "iterationCode": {
       "type": ["string", "null"],
       "pattern": "^[A-Z0-9-]{1,20}$",
       "description": "Iteration code for display (uppercase alphanumeric)",
       "examples": ["ITER-001", "WAVE-1", "PILOT"]
     },
-    
+
     "sequenceId": {
       "type": ["string", "null"],
       "format": "uuid",
-      "description": "Parent sequence identifier", 
+      "description": "Parent sequence identifier",
       "examples": ["550e8400-e29b-41d4-a716-446655440005"]
     },
-    
+
     "phaseId": {
       "type": ["string", "null"],
       "format": "uuid",
       "description": "Parent phase identifier",
       "examples": ["550e8400-e29b-41d4-a716-446655440006"]
     },
-    
+
     "_comment_temporal_fields": {
       "type": "null",
       "description": "Temporal and status tracking fields"
     },
-    
+
     "createdDate": {
       "type": ["string", "null"],
       "format": "date-time",
       "description": "Step creation timestamp (ISO 8601 format)",
       "examples": ["2025-08-27T09:00:00.000Z"]
     },
-    
+
     "lastModifiedDate": {
       "type": ["string", "null"],
-      "format": "date-time", 
+      "format": "date-time",
       "description": "Last modification timestamp (ISO 8601 format)",
       "examples": ["2025-08-27T10:30:00.000Z"]
     },
-    
+
     "isActive": {
       "type": "boolean",
       "description": "Active status indicator",
       "default": true,
       "examples": [true, false]
     },
-    
+
     "priority": {
       "type": ["integer", "null"],
       "minimum": 1,
@@ -150,26 +155,38 @@
       "default": 5,
       "examples": [1, 5, 10]
     },
-    
+
     "_comment_extended_metadata": {
       "type": "null",
       "description": "Extended metadata and classification fields"
     },
-    
+
     "stepType": {
       "type": ["string", "null"],
       "maxLength": 50,
       "description": "Step classification type",
-      "examples": ["DATABASE", "APPLICATION", "INFRASTRUCTURE", "VALIDATION", "ROLLBACK"]
+      "examples": [
+        "DATABASE",
+        "APPLICATION",
+        "INFRASTRUCTURE",
+        "VALIDATION",
+        "ROLLBACK"
+      ]
     },
-    
+
     "stepCategory": {
       "type": ["string", "null"],
       "maxLength": 50,
       "description": "Step category for grouping",
-      "examples": ["PRE_MIGRATION", "CUTOVER", "POST_MIGRATION", "VALIDATION", "CLEANUP"]
+      "examples": [
+        "PRE_MIGRATION",
+        "CUTOVER",
+        "POST_MIGRATION",
+        "VALIDATION",
+        "CLEANUP"
+      ]
     },
-    
+
     "estimatedDuration": {
       "type": ["integer", "null"],
       "minimum": 0,
@@ -177,7 +194,7 @@
       "description": "Estimated duration in minutes (max 24 hours)",
       "examples": [30, 120, 480]
     },
-    
+
     "actualDuration": {
       "type": ["integer", "null"],
       "minimum": 0,
@@ -185,12 +202,12 @@
       "description": "Actual duration in minutes (max 24 hours)",
       "examples": [25, 135, 520]
     },
-    
+
     "_comment_progress_tracking": {
       "type": "null",
       "description": "Progress tracking and dependency fields"
     },
-    
+
     "dependencyCount": {
       "type": ["integer", "null"],
       "minimum": 0,
@@ -199,7 +216,7 @@
       "default": 0,
       "examples": [0, 3, 12]
     },
-    
+
     "completedDependencies": {
       "type": ["integer", "null"],
       "minimum": 0,
@@ -208,16 +225,16 @@
       "default": 0,
       "examples": [0, 2, 12]
     },
-    
+
     "instructionCount": {
       "type": ["integer", "null"],
       "minimum": 0,
       "maximum": 1000,
-      "description": "Total number of instructions", 
+      "description": "Total number of instructions",
       "default": 0,
       "examples": [1, 5, 25]
     },
-    
+
     "completedInstructions": {
       "type": ["integer", "null"],
       "minimum": 0,
@@ -226,12 +243,12 @@
       "default": 0,
       "examples": [0, 3, 25]
     },
-    
+
     "_comment_comment_integration": {
       "type": "null",
       "description": "Comment integration and collaboration fields"
     },
-    
+
     "comments": {
       "type": "array",
       "description": "Recent comments (limited to last 5 for performance)",
@@ -241,26 +258,26 @@
       },
       "default": []
     },
-    
+
     "hasActiveComments": {
       "type": "boolean",
       "description": "Indicates if there are active/unresolved comments",
       "default": false,
       "examples": [true, false]
     },
-    
+
     "lastCommentDate": {
       "type": ["string", "null"],
       "format": "date-time",
       "description": "Timestamp of most recent comment (ISO 8601 format)",
       "examples": ["2025-08-27T11:15:00.000Z"]
     },
-    
+
     "_comment_computed_properties": {
       "type": "null",
       "description": "Computed properties (read-only, calculated from other fields)"
     },
-    
+
     "dependencyCompletionPercentage": {
       "type": ["number", "null"],
       "minimum": 0,
@@ -268,7 +285,7 @@
       "description": "Dependency completion percentage (0-100), null if no dependencies",
       "examples": [0, 33.33, 100]
     },
-    
+
     "instructionCompletionPercentage": {
       "type": ["number", "null"],
       "minimum": 0,
@@ -276,14 +293,14 @@
       "description": "Instruction completion percentage (0-100), null if no instructions",
       "examples": [0, 60, 100]
     },
-    
+
     "isReadyToStart": {
       "type": "boolean",
       "description": "True if all dependencies completed or no dependencies exist",
       "examples": [true, false]
     }
   },
-  
+
   "definitions": {
     "CommentDTO": {
       "type": "object",
@@ -303,7 +320,10 @@
           "minLength": 1,
           "maxLength": 2000,
           "description": "Comment text content",
-          "examples": ["Step execution completed successfully", "Issue resolved by restarting service"]
+          "examples": [
+            "Step execution completed successfully",
+            "Issue resolved by restarting service"
+          ]
         },
         "authorId": {
           "type": ["string", "null"],
@@ -339,7 +359,7 @@
       }
     }
   },
-  
+
   "examples": [
     {
       "stepId": "550e8400-e29b-41d4-a716-446655440000",
@@ -351,7 +371,7 @@
       "assignedTeamName": "Database Team",
       "migrationId": "550e8400-e29b-41d4-a716-446655440003",
       "migrationCode": "MIG-2025-001",
-      "iterationId": "550e8400-e29b-41d4-a716-446655440004", 
+      "iterationId": "550e8400-e29b-41d4-a716-446655440004",
       "iterationCode": "ITER-001",
       "sequenceId": "550e8400-e29b-41d4-a716-446655440005",
       "phaseId": "550e8400-e29b-41d4-a716-446655440006",
@@ -385,7 +405,7 @@
       "isReadyToStart": false
     }
   ],
-  
+
   "additionalValidationRules": {
     "crossFieldValidation": {
       "description": "Additional validation rules that span multiple fields",
@@ -395,7 +415,7 @@
           "description": "Completed dependencies cannot exceed total dependency count"
         },
         {
-          "rule": "completedInstructions <= instructionCount", 
+          "rule": "completedInstructions <= instructionCount",
           "description": "Completed instructions cannot exceed total instruction count"
         },
         {
@@ -417,7 +437,7 @@
       ]
     }
   },
-  
+
   "usageNotes": {
     "serialization": "Use Jackson ObjectMapper with Java 8 time module for proper LocalDateTime handling",
     "validation": "Call validate() method on DTO instances before processing",

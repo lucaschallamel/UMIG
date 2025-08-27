@@ -7,6 +7,7 @@ This folder contains all Groovy classes that encapsulate database access logic u
 - **Separation of Concerns:** Keeps SQL/data logic out of API/macro scripts ([CA]).
 - **Testability:** Makes it easy to mock DB operations in tests ([TDT]).
 - **Reusability:** Centralizes queries for each entity/table ([DRY]).
+- **DTO Integration:** Enhanced repositories support unified DTOs (US-056-A).
 
 ## MANDATORY DatabaseUtil.withSql Pattern
 
