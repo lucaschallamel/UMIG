@@ -30,7 +30,7 @@
 **ALL 6 integration tests successfully migrated to BaseIntegrationTest framework:**
 
 1. **✅ MigrationsApiBulkOperationsTest.groovy** - Complex bulk operations with perfect ADR-031 compliance
-2. **✅ CrossApiIntegrationTest.groovy** - Cross-API workflow validation 
+2. **✅ CrossApiIntegrationTest.groovy** - Cross-API workflow validation
 3. **✅ ApplicationsApiIntegrationTest.groovy** - Application management testing
 4. **✅ EnvironmentsApiIntegrationTest.groovy** - Environment configuration testing
 5. **✅ ControlsApiIntegrationTest.groovy** - Master/instance patterns with comprehensive type safety
