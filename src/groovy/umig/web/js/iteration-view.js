@@ -670,6 +670,52 @@ const populateFilter = (selector, url, defaultOptionText) => {
     });
 };
 
+// Specialized function for populating iterations with code-based values
+const populateIterations = (selector, url, defaultOptionText) => {
+  console.log(`populateIterations: Loading ${url} for ${selector}`);
+  
+  const select = document.querySelector(selector);
+  if (!select) {
+    console.error(`populateIterations: Selector "${selector}" not found in DOM`);
+    return;
+  }
+
+  select.innerHTML = `<option value="">Loading...</option>`;
+
+  fetch(url)
+    .then((response) => {
+      console.log(`populateIterations: Response for ${url}: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText} for ${url}`);
+      }
+      return response.json();
+    })
+    .then((items) => {
+      console.log(`populateIterations: Received ${Array.isArray(items) ? items.length : "non-array"} items for ${selector}`, items);
+      select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+
+      if (Array.isArray(items)) {
+        items.forEach((item) => {
+          const option = document.createElement("option");
+          // CRITICAL: Always use UUID (item.id) for API calls, store name and code as data attributes
+          option.value = item.id; // Must be UUID for API validation
+          option.textContent = item.name || "(Unnamed)";
+          // Store the iteration name and code as data attributes for URL construction
+          option.dataset.iteName = item.name || "";
+          option.dataset.iteCode = item.code || "";
+          select.appendChild(option);
+        });
+        console.log(`populateIterations: Successfully populated ${items.length} options for ${selector}`);
+      } else {
+        console.warn(`populateIterations: Items is not an array for ${selector}:`, items);
+      }
+    })
+    .catch((error) => {
+      console.error(`populateIterations: Error loading ${url} for ${selector}:`, error);
+      select.innerHTML = `<option value="">Failed to load: ${error.message}</option>`;
+    });
+};
+
 // UMIG Iteration View - Canonical JavaScript Logic
 // Ported from mock/script.js with full fidelity
 
@@ -1036,7 +1082,7 @@ class IterationView {
           migrations
             .map(
               (m) =>
-                `<option value="${m.mig_id || m.id}">${m.mig_name || m.name}</option>`,
+                `<option value="${m.mig_id || m.id}" data-mig-name="${m.mig_name || m.name}">${m.mig_name || m.name}</option>`,
             )
             .join("");
       }
@@ -1072,7 +1118,7 @@ class IterationView {
         migId,
       );
       const url = `/rest/scriptrunner/latest/custom/migrations/${migId}/iterations`;
-      populateFilter("#iteration-select", url, "SELECT AN ITERATION");
+      populateIterations("#iteration-select", url, "SELECT AN ITERATION");
     }
 
     // Show blank runsheet state since no iteration is selected
@@ -3263,8 +3309,13 @@ class IterationView {
     const migrationSelect = document.getElementById("migration-select");
     const iterationSelect = document.getElementById("iteration-select");
     
-    const migrationName = migrationSelect ? migrationSelect.options[migrationSelect.selectedIndex]?.text : "";
-    const iterationName = iterationSelect ? iterationSelect.options[iterationSelect.selectedIndex]?.text : "";
+    // Get the migration name from data attribute (since we don't have migration codes)
+    const selectedMigOption = migrationSelect ? migrationSelect.selectedOptions[0] : null;
+    const migrationName = selectedMigOption ? selectedMigOption.dataset.migName : "";
+    
+    // Get iteration name from data attribute (user wants name, not code, in the URL)
+    const selectedIteOption = iterationSelect ? iterationSelect.selectedOptions[0] : null;
+    const iterationName = selectedIteOption ? selectedIteOption.dataset.iteName : "";
     const stepCode = this.selectedStepCode || "";
     
     if (!migrationName || !iterationName || !stepCode) {
@@ -3278,10 +3329,11 @@ class IterationView {
     
     // Use server-provided configuration from UrlConstructionService
     const stepViewConfig = window.UMIG_ITERATION_CONFIG?.stepView;
-    if (!stepViewConfig?.baseUrl) {
+    if (!stepViewConfig?.baseUrl || stepViewConfig.baseUrl.trim() === '') {
       console.error("buildStepViewURL: Server configuration not available", {
         available: !!window.UMIG_ITERATION_CONFIG,
         stepViewConfig: stepViewConfig,
+        baseUrl: stepViewConfig?.baseUrl,
         message: "Configuration must be loaded from server before building step URLs"
       });
       
@@ -3292,13 +3344,19 @@ class IterationView {
       return null;
     }
     
-    // Build URL using server-provided base URL template with validated parameters
+    // Build URL using server-provided base URL template
+    // Server provides format like: http://localhost:8090/pages/viewpage.action?pageId=1114120
+    // We need to append our parameters to this
     const params = new URLSearchParams();
-    params.set('mig', this._sanitizeParameter(migrationName));
-    params.set('ite', this._sanitizeParameter(iterationName));  
-    params.set('stepid', this._sanitizeParameter(stepCode));
+    // Don't sanitize - let URLSearchParams handle proper URL encoding
+    params.set('mig', migrationName);
+    params.set('ite', iterationName);  // Use iteration name, not code
+    params.set('stepid', stepCode);
     
-    const constructedUrl = `${stepViewConfig.baseUrl}?${params.toString()}`;
+    // Check if baseUrl already has query parameters
+    const separator = stepViewConfig.baseUrl.includes('?') ? '&' : '?';
+    const constructedUrl = `${stepViewConfig.baseUrl}${separator}${params.toString()}`;
+    
     console.log("buildStepViewURL: Constructed URL using server configuration", {
       baseUrl: stepViewConfig.baseUrl,
       parameters: Object.fromEntries(params),
@@ -3315,8 +3373,9 @@ class IterationView {
   _sanitizeParameter(param) {
     if (!param || typeof param !== 'string') return '';
     
-    // Allow alphanumeric, dots, underscores, hyphens (matching server-side pattern)
-    const sanitized = param.trim().replace(/[^a-zA-Z0-9._-]/g, '');
+    // Allow alphanumeric, dots, underscores, hyphens, and spaces (for iteration names)
+    // Spaces will be URL-encoded by URLSearchParams
+    const sanitized = param.trim().replace(/[^a-zA-Z0-9._\- ]/g, '');
     return sanitized;
   }
 
