@@ -13,6 +13,7 @@ This document provides detailed specifications for mobile and desktop email prev
 ### Desktop Layout (600px+)
 
 #### Viewport: 1920x1080 (Standard Desktop)
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Email Client UI                      │
@@ -66,6 +67,7 @@ Measurements:
 ```
 
 #### Typography Scale (Desktop)
+
 - **Header Title**: 28px, font-weight 700
 - **Section Titles**: 20px, font-weight 600
 - **Body Text**: 16px, line-height 1.4
@@ -76,6 +78,7 @@ Measurements:
 ### Tablet Layout (481px - 600px)
 
 #### Viewport: 768x1024 (iPad Portrait)
+
 ```
 ┌─────────────────────────────────────┐
 │         Email Client UI             │
@@ -124,6 +127,7 @@ Adaptations:
 ### Mobile Layout (320px - 480px)
 
 #### Viewport: 375x812 (iPhone 12 Portrait)
+
 ```
 ┌───────────────────────────┐
 │    Mobile Email Client    │
@@ -192,6 +196,7 @@ Mobile Adaptations:
 ## Email Client Specific Adaptations
 
 ### Gmail (Web/Mobile)
+
 ```
 Desktop (Gmail Web):
 ┌────────────────────────────────────┐
@@ -221,6 +226,7 @@ Mobile (Gmail App):
 ```
 
 ### Apple Mail (iOS)
+
 ```
 iPhone (Portrait):
 ┌─────────────────────┐
@@ -261,6 +267,7 @@ iPad (Landscape):
 ### Outlook (Various Platforms)
 
 #### Outlook Desktop (Windows)
+
 ```
 ┌─────────────────────────────────────────────────┐
 │ Microsoft Outlook                               │
@@ -278,6 +285,7 @@ iPad (Landscape):
 ```
 
 #### Outlook Mobile (iOS/Android)
+
 ```
 ┌────────────────────┐
 │ Outlook Mobile     │
@@ -304,6 +312,7 @@ iPad (Landscape):
 ### Header Section
 
 **Desktop (600px+)**
+
 ```
 ┌─────────────────────────────────────┐
 │        Gradient Background          │
@@ -322,6 +331,7 @@ iPad (Landscape):
 ```
 
 **Mobile (480px and below)**
+
 ```
 ┌─────────────────────────┐
 │   Gradient Background   │
@@ -340,6 +350,7 @@ iPad (Landscape):
 ### Metadata Grid
 
 **Desktop Layout**
+
 ```
 ┌────────────────────────────────────┐
 │ Status        [IN PROGRESS BADGE]  │
@@ -353,6 +364,7 @@ iPad (Landscape):
 ```
 
 **Mobile Layout**
+
 ```
 ┌─────────────────────────┐
 │ STATUS                  │
@@ -372,6 +384,7 @@ iPad (Landscape):
 ### Instructions List
 
 **Desktop View**
+
 ```
 ┌─────────────────────────────────────────────┐
 │ 📝 Instructions (3)                         │
@@ -388,6 +401,7 @@ iPad (Landscape):
 ```
 
 **Mobile View**
+
 ```
 ┌─────────────────────────┐
 │ 📝 Instructions (3)     │
@@ -409,6 +423,7 @@ iPad (Landscape):
 ### CTA Button Evolution
 
 **Desktop (600px+)**
+
 ```
 ┌─────────────────────────────────────┐
 │                                     │
@@ -423,6 +438,7 @@ iPad (Landscape):
 ```
 
 **Tablet (481px - 600px)**
+
 ```
 ┌───────────────────────────┐
 │                           │
@@ -437,6 +453,7 @@ iPad (Landscape):
 ```
 
 **Mobile (320px - 480px)**
+
 ```
 ┌───────────────────┐
 │                   │
@@ -455,13 +472,13 @@ iPad (Landscape):
 
 ### Multi-Device Testing Matrix
 
-| Device Type | Screen Size | Email Client | Test Scenarios |
-|-------------|-------------|--------------|----------------|
-| **Desktop** | 1920x1080 | Outlook 2019 | Full template rendering |
-| **Desktop** | 1366x768 | Gmail Web | Responsive containers |
-| **Tablet** | 768x1024 | Apple Mail | Touch interactions |
-| **Mobile** | 375x812 | Gmail App | Single column layout |
-| **Mobile** | 320x568 | Outlook Mobile | Minimum width handling |
+| Device Type | Screen Size | Email Client   | Test Scenarios          |
+| ----------- | ----------- | -------------- | ----------------------- |
+| **Desktop** | 1920x1080   | Outlook 2019   | Full template rendering |
+| **Desktop** | 1366x768    | Gmail Web      | Responsive containers   |
+| **Tablet**  | 768x1024    | Apple Mail     | Touch interactions      |
+| **Mobile**  | 375x812     | Gmail App      | Single column layout    |
+| **Mobile**  | 320x568     | Outlook Mobile | Minimum width handling  |
 
 ### Interaction Testing
 
@@ -483,12 +500,14 @@ iPad (Landscape):
 ## Performance Specifications
 
 ### File Size Targets
+
 - **Total HTML**: < 102KB (Gmail clipping limit)
 - **Inline CSS**: < 20KB
 - **Images**: None (using Unicode emojis)
 - **External Resources**: Zero dependencies
 
 ### Loading Performance
+
 - **Template Processing**: < 500ms
 - **Email Rendering**: < 2s on 3G connection
 - **Interactive Elements**: Immediate response

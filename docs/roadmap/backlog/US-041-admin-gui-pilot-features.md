@@ -36,63 +36,68 @@ This story extends the Admin GUI with PILOT role capabilities for instance entit
 **Given** a user with PILOT role permissions  
 **When** accessing the Admin GUI  
 **Then** provide full CRUD operations for instance entities:
+
 - Plan Instances (pli_id based management)
-- Sequence Instances (sqi_id based management)  
+- Sequence Instances (sqi_id based management)
 - Phase Instances (phi_id based management)
 - Step Instances (sti_id based management)
-**And** implement hierarchical filtering (filter step instances by phase instance)
-**And** provide bulk operations for instance management
-**And** ensure data integrity across instance-to-master relationships
+  **And** implement hierarchical filtering (filter step instances by phase instance)
+  **And** provide bulk operations for instance management
+  **And** ensure data integrity across instance-to-master relationships
 
 ### AC-041.2: Advanced Instance Operations
 
 **Given** PILOT role access to instance entities  
 **When** performing advanced operations  
 **Then** implement instance-specific features:
+
 - Bulk status updates across multiple instances
 - Instance timeline management and scheduling
 - Cross-instance dependency validation
 - Instance-level progress tracking and reporting
-**And** provide visual hierarchy displays showing master-to-instance relationships
-**And** implement advanced filtering and search across instance data
+  **And** provide visual hierarchy displays showing master-to-instance relationships
+  **And** implement advanced filtering and search across instance data
 
 ### AC-041.3: Comprehensive Audit Logging
 
 **Given** any user action within the Admin GUI  
 **When** performing CRUD operations on any entity (canonical or instance)  
 **Then** capture comprehensive audit logs including:
+
 - User ID, timestamp, action type (CREATE/UPDATE/DELETE/VIEW)
 - Entity type and entity ID affected
 - Before/after values for all field changes
 - IP address, session ID, and browser information
 - Business context (which migration, iteration, or plan affected)
-**And** provide audit log viewing interface with filtering and search
-**And** implement audit log export functionality (CSV, JSON)
-**And** ensure audit logs are tamper-proof and permanently stored
+  **And** provide audit log viewing interface with filtering and search
+  **And** implement audit log export functionality (CSV, JSON)
+  **And** ensure audit logs are tamper-proof and permanently stored
 
 ### AC-041.4: Enhanced User Experience Features
 
 **Given** the proven modal and synchronization patterns from US-031  
 **When** extending functionality for PILOT features  
 **Then** implement enhanced UX features:
+
 - Advanced search and filtering across all entity types
 - Bookmarking and saved views for frequent operations
 - Batch operation confirmations with detailed impact analysis
 - Enhanced error messages with suggested remediation steps
-**And** provide contextual help and documentation within the interface
-**And** implement keyboard shortcuts for power users
+  **And** provide contextual help and documentation within the interface
+  **And** implement keyboard shortcuts for power users
 
 ### AC-041.5: Integration and Performance Enhancement
 
 **Given** the established Admin GUI architecture from US-031  
 **When** adding PILOT features and audit logging  
 **Then** maintain performance standards:
+
 - <3s load times for all new functionality
 - Efficient database queries for audit log retrieval
 - Memory management for large audit datasets
 - Progressive loading for instance hierarchies
-**And** ensure seamless integration with existing US-031 components
-**And** maintain cross-browser compatibility across all new features
+  **And** ensure seamless integration with existing US-031 components
+  **And** maintain cross-browser compatibility across all new features
 
 ---
 
@@ -124,18 +129,21 @@ This story extends the Admin GUI with PILOT role capabilities for instance entit
 ## Implementation Approach
 
 ### Phase 1: PILOT Role Foundation (2 points)
+
 - Extend role-based access control for PILOT users
 - Implement instance entity CRUD operations
 - Add hierarchical filtering capabilities
 - Basic bulk operations for instances
 
-### Phase 2: Audit Logging Infrastructure (2 points)  
+### Phase 2: Audit Logging Infrastructure (2 points)
+
 - Design and implement audit_log database schema
 - Add audit logging hooks to all existing APIs
 - Implement audit log viewing interface
 - Add export functionality
 
 ### Phase 3: Enhanced UX and Performance (1 point)
+
 - Advanced search and filtering features
 - Saved views and bookmarking
 - Performance optimization for large datasets
@@ -161,17 +169,20 @@ This story extends the Admin GUI with PILOT role capabilities for instance entit
 ## Dependencies and Constraints
 
 ### Hard Dependencies
+
 - **US-031 100% Complete**: All foundational patterns must be established
 - **Authentication Resolution**: US-031 authentication issues must be resolved
 - **API Endpoint Stability**: All existing APIs must be stable and tested
 
 ### Technical Constraints
+
 - **Performance**: Must not degrade existing US-031 performance
 - **Memory**: Audit logging must not impact system memory usage significantly
 - **Storage**: Audit logs require efficient storage strategy for long-term retention
 - **Security**: Audit logs must be tamper-proof and access-controlled
 
-### Business Constraints  
+### Business Constraints
+
 - **Compliance**: Audit logging must meet regulatory requirements
 - **User Experience**: PILOT features must not complicate ADMIN user experience
 - **Training**: Enhanced features may require user training documentation
@@ -192,18 +203,20 @@ This story extends the Admin GUI with PILOT role capabilities for instance entit
 ## Risks and Mitigation
 
 ### Technical Risks
+
 - **Database Performance**: Audit logging may impact query performance
-  - *Mitigation*: Implement efficient indexing and archiving strategies
-- **Integration Complexity**: PILOT features may conflict with ADMIN functionality  
-  - *Mitigation*: Leverage proven US-031 patterns and thorough integration testing
+  - _Mitigation_: Implement efficient indexing and archiving strategies
+- **Integration Complexity**: PILOT features may conflict with ADMIN functionality
+  - _Mitigation_: Leverage proven US-031 patterns and thorough integration testing
 - **Storage Growth**: Audit logs may grow rapidly
-  - *Mitigation*: Implement log rotation and archiving policies
+  - _Mitigation_: Implement log rotation and archiving policies
 
 ### Business Risks
+
 - **User Confusion**: Advanced features may overwhelm basic users
-  - *Mitigation*: Role-based UI hiding and progressive disclosure
+  - _Mitigation_: Role-based UI hiding and progressive disclosure
 - **Training Requirements**: PILOT features may require extensive training
-  - *Mitigation*: Comprehensive documentation and contextual help system
+  - _Mitigation_: Comprehensive documentation and contextual help system
 
 ---
 

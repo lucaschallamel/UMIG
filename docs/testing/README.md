@@ -2,7 +2,7 @@
 
 ## Overview
 
-This directory contains the consolidated testing documentation for the UMIG project, streamlined from 6+ redundant files into 3 essential documents.
+This directory contains the consolidated testing documentation for the UMIG project, streamlined from 6+ redundant files into 3 essential documents. **UPDATED August 27, 2025** - Comprehensive test infrastructure reorganization with 77 test files properly organized and enhanced MailHog email testing capabilities.
 
 ## Current Documentation Structure
 
@@ -28,7 +28,8 @@ This directory contains the consolidated testing documentation for the UMIG proj
 3. **[NPM_COMMANDS_REFERENCE.md](./NPM_COMMANDS_REFERENCE.md)**
    - NPM-based testing commands reference
    - Cross-platform testing approach
-   - **Use this for**: Running tests via NPM commands
+   - **NEW**: Added MailHog email testing commands (`mailhog:test`, `mailhog:check`, `mailhog:clear`)
+   - **Use this for**: Running tests via NPM commands and email notification testing
 
 4. **[GROOVY_TYPE_CHECKING_TROUBLESHOOTING_GUIDE.md](./GROOVY_TYPE_CHECKING_TROUBLESHOOTING_GUIDE.md)** ⭐ **NEW**
    - **CRITICAL**: ScriptRunner Groovy type checking troubleshooting guide
@@ -46,29 +47,69 @@ Historical validation reports and documentation from completed work:
 
 ## Quick Start
 
-### Running Tests
+### Running Tests (Updated Infrastructure)
 
 ```bash
-# Quick health check
+# Navigate to local-dev-setup directory
 cd local-dev-setup
-./scripts/quality-check/immediate-health-check.sh
 
-# API testing
-./scripts/quality-check/api-smoke-test.sh
+# All testing now NPM-based (shell scripts archived)
+npm test                    # Node.js tests
+npm run test:unit          # Groovy unit tests
+npm run test:integration   # Core integration tests
+npm run test:all           # Complete test suite
 
-# Full validation suite
-./scripts/quality-check/master-quality-check.sh
+# MailHog email testing (NEW)
+npm run mailhog:test       # Test SMTP connectivity
+npm run mailhog:check      # Check message count
+npm run mailhog:clear      # Clear test inbox
 ```
 
-### Test Scripts Location
+### Test File Organization (Reorganized August 2025)
+
+**77 Test Files Organized into Proper Structure**:
 
 ```
-local-dev-setup/scripts/quality-check/
-├── immediate-health-check.sh      # Environment validation
-├── api-smoke-test.sh              # API endpoint testing
-├── phase-b-test-execution.sh      # Groovy test runner
-└── master-quality-check.sh        # Full orchestration
+src/groovy/umig/tests/
+├── unit/                          # 20+ unit tests
+│   ├── UrlConstructionServiceValidationTest.groovy  # NEW
+│   ├── AuditFieldsUtilTest.groovy                   # Moved from utils/
+│   └── repository/                                  # Repository-specific tests
+├── integration/                   # 30+ integration tests
+│   ├── EnhancedEmailServiceMailHogTest.groovy       # NEW
+│   ├── UrlConfigurationFlowTest.groovy              # NEW
+│   └── repositories/                                # Repository integration tests
+├── security/                      # Security-focused tests
+│   └── UrlConfigurationApiSecurityTest.groovy       # NEW
+├── validation/                    # Data validation tests
+├── performance/                   # Performance validation tests
+├── uat/                          # User acceptance tests
+├── e2e/                          # End-to-end tests
+└── archived-shell-scripts/       # Shell scripts migrated to NPM
 ```
+
+## Recent Infrastructure Changes
+
+### Test Infrastructure Reorganization (August 27, 2025)
+
+**Test File Reorganization**:
+
+- **77 test files** organized from scattered locations into proper hierarchy
+- **9 obsolete test files** moved to `/archived-test-files/` directory
+- **4 new comprehensive test files** added for URL construction and security validation
+- **AuditFieldsUtilTest.groovy** moved from `utils/` to proper `tests/unit/` location
+
+**MailHog Email Testing Enhancement**:
+
+- **3 new NPM commands** added: `mailhog:test`, `mailhog:check`, `mailhog:clear`
+- **SMTP testing utility** created: `test-mailhog-smtp.sh` for email notification testing
+- **Enhanced integration tests** for email notification workflows
+
+**Technical Debt Resolution**:
+
+- **All Groovy 3.0.15 static type checking issues resolved** across test files
+- **Consistent linting and formatting** applied to reorganized test suite
+- **URL construction bugs fixed** with comprehensive test coverage
 
 ## Documentation Consolidation Results
 
@@ -135,5 +176,5 @@ local-dev-setup/scripts/quality-check/
 
 ---
 
-_Last Updated: 2025-08-21_  
-_Post ScriptRunner Type Checking Troubleshooting Guide Addition_
+_Last Updated: 2025-08-27_  
+_Post Test Infrastructure Reorganization and MailHog Email Testing Enhancement_

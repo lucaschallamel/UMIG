@@ -280,6 +280,11 @@ npm run test:groovy         # Groovy-specific tests (unit + integration)
 npm run test:us022          # US-022 integration test expansion
 npm run test:us028          # US-028 enhanced IterationView tests
 
+# Email Testing (MailHog Integration - August 27, 2025)
+npm run mailhog:test        # Test SMTP connectivity to MailHog
+npm run mailhog:check       # Check MailHog inbox message count
+npm run mailhog:clear       # Clear all messages from MailHog inbox
+
 # Infrastructure Operations (US-032 reorganized)
 ./local-dev-setup/infrastructure/verify-provisioning.sh    # System health check
 ./local-dev-setup/infrastructure/backup/backup-all.sh      # Enterprise backup system

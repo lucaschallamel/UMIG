@@ -1,6 +1,6 @@
 # NPM Test Commands - Quick Reference
 
-**Updated**: August 18, 2025 | **Status**: Production Ready | **Working Directory**: `/local-dev-setup/`
+**Updated**: August 27, 2025 | **Status**: Production Ready | **Working Directory**: `/local-dev-setup/`
 
 ## 🚀 Essential Commands
 
@@ -23,6 +23,11 @@ npm run test:uat:quick           # Quick UAT validation (essential tests only)
 
 # UI Component Tests
 npm run test:iterationview        # IterationView UI component tests
+
+# Email Testing (NEW - MailHog Integration)
+npm run mailhog:test             # Test SMTP connectivity to MailHog
+npm run mailhog:check            # Check MailHog inbox message count
+npm run mailhog:clear            # Clear all messages from MailHog inbox
 ```
 
 ### Comprehensive Test Suites
@@ -51,6 +56,14 @@ npm run test:us028               # US-028 enhanced IterationView tests
 | `--auth`                | Include authentication tests       | `npm run test:integration:auth`             |
 | `--core`                | Run comprehensive test suite       | `npm run test:integration:core`             |
 
+### Email Testing Commands (NEW)
+
+| Command                 | Description                           | Example                    |
+| ----------------------- | ------------------------------------- | -------------------------- |
+| `npm run mailhog:test`  | Test SMTP connectivity to MailHog     | Tests email infrastructure |
+| `npm run mailhog:check` | Check message count in MailHog inbox  | Returns number of emails   |
+| `npm run mailhog:clear` | Clear all messages from MailHog inbox | Resets test environment    |
+
 ### Advanced Usage Examples
 
 ```bash
@@ -65,6 +78,12 @@ npm run test:unit:category "Database"        # Database unit tests only
 # Quick validation
 npm run test:uat:quick                       # Essential UAT tests only
 npm run test:integration --dry-run           # Validate integration setup
+
+# Email testing workflow
+npm run mailhog:test                         # Test SMTP connectivity
+npm run mailhog:clear                        # Clear test inbox
+npm run test:integration                     # Run tests (may send emails)
+npm run mailhog:check                        # Verify email notifications
 ```
 
 ## 🔄 Shell Script Migration Status
@@ -311,4 +330,5 @@ npm run test:uat:quick                        # Quick acceptance check
 
 **Quick Start**: `cd local-dev-setup && npm run test:all`  
 **Migration Status**: ✅ Shell scripts fully migrated to NPM (August 18, 2025)  
+**Email Testing**: ✅ MailHog integration with SMTP testing (August 27, 2025)  
 **Support**: Comprehensive testing framework with enhanced cross-platform compatibility

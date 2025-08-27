@@ -4,7 +4,7 @@
 **Story Points**: 2  
 **Priority**: Medium  
 **Sprint**: Backlog  
-**Created**: 2025-01-26  
+**Created**: 2025-01-26
 
 ## Story Description
 
@@ -24,42 +24,48 @@ Master Steps use a composite ID pattern where `step_code` (xxx) + `step_number` 
 ## Acceptance Criteria
 
 ### AC1: Create Master Step Uniqueness Validation
+
 **Given** a user is creating a new Master Step with step_code "DB" and step_number "0042"  
 **When** the system validates the Step ID before creation  
 **Then** the system should check if "DB-0042" already exists globally  
 **And** return HTTP 409 Conflict with descriptive error if duplicate found  
-**And** allow creation if Step ID is unique  
+**And** allow creation if Step ID is unique
 
 ### AC2: Edit Master Step Uniqueness Validation
+
 **Given** a user is editing an existing Master Step's step_code or step_number  
 **When** the new combination would create a duplicate Step ID  
 **Then** the system should prevent the update with HTTP 409 Conflict  
 **And** provide clear error message with existing step details  
-**And** allow update if the new Step ID remains unique  
+**And** allow update if the new Step ID remains unique
 
 ### AC3: Comprehensive Error Response
+
 **Given** a duplicate Step ID is detected during validation  
 **When** the system returns the error response  
-**Then** the error message should include:  
-- The conflicting Step ID (e.g., "DB-0042")  
-- Name of the existing step using that ID  
-- Phase and status of the existing step  
-- Suggested next available number for that code prefix  
+**Then** the error message should include:
+
+- The conflicting Step ID (e.g., "DB-0042")
+- Name of the existing step using that ID
+- Phase and status of the existing step
+- Suggested next available number for that code prefix
 
 ### AC4: Frontend Error Handling
+
 **Given** the API returns a Step ID uniqueness error  
 **When** the Admin GUI receives the error response  
 **Then** the form should display the validation error clearly  
 **And** prevent form submission until a unique ID is provided  
-**And** optionally suggest alternative step numbers  
+**And** optionally suggest alternative step numbers
 
 ### AC5: Performance and Edge Case Handling
+
 **Given** the uniqueness validation is implemented  
 **When** validation queries are executed  
 **Then** the database query should be optimized for performance  
 **And** handle case insensitivity appropriately  
 **And** validate Step ID format (letters + numbers)  
-**And** handle concurrent creation attempts safely  
+**And** handle concurrent creation attempts safely
 
 ## Technical Implementation Approach
 
@@ -69,14 +75,14 @@ Master Steps use a composite ID pattern where `step_code` (xxx) + `step_number` 
 // Add validation method
 private boolean isStepIdUnique(String stepCode, String stepNumber, String excludeStepId = null) {
     String stepId = "${stepCode}-${stepNumber}".toUpperCase()
-    
+
     DatabaseUtil.withSql { sql ->
         String query = """
-            SELECT sma_id, sma_step_name, sma_status 
-            FROM tbl_steps_master 
+            SELECT sma_id, sma_step_name, sma_status
+            FROM tbl_steps_master
             WHERE UPPER(CONCAT(sma_step_code, '-', sma_step_number)) = ?
         """
-        
+
         if (excludeStepId) {
             query += " AND sma_id != ?"
             return sql.rows(query, [stepId, excludeStepId]).isEmpty()
@@ -89,36 +95,36 @@ private boolean isStepIdUnique(String stepCode, String stepNumber, String exclud
 // Enhanced validation in create/update methods
 private Map<String, Object> validateStepId(String stepCode, String stepNumber, String excludeStepId = null) {
     String stepId = "${stepCode}-${stepNumber}".toUpperCase()
-    
+
     // Format validation
     if (!stepCode.matches(/^[A-Z]{2,4}$/)) {
         return [valid: false, error: "Step code must be 2-4 uppercase letters"]
     }
-    
+
     if (!stepNumber.matches(/^\d{4}$/)) {
         return [valid: false, error: "Step number must be 4 digits"]
     }
-    
+
     // Uniqueness validation
     if (!isStepIdUnique(stepCode, stepNumber, excludeStepId)) {
         DatabaseUtil.withSql { sql ->
             def existing = sql.firstRow("""
-                SELECT sma_step_name, sma_status 
-                FROM tbl_steps_master 
+                SELECT sma_step_name, sma_status
+                FROM tbl_steps_master
                 WHERE UPPER(CONCAT(sma_step_code, '-', sma_step_number)) = ?
             """, [stepId])
-            
+
             // Suggest next available number
             def nextAvailable = findNextAvailableNumber(stepCode)
-            
+
             return [
-                valid: false, 
+                valid: false,
                 error: "Step ID '${stepId}' already exists for step '${existing.sma_step_name}' (Status: ${existing.sma_status})",
                 suggestion: "${stepCode}-${nextAvailable}"
             ]
         }
     }
-    
+
     return [valid: true]
 }
 
@@ -126,10 +132,10 @@ private String findNextAvailableNumber(String stepCode) {
     DatabaseUtil.withSql { sql ->
         def maxNumber = sql.firstRow("""
             SELECT MAX(CAST(sma_step_number AS INTEGER)) as max_num
-            FROM tbl_steps_master 
+            FROM tbl_steps_master
             WHERE UPPER(sma_step_code) = ?
         """, [stepCode.toUpperCase()])
-        
+
         int nextNum = (maxNumber?.max_num ?: 0) + 1
         return String.format("%04d", nextNum)
     }
@@ -140,15 +146,15 @@ private String findNextAvailableNumber(String stepCode) {
 
 ```sql
 -- Add index for optimized uniqueness queries
-CREATE INDEX IF NOT EXISTS idx_steps_master_composite_id 
+CREATE INDEX IF NOT EXISTS idx_steps_master_composite_id
 ON tbl_steps_master (UPPER(sma_step_code), sma_step_number);
 
 -- Alternative: Add computed column with unique constraint
-ALTER TABLE tbl_steps_master 
-ADD COLUMN sma_step_id_computed VARCHAR(10) 
+ALTER TABLE tbl_steps_master
+ADD COLUMN sma_step_id_computed VARCHAR(10)
 GENERATED ALWAYS AS (UPPER(sma_step_code) || '-' || sma_step_number) STORED;
 
-CREATE UNIQUE INDEX idx_steps_master_unique_id 
+CREATE UNIQUE INDEX idx_steps_master_unique_id
 ON tbl_steps_master (sma_step_id_computed);
 ```
 
@@ -157,40 +163,45 @@ ON tbl_steps_master (sma_step_id_computed);
 ```javascript
 // Enhanced validation in step form
 function validateStepId(stepCode, stepNumber) {
-    // Format validation
-    if (!/^[A-Z]{2,4}$/.test(stepCode)) {
-        showError('Step code must be 2-4 uppercase letters');
-        return false;
-    }
-    
-    if (!/^\d{4}$/.test(stepNumber)) {
-        showError('Step number must be 4 digits');
-        return false;
-    }
-    
-    return true;
+  // Format validation
+  if (!/^[A-Z]{2,4}$/.test(stepCode)) {
+    showError("Step code must be 2-4 uppercase letters");
+    return false;
+  }
+
+  if (!/^\d{4}$/.test(stepNumber)) {
+    showError("Step number must be 4 digits");
+    return false;
+  }
+
+  return true;
 }
 
 // Handle API uniqueness errors
 function handleStepIdError(response) {
-    if (response.status === 409) {
-        response.json().then(data => {
-            showError(data.message);
-            if (data.suggestion) {
-                showSuggestion(`Suggested ID: ${data.suggestion}`);
-            }
-        });
-    }
+  if (response.status === 409) {
+    response.json().then((data) => {
+      showError(data.message);
+      if (data.suggestion) {
+        showSuggestion(`Suggested ID: ${data.suggestion}`);
+      }
+    });
+  }
 }
 
 // Real-time validation (optional enhancement)
-document.getElementById('stepCode').addEventListener('input', debounce(checkStepIdAvailability, 500));
-document.getElementById('stepNumber').addEventListener('input', debounce(checkStepIdAvailability, 500));
+document
+  .getElementById("stepCode")
+  .addEventListener("input", debounce(checkStepIdAvailability, 500));
+document
+  .getElementById("stepNumber")
+  .addEventListener("input", debounce(checkStepIdAvailability, 500));
 ```
 
 ## Error Message Specifications
 
 ### Duplicate Step ID Error
+
 ```json
 {
   "error": "DUPLICATE_STEP_ID",
@@ -206,6 +217,7 @@ document.getElementById('stepNumber').addEventListener('input', debounce(checkSt
 ```
 
 ### Format Validation Error
+
 ```json
 {
   "error": "INVALID_STEP_ID_FORMAT",
@@ -220,6 +232,7 @@ document.getElementById('stepNumber').addEventListener('input', debounce(checkSt
 ## Testing Scenarios
 
 ### Unit Tests
+
 1. **Uniqueness Validation**:
    - Test creating step with unique ID (should pass)
    - Test creating step with duplicate ID (should fail)
@@ -238,6 +251,7 @@ document.getElementById('stepNumber').addEventListener('input', debounce(checkSt
    - Null/empty values
 
 ### Integration Tests
+
 1. **API Endpoint Testing**:
    - POST `/api/v2/steps/master` with duplicate data
    - PUT `/api/v2/steps/master/{id}` with conflicting update
@@ -249,6 +263,7 @@ document.getElementById('stepNumber').addEventListener('input', debounce(checkSt
    - Concurrent transaction handling
 
 ### User Acceptance Tests
+
 1. **Admin GUI Workflow**:
    - Create new step with duplicate ID
    - Edit existing step to duplicate ID
@@ -296,6 +311,7 @@ document.getElementById('stepNumber').addEventListener('input', debounce(checkSt
 **Low Risk** - Straightforward validation logic with well-established patterns
 
 **Mitigations**:
+
 - Use existing DatabaseUtil patterns
 - Follow established error handling conventions
 - Implement comprehensive testing

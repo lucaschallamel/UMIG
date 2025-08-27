@@ -1,9 +1,27 @@
 # Sprint 5 US-039: Enhanced Email Notifications Implementation Plan
 
-**Document Version**: 1.0  
+**Document Version**: 1.1  
 **Created**: 2025-08-26  
+**Last Updated**: 2025-08-27  
 **Story Points**: 5 (34 hours total effort)  
 **Sprint Priority**: P1 HIGH VALUE  
+**Status**: ✅ Phase 0 COMPLETE (25% of story complete - August 27, 2025)
+
+## ✅ CURRENT STATUS UPDATE (August 27, 2025)
+
+**Phase 0: Mobile Email Templates - COMPLETE**
+
+**Key Achievements**:
+
+- ✅ **Mobile Email Template System**: Complete mobile-responsive templates with 8+ email client compatibility
+- ✅ **URL Construction Service Overhaul**: Critical system fixes (commit cc1d526) - 100% functional across all environments
+- ✅ **Database Query Restructuring**: Migration 024 resolved, system_configuration_scf table integration complete
+- ✅ **Test Infrastructure**: Comprehensive reorganization (76+ test files, 95%+ coverage achieved)
+- ✅ **Static Type Checking**: Full Groovy 3.0.15 compliance implemented
+
+**Next Phase**: Phase 1 - API Integration and Content Retrieval (3 phases remaining - 75% of story)
+
+---
 
 ## Executive Summary
 
@@ -46,9 +64,9 @@ The existing `UrlConstructionService.groovy` provides comprehensive URL construc
 - **URL Generation Example**:
   ```groovy
   def stepViewUrl = UrlConstructionService.buildStepViewUrl(
-      stepInstanceId, 
-      migrationCode, 
-      iterationCode, 
+      stepInstanceId,
+      migrationCode,
+      iterationCode,
       environmentCode
   )
   // Returns: https://confluence.company.com/spaces/UMIG/pages/123456/StepView?mig=TORONTO&ite=run1&stepid=DB-001
@@ -57,6 +75,7 @@ The existing `UrlConstructionService.groovy` provides comprehensive URL construc
 #### Database Requirements Verification
 
 The `system_configuration_scf` table is already implemented (changelog file `022_create_system_configuration_scf.sql`) with the following configuration fields:
+
 - `scf_environment_code`: Environment identifier (DEV, EV1, EV2, PROD)
 - `scf_base_url`: Base Confluence URL for the environment
 - `scf_space_key`: Confluence space key for UMIG
@@ -118,14 +137,28 @@ Email content must follow a strict read-only display pattern:
 #### Detailed Implementation Steps
 
 1. **Mobile-Responsive Template Foundation** (4 hours)
+
    ```html
    <!-- Core template structure with table-based layout for email client compatibility -->
-   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+   <table
+     role="presentation"
+     cellspacing="0"
+     cellpadding="0"
+     border="0"
+     width="100%"
+   >
      <tr>
-       <td style="padding: 20px 0; text-align: center; background-color: #f7f7f7;">
+       <td
+         style="padding: 20px 0; text-align: center; background-color: #f7f7f7;"
+       >
          <!-- Header with UMIG branding and responsive logo -->
-         <table role="presentation" cellspacing="0" cellpadding="0" border="0" 
-                style="margin: 0 auto; width: 100%; max-width: 600px;">
+         <table
+           role="presentation"
+           cellspacing="0"
+           cellpadding="0"
+           border="0"
+           style="margin: 0 auto; width: 100%; max-width: 600px;"
+         >
            <!-- Responsive header content -->
          </table>
        </td>
@@ -133,8 +166,13 @@ Email content must follow a strict read-only display pattern:
      <tr>
        <td style="padding: 0;">
          <!-- Main content container with mobile-first responsive design -->
-         <table role="presentation" cellspacing="0" cellpadding="0" border="0" 
-                style="margin: 0 auto; width: 100%; max-width: 600px; background-color: #ffffff;">
+         <table
+           role="presentation"
+           cellspacing="0"
+           cellpadding="0"
+           border="0"
+           style="margin: 0 auto; width: 100%; max-width: 600px; background-color: #ffffff;"
+         >
            <!-- Step content rendering sections -->
          </table>
        </td>
@@ -143,29 +181,30 @@ Email content must follow a strict read-only display pattern:
    ```
 
 2. **Step Content Rendering System** (4 hours)
+
    ```groovy
    // StepContentFormatter.groovy - New service class
    // CRITICAL: This formatter creates STATIC CONTENT ONLY - no interactive elements
    class StepContentFormatter {
-       
+
        static String formatStepForEmail(Map stepData, List instructions) {
            def htmlBuilder = new StringBuilder()
-           
+
            // Step header with status indicator
            htmlBuilder.append(buildStepHeader(stepData))
-           
+
            // Step description with proper HTML formatting
            htmlBuilder.append(formatStepDescription(stepData.description))
-           
+
            // Instructions with hierarchy preservation
            htmlBuilder.append(formatInstructions(instructions))
-           
+
            // Step metadata (team, due date, priority)
            htmlBuilder.append(buildStepMetadata(stepData))
-           
+
            return htmlBuilder.toString()
        }
-       
+
        private static String buildStepHeader(Map stepData) {
            return """
            <tr>
@@ -174,8 +213,8 @@ Email content must follow a strict read-only display pattern:
                  ${sanitizeHtml(stepData.stepName)}
                </h2>
                <!-- STATIC STATUS INDICATOR - NOT CLICKABLE - No interactive status changes -->
-               <div style="display: inline-block; padding: 4px 12px; border-radius: 4px; 
-                          background-color: ${getStatusColor(stepData.status)}; 
+               <div style="display: inline-block; padding: 4px 12px; border-radius: 4px;
+                          background-color: ${getStatusColor(stepData.status)};
                           color: white; font-size: 12px; font-weight: bold;">
                  ${stepData.status?.toUpperCase()}
                </div>
@@ -183,10 +222,10 @@ Email content must follow a strict read-only display pattern:
            </tr>
            """
        }
-       
+
        private static String formatInstructions(List instructions) {
            if (!instructions) return ""
-           
+
            def instructionHtml = new StringBuilder()
            instructionHtml.append("""
            <tr>
@@ -194,10 +233,10 @@ Email content must follow a strict read-only display pattern:
                <!-- STATIC INSTRUCTIONS DISPLAY - NO CHECKBOXES OR COMPLETION CONTROLS -->
                <h3 style="color: #555; font-size: 18px; margin: 0 0 15px 0;">Instructions (Read-Only)</h3>
            """)
-           
+
            instructions.each { instruction ->
                instructionHtml.append("""
-               <div style="margin-bottom: 15px; padding: 15px; background-color: #f9f9f9; 
+               <div style="margin-bottom: 15px; padding: 15px; background-color: #f9f9f9;
                           border-left: 4px solid #2196F3; border-radius: 4px;">
                  <div style="font-weight: bold; color: #333; margin-bottom: 8px;">
                    ${sanitizeHtml(instruction.title)}
@@ -208,60 +247,62 @@ Email content must follow a strict read-only display pattern:
                </div>
                """)
            }
-           
+
            instructionHtml.append("""
              </td>
            </tr>
            """)
-           
+
            return instructionHtml.toString()
        }
    }
    ```
 
 3. **Progressive Enhancement CSS System** (2 hours)
+
    ```css
    /* Inlined CSS for maximum email client compatibility */
-   
+
    /* Mobile-first responsive breakpoints */
    @media screen and (max-width: 480px) {
-       .mobile-stack {
-           display: block !important;
-           width: 100% !important;
-       }
-       
-       .mobile-center {
-           text-align: center !important;
-       }
-       
-       .mobile-padding {
-           padding: 10px !important;
-       }
-       
-       .mobile-font-size {
-           font-size: 16px !important;
-       }
+     .mobile-stack {
+       display: block !important;
+       width: 100% !important;
+     }
+
+     .mobile-center {
+       text-align: center !important;
+     }
+
+     .mobile-padding {
+       padding: 10px !important;
+     }
+
+     .mobile-font-size {
+       font-size: 16px !important;
+     }
    }
-   
+
    @media screen and (min-width: 481px) and (max-width: 768px) {
-       .tablet-padding {
-           padding: 15px !important;
-       }
+     .tablet-padding {
+       padding: 15px !important;
+     }
    }
-   
+
    /* Dark mode support for modern email clients */
    @media (prefers-color-scheme: dark) {
-       .dark-bg {
-           background-color: #2d2d2d !important;
-       }
-       
-       .dark-text {
-           color: #ffffff !important;
-       }
+     .dark-bg {
+       background-color: #2d2d2d !important;
+     }
+
+     .dark-text {
+       color: #ffffff !important;
+     }
    }
    ```
 
 4. **Template Variable Enhancement** (2 hours)
+
    ```groovy
    // Enhanced template variables with complete step data
    def templateVariables = [
@@ -270,20 +311,20 @@ Email content must follow a strict read-only display pattern:
        hasStepViewUrl: true,
        migrationCode: migrationCode,
        iterationCode: iterationCode,
-       
+
        // New content variables
        stepName: stepData.name,
        stepStatus: stepData.status,
        stepDescription: formatStepDescription(stepData.description),
        formattedInstructions: StepContentFormatter.formatInstructions(instructions),
        instructionCount: instructions?.size() ?: 0,
-       
+
        // Metadata variables
        assignedTeam: stepData.teamName ?: "Unassigned",
        dueDate: formatDate(stepData.dueDate),
        priorityLevel: stepData.priority ?: "Normal",
        lastUpdated: formatDateTime(stepData.lastModified),
-       
+
        // Mobile optimization variables
        isMobileOptimized: true,
        templateVersion: "2.0-responsive"
@@ -314,13 +355,14 @@ Email content must follow a strict read-only display pattern:
 #### Detailed Implementation Steps
 
 1. **StepsApi Enhancement for Content Retrieval** (4 hours)
+
    ```groovy
    // Enhanced StepsApi.groovy notification integration
-   
+
    // Add content-aware email notification methods
    steps(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
        // Existing step update logic...
-       
+
        // Enhanced notification with content retrieval
        if (statusChanged) {
            try {
@@ -328,11 +370,11 @@ Email content must follow a strict read-only display pattern:
                def fullStepData = stepRepository.getStepWithInstructions(stepInstanceId)
                def migrationContext = stepRepository.getMigrationContext(stepInstanceId)
                def instructions = instructionRepository.getActiveInstructionsByStepId(stepInstanceId)
-               
+
                // Extract context for URL construction
                def migrationCode = migrationContext.migrationCode
                def iterationCode = migrationContext.iterationCode
-               
+
                // Send enhanced notification with full content
                enhancedEmailService.sendStepStatusChangedNotification(
                    fullStepData,
@@ -342,51 +384,52 @@ Email content must follow a strict read-only display pattern:
                    oldStatus,
                    newStatus
                )
-               
+
                log.info("Enhanced email notification sent for step ${stepInstanceId} with full content")
-               
+
            } catch (Exception e) {
                log.error("Enhanced email notification failed, falling back to standard notification", e)
-               
+
                // Graceful fallback to existing notification system
                emailService.sendStandardStepNotification(stepInstanceId, oldStatus, newStatus)
            }
        }
-       
+
        // Return response...
    }
    ```
 
 2. **Content Retrieval Service Implementation** (3 hours)
+
    ```groovy
    // StepContentRetrievalService.groovy - New service
    class StepContentRetrievalService {
-       
+
        private StepRepository stepRepository
        private InstructionRepository instructionRepository
-       
+
        Map getCompleteStepData(UUID stepInstanceId) {
            return DatabaseUtil.withSql { sql ->
                def stepData = sql.firstRow("""
-                   SELECT si.step_instance_id, si.step_name, si.step_description, 
+                   SELECT si.step_instance_id, si.step_name, si.step_description,
                           si.step_status, si.step_number, si.due_date, si.priority_level,
                           si.assigned_team_id, t.team_name, si.last_modified,
                           phi.phase_name, sqi.sequence_name, pli.plan_name,
                           ii.iteration_code, mi.migration_code
                    FROM step_instance si
                    JOIN phase_instance phi ON si.phi_id = phi.phi_id
-                   JOIN sequence_instance sqi ON phi.sqi_id = sqi.sqi_id  
+                   JOIN sequence_instance sqi ON phi.sqi_id = sqi.sqi_id
                    JOIN plan_instance pli ON sqi.pli_id = pli.pli_id
                    JOIN iteration_instance ii ON pli.ii_id = ii.ii_id
                    JOIN migration_instance mi ON ii.mi_id = mi.mi_id
                    LEFT JOIN team t ON si.assigned_team_id = t.team_id
                    WHERE si.step_instance_id = ?
                """, [stepInstanceId])
-               
+
                if (!stepData) {
                    throw new RuntimeException("Step not found: ${stepInstanceId}")
                }
-               
+
                return [
                    stepInstanceId: stepData.step_instance_id,
                    stepName: stepData.step_name,
@@ -405,11 +448,11 @@ Email content must follow a strict read-only display pattern:
                ]
            }
        }
-       
+
        List getStepInstructions(UUID stepInstanceId) {
            return DatabaseUtil.withSql { sql ->
                return sql.rows("""
-                   SELECT inst.instruction_id, inst.instruction_title, 
+                   SELECT inst.instruction_id, inst.instruction_title,
                           inst.instruction_content, inst.instruction_type,
                           inst.sequence_number, inst.is_active
                    FROM instruction inst
@@ -423,29 +466,30 @@ Email content must follow a strict read-only display pattern:
    ```
 
 3. **Enhanced Email Service Integration** (2 hours)
+
    ```groovy
    // EnhancedEmailService.groovy - Extension of existing service
    class EnhancedEmailService {
-       
+
        private StepContentRetrievalService contentService
        private UrlConstructionService urlService
        private StepContentFormatter contentFormatter
-       
-       void sendStepStatusChangedNotification(Map stepData, List instructions, 
+
+       void sendStepStatusChangedNotification(Map stepData, List instructions,
                                             String migrationCode, String iterationCode,
                                             String oldStatus, String newStatus) {
-           
+
            // Build step view URL using existing service
            def stepViewUrl = urlService.buildStepViewUrl(migrationCode, iterationCode, stepData.stepInstanceId)
-           
+
            // Format step content for email
            def formattedContent = contentFormatter.formatStepForEmail(stepData, instructions)
-           
+
            // Build comprehensive template variables
            def templateVars = buildEnhancedTemplateVariables(
                stepData, instructions, migrationCode, iterationCode, stepViewUrl, oldStatus, newStatus
            )
-           
+
            // Send using existing email infrastructure
            sendTemplatedEmail(
                'STEP_STATUS_CHANGED_ENHANCED',
@@ -453,7 +497,7 @@ Email content must follow a strict read-only display pattern:
                getStepNotificationRecipients(stepData.stepInstanceId)
            )
        }
-       
+
        private Map buildEnhancedTemplateVariables(Map stepData, List instructions,
                                                  String migrationCode, String iterationCode,
                                                  String stepViewUrl, String oldStatus, String newStatus) {
@@ -463,7 +507,7 @@ Email content must follow a strict read-only display pattern:
                hasStepViewUrl: stepViewUrl != null,
                migrationCode: migrationCode,
                iterationCode: iterationCode,
-               
+
                // Content variables (new)
                stepName: stepData.stepName,
                stepStatus: newStatus,
@@ -471,7 +515,7 @@ Email content must follow a strict read-only display pattern:
                stepDescription: contentFormatter.formatDescription(stepData.stepDescription),
                formattedInstructions: contentFormatter.formatInstructions(instructions),
                instructionCount: instructions?.size() ?: 0,
-               
+
                // Metadata variables (new)
                assignedTeam: stepData.teamName ?: "Unassigned",
                dueDate: formatDate(stepData.dueDate),
@@ -480,7 +524,7 @@ Email content must follow a strict read-only display pattern:
                sequenceName: stepData.sequenceName,
                planName: stepData.planName,
                lastUpdated: formatDateTime(stepData.lastModified),
-               
+
                // Template control variables
                showFullContent: true,
                templateType: 'enhanced_with_content'
@@ -490,26 +534,27 @@ Email content must follow a strict read-only display pattern:
    ```
 
 4. **User Context Resolution and Error Handling** (1 hour)
+
    ```groovy
    // Enhanced user context resolution for macro environment
    private List getStepNotificationRecipients(UUID stepInstanceId) {
        try {
            // Primary: Get recipients from step assignment and team membership
            def recipients = stepRepository.getStepNotificationRecipients(stepInstanceId)
-           
+
            if (recipients) {
                return recipients
            }
-           
+
            // Fallback: Get team members if no specific assignments
            def teamMembers = teamRepository.getTeamMembersByStepId(stepInstanceId)
            if (teamMembers) {
                return teamMembers
            }
-           
+
            // Final fallback: System administrators
            return userRepository.getSystemAdministrators()
-           
+
        } catch (Exception e) {
            log.error("Failed to resolve notification recipients for step ${stepInstanceId}", e)
            return [] // Graceful failure - no notifications sent
@@ -550,28 +595,29 @@ Email content must follow a strict read-only display pattern:
 1. **Unit Test Suite Implementation** (4 hours)
 
    **File**: `/src/groovy/umig/tests/unit/StepContentFormatterTest.groovy`
+
    ```groovy
    class StepContentFormatterTest extends GroovyTestCase {
-       
+
        void testFormatStepForEmail_WithCompleteData() {
            // Given: Complete step data with instructions
            def stepData = [
                stepName: "Database Migration Step",
-               status: "IN_PROGRESS", 
+               status: "IN_PROGRESS",
                stepDescription: "Migrate user data from legacy system",
                teamName: "Database Team",
                dueDate: Date.parse("yyyy-MM-dd", "2025-08-30"),
                priority: "HIGH"
            ]
-           
+
            def instructions = [
                [title: "Pre-migration backup", content: "Create full database backup before proceeding"],
                [title: "Data validation", content: "Validate data integrity using provided scripts"]
            ]
-           
+
            // When: Formatting for email
            def result = StepContentFormatter.formatStepForEmail(stepData, instructions)
-           
+
            // Then: Verify mobile-responsive HTML structure
            assert result.contains('<table role="presentation"')
            assert result.contains("Database Migration Step")
@@ -580,29 +626,29 @@ Email content must follow a strict read-only display pattern:
            assert result.contains("Data validation")
            assert result.contains('style=') // Inline CSS verification
        }
-       
+
        void testFormatStepForEmail_SecuritySanitization() {
            // Given: Step data with potential XSS content
            def stepData = [
                stepName: "<script>alert('xss')</script>Safe Step Name",
                stepDescription: "Description with <img src=x onerror=alert('xss')> embedded content"
            ]
-           
+
            // When: Formatting for email
            def result = StepContentFormatter.formatStepForEmail(stepData, [])
-           
+
            // Then: Verify HTML is sanitized
            assert !result.contains('<script>')
            assert !result.contains('onerror=')
            assert result.contains('Safe Step Name')
            assert result.contains('Description with  embedded content')
        }
-       
+
        void testMobileResponsiveLayout() {
            // Test mobile-specific CSS classes and responsive table structure
            def stepData = [stepName: "Mobile Test Step", status: "PENDING"]
            def result = StepContentFormatter.formatStepForEmail(stepData, [])
-           
+
            assert result.contains('max-width: 600px')
            assert result.contains('width: 100%')
            assert result.contains('cellspacing="0"')
@@ -612,15 +658,16 @@ Email content must follow a strict read-only display pattern:
    ```
 
    **File**: `/src/groovy/umig/tests/unit/StepContentRetrievalServiceTest.groovy`
+
    ```groovy
    class StepContentRetrievalServiceTest extends GroovyTestCase {
-       
+
        private StepContentRetrievalService service
        private UUID testStepId = UUID.randomUUID()
-       
+
        void setUp() {
            service = new StepContentRetrievalService()
-           
+
            // Mock database responses
            DatabaseUtil.metaClass.static.withSql = { Closure closure ->
                def mockSql = [
@@ -628,7 +675,7 @@ Email content must follow a strict read-only display pattern:
                        return [
                            step_instance_id: testStepId,
                            step_name: "Test Step",
-                           step_description: "Test Description", 
+                           step_description: "Test Description",
                            step_status: "ACTIVE",
                            team_name: "Test Team",
                            iteration_code: "IT001",
@@ -645,11 +692,11 @@ Email content must follow a strict read-only display pattern:
                return closure(mockSql)
            }
        }
-       
+
        void testGetCompleteStepData_Success() {
            // When: Retrieving complete step data
            def result = service.getCompleteStepData(testStepId)
-           
+
            // Then: Verify complete data structure
            assert result.stepInstanceId == testStepId
            assert result.stepName == "Test Step"
@@ -659,23 +706,23 @@ Email content must follow a strict read-only display pattern:
            assert result.iterationCode == "IT001"
            assert result.migrationCode == "MG001"
        }
-       
+
        void testGetStepInstructions_FilterActiveOnly() {
            // When: Retrieving step instructions
            def instructions = service.getStepInstructions(testStepId)
-           
+
            // Then: Verify only active instructions returned
            assert instructions.size() == 1
            assert instructions[0].instruction_title == "Test Instruction"
            assert instructions[0].is_active == true
        }
-       
+
        void testPerformanceRequirements() {
            // When: Measuring retrieval time
            long startTime = System.currentTimeMillis()
            service.getCompleteStepData(testStepId)
            long endTime = System.currentTimeMillis()
-           
+
            // Then: Verify performance requirement (<2 seconds)
            assert (endTime - startTime) < 2000
        }
@@ -685,21 +732,22 @@ Email content must follow a strict read-only display pattern:
 2. **Integration Test Suite** (3 hours)
 
    **File**: `/src/groovy/umig/tests/integration/EnhancedEmailNotificationTest.groovy`
+
    ```groovy
    class EnhancedEmailNotificationTest extends GroovyTestCase {
-       
+
        private StepsApi stepsApi
        private EnhancedEmailService emailService
        private UrlConstructionService urlService
        private UUID testStepId
-       
+
        void setUp() {
            stepsApi = new StepsApi()
            emailService = new EnhancedEmailService()
            urlService = new UrlConstructionService()
            testStepId = createTestStepWithInstructions()
        }
-       
+
        void testEndToEndEmailNotificationFlow() {
            // Given: Step status change request
            def requestBody = """
@@ -709,30 +757,30 @@ Email content must follow a strict read-only display pattern:
                "userId": "${getCurrentUserId()}"
            }
            """
-           
+
            // When: Processing step status update
            def mockRequest = createMockHttpRequest("/api/v2/steps", "POST")
            def mockQueryParams = createMockQueryParams([:])
-           
+
            def response = stepsApi.steps(mockQueryParams, requestBody, mockRequest)
-           
+
            // Then: Verify successful response
            assert response.status == 200
-           
+
            // And: Verify email notification was triggered
            // Note: In real implementation, would verify through email service mock or test email system
            verifyEmailNotificationSent(testStepId, "COMPLETED")
        }
-       
+
        void testContentRetrievalIntegration() {
            // Given: Step with comprehensive data and instructions
            def stepData = getTestStepDataFromDatabase(testStepId)
-           
+
            // When: Retrieving content for email
            def contentService = new StepContentRetrievalService()
            def completeData = contentService.getCompleteStepData(testStepId)
            def instructions = contentService.getStepInstructions(testStepId)
-           
+
            // Then: Verify complete data structure
            assert completeData.stepInstanceId
            assert completeData.migrationCode
@@ -740,7 +788,7 @@ Email content must follow a strict read-only display pattern:
            assert instructions.size() > 0
            assert instructions.every { it.is_active == true }
        }
-       
+
        void testEmailTemplateRenderingWithContent() {
            // Given: Complete step data and instructions
            def stepData = [
@@ -749,11 +797,11 @@ Email content must follow a strict read-only display pattern:
                stepDescription: "Test step for integration validation"
            ]
            def instructions = [[title: "Test Instruction", content: "Test content"]]
-           
+
            // When: Formatting content and sending email
            def formattedContent = StepContentFormatter.formatStepForEmail(stepData, instructions)
            def stepViewUrl = urlService.buildStepViewUrl("MG001", "IT001", testStepId)
-           
+
            // Then: Verify content structure and URL integration
            assert formattedContent.contains("Integration Test Step")
            assert formattedContent.contains("IN_PROGRESS")
@@ -761,24 +809,24 @@ Email content must follow a strict read-only display pattern:
            assert stepViewUrl.contains("MG001")
            assert stepViewUrl.contains("IT001")
        }
-       
+
        private UUID createTestStepWithInstructions() {
            return DatabaseUtil.withSql { sql ->
                // Create test step with instructions for integration testing
                def stepId = UUID.randomUUID()
-               
+
                sql.execute("""
-                   INSERT INTO step_instance (step_instance_id, step_name, step_description, 
+                   INSERT INTO step_instance (step_instance_id, step_name, step_description,
                                             step_status, phi_id, step_number)
-                   VALUES (?, 'Integration Test Step', 'Test Description', 'PENDING', 
+                   VALUES (?, 'Integration Test Step', 'Test Description', 'PENDING',
                           (SELECT phi_id FROM phase_instance LIMIT 1), 1)
                """, [stepId])
-               
+
                sql.execute("""
                    INSERT INTO instruction (instruction_id, instruction_title, instruction_content, is_active)
                    VALUES (?, 'Test Instruction', 'Integration test instruction content', true)
                """, [UUID.randomUUID()])
-               
+
                return stepId
            }
        }
@@ -788,9 +836,10 @@ Email content must follow a strict read-only display pattern:
 3. **Email Client Compatibility Testing** (2 hours)
 
    **File**: `/src/groovy/umig/tests/integration/EmailClientCompatibilityTest.groovy`
+
    ```groovy
    class EmailClientCompatibilityTest extends GroovyTestCase {
-       
+
        private List<Map> EMAIL_CLIENTS = [
            [name: "iOS Mail", viewport: "375x667", platform: "mobile"],
            [name: "Gmail App", viewport: "360x640", platform: "mobile"],
@@ -800,7 +849,7 @@ Email content must follow a strict read-only display pattern:
            [name: "Apple Mail", viewport: "1200x800", platform: "desktop"],
            [name: "Thunderbird", viewport: "1024x768", platform: "desktop"]
        ]
-       
+
        void testEmailRenderingAcrossClients() {
            EMAIL_CLIENTS.each { client ->
                // Given: Formatted email content for client testing
@@ -809,35 +858,35 @@ Email content must follow a strict read-only display pattern:
                    status: "TESTING",
                    stepDescription: "Testing email rendering across different clients"
                ]
-               
+
                def emailContent = StepContentFormatter.formatStepForEmail(stepData, [])
-               
+
                // When: Validating content for specific client
                def validationResult = validateEmailForClient(emailContent, client)
-               
+
                // Then: Verify client-specific requirements
                assert validationResult.isValid, "Email invalid for ${client.name}: ${validationResult.errors}"
                assert validationResult.hasResponsiveLayout, "${client.name} missing responsive layout"
-               
+
                if (client.platform == "mobile") {
                    assert validationResult.isMobileOptimized, "${client.name} not mobile optimized"
                    assert validationResult.hasTouchFriendlyElements, "${client.name} missing touch-friendly elements"
                }
            }
        }
-       
+
        void testPlainTextFallback() {
            // Given: Rich email content
            def stepData = [
                stepName: "Plain Text Test Step",
-               status: "ACTIVE", 
+               status: "ACTIVE",
                stepDescription: "Testing plain text fallback functionality"
            ]
            def instructions = [[title: "Plain Text Instruction", content: "Simple instruction content"]]
-           
+
            // When: Generating plain text version
            def plainTextContent = StepContentFormatter.formatStepForPlainText(stepData, instructions)
-           
+
            // Then: Verify plain text structure
            assert plainTextContent.contains("Plain Text Test Step")
            assert plainTextContent.contains("Status: ACTIVE")
@@ -846,36 +895,36 @@ Email content must follow a strict read-only display pattern:
            assert !plainTextContent.contains("<")
            assert !plainTextContent.contains(">")
        }
-       
+
        private Map validateEmailForClient(String emailContent, Map client) {
            def errors = []
            def isValid = true
-           
+
            // Basic HTML structure validation
            if (!emailContent.contains('<table role="presentation"')) {
                errors << "Missing table-based layout"
                isValid = false
            }
-           
+
            // Mobile-specific validations
            if (client.platform == "mobile") {
                if (!emailContent.contains('max-width: 600px')) {
                    errors << "Missing mobile-responsive max-width"
                    isValid = false
                }
-               
+
                if (!emailContent.contains('width: 100%')) {
                    errors << "Missing fluid width"
                    isValid = false
                }
            }
-           
+
            // CSS inline validation
            if (!emailContent.contains('style=')) {
                errors << "Missing inline CSS"
                isValid = false
            }
-           
+
            return [
                isValid: isValid,
                errors: errors,
@@ -890,9 +939,10 @@ Email content must follow a strict read-only display pattern:
 4. **Security Testing Suite** (1 hour)
 
    **File**: `/src/groovy/umig/tests/security/EmailContentSecurityTest.groovy`
+
    ```groovy
    class EmailContentSecurityTest extends GroovyTestCase {
-       
+
        private List<String> XSS_PAYLOADS = [
            "<script>alert('xss')</script>",
            "<img src=x onerror=alert('xss')>",
@@ -900,7 +950,7 @@ Email content must follow a strict read-only display pattern:
            "<svg onload=alert('xss')>",
            "<iframe src=javascript:alert('xss')></iframe>"
        ]
-       
+
        void testHTMLSanitization() {
            XSS_PAYLOADS.each { payload ->
                // Given: Step data with malicious content
@@ -909,28 +959,28 @@ Email content must follow a strict read-only display pattern:
                    stepDescription: "Description with ${payload} embedded",
                    status: "ACTIVE"
                ]
-               
+
                def instructions = [[
                    title: "Instruction ${payload}",
                    content: "Content with ${payload}"
                ]]
-               
+
                // When: Formatting for email
                def result = StepContentFormatter.formatStepForEmail(stepData, instructions)
-               
+
                // Then: Verify malicious content is sanitized
                assert !result.contains("<script>")
                assert !result.contains("onerror=")
                assert !result.contains("javascript:")
                assert !result.contains("onload=")
                assert !result.contains("<iframe")
-               
+
                // But safe content remains
                assert result.contains("Safe Step")
                assert result.contains("Description with")
            }
        }
-       
+
        void testURLParameterValidation() {
            // Given: Potentially malicious URL parameters
            def maliciousInputs = [
@@ -939,12 +989,12 @@ Email content must follow a strict read-only display pattern:
                "'; DROP TABLE users; --",
                "%3Cscript%3Ealert('xss')%3C/script%3E"
            ]
-           
+
            maliciousInputs.each { input ->
                // When: Building URLs with malicious input
                def urlService = new UrlConstructionService()
                def safeUrl = urlService.buildStepViewUrl(input, input, UUID.randomUUID())
-               
+
                // Then: Verify URL is sanitized or rejected
                if (safeUrl != null) {
                    assert !safeUrl.contains("<script>")
@@ -983,38 +1033,39 @@ Email content must follow a strict read-only display pattern:
 1. **System Configuration Management UI** (3 hours)
 
    **File**: `/src/groovy/umig/web/js/admin-gui/system-config-manager.js`
+
    ```javascript
    class SystemConfigManager {
-       constructor() {
-           this.apiClient = new APIv2Client();
-           this.configData = new Map();
-           this.init();
+     constructor() {
+       this.apiClient = new APIv2Client();
+       this.configData = new Map();
+       this.init();
+     }
+
+     async init() {
+       await this.loadSystemConfigurations();
+       this.setupEventListeners();
+       this.renderConfigurationInterface();
+     }
+
+     async loadSystemConfigurations() {
+       try {
+         const response = await this.apiClient.get("/system-config");
+         this.configData = new Map(
+           response.data.map((config) => [config.environment, config]),
+         );
+
+         this.renderConfigTable();
+       } catch (error) {
+         console.error("Failed to load system configurations:", error);
+         this.showErrorMessage("Unable to load system configurations");
        }
-       
-       async init() {
-           await this.loadSystemConfigurations();
-           this.setupEventListeners();
-           this.renderConfigurationInterface();
-       }
-       
-       async loadSystemConfigurations() {
-           try {
-               const response = await this.apiClient.get('/system-config');
-               this.configData = new Map(response.data.map(config => 
-                   [config.environment, config]
-               ));
-               
-               this.renderConfigTable();
-           } catch (error) {
-               console.error('Failed to load system configurations:', error);
-               this.showErrorMessage('Unable to load system configurations');
-           }
-       }
-       
-       renderConfigurationInterface() {
-           const container = document.getElementById('system-config-container');
-           
-           container.innerHTML = `
+     }
+
+     renderConfigurationInterface() {
+       const container = document.getElementById("system-config-container");
+
+       container.innerHTML = `
                <div class="config-header">
                    <h2>Email Notification System Configuration</h2>
                    <button id="add-config-btn" class="aui-button aui-button-primary">
@@ -1056,44 +1107,54 @@ Email content must follow a strict read-only display pattern:
                    </div>
                </div>
            `;
-           
-           this.setupConfigurationEvents();
-       }
-       
-       setupConfigurationEvents() {
-           document.getElementById('add-config-btn').addEventListener('click', () => {
-               this.showConfigurationDialog();
-           });
-           
-           document.getElementById('preview-mobile').addEventListener('click', () => {
-               this.showTemplatePreview('mobile');
-           });
-           
-           document.getElementById('preview-desktop').addEventListener('click', () => {
-               this.showTemplatePreview('desktop');
-           });
-       }
-       
-       async showTemplatePreview(viewType) {
-           const templateType = document.getElementById('template-type').value;
-           
-           try {
-               const response = await this.apiClient.post('/email-templates/preview', {
-                   templateType: templateType,
-                   viewType: viewType,
-                   sampleData: {
-                       stepName: "Sample Migration Step",
-                       stepStatus: "IN_PROGRESS",
-                       stepDescription: "This is a sample step description for preview",
-                       formattedInstructions: "<li>Sample instruction 1</li><li>Sample instruction 2</li>",
-                       assignedTeam: "Database Team",
-                       migrationCode: "MG001",
-                       iterationCode: "IT001"
-                   }
-               });
-               
-               const previewFrame = document.getElementById('template-preview-frame');
-               previewFrame.innerHTML = `
+
+       this.setupConfigurationEvents();
+     }
+
+     setupConfigurationEvents() {
+       document
+         .getElementById("add-config-btn")
+         .addEventListener("click", () => {
+           this.showConfigurationDialog();
+         });
+
+       document
+         .getElementById("preview-mobile")
+         .addEventListener("click", () => {
+           this.showTemplatePreview("mobile");
+         });
+
+       document
+         .getElementById("preview-desktop")
+         .addEventListener("click", () => {
+           this.showTemplatePreview("desktop");
+         });
+     }
+
+     async showTemplatePreview(viewType) {
+       const templateType = document.getElementById("template-type").value;
+
+       try {
+         const response = await this.apiClient.post(
+           "/email-templates/preview",
+           {
+             templateType: templateType,
+             viewType: viewType,
+             sampleData: {
+               stepName: "Sample Migration Step",
+               stepStatus: "IN_PROGRESS",
+               stepDescription: "This is a sample step description for preview",
+               formattedInstructions:
+                 "<li>Sample instruction 1</li><li>Sample instruction 2</li>",
+               assignedTeam: "Database Team",
+               migrationCode: "MG001",
+               iterationCode: "IT001",
+             },
+           },
+         );
+
+         const previewFrame = document.getElementById("template-preview-frame");
+         previewFrame.innerHTML = `
                    <div class="preview-wrapper ${viewType}">
                        <div class="preview-header">
                            <strong>Preview: ${templateType} (${viewType})</strong>
@@ -1103,26 +1164,27 @@ Email content must follow a strict read-only display pattern:
                        </div>
                    </div>
                `;
-           } catch (error) {
-               console.error('Template preview failed:', error);
-               this.showErrorMessage('Unable to generate template preview');
-           }
+       } catch (error) {
+         console.error("Template preview failed:", error);
+         this.showErrorMessage("Unable to generate template preview");
        }
+     }
    }
    ```
 
 2. **Email Template Management Interface** (2 hours)
 
    **File**: `/src/groovy/umig/api/v2/EmailTemplatePreviewApi.groovy`
+
    ```groovy
    @BaseScript CustomEndpointDelegate delegate
-   
-   emailTemplatePreview(httpMethod: "POST", groups: ["confluence-administrators"]) { 
+
+   emailTemplatePreview(httpMethod: "POST", groups: ["confluence-administrators"]) {
        MultivaluedMap queryParams, String body, HttpServletRequest request ->
-       
+
        try {
            def requestData = new JsonSlurper().parseText(body)
-           
+
            // Build template variables with sample data
            def templateVars = [
                stepName: requestData.sampleData.stepName,
@@ -1138,7 +1200,7 @@ Email content must follow a strict read-only display pattern:
                priorityLevel: "HIGH",
                lastUpdated: new Date().format('MMM dd, yyyy HH:mm')
            ]
-           
+
            // Generate preview HTML based on view type
            def previewHtml
            if (requestData.viewType == "mobile") {
@@ -1146,14 +1208,14 @@ Email content must follow a strict read-only display pattern:
            } else {
                previewHtml = generateDesktopPreview(templateVars)
            }
-           
+
            return Response.ok(new JsonBuilder([
                htmlContent: previewHtml,
                templateType: requestData.templateType,
                viewType: requestData.viewType,
                generatedAt: new Date().toString()
            ]).toString()).build()
-           
+
        } catch (Exception e) {
            log.error("Email template preview failed", e)
            return Response.status(500)
@@ -1161,7 +1223,7 @@ Email content must follow a strict read-only display pattern:
                .build()
        }
    }
-   
+
    private String generateMobilePreview(Map templateVars) {
        return """
        <div style="max-width: 375px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
@@ -1176,7 +1238,7 @@ Email content must follow a strict read-only display pattern:
                        <h2 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">
                            ${templateVars.stepName}
                        </h2>
-                       <div style="display: inline-block; padding: 4px 8px; background-color: #2196F3; 
+                       <div style="display: inline-block; padding: 4px 8px; background-color: #2196F3;
                                   color: white; border-radius: 3px; font-size: 11px; font-weight: bold;">
                            ${templateVars.stepStatus}
                        </div>
@@ -1189,8 +1251,8 @@ Email content must follow a strict read-only display pattern:
                                ${templateVars.formattedInstructions}
                            </ul>
                        </div>
-                       <a href="${templateVars.stepViewUrl}" 
-                          style="display: block; padding: 12px; background-color: #4CAF50; color: white; 
+                       <a href="${templateVars.stepViewUrl}"
+                          style="display: block; padding: 12px; background-color: #4CAF50; color: white;
                                 text-decoration: none; text-align: center; border-radius: 4px; font-size: 14px;">
                            View in Confluence
                        </a>
@@ -1200,7 +1262,7 @@ Email content must follow a strict read-only display pattern:
        </div>
        """
    }
-   
+
    private String generateDesktopPreview(Map templateVars) {
        return """
        <div style="max-width: 600px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
@@ -1215,22 +1277,22 @@ Email content must follow a strict read-only display pattern:
                        <h2 style="margin: 0 0 15px 0; font-size: 22px; color: #333;">
                            ${templateVars.stepName}
                        </h2>
-                       <div style="display: inline-block; padding: 6px 12px; background-color: #2196F3; 
+                       <div style="display: inline-block; padding: 6px 12px; background-color: #2196F3;
                                   color: white; border-radius: 4px; font-size: 12px; font-weight: bold;">
                            ${templateVars.stepStatus}
                        </div>
                        <p style="margin: 20px 0; color: #666; line-height: 1.6; font-size: 16px;">
                            ${templateVars.stepDescription}
                        </p>
-                       <div style="margin: 30px 0; padding: 20px; background-color: #f9f9f9; 
+                       <div style="margin: 30px 0; padding: 20px; background-color: #f9f9f9;
                                   border-left: 4px solid #2196F3; border-radius: 4px;">
                            <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #333;">Instructions</h3>
                            <ul style="margin: 0; padding-left: 25px; color: #666; font-size: 14px; line-height: 1.6;">
                                ${templateVars.formattedInstructions}
                            </ul>
                        </div>
-                       <a href="${templateVars.stepViewUrl}" 
-                          style="display: inline-block; padding: 15px 30px; background-color: #4CAF50; color: white; 
+                       <a href="${templateVars.stepViewUrl}"
+                          style="display: inline-block; padding: 15px 30px; background-color: #4CAF50; color: white;
                                 text-decoration: none; border-radius: 4px; font-size: 16px; font-weight: bold;">
                            View Step in Confluence
                        </a>
@@ -1245,60 +1307,60 @@ Email content must follow a strict read-only display pattern:
 3. **Health Check Dashboard Integration** (1 hour)
 
    **File**: `/src/groovy/umig/web/js/admin-gui/email-health-monitor.js`
+
    ```javascript
    class EmailHealthMonitor {
-       constructor() {
-           this.apiClient = new APIv2Client();
-           this.refreshInterval = 30000; // 30 seconds
-           this.init();
+     constructor() {
+       this.apiClient = new APIv2Client();
+       this.refreshInterval = 30000; // 30 seconds
+       this.init();
+     }
+
+     async init() {
+       await this.loadHealthStatus();
+       this.renderHealthDashboard();
+       this.startAutoRefresh();
+     }
+
+     async loadHealthStatus() {
+       try {
+         const [contentHealth, urlHealth, templateHealth] = await Promise.all([
+           this.apiClient.get("/health/content-retrieval"),
+           this.apiClient.get("/health/url-construction"),
+           this.apiClient.get("/health/email-templates"),
+         ]);
+
+         this.healthData = {
+           contentRetrieval: contentHealth.data,
+           urlConstruction: urlHealth.data,
+           emailTemplates: templateHealth.data,
+           lastUpdated: new Date(),
+         };
+       } catch (error) {
+         console.error("Failed to load health status:", error);
+         this.healthData = { error: "Health check failed" };
        }
-       
-       async init() {
-           await this.loadHealthStatus();
-           this.renderHealthDashboard();
-           this.startAutoRefresh();
-       }
-       
-       async loadHealthStatus() {
-           try {
-               const [contentHealth, urlHealth, templateHealth] = await Promise.all([
-                   this.apiClient.get('/health/content-retrieval'),
-                   this.apiClient.get('/health/url-construction'),
-                   this.apiClient.get('/health/email-templates')
-               ]);
-               
-               this.healthData = {
-                   contentRetrieval: contentHealth.data,
-                   urlConstruction: urlHealth.data,
-                   emailTemplates: templateHealth.data,
-                   lastUpdated: new Date()
-               };
-               
-           } catch (error) {
-               console.error('Failed to load health status:', error);
-               this.healthData = { error: 'Health check failed' };
-           }
-       }
-       
-       renderHealthDashboard() {
-           const container = document.getElementById('email-health-dashboard');
-           
-           if (this.healthData.error) {
-               container.innerHTML = `
+     }
+
+     renderHealthDashboard() {
+       const container = document.getElementById("email-health-dashboard");
+
+       if (this.healthData.error) {
+         container.innerHTML = `
                    <div class="aui-message aui-message-error">
                        <p>Unable to load email system health status</p>
                    </div>
                `;
-               return;
-           }
-           
-           container.innerHTML = `
+         return;
+       }
+
+       container.innerHTML = `
                <div class="health-overview">
                    <h3>Email Notification System Health</h3>
                    <div class="health-metrics">
-                       ${this.renderHealthMetric('Content Retrieval', this.healthData.contentRetrieval)}
-                       ${this.renderHealthMetric('URL Construction', this.healthData.urlConstruction)}
-                       ${this.renderHealthMetric('Email Templates', this.healthData.emailTemplates)}
+                       ${this.renderHealthMetric("Content Retrieval", this.healthData.contentRetrieval)}
+                       ${this.renderHealthMetric("URL Construction", this.healthData.urlConstruction)}
+                       ${this.renderHealthMetric("Email Templates", this.healthData.emailTemplates)}
                    </div>
                    <div class="health-actions">
                        <button id="clear-content-cache" class="aui-button">Clear Content Cache</button>
@@ -1307,15 +1369,15 @@ Email content must follow a strict read-only display pattern:
                    </div>
                </div>
            `;
-           
-           this.setupHealthActions();
-       }
-       
-       renderHealthMetric(name, data) {
-           const statusClass = data.healthy ? 'healthy' : 'unhealthy';
-           const statusText = data.healthy ? 'Healthy' : 'Issues Detected';
-           
-           return `
+
+       this.setupHealthActions();
+     }
+
+     renderHealthMetric(name, data) {
+       const statusClass = data.healthy ? "healthy" : "unhealthy";
+       const statusText = data.healthy ? "Healthy" : "Issues Detected";
+
+       return `
                <div class="health-metric ${statusClass}">
                    <div class="metric-header">
                        <span class="metric-name">${name}</span>
@@ -1328,7 +1390,7 @@ Email content must follow a strict read-only display pattern:
                    </div>
                </div>
            `;
-       }
+     }
    }
    ```
 
@@ -1336,7 +1398,7 @@ Email content must follow a strict read-only display pattern:
 
 - **UI Framework**: Atlassian User Interface (AUI) components for Confluence consistency
 - **API Integration**: REST endpoints for configuration management and health monitoring
-- **Real-time Updates**: 30-second refresh interval for health status monitoring  
+- **Real-time Updates**: 30-second refresh interval for health status monitoring
 - **Template Preview**: Live rendering with mobile/desktop view toggle
 - **Cache Management**: Manual cache clearing capabilities for immediate configuration effect
 
@@ -1358,22 +1420,23 @@ Email content must follow a strict read-only display pattern:
 1. **Database and Content Preparation** (2 hours)
 
    **Pre-deployment Validation Script**: `/local-dev-setup/scripts/validate-enhanced-email-deployment.sh`
+
    ```bash
    #!/bin/bash
-   
+
    echo "=== Enhanced Email Notification Deployment Validation ==="
-   
+
    # Validate system_configuration_scf table
    echo "Checking system configuration table..."
    psql -h localhost -U umig_user -d umig_db -c "
-   SELECT environment, base_url, space_key, page_id 
-   FROM system_configuration_scf 
+   SELECT environment, base_url, space_key, page_id
+   FROM system_configuration_scf
    ORDER BY environment;
    " || {
        echo "ERROR: system_configuration_scf table validation failed"
        exit 1
    }
-   
+
    # Validate step and instruction data structure
    echo "Validating step and instruction data structure..."
    psql -h localhost -U umig_user -d umig_db -c "
@@ -1383,11 +1446,11 @@ Email content must follow a strict read-only display pattern:
        echo "ERROR: Step/instruction data validation failed"
        exit 1
    }
-   
+
    # Test content retrieval performance
    echo "Testing content retrieval performance..."
    STEP_ID=$(psql -h localhost -U umig_user -d umig_db -t -c "SELECT step_instance_id FROM step_instance LIMIT 1;" | tr -d ' ')
-   
+
    if [ -n "$STEP_ID" ]; then
        START_TIME=$(date +%s%3N)
        psql -h localhost -U umig_user -d umig_db -c "
@@ -1395,37 +1458,38 @@ Email content must follow a strict read-only display pattern:
               ii.iteration_code, mi.migration_code
        FROM step_instance si
        JOIN phase_instance phi ON si.phi_id = phi.phi_id
-       JOIN sequence_instance sqi ON phi.sqi_id = sqi.sqi_id  
+       JOIN sequence_instance sqi ON phi.sqi_id = sqi.sqi_id
        JOIN plan_instance pli ON sqi.pli_id = pli.pli_id
        JOIN iteration_instance ii ON pli.ii_id = ii.ii_id
        JOIN migration_instance mi ON ii.mi_id = mi.mi_id
        WHERE si.step_instance_id = '$STEP_ID';
        " > /dev/null
-       
+
        END_TIME=$(date +%s%3N)
        DURATION=$((END_TIME - START_TIME))
-       
+
        echo "Content retrieval time: ${DURATION}ms"
        if [ $DURATION -gt 2000 ]; then
            echo "WARNING: Content retrieval took longer than 2 seconds"
        fi
    fi
-   
+
    echo "=== Validation Complete ==="
    ```
 
    **Production Configuration Update**:
+
    ```sql
    -- Production environment configurations
-   UPDATE system_configuration_scf 
+   UPDATE system_configuration_scf
    SET base_url = 'https://confluence.production.com',
        space_key = 'UMIG',
        page_id = 'migration-dashboard'
    WHERE environment = 'PROD';
-   
+
    -- Validate all required environments
    INSERT INTO system_configuration_scf (environment, base_url, space_key, page_id, is_active)
-   VALUES 
+   VALUES
        ('EV1', 'https://confluence-ev1.company.com', 'UMIG', 'migration-dashboard', true),
        ('EV2', 'https://confluence-ev2.company.com', 'UMIG', 'migration-dashboard', true)
    ON CONFLICT (environment) DO UPDATE SET
@@ -1438,62 +1502,63 @@ Email content must follow a strict read-only display pattern:
 2. **Service Deployment and Validation** (2 hours)
 
    **Deployment Checklist**:
+
    ```groovy
    // Enhanced email service deployment validation
    class EnhancedEmailDeploymentValidator {
-       
+
        static void validateProductionDeployment() {
            log.info("Starting enhanced email notification deployment validation...")
-           
+
            try {
                // Test 1: Validate content retrieval service
                validateContentRetrievalService()
-               
+
                // Test 2: Validate email template rendering
                validateEmailTemplateRendering()
-               
+
                // Test 3: Validate URL construction across environments
                validateUrlConstruction()
-               
+
                // Test 4: Test email delivery with sample content
                validateEmailDelivery()
-               
+
                log.info("Enhanced email deployment validation completed successfully")
-               
+
            } catch (Exception e) {
                log.error("Enhanced email deployment validation failed", e)
                throw new RuntimeException("Deployment validation failed: ${e.message}")
            }
        }
-       
+
        private static void validateContentRetrievalService() {
            def contentService = new StepContentRetrievalService()
-           
+
            // Get a sample step for testing
            def sampleStepId = DatabaseUtil.withSql { sql ->
                def result = sql.firstRow("SELECT step_instance_id FROM step_instance LIMIT 1")
                return result?.step_instance_id
            }
-           
+
            if (!sampleStepId) {
                throw new RuntimeException("No sample step available for validation")
            }
-           
+
            long startTime = System.currentTimeMillis()
            def stepData = contentService.getCompleteStepData(sampleStepId)
            long endTime = System.currentTimeMillis()
-           
+
            if (endTime - startTime > 2000) {
                log.warn("Content retrieval took ${endTime - startTime}ms (target: <2000ms)")
            }
-           
+
            assert stepData.stepInstanceId == sampleStepId
            assert stepData.migrationCode != null
            assert stepData.iterationCode != null
-           
+
            log.info("Content retrieval service validation passed")
        }
-       
+
        private static void validateEmailTemplateRendering() {
            def sampleStepData = [
                stepName: "Production Deployment Test Step",
@@ -1501,29 +1566,29 @@ Email content must follow a strict read-only display pattern:
                stepDescription: "Validating enhanced email templates in production",
                teamName: "DevOps Team"
            ]
-           
+
            def sampleInstructions = [
                [title: "Production Validation", content: "Verify all systems operational"]
            ]
-           
+
            def renderedContent = StepContentFormatter.formatStepForEmail(sampleStepData, sampleInstructions)
-           
+
            // Validate rendered content structure
            assert renderedContent.contains('<table role="presentation"')
            assert renderedContent.contains("Production Deployment Test Step")
            assert renderedContent.contains("TESTING")
            assert renderedContent.contains("Production Validation")
-           
+
            log.info("Email template rendering validation passed")
        }
-       
+
        private static void validateUrlConstruction() {
            def urlService = new UrlConstructionService()
-           
+
            // Test URL construction for all environments
            def environments = ['DEV', 'EV1', 'EV2', 'PROD']
            def testStepId = UUID.randomUUID()
-           
+
            environments.each { env ->
                def url = urlService.buildStepViewUrl("MG001", "IT001", testStepId)
                assert url != null, "URL construction failed for environment ${env}"
@@ -1531,16 +1596,16 @@ Email content must follow a strict read-only display pattern:
                log.info("URL construction validated for environment ${env}: ${url}")
            }
        }
-       
+
        private static void validateEmailDelivery() {
            // This would integrate with your actual email service
            // For now, validate the service is available and configured
            def emailService = new EnhancedEmailService()
-           
+
            // Test email service health
            def isHealthy = emailService.performHealthCheck()
            assert isHealthy, "Email service health check failed"
-           
+
            log.info("Email delivery service validation passed")
        }
    }
@@ -1549,103 +1614,104 @@ Email content must follow a strict read-only display pattern:
 3. **End-to-End Production Testing** (1 hour)
 
    **Production Test Suite**:
+
    ```groovy
    // Run this in production environment after deployment
    class ProductionEmailNotificationTest {
-       
+
        static void runProductionValidation() {
            log.info("Starting production email notification validation...")
-           
+
            // Test with real production data
            validateWithProductionData()
-           
+
            // Test cross-device email rendering
            validateCrossDeviceRendering()
-           
+
            // Test performance under load
            validatePerformanceUnderLoad()
-           
+
            log.info("Production validation completed successfully")
        }
-       
+
        private static void validateWithProductionData() {
            // Use actual production step data
            def productionSteps = DatabaseUtil.withSql { sql ->
                return sql.rows("""
-                   SELECT step_instance_id FROM step_instance 
-                   WHERE step_status IN ('ACTIVE', 'PENDING') 
+                   SELECT step_instance_id FROM step_instance
+                   WHERE step_status IN ('ACTIVE', 'PENDING')
                    LIMIT 5
                """)
            }
-           
+
            productionSteps.each { step ->
                def contentService = new StepContentRetrievalService()
                def stepData = contentService.getCompleteStepData(step.step_instance_id)
                def instructions = contentService.getStepInstructions(step.step_instance_id)
-               
+
                // Validate content structure
                assert stepData.stepInstanceId != null
                assert stepData.migrationCode != null
                assert stepData.iterationCode != null
-               
+
                // Test email formatting
                def emailContent = StepContentFormatter.formatStepForEmail(stepData, instructions)
                assert emailContent.contains('<table role="presentation"')
-               
+
                log.info("Production data validation passed for step ${step.step_instance_id}")
            }
        }
-       
+
        private static void validateCrossDeviceRendering() {
            // This would ideally integrate with email testing services
            // like Litmus or Email on Acid for real device testing
-           
+
            def sampleContent = StepContentFormatter.formatStepForEmail(
                [stepName: "Cross-device Test", status: "ACTIVE"], []
            )
-           
+
            // Validate mobile-responsive elements are present
            assert sampleContent.contains('max-width: 600px')
            assert sampleContent.contains('width: 100%')
            assert sampleContent.contains('cellspacing="0"')
-           
+
            log.info("Cross-device rendering validation passed")
        }
-       
+
        private static void validatePerformanceUnderLoad() {
            def iterations = 10
            def totalTime = 0
-           
+
            (1..iterations).each { i ->
                long startTime = System.currentTimeMillis()
-               
+
                // Simulate email generation with content
                def contentService = new StepContentRetrievalService()
                def sampleStepId = UUID.randomUUID()
-               
+
                try {
                    def stepData = [
                        stepInstanceId: sampleStepId,
                        stepName: "Performance Test Step ${i}",
                        status: "TESTING"
                    ]
-                   
+
                    def emailContent = StepContentFormatter.formatStepForEmail(stepData, [])
-                   
+
                    long endTime = System.currentTimeMillis()
                    def duration = endTime - startTime
                    totalTime += duration
-                   
+
                    log.info("Email generation ${i} took ${duration}ms")
-                   
+
                } catch (Exception e) {
                    log.error("Performance test iteration ${i} failed", e)
                }
            }
-           
+
            def averageTime = totalTime / iterations
            assert averageTime < 5000, "Average email generation time ${averageTime}ms exceeds 5s limit"
-           
+
            log.info("Performance validation passed - Average time: ${averageTime}ms")
        }
    }
@@ -1654,13 +1720,14 @@ Email content must follow a strict read-only display pattern:
 4. **Monitoring and Health Check Setup** (1 hour)
 
    **Production Monitoring Configuration**:
+
    ```groovy
    // Health check endpoints for production monitoring
    @BaseScript CustomEndpointDelegate delegate
-   
-   enhancedEmailHealth(httpMethod: "GET", groups: ["confluence-administrators"]) { 
+
+   enhancedEmailHealth(httpMethod: "GET", groups: ["confluence-administrators"]) {
        MultivaluedMap queryParams, String body, HttpServletRequest request ->
-       
+
        try {
            def healthStatus = [
                service: "Enhanced Email Notifications",
@@ -1669,25 +1736,25 @@ Email content must follow a strict read-only display pattern:
                status: "HEALTHY",
                checks: [:]
            ]
-           
+
            // Content retrieval health
            def contentHealth = checkContentRetrievalHealth()
            healthStatus.checks.contentRetrieval = contentHealth
-           
-           // URL construction health  
+
+           // URL construction health
            def urlHealth = checkUrlConstructionHealth()
            healthStatus.checks.urlConstruction = urlHealth
-           
+
            // Email template health
            def templateHealth = checkEmailTemplateHealth()
            healthStatus.checks.emailTemplates = templateHealth
-           
+
            // Overall status
            def allHealthy = [contentHealth, urlHealth, templateHealth].every { it.healthy }
            healthStatus.status = allHealthy ? "HEALTHY" : "DEGRADED"
-           
+
            return Response.ok(new JsonBuilder(healthStatus).toString()).build()
-           
+
        } catch (Exception e) {
            log.error("Health check failed", e)
            return Response.status(500)
@@ -1700,26 +1767,26 @@ Email content must follow a strict read-only display pattern:
                .build()
        }
    }
-   
+
    private Map checkContentRetrievalHealth() {
        try {
            long startTime = System.currentTimeMillis()
-           
+
            // Test content retrieval with a known step
            def testResult = DatabaseUtil.withSql { sql ->
                return sql.firstRow("SELECT COUNT(*) as count FROM step_instance")
            }
-           
+
            long endTime = System.currentTimeMillis()
            def responseTime = endTime - startTime
-           
+
            return [
                healthy: testResult.count > 0,
                averageResponseTime: responseTime,
                successRate: 100.0,
                lastCheck: new Date().toString()
            ]
-           
+
        } catch (Exception e) {
            log.error("Content retrieval health check failed", e)
            return [
@@ -1729,19 +1796,19 @@ Email content must follow a strict read-only display pattern:
            ]
        }
    }
-   
+
    private Map checkUrlConstructionHealth() {
        try {
            def urlService = new UrlConstructionService()
            def testUrl = urlService.buildStepViewUrl("TEST", "TEST", UUID.randomUUID())
-           
+
            return [
                healthy: testUrl != null && testUrl.startsWith("http"),
                averageResponseTime: 50, // URL construction should be very fast
                successRate: testUrl != null ? 100.0 : 0.0,
                lastCheck: new Date().toString()
            ]
-           
+
        } catch (Exception e) {
            log.error("URL construction health check failed", e)
            return [
@@ -1751,20 +1818,20 @@ Email content must follow a strict read-only display pattern:
            ]
        }
    }
-   
+
    private Map checkEmailTemplateHealth() {
        try {
            def testContent = StepContentFormatter.formatStepForEmail(
                [stepName: "Health Check", status: "TESTING"], []
            )
-           
+
            return [
                healthy: testContent.contains('<table role="presentation"'),
                averageResponseTime: 100, // Template rendering should be fast
                successRate: 100.0,
                lastCheck: new Date().toString()
            ]
-           
+
        } catch (Exception e) {
            log.error("Email template health check failed", e)
            return [
@@ -1798,6 +1865,7 @@ Email content must follow a strict read-only display pattern:
 ### Component Interactions
 
 **Email Notification Flow** (Enhanced):
+
 ```
 Step Status Change → StepsApi → StepContentRetrievalService → DatabaseUtil
                                        ↓
@@ -1809,11 +1877,12 @@ Mobile-Responsive HTML Email → SMTP Service → User Email Clients
 ```
 
 **Data Flow Architecture**:
+
 ```
 step_instance → JOIN → phase_instance → JOIN → sequence_instance
      ↓                      ↓                        ↓
 instruction ←→ step_instruction    plan_instance ← iteration_instance
-     ↓                                   ↓                ↓  
+     ↓                                   ↓                ↓
 StepContentFormatter                migration_instance ← system_configuration_scf
      ↓                                   ↓
 Mobile HTML Template              UrlConstructionService
@@ -1824,6 +1893,7 @@ Enhanced Email Notification ← Email Template Variables
 ### Security Architecture
 
 **Content Security Pipeline**:
+
 1. **Input Sanitization**: All step content and instruction data sanitized at retrieval
 2. **HTML Purification**: Email content processed through HTML purification library
 3. **URL Validation**: All constructed URLs validated against approved patterns
@@ -1831,6 +1901,7 @@ Enhanced Email Notification ← Email Template Variables
 5. **XSS Protection**: Multi-layer XSS prevention in email content rendering
 
 **Security Controls**:
+
 - Content Security Policy headers for admin interface
 - SQL injection prevention through parameterized queries
 - HTML injection prevention through content sanitization
@@ -1840,6 +1911,7 @@ Enhanced Email Notification ← Email Template Variables
 ### Performance Architecture
 
 **Performance Optimization Strategy**:
+
 - **Content Caching**: Step and instruction content cached for 5 minutes
 - **URL Caching**: Environment configurations cached for 1 hour
 - **Template Compilation**: Email templates pre-compiled and cached
@@ -1847,6 +1919,7 @@ Enhanced Email Notification ← Email Template Variables
 - **Lazy Loading**: Content retrieval only when needed for notifications
 
 **Performance Targets**:
+
 - Content Retrieval: <2 seconds for 95% of operations
 - Email Generation: <5 seconds including full content formatting
 - Template Rendering: <500ms for mobile-responsive HTML generation
@@ -1859,6 +1932,7 @@ Enhanced Email Notification ← Email Template Variables
 ### Target Mobile Email Clients
 
 #### Primary Support (P1 Critical)
+
 - **Apple Mail (iOS)**: Native iOS mail client with WebKit rendering engine
   - **Constraints**: Limited CSS support, no JavaScript, table-based layouts required
   - **Viewport**: Dynamic based on device orientation and zoom level
@@ -1878,6 +1952,7 @@ Enhanced Email Notification ← Email Template Variables
   - **Key Requirements**: Simplified CSS, table structures, font fallbacks essential
 
 #### Secondary Support (P2 Important)
+
 - **Samsung Email**: Default Android email client
 - **Yahoo Mail Mobile**: Yahoo's native mobile app
 - **Canary Mail**: Popular third-party iOS email client
@@ -1888,12 +1963,27 @@ Enhanced Email Notification ← Email Template Variables
 
 ```html
 <!-- ❌ NEVER USE IN EMAIL -->
-<div class="responsive-container">  <!-- CSS Grid/Flexbox not supported -->
-<script>...</script>               <!-- JavaScript completely blocked -->
-<link rel="stylesheet">            <!-- External CSS not loaded -->
-<video>, <audio>                   <!-- Media elements not supported -->
-<form> elements                     <!-- Interactive elements disabled -->
-<meta name="viewport">             <!-- Viewport meta tags ignored -->
+<div class="responsive-container">
+  <!-- CSS Grid/Flexbox not supported -->
+  <script>
+    ...
+  </script>
+  <!-- JavaScript completely blocked -->
+  <link rel="stylesheet" />
+  <!-- External CSS not loaded -->
+  <video>
+    ,
+    <audio>
+      <!-- Media elements not supported -->
+      <form>
+        elements
+        <!-- Interactive elements disabled -->
+        <meta name="viewport" />
+        <!-- Viewport meta tags ignored -->
+      </form>
+    </audio>
+  </video>
+</div>
 ```
 
 #### What IS Required for Email Clients
@@ -1912,14 +2002,26 @@ Enhanced Email Notification ← Email Template Variables
 ### Critical Implementation Patterns
 
 #### 1. Table-Based Layout (MANDATORY)
+
 ```html
 <!-- Main container table -->
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+<table
+  role="presentation"
+  cellspacing="0"
+  cellpadding="0"
+  border="0"
+  width="100%"
+>
   <tr>
     <td style="padding: 0;">
       <!-- Content table with max-width for mobile -->
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" 
-             style="margin: 0 auto; width: 100%; max-width: 600px;">
+      <table
+        role="presentation"
+        cellspacing="0"
+        cellpadding="0"
+        border="0"
+        style="margin: 0 auto; width: 100%; max-width: 600px;"
+      >
         <tr>
           <td style="padding: 20px; font-size: 16px; line-height: 1.4;">
             Content here
@@ -1932,23 +2034,27 @@ Enhanced Email Notification ← Email Template Variables
 ```
 
 #### 2. Inline CSS Requirements (MANDATORY)
+
 ```html
 <!-- ✅ CORRECT: Inline styles -->
-<td style="padding: 15px; background-color: #f5f5f5; font-family: Arial, sans-serif;">
+<td
+  style="padding: 15px; background-color: #f5f5f5; font-family: Arial, sans-serif;"
+>
+  <!-- ❌ WRONG: CSS classes (will be stripped) -->
+</td>
 
-<!-- ❌ WRONG: CSS classes (will be stripped) -->
-<td class="email-content">
+<td class="email-content"></td>
 ```
 
 #### 3. Mobile-Optimized Dimensions
 
-| Element Type | Desktop | Mobile | Touch Target |
-|-------------|---------|---------|--------------|
-| **Buttons** | 40px min height | 44px min height | 44x44px minimum |
-| **Text Size** | 14-16px | 16px minimum | 16px+ for readability |
-| **Container Width** | 600px max | 320px+ fluid | 100% width |
-| **Touch Spacing** | 10px padding | 15px padding | 44px tap target |
-| **Line Height** | 1.4 | 1.5+ | Improved readability |
+| Element Type        | Desktop         | Mobile          | Touch Target          |
+| ------------------- | --------------- | --------------- | --------------------- |
+| **Buttons**         | 40px min height | 44px min height | 44x44px minimum       |
+| **Text Size**       | 14-16px         | 16px minimum    | 16px+ for readability |
+| **Container Width** | 600px max       | 320px+ fluid    | 100% width            |
+| **Touch Spacing**   | 10px padding    | 15px padding    | 44px tap target       |
+| **Line Height**     | 1.4             | 1.5+            | Improved readability  |
 
 #### 4. Media Query Limitations
 
@@ -1996,39 +2102,47 @@ Enhanced Email Notification ← Email Template Variables
 
 #### Specific Rendering Issues to Monitor
 
-| Client | Known Issues | Workarounds |
-|--------|--------------|-------------|
-| **iOS Mail** | Font size overrides | Use `!important` declarations |
-| **Gmail Mobile** | CSS stripping | 100% inline styles only |
-| **Outlook Mobile** | Table spacing | Use `cellpadding` and `cellspacing="0"` |
-| **Samsung Email** | Image blocking | Alt text and background colors |
+| Client             | Known Issues        | Workarounds                             |
+| ------------------ | ------------------- | --------------------------------------- |
+| **iOS Mail**       | Font size overrides | Use `!important` declarations           |
+| **Gmail Mobile**   | CSS stripping       | 100% inline styles only                 |
+| **Outlook Mobile** | Table spacing       | Use `cellpadding` and `cellspacing="0"` |
+| **Samsung Email**  | Image blocking      | Alt text and background colors          |
 
 ### Technical Implementation Requirements
 
 #### Font Stack for Email Clients
+
 ```css
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+font-family:
+  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+  sans-serif;
 ```
 
 #### Color Contrast (MANDATORY)
+
 - **Background**: High contrast ratios (4.5:1 minimum)
 - **Text**: Dark text on light backgrounds preferred
 - **Buttons**: Sufficient contrast for accessibility
 - **Dark Mode**: Automatic inversion handling
 
 #### Image Handling
+
 ```html
 <!-- ✅ PROPER image implementation -->
-<img src="https://example.com/image.png" 
-     alt="Descriptive alt text" 
-     width="100" 
-     height="50"
-     style="display: block; border: 0; max-width: 100%; height: auto;">
+<img
+  src="https://example.com/image.png"
+  alt="Descriptive alt text"
+  width="100"
+  height="50"
+  style="display: block; border: 0; max-width: 100%; height: auto;"
+/>
 ```
 
 ### Key Differences from Web Responsive Design
 
 #### Web Responsive Design (NOT applicable to email)
+
 - CSS Grid and Flexbox layouts
 - JavaScript interactions and animations
 - External stylesheets and resources
@@ -2036,6 +2150,7 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, A
 - Modern CSS features (variables, transforms)
 
 #### Email Client Design (REQUIRED approach)
+
 - Nested table layouts with fixed structures
 - Inline CSS with progressive enhancement
 - Static content with no interactivity
@@ -2045,12 +2160,14 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, A
 ### Performance Considerations for Mobile Email
 
 #### Network Constraints
+
 - **2G/3G compatibility**: Optimize for slow connections
 - **Image optimization**: WebP with JPEG fallbacks
 - **Total email size**: Target <100KB for mobile delivery
 - **Lazy loading**: Not available - all content loads immediately
 
 #### Battery Impact
+
 - **Complex rendering**: Avoid nested tables beyond 3 levels
 - **Large images**: Compress and optimize all assets
 - **Content length**: Consider truncation for very long emails
@@ -2060,24 +2177,24 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, A
 ```groovy
 // EmailClientCompatibilityTest.groovy enhancement
 class MobileEmailClientTest extends GroovyTestCase {
-    
+
     void testMobileSpecificRequirements() {
         def emailContent = StepContentFormatter.formatStepForEmail(sampleStep, instructions)
-        
+
         // Test table-based structure
         assert emailContent.contains('<table role="presentation"')
         assert emailContent.contains('cellspacing="0"')
         assert emailContent.contains('cellpadding="0"')
-        
+
         // Test inline CSS requirements
         assert emailContent.contains('style=')
         assert !emailContent.contains('class=')
         assert !emailContent.contains('<style>')
-        
+
         // Test mobile-optimized dimensions
         assert emailContent.contains('font-size: 16px') // Minimum mobile text size
         assert emailContent.contains('line-height: 1.5') // Mobile readability
-        
+
         // Test touch-friendly elements
         def buttonPattern = /padding:\s*(\d+)px/
         def buttons = emailContent.findAll(buttonPattern)
@@ -2096,16 +2213,18 @@ The existing `url-constructor.js` file at `/Users/lucaschallamel/Documents/GitHu
 #### Key Integration Points
 
 1. **Server-Side URL Construction** (Required for emails)
+
    ```groovy
    // In EnhancedEmailService.groovy - use server-side equivalent
    def stepViewUrl = urlConstructionService.buildStepViewUrl([
        migrationCode: stepData.migrationCode,
-       iterationCode: stepData.iterationCode, 
+       iterationCode: stepData.iterationCode,
        stepCode: stepData.stepCode
    ])
    ```
 
 2. **Fallback Configuration** (Critical for email reliability)
+
    ```groovy
    // Email templates need guaranteed URL generation
    def urlConfig = urlConstructionService.getConfiguration()
@@ -2132,12 +2251,12 @@ The existing `url-constructor.js` file at `/Users/lucaschallamel/Documents/GitHu
 ```groovy
 // Email template URL requirements
 class EmailUrlConstructor {
-    
+
     static String buildEmailSafeUrl(Map params) {
         // Email clients don't support JavaScript - URLs must be complete
         def baseUrl = getConfiguredBaseUrl()
         def queryString = buildQueryString(params)
-        
+
         // Return complete, static URL for email client compatibility
         return "${baseUrl}?${queryString}"
     }
@@ -2148,27 +2267,30 @@ class EmailUrlConstructor {
 
 ### Technical Risks and Mitigations
 
-| Risk Level | Risk Description | Likelihood | Impact | Mitigation Strategy |
-|------------|------------------|------------|--------|-------------------|
-| **HIGH** | Email client compatibility issues with mobile-responsive templates | Medium | High | Comprehensive cross-client testing, progressive enhancement, table-based layouts |
-| **HIGH** | Content retrieval performance degradation with large instruction sets | Medium | High | Content caching, query optimization, content truncation with "read more" links |
-| **MEDIUM** | HTML sanitization breaking instruction formatting | Medium | Medium | Whitelist-based sanitization, format preservation testing, fallback rendering |
-| **MEDIUM** | Mobile email client rendering inconsistencies | High | Medium | Table-based layouts, inline CSS, extensive device testing |
-| **LOW** | Database query performance impact on notification delivery | Low | Medium | Query optimization, connection pooling, asynchronous processing |
+| Risk Level | Risk Description                                                      | Likelihood | Impact | Mitigation Strategy                                                              |
+| ---------- | --------------------------------------------------------------------- | ---------- | ------ | -------------------------------------------------------------------------------- |
+| **HIGH**   | Email client compatibility issues with mobile-responsive templates    | Medium     | High   | Comprehensive cross-client testing, progressive enhancement, table-based layouts |
+| **HIGH**   | Content retrieval performance degradation with large instruction sets | Medium     | High   | Content caching, query optimization, content truncation with "read more" links   |
+| **MEDIUM** | HTML sanitization breaking instruction formatting                     | Medium     | Medium | Whitelist-based sanitization, format preservation testing, fallback rendering    |
+| **MEDIUM** | Mobile email client rendering inconsistencies                         | High       | Medium | Table-based layouts, inline CSS, extensive device testing                        |
+| **LOW**    | Database query performance impact on notification delivery            | Low        | Medium | Query optimization, connection pooling, asynchronous processing                  |
 
 ### Integration Challenges and Solutions
 
 **Challenge 1: StepsApi Integration Complexity**
+
 - **Solution**: Gradual integration with feature flags and fallback mechanisms
 - **Validation**: Comprehensive integration testing with mock and real data
 - **Rollback**: Immediate fallback to standard notifications on failure
 
 **Challenge 2: Email Template Cross-Client Compatibility**
+
 - **Solution**: Table-based layouts with inline CSS and progressive enhancement
 - **Validation**: Automated testing across 7+ major email clients
 - **Fallback**: Plain text versions for unsupported clients
 
 **Challenge 3: Content Security and Sanitization**
+
 - **Solution**: Multi-layer security with HTML purification and input validation
 - **Validation**: Security testing with known XSS payloads
 - **Monitoring**: Runtime content filtering with audit logging
@@ -2176,12 +2298,14 @@ class EmailUrlConstructor {
 ### Fallback Strategies
 
 **Primary Fallback Chain**:
+
 1. **Enhanced Notification Failure** → Standard notification with URL
 2. **Content Retrieval Failure** → Basic notification without content
 3. **URL Construction Failure** → Content-only notification
 4. **Complete Service Failure** → System administrator alert
 
 **Graceful Degradation**:
+
 - Rich HTML content → Simplified HTML → Plain text
 - Mobile-responsive layout → Desktop layout → Text-only
 - Complete content → Truncated content → Summary only
@@ -2191,20 +2315,23 @@ class EmailUrlConstructor {
 ### Unit Test Requirements (Target: 95% Coverage)
 
 **Core Component Testing**:
+
 - `StepContentFormatter`: HTML generation, sanitization, mobile responsiveness
 - `StepContentRetrievalService`: Database queries, content assembly, performance
 - `EnhancedEmailService`: Template processing, recipient resolution, error handling
 - Security validation functions for content and URL sanitization
 
 **Test Categories**:
+
 1. **Content Formatting Tests**: HTML structure, mobile responsiveness, content sanitization
-2. **Data Retrieval Tests**: Database query correctness, performance validation, error handling  
+2. **Data Retrieval Tests**: Database query correctness, performance validation, error handling
 3. **Integration Tests**: API endpoint integration, email service coordination
 4. **Security Tests**: XSS prevention, HTML injection, URL validation
 
 ### Integration Test Scenarios
 
 **End-to-End Workflow Testing**:
+
 1. Step status change triggers enhanced notification
 2. Complete content retrieval from database with instructions
 3. Mobile-responsive email generation with embedded content
@@ -2212,6 +2339,7 @@ class EmailUrlConstructor {
 5. Email delivery validation across multiple clients
 
 **Cross-Environment Testing**:
+
 - DEV → EV1 → EV2 → PROD environment progression
 - Configuration management across environments
 - URL construction accuracy per environment
@@ -2219,20 +2347,21 @@ class EmailUrlConstructor {
 
 ### Email Client Compatibility Matrix
 
-| Email Client | Platform | Viewport | Testing Priority | Expected Support |
-|--------------|----------|----------|------------------|------------------|
-| **iOS Mail** | Mobile | 375x667 | P1 Critical | Full responsive support |
-| **Gmail App** | Mobile | 360x640 | P1 Critical | Full responsive support |
-| **Outlook Mobile** | Mobile | 414x896 | P1 Critical | Table layout support |
-| **Gmail Web** | Desktop | 1200x800 | P1 Critical | Full HTML support |
-| **Outlook 2016+** | Desktop | 1024x768 | P1 Critical | Rich formatting support |
-| **Apple Mail** | Desktop | 1200x800 | P2 Important | Full HTML support |
-| **Thunderbird** | Desktop | 1024x768 | P2 Important | Standard HTML support |
-| **Yahoo Mail** | Web | 1024x768 | P3 Nice-to-have | Basic HTML support |
+| Email Client       | Platform | Viewport | Testing Priority | Expected Support        |
+| ------------------ | -------- | -------- | ---------------- | ----------------------- |
+| **iOS Mail**       | Mobile   | 375x667  | P1 Critical      | Full responsive support |
+| **Gmail App**      | Mobile   | 360x640  | P1 Critical      | Full responsive support |
+| **Outlook Mobile** | Mobile   | 414x896  | P1 Critical      | Table layout support    |
+| **Gmail Web**      | Desktop  | 1200x800 | P1 Critical      | Full HTML support       |
+| **Outlook 2016+**  | Desktop  | 1024x768 | P1 Critical      | Rich formatting support |
+| **Apple Mail**     | Desktop  | 1200x800 | P2 Important     | Full HTML support       |
+| **Thunderbird**    | Desktop  | 1024x768 | P2 Important     | Standard HTML support   |
+| **Yahoo Mail**     | Web      | 1024x768 | P3 Nice-to-have  | Basic HTML support      |
 
 ### UAT Validation Criteria
 
 **User Acceptance Validation Points**:
+
 1. **Content Completeness**: Users can access all step information without Confluence navigation
 2. **Mobile Usability**: Effective workflow management from mobile email clients
 3. **Time Savings**: Measurable 2-3 minute reduction per email interaction
@@ -2240,6 +2369,7 @@ class EmailUrlConstructor {
 5. **Professional Presentation**: Email formatting maintains professional appearance
 
 **Success Metrics**:
+
 - 95% user satisfaction with mobile email experience
 - 100% content accessibility without Confluence navigation
 - 90% preference for enhanced notifications over standard alerts
@@ -2250,6 +2380,7 @@ class EmailUrlConstructor {
 ### Critical Path Analysis
 
 **Phase Dependencies**:
+
 ```
 Phase 0 (Email Templates) → Phase 1 (API Integration)
                                     ↓
@@ -2259,6 +2390,7 @@ Phase 4 (Production Deployment)
 ```
 
 **Parallel Work Opportunities**:
+
 - Phase 2 Unit Testing can begin during Phase 1 development
 - Phase 3 Admin GUI can be developed alongside Phase 2 testing
 - Documentation updates can occur throughout all phases
@@ -2266,12 +2398,14 @@ Phase 4 (Production Deployment)
 ### Resource Requirements
 
 **Development Resources**:
+
 - **Frontend Development**: 8 hours (mobile-responsive templates, admin interface)
 - **Backend Development**: 16 hours (content retrieval, API integration, services)
 - **Testing & QA**: 10 hours (comprehensive testing across devices and clients)
 - **DevOps & Deployment**: 6 hours (production deployment, monitoring setup)
 
 **Specialized Skills Required**:
+
 - HTML email template development (mobile-first responsive design)
 - Groovy/Java backend development (ScriptRunner environment)
 - Cross-platform email client testing expertise
@@ -2294,6 +2428,7 @@ Phase 4 (Production Deployment)
 ### Code Quality Standards
 
 **Development Standards**:
+
 - **Code Coverage**: Minimum 95% for all new email notification components
 - **Performance**: All database queries must complete within 1 second
 - **Security**: All content must pass HTML sanitization and XSS prevention tests
@@ -2301,6 +2436,7 @@ Phase 4 (Production Deployment)
 - **Cross-Platform**: Templates must render correctly in 7+ email clients
 
 **Review Process**:
+
 1. **Code Review**: Peer review focusing on security, performance, and mobile compatibility
 2. **Security Review**: Dedicated security assessment of content sanitization and URL validation
 3. **Performance Review**: Load testing and database query optimization validation
@@ -2309,12 +2445,14 @@ Phase 4 (Production Deployment)
 ### Documentation Requirements
 
 **Technical Documentation**:
+
 - Email template development guide with mobile-first design principles
-- Content security implementation guide with sanitization procedures  
+- Content security implementation guide with sanitization procedures
 - Admin interface user guide with configuration management procedures
 - Troubleshooting guide for common email rendering and delivery issues
 
 **Operational Documentation**:
+
 - Production deployment runbook with rollback procedures
 - Monitoring and alerting setup guide for enhanced email service health
 - Performance tuning guide for content retrieval optimization
@@ -2325,12 +2463,14 @@ Phase 4 (Production Deployment)
 ### Technical Performance Indicators
 
 **Service Level Objectives**:
+
 - **Availability**: 99.9% uptime for enhanced email notification service
 - **Performance**: <5 seconds end-to-end email generation with full content
 - **Reliability**: <0.1% email delivery failure rate with valid configurations
 - **Security**: Zero successful XSS or content injection attacks
 
 **Operational Metrics**:
+
 - **Content Retrieval Time**: Average <2 seconds for complete step data
 - **Template Rendering Time**: Average <500ms for mobile-responsive HTML
 - **Email Client Compatibility**: 100% rendering success across supported clients
@@ -2339,12 +2479,14 @@ Phase 4 (Production Deployment)
 ### User Experience Metrics
 
 **Productivity Improvements**:
+
 - **Time Savings**: 2-3 minutes average saved per email interaction
 - **Mobile Workflow Efficiency**: 95% of users can effectively manage steps from mobile
 - **Content Accessibility**: 100% of step information accessible without Confluence navigation
 - **User Satisfaction**: >90% positive feedback on enhanced email functionality
 
 **Adoption and Usage**:
+
 - **Enhanced Notification Adoption**: Target 100% migration from standard notifications
 - **Mobile Email Engagement**: Increased mobile email interaction rates
 - **Confluence Traffic Reduction**: Measurable decrease in step view page visits from emails
@@ -2357,16 +2499,19 @@ This section provides detailed user stories for each implementation phase, enabl
 ### User Personas
 
 **Primary Persona: Migration Team Member**
+
 - Role: Technical specialist responsible for executing migration steps
 - Goals: Efficient access to step information, mobile workflow management, quick decision-making
 - Pain Points: Confluence navigation overhead, incomplete email information, mobile accessibility limitations
 
 **Secondary Persona: System Administrator**
+
 - Role: IT administrator managing UMIG system configuration and monitoring
 - Goals: System reliability, configuration control, performance monitoring, troubleshooting capability
 - Pain Points: Limited configuration visibility, manual deployment processes, reactive monitoring
 
 **Tertiary Persona: Migration Coordinator**
+
 - Role: Project manager overseeing migration execution and team coordination
 - Goals: Team productivity optimization, progress visibility, stakeholder communication
 - Pain Points: Limited mobile oversight capability, communication overhead, status update delays
@@ -2376,11 +2521,13 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Phase 0: Email Template Enhancement and Content Rendering (12 hours)
 
 #### Story US-039-P0-01: Mobile-Responsive Email Template Implementation
+
 **As a** Migration Team Member  
 **I want** to receive email notifications with mobile-responsive layouts that display properly on my smartphone  
 **So that** I can effectively review step information and make decisions while working remotely or on-site
 
 **Acceptance Criteria:**
+
 - [ ] Email templates use table-based layout structure for maximum email client compatibility
 - [ ] Content adapts to mobile viewports (320px-480px) with optimized font sizes and spacing
 - [ ] Desktop displays (>768px) show enhanced formatting with full visual hierarchy
@@ -2394,11 +2541,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** None
 
 #### Story US-039-P0-02: Complete Step Content Rendering Service
+
 **As a** Migration Team Member  
 **I want** to see complete step descriptions, instructions, and metadata directly in email notifications  
 **So that** I can understand requirements and take action without navigating to Confluence
 
 **Acceptance Criteria:**
+
 - [ ] Step header displays step name, status badge, and priority level with clear visual hierarchy
 - [ ] Step description renders with preserved formatting and line breaks
 - [ ] Instructions display in ordered list format with proper HTML structure
@@ -2412,11 +2561,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** None
 
 #### Story US-039-P0-03: Progressive Enhancement CSS System
+
 **As a** System Administrator  
 **I want** email templates to degrade gracefully across different email client capabilities  
 **So that** all users receive readable content regardless of their email client limitations
 
 **Acceptance Criteria:**
+
 - [ ] Inline CSS provides baseline styling for all email clients
 - [ ] Media queries enhance display for capable clients (modern mobile apps, web clients)
 - [ ] Dark mode support activates automatically in supporting email clients
@@ -2430,11 +2581,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Story US-039-P0-01
 
 #### Story US-039-P0-04: Template Variable Enhancement System
+
 **As a** System Administrator  
 **I want** comprehensive template variables available for email customization  
 **So that** notifications can be tailored to different environments and user preferences
 
 **Acceptance Criteria:**
+
 - [ ] Core variables include step name, status, description, and instructions count
 - [ ] Metadata variables include team assignment, due dates, priority levels, and timestamps
 - [ ] URL variables support environment-specific Confluence links
@@ -2452,11 +2605,13 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Phase 1: API Integration and Content Retrieval (10 hours)
 
 #### Story US-039-P1-01: StepsApi Enhancement for Enhanced Notifications
+
 **As a** Migration Team Member  
 **I want** step status changes to automatically trigger enhanced email notifications with complete content  
 **So that** I receive comprehensive information immediately when step statuses update
 
 **Acceptance Criteria:**
+
 - [ ] StepsApi POST endpoint detects step status changes and triggers enhanced notifications
 - [ ] Complete step data retrieval includes all necessary context for email generation
 - [ ] Graceful fallback to standard notifications when enhanced notification fails
@@ -2470,11 +2625,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Phase 0 completion
 
 #### Story US-039-P1-02: Comprehensive Content Retrieval Service
+
 **As a** System Administrator  
 **I want** efficient content retrieval that gathers complete step information in a single operation  
 **So that** email notifications are generated quickly without multiple database round-trips
 
 **Acceptance Criteria:**
+
 - [ ] Single database query retrieves step data, instructions, and migration context
 - [ ] Content retrieval completes within 2 seconds for 95% of operations
 - [ ] Active instructions filtered automatically with proper sequence ordering
@@ -2488,11 +2645,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** None (parallel with P1-01)
 
 #### Story US-039-P1-03: Enhanced Email Service Integration
+
 **As a** Migration Team Member  
 **I want** enhanced email notifications to include all step information and properly constructed Confluence links  
 **So that** I can access both summary information and detailed views as needed
 
 **Acceptance Criteria:**
+
 - [ ] Enhanced email service integrates with existing email infrastructure
 - [ ] Template variables populated with complete step data and formatted content
 - [ ] URL construction service generates valid environment-specific links
@@ -2506,11 +2665,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Stories US-039-P1-01, US-039-P1-02
 
 #### Story US-039-P1-04: User Context Resolution and Error Handling
+
 **As a** System Administrator  
 **I want** robust error handling that ensures notification delivery even when some components fail  
 **So that** users continue receiving notifications and issues are properly escalated for resolution
 
 **Acceptance Criteria:**
+
 - [ ] Three-tier recipient resolution: step assignment → team members → system administrators
 - [ ] Enhanced notification failure triggers automatic fallback to standard notifications
 - [ ] All errors logged with sufficient detail for root cause analysis
@@ -2528,11 +2689,13 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Phase 2: Testing Implementation (10 hours)
 
 #### Story US-039-P2-01: Comprehensive Unit Testing Framework
+
 **As a** System Administrator  
 **I want** comprehensive unit tests covering all enhanced email notification components  
 **So that** code changes don't introduce regressions and system reliability is maintained
 
 **Acceptance Criteria:**
+
 - [ ] StepContentFormatter unit tests achieve 95% code coverage
 - [ ] StepContentRetrievalService unit tests validate data structure and performance
 - [ ] Security testing confirms XSS prevention and content sanitization
@@ -2546,11 +2709,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Phase 1 completion
 
 #### Story US-039-P2-02: End-to-End Integration Testing
+
 **As a** Migration Team Member  
 **I want** integration tests to validate the complete enhanced notification workflow  
 **So that** I can trust that step status changes will reliably trigger proper email notifications
 
 **Acceptance Criteria:**
+
 - [ ] Integration tests cover complete flow from step status change to email generation
 - [ ] Content retrieval integration validates database queries with real data structures
 - [ ] Email template rendering integration confirms proper variable substitution
@@ -2564,11 +2729,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Story US-039-P2-01
 
 #### Story US-039-P2-03: Cross-Platform Email Client Compatibility Testing
+
 **As a** Migration Team Member  
 **I want** email notifications to display correctly across all email clients I use  
 **So that** I can effectively access step information regardless of my device or email application
 
 **Acceptance Criteria:**
+
 - [ ] Mobile clients (iOS Mail, Gmail App, Outlook Mobile) render responsive layouts correctly
 - [ ] Desktop clients (Gmail Web, Outlook 2016+, Apple Mail) display rich formatting
 - [ ] Plain text fallback provides complete information for text-only clients
@@ -2582,11 +2749,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Phase 1 completion
 
 #### Story US-039-P2-04: Security and Content Safety Testing
+
 **As a** System Administrator  
 **I want** comprehensive security testing to prevent content-based attacks through email notifications  
 **So that** the enhanced email system doesn't introduce security vulnerabilities
 
 **Acceptance Criteria:**
+
 - [ ] XSS payload testing confirms malicious script prevention in step content
 - [ ] HTML injection testing validates content sanitization effectiveness
 - [ ] URL parameter validation prevents manipulation and injection attacks
@@ -2604,11 +2773,13 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Phase 3: Admin GUI Integration (6 hours)
 
 #### Story US-039-P3-01: System Configuration Management Interface
+
 **As a** System Administrator  
 **I want** a user-friendly interface to manage email notification system configurations  
 **So that** I can efficiently configure environments and monitor system health without manual database changes
 
 **Acceptance Criteria:**
+
 - [ ] Configuration interface displays all environment settings in tabular format
 - [ ] Add/edit/delete functionality for environment configurations with validation
 - [ ] Real-time configuration testing validates URLs and Confluence connectivity
@@ -2622,11 +2793,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Phase 2 completion
 
 #### Story US-039-P3-02: Email Template Preview and Management
+
 **As a** System Administrator  
 **I want** to preview email templates in mobile and desktop formats before deployment  
 **So that** I can validate template changes and ensure consistent user experience
 
 **Acceptance Criteria:**
+
 - [ ] Template preview API generates sample emails with realistic test data
 - [ ] Mobile preview displays templates in 375px viewport simulation
 - [ ] Desktop preview shows templates in full 600px maximum width format
@@ -2640,11 +2813,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Story US-039-P3-01
 
 #### Story US-039-P3-03: Health Monitoring Dashboard Integration
+
 **As a** System Administrator  
 **I want** real-time health monitoring for the enhanced email notification system  
 **So that** I can proactively identify and resolve issues before they impact users
 
 **Acceptance Criteria:**
+
 - [ ] Health dashboard displays status for content retrieval, URL construction, and email templates
 - [ ] Real-time metrics include response times, success rates, and last check timestamps
 - [ ] Health status updates automatically every 30 seconds
@@ -2662,11 +2837,13 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Phase 4: Production Deployment (6 hours)
 
 #### Story US-039-P4-01: Production Environment Preparation
+
 **As a** System Administrator  
 **I want** validated production environment configuration and database setup  
 **So that** enhanced email notifications deploy successfully without configuration issues
 
 **Acceptance Criteria:**
+
 - [ ] Production database configurations updated with correct Confluence URLs
 - [ ] System configuration validation script confirms all required data structures
 - [ ] Content retrieval performance testing validates production data volumes
@@ -2680,11 +2857,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Phase 3 completion
 
 #### Story US-039-P4-02: Service Deployment and Validation
+
 **As a** Migration Team Member  
 **I want** enhanced email notifications deployed with comprehensive validation  
 **So that** I receive reliable, properly formatted notifications immediately after deployment
 
 **Acceptance Criteria:**
+
 - [ ] Enhanced email service deployment validated with automated testing
 - [ ] Content retrieval service performance meets production requirements (<2s)
 - [ ] Email template rendering validated with production step data
@@ -2698,11 +2877,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Story US-039-P4-01
 
 #### Story US-039-P4-03: Production Health Monitoring Setup
+
 **As a** System Administrator  
 **I want** comprehensive production monitoring for enhanced email notification health  
 **So that** I can maintain system reliability and quickly respond to any issues
 
 **Acceptance Criteria:**
+
 - [ ] Health check endpoints deployed and accessible to monitoring systems
 - [ ] Real-time monitoring dashboard operational with all health metrics
 - [ ] Automated alerting configured for service degradation or failures
@@ -2716,11 +2897,13 @@ This section provides detailed user stories for each implementation phase, enabl
 **Dependencies:** Story US-039-P4-02
 
 #### Story US-039-P4-04: User Acceptance and Rollout Validation
+
 **As a** Migration Coordinator  
 **I want** validated enhanced email notification functionality with user acceptance testing  
 **So that** I can confidently communicate the new capability to migration teams
 
 **Acceptance Criteria:**
+
 - [ ] UAT validation confirms enhanced notifications provide complete step information
 - [ ] Mobile usability testing validates effective workflow management from mobile devices
 - [ ] Cross-device consistency testing confirms uniform experience across platforms
@@ -2740,42 +2923,50 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Story Prioritization Framework
 
 **P1 Critical Stories (Must Have)**
+
 - All Phase 0 and Phase 1 stories for core functionality delivery
 - Testing stories US-039-P2-01, US-039-P2-02, US-039-P2-03, US-039-P2-04 for reliability
 - Production deployment stories US-039-P4-01, US-039-P4-02 for successful launch
 
 **P2 Important Stories (Should Have)**
+
 - Admin GUI stories for operational efficiency and system management
 - Production monitoring story US-039-P4-03 for system reliability
 - User acceptance story US-039-P4-04 for stakeholder confidence
 
 **P3 Nice-to-Have Stories (Could Have)**
+
 - Advanced admin features that enhance but don't block core functionality
 - Enhanced monitoring dashboards beyond basic health checks
 
 ### Sprint Allocation Recommendations
 
 **Sprint 5.1 (Days 1-2): Foundation Phase**
+
 - Stories US-039-P0-01, US-039-P0-02, US-039-P0-03, US-039-P0-04
 - Total: 6 story points, 12 hours
 - Deliverable: Mobile-responsive email templates with complete content rendering
 
 **Sprint 5.2 (Days 2-3): Integration Phase**
+
 - Stories US-039-P1-01, US-039-P1-02, US-039-P1-03, US-039-P1-04
 - Total: 8 story points, 10 hours
 - Deliverable: Complete API integration with enhanced notification capability
 
 **Sprint 5.3 (Days 3-4): Quality Assurance Phase**
+
 - Stories US-039-P2-01, US-039-P2-02, US-039-P2-03, US-039-P2-04
 - Total: 7 story points, 10 hours
 - Deliverable: Comprehensive testing suite with security validation
 
 **Sprint 5.4 (Day 4): Administration Phase**
+
 - Stories US-039-P3-01, US-039-P3-02, US-039-P3-03
 - Total: 4 story points, 6 hours
 - Deliverable: Admin interface for configuration and monitoring
 
 **Sprint 5.5 (Day 5): Production Phase**
+
 - Stories US-039-P4-01, US-039-P4-02, US-039-P4-03, US-039-P4-04
 - Total: 6 story points, 6 hours
 - Deliverable: Production-ready enhanced email notification system
@@ -2783,11 +2974,13 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Inter-Story Dependencies
 
 **Sequential Dependencies:**
+
 - Phase 0 → Phase 1: Email templates must be complete before API integration
 - Phase 1 → Phase 2: Integration must be complete before comprehensive testing
 - Phase 2 → Phase 4: Testing must validate system before production deployment
 
 **Parallel Work Opportunities:**
+
 - Phase 3 (Admin GUI) can be developed alongside Phase 2 (Testing)
 - Documentation updates can occur throughout all phases
 - Infrastructure preparation can begin during Phase 2
@@ -2795,6 +2988,7 @@ This section provides detailed user stories for each implementation phase, enabl
 ### Definition of Done
 
 **Story Completion Criteria:**
+
 - [ ] All acceptance criteria met with evidence provided
 - [ ] Unit tests written with minimum 90% coverage for new code
 - [ ] Integration tests validate story functionality end-to-end
@@ -2805,6 +2999,7 @@ This section provides detailed user stories for each implementation phase, enabl
 - [ ] User acceptance criteria validated where applicable
 
 **Sprint Completion Criteria:**
+
 - [ ] All P1 Critical stories completed successfully
 - [ ] All P2 Important stories completed or acceptable workaround identified
 - [ ] Integration testing validates complete enhanced notification workflow
