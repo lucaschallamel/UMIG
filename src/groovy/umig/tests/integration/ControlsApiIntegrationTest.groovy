@@ -1,407 +1,460 @@
-#!/usr/bin/env groovy
+package umig.tests.integration
+
+import umig.tests.utils.BaseIntegrationTest
+import umig.tests.utils.IntegrationTestHttpClient
+import umig.tests.utils.HttpResponse
+import umig.utils.DatabaseUtil
+import groovy.json.JsonBuilder
+import java.util.UUID
 
 /**
- * Comprehensive integration tests for ControlsApi following ADR-036 pure Groovy testing framework.
+ * Comprehensive integration tests for ControlsApi following BaseIntegrationTest framework.
  * Tests all endpoints including control masters, control instances, validation, and error scenarios.
  * Validates performance requirements (<500ms response times) and business logic.
  * 
- * Updated: 2025-08-18
  * Framework: ADR-036 Pure Groovy (Zero external dependencies)
+ * Base Class: BaseIntegrationTest (US-037 Phase 4B)
  * Coverage: Controls CRUD, master/instance operations, validation workflows, error handling
+ * Updated: 2025-08-27
  */
-
-@GrabConfig(systemClassLoader = true)
-@Grab('org.postgresql:postgresql:42.7.3')
-
-import groovy.json.JsonSlurper
-import groovy.json.JsonBuilder
-import groovy.sql.Sql
-import java.util.UUID
-
-// Load environment variables
-static Properties loadEnv() {
-    def props = new Properties()
-    def envFile = new File("local-dev-setup/.env")
-    if (envFile.exists()) {
-        envFile.withInputStream { props.load(it) }
-    }
-    return props
-}
-
-// Configuration from .env file
-def ENV = loadEnv()
-def BASE_URL = "http://localhost:8090/rest/scriptrunner/latest/custom"
-def jsonSlurper = new JsonSlurper()
-
-// Database configuration from .env
-def dbUrl = 'jdbc:postgresql://localhost:5432/umig_app_db'
-def dbUser = ENV.getProperty('DB_USER', 'umig_app_user')
-def dbPassword = ENV.getProperty('DB_PASSWORD', '123456')
-def AUTH_USERNAME = ENV.getProperty('POSTMAN_AUTH_USERNAME')
-def AUTH_PASSWORD = ENV.getProperty('POSTMAN_AUTH_PASSWORD')
-def AUTH_HEADER = "Basic " + Base64.encoder.encodeToString((AUTH_USERNAME + ':' + AUTH_PASSWORD).bytes)
-
-// Test data
-def testTeamId = null
-def testMasterPlanId = null
-def testMasterSequenceId = null
-def testMasterPhaseId = null
-def testIterationId = null
-def testMigrationId = null
-def testUserId = null
-def testPlanInstanceId = null
-def testSequenceInstanceId = null
-def testPhaseInstanceId = null
-def testControlMasterId = null
-def testControlInstanceId = null
-
-/**
- * Setup test data by querying actual database for valid IDs
- */
-def setupTestData(String dbUrl, String dbUser, String dbPassword) {
-    def sql = Sql.newInstance(dbUrl, dbUser, dbPassword, 'org.postgresql.Driver')
-    try {
-        // Get first team ID  
-        def team = sql.firstRow("SELECT tms_id FROM teams_tms LIMIT 1")
-        testTeamId = team?.tms_id
-        
-        // Get first user ID
-        def user = sql.firstRow("SELECT usr_id FROM users_usr LIMIT 1")  
-        testUserId = user?.usr_id
-        
-        // Get valid status ID for Migration type
-        def migrationStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Migration'")?.sts_id ?: 1
-        
-        // Create test migration
-        def migrationResult = sql.firstRow("""
-            INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_type, mig_status, created_by, updated_by)
-            VALUES (?, 'Test Migration for Controls', 'MIGRATION', ?, 'system', 'system')
-            RETURNING mig_id
-        """, [testUserId, migrationStatusId])
-        testMigrationId = migrationResult?.mig_id
-        
-        // Get valid status ID for Plan type
-        def planStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Plan'")?.sts_id ?: 1
-        
-        // Create test master plan
-        def planResult = sql.firstRow("""
-            INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, updated_by)
-            VALUES (?, 'Test Master Plan for Controls', 'Test plan for control integration', ?, 'system', 'system')
-            RETURNING plm_id
-        """, [testTeamId, planStatusId])
-        testMasterPlanId = planResult?.plm_id
-        
-        // Get valid status ID for Iteration type
-        def iterationStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Iteration'")?.sts_id ?: 1
-        
-        // Create test iteration
-        def iterationResult = sql.firstRow("""
-            INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status, created_by, updated_by)
-            VALUES (?, ?, 'CUTOVER', 'Test Iteration for Controls', 'Test iteration', ?, 'system', 'system')
-            RETURNING ite_id
-        """, [testMigrationId, testMasterPlanId, iterationStatusId])
-        testIterationId = iterationResult?.ite_id
-        
-        // Create test plan instance using the same status ID as plans
-        def planInstanceResult = sql.firstRow("""
-            INSERT INTO plans_instance_pli (plm_id, ite_id, usr_id_owner, pli_name, pli_description, pli_status, created_by, updated_by)
-            VALUES (?, ?, ?, 'Test Plan Instance for Controls', 'Instance for control testing', ?, 'system', 'system')
-            RETURNING pli_id
-        """, [testMasterPlanId, testIterationId, testUserId, planStatusId])
-        testPlanInstanceId = planInstanceResult?.pli_id
-        
-        // Create test master sequence
-        def sequenceResult = sql.firstRow("""
-            INSERT INTO sequences_master_sqm (plm_id, sqm_name, sqm_description, sqm_order, created_by, updated_by)
-            VALUES (?, 'Test Master Sequence for Controls', 'Sequence for control testing', 1, 'system', 'system')
-            RETURNING sqm_id
-        """, [testMasterPlanId])
-        testMasterSequenceId = sequenceResult?.sqm_id
-        
-        // Get valid status ID for Sequence type
-        def sequenceStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Sequence'")?.sts_id ?: 1
-        
-        // Create test sequence instance
-        def sequenceInstanceResult = sql.firstRow("""
-            INSERT INTO sequences_instance_sqi (sqm_id, pli_id, sqi_name, sqi_description, sqi_order, sqi_status, created_by, updated_by)
-            VALUES (?, ?, 'Test Sequence Instance for Controls', 'Instance for control testing', 1, ?, 'system', 'system')
-            RETURNING sqi_id
-        """, [testMasterSequenceId, testPlanInstanceId, sequenceStatusId])
-        testSequenceInstanceId = sequenceInstanceResult?.sqi_id
-        
-        // Create test master phase
-        def phaseResult = sql.firstRow("""
-            INSERT INTO phases_master_phm (sqm_id, phm_name, phm_description, phm_order, created_by, updated_by)
-            VALUES (?, 'Test Master Phase for Controls', 'Phase for control testing', 1, 'system', 'system')
-            RETURNING phm_id
-        """, [testMasterSequenceId])
-        testMasterPhaseId = phaseResult?.phm_id
-        
-        // Get valid status ID for Phase type
-        def phaseStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Phase'")?.sts_id ?: 1
-        
-        // Create test phase instance
-        def phaseInstanceResult = sql.firstRow("""
-            INSERT INTO phases_instance_phi (phm_id, sqi_id, phi_name, phi_description, phi_order, phi_status, created_by, updated_by)
-            VALUES (?, ?, 'Test Phase Instance for Controls', 'Instance for control testing', 1, ?, 'system', 'system')
-            RETURNING phi_id
-        """, [testMasterPhaseId, testSequenceInstanceId, phaseStatusId])
-        testPhaseInstanceId = phaseInstanceResult?.phi_id
-        
-    } finally {
-        sql?.close()
-    }
-}
-
-/**
- * HTTP helper method for GET requests
- */
-def makeGetRequest(String baseUrl, String endpoint) {
-    def url = new URL("${baseUrl}/${endpoint}")
-    def connection = url.openConnection() as HttpURLConnection
-    connection.requestMethod = "GET"
-    connection.setRequestProperty("Accept", "application/json")
-    connection.setRequestProperty("Authorization", AUTH_HEADER)
+class ControlsApiIntegrationTest extends BaseIntegrationTest {
     
-    def responseCode = connection.responseCode
-    def response = responseCode < 400 ? 
-        jsonSlurper.parse(connection.inputStream) : 
-        jsonSlurper.parse(connection.errorStream)
-        
-    return [responseCode: responseCode, data: response]
-}
-
-/**
- * HTTP helper method for POST requests  
- */
-def makePostRequest(String baseUrl, String endpoint, Map body) {
-    def url = new URL("${baseUrl}/${endpoint}")
-    def connection = url.openConnection() as HttpURLConnection
-    connection.requestMethod = "POST"
-    connection.setRequestProperty("Content-Type", "application/json")
-    connection.setRequestProperty("Authorization", AUTH_HEADER)
-    connection.doOutput = true
+    // Test data tracking
+    private UUID testControlMasterId = null
+    private UUID testControlInstanceId = null
+    private UUID testMasterPhaseId = null
+    private UUID testPhaseInstanceId = null
+    private UUID testMasterSequenceId = null
+    private UUID testMasterPlanId = null
+    private UUID testPlanInstanceId = null
+    private UUID testIterationId = null
+    private UUID testMigrationId = null
+    private Integer testTeamId = null
+    private Integer testUserId = null
+    private Integer testSequenceInstanceId = null
     
-    connection.outputStream.withWriter { writer ->
-        writer << new JsonBuilder(body).toString()
+    @Override
+    def setup() {
+        super.setup()
+        setupControlsTestData()
     }
     
-    def responseCode = connection.responseCode
-    def response = responseCode < 400 ? 
-        jsonSlurper.parse(connection.inputStream) : 
-        jsonSlurper.parse(connection.errorStream)
+    /**
+     * Setup test data hierarchy required for controls testing
+     * Creates: Migration → Iteration → Plan Instance → Sequence → Phase → Control
+     */
+    private void setupControlsTestData() {
+        logProgress("Setting up controls test data hierarchy")
         
-    return [responseCode: responseCode, data: response]
-}
-
-/**
- * HTTP helper method for PUT requests
- */
-def makePutRequest(String baseUrl, String endpoint, Map body) {
-    def url = new URL("${baseUrl}/${endpoint}")
-    def connection = url.openConnection() as HttpURLConnection
-    connection.requestMethod = "PUT"
-    connection.setRequestProperty("Content-Type", "application/json")
-    connection.setRequestProperty("Authorization", AUTH_HEADER)
-    connection.doOutput = true
-    
-    connection.outputStream.withWriter { writer ->
-        writer << new JsonBuilder(body).toString()
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Get first team and user IDs
+                def team = sql.firstRow("SELECT tms_id FROM teams_tms LIMIT 1")
+                testTeamId = team?.tms_id as Integer
+                
+                def user = sql.firstRow("SELECT usr_id FROM users_usr LIMIT 1")
+                testUserId = user?.usr_id as Integer
+                
+                // Get valid status IDs
+                def migrationStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Migration'")?.sts_id ?: 1
+                def planStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Plan'")?.sts_id ?: 1
+                def iterationStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Iteration'")?.sts_id ?: 1
+                def sequenceStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Sequence'")?.sts_id ?: 1
+                def phaseStatusId = sql.firstRow("SELECT sts_id FROM status_sts WHERE sts_name = 'PLANNING' AND sts_type = 'Phase'")?.sts_id ?: 1
+                
+                // Create test migration
+                def migrationResult = sql.firstRow("""
+                    INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_type, mig_status, created_by, updated_by)
+                    VALUES (?, ?, 'MIGRATION', ?, 'system', 'system')
+                    RETURNING mig_id
+                """, [testUserId, "${TEST_DATA_PREFIX}Migration_Controls", migrationStatusId])
+                testMigrationId = migrationResult?.mig_id as UUID
+                createdMigrations.add(testMigrationId)
+                
+                // Create test master plan
+                def planResult = sql.firstRow("""
+                    INSERT INTO plans_master_plm (tms_id, plm_name, plm_description, plm_status, created_by, updated_by)
+                    VALUES (?, ?, 'Test plan for control integration', ?, 'system', 'system')
+                    RETURNING plm_id
+                """, [testTeamId, "${TEST_DATA_PREFIX}Plan_Controls", planStatusId])
+                testMasterPlanId = planResult?.plm_id as UUID
+                createdPlans.add(testMasterPlanId)
+                
+                // Create test iteration
+                def iterationResult = sql.firstRow("""
+                    INSERT INTO iterations_ite (mig_id, plm_id, itt_code, ite_name, ite_description, ite_status, created_by, updated_by)
+                    VALUES (?, ?, 'CUTOVER', ?, 'Test iteration for controls', ?, 'system', 'system')
+                    RETURNING ite_id
+                """, [testMigrationId, testMasterPlanId, "${TEST_DATA_PREFIX}Iteration_Controls", iterationStatusId])
+                testIterationId = iterationResult?.ite_id as UUID
+                
+                // Create test plan instance
+                def planInstanceResult = sql.firstRow("""
+                    INSERT INTO plans_instance_pli (plm_id, ite_id, usr_id_owner, pli_name, pli_description, pli_status, created_by, updated_by)
+                    VALUES (?, ?, ?, ?, 'Instance for control testing', ?, 'system', 'system')
+                    RETURNING pli_id
+                """, [testMasterPlanId, testIterationId, testUserId, "${TEST_DATA_PREFIX}PlanInstance_Controls", planStatusId])
+                testPlanInstanceId = planInstanceResult?.pli_id as UUID
+                
+                // Create test master sequence
+                def sequenceResult = sql.firstRow("""
+                    INSERT INTO sequences_master_sqm (plm_id, sqm_name, sqm_description, sqm_order, created_by, updated_by)
+                    VALUES (?, ?, 'Sequence for control testing', 1, 'system', 'system')
+                    RETURNING sqm_id
+                """, [testMasterPlanId, "${TEST_DATA_PREFIX}Sequence_Controls"])
+                testMasterSequenceId = sequenceResult?.sqm_id as UUID
+                createdSequences.add(testMasterSequenceId)
+                
+                // Create test sequence instance
+                def sequenceInstanceResult = sql.firstRow("""
+                    INSERT INTO sequences_instance_sqi (sqm_id, pli_id, sqi_name, sqi_description, sqi_order, sqi_status, created_by, updated_by)
+                    VALUES (?, ?, ?, 'Instance for control testing', 1, ?, 'system', 'system')
+                    RETURNING sqi_id
+                """, [testMasterSequenceId, testPlanInstanceId, "${TEST_DATA_PREFIX}SequenceInstance_Controls", sequenceStatusId])
+                testSequenceInstanceId = sequenceInstanceResult?.sqi_id as Integer
+                
+                // Create test master phase
+                def phaseResult = sql.firstRow("""
+                    INSERT INTO phases_master_phm (sqm_id, phm_name, phm_description, phm_order, created_by, updated_by)
+                    VALUES (?, ?, 'Phase for control testing', 1, 'system', 'system')
+                    RETURNING phm_id
+                """, [testMasterSequenceId, "${TEST_DATA_PREFIX}Phase_Controls"])
+                testMasterPhaseId = phaseResult?.phm_id as UUID
+                createdPhases.add(testMasterPhaseId)
+                
+                // Create test phase instance
+                def phaseInstanceResult = sql.firstRow("""
+                    INSERT INTO phases_instance_phi (phm_id, sqi_id, phi_name, phi_description, phi_order, phi_status, created_by, updated_by)
+                    VALUES (?, ?, ?, 'Instance for control testing', 1, ?, 'system', 'system')
+                    RETURNING phi_id
+                """, [testMasterPhaseId, testSequenceInstanceId, "${TEST_DATA_PREFIX}PhaseInstance_Controls", phaseStatusId])
+                testPhaseInstanceId = phaseInstanceResult?.phi_id as UUID
+                
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to setup controls test data: ${e.message}", e)
+            }
+        }
+        
+        logProgress("Controls test data hierarchy created successfully")
     }
     
-    def responseCode = connection.responseCode
-    def response = responseCode < 400 ? 
-        jsonSlurper.parse(connection.inputStream) : 
-        jsonSlurper.parse(connection.errorStream)
+    /**
+     * Test 1: Create Master Control
+     */
+    void testCreateMasterControl() {
+        logProgress("Testing master control creation")
         
-    return [responseCode: responseCode, data: response]
-}
-
-/**
- * HTTP helper method for DELETE requests
- */
-def makeDeleteRequest(String baseUrl, String endpoint) {
-    def url = new URL("${baseUrl}/${endpoint}")
-    def connection = url.openConnection() as HttpURLConnection
-    connection.requestMethod = "DELETE"
-    connection.setRequestProperty("Authorization", AUTH_HEADER)
-    
-    def responseCode = connection.responseCode
-    def response = responseCode < 400 && connection.contentLength > 0 ? 
-        jsonSlurper.parse(connection.inputStream) : 
-        null
+        def testControlMasterData = [
+            phm_id: testMasterPhaseId.toString(),
+            ctm_name: "${TEST_DATA_PREFIX}Control_Master",
+            ctm_description: "Control created by integration test",
+            ctm_type: "TECHNICAL",
+            ctm_is_critical: true
+        ]
         
-    return [responseCode: responseCode, data: response]
-}
-
-/**
- * Clean up test data
- */
-def cleanupTestData() {
-    def sql = Sql.newInstance(dbUrl, dbUser, dbPassword, 'org.postgresql.Driver')
-    try {
-        println "\n🧹 Cleaning up test data..."
+        HttpResponse response = httpClient.post("/controls/master", testControlMasterData)
         
-        // Delete in correct order (instances before masters)
-        sql.execute("DELETE FROM control_instance_cti WHERE cti_id = ?", [testControlInstanceId])
-        sql.execute("DELETE FROM control_master_ctm WHERE ctm_id = ?", [testControlMasterId])
-        sql.execute("DELETE FROM phases_instance_phi WHERE phi_id = ?", [testPhaseInstanceId])
-        sql.execute("DELETE FROM phases_master_phm WHERE phm_id = ?", [testMasterPhaseId])
-        sql.execute("DELETE FROM sequences_instance_sqi WHERE sqi_id = ?", [testSequenceInstanceId])
-        sql.execute("DELETE FROM sequences_master_sqm WHERE sqm_id = ?", [testMasterSequenceId])
-        sql.execute("DELETE FROM plans_instance_pli WHERE pli_id = ?", [testPlanInstanceId])
-        sql.execute("DELETE FROM iterations_ite WHERE ite_id = ?", [testIterationId])
-        sql.execute("DELETE FROM plans_master_plm WHERE plm_id = ?", [testMasterPlanId])  
-        sql.execute("DELETE FROM migrations_mig WHERE mig_id = ?", [testMigrationId])
+        validateApiSuccess(response, 201)
         
-        println "✅ Test data cleaned up"
-    } catch (Exception e) {
-        println "⚠️  Failed to cleanup test data: ${e.message}"
-    } finally {
-        sql?.close()
+        def responseData = response.jsonBody as Map
+        assert (responseData.ctm_name as String) == testControlMasterData.ctm_name
+        assert (responseData.phm_id as String) == testMasterPhaseId.toString()
+        assert (responseData.ctm_type as String) == "TECHNICAL"
+        assert (responseData.ctm_is_critical as Boolean) == true
+        
+        testControlMasterId = UUID.fromString(responseData.ctm_id as String)
+        
+        logProgress("Master control created successfully: ${testControlMasterId}")
     }
-}
-
-// Setup test data
-setupTestData(dbUrl, dbUser, dbPassword)
-
-// Test Data
-def testControlMasterData = [
-    phm_id: testMasterPhaseId,
-    ctm_name: "Integration Test Control", 
-    ctm_description: "Control created by integration test",
-    ctm_type: "TECHNICAL",
-    ctm_validation_rule: "MANUAL"
-]
-
-// Main test execution
-println "============================================"
-println "Controls API Integration Test (ADR-036)"
-println "============================================"
-println "Base URL: ${BASE_URL}"
-println ""
-
-try {
-    // Test 1: Create Master Control
-    println "\n🧪 Test 1: Create Master Control"
-    def createResponse = makePostRequest(BASE_URL, 'controls/master', testControlMasterData)
     
-    assert createResponse.responseCode == 201 : "Expected 201, got ${createResponse.responseCode}"
-    assert createResponse.data.ctm_name == 'Integration Test Control'
-    assert createResponse.data.phm_id == testMasterPhaseId.toString()
-    def newControlMasterId = UUID.fromString(createResponse.data.ctm_id as String)
-    testControlMasterId = newControlMasterId
-    println "✅ Master control created: ${newControlMasterId}"
+    /**
+     * Test 2: Get All Master Controls
+     */
+    void testGetAllMasterControls() {
+        logProgress("Testing retrieval of all master controls")
+        
+        HttpResponse response = httpClient.get("/controls/master")
+        
+        validateApiSuccess(response)
+        
+        def responseData = response.jsonBody
+        assert responseData instanceof List
+        
+        def createdControl = responseData.find { ((it as Map).ctm_id as String) == testControlMasterId.toString() }
+        assert createdControl != null : "Created control should be found in master controls list"
+        assert ((createdControl as Map).ctm_name as String).contains(TEST_DATA_PREFIX)
+        
+        logProgress("Retrieved ${responseData.size()} master controls successfully")
+    }
     
-    // Test 2: Get All Master Controls  
-    println "\n🧪 Test 2: Get All Master Controls"
-    def listResponse = makeGetRequest(BASE_URL, 'controls/master')
+    /**
+     * Test 3: Get Master Control by ID
+     */
+    void testGetMasterControlById() {
+        logProgress("Testing retrieval of master control by ID")
+        
+        HttpResponse response = httpClient.get("/controls/master/${testControlMasterId}")
+        
+        validateApiSuccess(response)
+        
+        def responseData = response.jsonBody as Map
+        assert (responseData.ctm_id as String) == testControlMasterId.toString()
+        assert (responseData.ctm_name as String).contains(TEST_DATA_PREFIX)
+        assert (responseData.ctm_type as String) == "TECHNICAL"
+        assert (responseData.phm_id as String) == testMasterPhaseId.toString()
+        
+        logProgress("Master control retrieved by ID successfully")
+    }
     
-    assert listResponse.responseCode == 200 : "Expected 200, got ${listResponse.responseCode}"
-    assert listResponse.data instanceof List
-    assert listResponse.data.find { it.ctm_id == newControlMasterId.toString() } != null
-    println "✅ Retrieved ${listResponse.data.size()} master controls"
+    /**
+     * Test 4: Update Master Control
+     */
+    void testUpdateMasterControl() {
+        logProgress("Testing master control update")
+        
+        def updateData = [
+            ctm_name: "${TEST_DATA_PREFIX}Control_Updated",
+            ctm_description: "Updated control description",
+            ctm_is_critical: false
+        ]
+        
+        HttpResponse response = httpClient.put("/controls/master/${testControlMasterId}", updateData)
+        
+        validateApiSuccess(response)
+        
+        def responseData = response.jsonBody as Map
+        assert (responseData.ctm_name as String) == updateData.ctm_name
+        assert (responseData.ctm_description as String) == updateData.ctm_description
+        assert (responseData.ctm_is_critical as Boolean) == false
+        
+        logProgress("Master control updated successfully")
+    }
     
-    // Test 3: Get Master Control by ID
-    println "\n🧪 Test 3: Get Master Control by ID"
-    def getResponse = makeGetRequest(BASE_URL, "controls/master/${newControlMasterId}")
+    /**
+     * Test 5: Create Control Instance
+     */
+    void testCreateControlInstance() {
+        logProgress("Testing control instance creation")
+        
+        def instanceData = [
+            ctm_id: testControlMasterId.toString(),
+            phi_id: testPhaseInstanceId.toString(),
+            cti_name: "${TEST_DATA_PREFIX}Control_Instance",
+            cti_description: "Instance created by integration test",
+            cti_type: "TECHNICAL",
+            cti_status: "PENDING"
+        ]
+        
+        HttpResponse response = httpClient.post("/controls/instance", instanceData)
+        
+        validateApiSuccess(response, 201)
+        
+        def responseData = response.jsonBody as Map
+        assert (responseData.ctm_id as String) == testControlMasterId.toString()
+        assert (responseData.phi_id as String) == testPhaseInstanceId.toString()
+        assert (responseData.cti_name as String) == instanceData.cti_name
+        assert (responseData.cti_type as String) == "TECHNICAL"
+        
+        testControlInstanceId = UUID.fromString(responseData.cti_id as String)
+        
+        logProgress("Control instance created successfully: ${testControlInstanceId}")
+    }
     
-    assert getResponse.responseCode == 200 : "Expected 200, got ${getResponse.responseCode}"
-    assert getResponse.data.ctm_id == newControlMasterId.toString()
-    assert getResponse.data.ctm_name == 'Integration Test Control'
-    println "✅ Retrieved master control by ID"
+    /**
+     * Test 6: Get Control Instances with Filtering
+     */
+    void testGetControlInstancesWithFiltering() {
+        logProgress("Testing filtered retrieval of control instances")
+        
+        HttpResponse response = httpClient.get("/controls", ["phaseInstanceId": testPhaseInstanceId.toString()])
+        
+        validateApiSuccess(response)
+        
+        def responseData = response.jsonBody
+        assert responseData instanceof List
+        
+        def createdInstance = responseData.find { ((it as Map).cti_id as String) == testControlInstanceId.toString() }
+        assert createdInstance != null : "Created control instance should be found in filtered list"
+        assert ((createdInstance as Map).cti_name as String).contains(TEST_DATA_PREFIX)
+        
+        logProgress("Filtered control instances retrieved successfully")
+    }
     
-    // Test 4: Update Master Control
-    println "\n🧪 Test 4: Update Master Control"
-    def updateResponse = makePutRequest(BASE_URL, "controls/master/${newControlMasterId}", [
-        ctm_name: 'Updated Test Control',
-        ctm_description: 'Updated control description'
-    ])
+    /**
+     * Test 7: Get Control Instance by ID
+     */
+    void testGetControlInstanceById() {
+        logProgress("Testing retrieval of control instance by ID")
+        
+        HttpResponse response = httpClient.get("/controls/instance/${testControlInstanceId}")
+        
+        validateApiSuccess(response)
+        
+        def responseData = response.jsonBody as Map
+        assert (responseData.cti_id as String) == testControlInstanceId.toString()
+        assert (responseData.cti_name as String).contains(TEST_DATA_PREFIX)
+        assert (responseData.ctm_id as String) == testControlMasterId.toString()
+        
+        logProgress("Control instance retrieved by ID successfully")
+    }
     
-    assert updateResponse.responseCode == 200 : "Expected 200, got ${updateResponse.responseCode}"
-    assert updateResponse.data.ctm_name == 'Updated Test Control'
-    println "✅ Master control updated"
+    /**
+     * Test 8: Update Control Instance
+     */
+    void testUpdateControlInstance() {
+        logProgress("Testing control instance update")
+        
+        def updateData = [
+            cti_name: "${TEST_DATA_PREFIX}Control_Instance_Updated",
+            cti_description: "Updated instance description",
+            cti_status: "IN_PROGRESS"
+        ]
+        
+        HttpResponse response = httpClient.put("/controls/instance/${testControlInstanceId}", updateData)
+        
+        validateApiSuccess(response)
+        
+        def responseData = response.jsonBody as Map
+        assert (responseData.cti_name as String) == updateData.cti_name
+        assert (responseData.cti_description as String) == updateData.cti_description
+        
+        logProgress("Control instance updated successfully")
+    }
     
-    // Test 5: Create Control Instance
-    println "\n🧪 Test 5: Create Control Instance"
-    def instanceData = [
-        ctm_id: testControlMasterId.toString(),
-        phi_id: testPhaseInstanceId.toString(),
-        cti_name: 'Test Control Instance',
-        cti_description: 'Instance created by integration test',
-        cti_type: 'TECHNICAL',
-        cti_status: 'PENDING'
-    ]
-    def instanceResponse = makePostRequest(BASE_URL, 'controls/instance', instanceData)
+    /**
+     * Test 9: Validate Control Point
+     */
+    void testValidateControlPoint() {
+        logProgress("Testing control point validation")
+        
+        def validationData = [
+            validation_result: "PASSED",
+            validation_notes: "Test validation notes from integration test"
+        ]
+        
+        HttpResponse response = httpClient.post("/controls/instance/${testControlInstanceId}/validate", validationData)
+        
+        validateApiSuccess(response)
+        
+        def responseData = response.jsonBody as Map
+        assert (responseData.success as Boolean) == true : "Validation should succeed"
+        
+        logProgress("Control point validation completed successfully")
+    }
     
-    assert instanceResponse.responseCode == 201 : "Expected 201, got ${instanceResponse.responseCode}"
-    assert instanceResponse.data.ctm_id == testControlMasterId.toString()
-    assert instanceResponse.data.cti_name == 'Test Control Instance'
-    testControlInstanceId = UUID.fromString(instanceResponse.data.cti_id as String)
-    println "✅ Control instance created: ${testControlInstanceId}"
+    /**
+     * Test 10: Error Handling - Invalid UUID
+     */
+    void testErrorHandlingInvalidUuid() {
+        logProgress("Testing error handling for invalid UUID")
+        
+        HttpResponse response = httpClient.get("/controls/master/invalid-uuid")
+        
+        validateApiError(response, 400)
+        
+        logProgress("Invalid UUID error handling validated")
+    }
     
-    // Test 6: Get Control Instances with Filtering
-    println "\n🧪 Test 6: Get Control Instances with Filtering"
-    def instancesResponse = makeGetRequest(BASE_URL, "controls?phaseInstanceId=${testPhaseInstanceId}")
+    /**
+     * Test 11: Error Handling - Not Found
+     */
+    void testErrorHandlingNotFound() {
+        logProgress("Testing error handling for non-existent control")
+        
+        UUID randomId = UUID.randomUUID()
+        HttpResponse response = httpClient.get("/controls/master/${randomId}")
+        
+        validateApiError(response, 404)
+        
+        logProgress("Not found error handling validated")
+    }
     
-    assert instancesResponse.responseCode == 200 : "Expected 200, got ${instancesResponse.responseCode}"
-    assert instancesResponse.data instanceof List
-    assert instancesResponse.data.find { it.cti_id == testControlInstanceId.toString() } != null
-    println "✅ Retrieved filtered control instances"
+    /**
+     * Test 12: Master Control Deletion
+     */
+    void testDeleteMasterControl() {
+        logProgress("Testing master control deletion")
+        
+        // First delete the instance to avoid foreign key constraint
+        if (testControlInstanceId) {
+            HttpResponse deleteInstanceResponse = httpClient.delete("/controls/instance/${testControlInstanceId}")
+            validateApiSuccess(deleteInstanceResponse, 204)
+            logProgress("Control instance deleted before master")
+        }
+        
+        HttpResponse response = httpClient.delete("/controls/master/${testControlMasterId}")
+        
+        validateApiSuccess(response, 204)
+        
+        // Verify deletion by trying to get the control
+        HttpResponse getResponse = httpClient.get("/controls/master/${testControlMasterId}")
+        validateApiError(getResponse, 404)
+        
+        logProgress("Master control deletion validated")
+    }
     
-    // Test 7: Get Control Instance by ID
-    println "\n🧪 Test 7: Get Control Instance by ID"
-    def getInstanceResponse = makeGetRequest(BASE_URL, "controls/instance/${testControlInstanceId}")
+    /**
+     * Custom cleanup for controls-specific test data
+     */
+    @Override
+    def cleanup() {
+        logProgress("Cleaning up controls test data")
+        
+        try {
+            // Clean up control instances and masters manually if they exist
+            DatabaseUtil.withSql { sql ->
+                if (testControlInstanceId) {
+                    sql.execute("DELETE FROM controls_instance_cti WHERE cti_id = ?", [testControlInstanceId])
+                }
+                if (testControlMasterId) {
+                    sql.execute("DELETE FROM controls_master_ctm WHERE ctm_id = ?", [testControlMasterId])
+                }
+                if (testPhaseInstanceId) {
+                    sql.execute("DELETE FROM phases_instance_phi WHERE phi_id = ?", [testPhaseInstanceId])
+                }
+                if (testSequenceInstanceId) {
+                    sql.execute("DELETE FROM sequences_instance_sqi WHERE sqi_id = ?", [testSequenceInstanceId])
+                }
+                if (testPlanInstanceId) {
+                    sql.execute("DELETE FROM plans_instance_pli WHERE pli_id = ?", [testPlanInstanceId])
+                }
+                if (testIterationId) {
+                    sql.execute("DELETE FROM iterations_ite WHERE ite_id = ?", [testIterationId])
+                }
+            }
+        } catch (Exception e) {
+            println "⚠️ Error during controls-specific cleanup: ${e.message}"
+        }
+        
+        // Call parent cleanup for standard cleanup
+        super.cleanup()
+    }
     
-    assert getInstanceResponse.responseCode == 200 : "Expected 200, got ${getInstanceResponse.responseCode}"
-    assert getInstanceResponse.data.cti_id == testControlInstanceId.toString()
-    assert getInstanceResponse.data.cti_name == 'Test Control Instance'
-    println "✅ Retrieved control instance by ID"
-    
-    // Test 8: Update Control Instance
-    println "\n🧪 Test 8: Update Control Instance"
-    def updateInstanceResponse = makePutRequest(BASE_URL, "controls/instance/${testControlInstanceId}", [
-        cti_name: 'Updated Control Instance',
-        cti_description: 'Updated instance description',
-        cti_status: 'IN_PROGRESS'
-    ])
-    
-    assert updateInstanceResponse.responseCode == 200 : "Expected 200, got ${updateInstanceResponse.responseCode}"
-    assert updateInstanceResponse.data.cti_name == 'Updated Control Instance'
-    println "✅ Control instance updated"
-    
-    // Test 9: Validate Control Point
-    println "\n🧪 Test 9: Validate Control Point"
-    def validateResponse = makePostRequest(BASE_URL, "controls/instance/${testControlInstanceId}/validate", [
-        validation_result: 'PASSED',
-        validation_notes: 'Test validation notes'
-    ])
-    
-    assert validateResponse.responseCode == 200 : "Expected 200, got ${validateResponse.responseCode}"
-    assert validateResponse.data.success == true
-    println "✅ Control point validation completed"
-    
-    // Test 10: Error Handling - Invalid UUID
-    println "\n🧪 Test 10: Error Handling - Invalid UUID"
-    def errorResponse = makeGetRequest(BASE_URL, "controls/master/invalid-uuid")
-    assert errorResponse.responseCode == 400 : "Expected 400, got ${errorResponse.responseCode}"
-    println "✅ Invalid UUID handled correctly"
-    
-    // Test 11: Error Handling - Not Found
-    println "\n🧪 Test 11: Error Handling - Not Found"
-    def randomId = UUID.randomUUID()
-    def notFoundResponse = makeGetRequest(BASE_URL, "controls/master/${randomId}")
-    assert notFoundResponse.responseCode == 404 : "Expected 404, got ${notFoundResponse.responseCode}"
-    println "✅ Not found handled correctly"
-    
-    println "\n============================================"
-    println "✅ All tests passed!"
-    println "============================================"
-    
-} catch (Exception e) {
-    println "\n❌ Test failed: ${e.class.simpleName}: ${e.message}"
-    e.printStackTrace()
-    System.exit(1)
-} finally {
-    cleanupTestData()
+    /**
+     * Main test execution method - runs all tests in sequence
+     */
+    void runAllTests() {
+        try {
+            testCreateMasterControl()
+            testGetAllMasterControls()
+            testGetMasterControlById()
+            testUpdateMasterControl()
+            testCreateControlInstance()
+            testGetControlInstancesWithFiltering()
+            testGetControlInstanceById()
+            testUpdateControlInstance()
+            testValidateControlPoint()
+            testErrorHandlingInvalidUuid()
+            testErrorHandlingNotFound()
+            testDeleteMasterControl()
+            
+            println "\n============================================"
+            println "✅ All Controls API integration tests passed!"
+            println "============================================"
+            
+        } catch (Exception e) {
+            println "\n❌ Controls API integration test failed: ${e.class.simpleName}: ${e.message}"
+            throw e
+        }
+    }
 }
