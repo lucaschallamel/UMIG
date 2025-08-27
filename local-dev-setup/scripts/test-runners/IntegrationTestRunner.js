@@ -49,6 +49,9 @@ export class IntegrationTestRunner extends BaseTestRunner {
       "InstructionsApiIntegrationTestWorking.groovy",
       "stepViewApiIntegrationTest.groovy",
 
+      // US-056-A Service Layer Standardization
+      "StepDataTransformationServiceIntegrationTest.groovy",
+
       // US-031 Admin GUI Complete Integration
       "AdminGuiAllEndpointsTest.groovy",
     ];
