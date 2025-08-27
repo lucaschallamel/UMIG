@@ -473,14 +473,9 @@ describe('US-039: Enhanced Email Notifications - MailHog Integration', () => {
                                             <p>Status: ${stepData.stepStatus}</p>
                                             <p>Migration: ${stepData.migrationCode}</p>
                                             <p>Iteration: ${stepData.iterationCode}</p>
-                                            ${stepData.instructions ? \`
-                                                <h3>Instructions:</h3>
-                                                <ul>
-                                                    \${stepData.instructions.map(inst => \`<li>\${inst}</li>\`).join('')}
-                                                </ul>
-                                            \` : ''}
+                                            ${stepData.instructions ? '<h3>Instructions:</h3><ul>' + stepData.instructions.map(inst => '<li>' + inst + '</li>').join('') + '</ul>' : ''}
                                             <p>
-                                                <a href="https://confluence.localhost:8090/spaces/UMIG/pages/viewpage.action?mig=\${stepData.migrationCode}&ite=\${stepData.iterationCode}&stepid=\${stepData.stepCode}" class="button">
+                                                <a href="https://confluence.localhost:8090/spaces/UMIG/pages/viewpage.action?mig=${stepData.migrationCode}&ite=${stepData.iterationCode}&stepid=${stepData.stepCode}" class="button">
                                                     View in Confluence
                                                 </a>
                                             </p>

@@ -3,6 +3,7 @@ package umig.repository
 import umig.utils.DatabaseUtil
 import umig.utils.EmailService
 import umig.utils.AuthenticationService
+import umig.service.StepDataTransformationService
 // Note: Audit logging is temporarily disabled
 // import umig.repository.InstructionRepository  // Not used
 // import umig.repository.AuditLogRepository      // Temporarily disabled
@@ -13,6 +14,12 @@ import groovy.sql.Sql
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.
  */
 class StepRepository {
+    
+    /**
+     * Service for transforming database rows to StepDataTransferObject DTOs
+     * Following US-056-A Service Layer Standardization pattern
+     */
+    private final StepDataTransformationService transformationService = new StepDataTransformationService()
     /**
      * Fetches master STEP data by code and number.
      */
@@ -1710,7 +1717,7 @@ class StepRepository {
                     limit: limit,
                     offset: offset,
                     hasMore: (offset + limit) < totalCount,
-                    pageCount: Math.ceil((totalCount / limit) as Double) as Integer
+                    pageCount: Math.ceil(totalCount / (double) limit) as Integer
                 ],
                 filters: filters,
                 sorting: [
@@ -2215,5 +2222,393 @@ class StepRepository {
             migrationId: row.mig_id,
             migrationName: row.mig_name
         ] as Map
+    }
+    
+    // ========================================
+    // US-056-A: DTO-BASED REPOSITORY METHODS
+    // ========================================
+    
+    /**
+     * Import the transformation service for DTO conversion
+     */
+    private static getTransformationService() {
+        return new umig.service.StepDataTransformationService()
+    }
+    
+    /**
+     * Find step by ID and return as StepDataTransferObject
+     * @param stepId Step master or instance ID
+     * @return StepDataTransferObject or null if not found
+     */
+    def findByIdAsDTO(UUID stepId) {
+        DatabaseUtil.withSql { sql ->
+            def row = sql.firstRow(buildDTOBaseQuery() + '''
+                WHERE (stm.stm_id = :stepId OR sti.sti_id = :stepId)
+                AND sti.sti_is_active = true
+            ''', [stepId: stepId])
+            
+            return row ? transformationService.fromDatabaseRow(row) : null
+        }
+    }
+    
+    /**
+     * Find step by instance ID and return as StepDataTransferObject  
+     * @param stepInstanceId Step instance ID
+     * @return StepDataTransferObject or null if not found
+     */
+    def findByInstanceIdAsDTO(UUID stepInstanceId) {
+        DatabaseUtil.withSql { sql ->
+            def row = sql.firstRow(buildDTOBaseQuery() + '''
+                WHERE sti.sti_id = :stepInstanceId
+                AND sti.sti_is_active = true
+            ''', [stepInstanceId: stepInstanceId])
+            
+            return row ? transformationService.fromDatabaseRow(row) : null
+        }
+    }
+    
+    /**
+     * Find all steps in a phase and return as StepDataTransferObject list
+     * @param phaseId Phase ID (use instance ID for proper hierarchical filtering)
+     * @return List of StepDataTransferObjects
+     */
+    def findByPhaseIdAsDTO(UUID phaseId) {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows(buildDTOBaseQuery() + '''
+                WHERE (phi.phi_id = :phaseId OR stm.phm_id = :phaseId)
+                AND sti.sti_is_active = true
+                ORDER BY stm.stm_order, sti.sti_created_date
+            ''', [phaseId: phaseId])
+            
+            return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Find all steps in a migration and return as StepDataTransferObject list
+     * @param migrationId Migration ID  
+     * @return List of StepDataTransferObjects
+     */
+    def findByMigrationIdAsDTO(UUID migrationId) {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows(buildDTOBaseQuery() + '''
+                WHERE mig.mig_id = :migrationId
+                AND sti.sti_is_active = true
+                ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_order, sti.sti_created_date
+            ''', [migrationId: migrationId])
+            
+            return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Find all steps in an iteration and return as StepDataTransferObject list
+     * @param iterationId Iteration ID
+     * @return List of StepDataTransferObjects  
+     */
+    def findByIterationIdAsDTO(UUID iterationId) {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows(buildDTOBaseQuery() + '''
+                WHERE ite.ite_id = :iterationId
+                AND sti.sti_is_active = true
+                ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_order, sti.sti_created_date
+            ''', [iterationId: iterationId])
+            
+            return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Find steps by status and return as StepDataTransferObject list
+     * @param status Step status (PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED)
+     * @param limit Maximum number of results (default: 100)
+     * @return List of StepDataTransferObjects
+     */
+    def findByStatusAsDTO(String status, int limit = 100) {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows(buildDTOBaseQuery() + '''
+                WHERE sti.sti_status = :status
+                AND sti.sti_is_active = true
+                ORDER BY sti.sti_priority DESC, sti.sti_last_modified_date DESC
+                LIMIT :limit
+            ''', [status: status, limit: limit])
+            
+            return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Find steps assigned to a team and return as StepDataTransferObject list
+     * @param teamId Team ID
+     * @return List of StepDataTransferObjects
+     */
+    def findByAssignedTeamIdAsDTO(UUID teamId) {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows(buildDTOBaseQuery() + '''
+                WHERE tms.tms_id = :teamId
+                AND sti.sti_is_active = true
+                ORDER BY sti.sti_priority DESC, sti.sti_status, sti.sti_created_date
+            ''', [teamId: teamId])
+            
+            return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Find steps with active comments and return as StepDataTransferObject list
+     * @param limit Maximum number of results (default: 50)  
+     * @return List of StepDataTransferObjects
+     */
+    def findStepsWithActiveCommentsAsDTO(int limit = 50) {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows(buildDTOBaseQuery() + '''
+                WHERE comment_count > 0
+                AND sti.sti_is_active = true
+                ORDER BY last_comment_date DESC
+                LIMIT :limit
+            ''', [limit: limit])
+            
+            return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Build the comprehensive base query for DTO population
+     * This query includes all fields needed for StepDataTransferObject construction
+     * @return SQL query string
+     */
+    private String buildDTOBaseQuery() {
+        return '''
+            SELECT 
+                -- Core step identification
+                stm.stm_id,
+                sti.sti_id,
+                COALESCE(sti.sti_name, stm.stm_name) as stm_name,
+                COALESCE(sti.sti_description, stm.stm_description) as stm_description,
+                sti.sti_status as step_status,
+                
+                -- Team assignment
+                tms.tms_id,
+                tms.tms_name as team_name,
+                
+                -- Hierarchical context  
+                mig.mig_id as migration_id,
+                mig.mig_code as migration_code,
+                ite.ite_id as iteration_id,
+                ite.ite_code as iteration_code,
+                sqm.sqm_id as sequence_id,
+                phm.phm_id as phase_id,
+                
+                -- Temporal fields
+                sti.sti_created_date as created_date,
+                sti.sti_last_modified_date as last_modified_date,
+                sti.sti_is_active as is_active,
+                sti.sti_priority as priority,
+                
+                -- Extended metadata
+                stt.stt_code as step_type,
+                stt.stt_name as step_category,
+                stm.stm_estimated_duration as estimated_duration,
+                sti.sti_actual_duration as actual_duration,
+                
+                -- Progress tracking with computed values
+                COALESCE(dep_counts.dependency_count, 0) as dependency_count,
+                COALESCE(dep_counts.completed_dependencies, 0) as completed_dependencies,
+                COALESCE(inst_counts.instruction_count, 0) as instruction_count,
+                COALESCE(inst_counts.completed_instructions, 0) as completed_instructions,
+                
+                -- Comment integration
+                COALESCE(comment_counts.comment_count, 0) as comment_count,
+                CASE WHEN comment_counts.comment_count > 0 THEN true ELSE false END as has_active_comments,
+                comment_counts.last_comment_date
+                
+            FROM steps_instance_sti sti
+            JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+            JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
+            
+            -- Hierarchical joins
+            JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+            JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+            
+            -- Instance hierarchy for proper filtering
+            LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+            LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+            LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+            
+            -- Migration and iteration context
+            LEFT JOIN migrations_mig mig ON pli.mig_id = mig.mig_id
+            LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+            
+            -- Team assignment
+            LEFT JOIN teams_tms tms ON sti.assigned_team_id = tms.tms_id
+            
+            -- Dependency counts subquery
+            LEFT JOIN (
+                SELECT 
+                    sti_id,
+                    COUNT(*) as dependency_count,
+                    SUM(CASE WHEN dependency_status = 'COMPLETED' THEN 1 ELSE 0 END) as completed_dependencies
+                FROM step_dependencies_sde 
+                WHERE is_active = true
+                GROUP BY sti_id
+            ) dep_counts ON sti.sti_id = dep_counts.sti_id
+            
+            -- Instruction counts subquery
+            LEFT JOIN (
+                SELECT 
+                    sti_id,
+                    COUNT(*) as instruction_count,
+                    SUM(CASE WHEN ini_status = 'COMPLETED' THEN 1 ELSE 0 END) as completed_instructions
+                FROM instructions_instance_ini
+                WHERE ini_is_active = true
+                GROUP BY sti_id
+            ) inst_counts ON sti.sti_id = inst_counts.sti_id
+            
+            -- Comment counts and latest comment date
+            LEFT JOIN (
+                SELECT 
+                    sti_id,
+                    COUNT(*) as comment_count,
+                    MAX(created_at) as last_comment_date
+                FROM step_instance_comments_sic
+                WHERE is_active = true
+                GROUP BY sti_id
+            ) comment_counts ON sti.sti_id = comment_counts.sti_id
+        '''
+    }
+    
+    /**
+     * Find steps with filters and return as StepDataTransferObject list with pagination
+     * Enhanced version of existing findMasterStepsWithFilters that returns DTOs
+     * @param filters Map of filter parameters  
+     * @param pageNumber Page number (1-based)
+     * @param pageSize Number of items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Map with DTO data, pagination info, and filters
+     */
+    def findStepsWithFiltersAsDTO(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = 'created_date', String sortDirection = 'desc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = [:]
+            
+            // Build dynamic WHERE clause
+            if (filters.migrationId) {
+                whereConditions << "mig.mig_id = :migrationId"
+                params.migrationId = UUID.fromString(filters.migrationId as String)
+            }
+            
+            if (filters.iterationId) {
+                whereConditions << "ite.ite_id = :iterationId"
+                params.iterationId = UUID.fromString(filters.iterationId as String)
+            }
+            
+            if (filters.assignedTeamId) {
+                whereConditions << "tms.tms_id = :assignedTeamId"
+                params.assignedTeamId = UUID.fromString(filters.assignedTeamId as String)
+            }
+            
+            if (filters.status) {
+                whereConditions << "sti.sti_status = :status"
+                params.status = filters.status as String
+            }
+            
+            if (filters.stepType) {
+                whereConditions << "stt.stt_code = :stepType"
+                params.stepType = filters.stepType as String
+            }
+            
+            if (filters.priority) {
+                whereConditions << "sti.sti_priority = :priority"
+                params.priority = Integer.parseInt(filters.priority as String)
+            }
+            
+            if (filters.hasActiveComments) {
+                if (filters.hasActiveComments as Boolean) {
+                    whereConditions << "comment_counts.comment_count > 0"
+                } else {
+                    whereConditions << "(comment_counts.comment_count IS NULL OR comment_counts.comment_count = 0)"
+                }
+            }
+            
+            // Always filter for active step instances
+            whereConditions << "sti.sti_is_active = true"
+            
+            def whereClause = whereConditions ? "WHERE ${whereConditions.join(' AND ')}" : ""
+            
+            // Build ORDER BY clause with safe field mapping
+            def sortFieldMap = [
+                'created_date': 'sti.sti_created_date',
+                'modified_date': 'sti.sti_last_modified_date', 
+                'name': 'stm_name',
+                'status': 'sti.sti_status',
+                'priority': 'sti.sti_priority',
+                'team': 'tms.tms_name'
+            ]
+            
+            def actualSortField = sortFieldMap[sortField] ?: 'sti.sti_created_date'
+            def actualSortDirection = (sortDirection?.toLowerCase() == 'asc') ? 'ASC' : 'DESC'
+            def orderByClause = "ORDER BY ${actualSortField} ${actualSortDirection}"
+            
+            // Execute count query for pagination
+            def countQuery = """
+                SELECT COUNT(DISTINCT sti.sti_id)
+                FROM steps_instance_sti sti
+                JOIN steps_master_stm stm ON sti.stm_id = stm.stm_id
+                JOIN step_types_stt stt ON stm.stt_code = stt.stt_code
+                JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                LEFT JOIN phases_instance_phi phi ON sti.phi_id = phi.phi_id
+                LEFT JOIN sequences_instance_sqi sqi ON phi.sqi_id = sqi.sqi_id
+                LEFT JOIN plans_instance_pli pli ON sqi.pli_id = pli.pli_id
+                LEFT JOIN migrations_mig mig ON pli.mig_id = mig.mig_id
+                LEFT JOIN iterations_ite ite ON pli.ite_id = ite.ite_id
+                LEFT JOIN teams_tms tms ON sti.assigned_team_id = tms.tms_id
+                LEFT JOIN (
+                    SELECT sti_id, COUNT(*) as comment_count
+                    FROM step_instance_comments_sic
+                    WHERE is_active = true
+                    GROUP BY sti_id
+                ) comment_counts ON sti.sti_id = comment_counts.sti_id
+                ${whereClause}
+            """
+            
+            def totalCount = sql.firstRow(countQuery, params)[0] as Integer
+            def totalPages = Math.ceil(totalCount / (double) pageSize) as Integer
+            
+            // Execute main query with pagination  
+            def offset = (pageNumber - 1) * pageSize
+            params.limit = pageSize
+            params.offset = offset
+            
+            def dataQuery = buildDTOBaseQuery() + """
+                ${whereClause}
+                ${orderByClause}
+                LIMIT :limit OFFSET :offset
+            """
+            
+            def rows = sql.rows(dataQuery, params)
+            def dtos = transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+            
+            return [
+                data: dtos,
+                pagination: [
+                    currentPage: pageNumber,
+                    pageSize: pageSize,
+                    totalCount: totalCount,
+                    totalPages: totalPages,
+                    hasNextPage: pageNumber < totalPages,
+                    hasPreviousPage: pageNumber > 1
+                ],
+                filters: filters,
+                sorting: [
+                    field: sortField,
+                    direction: sortDirection
+                ]
+            ]
+        }
     }
 }
