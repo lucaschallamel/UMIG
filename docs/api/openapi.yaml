@@ -6448,7 +6448,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
+                $ref: "#/components/schemas/Error"
               example:
                 error: "VALIDATION_ERROR"
                 message: "Environment parameter must be 2-5 alphanumeric characters"
@@ -6458,7 +6458,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
+                $ref: "#/components/schemas/Error"
               example:
                 error: "NOT_FOUND"
                 message: "URL configuration not found for environment: PROD"
@@ -10217,173 +10217,7 @@ components:
             message: "Invalid migration ID - migration does not exist"
             sqlState: "23503"
 
-  responses:
-    Unauthorized:
-      description: Unauthorized
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-    Forbidden:
-      description: Access to the resource is forbidden.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-    NotFound:
-      description: The specified resource was not found.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-    BadRequest:
-      description: |
-        Invalid input, object invalid. Common causes include invalid UUID format, invalid pagination parameters, 
-        invalid date format, or search term too long. Also includes PostgreSQL constraint violations and data validation errors.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-          examples:
-            invalidUuid:
-              summary: Invalid UUID format
-              value:
-                error: "Invalid migration UUID"
-            invalidPagination:
-              summary: Invalid pagination parameters
-              value:
-                error: "Invalid page number format"
-            invalidDate:
-              summary: Invalid date format
-              value:
-                error: "Invalid dateFrom format. Use YYYY-MM-DD"
-            searchTooShort:
-              summary: Search term too short
-              value:
-                error: "Search term too short (min 3 characters)"
-            searchTooLong:
-              summary: Search term too long
-              value:
-                error: "Search term too long (max 100 characters)"
-            invalidSortField:
-              summary: Invalid sort field for iterations
-              value:
-                error: "Invalid sort field. Allowed: ite_id, ite_name, itt_code, ite_static_cutover_date, ite_dynamic_cutover_date, ite_status, migration_name, master_plan_name, created_at, updated_at"
-            invalidMigrationSortField:
-              summary: Invalid sort field for migrations
-              value:
-                error: "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
-            invalidStatusName:
-              summary: Invalid status name for migration
-              value:
-                error: "Invalid status name: INVALID_STATUS"
-            invalidPeriod:
-              summary: Invalid dashboard period
-              value:
-                error: "Invalid period. Must be: day, week, month, or quarter"
-            invalidDateFormat:
-              summary: Invalid date format in request body
-              value:
-                error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
-            invalidPageSize:
-              summary: Invalid page size format
-              value:
-                error: "Invalid page size format"
-            invalidTeamId:
-              summary: Invalid team ID format
-              value:
-                error: "Invalid team ID format"
-            invalidOwnerId:
-              summary: Invalid owner ID format
-              value:
-                error: "Invalid owner ID format"
-            migrationNameRequired:
-              summary: Missing required migration name
-              value:
-                error: "Migration name is required"
-            noUsersExist:
-              summary: No users exist for auto-assignment
-              value:
-                error: "No users exist in the system. Cannot create migration without owner."
-            defaultPlanningNotFound:
-              summary: Default planning status not found
-              value:
-                error: "Default PLANNING status for Migration not found in database"
-            invalidJsonFormat:
-              summary: Invalid JSON in request body
-              value:
-                error: "Invalid JSON format in request body"
-            bulkMigrationIdsRequired:
-              summary: Bulk operation missing migration IDs
-              value:
-                error: "migrationIds is required and must be an array"
-            invalidBulkFormat:
-              summary: Invalid bulk export format
-              value:
-                error: "Invalid format. Must be 'json' or 'csv'"
-            bulkStatusRequired:
-              summary: Bulk update missing new status
-              value:
-                error: "newStatus is required"
-            hierarchicalPathErrors:
-              summary: Hierarchical endpoint validation errors
-              value:
-                error: "Invalid iteration UUID"
-            # PostgreSQL-specific error examples
-            foreignKeyViolation:
-              summary: Foreign key constraint violation (SQL State 23503)
-              value:
-                error: "Foreign key constraint violation: Referenced sequence does not exist"
-                sqlState: "23503"
-            checkConstraintViolation:
-              summary: Check constraint violation (SQL State 23514)
-              value:
-                error: "Check constraint violation: Invalid date range - end date must be after start date"
-                sqlState: "23514"
-            invalidStatusNamePhase:
-              summary: Invalid status name resolution for phases
-              value:
-                error: "Invalid status name 'INVALID_STATUS' for Phase entity type"
-            typeCastingError:
-              summary: PostgreSQL type casting error
-              value:
-                error: "Invalid UUID format for parameter phm_id: 'not-a-uuid'"
-    Conflict:
-      description: |
-        The request could not be completed due to a conflict with the current state of the resource. 
-        This includes unique constraint violations (SQL State 23505), foreign key violations (SQL State 23503),
-        and referential integrity issues.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
-          examples:
-            uniqueConstraint:
-              summary: Unique constraint violation
-              value:
-                error: "A migration with this name already exists"
-            foreignKeyViolation:
-              summary: Foreign key violation
-              value:
-                error: "Invalid owner user ID - user does not exist"
-            referentialIntegrity:
-              summary: Referential integrity on delete
-              value:
-                error: "Cannot delete migration - it has associated iterations or is referenced by other resources"
-            migrationDuplicateName:
-              summary: Duplicate migration name
-              value:
-                error: "A migration with this name already exists"
-            invalidOwnerUser:
-              summary: Invalid owner user reference
-              value:
-                error: "Invalid owner user ID - user does not exist"
-    InternalServerError:
-      description: An unexpected internal server error occurred.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Error"
+
 
     # ==================== NEW STEPS API V2.2.0 SCHEMAS ====================
 
@@ -10762,9 +10596,9 @@ components:
         phases:
           type: array
           items:
-            $ref: "#/components/schemas/PhaseProgress"
+            $ref: "#/components/schemas/StepPhaseProgress"
 
-    PhaseProgress:
+    StepPhaseProgress:
       type: object
       properties:
         phaseId:
@@ -10940,6 +10774,173 @@ components:
           type: string
           description: Error message for this step
 
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Access to the resource is forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: The specified resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    BadRequest:
+      description: |
+        Invalid input, object invalid. Common causes include invalid UUID format, invalid pagination parameters, 
+        invalid date format, or search term too long. Also includes PostgreSQL constraint violations and data validation errors.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            invalidUuid:
+              summary: Invalid UUID format
+              value:
+                error: "Invalid migration UUID"
+            invalidPagination:
+              summary: Invalid pagination parameters
+              value:
+                error: "Invalid page number format"
+            invalidDate:
+              summary: Invalid date format
+              value:
+                error: "Invalid dateFrom format. Use YYYY-MM-DD"
+            searchTooShort:
+              summary: Search term too short
+              value:
+                error: "Search term too short (min 3 characters)"
+            searchTooLong:
+              summary: Search term too long
+              value:
+                error: "Search term too long (max 100 characters)"
+            invalidSortField:
+              summary: Invalid sort field for iterations
+              value:
+                error: "Invalid sort field. Allowed: ite_id, ite_name, itt_code, ite_static_cutover_date, ite_dynamic_cutover_date, ite_status, migration_name, master_plan_name, created_at, updated_at"
+            invalidMigrationSortField:
+              summary: Invalid sort field for migrations
+              value:
+                error: "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
+            invalidStatusName:
+              summary: Invalid status name for migration
+              value:
+                error: "Invalid status name: INVALID_STATUS"
+            invalidPeriod:
+              summary: Invalid dashboard period
+              value:
+                error: "Invalid period. Must be: day, week, month, or quarter"
+            invalidDateFormat:
+              summary: Invalid date format in request body
+              value:
+                error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+            invalidPageSize:
+              summary: Invalid page size format
+              value:
+                error: "Invalid page size format"
+            invalidTeamId:
+              summary: Invalid team ID format
+              value:
+                error: "Invalid team ID format"
+            invalidOwnerId:
+              summary: Invalid owner ID format
+              value:
+                error: "Invalid owner ID format"
+            migrationNameRequired:
+              summary: Missing required migration name
+              value:
+                error: "Migration name is required"
+            noUsersExist:
+              summary: No users exist for auto-assignment
+              value:
+                error: "No users exist in the system. Cannot create migration without owner."
+            defaultPlanningNotFound:
+              summary: Default planning status not found
+              value:
+                error: "Default PLANNING status for Migration not found in database"
+            invalidJsonFormat:
+              summary: Invalid JSON in request body
+              value:
+                error: "Invalid JSON format in request body"
+            bulkMigrationIdsRequired:
+              summary: Bulk operation missing migration IDs
+              value:
+                error: "migrationIds is required and must be an array"
+            invalidBulkFormat:
+              summary: Invalid bulk export format
+              value:
+                error: "Invalid format. Must be 'json' or 'csv'"
+            bulkStatusRequired:
+              summary: Bulk update missing new status
+              value:
+                error: "newStatus is required"
+            hierarchicalPathErrors:
+              summary: Hierarchical endpoint validation errors
+              value:
+                error: "Invalid iteration UUID"
+            # PostgreSQL-specific error examples
+            foreignKeyViolation:
+              summary: Foreign key constraint violation (SQL State 23503)
+              value:
+                error: "Foreign key constraint violation: Referenced sequence does not exist"
+                sqlState: "23503"
+            checkConstraintViolation:
+              summary: Check constraint violation (SQL State 23514)
+              value:
+                error: "Check constraint violation: Invalid date range - end date must be after start date"
+                sqlState: "23514"
+            invalidStatusNamePhase:
+              summary: Invalid status name resolution for phases
+              value:
+                error: "Invalid status name 'INVALID_STATUS' for Phase entity type"
+            typeCastingError:
+              summary: PostgreSQL type casting error
+              value:
+                error: "Invalid UUID format for parameter phm_id: 'not-a-uuid'"
+    Conflict:
+      description: |
+        The request could not be completed due to a conflict with the current state of the resource. 
+        This includes unique constraint violations (SQL State 23505), foreign key violations (SQL State 23503),
+        and referential integrity issues.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            uniqueConstraint:
+              summary: Unique constraint violation
+              value:
+                error: "A migration with this name already exists"
+            foreignKeyViolation:
+              summary: Foreign key violation
+              value:
+                error: "Invalid owner user ID - user does not exist"
+            referentialIntegrity:
+              summary: Referential integrity on delete
+              value:
+                error: "Cannot delete migration - it has associated iterations or is referenced by other resources"
+            migrationDuplicateName:
+              summary: Duplicate migration name
+              value:
+                error: "A migration with this name already exists"
+            invalidOwnerUser:
+              summary: Invalid owner user reference
+              value:
+                error: "Invalid owner user ID - user does not exist"
+    InternalServerError:
+      description: An unexpected internal server error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   securitySchemes:
     ConfluenceUsers:
       type: http
