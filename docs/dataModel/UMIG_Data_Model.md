@@ -1,21 +1,73 @@
 # UMIG Data Model - Schema Specification
 
-This document provides the pure schema specification for the Unified Migration (UMIG) data model, including table definitions, relationships, constraints, and basic structural information. For implementation patterns, query optimization, and best practices, see [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md).
+> **⚠️ SCHEMA ALIGNMENT**: This documentation is aligned with `/docs/dataModel/umig_app_db.sql` as the SOURCE OF TRUTH
 
-**Document Status**: ✅ Production Ready | **Last Updated**: August 2025 | **Version**: 2.1  
-**Consolidated Sources**: System Configuration Schema, Instructions Schema Documentation, Database Migrations
+This document provides the pure schema specification for the Unified Migration (UMIG) data model, including table definitions, relationships, constraints, and basic structural information. For implementation patterns, query optimization, and best practices, see:
+
+- **Data Architecture**: [UMIG - TOGAF Phase C - Data Architecture.md](../architecture/UMIG%20-%20TOGAF%20Phase%20C%20-%20Data%20Architecture.md) - Enhanced architectural validation with database evidence
+- **Data Operations**: [UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md) - Operational procedures, troubleshooting, and performance optimization
+
+**Document Status**: ✅ Production Ready | **Last Updated**: August 2025 | **Version**: 2.2 - SQL Schema Aligned  
+**Consolidated Sources**: umig_app_db.sql (Primary), System Configuration Schema, Instructions Schema Documentation, Database Migrations
 
 **Related Documentation**:
 
-- [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md) - Implementation patterns, performance optimization, and best practices
-- [System Configuration Schema](../database/system-configuration-schema.md) - Detailed configuration management schema
-- [Solution Architecture](../solution-architecture.md) - Overall system architecture and design decisions
+- [UMIG - TOGAF Phase C - Data Architecture.md](../architecture/UMIG%20-%20TOGAF%20Phase%20C%20-%20Data%20Architecture.md) - Enhanced architectural validation with database evidence
+- [UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md) - Operational procedures, troubleshooting, and performance optimization
+- [UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md](../architecture/UMIG%20-%20TOGAF%20Phases%20A-D%20-%20Architecture%20Requirements%20Specification.md) - Overall system architecture and design decisions
 
 ---
 
-## 1. Data Model Overview
+## 1. Database Statistics
 
-### 1.1. Architecture Pattern
+### 1.1. Executive Summary Statistics
+
+**Schema Metrics** _(Calculated: August 28, 2025)_
+
+- **Total Tables**: 42 (40 regular + 2 staging)
+- **Total Fields**: 382 total columns
+- **Total Primary Keys**: 41
+- **Total Foreign Keys**: 78 relationships
+- **Total Indexes**: 55 (36 regular + 19 unique)
+
+### 1.2. Field Distribution by Data Type
+
+| Data Type     | Count      | Percentage | Usage Pattern                  |
+| ------------- | ---------- | ---------- | ------------------------------ |
+| **VARCHAR**   | 128 fields | 33.5%      | Names, codes, descriptions     |
+| **TIMESTAMP** | 82 fields  | 21.5%      | Audit trails, execution timing |
+| **INTEGER**   | 71 fields  | 18.6%      | IDs, counts, durations         |
+| **UUID**      | 52 fields  | 13.6%      | Business entity identifiers    |
+| **TEXT**      | 37 fields  | 9.7%       | Long descriptions, content     |
+| **BOOLEAN**   | 9 fields   | 2.4%       | Flags, status indicators       |
+| **Other**     | 3 fields   | 0.8%       | Specialized types              |
+
+### 1.3. Key Database Metrics
+
+- **Average fields per table**: 9.1 fields
+- **Tables with most fields**:
+  1. `instructions_instance_ini` (19 fields)
+  2. `steps_instance_sti` (17 fields)
+  3. `controls_instance_cti` (17 fields)
+- **Most referenced tables (FK targets)**:
+  1. `users_usr` (11 references)
+  2. `steps_master_stm` (8 references)
+  3. `status_sts` (8 references)
+- **Index coverage**: 100% of tables have indexes
+- **Constraint density**: 164 DEFAULT + 150 NOT NULL constraints
+
+### 1.4. Architecture Pattern Analysis
+
+- **Master/Instance pattern**: 50% of tables follow canonical design
+- **Junction table ratio**: 19% of tables are many-to-many junction tables
+- **Audit trail pattern**: 100% coverage with created/updated tracking
+- **Status workflow pattern**: Centralized status management across 8 entities
+
+---
+
+## 2. Data Model Overview
+
+### 2.1. Architecture Pattern
 
 UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 
@@ -23,14 +75,14 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **Instances**: Track real-world executions (e.g., `steps_instance_sti`)
 - **Associations**: Many-to-many relationships via join tables
 
-### 1.2. Data Hierarchy
+### 2.2. Data Hierarchy
 
 **Strategic**: Migrations → Iterations → Teams → Users → Environments → Applications  
 **Canonical**: Plans → Sequences → Phases → Steps → Instructions → Controls  
 **Instance**: Plan Instances → Sequence Instances → Phase Instances → Step Instances → Instruction Instances → Control Instances  
 **Support**: Labels, Comments, Audit Logs, System Configuration
 
-### 1.3. Key Design Principles
+### 2.3. Key Design Principles
 
 - Normalized schema with explicit foreign key relationships
 - Standardized audit fields across all tables (migrations 016 & 017)
@@ -40,30 +92,31 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 
 ---
 
-## 2. Strategic Layer
+## 3. Strategic Layer
 
 **Purpose:** Models the high-level structure and actors involved in a migration program.
 
-### 2.1. Migrations (`migrations_mig`)
+### 3.1. Migrations (`migrations_mig`)
 
 - **mig_id** (UUID, PK): Unique migration identifier
 - **usr_id_owner** (INT, FK → users_usr): Owner
 - **mig_name** (VARCHAR): Migration name
 - **mig_description** (TEXT): Description
-- **mig_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Migration'
+- **mig_type** (VARCHAR(50), NOT NULL): Migration type classification
+- **mig_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Migration'
 - **mig_start_date**, **mig_end_date**, **mig_business_cutover_date** (DATE): Key dates
 
-### 2.2. Iterations (`iterations_ite`)
+### 3.2. Iterations (`iterations_ite`)
 
 - **ite_id** (UUID, PK)
 - **mig_id** (UUID, FK → migrations_mig)
 - **plm_id** (UUID, FK → plans_master_plm): The master plan for this iteration
 - **itt_code** (VARCHAR, FK → iteration_types_itt): Iteration type
 - **ite_name**, **ite_description** (VARCHAR, TEXT)
-- **ite_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Iteration'
+- **ite_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Iteration'
 - **ite_static_cutover_date**, **ite_dynamic_cutover_date** (TIMESTAMPTZ): Cutover dates
 
-### 2.3. Teams (`teams_tms`)
+### 3.3. Teams (`teams_tms`)
 
 - **tms_id** (INT, PK)
 - **tms_name** (VARCHAR)
@@ -71,7 +124,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **tms_description** (TEXT)
 - **Membership:** All user-team assignments are managed via the join table `teams_tms_x_users_usr`.
 
-### 2.4. Users (`users_usr`)
+### 3.4. Users (`users_usr`)
 
 - **usr_id** (INT, PK)
 - **usr_code** (VARCHAR, unique): 3-character user code
@@ -79,32 +132,33 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **usr_email** (VARCHAR, unique)
 - **usr_is_admin** (BOOLEAN): Administrative privileges flag
 - **usr_active** (BOOLEAN, NOT NULL, DEFAULT TRUE): Active/inactive status - Added in migration 011
+- **usr_confluence_user_id** (VARCHAR(255)): Confluence user identifier
 - **rls_id** (INT, FK → roles_rls): Role
 - **created_at**, **updated_at** (TIMESTAMPTZ): Audit timestamps - Added in migration 012
 - **Team membership**: Managed exclusively via the many-to-many join table `teams_tms_x_users_usr` (see below; no direct FK in `users_usr`).
 - **Business rule:** Each user currently belongs to exactly one team; all `ADMIN` and `PILOT` users are assigned to `IT_CUTOVER`. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for rationale.
 
-### 2.5. Roles (`roles_rls`)
+### 3.5. Roles (`roles_rls`)
 
 - **rls_id** (INT, PK)
 - **rls_code** (VARCHAR, unique)
 - **rls_description** (TEXT)
 
-### 2.6. Environments (`environments_env`)
+### 3.6. Environments (`environments_env`)
 
 - **env_id** (INT, PK)
 - **env_code** (VARCHAR, unique)
 - **env_name** (VARCHAR)
 - **env_description** (TEXT)
 
-### 2.7. Applications (`applications_app`)
+### 3.7. Applications (`applications_app`)
 
 - **app_id** (INT, PK)
 - **app_code** (VARCHAR, unique)
 - **app_name** (VARCHAR)
 - **app_description** (TEXT)
 
-### 2.8. System Configuration (`system_configuration_scf`)
+### 3.8. System Configuration (`system_configuration_scf`)
 
 **Purpose**: Centralized configuration management for runtime settings, Confluence macro locations, and environment-specific parameters.
 
@@ -131,32 +185,46 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **API_CONFIG**: Runtime settings (rate limiting, timeouts, retry configuration)
 - **SYSTEM_SETTING**: General system configuration (debug mode, maintenance status, cache settings)
 
-### 2.9. System Configuration History (`system_configuration_history_sch`)
+### 3.9. Staging Tables
 
-**Purpose**: Audit trail for all configuration changes with comprehensive change tracking.
+**Purpose**: Temporary tables for data import and transformation processes.
 
-- **sch_id** (UUID, PK): History record identifier
-- **scf_id** (UUID, FK → system_configuration_scf): Configuration reference
-- **sch_old_value** (TEXT): Previous value (NULL for CREATE)
-- **sch_new_value** (TEXT): New value
-- **sch_change_reason** (VARCHAR): Human-readable reason
-- **sch_change_type** (VARCHAR): CREATE, UPDATE, DELETE, ACTIVATE, DEACTIVATE
-- **created_by**, **created_at**: Standard audit fields
+#### Staging Steps (`stg_steps`)
+
+- **id** (VARCHAR(255), PK): Staging step identifier
+- **step_type** (stg_step_type ENUM): Step type enumeration
+- **step_number** (INTEGER): Step sequence number
+- **step_title** (TEXT): Step title/name
+- **step_predecessor** (VARCHAR(255)): Previous step reference
+- **step_successor** (VARCHAR(255)): Next step reference
+- **step_assigned_team** (VARCHAR(255)): Team assignment
+- **step_impacted_teams** (VARCHAR(255)): Impacted teams list
+- **step_macro_time_sequence** (TEXT): Macro timing sequence
+- **step_time_sequence** (TEXT): Detailed timing sequence
+
+#### Staging Step Instructions (`stg_step_instructions`)
+
+- **id** (INTEGER, PK): Staging instruction identifier
+- **step_id** (VARCHAR(255), NOT NULL): Parent staging step reference
+- **instruction_id** (TEXT, NOT NULL): Instruction identifier
+- **instruction_text** (TEXT): Instruction content
+- **instruction_assignee** (VARCHAR(255)): Assigned user/team
+- **created_at**, **updated_at** (TIMESTAMPTZ): Audit timestamps
 
 ---
 
-## 3. Canonical (Master) Layer
+## 4. Canonical (Master) Layer
 
 **Purpose:** Defines the reusable playbook for migrations.
 
-### 3.1. Plans (`plans_master_plm`)
+### 4.1. Plans (`plans_master_plm`)
 
 - **plm_id** (UUID, PK)
 - **tms_id** (INT, FK → teams_tms): Owning team
 - **plm_name**, **plm_description** (VARCHAR, TEXT)
-- **plm_status** (VARCHAR)
+- **plm_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Plan'
 
-### 3.2. Sequences (`sequences_master_sqm`)
+### 4.2. Sequences (`sequences_master_sqm`)
 
 - **sqm_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
@@ -164,7 +232,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **sqm_name**, **sqm_description** (VARCHAR, TEXT)
 - **predecessor_sqm_id** (UUID, FK → sequences_master_sqm, nullable)
 
-### 3.3. Phases (`phases_master_phm`)
+### 4.3. Phases (`phases_master_phm`)
 
 - **phm_id** (UUID, PK)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
@@ -172,7 +240,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **phm_name**, **phm_description** (VARCHAR, TEXT)
 - **predecessor_phm_id** (UUID, FK → phases_master_phm, nullable)
 
-### 3.4. Steps (`steps_master_stm`)
+### 4.4. Steps (`steps_master_stm`)
 
 - **stm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
@@ -185,7 +253,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **stm_id_predecessor** (UUID, FK → steps_master_stm, nullable)
 - **enr_id** (INT, FK → environment_roles_enr, nullable): Environment role association - Added in migration 014 (replaced enr_id_target)
 
-### 3.5. Controls (`controls_master_ctm`)
+### 4.5. Controls (`controls_master_ctm`)
 
 - **ctm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
@@ -195,7 +263,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **ctm_type** (VARCHAR)
 - **ctm_is_critical** (BOOLEAN)
 
-### 3.6. Instructions (`instructions_master_inm`)
+### 4.6. Instructions (`instructions_master_inm`)
 
 **Purpose**: Master instruction templates that define procedural steps within migration phases. Instructions represent the granular, actionable tasks that must be completed within each step of a migration sequence.
 
@@ -241,7 +309,7 @@ CREATE TABLE instructions_master_inm (
 - Instructions can optionally reference a control point for validation
 - Order values should be unique within step scope for proper sequencing
 
-### 3.7. Labels (`labels_lbl`)
+### 4.7. Labels (`labels_lbl`)
 
 - **lbl_id** (INT, PK)
 - **mig_id** (UUID, FK → migrations_mig)
@@ -254,47 +322,49 @@ CREATE TABLE instructions_master_inm (
 
 ---
 
-## 4. Instance (Execution) Layer
+## 5. Instance (Execution) Layer
 
 **Purpose:** Tracks real-world executions of the canonical playbook.
 
-### 4.1. Plan Instance (`plans_instance_pli`)
+### 5.1. Plan Instance (`plans_instance_pli`)
 
 - **pli_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
 - **ite_id** (UUID, FK → iterations_ite)
 - **pli_name** (VARCHAR)
-- **pli_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Plan'
+- **pli_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Plan'
 - **usr_id_owner** (INT, FK → users_usr): Plan instance owner
 
-### 4.2. Sequence Instance (`sequences_instance_sqi`)
+### 5.2. Sequence Instance (`sequences_instance_sqi`)
 
 - **sqi_id** (UUID, PK)
 - **pli_id** (UUID, FK → plans_instance_pli)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
-- **sqi_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Sequence'
+- **sqi_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Sequence'
 - **sqi_name** (VARCHAR): Override name for the sequence instance - Added in migration 010
 - **sqi_description** (TEXT): Override description for the sequence instance - Added in migration 010
 - **sqi_order** (INTEGER): Override order for the sequence instance - Added in migration 010
 - **predecessor_sqi_id** (UUID): Override predecessor sequence instance - Added in migration 010
 
-### 4.3. Phase Instance (`phases_instance_phi`)
+### 5.3. Phase Instance (`phases_instance_phi`)
 
 - **phi_id** (UUID, PK)
 - **sqi_id** (UUID, FK → sequences_instance_sqi)
 - **phm_id** (UUID, FK → phases_master_phm)
-- **phi_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Phase'
+- **phi_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Phase'
 - **phi_order** (INTEGER): Override order for the phase instance - Added in migration 010
 - **phi_name** (VARCHAR): Override name for the phase instance - Added in migration 010
 - **phi_description** (TEXT): Override description for the phase instance - Added in migration 010
 - **predecessor_phi_id** (UUID): Override predecessor phase instance - Added in migration 010
 
-### 4.4. Step Instance (`steps_instance_sti`)
+### 5.4. Step Instance (`steps_instance_sti`)
 
 - **sti_id** (UUID, PK)
 - **phi_id** (UUID, FK → phases_instance_phi)
 - **stm_id** (UUID, FK → steps_master_stm)
-- **sti_status** (VARCHAR, FK → status_sts.sts_name): Execution status from status_sts where sts_type='Step' - Refactored in migration 015
+- **sti_start_time** (TIMESTAMPTZ): Step execution start timestamp
+- **sti_end_time** (TIMESTAMPTZ): Step execution end timestamp
+- **sti_status** (INTEGER, FK → status_sts.sts_id): Execution status from status_sts where sts_type='Step' - Refactored in migration 015
 - **sti_name** (VARCHAR): Override name for the step instance - Added in migration 010
 - **sti_description** (TEXT): Override description for the step instance - Added in migration 010
 - **sti_duration_minutes** (INTEGER): Override duration for the step instance - Added in migration 010
@@ -305,7 +375,7 @@ CREATE TABLE instructions_master_inm (
   - ~~usr_id_assignee~~ (Assignee is at master level only)
   - ~~enr_id_target~~ (Replaced with proper enr_id field)
 
-### 4.5. Instruction Instance (`instructions_instance_ini`)
+### 5.5. Instruction Instance (`instructions_instance_ini`)
 
 **Purpose**: Execution instances of instruction templates created when step instances are instantiated. Runtime instances with completion tracking and audit trail.
 
@@ -361,12 +431,12 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - Multiple instances can be created from the same master instruction (for different iterations)
 - Completion user tracking for accountability
 
-### 4.6. Control Instance (`controls_instance_cti`)
+### 5.6. Control Instance (`controls_instance_cti`)
 
 - **cti_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
 - **ctm_id** (UUID, FK → controls_master_ctm)
-- **cti_status** (VARCHAR, FK → status_sts.sts_name): Status from status_sts where sts_type='Control'
+- **cti_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Control'
 - **cti_order** (INTEGER): Override order for the control instance
 - **cti_name** (VARCHAR): Override name for the control instance
 - **cti_description** (TEXT): Override description for the control instance
@@ -374,18 +444,18 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **cti_is_critical** (BOOLEAN): Override criticality for the control instance
 - **cti_code** (TEXT): Override code for the control instance
 
-### 4.7. Comments (`step_instance_comments_sic`, `step_pilot_comments_spc`)
+### 5.7. Comments (`step_instance_comments_sic`, `step_pilot_comments_spc`)
 
 - **step_instance_comments_sic**: Comments on step executions (FKs: sti_id, created_by, updated_by)
 - **step_pilot_comments_spc**: Pilot/release manager wisdom for canonical steps (FK: stm_id)
 
 ---
 
-## 5. Association/Join Tables
+## 6. Association/Join Tables
 
 **Purpose:** Implements all many-to-many and label relationships in a normalized way.
 
-### 5.1. User-Team Membership (`teams_tms_x_users_usr`)
+### 6.1. User-Team Membership (`teams_tms_x_users_usr`)
 
 - **tms_x_usr_id** (SERIAL, PK)
 - **tms_id** (INT, FK → teams_tms)
@@ -396,7 +466,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Audit Strategy:** Tier 1 - Critical association requiring full audit tracking
 - **Note:** All user-team relationships and audit trails are managed here. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for migration rationale and business logic.
 
-### 5.2. Team-Application (`teams_tms_x_applications_app`)
+### 6.2. Team-Application (`teams_tms_x_applications_app`)
 
 - **tms_id** (INT, FK → teams_tms)
 - **app_id** (INT, FK → applications_app)
@@ -404,32 +474,32 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **PK:** (tms_id, app_id)
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit (created_at only)
 
-### 5.3. Environment-Application (`environments_env_x_applications_app`)
+### 6.3. Environment-Application (`environments_env_x_applications_app`)
 
 - **env_id** (INT, FK → environments_env)
 - **app_id** (INT, FK → applications_app)
 - **PK:** (env_id, app_id)
 
-### 5.4. Environment-Iteration (`environments_env_x_iterations_ite`)
+### 6.4. Environment-Iteration (`environments_env_x_iterations_ite`)
 
 - **env_id** (INT, FK → environments_env)
 - **ite_id** (UUID, FK → iterations_ite)
 - **enr_id** (INT, FK → environment_roles_enr)
 - **PK:** (env_id, ite_id)
 
-### 5.5. Steps-Iteration Types (`steps_master_stm_x_iteration_types_itt`)
+### 6.5. Steps-Iteration Types (`steps_master_stm_x_iteration_types_itt`)
 
 - **stm_id** (UUID, FK → steps_master_stm)
 - **itt_code** (VARCHAR, FK → iteration_types_itt)
 - **PK:** (stm_id, itt_code)
 
-### 5.6. Steps-Impacted Teams (`steps_master_stm_x_teams_tms_impacted`)
+### 6.6. Steps-Impacted Teams (`steps_master_stm_x_teams_tms_impacted`)
 
 - **stm_id** (UUID, FK → steps_master_stm)
 - **tms_id** (INT, FK → teams_tms)
 - **PK:** (stm_id, tms_id)
 
-### 5.7. Labels-Steps (`labels_lbl_x_steps_master_stm`)
+### 6.7. Labels-Steps (`labels_lbl_x_steps_master_stm`)
 
 - **lbl_x_stm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
@@ -439,7 +509,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Unique:** (lbl_id, stm_id)
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
-### 5.8. Labels-Applications (`labels_lbl_x_applications_app`)
+### 6.8. Labels-Applications (`labels_lbl_x_applications_app`)
 
 - **lbl_x_app_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
@@ -449,7 +519,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Unique:** (lbl_id, app_id)
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
-### 5.9. Labels-Controls (`labels_lbl_x_controls_master_ctm`)
+### 6.9. Labels-Controls (`labels_lbl_x_controls_master_ctm`)
 
 - **lbl_x_ctm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
@@ -462,11 +532,11 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 
 ---
 
-## 6. Lookup/Reference Tables
+## 7. Lookup/Reference Tables
 
 **Purpose:** Provides controlled values and reference data for system-wide consistency.
 
-### 6.1. Status Management (`status_sts`)
+### 7.1. Status Management (`status_sts`)
 
 - **sts_id** (SERIAL, PK)
 - **sts_name** (VARCHAR(50), NOT NULL): Status name (e.g., PENDING, IN_PROGRESS, COMPLETED)
@@ -478,26 +548,26 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Purpose:** Centralizes all status values with color coding for UI consistency - Added in migration 015
 - **Pre-populated values:** 31 statuses across 7 entity types
 
-### 6.2. Environment Roles (`environment_roles_enr`)
+### 7.2. Environment Roles (`environment_roles_enr`)
 
 - **enr_id** (INT, PK)
 - **enr_code** (VARCHAR, unique): Role code (e.g., DEV, TEST, PROD)
 - **enr_name** (VARCHAR): Display name
 - **enr_description** (TEXT): Description
 
-### 6.3. Step Types (`step_types_stt`)
+### 7.3. Step Types (`step_types_stt`)
 
 - **stt_code** (VARCHAR(10), PK): Type code
 - **stt_name** (VARCHAR): Display name
 - **stt_description** (TEXT): Description
 
-### 6.4. Iteration Types (`iteration_types_itt`)
+### 7.4. Iteration Types (`iteration_types_itt`)
 
 - **itt_code** (VARCHAR(10), PK): Type code (e.g., RUN, DR, CUTOVER)
 - **itt_name** (VARCHAR): Display name
 - **itt_description** (TEXT): Description
 
-### 6.5. Email Templates (`email_templates_emt`)
+### 7.5. Email Templates (`email_templates_emt`)
 
 - **emt_id** (UUID, PK)
 - **emt_type** (VARCHAR(50)): Template type (STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM)
@@ -505,11 +575,13 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **emt_subject** (TEXT): Email subject template
 - **emt_body_html** (TEXT): HTML body template
 - **emt_body_text** (TEXT, nullable): Plain text body template
-- **emt_active** (BOOLEAN, DEFAULT true): Active status
-- **created_at**, **updated_at** (TIMESTAMPTZ): Audit timestamps
-- **created_by**, **updated_by** (VARCHAR(255)): Audit users
+- **emt_is_active** (BOOLEAN, DEFAULT true): Active status
+- **emt_created_date**, **emt_updated_date** (TIMESTAMPTZ): Legacy audit timestamps
+- **emt_created_by**, **emt_updated_by** (VARCHAR(255)): Legacy audit users
+- **created_at**, **updated_at** (TIMESTAMPTZ): Standard audit timestamps
+- **created_by**, **updated_by** (VARCHAR(255)): Standard audit users
 
-### 6.6. Audit Log (`audit_log_aud`)
+### 7.6. Audit Log (`audit_log_aud`)
 
 - **aud_id** (UUID, PK)
 - **aud_user_id** (INT, FK → users_usr): User performing the action
@@ -523,7 +595,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 
 ---
 
-## 7. Entity Relationship Diagram (ERD)
+## 8. Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
@@ -558,9 +630,11 @@ erDiagram
         INT usr_id_owner FK
         VARCHAR mig_name
         TEXT mig_description
+        VARCHAR mig_type
         DATE mig_start_date
         DATE mig_end_date
         DATE mig_business_cutover_date
+        INT mig_status
     }
     iterations_ite {
         UUID ite_id PK
@@ -569,6 +643,7 @@ erDiagram
         VARCHAR itt_code FK
         VARCHAR ite_name
         TEXT ite_description
+        INT ite_status
         TIMESTAMPTZ ite_static_cutover_date
         TIMESTAMPTZ ite_dynamic_cutover_date
     }
@@ -586,6 +661,7 @@ erDiagram
         VARCHAR usr_email
         BOOLEAN usr_is_admin
         BOOLEAN usr_active
+        VARCHAR usr_confluence_user_id
         INT rls_id FK
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
@@ -613,7 +689,7 @@ erDiagram
         INT tms_id FK
         VARCHAR plm_name
         TEXT plm_description
-        VARCHAR plm_status
+        INT plm_status
     }
     sequences_master_sqm {
         UUID sqm_id PK
@@ -676,12 +752,13 @@ erDiagram
         UUID plm_id FK
         UUID ite_id FK
         VARCHAR pli_name
+        INT pli_status
     }
     sequences_instance_sqi {
         UUID sqi_id PK
         UUID pli_id FK
         UUID sqm_id FK
-        VARCHAR sqi_status
+        INT sqi_status
         VARCHAR sqi_name
         TEXT sqi_description
         INTEGER sqi_order
@@ -691,6 +768,7 @@ erDiagram
         UUID phi_id PK
         UUID sqi_id FK
         UUID phm_id FK
+        INT phi_status
         INTEGER phi_order
         VARCHAR phi_name
         TEXT phi_description
@@ -700,7 +778,9 @@ erDiagram
         UUID sti_id PK
         UUID phi_id FK
         UUID stm_id FK
-        VARCHAR sti_status FK
+        TIMESTAMPTZ sti_start_time
+        TIMESTAMPTZ sti_end_time
+        INT sti_status
         VARCHAR sti_name
         TEXT sti_description
         INTEGER sti_duration_minutes
@@ -722,6 +802,7 @@ erDiagram
         UUID sti_id FK
         UUID ctm_id FK
         INTEGER cti_order
+        INT cti_status
         VARCHAR cti_name
         TEXT cti_description
         VARCHAR cti_type
@@ -849,7 +930,7 @@ erDiagram
 
 ---
 
-## 8. Migration References
+## 9. Migration References
 
 **Data Characteristics**:
 
@@ -864,11 +945,14 @@ erDiagram
 - **Migration 016**: Standardized audit fields across all tables
 - **Migration 017**: Tiered audit strategy for association tables
 
-For query patterns, performance optimization, and implementation guidance, see [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md).
+For query patterns, performance optimization, and implementation guidance, see:
+
+- **Data Architecture**: [UMIG - TOGAF Phase C - Data Architecture.md](../architecture/UMIG%20-%20TOGAF%20Phase%20C%20-%20Data%20Architecture.md) - Enhanced architectural validation with database evidence
+- **Data Operations**: [UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md) - Operational procedures, troubleshooting, and performance optimization
 
 ---
 
-## 9. Audit Fields Standardization
+## 10. Audit Fields Standardization
 
 All tables in the UMIG database follow a standardized audit fields pattern (migrations 016 & 017):
 
@@ -893,19 +977,20 @@ All tables in the UMIG database follow a standardized audit fields pattern (migr
 
 All tables have PostgreSQL triggers that automatically update `updated_at` on any UPDATE operation.
 
-For detailed audit field implementation patterns and usage guidance, see [UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md).
+For detailed audit field implementation patterns and usage guidance, see [UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md).
 
 ---
 
-## 10. References & Further Reading
+## 11. References & Further Reading
 
 ### Related Documentation
 
-- **[UMIG_DB_Best_Practices.md](./UMIG_DB_Best_Practices.md)** - Complete implementation patterns, query optimization, performance guidelines, and best practices
+- **[UMIG - TOGAF Phase C - Data Architecture.md](../architecture/UMIG%20-%20TOGAF%20Phase%20C%20-%20Data%20Architecture.md)** - Enhanced architectural validation with database evidence
+- **[UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md)** - Complete implementation patterns, query optimization, performance guidelines, and best practices (consolidated)
 - [ADR-029: Full Attribute Instantiation Instance Tables](../adr/ADR-029-full-attribute-instantiation-instance-tables.md) - Design rationale for instance table denormalization
 - [ADR-031: Groovy Type Safety and Filtering Patterns](../adr/ADR-031-groovy-type-safety-and-filtering-patterns.md) - Type safety implementation standards
 - [ADR-022: User-Team N-N Relationship](../adr/ADR-022-user-team-nn-relationship.md) - Team membership architecture decisions
-- [Solution Architecture Documentation](../solution-architecture.md) - Overall system architecture and 40+ consolidated ADRs
+- [UMIG - TOGAF Phases A-D - Architecture Requirements Specification](../architecture/UMIG%20-%20TOGAF%20Phases%20A-D%20-%20Architecture%20Requirements%20Specification.md) - Overall system architecture and 49 consolidated ADRs
 
 ### Schema-Specific Documentation
 

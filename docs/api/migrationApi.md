@@ -11,7 +11,7 @@
 - **API Name:** Migration API
 - **Purpose:** Manage migrations and their hierarchical structure (Plans, Iterations, Sequences, Phases)
 - **Owner:** UMIG Engineering Team
-- **Related ADRs:** ADR-036 (Integration Testing Framework), see `/docs/adr/` and `/docs/solution-architecture.md`
+- **Related ADRs:** ADR-036 (Integration Testing Framework), see `/docs/adr/` and `/docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`
 - **US-025 Phase 4:** All endpoints validated with comprehensive integration testing framework
 
 ### Recent Updates

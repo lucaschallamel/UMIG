@@ -934,4 +934,4 @@ curl -X POST "/instructions/instance/inst-inst-001/complete" \
 - **Source Code**: `/src/groovy/umig/api/v2/InstructionsApi.groovy`
 - **Repository**: `/src/groovy/umig/repository/InstructionRepository.groovy`
 - **Test Suite**: `/src/groovy/umig/tests/integration/InstructionsApiTest.groovy`
-- **Architecture**: `/docs/solution-architecture.md` (ADR-030, ADR-031)
+- **Architecture**: `/docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` (ADR-030, ADR-031)

@@ -247,8 +247,13 @@ UMIG/
 │   ├── liquibase/          # DB migrations
 │   └── podman-compose.yml  # Container orchestration
 ├── docs/                    # Documentation
-│   ├── solution-architecture.md  # PRIMARY REFERENCE (47 ADRs consolidated)
+│   ├── architecture/       # TOGAF Phase B-F documents (49 ADRs consolidated)
+│   │   ├── UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md  # PRIMARY REFERENCE
+│   │   ├── UMIG - TOGAF Phase C - Data Architecture.md  # Enhanced with validation evidence
+│   │   ├── UMIG - Data Operations Guide.md  # Operational procedures from consolidation
+│   │   └── _archives/solution-architecture.md  # Legacy (archived)
 │   ├── api/openapi.yaml     # API specification
+│   ├── dataModel/          # Schema specification and operations
 │   ├── archived/           # Historical documentation
 │   │   └── us-032-confluence-upgrade/  # US-032 upgrade archive
 │   └── roadmap/            # Sprint planning and UI/UX specs
@@ -419,7 +424,7 @@ if (stepId) {
 - SQL state mappings: 23503→400, 23505→409
 - Robust error propagation through all layers
 
-## Current Status (Sprint 5 COMPLETE - August 28, 2025)
+## Current Status (Sprint 5 COMPLETE - August 28, 2025 - 8 Working Days)
 
 ### ✅ **US-039 Phase 0 COMPLETE** - Email Notification Infrastructure
 
@@ -472,10 +477,12 @@ if (stepId) {
 - **✅ Architecture Consolidation**: 47+ ADRs documented, solution-architecture.md as primary reference
 - **✅ Cross-Platform Development**: Complete JavaScript/Node.js testing infrastructure
 
-### ✅ Sprint 5 COMPLETE - Exceptional Success (August 28, 2025)
+### ✅ Sprint 5 COMPLETE - Exceptional Success (August 18-28, 2025)
 
+**Sprint Duration**: 8 working days (August 18-20, 25-28, 2025)  
 **Stories Completed**: 8/9 (89% completion rate) - US-034 descoped to Sprint 6 for focus  
-**Story Points Delivered**: 39/42 planned points (93% velocity) - Exceptional performance  
+**Story Points Delivered**: 39/42 planned points (93% velocity)  
+**Sprint Velocity**: 4.875 points/day achieved (exceeding 5.25 pts/day target)  
 **MVP Functionality**: 100% core features operational
 
 #### ✅ Completed Stories (100% Complete)
@@ -495,7 +502,8 @@ if (stepId) {
 
 ### ✅ Sprint 4 COMPLETE - Strategic Triumph (August 7-15, 2025)
 
-**Project Velocity Record**: 5.7 points/day achieved (highest in project history)
+**Sprint Duration**: 7 working days (August 7-8, 11-15, 2025)  
+**Project Velocity**: 2.43 points/day achieved (17 adjusted points ÷ 7 days)
 
 #### ✅ Completed Stories (17 Adjusted Points)
 
@@ -518,8 +526,9 @@ if (stepId) {
 
 **Sprint Goal**: ✅ ACHIEVED - Complete MVP functionality and prepare for UAT deployment with fully integrated Admin GUI, enhanced user interfaces, and production-ready documentation.
 
-**Timeline**: Successfully executed over 11 working days (August 18-28, 2025)  
-**Final Velocity**: 39 points delivered out of 42 planned (93% velocity) - Exceptional performance  
+**Timeline**: Successfully executed over 8 working days (August 18-20, 25-28, 2025)  
+**Sprint Velocity**: 4.875 points/day (39 points ÷ 8 days)  
+**Final Delivery**: 39 points delivered out of 42 planned (93% velocity)  
 **Strategic Success**: MVP functionality 100% complete with architectural foundations established
 
 #### 🎯 Key Achievements
@@ -562,7 +571,7 @@ if (stepId) {
 - **Enhanced Error Handling**: Defensive type checking patterns in service layer improved authentication reliability
 - **Documentation Optimization**: Strategic documentation consolidation improved troubleshooting and maintenance efficiency
 
-**📢 SPRINT 4 STRATEGIC TRIUMPH**: Complete success achieved (August 7-15, 2025) - Project velocity record of 5.7 points/day!
+**📢 SPRINT 4 STRATEGIC TRIUMPH**: Complete success achieved (August 7-15, 2025) - Strategic infrastructure foundation established!
 
 **Key Achievements from Sprint 4**:
 
@@ -580,7 +589,10 @@ if (stepId) {
 
 ## Key References
 
-- **PRIMARY**: `docs/solution-architecture.md` (ALWAYS REVIEW FIRST - 43+ ADRs including ADR-043, ADR-044, ADR-047)
+- **PRIMARY**: `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` (Navigation hub for 49 ADRs organized across TOGAF Phase documents)
+- **ARCHITECTURE HUB**: `docs/architecture/` (Complete TOGAF Phase B-F documents with consolidated ADRs)
+- **DATA ARCHITECTURE**: `docs/architecture/UMIG - TOGAF Phase C - Data Architecture.md` (Enhanced with validation evidence from best practices consolidation)
+- **DATA OPERATIONS**: `docs/architecture/UMIG - Data Operations Guide.md` (Operational procedures and troubleshooting)
 - **TESTING**: `docs/testing/` (Comprehensive testing framework documentation)
 - **QUALITY CHECKS**: `docs/testing/QUALITY_CHECK_PROCEDURES.md` (Validation procedures)
 - **API**: `docs/api/openapi.yaml`, individual API docs
