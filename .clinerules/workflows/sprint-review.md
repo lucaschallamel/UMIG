@@ -181,7 +181,7 @@ Finally, work with our GENDEV documentation generator to compile comprehensive r
 - [ ] Report actual reference compilation effectiveness and documentation integration results
 
 - Dev Journal Entries (`docs/devJournal/` YYYYMMDD-nn.md format)
-- ADRs (`docs/adr/` architectural decisions)
+- ADRs (`docs/architecture/adr/` architectural decisions)
 - Memory Bank files (`docs/memory-bank/` 6 core files per Rule 07)
 - README.md files (all work folders per Rule 03)
 - Roadmap documentation (`docs/roadmap/` and `docs/roadmap/sprint/`)

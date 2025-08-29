@@ -43,7 +43,7 @@ This workflow guides the creation of a high-quality, comprehensive commit messag
 - **Functional Area Classification:** Group staged files by functional area:
   - **API Changes:** `src/api/`, backend service components
   - **UI Changes:** `src/app/`, frontend components and styling
-  - **Documentation:** `docs/memory-bank/`, `docs/devJournal/`, `docs/adr/`, `docs/roadmap/`, README.md files
+  - **Documentation:** `docs/memory-bank/`, `docs/devJournal/`, `docs/architecture/adr/`, `docs/roadmap/`, README.md files
   - **Tests:** `src/tests/`, `src/tests/e2e/`, `src/tests/postman/`
   - **Configuration:** `local-dev-setup/`, `*.json`, `*.yml`, `*.properties`
   - **Database:** `db/liquibase/`, migration files, schema changes
@@ -130,7 +130,7 @@ Please engage our GENDEV requirements analyst to perform enterprise-level contex
 
 - **Dev Journal Review:** Automated narrative extraction from `docs/devJournal/`
 - **Memory Bank Integration:** Cross-reference with `docs/memory-bank/` files
-- **ADR References:** Integration with `docs/adr/` for architectural decisions
+- **ADR References:** Integration with `docs/architecture/adr/` for architectural decisions
 - **README Maintenance:** Validation of README.md files in affected work folders
 - **Related Work:** Cross-commit dependency analysis
 - **Previous Commits:** Pattern recognition and consistency checking

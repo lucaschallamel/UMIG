@@ -25,7 +25,8 @@ This workflow orchestrates GENDEV agents to maintain the 6 core memory bank file
 - Developer Journal entries in `docs/devJournal/` folder (YYYYMMDD-nn.md format)
 - Current `CHANGELOG.md` file with project evolution
 - README.md files across work folders and project root
-- Architectural Decision Records in `docs/adr/` folder
+- Architectural Decision Records in `docs/architecture/adr/` folder
+- **PRIMARY REFERENCE**: `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` (Navigation hub for 49 ADRs organized across TOGAF Phase documents)
 - Sprint and roadmap documentation in `docs/roadmap/` folder
 
 ### AI-Enhanced Prerequisites
@@ -86,7 +87,7 @@ Please work with our GENDEV system architect to conduct comprehensive README ana
 
 ### 1.4 ADR Analysis
 
-Please engage our GENDEV business process analyst to perform comprehensive ADR (Architecture Decision Record) analysis and processing, focusing on decision extraction, context analysis, impact assessment, and knowledge integration for architectural memory preservation.
+Please engage our GENDEV business process analyst to perform comprehensive ADR (Architecture Decision Record) analysis and processing from `docs/architecture/adr/`, focusing on decision extraction, context analysis, impact assessment, and knowledge integration for architectural memory preservation.
 
 ## MANDATORY VERIFICATION
 
@@ -138,7 +139,8 @@ Please collaborate with our GENDEV project planner to establish comprehensive fo
 
 - `docs/memory-bank/` - Core memory bank files
 - `docs/devJournal/` - Development journals (YYYYMMDD-nn.md)
-- `docs/adr/` - Architectural Decision Records
+- `docs/architecture/adr/` - Architectural Decision Records
+- `docs/architecture/` - TOGAF Phase B-F documents (primary architecture reference)
 - `docs/roadmap/` - Project roadmap and features
 - `docs/roadmap/sprint/` - Sprint-specific documentation
 
@@ -164,7 +166,7 @@ Please work with our GENDEV documentation generator to conduct comprehensive dev
 
 #### 2.2 Architecture Decision Records Analysis
 
-Please engage our GENDEV system architect to perform comprehensive ADR processing using standard validation standards, focusing on decision context extraction, architectural impact assessment, pattern recognition, and consistency verification for systematic ADR analysis.
+Please engage our GENDEV system architect to perform comprehensive ADR processing from `docs/architecture/adr/` using standard validation standards, focusing on decision context extraction, architectural impact assessment, pattern recognition, and consistency verification for systematic ADR analysis.
 
 ## MANDATORY VERIFICATION
 
@@ -178,7 +180,7 @@ Please engage our GENDEV system architect to perform comprehensive ADR processin
 - Decision context and rationale extraction
 - Architectural impact assessment and validation
 - Pattern recognition and consistency verification
-- Cross-reference with system patterns documentation
+- Cross-reference with system patterns documentation and TOGAF architecture documents in `docs/architecture/`
 
 #### 2.3 Project Documentation Analysis
 

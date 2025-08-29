@@ -193,7 +193,7 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 
 ## Key References
 
-- **PRIMARY**: `/docs/solution-architecture.md` (33 consolidated ADRs)
+- **PRIMARY**: `/docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` (49 ADRs organized across TOGAF Phase documents)
 - **API Specs**: `/docs/api/openapi.yaml` and individual API docs
 - **Data Model**: `/docs/dataModel/README.md`
 - **Operations**: `/docs/operations/README.md`

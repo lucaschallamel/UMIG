@@ -6,15 +6,16 @@
   "when": {
     "type": "userTriggered",
     "patterns": [
-      "docs/solution-architecture.md",
+      "docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md",
+      "docs/architecture/UMIG - TOGAF Phase*.md",
       "cline-docs/*",
       "docs/devJournal/*",
-      "docs/adr/ADR-*.md",
+      "docs/architecture/adr/ADR-*.md",
       ".clinerules/rules/*"
     ]
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Execute the Coding Session Kickoff workflow:\n\n1. **Review the memories** - Check your current understanding of the project\n2. **PRIORITY: Review `/docs/solution-architecture.md`** - This is the primary architectural reference document that consolidates all key decisions and patterns\n3. **Review project documentation in `/cline-docs`** - Check projectBrief.md, productContext.md, systemPatterns.md, techContext.md, activeContext.md, and progress.md for current project state\n4. **Review developer journal entries in `/docs/devJournal`** - Check recent entries to understand latest development activities and decisions\n5. **Review current ADRs in `/docs/adr`** - Focus on non-archived ADRs (skip `/docs/adr/archive/` as these are consolidated in solution-architecture.md)\n6. **Confirm understanding** - Verify your comprehension of:\n   - Project requirements and scope\n   - Current development state\n   - Recent changes and decisions\n   - Technical architecture and patterns\n7. **Identify inconsistencies** - Report any documentation inconsistencies that need resolution\n8. **Recommend next steps** - Based on your review, suggest the next tasks and priorities to tackle\n\nProvide a comprehensive summary of your findings and recommendations."
+    "prompt": "Execute the Coding Session Kickoff workflow:\n\n1. **Review the memories** - Check your current understanding of the project\n2. **PRIORITY: Review `/docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`** - This is the primary architectural hub that navigates 49 ADRs organized across TOGAF Phase documents\n3. **Review TOGAF architecture documents in `/docs/architecture/`** - Check Phase B-F documents for Business, Application, Data, Technical, and Security Architecture\n4. **Review project documentation in `/cline-docs`** - Check projectBrief.md, productContext.md, systemPatterns.md, techContext.md, activeContext.md, and progress.md for current project state\n5. **Review developer journal entries in `/docs/devJournal`** - Check recent entries to understand latest development activities and decisions\n6. **Review current ADRs in `/docs/architecture/adr/`** - Focus on architectural decisions not yet consolidated in TOGAF documents\n6. **Confirm understanding** - Verify your comprehension of:\n   - Project requirements and scope\n   - Current development state\n   - Recent changes and decisions\n   - Technical architecture and patterns\n7. **Identify inconsistencies** - Report any documentation inconsistencies that need resolution\n8. **Recommend next steps** - Based on your review, suggest the next tasks and priorities to tackle\n\nProvide a comprehensive summary of your findings and recommendations."
   }
 }

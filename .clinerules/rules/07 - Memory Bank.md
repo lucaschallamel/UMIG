@@ -41,11 +41,12 @@ PB --> TC[techContext.md]
    - Learnings and project insights
 
 4. `systemPatterns.md`
-   - System architecture
-   - Key technical decisions
+   - System architecture (cross-references `docs/architecture/` TOGAF documents)
+   - Key technical decisions (sourced from `docs/architecture/adr/`)
    - Design patterns in use
    - Component relationships
    - Critical implementation paths
+   - **PRIMARY REFERENCE**: Links to `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`
 
 5. `techContext.md`
    - Technologies used

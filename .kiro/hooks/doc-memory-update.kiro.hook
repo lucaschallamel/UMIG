@@ -15,6 +15,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Review and summarise the latest changes performed, based on the cascade conversation and on the git status. Be concise but comprehensive.\n\n**CRITICAL**: If changes affect architecture, update `/docs/solution-architecture.md` as the primary reference\n\nDo any changes require a new ADR in `/docs/adr/` (archived ADRs in `/docs/adr/archive/` are consolidated in solution-architecture.md)\n\nUpdate as required the CHANGELOG\n\nUpdate as required the main README file\n\nUpdate as required the README files in subfolders"
+    "prompt": "Review and summarise the latest changes performed, based on the cascade conversation and on the git status. Be concise but comprehensive.\n\n**CRITICAL**: If changes affect architecture, update the appropriate TOGAF Phase document in `/docs/architecture/`:\n- Business changes → `UMIG - TOGAF Phase B - Business Architecture.md`\n- Application/API changes → `UMIG - TOGAF Phase C - Application Architecture.md`\n- Data model changes → `UMIG - TOGAF Phase C - Data Architecture.md`\n- Technical/Infrastructure → `UMIG - TOGAF Phase D - Technical Architecture.md`\n- Security → `UMIG - TOGAF Phase D - Security Architecture.md`\n\nFor navigation across all architecture, refer to `/docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`\n\nDo any changes require a new ADR in `/docs/architecture/adr/`"\n\nUpdate as required the CHANGELOG\n\nUpdate as required the main README file\n\nUpdate as required the README files in subfolders"
   }
 }

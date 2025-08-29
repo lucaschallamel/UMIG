@@ -136,7 +136,7 @@ Please collaborate with our GENDEV project planner to establish comprehensive do
 
 - Journal entry in `docs/devJournal/` with YYYYMMDD-nn.md format
 - README.md files maintained in relevant work folders
-- Cross-references to `docs/adr/` for architectural decisions
+- Cross-references to `docs/architecture/adr/` for architectural decisions
 - Integration with `docs/memory-bank/` for knowledge preservation
 
 ### Phase 2: AI-Enhanced Evidence Gathering and Analysis

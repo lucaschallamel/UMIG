@@ -24,7 +24,7 @@ This rule establishes the mandatory file and folder structure standards for all 
 **Knowledge Management & Institutional Memory**:
 
 - `docs/memory-bank/` - Persistent memory bank implementation according to Rule 07 Memory Bank specifications
-- `docs/adr/` - Architectural Decision Records with standardized template for all major technical decisions
+- `docs/architecture/adr/` - Architectural Decision Records with standardized template for all major technical decisions
 - `docs/devJournal/` - Development journals following `YYYYMMDD-nn.md` naming convention for session tracking
 
 **Strategic Planning & Requirements Management**:

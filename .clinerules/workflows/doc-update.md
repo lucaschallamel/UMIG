@@ -23,6 +23,8 @@ Please engage our GENDEV documentation generator to conduct comprehensive change
 
 Please collaborate with our GENDEV system architect to perform comprehensive architecture documentation management using standard validation standards, focusing on architecture update assessment, automated analysis of architectural impacts, and consistency verification for documentation authority.
 
+**PRIMARY REFERENCE**: `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` serves as the navigation hub for all 49 ADRs organized across TOGAF Phase documents.
+
 ## MANDATORY VERIFICATION
 
 - [ ] Read architecture documentation analysis reports and system pattern updates
@@ -36,17 +38,17 @@ Please collaborate with our GENDEV system architect to perform comprehensive arc
 
 ### Step 3: ADR Management with AI
 
-Please work with our GENDEV business process analyst to conduct comprehensive ADR (Architecture Decision Record) management and assessment, focusing on AI-assisted ADR evaluation, archive management optimization, and decision tracking coordination.
+Please work with our GENDEV business process analyst to conduct comprehensive ADR (Architecture Decision Record) management and assessment, focusing on AI-assisted ADR evaluation, TOGAF document integration, and decision tracking coordination.
 
 ## MANDATORY VERIFICATION
 
 - [ ] Read ADR assessment reports and decision tracking documentation
-- [ ] Verify ADR evaluation and archive management processes are comprehensive and accurate
+- [ ] Verify ADR evaluation and TOGAF integration processes are comprehensive and accurate
 - [ ] Check decision tracking and system pattern integration are properly coordinated
 - [ ] Report actual ADR management effectiveness and decision documentation completeness
 
-- **AI-Assisted ADR Evaluation:** Intelligent assessment of whether changes require new ADR in `docs/adr/`
-- **Archive Management:** Ensure archived ADRs in `docs/adr/archive/` are properly consolidated in `docs/memory-bank/systemPatterns.md`
+- **AI-Assisted ADR Evaluation:** Intelligent assessment of whether changes require new ADR in `docs/architecture/adr/`
+- **TOGAF Integration:** Ensure ADRs are properly consolidated in `docs/memory-bank/systemPatterns.md` and cross-referenced with TOGAF architecture documents in `docs/architecture/`
 - **Decision Tracking:** AI-powered tracking of architectural decisions and their documentation needs
 
 ### Step 4: Comprehensive Documentation Updates
