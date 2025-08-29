@@ -16,10 +16,10 @@ This rule establishes the governance framework, collaborative processes, and org
 
 **Architecture Decision Records (ADRs)**:
 
-- **Mandatory ADR Creation**: Required for all architectural changes in `/docs/adr/` using established template
+- **Mandatory ADR Creation**: Required for all architectural changes in `/docs/architecture/adr/` using established template
 - **Decision Categories**: Major dependency changes, architectural pattern modifications, integration patterns, database schema changes
 - **Review Process**: All ADRs require peer review and stakeholder approval before implementation
-- **Template Compliance**: Follow `/docs/adr/template.md` for consistent decision documentation
+- **Template Compliance**: Follow `/docs/architecture/adr/template.md` for consistent decision documentation
 
 ## Documentation Standards & Quality Assurance
 

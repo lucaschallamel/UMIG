@@ -76,7 +76,7 @@ Please work with our GENDEV documentation generator to conduct comprehensive doc
 - **Memory Bank Analysis**: AI-powered analysis of `docs/memory-bank/` 6 core files per Rule 07
 - **Documentation Structure Validation**: Verify compliance with Rule 03 scaffolding requirements
 - **Dev Journal Assessment**: Review `docs/devJournal/` entries (YYYYMMDD-nn.md format)
-- **ADR Consistency**: Cross-reference `docs/adr/` architectural decisions
+- **ADR Consistency**: Cross-reference `docs/architecture/adr/` architectural decisions
 - **README Completeness**: Validate README.md files in all work folders
 - **Roadmap Currency**: Review `docs/roadmap/` and `docs/roadmap/sprint/` documentation
 

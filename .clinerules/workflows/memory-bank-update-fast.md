@@ -65,7 +65,7 @@ description: Fast variant for rapid memory bank updates with essential knowledge
 - Dev journal entries in docs/devJournal/
 - Current CHANGELOG.md available
 - README files across project
-- ADRs in docs/adr/
+- ADRs in docs/architecture/adr/
 
 ## Phase 1: Structure Validation & Source Analysis
 

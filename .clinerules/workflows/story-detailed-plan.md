@@ -207,7 +207,7 @@ Please coordinate with our GENDEV code reviewer, security specialist, and perfor
 - [ ] Memory Bank updates for 6 core files per Rule 07 (completed by documentation generator)
 - [ ] README.md files for affected work folders per Rule 03 (completed by documentation generator)
 - [ ] Dev Journal planning entry in `docs/devJournal/` (completed by documentation generator)
-- [ ] ADR creation in `docs/adr/` if architectural (completed by system architect)
+- [ ] ADR creation in `docs/architecture/adr/` if architectural (completed by system architect)
 - [ ] Knowledge transfer (completed by documentation generator)
 
 ## AI-Enhanced Execution Notes

@@ -338,7 +338,7 @@ Use a structured template that accommodates multiple work streams and comprehens
 - API documentation:
 - Memory Bank updates (`docs/memory-bank/` files per Rule 07):
 - Dev Journal entries (`docs/devJournal/` YYYYMMDD-nn.md format):
-- ADR documentation (`docs/adr/` for architectural decisions):
+- ADR documentation (`docs/architecture/adr/` for architectural decisions):
 - README.md files (all work folders per Rule 03):
 - Roadmap documentation (`docs/roadmap/` and `docs/roadmap/sprint/`):
 
@@ -406,7 +406,7 @@ Use a structured template that accommodates multiple work streams and comprehens
 - [ ] Memory Bank files updated in `docs/memory-bank/` per Rule 07
 - [ ] README.md files updated in all affected work folders
 - [ ] Dev Journal entry created in `docs/devJournal/` (YYYYMMDD-nn.md)
-- [ ] ADR created/updated in `docs/adr/` if architectural changes
+- [ ] ADR created/updated in `docs/architecture/adr/` if architectural changes
 - [ ] Database migrations are tested
 - [ ] API changes are documented
 - [ ] UI changes are demonstrated with screenshots

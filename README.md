@@ -160,13 +160,16 @@ UMIG/
 │   │   ├── devJournalEntryTemplate.md
 │   │   ├── sprintReviewTemplate.md
 │   │   └── [dated entries]           # Chronological development history
-│   ├── architecture/                  # Architecture documentation (sharded)
-│   │   ├── solution-architecture.md  # Navigation hub for all architecture docs
-│   │   ├── architecture-foundation.md # Core principles & system structure
-│   │   ├── api-data-architecture.md  # REST APIs & database patterns
-│   │   ├── development-operations.md # DevOps, testing, CI/CD
-│   │   ├── specialized-features.md   # Email, auth, UI components
-│   │   └── implementation-patterns.md # Code patterns & standards
+│   ├── architecture/                  # TOGAF & ArchiMate driven architecture
+│   │   ├── UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md  # Primary hub (49 ADRs)
+│   │   ├── UMIG - TOGAF Phase B - Business Architecture.md
+│   │   ├── UMIG - TOGAF Phase C - Application Architecture.md
+│   │   ├── UMIG - TOGAF Phase C - Data Architecture.md
+│   │   ├── UMIG - TOGAF Phase D - Technical Architecture.md
+│   │   ├── UMIG - TOGAF Phase D - Security Architecture.md
+│   │   ├── UMIG - TOGAF Phases E-F - Migration and Governance Document.md
+│   │   ├── adr/                       # Architectural Decision Records
+│   │   └── _archives/                 # Legacy documentation
 │   └── roadmap/                      # Development roadmap and UI/UX specifications
 │       ├── unified-roadmap.md        # Unified development roadmap
 │       ├── iteration-view.md         # Iteration view specification
@@ -643,7 +646,7 @@ The **Iteration View** is the primary runsheet interface for cutover events:
 
 ### Primary References
 
-1. **`docs/architecture/solution-architecture.md`**: Navigation hub for complete architecture (49 ADRs across 5 domain documents)
+1. **`docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`**: Primary architecture hub (49 ADRs organized across TOGAF Phase documents)
 2. **`docs/dataModel/README.md`**: Comprehensive database schema and ERD
 3. **`docs/api/openapi.yaml`**: OpenAPI 3.0 specification
 4. **`docs/adr/`**: Current Architecture Decision Records
@@ -683,7 +686,7 @@ A comprehensive Postman collection is available for testing all API endpoints:
 
 ### Architecture Guidelines
 
-- **Always Start**: Review `docs/architecture/solution-architecture.md` for architectural context
+- **Always Start**: Review `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md` for architectural context
 - **Follow Patterns**: Reference existing SPA+REST implementations
 - **Database Access**: Use mandatory `DatabaseUtil.withSql` pattern
 - **Zero Dependencies**: All frontend code must be pure vanilla JavaScript
