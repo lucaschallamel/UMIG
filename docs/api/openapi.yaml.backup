@@ -104,8 +104,6 @@ paths:
   # ==================== NEW V2 ITERATIONS API ====================
   /iterationsList:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all iterations with pagination
       description: |
         Retrieve all iterations with comprehensive filtering, pagination, and search capabilities.
@@ -177,11 +175,11 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
     post:
       summary: Create new iteration
-      security:
-        - ConfluenceUsers: []
       description: |
         Create a new iteration with validation and automatic field assignment.
         Migration ID is required and must exist. Name uniqueness is enforced.
@@ -222,11 +220,11 @@ paths:
                 error: "An iteration with this name already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /iterationsList/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: Get single iteration by ID
       description: Retrieve a specific iteration with full metadata and relationships
       tags: [Iterations]
@@ -264,10 +262,10 @@ paths:
                 error: "Iteration not found"
         "500":
           $ref: "#/components/responses/InternalServerError"
-
-    put:
       security:
         - ConfluenceUsers: []
+
+    put:
       summary: Update iteration
       description: |
         Update an existing iteration with validation.
@@ -321,10 +319,10 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           $ref: "#/components/responses/InternalServerError"
-
-    delete:
       security:
         - ConfluenceUsers: []
+
+    delete:
       summary: Delete iteration
       description: |
         Delete an iteration. Will fail if the iteration has associated plans or is referenced by other resources.
@@ -367,12 +365,12 @@ paths:
                 error: "Cannot delete iteration - it has associated plans or is referenced by other resources"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   # ==================== NEW V2 STATUS API ====================
   /status:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: Get statuses by entity type
       description: |
         Retrieve status information for different entity types.
@@ -431,11 +429,11 @@ paths:
                 message: "Valid entity types: Migration, Iteration, Plan, Sequence, Phase, Step, Control, Instruction"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /migrations/{migId}/iterations/{iteId}:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: Get a specific iteration
       tags: [Migrations]
       operationId: getIterationById
@@ -465,11 +463,11 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /migrations/{migId}/iterations/{iteId}/plan-instances:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all plan instances for an iteration
       tags: [Migrations]
       operationId: listPlanInstancesForIteration
@@ -501,11 +499,11 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /migrations/{migId}/iterations/{iteId}/sequences:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all sequences for an iteration
       tags: [Migrations]
       operationId: listSequencesForIteration
@@ -537,11 +535,11 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /migrations/{migId}/iterations/{iteId}/phases:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all phases for an iteration
       tags: [Migrations]
       operationId: listPhasesForIteration
@@ -576,8 +574,6 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all sequences for a plan instance
       tags: [Migrations]
       operationId: listSequencesForPlanInstance
@@ -612,8 +608,6 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/phases:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all phases for a plan instance
       tags: [Migrations]
       operationId: listPhasesForPlanInstance
@@ -648,8 +642,6 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences/{seqId}/phases:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all phases for a sequence
       tags: [Migrations]
       operationId: listPhasesForSequence
@@ -690,8 +682,6 @@ paths:
 
   /migrations:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all migrations with advanced filtering and pagination
       tags: [Migrations]
       operationId: listMigrations
@@ -781,8 +771,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       summary: Create a new migration
       tags: [Migrations]
       operationId: createMigration
@@ -879,8 +867,6 @@ paths:
 
   /migrations/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: Get a single migration by ID with status metadata
       tags: [Migrations]
       operationId: getMigrationById
@@ -905,8 +891,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
-      security:
-        - ConfluenceUsers: []
       summary: Update a migration
       tags: [Migrations]
       operationId: updateMigration
@@ -939,8 +923,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       summary: Delete a migration
       tags: [Migrations]
       operationId: deleteMigration
@@ -969,8 +951,6 @@ paths:
 
   /migrations/dashboard/summary:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: Get dashboard summary data
       tags: [Migrations, Dashboard]
       operationId: getDashboardSummary
@@ -986,8 +966,6 @@ paths:
 
   /migrations/dashboard/progress:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: Get progress aggregation data
       tags: [Migrations, Dashboard]
       operationId: getDashboardProgress
@@ -1024,8 +1002,6 @@ paths:
 
   /migrations/dashboard/metrics:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: Get performance metrics (placeholder)
       tags: [Migrations, Dashboard]
       operationId: getDashboardMetrics
@@ -1057,8 +1033,6 @@ paths:
 
   /migrations/bulk/status:
     put:
-      security:
-        - ConfluenceUsers: []
       summary: Bulk update migration status (placeholder)
       tags: [Migrations, Bulk Operations]
       operationId: bulkUpdateMigrationStatus
@@ -1082,8 +1056,6 @@ paths:
 
   /migrations/bulk/export:
     post:
-      security:
-        - ConfluenceUsers: []
       summary: Bulk export migrations to JSON/CSV
       tags: [Migrations, Bulk Operations]
       operationId: bulkExportMigrations
@@ -1107,8 +1079,6 @@ paths:
 
   /migrations/{migId}/iterations:
     get:
-      security:
-        - ConfluenceUsers: []
       summary: List all iterations for a migration
       tags: [Migrations]
       operationId: listIterationsForMigration
@@ -1137,8 +1107,6 @@ paths:
 
   /step-view:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - StepView
       summary: Get all step view data
@@ -1158,8 +1126,6 @@ paths:
 
   /stepViewApi/instance:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - StepView
       summary: Get step instance details by migration, iteration, and step code
@@ -1219,8 +1185,6 @@ paths:
 
   /teams:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Get teams with optional hierarchical filtering
@@ -1278,8 +1242,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Create a new team
@@ -1301,8 +1263,6 @@ paths:
 
   /teams/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Get a team by ID
@@ -1324,8 +1284,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Update a team
@@ -1351,8 +1309,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Delete a team
@@ -1374,8 +1330,6 @@ paths:
 
   /teams/{teamId}/users/{userId}:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Add a user to a team
@@ -1398,8 +1352,6 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Remove a user from a team
@@ -1424,8 +1376,6 @@ paths:
 
   /teams/{id}/applications:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Get applications associated with a team
@@ -1453,8 +1403,6 @@ paths:
 
   /teams/{teamId}/applications/{applicationId}:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Add an application to a team
@@ -1479,8 +1427,6 @@ paths:
         "409":
           description: Application is already associated with this team.
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Remove an application from a team
@@ -1505,8 +1451,6 @@ paths:
 
   /environments:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get all environments with counts
@@ -1563,8 +1507,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Create a new environment
@@ -1592,8 +1534,6 @@ paths:
 
   /environments/roles:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get all environment roles
@@ -1613,8 +1553,6 @@ paths:
 
   /environments/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get an environment by ID
@@ -1640,8 +1578,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Update an environment
@@ -1675,8 +1611,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Delete an environment
@@ -1706,8 +1640,6 @@ paths:
 
   /environments/{id}/iterations:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get iterations grouped by role
@@ -1735,8 +1667,6 @@ paths:
 
   /environments/{id}/applications/{appId}:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Associate an application with an environment
@@ -1767,8 +1697,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Remove application association
@@ -1797,8 +1725,6 @@ paths:
 
   /environments/{id}/iterations/{iteId}:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Associate an iteration with an environment
@@ -1842,8 +1768,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Remove iteration association
@@ -1873,8 +1797,6 @@ paths:
 
   /steps:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get steps with hierarchical filtering for runsheet
@@ -1948,8 +1870,6 @@ paths:
 
   /steps/master:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get master steps with pagination and Admin GUI support
@@ -2022,8 +1942,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Create new master step
@@ -2087,8 +2005,6 @@ paths:
 
   /steps/master/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get single master step by ID
@@ -2126,8 +2042,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Update existing master step
@@ -2202,8 +2116,6 @@ paths:
 
   /steps/instance/{stepInstanceId}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get step instance details with instructions
@@ -2234,8 +2146,6 @@ paths:
 
   /steps/{stepInstanceId}/status:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Update step instance status
@@ -2271,8 +2181,6 @@ paths:
 
   /steps/{stepInstanceId}/open:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Mark step as opened by PILOT
@@ -2311,8 +2219,6 @@ paths:
 
   /steps/{stepInstanceId}/instructions/{instructionId}/complete:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Mark instruction as completed
@@ -2358,8 +2264,6 @@ paths:
 
   /steps/{stepInstanceId}/instructions/{instructionId}/incomplete:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Mark instruction as incomplete
@@ -2406,8 +2310,6 @@ paths:
 
   /steps/{stepInstanceId}/comments:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Get comments for a step instance
@@ -2451,8 +2353,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Create a new comment for a step instance
@@ -2502,8 +2402,6 @@ paths:
 
   /comments/{commentId}:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Update a comment
@@ -2554,8 +2452,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Delete a comment
@@ -2604,8 +2500,6 @@ paths:
 
   /steps/summary:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get dashboard summary metrics for steps
@@ -2635,8 +2529,6 @@ paths:
 
   /steps/progress:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get detailed progress tracking data
@@ -2666,8 +2558,6 @@ paths:
 
   /steps/export:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Export steps data in JSON or CSV format
@@ -2749,8 +2639,6 @@ paths:
 
   /steps/bulk/status:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Bulk update step status
@@ -2778,8 +2666,6 @@ paths:
 
   /steps/bulk/assign:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Bulk assign steps to team
@@ -2807,8 +2693,6 @@ paths:
 
   /steps/bulk/reorder:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Bulk reorder steps within phases
@@ -2839,8 +2723,6 @@ paths:
 
   /import/json:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Import
       summary: Import JSON data from Confluence extraction
@@ -2878,8 +2760,6 @@ paths:
 
   /import/batch:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Import
       summary: Import multiple JSON files in batch
@@ -2911,115 +2791,41 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /import/staging:
+  /import/batch/{batchId}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Import
-      summary: Get current staging data
+      summary: Get details of a specific import batch
       description: |
-        Retrieves all data currently in staging tables before promotion to master.
-        Useful for reviewing imported data before it's promoted.
-      operationId: getStagingData
+        Retrieves detailed information about a specific import batch including
+        imported entities, statistics, and status.
+      operationId: getImportBatchDetails
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Import batch identifier
       responses:
         "200":
-          description: Staging data retrieved successfully
+          description: Batch details retrieved successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/StagingStep"
+                $ref: "#/components/schemas/ImportBatchDetails"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
-
-  /import/staging/validate:
-    post:
-      security:
-        - ConfluenceUsers: []
-      tags:
-        - Import
-      summary: Validate staging data
-      description: |
-        Validates data in staging tables before promotion to master.
-        Checks for data consistency, required fields, and business rules.
-        
-        **Validation Checks:**
-        - Steps without instructions (warning)
-        - Invalid step type codes (error)
-        - Duplicate instruction IDs within same step (error)
-        - Missing required fields (error)
-      operationId: validateStagingData
-      responses:
-        "200":
-          description: Validation completed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationResult"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /import/staging/promote:
-    post:
-      security:
-        - ConfluenceUsers: []
-      tags:
-        - Import
-      summary: Promote staging data to master tables
-      description: |
-        Manually promotes validated staging data to master tables.
-        Creates master step and instruction records, handling team creation as needed.
-        
-        **Note:** This is typically done automatically after successful import,
-        but this endpoint allows manual control when needed.
-      operationId: promoteToMaster
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PromotionRequest"
-      responses:
-        "200":
-          description: Promotion completed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PromotionResult"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /import/staging/clear:
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Import
-      summary: Clear all staging data
+      summary: Rollback a specific import batch
       description: |
-        Removes all data from staging tables.
-        Use with caution - this operation cannot be undone.
-      operationId: clearStagingData
-      responses:
-        "204":
-          description: Staging data cleared successfully
-        "500":
-          $ref: "#/components/responses/InternalServerError"
-
-  /import/batches/{batchId}/rollback:
-    post:
-      security:
-        - ConfluenceUsers: []
-      tags:
-        - Import
-      summary: Rollback an import batch
-      description: |
-        Rolls back a specific import batch, removing imported data from staging.
-        Useful for undoing problematic imports before promotion.
+        Rolls back an import batch, marking all imported entities as inactive.
+        This operation is idempotent and can be called multiple times safely.
       operationId: rollbackImportBatch
       parameters:
         - name: batchId
@@ -3028,7 +2834,7 @@ paths:
           schema:
             type: string
             format: uuid
-          description: Import batch ID to rollback
+          description: Import batch identifier
       requestBody:
         required: false
         content:
@@ -3041,25 +2847,119 @@ paths:
                   description: Reason for rollback
       responses:
         "200":
-          description: Rollback completed
+          description: Rollback completed successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
                   message:
+                    type: string
+                  batchId:
+                    type: string
+                  reason:
                     type: string
         "404":
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /import/batch/{batchId}/status:
+    put:
+      tags:
+        - Import
+      summary: Update import batch status
+      description: |
+        Updates the status of an import batch with optional statistics.
+        Valid statuses are: COMPLETED, FAILED, IN_PROGRESS.
+      operationId: updateImportBatchStatus
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Import batch identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [COMPLETED, FAILED, IN_PROGRESS]
+                  description: New status for the batch
+                statistics:
+                  type: object
+                  description: Optional statistics to store with the status
+                  properties:
+                    recordsProcessed:
+                      type: integer
+                    successCount:
+                      type: integer
+                    errorCount:
+                      type: integer
+      responses:
+        "200":
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  batchId:
+                    type: string
+                  status:
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/statistics:
+    get:
+      tags:
+        - Import
+      summary: Get overall import statistics
+      description: |
+        Retrieves aggregated statistics for all imports including total counts,
+        success/failure rates, and entity breakdowns.
+      operationId: getImportStatistics
+      responses:
+        "200":
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalImports:
+                    type: integer
+                  successfulImports:
+                    type: integer
+                  failedImports:
+                    type: integer
+                  rolledBackImports:
+                    type: integer
+                  totalSteps:
+                    type: integer
+                  totalInstructions:
+                    type: integer
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+
   /import/history:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Import
       summary: Get import history
@@ -3068,12 +2968,19 @@ paths:
         Results are ordered by import date descending.
       operationId: getImportHistory
       parameters:
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter import history by username
         - name: limit
           in: query
+          required: false
           schema:
             type: integer
-            default: 20
-          description: Maximum number of batches to return
+            default: 50
+          description: Maximum number of batches to return (1-1000)
       responses:
         "200":
           description: Import history retrieved
@@ -3090,8 +2997,6 @@ paths:
 
   /instructions:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get master instructions with hierarchical filtering
@@ -3141,6 +3046,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /instructions/master:
     post:
@@ -3200,8 +3107,6 @@ paths:
       security:
         - ConfluenceUsers: []
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Update master instruction
@@ -3235,8 +3140,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Delete master instruction
@@ -3264,8 +3167,6 @@ paths:
 
   /instructions/master/{stepId}/reorder:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Reorder master instructions within a step
@@ -3301,8 +3202,6 @@ paths:
 
   /instructions/instance/by-step/{stepInstanceId}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction instances for a step instance
@@ -3330,8 +3229,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Create instruction instances for a step
@@ -3369,8 +3266,6 @@ paths:
 
   /instructions/instance/{instructionInstanceId}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction instance by ID
@@ -3396,8 +3291,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Delete instruction instance
@@ -3425,8 +3318,6 @@ paths:
 
   /instructions/instance/{instructionInstanceId}/complete:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Mark instruction instance as completed
@@ -3462,8 +3353,6 @@ paths:
 
   /instructions/instance/{instructionInstanceId}/uncomplete:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Mark instruction instance as not completed
@@ -3493,8 +3382,6 @@ paths:
 
   /instructions/bulk/complete:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Bulk complete instruction instances
@@ -3520,8 +3407,6 @@ paths:
 
   /instructions/analytics/progress:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction progress analytics
@@ -3564,8 +3449,6 @@ paths:
 
   /instructions/analytics/completion:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction completion timeline
@@ -3601,8 +3484,6 @@ paths:
 
   /instructions/bulk:
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Bulk delete instruction instances
@@ -3659,8 +3540,6 @@ paths:
 
   /controls/master:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get all master control templates with pagination and sorting
@@ -3741,8 +3620,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create a new master control template
@@ -3770,8 +3647,6 @@ paths:
 
   /controls/master/{controlId}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get master control by ID
@@ -3798,8 +3673,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Update master control
@@ -3834,8 +3707,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Delete master control
@@ -3865,8 +3736,6 @@ paths:
 
   /controls/master/reorder:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Reorder master controls within phase
@@ -3888,8 +3757,6 @@ paths:
 
   /controls/master/bulk:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create multiple master controls
@@ -3921,8 +3788,6 @@ paths:
 
   /controls/master/{controlId}/instantiate:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create instance from master control
@@ -3958,8 +3823,6 @@ paths:
 
   /controls/instance:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get control instances with hierarchical filtering
@@ -4030,8 +3893,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create a new control instance
@@ -4059,8 +3920,6 @@ paths:
 
   /controls/instance/{instanceId}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get control instance by ID
@@ -4087,8 +3946,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Update control instance
@@ -4123,8 +3980,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Delete control instance
@@ -4148,8 +4003,6 @@ paths:
 
   /controls/instance/{instanceId}/status:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Update control instance status
@@ -4188,8 +4041,6 @@ paths:
 
   /controls/instance/{instanceId}/validate:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Validate control with IT/Business approval
@@ -4225,8 +4076,6 @@ paths:
 
   /controls/instance/{instanceId}/override:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Override control with justification
@@ -4262,8 +4111,6 @@ paths:
 
   /controls/instance/bulk:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create multiple control instances
@@ -4295,8 +4142,6 @@ paths:
 
   /controls/instance/bulk/validate:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Validate all controls in a phase
@@ -4332,8 +4177,6 @@ paths:
 
   /controls/{phaseId}/progress:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Calculate control progress for phase
@@ -4363,8 +4206,6 @@ paths:
 
   /statuses:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Statuses
       summary: Get all statuses
@@ -4384,8 +4225,6 @@ paths:
 
   /statuses/{type}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Statuses
       summary: Get statuses by entity type
@@ -4416,8 +4255,6 @@ paths:
 
   /iterationTypes:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Iterations
       summary: Get all iteration types
@@ -4440,8 +4277,6 @@ paths:
 
   /user/context:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Users
       summary: Get user context with role information (v2.1.0)
@@ -4473,8 +4308,6 @@ paths:
 
   /labels:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Get labels with optional hierarchical filtering
@@ -4533,8 +4366,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Create a new label
@@ -4566,8 +4397,6 @@ paths:
 
   /labels/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Get a specific label by ID
@@ -4593,8 +4422,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Update an existing label
@@ -4634,8 +4461,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Delete a label
@@ -4658,8 +4483,6 @@ paths:
 
   /labels/{id}/steps:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Get steps associated with a label
@@ -4691,8 +4514,6 @@ paths:
 
   /labels/{labelId}/applications/{applicationId}:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Add application association to label
@@ -4726,8 +4547,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Remove application association from label
@@ -4760,8 +4579,6 @@ paths:
 
   /labels/{labelId}/steps/{stepId}:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Add step association to label
@@ -4796,8 +4613,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Remove step association from label
@@ -4831,8 +4646,6 @@ paths:
 
   /plans/master:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get all master plans
@@ -4851,8 +4664,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Create a new master plan
@@ -4884,8 +4695,6 @@ paths:
 
   /plans/master/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get master plan by ID
@@ -4918,8 +4727,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Update master plan
@@ -4960,8 +4767,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Delete master plan
@@ -4991,8 +4796,6 @@ paths:
 
   /plans:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get plan instances
@@ -5041,8 +4844,6 @@ paths:
 
   /plans/instance:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Create plan instance
@@ -5074,8 +4875,6 @@ paths:
 
   /plans/instance/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get plan instance by ID
@@ -5108,8 +4907,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Update plan instance
@@ -5144,8 +4941,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Delete plan instance
@@ -5175,8 +4970,6 @@ paths:
 
   /plans/{id}/status:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Update plan instance status
@@ -5223,8 +5016,6 @@ paths:
 
   /sequences/master:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get all master sequences
@@ -5243,8 +5034,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Create a new master sequence
@@ -5276,8 +5065,6 @@ paths:
 
   /sequences/master/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get master sequence by ID
@@ -5310,8 +5097,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update master sequence
@@ -5352,8 +5137,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Delete master sequence
@@ -5383,8 +5166,6 @@ paths:
 
   /sequences/master/{id}/order:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update master sequence order
@@ -5420,8 +5201,6 @@ paths:
 
   /sequences:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get sequence instances
@@ -5477,8 +5256,6 @@ paths:
 
   /sequences/instance:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Create sequence instance
@@ -5510,8 +5287,6 @@ paths:
 
   /sequences/instance/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get sequence instance by ID
@@ -5544,8 +5319,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update sequence instance
@@ -5580,8 +5353,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Delete sequence instance
@@ -5611,8 +5382,6 @@ paths:
 
   /sequences/instance/{id}/status:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update sequence instance status
@@ -5655,8 +5424,6 @@ paths:
   # === PHASES API ENDPOINTS ===
   /phases/master:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get all master phases with advanced filtering and pagination
@@ -5796,8 +5563,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Create master phase
@@ -5823,8 +5588,6 @@ paths:
 
   /phases/master/{phm_id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get master phase by ID
@@ -5850,8 +5613,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update master phase
@@ -5885,8 +5646,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Delete master phase
@@ -5914,8 +5673,6 @@ paths:
 
   /phases/master/{phm_id}/instantiate:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Instantiate phases from master
@@ -5959,8 +5716,6 @@ paths:
 
   /phases/instance:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase instances
@@ -6021,8 +5776,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Create phase instance
@@ -6048,8 +5801,6 @@ paths:
 
   /phases/instance/{phi_id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase instance by ID
@@ -6075,8 +5826,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update phase instance
@@ -6110,8 +5859,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Delete phase instance
@@ -6139,8 +5886,6 @@ paths:
 
   /phases/instance/{phi_id}/status:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update phase instance status
@@ -6177,8 +5922,6 @@ paths:
 
   /phases/{phi_id}/controls:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase control points
@@ -6208,8 +5951,6 @@ paths:
 
   /phases/{phi_id}/controls/validate:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Validate phase control points
@@ -6237,8 +5978,6 @@ paths:
 
   /phases/{phi_id}/controls/{cti_id}:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update control point
@@ -6281,8 +6020,6 @@ paths:
 
   /phases/{phi_id}/controls/{cti_id}/override:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Override control point
@@ -6325,8 +6062,6 @@ paths:
 
   /phases/{phi_id}/progress:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase progress
@@ -6354,8 +6089,6 @@ paths:
 
   /phases/master/reorder:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Bulk reorder master phases
@@ -6381,8 +6114,6 @@ paths:
 
   /phases/instance/reorder:
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Bulk reorder phase instances
@@ -6408,8 +6139,6 @@ paths:
 
   /phases/master/{phm_id}/move:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Move master phase
@@ -6445,8 +6174,6 @@ paths:
 
   /phases/instance/{phi_id}/move:
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Move phase instance
@@ -6482,8 +6209,6 @@ paths:
 
   /applications:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Applications
       summary: Get all applications
@@ -6503,8 +6228,6 @@ paths:
 
   /users:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Users
       summary: Get all users
@@ -6594,8 +6317,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Users
       summary: Create a new user
@@ -6631,8 +6352,6 @@ paths:
 
   /users/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Users
       summary: Get user by ID
@@ -6658,8 +6377,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Users
       summary: Update user
@@ -6703,8 +6420,6 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - Users
       summary: Delete user
@@ -6733,8 +6448,6 @@ paths:
 
   /emailTemplates:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Get all email templates
@@ -6768,8 +6481,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
-      security:
-        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Create a new email template
@@ -6797,8 +6508,6 @@ paths:
 
   /emailTemplates/{id}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Get an email template by ID
@@ -6826,8 +6535,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
-      security:
-        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Update an email template
@@ -6863,8 +6570,6 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
-      security:
-        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Delete an email template
@@ -6888,10 +6593,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /webapp/{path}:
+  /webapp/{path+}:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - WebApp
       summary: Serve a static asset
@@ -6903,6 +6606,7 @@ paths:
           required: true
           schema:
             type: string
+          description: File path within webapp resources (can include subdirectories)
       responses:
         "200":
           description: The requested asset.
@@ -6918,8 +6622,6 @@ paths:
   # ==================== URL CONFIGURATION API ====================
   /api/v2/urlConfiguration:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - UrlConfiguration
       summary: Get URL configuration for client-side construction
@@ -6974,11 +6676,11 @@ paths:
                 timestamp: "2025-08-27T14:30:00Z"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /api/v2/urlConfiguration/health:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - UrlConfiguration
       summary: Health check for URL configuration service
@@ -7009,6 +6711,8 @@ paths:
                 details: "Database connection slow"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /api/v2/urlConfiguration/clearCache:
     post:
@@ -7038,8 +6742,6 @@ paths:
 
   /api/v2/urlConfiguration/debug:
     get:
-      security:
-        - ConfluenceUsers: []
       tags:
         - UrlConfiguration
       summary: Debug information for URL configuration troubleshooting
@@ -7074,6 +6776,8 @@ paths:
                 timestamp: "2025-08-27T14:30:00Z"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
 components:
   schemas:
@@ -10706,8 +10410,8 @@ components:
           description: SQL state code for database errors
       example:
         error: "Iteration name is required"
-        message: "Validation failed"
-        sqlState: "23000"
+        message: "Validation failed for required field"
+        sqlState: "23503"
 
 
 
@@ -11523,6 +11227,96 @@ components:
           type: object
         imb_error_message:
           type: string
+
+    ImportBatchDetails:
+      type: object
+      properties:
+        imb_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the import batch
+        imb_source:
+          type: string
+          description: Source type of the import (e.g., 'confluence', 'json')
+        imb_type:
+          type: string
+          description: Type of entities being imported (e.g., 'steps', 'instructions')
+        imb_status:
+          type: string
+          enum: [IN_PROGRESS, COMPLETED, FAILED, ROLLED_BACK]
+          description: Current status of the import batch
+        imb_user_id:
+          type: string
+          description: User who initiated the import batch
+        imb_start_time:
+          type: string
+          format: date-time
+          description: When the import batch started
+        imb_end_time:
+          type: string
+          format: date-time
+          description: When the import batch completed (null if in progress)
+        imb_statistics:
+          type: object
+          properties:
+            totalRecords:
+              type: integer
+              description: Total number of records processed
+            successCount:
+              type: integer
+              description: Number of successfully imported records
+            failureCount:
+              type: integer
+              description: Number of failed records
+            skippedCount:
+              type: integer
+              description: Number of skipped records
+          description: Import statistics and counts
+        imb_error_message:
+          type: string
+          description: Error message if the batch failed
+        importedEntities:
+          type: array
+          items:
+            type: object
+            properties:
+              entity_type:
+                type: string
+                description: Type of entity (e.g., 'step', 'instruction')
+              entity_id:
+                type: string
+                description: Unique identifier of the imported entity
+              entity_name:
+                type: string
+                description: Display name of the imported entity
+              import_status:
+                type: string
+                enum: [SUCCESS, FAILED, SKIPPED]
+                description: Import status for this specific entity
+          description: Details of individual imported entities
+      example:
+        imb_id: "550e8400-e29b-41d4-a716-446655440000"
+        imb_source: "confluence"
+        imb_type: "steps"
+        imb_status: "COMPLETED"
+        imb_user_id: "john.doe"
+        imb_start_time: "2025-08-27T10:00:00Z"
+        imb_end_time: "2025-08-27T10:05:30Z"
+        imb_statistics:
+          totalRecords: 150
+          successCount: 145
+          failureCount: 3
+          skippedCount: 2
+        imb_error_message: null
+        importedEntities:
+          - entity_type: "step"
+            entity_id: "step-001"
+            entity_name: "Initialize Database Connection"
+            import_status: "SUCCESS"
+          - entity_type: "step"
+            entity_id: "step-002"
+            entity_name: "Validate Configuration"
+            import_status: "FAILED"
 
     BulkUpdateResponse:
       type: object

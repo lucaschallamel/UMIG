@@ -1,0 +1,11 @@
+tms_id,tms_name,tms_email,tms_description
+1,Platform Engineering,platform-eng@company.com,Core platform engineering team responsible for infrastructure
+2,Data Engineering,data-eng@company.com,Data platform and analytics team
+3,Security Operations,security-ops@company.com,Security and compliance operations team
+4,Application Development,app-dev@company.com,Application development and maintenance team
+5,QA Engineering,qa-eng@company.com,Quality assurance and testing team
+6,DevOps,devops@company.com,DevOps and automation team
+7,Network Operations,network-ops@company.com,Network infrastructure and operations
+8,Database Administration,dba@company.com,Database management and optimization team
+9,Business Systems,business-sys@company.com,Business systems and integrations
+10,Cloud Architecture,cloud-arch@company.com,Cloud architecture and migration team
