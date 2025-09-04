@@ -33,13 +33,11 @@ class ImportRollbackValidationTest extends BaseIntegrationTest {
         importRepository = new ImportRepository()
         importService = new ImportService()
         csvImportService = new CsvImportService()
-        return null
     }
 
     def cleanup() {
         cleanupTestRollbackData()
         super.cleanup()
-        return null
     }
 
     void testBatchLevelRollback() {

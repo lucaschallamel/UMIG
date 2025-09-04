@@ -110,7 +110,7 @@ class DatabaseService {
 - Development environment configuration
 
 ### Phase 2: Core APIs (Weeks 2-3) - 30 Points
-- Migrate all 13 REST APIs with wrapper pattern
+- Migrate all 24 REST APIs with wrapper pattern
 - Preserve all business logic and repository patterns
 - Maintain existing SQL queries and data access
 
@@ -228,7 +228,7 @@ spring init --language=groovy --dependencies=web,data-jpa,security
 
 **Weeks 2-3: API Migration**
 ```groovy
-// Systematic migration of all 13 APIs
+// Systematic migration of all 24 APIs
 // Priority: Simple → Complex
 1. Labels API (simplest)
 2. Teams, Users APIs
@@ -314,7 +314,7 @@ This approach delivers the same strategic objectives (Confluence independence, O
 
 ### Phase 2 Stories (API Migration)
 - US-201B through US-213B: One story per API (2-3 pts each)
-- Total: 30 points for all 13 APIs
+- Total: 30 points for all 24 APIs
 
 ### Phase 3 Stories (UI Layer)
 - US-301B: Macro to Controller Conversion (8 pts)

@@ -1,20 +1,12 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.8.0
-  license:
-    name: MIT
+  version: 2.7.0
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
-
-    **Version 2.8.0 - September 3, 2025:**
-    **API Inventory Comprehensive Update:** Complete documentation update reflecting actual codebase inventory of 24 REST APIs.
-    Updated from previously documented 13 APIs to accurate count including all production, configuration, and specialized endpoints.
-    Categories: Core Entity Management (8), Migration Hierarchy (7), Configuration & Administration (5), Specialized & Integration (4).
-    All APIs follow consistent patterns established in ADR-017 with proper authentication, error handling, and repository patterns.
 
     **Version 2.7.0 - September 3, 2025:**
     **Import API v2.0.0:** Added comprehensive data import operations with 14 endpoints for JSON and CSV imports.
@@ -2850,6 +2842,258 @@ paths:
                 $ref: "#/components/schemas/BulkUpdateResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ==================== IMPORT API ====================
+  # US-034: Data Import Strategy - JSON Import from Confluence
+
+  /import/json:
+    post:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Import JSON data from Confluence extraction
+      description: |
+        Imports step and instruction data from JSON format extracted from Confluence HTML.
+        The data is first loaded into staging tables for validation, then automatically 
+        promoted to master tables if validation passes.
+        
+        **Workflow:**
+        1. Validates JSON structure and required fields
+        2. Creates import batch for tracking
+        3. Inserts data into staging tables (stg_steps, stg_step_instructions)
+        4. Validates staging data for consistency
+        5. Automatically promotes to master tables if validation passes
+        
+        **Step Type Codes:** Must be exactly 3 characters (e.g., IGO, CHK, DUM, TRT)
+      operationId: importJsonData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JsonImportRequest"
+      responses:
+        "200":
+          description: Import completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/batch:
+    post:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Import multiple JSON files in batch
+      description: |
+        Processes multiple JSON files in a single batch operation.
+        Each file is processed independently, with comprehensive result tracking.
+        
+        **Features:**
+        - Processes files sequentially to maintain order
+        - Tracks success/failure for each file
+        - Provides aggregate statistics
+        - Continues processing even if individual files fail
+      operationId: importBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchImportRequest"
+      responses:
+        "200":
+          description: Batch import completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchImportResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/staging:
+    get:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Get current staging data
+      description: |
+        Retrieves all data currently in staging tables before promotion to master.
+        Useful for reviewing imported data before it's promoted.
+      operationId: getStagingData
+      responses:
+        "200":
+          description: Staging data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StagingStep"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/staging/validate:
+    post:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Validate staging data
+      description: |
+        Validates data in staging tables before promotion to master.
+        Checks for data consistency, required fields, and business rules.
+        
+        **Validation Checks:**
+        - Steps without instructions (warning)
+        - Invalid step type codes (error)
+        - Duplicate instruction IDs within same step (error)
+        - Missing required fields (error)
+      operationId: validateStagingData
+      responses:
+        "200":
+          description: Validation completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/staging/promote:
+    post:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Promote staging data to master tables
+      description: |
+        Manually promotes validated staging data to master tables.
+        Creates master step and instruction records, handling team creation as needed.
+        
+        **Note:** This is typically done automatically after successful import,
+        but this endpoint allows manual control when needed.
+      operationId: promoteToMaster
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromotionRequest"
+      responses:
+        "200":
+          description: Promotion completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromotionResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/staging/clear:
+    delete:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Clear all staging data
+      description: |
+        Removes all data from staging tables.
+        Use with caution - this operation cannot be undone.
+      operationId: clearStagingData
+      responses:
+        "204":
+          description: Staging data cleared successfully
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/batches/{batchId}/rollback:
+    post:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Rollback an import batch
+      description: |
+        Rolls back a specific import batch, removing imported data from staging.
+        Useful for undoing problematic imports before promotion.
+      operationId: rollbackImportBatch
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Import batch ID to rollback
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Reason for rollback
+      responses:
+        "200":
+          description: Rollback completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/history:
+    get:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Import
+      summary: Get import history
+      description: |
+        Retrieves history of import batches with their status and statistics.
+        Results are ordered by import date descending.
+      operationId: getImportHistory
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: Maximum number of batches to return
+      responses:
+        "200":
+          description: Import history retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ImportBatch"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -6875,7 +7119,7 @@ paths:
               example:
                 error: "Missing required fields: 'source' and 'content'"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -6926,7 +7170,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -6970,7 +7214,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7014,7 +7258,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7058,7 +7302,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7102,7 +7346,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7143,7 +7387,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7189,7 +7433,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7206,7 +7450,7 @@ paths:
         Create a master plan configuration entry. Plan names must be unique.
         Requires administrator privileges for execution.
       tags: [Import]
-      operationId: importMasterPlan
+      operationId: createMasterPlan
       requestBody:
         required: true
         content:
@@ -7227,7 +7471,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7286,7 +7530,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7346,7 +7590,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -7382,7 +7626,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "404":
           description: Batch not found
           content:
@@ -7429,7 +7673,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7482,7 +7726,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportError"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "403":
           description: Forbidden - administrator privileges required
           content:
@@ -7515,7 +7759,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportStatistics"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -7567,7 +7811,7 @@ paths:
               example:
                 error: "Invalid entity type. Must be one of: teams, users, applications, environments"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/UnauthorizedError"
         "404":
           description: Template not found
           content:
@@ -11730,46 +11974,339 @@ components:
           type: integer
           description: New order position within phase
 
-    # ==================== BULK OPERATIONS RESPONSE ====================
-    
-    BulkUpdateResponse:
+    # --- Import API Schemas (US-034) ---
+    JsonImportRequest:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: "#/components/schemas/ImportStepData"
+        filename:
+          type: string
+          description: Source filename for tracking
+
+    ImportStepData:
+      type: object
+      required:
+        - step_type
+        - step_number
+        - title
+      properties:
+        step_type:
+          type: string
+          minLength: 3
+          maxLength: 3
+          description: Three-character step type code (e.g., IGO, CHK, DUM, TRT)
+        step_number:
+          type: integer
+          description: Step number within type
+        title:
+          type: string
+          description: Step title/name
+        predecessor:
+          type: string
+          description: Predecessor step reference
+        successor:
+          type: string
+          description: Successor step reference
+        primary_team:
+          type: string
+          description: Primary team responsible for step
+        impacted_teams:
+          type: string
+          description: Comma-separated list of impacted teams
+        macro_time_sequence:
+          type: string
+          description: Macro time sequence information
+        time_sequence:
+          type: string
+          description: Time sequence details
+        task_list:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportInstructionData"
+          description: List of instructions/tasks for this step
+
+    ImportInstructionData:
+      type: object
+      required:
+        - instruction_id
+      properties:
+        instruction_id:
+          type: string
+          description: Unique instruction identifier
+        instruction_title:
+          type: string
+          description: Instruction title/description
+        nominated_user:
+          type: string
+          description: User nominated for this instruction
+        instruction_assigned_team:
+          type: string
+          description: Team assigned to this instruction
+        associated_controls:
+          type: string
+          description: Associated control references
+        duration_minutes:
+          type: integer
+          description: Estimated duration in minutes
+
+    BatchImportRequest:
+      type: object
+      required:
+        - files
+      properties:
+        files:
+          type: array
+          items:
+            type: object
+            required:
+              - filename
+              - content
+            properties:
+              filename:
+                type: string
+                description: Name of the file being imported
+              content:
+                type: string
+                description: JSON content as string
+          description: Array of files to import
+
+    ImportResult:
       type: object
       properties:
-        updated:
+        success:
+          type: boolean
+        batchId:
+          type: string
+          format: uuid
+          description: Import batch tracking ID
+        stepId:
+          type: string
+          description: Created/updated step ID
+        statistics:
+          type: object
+          properties:
+            stepType:
+              type: string
+            stepNumber:
+              type: integer
+            instructionsImported:
+              type: integer
+            primaryTeam:
+              type: string
+            impactedTeams:
+              type: string
+        validationPassed:
+          type: boolean
+          description: Whether staging validation passed
+        promotionResult:
+          $ref: "#/components/schemas/PromotionResult"
+        errors:
           type: array
           items:
             type: string
-            format: uuid
-          description: List of successfully updated item IDs
-        failed:
+        warnings:
+          type: array
+          items:
+            type: string
+
+    BatchImportResult:
+      type: object
+      properties:
+        totalFiles:
+          type: integer
+        successCount:
+          type: integer
+        failureCount:
+          type: integer
+        skippedCount:
+          type: integer
+        results:
           type: array
           items:
             type: object
             properties:
-              id:
+              filename:
                 type: string
-                format: uuid
-                description: ID of the item that failed to update
-              error:
+              success:
+                type: boolean
+              stepId:
                 type: string
-                description: Error message for this item
-          description: List of items that failed to update
-        summary:
+              statistics:
+                type: object
+              errors:
+                type: array
+                items:
+                  type: string
+              warnings:
+                type: array
+                items:
+                  type: string
+        statistics:
           type: object
           properties:
-            total:
+            totalSteps:
               type: integer
-              description: Total number of items processed
-            updated:
+            totalInstructions:
               type: integer
-              description: Number of successfully updated items
-            failed:
-              type: integer
-              description: Number of failed updates
-            message:
-              type: string
-              description: Summary message
-          description: Summary statistics of the bulk operation
+            importedByType:
+              type: object
+              additionalProperties:
+                type: integer
+
+    StagingStep:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Composite step ID (type-number)
+        step_type:
+          type: string
+        step_number:
+          type: integer
+        title:
+          type: string
+        predecessor:
+          type: string
+        successor:
+          type: string
+        primary_team:
+          type: string
+        impacted_teams:
+          type: string
+        macro_time_sequence:
+          type: string
+        time_sequence:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        instructions:
+          type: array
+          items:
+            type: object
+            properties:
+              instruction_id:
+                type: string
+              instruction_text:
+                type: string
+              instruction_assignee:
+                type: string
+
+    ValidationResult:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    PromotionRequest:
+      type: object
+      properties:
+        batchId:
+          type: string
+          format: uuid
+          description: Specific batch to promote (optional)
+        phaseId:
+          type: string
+          format: uuid
+          description: Phase to link steps to (optional, uses default if not provided)
+
+    PromotionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        stepsPromoted:
+          type: integer
+        instructionsPromoted:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    ImportBatch:
+      type: object
+      properties:
+        imb_id:
+          type: string
+          format: uuid
+        imb_source:
+          type: string
+        imb_type:
+          type: string
+        imb_status:
+          type: string
+          enum: [IN_PROGRESS, COMPLETED, FAILED, ROLLED_BACK]
+        imb_user_id:
+          type: string
+        imb_start_time:
+          type: string
+          format: date-time
+        imb_end_time:
+          type: string
+          format: date-time
+        imb_statistics:
+          type: object
+        imb_error_message:
+          type: string
+
+    BulkUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Overall operation success
+        message:
+          type: string
+          description: Success message
+        updatedCount:
+          type: integer
+          description: Number of successfully updated items
+        assignedCount:
+          type: integer
+          description: Number of successfully assigned items (for assignments)
+        reorderedCount:
+          type: integer
+          description: Number of successfully reordered items (for reordering)
+        failedCount:
+          type: integer
+          description: Number of failed operations
+        failures:
+          type: array
+          items:
+            $ref: "#/components/schemas/BulkOperationFailure"
+          description: Details of failed operations
+
+    BulkOperationFailure:
+      type: object
+      properties:
+        stepId:
+          type: string
+          format: uuid
+          description: Step ID that failed
+        error:
+          type: string
+          description: Error message for this step
 
     # ==================== IMPORT API SCHEMAS ====================
     

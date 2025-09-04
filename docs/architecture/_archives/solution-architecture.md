@@ -19,7 +19,7 @@ This document serves as the central navigation hub for the UMIG (Unified Migrati
 | Document                                                    | Focus Area                                          | Content                                                    | Size       | ADRs                                       |
 | ----------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------- | ---------- | ------------------------------------------ |
 | **[Architecture Foundation](./architecture-foundation.md)** | Core principles, system structure, technology stack | Foundational architecture, N-tier model, project structure | ~800 lines | ADR-001 to ADR-027                         |
-| **[API & Data Architecture](./api-data-architecture.md)**   | REST APIs, database design, data management         | 13 REST endpoints, PostgreSQL patterns, filtering          | ~900 lines | ADR-003, ADR-010, ADR-028-030              |
+| **[API & Data Architecture](./api-data-architecture.md)**   | REST APIs, database design, data management         | 24 REST endpoints, PostgreSQL patterns, filtering          | ~900 lines | ADR-003, ADR-010, ADR-028-030              |
 | **[Development & Operations](./development-operations.md)** | DevOps, testing, CI/CD, infrastructure              | Testing framework, quality gates, deployment               | ~800 lines | ADR-006, ADR-013, ADR-025, ADR-036-038     |
 | **[Specialized Features](./specialized-features.md)**       | Email system, authentication, UI enhancements       | Email notifications, RBAC, StepView UI                     | ~700 lines | ADR-039, ADR-043-047                       |
 | **[Implementation Patterns](./implementation-patterns.md)** | Code patterns, type safety, service architecture    | DTO patterns, error handling, validation                   | ~900 lines | ADR-031, ADR-034, ADR-039-042, ADR-048-049 |
@@ -74,7 +74,7 @@ The UMIG application follows a **pure ScriptRunner** architecture with four prim
 
 - **Story Points Delivered**: 39/42 planned (93% velocity)
 - **Test Coverage**: 95%+ across all components
-- **API Endpoints**: 13 fully operational REST APIs
+- **API Endpoints**: 24 fully operational REST APIs
 - **Performance**: <3s load times consistently achieved
 - **Database Entities**: 19 core entities with complete CRUD operations
 
@@ -261,7 +261,7 @@ _Documented in: [Implementation Patterns](./implementation-patterns.md)_
 ```
 UMIG/
 ├── src/groovy/umig/          # Main application code
-│   ├── api/v2/               # REST API endpoints (13 APIs)
+│   ├── api/v2/               # REST API endpoints (24 APIs)
 │   ├── repository/           # Data access layer
 │   ├── tests/                # Testing framework (95%+ coverage)
 │   └── web/js/               # Frontend JavaScript
