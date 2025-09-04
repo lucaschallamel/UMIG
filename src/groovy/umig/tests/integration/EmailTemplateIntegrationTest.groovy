@@ -1,6 +1,8 @@
 package umig.tests.integration
 
 import spock.lang.Specification
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 import java.time.LocalDateTime
 
 import umig.dto.StepDataTransferObject
@@ -12,7 +14,13 @@ import umig.utils.EnhancedEmailService
  * 
  * Verifies end-to-end integration between StepDataTransferObject,
  * CommentDTO, and EnhancedEmailService template processing.
+ * 
+ * NOTE: Static type checking is disabled for this Spock test to avoid
+ * compilation errors when accessing Map properties returned from template
+ * transformations. The static type checker incorrectly treats Map results
+ * as Object, causing false positive "No such property" errors.
  */
+@TypeChecked(TypeCheckingMode.SKIP)
 class EmailTemplateIntegrationTest extends Specification {
     
     EnhancedEmailService emailService

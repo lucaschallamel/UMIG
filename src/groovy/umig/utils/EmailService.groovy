@@ -6,6 +6,7 @@ import groovy.text.SimpleTemplateEngine
 import groovy.sql.Sql
 import java.util.Date
 import java.util.UUID
+import java.time.LocalDateTime
 
 // Confluence mail imports
 import com.atlassian.confluence.mail.ConfluenceMailServerManager
@@ -17,6 +18,9 @@ import com.atlassian.sal.api.component.ComponentLocator
 import javax.mail.*
 import javax.mail.internet.*
 import java.util.Properties
+
+// HTML sanitization
+import org.apache.commons.text.StringEscapeUtils
 
 // Repository imports
 import umig.repository.AuditLogRepository
@@ -100,7 +104,8 @@ class EmailService {
                     migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
                     iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
                     // Template-specific variables (must be top-level for template access)
-                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: processCommentsForTemplate(stepInstance?.recentComments)
                 ]
                 
                 // Process template
@@ -212,7 +217,8 @@ class EmailService {
                     migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
                     iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
                     // Template-specific variables (must be top-level for template access)
-                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: processCommentsForTemplate(stepInstance?.recentComments)
                 ]
                 
                 // Process template
@@ -338,7 +344,8 @@ class EmailService {
                     migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
                     iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
                     // Template-specific variables (must be top-level for template access)
-                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: processCommentsForTemplate(stepInstance?.recentComments)
                 ]
                 
                 // Process template
@@ -484,7 +491,8 @@ class EmailService {
                     migrationCode: migrationCode ?: stepInstance?.migration_name ?: '',
                     iterationCode: iterationCode ?: stepInstance?.iteration_name ?: '',
                     // Template-specific variables (must be top-level for template access)
-                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: [])
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: processCommentsForTemplate(stepInstance?.recentComments)
                 ]
                 
                 // Debug: Log template variables
@@ -671,7 +679,20 @@ class EmailService {
      */
     private static boolean isLocalDevelopment() {
         def env = System.getProperty('umig.environment', 'production')
-        return env.toLowerCase() in ['local', 'development', 'dev'] || true  // Force local dev mode for testing
+        return env.toLowerCase() in ['local', 'development', 'dev']
+    }
+    
+    /**
+     * Sanitize text content for HTML template inclusion
+     * 
+     * @param text The text to sanitize
+     * @return HTML-safe text
+     */
+    private static String sanitizeHtmlContent(String text) {
+        if (!text) {
+            return text
+        }
+        return StringEscapeUtils.escapeHtml4(text)
     }
     
     /**
@@ -776,6 +797,408 @@ class EmailService {
             default:
                 return '#6c757d'
         }
+    }
+    
+    /**
+     * Process comments for template compatibility (US-056B Phase 2)
+     * Converts CommentDTO objects to template-compatible maps while maintaining
+     * backward compatibility with legacy comment objects
+     * 
+     * @param comments The comments to process (can be CommentDTO instances, legacy maps, or String)
+     * @return List of template-compatible comment maps
+     */
+    static List<Map<String, Object>> processCommentsForTemplate(Object comments) {
+        // Handle null or empty cases
+        if (!comments) {
+            return []
+        }
+        
+        // Handle String case (invalid comments)
+        if (comments instanceof String) {
+            return []
+        }
+        
+        // Handle List case (the expected format)
+        if (comments instanceof List) {
+            // Explicit casting to List<Object> for static type checking compatibility (ADR-031)
+            List<Object> commentList = comments as List<Object>
+            return commentList.take(3).collect { Object comment ->
+                return processIndividualComment(comment)
+            } as List<Map<String, Object>>
+        }
+        
+        // Single comment object case
+        if (comments.hasProperty('toTemplateMap') && comments.respondsTo('toTemplateMap')) {
+            // Safe casting and method invocation for CommentDTO
+            def commentResult = processIndividualComment(comments)
+            return [commentResult] as List<Map<String, Object>>
+        }
+        
+        // Single legacy comment
+        if (comments instanceof Map) {
+            Map<String, Object> legacyComment = comments as Map<String, Object>
+            return [processLegacyComment(legacyComment)] as List<Map<String, Object>>
+        }
+        
+        // Default fallback
+        return [] as List<Map<String, Object>>
+    }
+    
+    /**
+     * Process an individual comment object with proper type safety (ADR-031, ADR-043)
+     * 
+     * @param comment Individual comment object (CommentDTO, Map, or other)
+     * @return Template-compatible comment map
+     */
+    private static Map<String, Object> processIndividualComment(Object comment) {
+        // Handle null case
+        if (!comment) {
+            return createEmptyCommentMap()
+        }
+        
+        // Enhanced CommentDTO processing with explicit type checking
+        if (comment.hasProperty('toTemplateMap') && comment.respondsTo('toTemplateMap')) {
+            try {
+                // Call toTemplateMap() method on CommentDTO instance with safe method invocation
+                Object result = comment.invokeMethod('toTemplateMap', null)
+                return result as Map<String, Object>
+            } catch (Exception e) {
+                println "EmailService: Error calling toTemplateMap() on CommentDTO: ${e.message}"
+                return createEmptyCommentMap()
+            }
+        }
+        // Fallback for legacy comment Map objects
+        else if (comment instanceof Map) {
+            try {
+                Map<String, Object> commentMap = comment as Map<String, Object>
+                return processLegacyComment(commentMap)
+            } catch (ClassCastException e) {
+                println "EmailService: Map casting failed for comment: ${e.message}"
+                return createEmptyCommentMap()
+            }
+        }
+        // Fallback for objects with comment properties
+        else if (comment?.hasProperty('commentId')) {
+            return processLegacyCommentObject(comment)
+        }
+        // Unknown comment format - return minimal safe structure
+        else {
+            return [
+                comment_id: "",
+                comment_text: sanitizeHtmlContent(comment?.toString() ?: ""),
+                author_id: "",
+                author_name: "Anonymous",
+                created_at: "",
+                formatted_date: "Recent",
+                short_date: "Recent",
+                time_only: "",
+                is_active: false,
+                is_resolved: false,
+                priority: 1,
+                comment_type: "GENERAL",
+                reply_count: 0,
+                requires_attention: false,
+                is_priority: false,
+                is_recent: false
+            ] as Map<String, Object>
+        }
+    }
+    
+    /**
+     * Create an empty comment map for fallback cases
+     * 
+     * @return Empty comment map with all required fields
+     */
+    private static Map<String, Object> createEmptyCommentMap() {
+        return [
+            comment_id: "",
+            comment_text: "",
+            author_id: "",
+            author_name: "Anonymous",
+            created_at: "",
+            formatted_date: "Recent",
+            short_date: "Recent",
+            time_only: "",
+            is_active: false,
+            is_resolved: false,
+            priority: 1,
+            comment_type: "GENERAL",
+            reply_count: 0,
+            requires_attention: false,
+            is_priority: false,
+            is_recent: false
+        ] as Map<String, Object>
+    }
+    
+    /**
+     * Process legacy comment Map objects to template format with explicit type safety (ADR-031, ADR-043)
+     */
+    private static Map<String, Object> processLegacyComment(Map<String, Object> comment) {
+        // Defensive null checking and type validation
+        if (!comment) {
+            return createEmptyCommentMap()
+        }
+        
+        if (!(comment instanceof Map)) {
+            println "EmailService: processLegacyComment received non-Map object: ${comment.class.simpleName}"
+            return createEmptyCommentMap()
+        }
+        
+        try {
+            // Safe property access with explicit casting and null checking per ADR-043
+            String commentId = (comment.commentId as String) ?: (comment.comment_id as String) ?: ""
+            String commentText = sanitizeHtmlContent((comment.text as String) ?: (comment.comment_text as String) ?: "")
+            String authorId = (comment.authorId as String) ?: (comment.author_id as String) ?: ""
+            String authorName = sanitizeHtmlContent((comment.authorName as String) ?: (comment.author_name as String) ?: "Anonymous")
+            Object createdDate = comment.createdDate ?: comment.created_at
+            
+            // Safe boolean conversion with explicit casting
+            boolean isActive = true
+            if (comment.containsKey('isActive')) {
+                isActive = comment.isActive as Boolean
+            } else if (comment.containsKey('is_active')) {
+                isActive = comment.is_active as Boolean
+            }
+            
+            boolean isResolved = false
+            if (comment.containsKey('isResolved')) {
+                isResolved = comment.isResolved as Boolean
+            } else if (comment.containsKey('is_resolved')) {
+                isResolved = comment.is_resolved as Boolean
+            }
+            
+            // Safe integer conversion with explicit casting
+            Integer priority = 1
+            if (comment.priority != null) {
+                priority = Integer.parseInt(comment.priority.toString())
+            }
+            
+            String commentType = (comment.commentType as String) ?: (comment.comment_type as String) ?: "GENERAL"
+            
+            Integer replyCount = 0
+            if (comment.containsKey('replyCount') && comment.replyCount != null) {
+                replyCount = Integer.parseInt(comment.replyCount.toString())
+            } else if (comment.containsKey('reply_count') && comment.reply_count != null) {
+                replyCount = Integer.parseInt(comment.reply_count.toString())
+            }
+            
+            boolean requiresAttention = false
+            if (comment.containsKey('requiresAttention')) {
+                requiresAttention = comment.requiresAttention as Boolean
+            } else if (comment.containsKey('requires_attention')) {
+                requiresAttention = comment.requires_attention as Boolean
+            }
+            
+            // Build the template-compatible map with explicit casting
+            return [
+                comment_id: commentId,
+                comment_text: commentText,
+                author_id: authorId,
+                author_name: authorName,
+                created_at: formatDateForTemplate(createdDate),
+                formatted_date: formatDateForDisplay(createdDate),
+                short_date: formatDateShort(createdDate),
+                time_only: formatTimeOnly(createdDate),
+                is_active: isActive,
+                is_resolved: isResolved,
+                priority: priority,
+                comment_type: commentType,
+                reply_count: replyCount,
+                requires_attention: requiresAttention,
+                is_priority: priority > 2,
+                is_recent: isDateRecent(createdDate)
+            ] as Map<String, Object>
+            
+        } catch (Exception e) {
+            println "EmailService: Error processing legacy comment map: ${e.message}"
+            // Return safe fallback structure
+            return createEmptyCommentMap()
+        }
+    }
+    
+    /**
+     * Process legacy comment objects (non-Map) to template format with explicit type safety (ADR-031, ADR-043)
+     */
+    private static Map<String, Object> processLegacyCommentObject(Object comment) {
+        // Defensive null checking
+        if (!comment) {
+            return createEmptyCommentMap()
+        }
+        
+        try {
+            // Safe property access with explicit casting and null checking per ADR-043
+            String commentId = ""
+            String commentText = ""
+            String authorId = ""
+            String authorName = "Anonymous"
+            Object createdDate = null
+            boolean isActive = true
+            boolean isResolved = false
+            Integer priority = 1
+            String commentType = "GENERAL"
+            Integer replyCount = 0
+            boolean requiresAttention = false
+            
+            // Safe property access with hasProperty checks and bracket notation for dynamic access (ADR-031, ADR-043)
+            try {
+                if (comment.hasProperty('commentId') && comment['commentId'] != null) {
+                    commentId = (comment['commentId'] as String) ?: ""
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to commentId failed: ${e.message}"
+            }
+            
+            try {
+                if (comment.hasProperty('text') && comment['text'] != null) {
+                    commentText = sanitizeHtmlContent((comment['text'] as String) ?: "")
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to text failed: ${e.message}"
+            }
+            
+            try {
+                if (comment.hasProperty('authorId') && comment['authorId'] != null) {
+                    authorId = (comment['authorId'] as String) ?: ""
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to authorId failed: ${e.message}"
+            }
+            
+            try {
+                if (comment.hasProperty('authorName') && comment['authorName'] != null) {
+                    authorName = sanitizeHtmlContent((comment['authorName'] as String) ?: "Anonymous")
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to authorName failed: ${e.message}"
+            }
+            
+            if (comment.hasProperty('createdDate')) {
+                createdDate = comment['createdDate']
+            }
+            
+            if (comment.hasProperty('isActive') && comment['isActive'] != null) {
+                isActive = comment['isActive'] as Boolean
+            }
+            
+            if (comment.hasProperty('isResolved') && comment['isResolved'] != null) {
+                isResolved = comment['isResolved'] as Boolean
+            }
+            
+            if (comment.hasProperty('priority') && comment['priority'] != null) {
+                priority = Integer.parseInt(comment['priority'].toString())
+            }
+            
+            if (comment.hasProperty('commentType') && comment['commentType'] != null) {
+                commentType = (comment['commentType'] as String) ?: "GENERAL"
+            }
+            
+            if (comment.hasProperty('replyCount') && comment['replyCount'] != null) {
+                replyCount = Integer.parseInt(comment['replyCount'].toString())
+            }
+            
+            if (comment.hasProperty('requiresAttention') && comment['requiresAttention'] != null) {
+                requiresAttention = comment['requiresAttention'] as Boolean
+            }
+            
+            // Build the template-compatible map with explicit casting
+            return [
+                comment_id: commentId,
+                comment_text: commentText,
+                author_id: authorId,
+                author_name: authorName,
+                created_at: formatDateForTemplate(createdDate),
+                formatted_date: formatDateForDisplay(createdDate),
+                short_date: formatDateShort(createdDate),
+                time_only: formatTimeOnly(createdDate),
+                is_active: isActive,
+                is_resolved: isResolved,
+                priority: priority,
+                comment_type: commentType,
+                reply_count: replyCount,
+                requires_attention: requiresAttention,
+                is_priority: priority > 2,
+                is_recent: isDateRecent(createdDate)
+            ] as Map<String, Object>
+            
+        } catch (Exception e) {
+            println "EmailService: Error processing legacy comment object: ${e.message}"
+            // Return safe fallback structure
+            return createEmptyCommentMap()
+        }
+    }
+    
+    /**
+     * Helper methods for date formatting to match CommentDTO.toTemplateMap() output
+     */
+    private static String formatDateForTemplate(Object date) {
+        if (!date) return ""
+        if (date instanceof LocalDateTime) {
+            return date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        }
+        if (date instanceof Date) {
+            return date.format('yyyy-MM-dd\'T\'HH:mm:ss')
+        }
+        return date.toString()
+    }
+    
+    private static String formatDateForDisplay(Object date) {
+        if (!date) return "Recent"
+        try {
+            if (date instanceof LocalDateTime) {
+                return date.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"))
+            }
+            if (date instanceof Date) {
+                return date.format('MMM dd, yyyy HH:mm')
+            }
+        } catch (Exception e) {
+            // Fall back to "Recent" if formatting fails
+        }
+        return "Recent"
+    }
+    
+    private static String formatDateShort(Object date) {
+        if (!date) return "Recent"
+        try {
+            if (date instanceof LocalDateTime) {
+                return date.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd"))
+            }
+            if (date instanceof Date) {
+                return date.format('MMM dd')
+            }
+        } catch (Exception e) {
+            // Fall back to "Recent" if formatting fails
+        }
+        return "Recent"
+    }
+    
+    private static String formatTimeOnly(Object date) {
+        if (!date) return ""
+        try {
+            if (date instanceof LocalDateTime) {
+                return date.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+            }
+            if (date instanceof Date) {
+                return date.format('HH:mm')
+            }
+        } catch (Exception e) {
+            // Return empty string if formatting fails
+        }
+        return ""
+    }
+    
+    private static boolean isDateRecent(Object date) {
+        if (!date) return false
+        try {
+            if (date instanceof LocalDateTime) {
+                return date.isAfter(LocalDateTime.now().minusHours(24))
+            }
+            if (date instanceof Date) {
+                return date.after(new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000))
+            }
+        } catch (Exception e) {
+            // Return false if comparison fails
+        }
+        return false
     }
     
     /**

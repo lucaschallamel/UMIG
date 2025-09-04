@@ -123,7 +123,8 @@ class EnhancedEmailService {
                     migrationCode: migrationCode,
                     iterationCode: iterationCode,
                     // Template-specific variables (must be top-level for template access)
-                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: []),
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: EmailService.processCommentsForTemplate(stepInstance?.recentComments),
                     impacted_teams: stepInstance?.impacted_teams ?: ''
                 ]
                 
@@ -250,7 +251,8 @@ class EnhancedEmailService {
                     migrationCode: migrationCode,
                     iterationCode: iterationCode,
                     // Template-specific variables (must be top-level for template access)
-                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: []),
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: EmailService.processCommentsForTemplate(stepInstance?.recentComments),
                     impacted_teams: stepInstance?.impacted_teams ?: ''
                 ]
                 
@@ -351,7 +353,8 @@ class EnhancedEmailService {
                     migrationCode: migrationCode,
                     iterationCode: iterationCode,
                     // Template-specific variables (must be top-level for template access)
-                    recentComments: (stepInstance?.recentComments instanceof String) ? [] : (stepInstance?.recentComments ?: []),
+                    // US-056B Phase 2: Enhanced CommentDTO processing for template compatibility
+                    recentComments: EmailService.processCommentsForTemplate(stepInstance?.recentComments),
                     impacted_teams: stepInstance?.impacted_teams ?: ''
                 ]
                 
