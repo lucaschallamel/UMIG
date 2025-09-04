@@ -516,6 +516,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
    - Identify patterns in errors
 
 4. **Examine Detailed Import History**
+
    ```bash
    curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/history?limit=50"
    ```
