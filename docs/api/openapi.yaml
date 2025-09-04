@@ -11211,8 +11211,6 @@ components:
         message: "Validation failed"
         sqlState: "23000"
 
-
-
     # ==================== NEW STEPS API V2.2.0 SCHEMAS ====================
 
     PaginatedMasterSteps:
@@ -11731,7 +11729,7 @@ components:
           description: New order position within phase
 
     # ==================== BULK OPERATIONS RESPONSE ====================
-    
+
     BulkUpdateResponse:
       type: object
       properties:
@@ -11772,7 +11770,7 @@ components:
           description: Summary statistics of the bulk operation
 
     # ==================== IMPORT API SCHEMAS ====================
-    
+
     JsonImportRequest:
       type: object
       required:
@@ -12091,7 +12089,8 @@ components:
           description: List of rollback actions performed
           items:
             type: string
-          example: ["Deleted 25 staging steps", "Deleted 75 staging instructions"]
+          example:
+            ["Deleted 25 staging steps", "Deleted 75 staging instructions"]
         reason:
           type: string
           description: Reason for rollback (if provided)

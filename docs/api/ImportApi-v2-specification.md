@@ -12,7 +12,8 @@ The Import API v2 provides comprehensive data import capabilities for the UMIG s
 ## Authentication & Authorization
 
 **Required Authentication**: Confluence session-based authentication  
-**User Groups**: 
+**User Groups**:
+
 - **Base Operations**: `confluence-users` (read operations)
 - **Import Operations**: `confluence-administrators` (create, update, delete operations)
 
@@ -20,24 +21,24 @@ The Import API v2 provides comprehensive data import capabilities for the UMIG s
 
 ## Base Endpoints Summary
 
-| Method | Endpoint | Purpose | Auth Level |
-|--------|----------|---------|-----------|
-| POST | `/import/json` | Single JSON file import | Admin |
-| POST | `/import/batch` | Multiple JSON files batch import | Admin |
-| POST | `/import/csv/teams` | Import teams from CSV | Admin |
-| POST | `/import/csv/users` | Import users from CSV | Admin |
-| POST | `/import/csv/applications` | Import applications from CSV | Admin |
-| POST | `/import/csv/environments` | Import environments from CSV | Admin |
-| POST | `/import/csv/all` | Import all base entities in sequence | Admin |
-| POST | `/import/csv/master-plan` | Import master plan from CSV (planned) | Admin |
-| POST | `/import/master-plan` | Create master plan configuration | Admin |
-| POST | `/import/rollback/{batchId}` | Rollback import batch | Admin |
-| GET | `/import/history` | Retrieve import history | User |
-| GET | `/import/batch/{batchId}` | Get batch details | User |
-| GET | `/import/statistics` | Get import statistics | User |
-| GET | `/import/templates/{entity}` | Download CSV templates | Admin |
-| DELETE | `/import/batch/{batchId}` | Delete import batch | Admin |
-| PUT | `/import/batch/{batchId}/status` | Update batch status | Admin |
+| Method | Endpoint                         | Purpose                               | Auth Level |
+| ------ | -------------------------------- | ------------------------------------- | ---------- |
+| POST   | `/import/json`                   | Single JSON file import               | Admin      |
+| POST   | `/import/batch`                  | Multiple JSON files batch import      | Admin      |
+| POST   | `/import/csv/teams`              | Import teams from CSV                 | Admin      |
+| POST   | `/import/csv/users`              | Import users from CSV                 | Admin      |
+| POST   | `/import/csv/applications`       | Import applications from CSV          | Admin      |
+| POST   | `/import/csv/environments`       | Import environments from CSV          | Admin      |
+| POST   | `/import/csv/all`                | Import all base entities in sequence  | Admin      |
+| POST   | `/import/csv/master-plan`        | Import master plan from CSV (planned) | Admin      |
+| POST   | `/import/master-plan`            | Create master plan configuration      | Admin      |
+| POST   | `/import/rollback/{batchId}`     | Rollback import batch                 | Admin      |
+| GET    | `/import/history`                | Retrieve import history               | User       |
+| GET    | `/import/batch/{batchId}`        | Get batch details                     | User       |
+| GET    | `/import/statistics`             | Get import statistics                 | User       |
+| GET    | `/import/templates/{entity}`     | Download CSV templates                | Admin      |
+| DELETE | `/import/batch/{batchId}`        | Delete import batch                   | Admin      |
+| PUT    | `/import/batch/{batchId}/status` | Update batch status                   | Admin      |
 
 ---
 
@@ -51,40 +52,40 @@ The Import API v2 provides comprehensive data import capabilities for the UMIG s
 
 ## 2. Endpoints
 
-| Method | Path                                | Description                                    | Status |
-| ------ | ----------------------------------- | ---------------------------------------------- | ------ |
-| POST   | /import/json                        | Import single JSON file                        | ✅ Implemented |
-| POST   | /import/batch                       | Import multiple JSON files as a batch         | ✅ Implemented |
-| POST   | /import/csv/teams                   | Import teams from CSV                          | ✅ Implemented |
-| POST   | /import/csv/users                   | Import users from CSV                          | ✅ Implemented |
-| POST   | /import/csv/applications            | Import applications from CSV                   | ✅ Implemented |
-| POST   | /import/csv/environments            | Import environments from CSV                   | ✅ Implemented |
-| POST   | /import/csv/all                     | Import all base entities in proper order      | ✅ Implemented |
-| POST   | /import/csv/master-plan             | Import master plan CSV                         | ⚠️ **501 NOT_IMPLEMENTED** |
-| POST   | /import/master-plan                 | Create master plan configuration               | ✅ Implemented |
-| POST   | /import/rollback/{batchId}          | Rollback import batch with audit trail        | ✅ Implemented |
-| GET    | /import/history                     | Get import history with optional filtering     | ✅ Implemented |
-| GET    | /import/batch/{batchId}             | Get details of a specific import batch        | ✅ Implemented |
-| GET    | /import/statistics                  | Get overall import statistics                  | ✅ Implemented |
-| GET    | /import/templates/{entity}          | Download CSV templates for base entities       | ✅ Implemented |
-| DELETE | /import/batch/{batchId}             | Rollback a specific import batch               | ✅ Implemented |
-| PUT    | /import/batch/{batchId}/status      | Update import batch status                     | ✅ Implemented |
+| Method | Path                           | Description                                | Status                     |
+| ------ | ------------------------------ | ------------------------------------------ | -------------------------- |
+| POST   | /import/json                   | Import single JSON file                    | ✅ Implemented             |
+| POST   | /import/batch                  | Import multiple JSON files as a batch      | ✅ Implemented             |
+| POST   | /import/csv/teams              | Import teams from CSV                      | ✅ Implemented             |
+| POST   | /import/csv/users              | Import users from CSV                      | ✅ Implemented             |
+| POST   | /import/csv/applications       | Import applications from CSV               | ✅ Implemented             |
+| POST   | /import/csv/environments       | Import environments from CSV               | ✅ Implemented             |
+| POST   | /import/csv/all                | Import all base entities in proper order   | ✅ Implemented             |
+| POST   | /import/csv/master-plan        | Import master plan CSV                     | ⚠️ **501 NOT_IMPLEMENTED** |
+| POST   | /import/master-plan            | Create master plan configuration           | ✅ Implemented             |
+| POST   | /import/rollback/{batchId}     | Rollback import batch with audit trail     | ✅ Implemented             |
+| GET    | /import/history                | Get import history with optional filtering | ✅ Implemented             |
+| GET    | /import/batch/{batchId}        | Get details of a specific import batch     | ✅ Implemented             |
+| GET    | /import/statistics             | Get overall import statistics              | ✅ Implemented             |
+| GET    | /import/templates/{entity}     | Download CSV templates for base entities   | ✅ Implemented             |
+| DELETE | /import/batch/{batchId}        | Rollback a specific import batch           | ✅ Implemented             |
+| PUT    | /import/batch/{batchId}/status | Update import batch status                 | ✅ Implemented             |
 
 ## 3. Request Details
 
 ### 3.1. Path Parameters
 
-| Name    | Type   | Required | Description                           |
-| ------- | ------ | -------- | ------------------------------------- |
-| batchId | UUID   | Yes      | Import batch identifier for operations |
+| Name    | Type   | Required | Description                                                              |
+| ------- | ------ | -------- | ------------------------------------------------------------------------ |
+| batchId | UUID   | Yes      | Import batch identifier for operations                                   |
 | entity  | String | Yes      | Entity type for CSV templates (teams, users, applications, environments) |
 
 ### 3.2. Query Parameters
 
-| Name   | Type    | Required | Description                                      |
-| ------ | ------- | -------- | ------------------------------------------------ |
-| userId | String  | No       | Filter import history by username                |
-| limit  | Integer | No       | Limit number of history records (default: 50)   |
+| Name   | Type    | Required | Description                                   |
+| ------ | ------- | -------- | --------------------------------------------- |
+| userId | String  | No       | Filter import history by username             |
+| limit  | Integer | No       | Limit number of history records (default: 50) |
 
 ### 3.3. Request Body
 
@@ -206,6 +207,7 @@ The Import API v2 provides comprehensive data import capabilities for the UMIG s
 ```
 
 - **Example CSV content:**
+
 ```csv
 team_name,team_description,team_lead
 "Infrastructure Team","Manages servers and infrastructure","john.doe"
@@ -270,6 +272,7 @@ team_name,team_description,team_lead
 ### 4.1. Success Response
 
 #### Single Import Success
+
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
 - **Schema:**
@@ -307,6 +310,7 @@ team_name,team_description,team_lead
 ```
 
 #### Batch Import Success
+
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
 - **Schema:**
@@ -363,13 +367,17 @@ team_name,team_description,team_lead
         "successCount": 23,
         "errorCount": 2
       },
-      "errors": ["Invalid step format in row 5", "Missing required field in row 12"]
+      "errors": [
+        "Invalid step format in row 5",
+        "Missing required field in row 12"
+      ]
     }
   ]
 }
 ```
 
 #### Import History
+
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
 - **Schema:**
@@ -415,6 +423,7 @@ team_name,team_description,team_lead
 ```
 
 #### CSV Import Success Response
+
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
 - **Schema:**
@@ -424,7 +433,7 @@ team_name,team_description,team_lead
   "success": "boolean",
   "source": "string",
   "recordsProcessed": "number",
-  "recordsImported": "number", 
+  "recordsImported": "number",
   "recordsSkipped": "number",
   "errors": ["string"]
 }
@@ -444,6 +453,7 @@ team_name,team_description,team_lead
 ```
 
 #### Master Plan Configuration Success Response
+
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
 - **Schema:**
@@ -475,6 +485,7 @@ team_name,team_description,team_lead
 ```
 
 #### CSV Template Download Response
+
 - **Status Code:** 200 OK
 - **Content-Type:** text/csv; charset=utf-8
 - **Headers:**
@@ -482,7 +493,8 @@ team_name,team_description,team_lead
   - `Cache-Control: no-cache, no-store, must-revalidate`
 - **Body:** Raw CSV template file content
 
-#### Enhanced Rollback Success Response  
+#### Enhanced Rollback Success Response
+
 - **Status Code:** 200 OK
 - **Content-Type:** application/json
 - **Schema:**
@@ -490,7 +502,7 @@ team_name,team_description,team_lead
 ```json
 {
   "success": "boolean",
-  "message": "string", 
+  "message": "string",
   "batchId": "string (UUID)",
   "rollbackActions": ["string"],
   "reason": "string",
@@ -506,7 +518,10 @@ team_name,team_description,team_lead
   "success": true,
   "message": "Import batch successfully rolled back",
   "batchId": "550e8400-e29b-41d4-a716-446655440000",
-  "rollbackActions": ["Deleted 25 staging steps", "Deleted 75 staging instructions"],
+  "rollbackActions": [
+    "Deleted 25 staging steps",
+    "Deleted 75 staging instructions"
+  ],
   "reason": "Data validation failed after import completion",
   "rolledBackBy": "admin",
   "rollbackDate": "2025-09-03T14:30:15.123Z"
@@ -515,15 +530,15 @@ team_name,team_description,team_lead
 
 ### 4.2. Error Responses
 
-| Status Code | Content-Type     | Schema                                    | Example                                                                    | Description                      |
-| ----------- | ---------------- | ----------------------------------------- | -------------------------------------------------------------------------- | -------------------------------- |
-| 400         | application/json | `{"error": "string", "details": "string"}` | `{"error": "Missing required fields: 'source' and 'content'"}`           | Bad request format or validation |
-| 401         | application/json | `{"error": "string"}`                     | `{"error": "Authentication required"}`                                    | Authentication required          |
-| 403         | application/json | `{"error": "string"}`                     | `{"error": "Insufficient permissions for import operations"}`             | Authorization failed             |
-| 404         | application/json | `{"error": "string"}`                     | `{"error": "Import batch not found: 550e8400-e29b-41d4-a716-446655440000"}` | Resource not found              |
-| 409         | application/json | `{"error": "string", "details": "string"}` | `{"error": "Duplicate data detected", "details": "Step already exists"}`  | Data conflict (SQL State 23505) |
+| Status Code | Content-Type     | Schema                                     | Example                                                                                                                                       | Description                           |
+| ----------- | ---------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 400         | application/json | `{"error": "string", "details": "string"}` | `{"error": "Missing required fields: 'source' and 'content'"}`                                                                                | Bad request format or validation      |
+| 401         | application/json | `{"error": "string"}`                      | `{"error": "Authentication required"}`                                                                                                        | Authentication required               |
+| 403         | application/json | `{"error": "string"}`                      | `{"error": "Insufficient permissions for import operations"}`                                                                                 | Authorization failed                  |
+| 404         | application/json | `{"error": "string"}`                      | `{"error": "Import batch not found: 550e8400-e29b-41d4-a716-446655440000"}`                                                                   | Resource not found                    |
+| 409         | application/json | `{"error": "string", "details": "string"}` | `{"error": "Duplicate data detected", "details": "Step already exists"}`                                                                      | Data conflict (SQL State 23505)       |
 | **501**     | application/json | `{"error": "string", "details": "string"}` | `{"error": "Master plan CSV import is not yet implemented", "details": "The importMasterPlans method needs to be added to CsvImportService"}` | **Not Implemented** - Feature pending |
-| 500         | application/json | `{"error": "string", "details": "string"}` | `{"error": "Import failed", "details": "Database connection timeout"}`    | Internal server error           |
+| 500         | application/json | `{"error": "string", "details": "string"}` | `{"error": "Import failed", "details": "Database connection timeout"}`                                                                        | Internal server error                 |
 
 ## 5. Authentication & Authorization
 
@@ -553,6 +568,7 @@ team_name,team_description,team_lead
 ## 7. Business Logic & Side Effects
 
 ### JSON Import Operations
+
 - **Key Logic:**
   - Uses staging tables (`stg_steps`, `stg_step_instructions`) for intermediate storage
   - Validates JSON structure and step_type must be exactly 3 characters
@@ -565,7 +581,8 @@ team_name,team_description,team_lead
   - Updates master tables after successful validation
   - Generates audit log entries for all operations
 
-### CSV Import Operations  
+### CSV Import Operations
+
 - **Key Logic:**
   - Native Groovy CSV parsing compatible with ScriptRunner environment
   - Handles quoted fields, escaped quotes, and embedded commas
@@ -578,6 +595,7 @@ team_name,team_description,team_lead
   - Generates detailed import statistics and error reporting
 
 ### Master Plan Configuration
+
 - **Key Logic:**
   - Creates master plan entries in `tbl_plans_master` table
   - Associates import batch for audit tracking
@@ -588,6 +606,7 @@ team_name,team_description,team_lead
   - Updates batch status to COMPLETED upon success
 
 ### Rollback Operations
+
 - **Enhanced Logic:**
   - Comprehensive audit trail with rollback actions tracking
   - Transaction-based rollback for data consistency
@@ -611,7 +630,7 @@ team_name,team_description,team_lead
   - `tbl_import_batches` (primary tracking table with batch metadata)
   - `tbl_import_audit_log` (comprehensive audit trail)
   - `stg_steps` (staging table for step data)
-  - `stg_step_instructions` (staging table for instruction data)  
+  - `stg_step_instructions` (staging table for instruction data)
   - `tbl_steps_master` (target master table for steps)
   - `tbl_step_instructions_master` (target master table for instructions)
   - `tbl_plans_master` (master plan configuration table)
@@ -623,7 +642,7 @@ team_name,team_description,team_lead
 - **External APIs:** None
 - **Other Services:**
   - `ImportService` - Business logic for JSON import operations
-  - `CsvImportService` - Business logic for CSV base entity imports  
+  - `CsvImportService` - Business logic for CSV base entity imports
   - `ImportRepository` - Data access for import tracking and audit trail
   - `StagingImportRepository` - Staging table operations
   - `DatabaseUtil` - Connection management and transaction handling
@@ -749,7 +768,7 @@ curl -X POST /rest/scriptrunner/latest/custom/import/batch \
         "content": "{\"steps\": [{\"title\": \"Phase 1\"}]}"
       },
       {
-        "filename": "phase-2.json", 
+        "filename": "phase-2.json",
         "content": "{\"steps\": [{\"title\": \"Phase 2\"}]}"
       }
     ]
@@ -813,7 +832,7 @@ curl -X POST /rest/scriptrunner/latest/custom/import/csv/teams \
   -H "Authorization: Bearer <token>" \
   --data-binary @teams_import.csv
 
-# Import all base entities 
+# Import all base entities
 curl -X POST /rest/scriptrunner/latest/custom/import/csv/all \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \

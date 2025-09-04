@@ -50,7 +50,9 @@ Admin GUI
     <h2>Data Import Management</h2>
     <div class="action-buttons">
       <button id="refresh-dashboard" class="btn btn-secondary">Refresh</button>
-      <button id="download-templates" class="btn btn-primary">Download Templates</button>
+      <button id="download-templates" class="btn btn-primary">
+        Download Templates
+      </button>
     </div>
   </div>
 
@@ -78,12 +80,12 @@ Admin GUI
       <h3>CSV Base Entity Import</h3>
       <div id="csv-import-interface"></div>
     </div>
-    
+
     <div class="import-section json-import">
       <h3>JSON Migration Data Import</h3>
       <div id="json-import-interface"></div>
     </div>
-    
+
     <div class="import-section history">
       <h3>Import History</h3>
       <div id="import-history-table"></div>
@@ -118,19 +120,25 @@ class ImportDashboard {
       const stats = await this.apiClient.getImportStatistics();
       this.updateDashboardStats(stats);
     } catch (error) {
-      console.error('Failed to load dashboard stats:', error);
-      this.showError('Failed to load import statistics');
+      console.error("Failed to load dashboard stats:", error);
+      this.showError("Failed to load import statistics");
     }
   }
 
   updateDashboardStats(stats) {
-    document.getElementById('total-imports').textContent = stats.totalBatches || 0;
-    document.getElementById('success-rate').textContent = 
-      `${((stats.completedBatches / stats.totalBatches) * 100).toFixed(1)}%` || '0%';
-    document.getElementById('active-batches').textContent = 
-      (stats.totalBatches - stats.completedBatches - stats.failedBatches - stats.rolledBackBatches) || 0;
-    document.getElementById('last-import').textContent = 
-      stats.lastImportDate ? new Date(stats.lastImportDate).toLocaleString() : 'Never';
+    document.getElementById("total-imports").textContent =
+      stats.totalBatches || 0;
+    document.getElementById("success-rate").textContent =
+      `${((stats.completedBatches / stats.totalBatches) * 100).toFixed(1)}%` ||
+      "0%";
+    document.getElementById("active-batches").textContent =
+      stats.totalBatches -
+        stats.completedBatches -
+        stats.failedBatches -
+        stats.rolledBackBatches || 0;
+    document.getElementById("last-import").textContent = stats.lastImportDate
+      ? new Date(stats.lastImportDate).toLocaleString()
+      : "Never";
   }
 }
 ```
@@ -160,7 +168,10 @@ class ImportDashboard {
       </button>
     </div>
     <div class="template-info">
-      <p>⚠️ <strong>Import Order:</strong> Teams → Applications → Environments → Users</p>
+      <p>
+        ⚠️ <strong>Import Order:</strong> Teams → Applications → Environments →
+        Users
+      </p>
     </div>
   </div>
 
@@ -177,27 +188,45 @@ class ImportDashboard {
     <div class="upload-area" id="csv-upload-area">
       <div class="drag-drop-zone" id="csv-drag-drop">
         <i class="icon-upload"></i>
-        <p>Drag and drop CSV file here or <a href="#" id="csv-file-select">browse files</a></p>
-        <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+        <p>
+          Drag and drop CSV file here or
+          <a href="#" id="csv-file-select">browse files</a>
+        </p>
+        <input
+          type="file"
+          id="csv-file-input"
+          accept=".csv"
+          style="display: none;"
+        />
       </div>
-      
+
       <div class="file-preview" id="csv-file-preview" style="display: none;">
         <div class="file-info">
           <span class="file-name" id="csv-file-name"></span>
           <span class="file-size" id="csv-file-size"></span>
-          <button class="btn btn-link remove-file" id="csv-remove-file">Remove</button>
+          <button class="btn btn-link remove-file" id="csv-remove-file">
+            Remove
+          </button>
         </div>
         <div class="file-preview-table" id="csv-preview-table"></div>
       </div>
 
       <div class="import-controls">
-        <button class="btn btn-primary" id="csv-import-btn" disabled>Import CSV</button>
-        <button class="btn btn-secondary" id="csv-validate-btn" disabled>Validate Only</button>
+        <button class="btn btn-primary" id="csv-import-btn" disabled>
+          Import CSV
+        </button>
+        <button class="btn btn-secondary" id="csv-validate-btn" disabled>
+          Validate Only
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="progress-section" id="csv-progress-section" style="display: none;">
+  <div
+    class="progress-section"
+    id="csv-progress-section"
+    style="display: none;"
+  >
     <h4>Import Progress</h4>
     <div class="progress-bar">
       <div class="progress-fill" id="csv-progress-fill"></div>
@@ -222,7 +251,7 @@ class ImportDashboard {
 class CsvImportInterface {
   constructor() {
     this.apiClient = new ImportApiClient();
-    this.currentEntity = 'teams';
+    this.currentEntity = "teams";
     this.uploadedFile = null;
     this.currentBatchId = null;
   }
@@ -234,51 +263,65 @@ class CsvImportInterface {
 
   setupEventListeners() {
     // Template downloads
-    document.querySelectorAll('.template-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => this.downloadTemplate(e.target.dataset.entity));
+    document.querySelectorAll(".template-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) =>
+        this.downloadTemplate(e.target.dataset.entity),
+      );
     });
 
     // Entity tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => this.switchEntity(e.target.dataset.entity));
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) =>
+        this.switchEntity(e.target.dataset.entity),
+      );
     });
 
     // File selection
-    document.getElementById('csv-file-select').addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('csv-file-input').click();
-    });
+    document
+      .getElementById("csv-file-select")
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("csv-file-input").click();
+      });
 
-    document.getElementById('csv-file-input').addEventListener('change', (e) => {
-      this.handleFileSelect(e.target.files[0]);
-    });
+    document
+      .getElementById("csv-file-input")
+      .addEventListener("change", (e) => {
+        this.handleFileSelect(e.target.files[0]);
+      });
 
     // Import controls
-    document.getElementById('csv-import-btn').addEventListener('click', () => this.executeImport());
-    document.getElementById('csv-validate-btn').addEventListener('click', () => this.validateFile());
-    document.getElementById('csv-remove-file').addEventListener('click', () => this.removeFile());
+    document
+      .getElementById("csv-import-btn")
+      .addEventListener("click", () => this.executeImport());
+    document
+      .getElementById("csv-validate-btn")
+      .addEventListener("click", () => this.validateFile());
+    document
+      .getElementById("csv-remove-file")
+      .addEventListener("click", () => this.removeFile());
   }
 
   setupDragDrop() {
-    const dropZone = document.getElementById('csv-drag-drop');
-    
-    dropZone.addEventListener('dragover', (e) => {
+    const dropZone = document.getElementById("csv-drag-drop");
+
+    dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
-      dropZone.classList.add('drag-over');
+      dropZone.classList.add("drag-over");
     });
 
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('drag-over');
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("drag-over");
     });
 
-    dropZone.addEventListener('drop', (e) => {
+    dropZone.addEventListener("drop", (e) => {
       e.preventDefault();
-      dropZone.classList.remove('drag-over');
+      dropZone.classList.remove("drag-over");
       const file = e.dataTransfer.files[0];
-      if (file && file.type === 'text/csv') {
+      if (file && file.type === "text/csv") {
         this.handleFileSelect(file);
       } else {
-        this.showError('Please select a valid CSV file');
+        this.showError("Please select a valid CSV file");
       }
     });
   }
@@ -287,14 +330,14 @@ class CsvImportInterface {
     try {
       const blob = await this.apiClient.downloadCsvTemplate(entity);
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `${entity}_template.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       this.showSuccess(`${entity} template downloaded successfully`);
     } catch (error) {
       this.showError(`Failed to download ${entity} template: ${error.message}`);
@@ -303,14 +346,16 @@ class CsvImportInterface {
 
   switchEntity(entity) {
     this.currentEntity = entity;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-entity="${entity}"]`).classList.add('active');
+    document
+      .querySelectorAll(".tab-btn")
+      .forEach((btn) => btn.classList.remove("active"));
+    document.querySelector(`[data-entity="${entity}"]`).classList.add("active");
     this.removeFile(); // Clear current file when switching entities
   }
 
   handleFileSelect(file) {
-    if (!file || file.type !== 'text/csv') {
-      this.showError('Please select a valid CSV file');
+    if (!file || file.type !== "text/csv") {
+      this.showError("Please select a valid CSV file");
       return;
     }
 
@@ -320,65 +365,69 @@ class CsvImportInterface {
   }
 
   async showFilePreview(file) {
-    document.getElementById('csv-upload-area').style.display = 'none';
-    document.getElementById('csv-file-preview').style.display = 'block';
-    
-    document.getElementById('csv-file-name').textContent = file.name;
-    document.getElementById('csv-file-size').textContent = this.formatFileSize(file.size);
+    document.getElementById("csv-upload-area").style.display = "none";
+    document.getElementById("csv-file-preview").style.display = "block";
+
+    document.getElementById("csv-file-name").textContent = file.name;
+    document.getElementById("csv-file-size").textContent = this.formatFileSize(
+      file.size,
+    );
 
     // Show CSV preview
     try {
       const content = await this.readFileContent(file);
-      const lines = content.split('\n').slice(0, 6); // Show first 5 rows + header
+      const lines = content.split("\n").slice(0, 6); // Show first 5 rows + header
       this.displayCsvPreview(lines);
     } catch (error) {
-      this.showError('Failed to preview CSV file');
+      this.showError("Failed to preview CSV file");
     }
   }
 
   displayCsvPreview(lines) {
-    const table = document.createElement('table');
-    table.className = 'csv-preview-table';
-    
+    const table = document.createElement("table");
+    table.className = "csv-preview-table";
+
     lines.forEach((line, index) => {
       if (line.trim()) {
-        const row = document.createElement('tr');
+        const row = document.createElement("tr");
         const cells = this.parseCsvLine(line);
-        
-        cells.forEach(cell => {
-          const cellElement = document.createElement(index === 0 ? 'th' : 'td');
+
+        cells.forEach((cell) => {
+          const cellElement = document.createElement(index === 0 ? "th" : "td");
           cellElement.textContent = cell;
           row.appendChild(cellElement);
         });
-        
+
         table.appendChild(row);
       }
     });
 
-    document.getElementById('csv-preview-table').innerHTML = '';
-    document.getElementById('csv-preview-table').appendChild(table);
+    document.getElementById("csv-preview-table").innerHTML = "";
+    document.getElementById("csv-preview-table").appendChild(table);
   }
 
   async executeImport() {
     if (!this.uploadedFile) {
-      this.showError('Please select a CSV file to import');
+      this.showError("Please select a CSV file to import");
       return;
     }
 
     try {
       this.showProgress();
       const content = await this.readFileContent(this.uploadedFile);
-      
+
       let result;
-      if (this.currentEntity === 'all') {
+      if (this.currentEntity === "all") {
         result = await this.executeAllEntitiesImport(content);
       } else {
-        result = await this.apiClient.importCsvData(this.currentEntity, content);
+        result = await this.apiClient.importCsvData(
+          this.currentEntity,
+          content,
+        );
       }
 
       this.currentBatchId = result.batchId;
       this.showResults(result);
-      
     } catch (error) {
       this.showError(`Import failed: ${error.message}`);
       this.hideProgress();
@@ -388,20 +437,23 @@ class CsvImportInterface {
   async executeAllEntitiesImport(content) {
     // For 'all' entity type, expect multiple CSV contents
     // This would need to be implemented based on specific requirements
-    throw new Error('Import All functionality requires multiple CSV files - please import entities individually');
+    throw new Error(
+      "Import All functionality requires multiple CSV files - please import entities individually",
+    );
   }
 
   showProgress() {
-    document.getElementById('csv-progress-section').style.display = 'block';
-    document.getElementById('csv-import-btn').disabled = true;
-    
+    document.getElementById("csv-progress-section").style.display = "block";
+    document.getElementById("csv-import-btn").disabled = true;
+
     // Simulate progress updates
     let progress = 0;
     const interval = setInterval(() => {
       progress += 10;
-      document.getElementById('csv-progress-fill').style.width = `${progress}%`;
-      document.getElementById('csv-progress-percentage').textContent = `${progress}%`;
-      
+      document.getElementById("csv-progress-fill").style.width = `${progress}%`;
+      document.getElementById("csv-progress-percentage").textContent =
+        `${progress}%`;
+
       if (progress >= 100) {
         clearInterval(interval);
       }
@@ -410,26 +462,26 @@ class CsvImportInterface {
 
   showResults(result) {
     this.hideProgress();
-    document.getElementById('csv-results-section').style.display = 'block';
-    
-    const summary = document.getElementById('csv-results-summary');
+    document.getElementById("csv-results-section").style.display = "block";
+
+    const summary = document.getElementById("csv-results-summary");
     if (result.success) {
-      summary.className = 'results-summary success';
+      summary.className = "results-summary success";
       summary.innerHTML = `
         <i class="icon-check"></i>
         <strong>Import Successful!</strong>
         Batch ID: ${result.batchId}
       `;
     } else {
-      summary.className = 'results-summary error';
+      summary.className = "results-summary error";
       summary.innerHTML = `
         <i class="icon-x"></i>
         <strong>Import Failed</strong>
-        ${result.error || 'Unknown error occurred'}
+        ${result.error || "Unknown error occurred"}
       `;
     }
 
-    const details = document.getElementById('csv-results-details');
+    const details = document.getElementById("csv-results-details");
     if (result.statistics) {
       details.innerHTML = `
         <div class="stat-row">
@@ -457,41 +509,41 @@ class CsvImportInterface {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsText(file);
     });
   }
 
   parseCsvLine(line) {
     // Simple CSV parsing - in production, use a proper CSV parser library
-    return line.split(',').map(cell => cell.trim().replace(/^"|"$/g, ''));
+    return line.split(",").map((cell) => cell.trim().replace(/^"|"$/g, ""));
   }
 
   formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 
   enableImportControls() {
-    document.getElementById('csv-import-btn').disabled = false;
-    document.getElementById('csv-validate-btn').disabled = false;
+    document.getElementById("csv-import-btn").disabled = false;
+    document.getElementById("csv-validate-btn").disabled = false;
   }
 
   removeFile() {
     this.uploadedFile = null;
-    document.getElementById('csv-upload-area').style.display = 'block';
-    document.getElementById('csv-file-preview').style.display = 'none';
-    document.getElementById('csv-file-input').value = '';
-    document.getElementById('csv-import-btn').disabled = true;
-    document.getElementById('csv-validate-btn').disabled = true;
+    document.getElementById("csv-upload-area").style.display = "block";
+    document.getElementById("csv-file-preview").style.display = "none";
+    document.getElementById("csv-file-input").value = "";
+    document.getElementById("csv-import-btn").disabled = true;
+    document.getElementById("csv-validate-btn").disabled = true;
   }
 
   hideProgress() {
-    document.getElementById('csv-progress-section').style.display = 'none';
-    document.getElementById('csv-import-btn').disabled = false;
+    document.getElementById("csv-progress-section").style.display = "none";
+    document.getElementById("csv-import-btn").disabled = false;
   }
 
   showError(message) {
@@ -520,11 +572,11 @@ class CsvImportInterface {
     <h4>Import Type</h4>
     <div class="radio-group">
       <label class="radio-option">
-        <input type="radio" name="json-import-type" value="single" checked>
+        <input type="radio" name="json-import-type" value="single" checked />
         <span>Single JSON File</span>
       </label>
       <label class="radio-option">
-        <input type="radio" name="json-import-type" value="batch">
+        <input type="radio" name="json-import-type" value="batch" />
         <span>Batch Import (Multiple Files)</span>
       </label>
     </div>
@@ -535,49 +587,94 @@ class CsvImportInterface {
     <div class="upload-area">
       <div class="drag-drop-zone" id="json-drag-drop-single">
         <i class="icon-upload"></i>
-        <p>Drag and drop JSON file here or <a href="#" id="json-file-select-single">browse files</a></p>
-        <input type="file" id="json-file-input-single" accept=".json" style="display: none;">
+        <p>
+          Drag and drop JSON file here or
+          <a href="#" id="json-file-select-single">browse files</a>
+        </p>
+        <input
+          type="file"
+          id="json-file-input-single"
+          accept=".json"
+          style="display: none;"
+        />
       </div>
-      
-      <div class="file-preview" id="json-file-preview-single" style="display: none;">
+
+      <div
+        class="file-preview"
+        id="json-file-preview-single"
+        style="display: none;"
+      >
         <div class="file-info">
           <span class="file-name" id="json-file-name-single"></span>
           <span class="file-size" id="json-file-size-single"></span>
-          <button class="btn btn-link remove-file" id="json-remove-file-single">Remove</button>
+          <button class="btn btn-link remove-file" id="json-remove-file-single">
+            Remove
+          </button>
         </div>
         <div class="json-preview" id="json-preview-single"></div>
       </div>
     </div>
 
     <div class="import-controls">
-      <button class="btn btn-primary" id="json-import-single-btn" disabled>Import JSON</button>
-      <button class="btn btn-secondary" id="json-validate-single-btn" disabled>Validate Only</button>
+      <button class="btn btn-primary" id="json-import-single-btn" disabled>
+        Import JSON
+      </button>
+      <button class="btn btn-secondary" id="json-validate-single-btn" disabled>
+        Validate Only
+      </button>
     </div>
   </div>
 
-  <div class="batch-import-section" id="batch-json-import" style="display: none;">
+  <div
+    class="batch-import-section"
+    id="batch-json-import"
+    style="display: none;"
+  >
     <h4>Batch Import</h4>
     <div class="batch-upload-area">
       <div class="drag-drop-zone" id="json-drag-drop-batch">
         <i class="icon-upload"></i>
-        <p>Drag and drop multiple JSON files here or <a href="#" id="json-file-select-batch">browse files</a></p>
-        <input type="file" id="json-file-input-batch" accept=".json" multiple style="display: none;">
+        <p>
+          Drag and drop multiple JSON files here or
+          <a href="#" id="json-file-select-batch">browse files</a>
+        </p>
+        <input
+          type="file"
+          id="json-file-input-batch"
+          accept=".json"
+          multiple
+          style="display: none;"
+        />
       </div>
-      
-      <div class="batch-files-list" id="batch-files-list" style="display: none;">
+
+      <div
+        class="batch-files-list"
+        id="batch-files-list"
+        style="display: none;"
+      >
         <h5>Selected Files</h5>
         <div class="files-container" id="batch-files-container"></div>
-        <button class="btn btn-link" id="clear-batch-files">Clear All Files</button>
+        <button class="btn btn-link" id="clear-batch-files">
+          Clear All Files
+        </button>
       </div>
     </div>
 
     <div class="import-controls">
-      <button class="btn btn-primary" id="json-import-batch-btn" disabled>Import Batch</button>
-      <button class="btn btn-secondary" id="json-validate-batch-btn" disabled>Validate All</button>
+      <button class="btn btn-primary" id="json-import-batch-btn" disabled>
+        Import Batch
+      </button>
+      <button class="btn btn-secondary" id="json-validate-batch-btn" disabled>
+        Validate All
+      </button>
     </div>
   </div>
 
-  <div class="progress-section" id="json-progress-section" style="display: none;">
+  <div
+    class="progress-section"
+    id="json-progress-section"
+    style="display: none;"
+  >
     <h4>Import Progress</h4>
     <div class="progress-bar">
       <div class="progress-fill" id="json-progress-fill"></div>
@@ -606,7 +703,7 @@ class CsvImportInterface {
 class JsonImportInterface {
   constructor() {
     this.apiClient = new ImportApiClient();
-    this.importType = 'single';
+    this.importType = "single";
     this.singleFile = null;
     this.batchFiles = [];
     this.currentBatchId = null;
@@ -619,140 +716,163 @@ class JsonImportInterface {
 
   setupEventListeners() {
     // Import type selection
-    document.querySelectorAll('input[name="json-import-type"]').forEach(radio => {
-      radio.addEventListener('change', (e) => this.switchImportType(e.target.value));
-    });
+    document
+      .querySelectorAll('input[name="json-import-type"]')
+      .forEach((radio) => {
+        radio.addEventListener("change", (e) =>
+          this.switchImportType(e.target.value),
+        );
+      });
 
     // Single file import
-    document.getElementById('json-file-select-single').addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('json-file-input-single').click();
-    });
+    document
+      .getElementById("json-file-select-single")
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("json-file-input-single").click();
+      });
 
-    document.getElementById('json-file-input-single').addEventListener('change', (e) => {
-      this.handleSingleFileSelect(e.target.files[0]);
-    });
+    document
+      .getElementById("json-file-input-single")
+      .addEventListener("change", (e) => {
+        this.handleSingleFileSelect(e.target.files[0]);
+      });
 
     // Batch file import
-    document.getElementById('json-file-select-batch').addEventListener('click', (e) => {
-      e.preventDefault();
-      document.getElementById('json-file-input-batch').click();
-    });
+    document
+      .getElementById("json-file-select-batch")
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        document.getElementById("json-file-input-batch").click();
+      });
 
-    document.getElementById('json-file-input-batch').addEventListener('change', (e) => {
-      this.handleBatchFilesSelect(Array.from(e.target.files));
-    });
+    document
+      .getElementById("json-file-input-batch")
+      .addEventListener("change", (e) => {
+        this.handleBatchFilesSelect(Array.from(e.target.files));
+      });
 
     // Import controls
-    document.getElementById('json-import-single-btn').addEventListener('click', () => this.executeSingleImport());
-    document.getElementById('json-import-batch-btn').addEventListener('click', () => this.executeBatchImport());
-    
+    document
+      .getElementById("json-import-single-btn")
+      .addEventListener("click", () => this.executeSingleImport());
+    document
+      .getElementById("json-import-batch-btn")
+      .addEventListener("click", () => this.executeBatchImport());
+
     // Remove file controls
-    document.getElementById('json-remove-file-single').addEventListener('click', () => this.removeSingleFile());
-    document.getElementById('clear-batch-files').addEventListener('click', () => this.clearBatchFiles());
+    document
+      .getElementById("json-remove-file-single")
+      .addEventListener("click", () => this.removeSingleFile());
+    document
+      .getElementById("clear-batch-files")
+      .addEventListener("click", () => this.clearBatchFiles());
   }
 
   setupDragDrop() {
     // Single file drag and drop
-    const singleDropZone = document.getElementById('json-drag-drop-single');
+    const singleDropZone = document.getElementById("json-drag-drop-single");
     this.setupDropZone(singleDropZone, (files) => {
       if (files.length === 1) {
         this.handleSingleFileSelect(files[0]);
       } else {
-        this.showError('Please drop only one JSON file for single import');
+        this.showError("Please drop only one JSON file for single import");
       }
     });
 
     // Batch files drag and drop
-    const batchDropZone = document.getElementById('json-drag-drop-batch');
+    const batchDropZone = document.getElementById("json-drag-drop-batch");
     this.setupDropZone(batchDropZone, (files) => {
       this.handleBatchFilesSelect(Array.from(files));
     });
   }
 
   setupDropZone(dropZone, onDrop) {
-    dropZone.addEventListener('dragover', (e) => {
+    dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
-      dropZone.classList.add('drag-over');
+      dropZone.classList.add("drag-over");
     });
 
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('drag-over');
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("drag-over");
     });
 
-    dropZone.addEventListener('drop', (e) => {
+    dropZone.addEventListener("drop", (e) => {
       e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/json');
+      dropZone.classList.remove("drag-over");
+      const files = Array.from(e.dataTransfer.files).filter(
+        (f) => f.type === "application/json",
+      );
       if (files.length > 0) {
         onDrop(files);
       } else {
-        this.showError('Please select valid JSON files');
+        this.showError("Please select valid JSON files");
       }
     });
   }
 
   switchImportType(type) {
     this.importType = type;
-    
-    if (type === 'single') {
-      document.getElementById('single-json-import').style.display = 'block';
-      document.getElementById('batch-json-import').style.display = 'none';
+
+    if (type === "single") {
+      document.getElementById("single-json-import").style.display = "block";
+      document.getElementById("batch-json-import").style.display = "none";
     } else {
-      document.getElementById('single-json-import').style.display = 'none';
-      document.getElementById('batch-json-import').style.display = 'block';
+      document.getElementById("single-json-import").style.display = "none";
+      document.getElementById("batch-json-import").style.display = "block";
     }
-    
+
     this.resetInterface();
   }
 
   handleSingleFileSelect(file) {
-    if (!file || file.type !== 'application/json') {
-      this.showError('Please select a valid JSON file');
+    if (!file || file.type !== "application/json") {
+      this.showError("Please select a valid JSON file");
       return;
     }
 
     this.singleFile = file;
     this.showSingleFilePreview(file);
-    document.getElementById('json-import-single-btn').disabled = false;
-    document.getElementById('json-validate-single-btn').disabled = false;
+    document.getElementById("json-import-single-btn").disabled = false;
+    document.getElementById("json-validate-single-btn").disabled = false;
   }
 
   async showSingleFilePreview(file) {
-    document.getElementById('json-file-preview-single').style.display = 'block';
-    document.getElementById('json-file-name-single').textContent = file.name;
-    document.getElementById('json-file-size-single').textContent = this.formatFileSize(file.size);
+    document.getElementById("json-file-preview-single").style.display = "block";
+    document.getElementById("json-file-name-single").textContent = file.name;
+    document.getElementById("json-file-size-single").textContent =
+      this.formatFileSize(file.size);
 
     try {
       const content = await this.readFileContent(file);
       const jsonData = JSON.parse(content);
-      this.displayJsonPreview('json-preview-single', jsonData);
+      this.displayJsonPreview("json-preview-single", jsonData);
     } catch (error) {
-      this.showError('Invalid JSON file format');
+      this.showError("Invalid JSON file format");
     }
   }
 
   handleBatchFilesSelect(files) {
-    const validFiles = files.filter(f => f.type === 'application/json');
+    const validFiles = files.filter((f) => f.type === "application/json");
     if (validFiles.length === 0) {
-      this.showError('Please select valid JSON files');
+      this.showError("Please select valid JSON files");
       return;
     }
 
     this.batchFiles = validFiles;
     this.showBatchFilesPreview(validFiles);
-    document.getElementById('json-import-batch-btn').disabled = false;
-    document.getElementById('json-validate-batch-btn').disabled = false;
+    document.getElementById("json-import-batch-btn").disabled = false;
+    document.getElementById("json-validate-batch-btn").disabled = false;
   }
 
   showBatchFilesPreview(files) {
-    document.getElementById('batch-files-list').style.display = 'block';
-    const container = document.getElementById('batch-files-container');
-    container.innerHTML = '';
+    document.getElementById("batch-files-list").style.display = "block";
+    const container = document.getElementById("batch-files-container");
+    container.innerHTML = "";
 
     files.forEach((file, index) => {
-      const fileElement = document.createElement('div');
-      fileElement.className = 'batch-file-item';
+      const fileElement = document.createElement("div");
+      fileElement.className = "batch-file-item";
       fileElement.innerHTML = `
         <div class="file-info">
           <i class="icon-file-text"></i>
@@ -765,8 +885,8 @@ class JsonImportInterface {
     });
 
     // Add event listeners for individual file removal
-    container.querySelectorAll('.remove-batch-file').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    container.querySelectorAll(".remove-batch-file").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
         const index = parseInt(e.target.dataset.index);
         this.removeBatchFile(index);
       });
@@ -775,22 +895,21 @@ class JsonImportInterface {
 
   async executeSingleImport() {
     if (!this.singleFile) {
-      this.showError('Please select a JSON file to import');
+      this.showError("Please select a JSON file to import");
       return;
     }
 
     try {
       this.showProgress();
       const content = await this.readFileContent(this.singleFile);
-      
+
       const result = await this.apiClient.importJsonData({
         source: this.singleFile.name,
-        content: content
+        content: content,
       });
 
       this.currentBatchId = result.batchId;
       this.showResults(result);
-      
     } catch (error) {
       this.showError(`Import failed: ${error.message}`);
       this.hideProgress();
@@ -799,29 +918,28 @@ class JsonImportInterface {
 
   async executeBatchImport() {
     if (this.batchFiles.length === 0) {
-      this.showError('Please select JSON files to import');
+      this.showError("Please select JSON files to import");
       return;
     }
 
     try {
       this.showProgress();
       this.showFileProgress();
-      
+
       const filesData = [];
       for (let file of this.batchFiles) {
         const content = await this.readFileContent(file);
         filesData.push({
           filename: file.name,
-          content: content
+          content: content,
         });
-        this.updateFileProgress(file.name, 'prepared');
+        this.updateFileProgress(file.name, "prepared");
       }
 
       const result = await this.apiClient.importBatchData({ files: filesData });
-      
+
       this.currentBatchId = result.batchId;
       this.showResults(result);
-      
     } catch (error) {
       this.showError(`Batch import failed: ${error.message}`);
       this.hideProgress();
@@ -829,19 +947,19 @@ class JsonImportInterface {
   }
 
   showProgress() {
-    document.getElementById('json-progress-section').style.display = 'block';
-    document.getElementById('json-import-single-btn').disabled = true;
-    document.getElementById('json-import-batch-btn').disabled = true;
+    document.getElementById("json-progress-section").style.display = "block";
+    document.getElementById("json-import-single-btn").disabled = true;
+    document.getElementById("json-import-batch-btn").disabled = true;
   }
 
   showFileProgress() {
-    document.getElementById('json-file-progress').style.display = 'block';
-    const container = document.getElementById('file-progress-list');
-    container.innerHTML = '';
+    document.getElementById("json-file-progress").style.display = "block";
+    const container = document.getElementById("file-progress-list");
+    container.innerHTML = "";
 
-    this.batchFiles.forEach(file => {
-      const progressElement = document.createElement('div');
-      progressElement.className = 'file-progress-item';
+    this.batchFiles.forEach((file) => {
+      const progressElement = document.createElement("div");
+      progressElement.className = "file-progress-item";
       progressElement.innerHTML = `
         <span class="file-name">${file.name}</span>
         <span class="file-status" data-file="${file.name}">pending</span>
@@ -861,27 +979,27 @@ class JsonImportInterface {
   displayJsonPreview(containerId, jsonData) {
     const container = document.getElementById(containerId);
     const preview = JSON.stringify(jsonData, null, 2).substring(0, 500);
-    container.innerHTML = `<pre><code>${preview}${preview.length < JSON.stringify(jsonData, null, 2).length ? '...' : ''}</code></pre>`;
+    container.innerHTML = `<pre><code>${preview}${preview.length < JSON.stringify(jsonData, null, 2).length ? "..." : ""}</code></pre>`;
   }
 
   showResults(result) {
     this.hideProgress();
-    document.getElementById('json-results-section').style.display = 'block';
-    
-    const summary = document.getElementById('json-results-summary');
+    document.getElementById("json-results-section").style.display = "block";
+
+    const summary = document.getElementById("json-results-summary");
     if (result.success) {
-      summary.className = 'results-summary success';
+      summary.className = "results-summary success";
       summary.innerHTML = `
         <i class="icon-check"></i>
         <strong>Import Successful!</strong>
         Batch ID: ${result.batchId}
       `;
     } else {
-      summary.className = 'results-summary error';
+      summary.className = "results-summary error";
       summary.innerHTML = `
         <i class="icon-x"></i>
         <strong>Import Failed</strong>
-        ${result.error || 'Unknown error occurred'}
+        ${result.error || "Unknown error occurred"}
       `;
     }
 
@@ -889,8 +1007,8 @@ class JsonImportInterface {
   }
 
   displayDetailedResults(result) {
-    const details = document.getElementById('json-results-details');
-    let content = '';
+    const details = document.getElementById("json-results-details");
+    let content = "";
 
     if (result.statistics) {
       content += `
@@ -917,19 +1035,21 @@ class JsonImportInterface {
         <div class="file-results-section">
           <h5>File Processing Results</h5>
       `;
-      
-      result.fileResults.forEach(fileResult => {
+
+      result.fileResults.forEach((fileResult) => {
         content += `
-          <div class="file-result-item ${fileResult.success ? 'success' : 'error'}">
+          <div class="file-result-item ${fileResult.success ? "success" : "error"}">
             <strong>${fileResult.filename}</strong>
-            <span class="status">${fileResult.success ? 'Success' : 'Failed'}</span>
-            ${fileResult.errors && fileResult.errors.length > 0 ? 
-              `<div class="errors">${fileResult.errors.join(', ')}</div>` : ''
+            <span class="status">${fileResult.success ? "Success" : "Failed"}</span>
+            ${
+              fileResult.errors && fileResult.errors.length > 0
+                ? `<div class="errors">${fileResult.errors.join(", ")}</div>`
+                : ""
             }
           </div>
         `;
       });
-      
+
       content += `</div>`;
     }
 
@@ -939,19 +1059,19 @@ class JsonImportInterface {
   resetInterface() {
     this.singleFile = null;
     this.batchFiles = [];
-    document.getElementById('json-file-preview-single').style.display = 'none';
-    document.getElementById('batch-files-list').style.display = 'none';
-    document.getElementById('json-progress-section').style.display = 'none';
-    document.getElementById('json-results-section').style.display = 'none';
-    document.getElementById('json-import-single-btn').disabled = true;
-    document.getElementById('json-import-batch-btn').disabled = true;
+    document.getElementById("json-file-preview-single").style.display = "none";
+    document.getElementById("batch-files-list").style.display = "none";
+    document.getElementById("json-progress-section").style.display = "none";
+    document.getElementById("json-results-section").style.display = "none";
+    document.getElementById("json-import-single-btn").disabled = true;
+    document.getElementById("json-import-batch-btn").disabled = true;
   }
 
   removeSingleFile() {
     this.singleFile = null;
-    document.getElementById('json-file-preview-single').style.display = 'none';
-    document.getElementById('json-file-input-single').value = '';
-    document.getElementById('json-import-single-btn').disabled = true;
+    document.getElementById("json-file-preview-single").style.display = "none";
+    document.getElementById("json-file-input-single").value = "";
+    document.getElementById("json-import-single-btn").disabled = true;
   }
 
   removeBatchFile(index) {
@@ -965,15 +1085,15 @@ class JsonImportInterface {
 
   clearBatchFiles() {
     this.batchFiles = [];
-    document.getElementById('batch-files-list').style.display = 'none';
-    document.getElementById('json-file-input-batch').value = '';
-    document.getElementById('json-import-batch-btn').disabled = false;
+    document.getElementById("batch-files-list").style.display = "none";
+    document.getElementById("json-file-input-batch").value = "";
+    document.getElementById("json-import-batch-btn").disabled = false;
   }
 
   hideProgress() {
-    document.getElementById('json-progress-section').style.display = 'none';
-    document.getElementById('json-import-single-btn').disabled = false;
-    document.getElementById('json-import-batch-btn').disabled = false;
+    document.getElementById("json-progress-section").style.display = "none";
+    document.getElementById("json-import-single-btn").disabled = false;
+    document.getElementById("json-import-batch-btn").disabled = false;
   }
 
   // Utility methods (shared with CsvImportInterface)
@@ -981,17 +1101,17 @@ class JsonImportInterface {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsText(file);
     });
   }
 
   formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 
   showError(message) {
@@ -1014,7 +1134,12 @@ class JsonImportInterface {
 <div id="import-history-interface" class="import-interface">
   <div class="history-controls">
     <div class="search-controls">
-      <input type="text" id="history-search" placeholder="Search import history..." class="search-input">
+      <input
+        type="text"
+        id="history-search"
+        placeholder="Search import history..."
+        class="search-input"
+      />
       <select id="history-status-filter" class="filter-select">
         <option value="">All Status</option>
         <option value="COMPLETED">Completed</option>
@@ -1033,9 +1158,11 @@ class JsonImportInterface {
       </select>
       <button id="history-refresh" class="btn btn-secondary">Refresh</button>
     </div>
-    
+
     <div class="pagination-controls">
-      <button id="history-prev" class="btn btn-outline" disabled>Previous</button>
+      <button id="history-prev" class="btn btn-outline" disabled>
+        Previous
+      </button>
       <span id="history-page-info">Page 1 of 1</span>
       <button id="history-next" class="btn btn-outline" disabled>Next</button>
     </div>
@@ -1061,7 +1188,11 @@ class JsonImportInterface {
     </table>
   </div>
 
-  <div class="batch-details-modal" id="batch-details-modal" style="display: none;">
+  <div
+    class="batch-details-modal"
+    id="batch-details-modal"
+    style="display: none;"
+  >
     <div class="modal-content">
       <div class="modal-header">
         <h4>Import Batch Details</h4>
@@ -1071,7 +1202,13 @@ class JsonImportInterface {
         <!-- Dynamic content -->
       </div>
       <div class="modal-footer">
-        <button id="rollback-batch" class="btn btn-danger" style="display: none;">Rollback Import</button>
+        <button
+          id="rollback-batch"
+          class="btn btn-danger"
+          style="display: none;"
+        >
+          Rollback Import
+        </button>
         <button id="close-details" class="btn btn-secondary">Close</button>
       </div>
     </div>
@@ -1089,9 +1226,9 @@ class ImportHistoryTable {
     this.pageSize = 20;
     this.totalPages = 1;
     this.filters = {
-      search: '',
-      status: '',
-      type: ''
+      search: "",
+      status: "",
+      type: "",
     };
     this.selectedBatch = null;
   }
@@ -1103,34 +1240,38 @@ class ImportHistoryTable {
 
   setupEventListeners() {
     // Search and filters
-    document.getElementById('history-search').addEventListener('input', (e) => {
+    document.getElementById("history-search").addEventListener("input", (e) => {
       this.filters.search = e.target.value;
       this.debounceSearch();
     });
 
-    document.getElementById('history-status-filter').addEventListener('change', (e) => {
-      this.filters.status = e.target.value;
-      this.loadHistory();
-    });
+    document
+      .getElementById("history-status-filter")
+      .addEventListener("change", (e) => {
+        this.filters.status = e.target.value;
+        this.loadHistory();
+      });
 
-    document.getElementById('history-type-filter').addEventListener('change', (e) => {
-      this.filters.type = e.target.value;
-      this.loadHistory();
-    });
+    document
+      .getElementById("history-type-filter")
+      .addEventListener("change", (e) => {
+        this.filters.type = e.target.value;
+        this.loadHistory();
+      });
 
-    document.getElementById('history-refresh').addEventListener('click', () => {
+    document.getElementById("history-refresh").addEventListener("click", () => {
       this.loadHistory();
     });
 
     // Pagination
-    document.getElementById('history-prev').addEventListener('click', () => {
+    document.getElementById("history-prev").addEventListener("click", () => {
       if (this.currentPage > 1) {
         this.currentPage--;
         this.loadHistory();
       }
     });
 
-    document.getElementById('history-next').addEventListener('click', () => {
+    document.getElementById("history-next").addEventListener("click", () => {
       if (this.currentPage < this.totalPages) {
         this.currentPage++;
         this.loadHistory();
@@ -1138,15 +1279,17 @@ class ImportHistoryTable {
     });
 
     // Modal controls
-    document.getElementById('close-batch-details').addEventListener('click', () => {
+    document
+      .getElementById("close-batch-details")
+      .addEventListener("click", () => {
+        this.closeBatchDetails();
+      });
+
+    document.getElementById("close-details").addEventListener("click", () => {
       this.closeBatchDetails();
     });
 
-    document.getElementById('close-details').addEventListener('click', () => {
-      this.closeBatchDetails();
-    });
-
-    document.getElementById('rollback-batch').addEventListener('click', () => {
+    document.getElementById("rollback-batch").addEventListener("click", () => {
       this.showRollbackConfirmation();
     });
   }
@@ -1163,21 +1306,20 @@ class ImportHistoryTable {
       const params = {
         limit: this.pageSize,
         offset: (this.currentPage - 1) * this.pageSize,
-        ...this.filters
+        ...this.filters,
       };
 
       const response = await this.apiClient.getImportHistory(params);
       this.renderHistoryTable(response.history);
       this.updatePaginationControls(response.totalCount);
-      
     } catch (error) {
       this.showError(`Failed to load import history: ${error.message}`);
     }
   }
 
   renderHistoryTable(history) {
-    const tbody = document.getElementById('history-table-body');
-    tbody.innerHTML = '';
+    const tbody = document.getElementById("history-table-body");
+    tbody.innerHTML = "";
 
     if (history.length === 0) {
       tbody.innerHTML = `
@@ -1188,8 +1330,8 @@ class ImportHistoryTable {
       return;
     }
 
-    history.forEach(batch => {
-      const row = document.createElement('tr');
+    history.forEach((batch) => {
+      const row = document.createElement("tr");
       row.innerHTML = `
         <td class="batch-id">${this.truncateText(batch.batchId, 8)}</td>
         <td class="import-type">${batch.importType}</td>
@@ -1202,9 +1344,10 @@ class ImportHistoryTable {
         <td class="duration">${this.calculateDuration(batch.createdDate, batch.completedDate)}</td>
         <td class="actions">
           <button class="btn btn-link view-details" data-batch-id="${batch.batchId}">View</button>
-          ${batch.status === 'COMPLETED' ? 
-            `<button class="btn btn-link rollback-action" data-batch-id="${batch.batchId}">Rollback</button>` : 
-            ''
+          ${
+            batch.status === "COMPLETED"
+              ? `<button class="btn btn-link rollback-action" data-batch-id="${batch.batchId}">Rollback</button>`
+              : ""
           }
         </td>
       `;
@@ -1212,14 +1355,14 @@ class ImportHistoryTable {
     });
 
     // Add event listeners for action buttons
-    tbody.querySelectorAll('.view-details').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    tbody.querySelectorAll(".view-details").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
         this.showBatchDetails(e.target.dataset.batchId);
       });
     });
 
-    tbody.querySelectorAll('.rollback-action').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+    tbody.querySelectorAll(".rollback-action").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
         this.initateRollback(e.target.dataset.batchId);
       });
     });
@@ -1230,22 +1373,22 @@ class ImportHistoryTable {
       const batchDetails = await this.apiClient.getBatchDetails(batchId);
       this.selectedBatch = batchDetails;
       this.renderBatchDetails(batchDetails);
-      document.getElementById('batch-details-modal').style.display = 'block';
-      
+      document.getElementById("batch-details-modal").style.display = "block";
+
       // Show rollback button if eligible
-      if (batchDetails.status === 'COMPLETED') {
-        document.getElementById('rollback-batch').style.display = 'inline-block';
+      if (batchDetails.status === "COMPLETED") {
+        document.getElementById("rollback-batch").style.display =
+          "inline-block";
       } else {
-        document.getElementById('rollback-batch').style.display = 'none';
+        document.getElementById("rollback-batch").style.display = "none";
       }
-      
     } catch (error) {
       this.showError(`Failed to load batch details: ${error.message}`);
     }
   }
 
   renderBatchDetails(batch) {
-    const content = document.getElementById('batch-details-content');
+    const content = document.getElementById("batch-details-content");
     content.innerHTML = `
       <div class="batch-info">
         <div class="info-section">
@@ -1275,7 +1418,9 @@ class ImportHistoryTable {
               <label>Created Date:</label>
               <span>${this.formatDateTime(batch.createdDate)}</span>
             </div>
-            ${batch.completedDate ? `
+            ${
+              batch.completedDate
+                ? `
               <div class="info-item">
                 <label>Completed Date:</label>
                 <span>${this.formatDateTime(batch.completedDate)}</span>
@@ -1284,38 +1429,56 @@ class ImportHistoryTable {
                 <label>Duration:</label>
                 <span>${this.calculateDuration(batch.createdDate, batch.completedDate)}</span>
               </div>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
         </div>
 
-        ${batch.statistics ? `
+        ${
+          batch.statistics
+            ? `
           <div class="info-section">
             <h5>Import Statistics</h5>
             <div class="stats-grid">
-              ${Object.entries(batch.statistics).map(([key, value]) => `
+              ${Object.entries(batch.statistics)
+                .map(
+                  ([key, value]) => `
                 <div class="stat-item">
                   <label>${this.formatStatKey(key)}:</label>
                   <span>${value}</span>
                 </div>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </div>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
 
-        ${batch.auditTrail && batch.auditTrail.length > 0 ? `
+        ${
+          batch.auditTrail && batch.auditTrail.length > 0
+            ? `
           <div class="info-section">
             <h5>Audit Trail</h5>
             <div class="audit-trail">
-              ${batch.auditTrail.map(entry => `
+              ${batch.auditTrail
+                .map(
+                  (entry) => `
                 <div class="audit-entry">
                   <div class="audit-timestamp">${this.formatDateTime(entry.timestamp)}</div>
                   <div class="audit-action">${entry.action}</div>
                   <div class="audit-details">${entry.details}</div>
                 </div>
-              `).join('')}
+              `,
+                )
+                .join("")}
             </div>
           </div>
-        ` : ''}
+        `
+            : ""
+        }
       </div>
     `;
   }
@@ -1326,19 +1489,23 @@ class ImportHistoryTable {
   }
 
   showRollbackConfirmation() {
-    const reason = prompt('Please provide a reason for rolling back this import batch:');
+    const reason = prompt(
+      "Please provide a reason for rolling back this import batch:",
+    );
     if (reason) {
-      this.executeRollback(this.selectedBatch?.batchId || this.selectedBatchId, reason);
+      this.executeRollback(
+        this.selectedBatch?.batchId || this.selectedBatchId,
+        reason,
+      );
     }
   }
 
   async executeRollback(batchId, reason) {
     try {
       const result = await this.apiClient.rollbackImportBatch(batchId, reason);
-      this.showSuccess('Import batch rolled back successfully');
+      this.showSuccess("Import batch rolled back successfully");
       this.closeBatchDetails();
       this.loadHistory(); // Refresh the table
-      
     } catch (error) {
       this.showError(`Rollback failed: ${error.message}`);
     }
@@ -1346,21 +1513,24 @@ class ImportHistoryTable {
 
   updatePaginationControls(totalCount) {
     this.totalPages = Math.ceil(totalCount / this.pageSize);
-    
-    document.getElementById('history-prev').disabled = this.currentPage <= 1;
-    document.getElementById('history-next').disabled = this.currentPage >= this.totalPages;
-    document.getElementById('history-page-info').textContent = 
+
+    document.getElementById("history-prev").disabled = this.currentPage <= 1;
+    document.getElementById("history-next").disabled =
+      this.currentPage >= this.totalPages;
+    document.getElementById("history-page-info").textContent =
       `Page ${this.currentPage} of ${this.totalPages}`;
   }
 
   closeBatchDetails() {
-    document.getElementById('batch-details-modal').style.display = 'none';
+    document.getElementById("batch-details-modal").style.display = "none";
     this.selectedBatch = null;
   }
 
   // Utility methods
   truncateText(text, maxLength) {
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
   }
 
   formatDateTime(dateString) {
@@ -1368,19 +1538,21 @@ class ImportHistoryTable {
   }
 
   calculateDuration(startDate, endDate) {
-    if (!endDate) return 'In Progress';
+    if (!endDate) return "In Progress";
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffMs = end - start;
     const diffSecs = Math.round(diffMs / 1000);
-    
+
     if (diffSecs < 60) return `${diffSecs}s`;
     if (diffSecs < 3600) return `${Math.round(diffSecs / 60)}m`;
     return `${Math.round(diffSecs / 3600)}h`;
   }
 
   formatStatKey(key) {
-    return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    return key
+      .replace(/([A-Z])/g, " $1")
+      .replace(/^./, (str) => str.toUpperCase());
   }
 
   showError(message) {
@@ -1402,15 +1574,15 @@ class ImportHistoryTable {
 ```javascript
 class ImportApiClient {
   constructor() {
-    this.baseUrl = '/rest/scriptrunner/latest/custom/import';
+    this.baseUrl = "/rest/scriptrunner/latest/custom/import";
     this.defaultHeaders = {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     };
   }
 
   async downloadCsvTemplate(entity) {
     const response = await fetch(`${this.baseUrl}/templates/${entity}`, {
-      method: 'GET'
+      method: "GET",
     });
 
     if (!response.ok) {
@@ -1422,11 +1594,11 @@ class ImportApiClient {
 
   async importCsvData(entity, csvContent) {
     const response = await fetch(`${this.baseUrl}/csv/${entity}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'text/csv'
+        "Content-Type": "text/csv",
       },
-      body: csvContent
+      body: csvContent,
     });
 
     return await this.handleResponse(response);
@@ -1434,9 +1606,9 @@ class ImportApiClient {
 
   async importJsonData(data) {
     const response = await fetch(`${this.baseUrl}/json`, {
-      method: 'POST',
+      method: "POST",
       headers: this.defaultHeaders,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     return await this.handleResponse(response);
@@ -1444,9 +1616,9 @@ class ImportApiClient {
 
   async importBatchData(data) {
     const response = await fetch(`${this.baseUrl}/batch`, {
-      method: 'POST',
+      method: "POST",
       headers: this.defaultHeaders,
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     return await this.handleResponse(response);
@@ -1454,9 +1626,9 @@ class ImportApiClient {
 
   async createMasterPlan(planData) {
     const response = await fetch(`${this.baseUrl}/master-plan`, {
-      method: 'POST',
+      method: "POST",
       headers: this.defaultHeaders,
-      body: JSON.stringify(planData)
+      body: JSON.stringify(planData),
     });
 
     return await this.handleResponse(response);
@@ -1465,7 +1637,7 @@ class ImportApiClient {
   async getImportHistory(params = {}) {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${this.baseUrl}/history?${queryString}`, {
-      method: 'GET'
+      method: "GET",
     });
 
     return await this.handleResponse(response);
@@ -1473,7 +1645,7 @@ class ImportApiClient {
 
   async getBatchDetails(batchId) {
     const response = await fetch(`${this.baseUrl}/batch/${batchId}`, {
-      method: 'GET'
+      method: "GET",
     });
 
     return await this.handleResponse(response);
@@ -1481,7 +1653,7 @@ class ImportApiClient {
 
   async getImportStatistics() {
     const response = await fetch(`${this.baseUrl}/statistics`, {
-      method: 'GET'
+      method: "GET",
     });
 
     return await this.handleResponse(response);
@@ -1489,9 +1661,9 @@ class ImportApiClient {
 
   async rollbackImportBatch(batchId, reason) {
     const response = await fetch(`${this.baseUrl}/rollback/${batchId}`, {
-      method: 'POST',
+      method: "POST",
       headers: this.defaultHeaders,
-      body: JSON.stringify({ reason })
+      body: JSON.stringify({ reason }),
     });
 
     return await this.handleResponse(response);
@@ -1499,9 +1671,9 @@ class ImportApiClient {
 
   async updateBatchStatus(batchId, status, statistics = {}) {
     const response = await fetch(`${this.baseUrl}/batch/${batchId}/status`, {
-      method: 'PUT',
+      method: "PUT",
       headers: this.defaultHeaders,
-      body: JSON.stringify({ status, statistics })
+      body: JSON.stringify({ status, statistics }),
     });
 
     return await this.handleResponse(response);
@@ -1509,12 +1681,16 @@ class ImportApiClient {
 
   async handleResponse(response) {
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: response.statusText }));
-      throw new Error(errorData.error || `Request failed with status ${response.status}`);
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: response.statusText }));
+      throw new Error(
+        errorData.error || `Request failed with status ${response.status}`,
+      );
     }
 
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
       return await response.json();
     } else {
       return await response.text();
@@ -2005,19 +2181,19 @@ class ImportApiClient {
   .dashboard-stats {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
-  
+
   .template-downloads {
     flex-direction: column;
   }
-  
+
   .import-controls {
     flex-direction: column;
   }
-  
+
   .entity-tabs {
     flex-wrap: wrap;
   }
-  
+
   .modal-content {
     width: 95%;
     margin: 10px;
@@ -2033,80 +2209,103 @@ class ImportApiClient {
 
 ```javascript
 // Test scenarios for Import Interface
-describe('Import Interface Integration', () => {
+describe("Import Interface Integration", () => {
   beforeEach(() => {
     // Initialize mock API client
     this.mockApiClient = new MockImportApiClient();
     this.importDashboard = new ImportDashboard();
   });
 
-  describe('CSV Import Interface', () => {
-    test('should download CSV templates successfully', async () => {
+  describe("CSV Import Interface", () => {
+    test("should download CSV templates successfully", async () => {
       const csvInterface = new CsvImportInterface();
-      await csvInterface.downloadTemplate('teams');
-      expect(this.mockApiClient.downloadCsvTemplate).toHaveBeenCalledWith('teams');
+      await csvInterface.downloadTemplate("teams");
+      expect(this.mockApiClient.downloadCsvTemplate).toHaveBeenCalledWith(
+        "teams",
+      );
     });
 
-    test('should handle file upload and validation', async () => {
+    test("should handle file upload and validation", async () => {
       const csvInterface = new CsvImportInterface();
-      const mockFile = new File(['test,data\n1,value'], 'test.csv', { type: 'text/csv' });
+      const mockFile = new File(["test,data\n1,value"], "test.csv", {
+        type: "text/csv",
+      });
       await csvInterface.handleFileSelect(mockFile);
       expect(csvInterface.uploadedFile).toBe(mockFile);
     });
 
-    test('should execute CSV import with proper error handling', async () => {
+    test("should execute CSV import with proper error handling", async () => {
       const csvInterface = new CsvImportInterface();
-      const mockFile = new File(['test,data\n1,value'], 'test.csv', { type: 'text/csv' });
+      const mockFile = new File(["test,data\n1,value"], "test.csv", {
+        type: "text/csv",
+      });
       csvInterface.uploadedFile = mockFile;
-      
+
       await csvInterface.executeImport();
       expect(this.mockApiClient.importCsvData).toHaveBeenCalled();
     });
   });
 
-  describe('JSON Import Interface', () => {
-    test('should handle single JSON file import', async () => {
+  describe("JSON Import Interface", () => {
+    test("should handle single JSON file import", async () => {
       const jsonInterface = new JsonImportInterface();
-      const mockFile = new File(['{"steps":[]}'], 'test.json', { type: 'application/json' });
+      const mockFile = new File(['{"steps":[]}'], "test.json", {
+        type: "application/json",
+      });
       await jsonInterface.handleSingleFileSelect(mockFile);
       expect(jsonInterface.singleFile).toBe(mockFile);
     });
 
-    test('should handle batch JSON import', async () => {
+    test("should handle batch JSON import", async () => {
       const jsonInterface = new JsonImportInterface();
       const mockFiles = [
-        new File(['{"steps":[]}'], 'test1.json', { type: 'application/json' }),
-        new File(['{"steps":[]}'], 'test2.json', { type: 'application/json' })
+        new File(['{"steps":[]}'], "test1.json", { type: "application/json" }),
+        new File(['{"steps":[]}'], "test2.json", { type: "application/json" }),
       ];
-      
+
       await jsonInterface.handleBatchFilesSelect(mockFiles);
       expect(jsonInterface.batchFiles).toEqual(mockFiles);
     });
   });
 
-  describe('Import History Interface', () => {
-    test('should load and display import history', async () => {
+  describe("Import History Interface", () => {
+    test("should load and display import history", async () => {
       const historyTable = new ImportHistoryTable();
       await historyTable.loadHistory();
       expect(this.mockApiClient.getImportHistory).toHaveBeenCalled();
     });
 
-    test('should handle batch rollback operations', async () => {
+    test("should handle batch rollback operations", async () => {
       const historyTable = new ImportHistoryTable();
-      await historyTable.executeRollback('test-batch-id', 'test reason');
-      expect(this.mockApiClient.rollbackImportBatch).toHaveBeenCalledWith('test-batch-id', 'test reason');
+      await historyTable.executeRollback("test-batch-id", "test reason");
+      expect(this.mockApiClient.rollbackImportBatch).toHaveBeenCalledWith(
+        "test-batch-id",
+        "test reason",
+      );
     });
   });
 });
 
 // Mock API Client for Testing
 class MockImportApiClient {
-  downloadCsvTemplate = jest.fn().mockResolvedValue(new Blob(['test csv'], { type: 'text/csv' }));
-  importCsvData = jest.fn().mockResolvedValue({ success: true, batchId: 'test-batch-id' });
-  importJsonData = jest.fn().mockResolvedValue({ success: true, batchId: 'test-batch-id' });
-  importBatchData = jest.fn().mockResolvedValue({ success: true, batchId: 'test-batch-id' });
-  getImportHistory = jest.fn().mockResolvedValue({ history: [], totalCount: 0 });
-  getBatchDetails = jest.fn().mockResolvedValue({ batchId: 'test-batch-id', status: 'COMPLETED' });
+  downloadCsvTemplate = jest
+    .fn()
+    .mockResolvedValue(new Blob(["test csv"], { type: "text/csv" }));
+  importCsvData = jest
+    .fn()
+    .mockResolvedValue({ success: true, batchId: "test-batch-id" });
+  importJsonData = jest
+    .fn()
+    .mockResolvedValue({ success: true, batchId: "test-batch-id" });
+  importBatchData = jest
+    .fn()
+    .mockResolvedValue({ success: true, batchId: "test-batch-id" });
+  getImportHistory = jest
+    .fn()
+    .mockResolvedValue({ history: [], totalCount: 0 });
+  getBatchDetails = jest
+    .fn()
+    .mockResolvedValue({ batchId: "test-batch-id", status: "COMPLETED" });
   rollbackImportBatch = jest.fn().mockResolvedValue({ success: true });
 }
 ```
@@ -2118,6 +2317,7 @@ class MockImportApiClient {
 ### Integration Steps for Admin GUI
 
 1. **Add Navigation Entry**
+
    ```javascript
    // Add to admin-gui navigation configuration
    {
@@ -2130,15 +2330,26 @@ class MockImportApiClient {
    ```
 
 2. **Register Components**
+
    ```javascript
    // Register import components with Admin GUI framework
-   AdminGuiFramework.registerComponent('ImportDashboard', ImportDashboard);
-   AdminGuiFramework.registerComponent('CsvImportInterface', CsvImportInterface);
-   AdminGuiFramework.registerComponent('JsonImportInterface', JsonImportInterface);
-   AdminGuiFramework.registerComponent('ImportHistoryTable', ImportHistoryTable);
+   AdminGuiFramework.registerComponent("ImportDashboard", ImportDashboard);
+   AdminGuiFramework.registerComponent(
+     "CsvImportInterface",
+     CsvImportInterface,
+   );
+   AdminGuiFramework.registerComponent(
+     "JsonImportInterface",
+     JsonImportInterface,
+   );
+   AdminGuiFramework.registerComponent(
+     "ImportHistoryTable",
+     ImportHistoryTable,
+   );
    ```
 
 3. **Add Route Configuration**
+
    ```javascript
    // Add routing for import interface
    {

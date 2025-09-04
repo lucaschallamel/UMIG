@@ -1,1 +1,20 @@
-{"step_type":"CHK","step_number":15228,"title":"SG UK - Update Masterfile and provide KPIs","predecessor":"CHK-13937","successor":"CHK-13937","primary_team":"SG UK","impacted_teams":"DATA_FILES","macro_time_sequence":"C - WEEK-END 1 - CSD","time_sequence":"CA - FILES RECEPTION AND P0 INTEGRATION","task_list":[{"instruction_title":"Provide directly into the MASTER file on sharepoint (link below) the KPIs and Manifest updates.\n\n\n\n\n[https://spconfidential/projects/victoria-it/07%20%20Cutover/09%20-%20Files/VICTORIA_FILES_MASTER.xlsx?d=w9035ae5549e240f4a0eb90fa6c080250](https://spconfidential/projects/victoria-it/07%20%20Cutover/09%20-%20Files/VICTORIA_FILES_MASTER.xlsx?d=w9035ae5549e240f4a0eb90fa6c080250)","instruction_id":"CHK-15228-1","nominated_user":"","instruction_assigned_team":"SG UK","associated_controls":""}]}
+{
+  "step_type": "CHK",
+  "step_number": 15228,
+  "title": "SG UK - Update Masterfile and provide KPIs",
+  "predecessor": "CHK-13937",
+  "successor": "CHK-13937",
+  "primary_team": "SG UK",
+  "impacted_teams": "DATA_FILES",
+  "macro_time_sequence": "C - WEEK-END 1 - CSD",
+  "time_sequence": "CA - FILES RECEPTION AND P0 INTEGRATION",
+  "task_list": [
+    {
+      "instruction_title": "Provide directly into the MASTER file on sharepoint (link below) the KPIs and Manifest updates.\n\n\n\n\n[https://spconfidential/projects/victoria-it/07%20%20Cutover/09%20-%20Files/VICTORIA_FILES_MASTER.xlsx?d=w9035ae5549e240f4a0eb90fa6c080250](https://spconfidential/projects/victoria-it/07%20%20Cutover/09%20-%20Files/VICTORIA_FILES_MASTER.xlsx?d=w9035ae5549e240f4a0eb90fa6c080250)",
+      "instruction_id": "CHK-15228-1",
+      "nominated_user": "",
+      "instruction_assigned_team": "SG UK",
+      "associated_controls": ""
+    }
+  ]
+}

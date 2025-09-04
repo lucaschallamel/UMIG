@@ -1,12 +1,12 @@
 # Complete Data Import System - Architecture & Implementation Guide
 
-## Production Status ✅ 
+## Production Status ✅
 
 **Status**: PRODUCTION READY (September 4, 2025)  
 **Test Coverage**: 98% integration test coverage achieved  
 **Quality Gates**: All production deployment criteria met  
 **Cross-Platform**: Windows/macOS/Linux compatibility validated  
-**Performance**: <500ms API response times, production-scale dataset support  
+**Performance**: <500ms API response times, production-scale dataset support
 
 ## Overview
 
@@ -83,7 +83,7 @@ flowchart TD
     G --> H[Cross-Reference Validation]
     H --> I[Promote to Master Tables]
     I --> J[Complete Integration]
-    
+
     F -->|Missing Base Entity| K[Dependency Error]
     K --> L[Must Import CSV First]
 ```
@@ -91,21 +91,25 @@ flowchart TD
 ## Component Details
 
 ### 1. ImportApi.groovy - Unified Import REST API
+
 **Location**: `/src/groovy/umig/api/v2/ImportApi.groovy`  
-**Purpose**: Unified REST API endpoints for both CSV and JSON import operations  
+**Purpose**: Unified REST API endpoints for both CSV and JSON import operations
 
 #### CSV Import Endpoints:
+
 - `POST /api/v2/import/csv/teams` - Import teams from CSV
-- `POST /api/v2/import/csv/users` - Import users from CSV  
+- `POST /api/v2/import/csv/users` - Import users from CSV
 - `POST /api/v2/import/csv/applications` - Import applications from CSV
 - `POST /api/v2/import/csv/environments` - Import environments from CSV
 - `POST /api/v2/import/csv/all` - Import all base entities in proper sequence
 
 #### JSON Import Endpoints:
+
 - `POST /api/v2/import/json` - Import single JSON file
 - `POST /api/v2/import/batch` - Import multiple JSON files
 
 #### Management & Monitoring Endpoints:
+
 - `GET /api/v2/import/status/{batchId}` - Check import status
 - `GET /api/v2/import/history` - Get import history
 - `GET /api/v2/import/statistics` - Get import statistics
@@ -113,43 +117,51 @@ flowchart TD
 - `PUT /api/v2/import/batch/{batchId}/status` - Update batch status
 
 ### 2. CsvImportService.groovy - Base Entity CSV Import
+
 **Location**: `/src/groovy/umig/service/CsvImportService.groovy`  
 **Purpose**: Handles CSV import for base entities with dependency validation  
 **Key Functions**:
+
 - `importTeams()` - Import teams with email validation
-- `importUsers()` - Import users with team relationship validation  
+- `importUsers()` - Import users with team relationship validation
 - `importApplications()` - Import applications with business rules
 - `importEnvironments()` - Import environments with type validation
 - `importAllBaseEntities()` - Orchestrated import in proper sequence
-**Dependency Order**: Teams → Applications → Environments → Users
-**Features**: Header validation, duplicate detection, referential integrity checking
+  **Dependency Order**: Teams → Applications → Environments → Users
+  **Features**: Header validation, duplicate detection, referential integrity checking
 
 ### 3. ImportService.groovy - JSON Hierarchical Import
+
 **Location**: `/src/groovy/umig/service/ImportService.groovy`  
 **Purpose**: Core business logic for JSON hierarchical data import  
 **Key Functions**:
+
 - `importJsonData()` - Import single JSON file to staging
 - `importBatch()` - Import multiple JSON files
 - `validateStagingData()` - Validate data in staging tables
 - `promoteToMaster()` - Promote staging data to master tables
 - `clearStagingData()` - Clear staging tables
 - `getStagingStatistics()` - Get staging table metrics
-**Dependencies**: Requires CSV base entities to exist before JSON import
+  **Dependencies**: Requires CSV base entities to exist before JSON import
 
 ### 4. ImportOrchestrationService.groovy - Complete Workflow Coordinator
+
 **Location**: `/src/groovy/umig/service/ImportOrchestrationService.groovy`  
 **Purpose**: Orchestrates the complete CSV → JSON → Master import pipeline  
 **Key Functions**:
+
 - `orchestrateCompleteImport()` - Execute full import workflow
 - Progress tracking with persistence across import phases
 - Error recovery and resume capabilities at orchestration level
 - Rollback support spanning both CSV and JSON imports
-**Import Phases**: BASE_ENTITIES → JSON_PROCESSING → MASTER_PROMOTION → VALIDATION → CLEANUP
+  **Import Phases**: BASE_ENTITIES → JSON_PROCESSING → MASTER_PROMOTION → VALIDATION → CLEANUP
 
 ### 5. ImportRepository.groovy - Batch Tracking & Audit
+
 **Location**: `/src/groovy/umig/repository/ImportRepository.groovy`  
 **Purpose**: Manages import batch tracking and comprehensive audit trail  
 **Key Functions**:
+
 - `createImportBatch()` - Create new import batch with UUID
 - `updateImportBatchStatus()` - Update batch status with statistics
 - `getImportBatchStatus()` - Retrieve batch information
@@ -158,9 +170,11 @@ flowchart TD
 - Maintains audit trail in `import_batches` table for both CSV and JSON imports
 
 ### 6. StagingImportRepository.groovy - JSON Staging Operations
+
 **Location**: `/src/groovy/umig/repository/StagingImportRepository.groovy`  
 **Purpose**: Manages JSON staging table operations and promotion logic  
 **Key Functions**:
+
 - `createStagingStep()` - Insert step into staging with validation
 - `createStagingInstructions()` - Insert instructions into staging
 - `validateStagingData()` - Check data integrity and base entity references
@@ -169,18 +183,22 @@ flowchart TD
 - `getStagingStatistics()` - Get comprehensive staging metrics
 
 ### 7. JsonImportValidator.groovy - Standalone Validation
+
 **Location**: `/src/groovy/umig/tests/validation/JsonImportValidator.groovy`  
 **Purpose**: Standalone validation tool for JSON structure  
 **Key Functions**:
+
 - Validates JSON file structure and required fields
 - Displays import process flow with dependency checking
 - Shows staging table structure and validation rules
 - No database connection required for offline validation
 
 ### 8. CSV Import Utilities - Command-Line Tools
+
 **Location**: `/local-dev-setup/scripts/umig_csv_importer.js`  
 **Purpose**: Node.js command-line utility for CSV import operations  
 **Features**:
+
 - Interactive CSV import with validation
 - Dry-run mode for validation without database changes
 - Table reset capabilities with confirmation prompts
@@ -189,13 +207,14 @@ flowchart TD
 ## Complete Import Workflows
 
 ### Phase 1: CSV Base Entity Import (PREREQUISITE)
+
 ```
 1. Validate CSV Structure & Headers
 2. Check Entity Dependencies (Teams exist for Users, etc.)
 3. Create Import Batch (UUID tracking)
 4. Insert into Base Entity Tables:
    a. teams_tmt (independent)
-   b. applications_app (independent) 
+   b. applications_app (independent)
    c. environments_env (independent)
    d. users_usr (depends on teams_tmt)
 5. Validate referential integrity
@@ -203,6 +222,7 @@ flowchart TD
 ```
 
 ### Phase 2: JSON Hierarchical Import (DEPENDS ON PHASE 1)
+
 ```
 1. JSON File → Parse & Validate Structure
 2. Validate Base Entity References (teams must exist from CSV)
@@ -215,6 +235,7 @@ flowchart TD
 ```
 
 ### Phase 3: Staging to Master Promotion
+
 ```
 1. Validate staging data integrity & dependencies
 2. Verify all teams referenced exist in teams_tmt
@@ -226,6 +247,7 @@ flowchart TD
 ```
 
 ### Orchestrated Complete Import
+
 ```
 1. BASE_ENTITIES Phase: Import CSV base entities
 2. JSON_PROCESSING Phase: Import JSON to staging
@@ -237,6 +259,7 @@ flowchart TD
 ## Running the Import Scripts
 
 ### 1. CSV Import - Command Line (PREREQUISITE)
+
 ```bash
 # From local-dev-setup/ directory
 cd /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup
@@ -253,7 +276,7 @@ node scripts/umig_csv_importer.js \
   --csv path/to/applications.csv \
   --mapping-file mapping/applications-mapping.json
 
-# Import environments CSV (independent)  
+# Import environments CSV (independent)
 node scripts/umig_csv_importer.js \
   --table environments \
   --csv path/to/environments.csv \
@@ -274,6 +297,7 @@ node scripts/umig_csv_importer.js \
 ```
 
 ### 2. CSV Import - REST API
+
 ```bash
 # Import teams via API
 curl -X POST http://localhost:8090/api/v2/import/csv/teams \
@@ -294,6 +318,7 @@ curl -X POST http://localhost:8090/api/v2/import/csv/all \
 ```
 
 ### 3. JSON Import (REQUIRES CSV BASE ENTITIES)
+
 ```bash
 # Validate JSON structure (offline)
 cd /Users/lucaschallamel/Documents/GitHub/UMIG
@@ -321,6 +346,7 @@ curl -X POST http://localhost:8090/api/v2/import/batch \
 ```
 
 ### 4. End-to-End Testing & Validation
+
 ```bash
 # Complete integration test
 cd /Users/lucaschallamel/Documents/GitHub/UMIG
@@ -347,6 +373,7 @@ curl -X DELETE http://localhost:8090/api/v2/import/batch/{batchId} \
 ## Complete Database Schema
 
 ### Base Entity Tables (CSV Import Targets)
+
 ```sql
 -- teams_tms (Base entity - no dependencies)
 - tms_id (INTEGER, primary key, auto-increment)
@@ -371,18 +398,19 @@ curl -X DELETE http://localhost:8090/api/v2/import/batch/{batchId} \
 - app_description (TEXT)
 
 -- environments_env (Independent base entity)
-- env_id (INTEGER, primary key, auto-increment)  
+- env_id (INTEGER, primary key, auto-increment)
 - env_code (VARCHAR(50), unique)
 - env_name (VARCHAR(255))
 - env_description (TEXT)
 ```
 
 ### CSV Import Required Headers
+
 ```csv
 # teams.csv
 tms_id,tms_name,tms_email,tms_description
 
-# users.csv  
+# users.csv
 usr_id,usr_code,usr_first_name,usr_last_name,usr_email,usr_is_admin,tms_id,rls_id
 
 # applications.csv
@@ -393,6 +421,7 @@ env_id,env_code,env_name,env_description
 ```
 
 ### JSON Staging Tables (Temporary Processing)
+
 ```sql
 -- stg_steps (temporary holding)
 - id (UUID, primary key)
@@ -421,6 +450,7 @@ env_id,env_code,env_name,env_description
 ```
 
 ### Master Tables (Final Destination - Hierarchical Data)
+
 ```sql
 -- steps_master_spm (Created from JSON import)
 - spm_id (UUID, primary key)
@@ -451,10 +481,11 @@ env_id,env_code,env_name,env_description
 ```
 
 ### Import Dependency Matrix
+
 ```
 CSV Import Order (Base Entities):
 1. teams_tms ← Independent
-2. applications_app ← Independent  
+2. applications_app ← Independent
 3. environments_env ← Independent
 4. users_usr ← Depends on teams_tms
 
@@ -467,6 +498,7 @@ JSON Import Dependencies (Hierarchical):
 ## JSON File Format
 
 Expected JSON structure from Confluence extraction:
+
 ```json
 {
   "step_type": "TRT",
@@ -495,30 +527,35 @@ Expected JSON structure from Confluence extraction:
 ## Key Features
 
 ### 1. Integrated Two-Tier Import Architecture
+
 - **CSV First**: Base entities must be imported before JSON hierarchical data
 - **Dependency Enforcement**: JSON imports validate against existing CSV entities
 - **Orchestrated Workflow**: Automatic coordination between import phases
 - **Cross-Reference Validation**: Ensures data consistency across import types
 
-### 2. Comprehensive Import Batch Tracking  
+### 2. Comprehensive Import Batch Tracking
+
 - Every CSV and JSON import gets a unique UUID
 - Full audit trail maintained across both import types
 - Import type tracking (CSV_TEAMS, JSON_STEPS, etc.)
 - Can track status and rollback individual batches or complete workflows
 
 ### 3. Enhanced Data Validation
+
 - **CSV Validation**: Header validation, entity-specific business rules, referential integrity
 - **JSON Validation**: Step type validation, base entity reference checks, structural validation
 - **Cross-Import Validation**: JSON imports validate team/user references from CSV imports
 - **Business Rule Enforcement**: Email formats, team codes, user permissions
 
 ### 4. Intelligent Entity Management
+
 - **CSV Imports**: Create base entities with duplicate detection
 - **JSON Imports**: Reference existing base entities, create hierarchical relationships
 - **Automatic Relationship Creation**: Links JSON steps to CSV teams/users
 - **Missing Entity Detection**: Clear error messages for dependency violations
 
 ### 5. Advanced Error Handling & Recovery
+
 - **Dependency Error Detection**: Clear messaging when CSV entities missing for JSON imports
 - **Transaction Rollback**: Safe rollback at individual import or orchestration level
 - **Error Recovery**: Resume capabilities for interrupted multi-phase imports
@@ -527,6 +564,7 @@ Expected JSON structure from Confluence extraction:
 ## Available Step Type Codes
 
 Current 3-character step type codes:
+
 - IGO - Information Gathering Operations
 - CHK - Checkpoint/Validation
 - DUM - Dummy/Placeholder
@@ -563,7 +601,7 @@ Current 3-character step type codes:
    - **Solution**: Validate and clean CSV data, check email formats for users
    - **Prevention**: Use CSV validation tools before import
 
-### JSON Import Issues  
+### JSON Import Issues
 
 5. **"Step type must be exactly 3 characters"**
    - **Cause**: step_type in JSON is not exactly 3 characters
@@ -591,6 +629,7 @@ Current 3-character step type codes:
 ## Integration Points
 
 ### With Admin GUI
+
 - **CSV Import Status**: Monitor base entity import progress via Admin GUI
 - **JSON Import Status**: Track staging data and promotion status
 - **Unified Batch View**: View both CSV and JSON import batches in single interface
@@ -598,6 +637,7 @@ Current 3-character step type codes:
 - **Rollback Interface**: Rollback individual batches or complete import workflows
 
 ### With Existing UMIG Systems
+
 - **Repository Pattern**: Both CSV and JSON imports follow established repository patterns
 - **Authentication**: Integrated with existing Confluence authentication system
 - **DatabaseUtil**: Uses standard UMIG database connection patterns
@@ -605,6 +645,7 @@ Current 3-character step type codes:
 - **Audit Integration**: Import activities logged in standard UMIG audit trail
 
 ### External System Integration
+
 - **Confluence HTML Extraction**: JSON imports integrate with existing Confluence data extraction
 - **Team Management**: CSV team imports integrate with existing team management workflows
 - **User Management**: CSV user imports integrate with Confluence user management
@@ -613,18 +654,21 @@ Current 3-character step type codes:
 ## Performance Considerations
 
 ### CSV Import Performance
+
 - **Bulk Processing**: Supports 1000+ records per CSV file
 - **Memory Efficiency**: Streaming CSV parser minimizes memory usage
 - **Validation Optimization**: Headers validated once, rows processed in batches
 - **Indexing**: Database indexes on key fields (email, codes) for duplicate detection
 
-### JSON Import Performance  
+### JSON Import Performance
+
 - **Batch Processing**: Multiple JSON files processed in single transaction
 - **Staging Optimization**: Staging tables indexed for efficient validation
 - **Memory Management**: JSON parsed incrementally for large files
 - **Cross-Reference Caching**: Base entity lookups cached during import
 
 ### Integrated Workflow Performance
+
 - **Orchestration Efficiency**: Import phases executed with minimal overhead
 - **Transaction Management**: Optimal transaction boundaries for atomicity vs. performance
 - **Progress Tracking**: Lightweight progress updates without impacting import speed
@@ -633,12 +677,14 @@ Current 3-character step type codes:
 ## Security
 
 ### Authentication & Authorization
+
 - **CSV Imports**: Require `confluence-administrators` role (elevated privileges)
-- **JSON Imports**: Require `confluence-users` minimum role  
+- **JSON Imports**: Require `confluence-users` minimum role
 - **Batch Management**: Admin-only access to rollback and status updates
 - **User Attribution**: All imports tracked with user identity in audit trail
 
 ### Data Security
+
 - **Input Validation**: Comprehensive validation prevents SQL injection and data corruption
 - **Staging Isolation**: JSON data isolated in staging tables before promotion
 - **Transaction Safety**: Atomic transactions ensure data consistency
@@ -646,6 +692,7 @@ Current 3-character step type codes:
 - **Rollback Protection**: Secure rollback mechanisms prevent unauthorized data destruction
 
 ### Network Security
+
 - **HTTPS Required**: All API endpoints require encrypted connections
 - **Authentication Integration**: Leverages existing Confluence authentication
 - **Session Management**: Standard Confluence session handling
@@ -654,36 +701,40 @@ Current 3-character step type codes:
 ## Complete System Status
 
 ### Current Capabilities - CSV Import
+
 ✅ **Teams Import**: Complete with email validation and duplicate handling  
 ✅ **Users Import**: Complete with team relationship validation  
 ✅ **Applications Import**: Complete with business rule enforcement  
 ✅ **Environments Import**: Complete with type validation  
 ✅ **Orchestrated Import**: All base entities in proper dependency sequence  
 ✅ **Command-Line Tools**: Cross-platform Node.js import utilities  
-✅ **REST API Integration**: Complete CSV import API endpoints  
+✅ **REST API Integration**: Complete CSV import API endpoints
 
-### Current Capabilities - JSON Import  
+### Current Capabilities - JSON Import
+
 ✅ **JSON Import**: From Confluence HTML extraction  
 ✅ **Staging Validation**: Complete with base entity cross-reference  
 ✅ **Master Promotion**: Automatic with team/user linking  
 ✅ **Batch Processing**: Multiple JSON files in single operation  
 ✅ **Dependency Validation**: Ensures CSV base entities exist  
-✅ **Complete Audit Trail**: Full import tracking and history  
+✅ **Complete Audit Trail**: Full import tracking and history
 
-### Current Capabilities - Integration  
+### Current Capabilities - Integration
+
 ✅ **Import Orchestration**: Complete CSV → JSON → Master workflow  
 ✅ **Cross-System Validation**: JSON validates against CSV entities  
 ✅ **Error Recovery**: Resume and rollback at all levels  
 ✅ **Performance Optimization**: Efficient processing of 1000+ records  
 ✅ **Security Compliance**: Enterprise-grade security and audit  
-✅ **Admin GUI Integration**: Complete import management interface  
+✅ **Admin GUI Integration**: Complete import management interface
 
 ### Architecture Maturity
+
 ✅ **Production Ready**: Complete implementation with comprehensive error handling  
 ✅ **Scalable Design**: Supports enterprise-scale data migration  
 ✅ **Maintainable Code**: Repository pattern with comprehensive testing  
 ✅ **Documentation Complete**: Full API documentation and troubleshooting guides  
-✅ **Integration Testing**: End-to-end validation of complete import workflows  
+✅ **Integration Testing**: End-to-end validation of complete import workflows
 
 ---
 

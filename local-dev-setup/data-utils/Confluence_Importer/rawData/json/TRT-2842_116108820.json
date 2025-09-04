@@ -1,1 +1,97 @@
-{"step_type":"TRT","step_number":2842,"title":"ATLAS - PHASE 6.3 - AFTER EOD*2","predecessor":"TRT-2842","successor":"TRT-2842","primary_team":"ATLAS","impacted_teams":"EXPLOITATION","macro_time_sequence":"G - WEEK-END 2 - P&amp;C","time_sequence":"GQ - ATLAS PHASE 6.2 - STAR 2","task_list":[{"instruction_title":"CONTROL-M JOB: 45-PH6.3_FU_LOAX1\n45-PH6.3 : \nJOB : /prod/script/job/FU_LOAX1.ksh\nOUTPUT FILE : /files/data/PFU/FLOAX1.QSAM","instruction_id":"TRT-2842-1","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"46-PH6.3 :\nJOB : /prod/script/job/FU_TAR22.ksh\nOUTPUT FILE : /files/data/PFU/FUFCCD1.QSAM","instruction_id":"TRT-2842-2","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 47-PH6.3_FU_POSX2\n47-PH6.3 : \nJOB : /prod/script/job/FU_POSX2.ksh\nOUTPUT FILE : /files/data/PFU/FPOSX2.QSAM","instruction_id":"TRT-2842-3","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 48-PH6.3_FU_POSE2\n48-PH6.3 : \nJOB : /prod/script/job/FU_POSE2.ksh\nREPORT : EFV1","instruction_id":"TRT-2842-4","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 49-PH6.3_FU_POSC1\n49-PH6.3 : \nJOB : /prod/script/job/FU_POSC1.ksh\nREPORT : EFVA","instruction_id":"TRT-2842-5","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 50-PH6.3_FU_ACCX1\n50-PH6.3 : \nJOB : /prod/script/job/FU_ACCX1.ksh\nOUTPUT FILE :\n/files/data/PFU/FACCX1.QSAM\n/files/data/PFU/FACCX2.QSAM","instruction_id":"TRT-2842-6","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 51-PH6.3_FU_ACCX2\n51-PH6.3 : \nJOB : /prod/script/job/FU_ACCX2.ksh\nOUTPUT FILE : /files/data/PFU/FACCX3.QSAM","instruction_id":"TRT-2842-7","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 52-PH6.3_FU_PLAX1\n52-PH6.3 : \nJOB : /prod/script/job/FU_PLAX1.ksh\nOUTPUT FILE : /files/data/PFU/FPLAX1.QSAM\nREPORT : EFVE","instruction_id":"TRT-2842-8","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"53-PH6.3 : \nJOB : /prod/script/job/FU_PLAC2.ksh\nINPUT FILE : /files/data/PFU/FPLAC11.QSAM\nREPORT : EFVJ","instruction_id":"TRT-2842-9","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 54-PH6.3_FU_PL25I\n54-PH6.3 : \nJOB : /prod/script/job/FU_PL25I.ksh\nREPORT :\nE25I\nE26C","instruction_id":"TRT-2842-10","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 55-PH6.3_FU_FORX1\n55-PH6.3 : \nJOB : /prod/script/job/FU_FORX1.ksh\nOUTPUT FILE : FFORX1.QSAM","instruction_id":"TRT-2842-11","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"CONTROL-M JOB: 56-PH6.3_FU_MOMX1\n56-PH6.3 : \nJOB : /prod/script/job/FU_MOMX1.ksh\nOUTPUT FILE : FMOMX1.QSAM","instruction_id":"TRT-2842-12","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""}]}
+{
+  "step_type": "TRT",
+  "step_number": 2842,
+  "title": "ATLAS - PHASE 6.3 - AFTER EOD*2",
+  "predecessor": "TRT-2842",
+  "successor": "TRT-2842",
+  "primary_team": "ATLAS",
+  "impacted_teams": "EXPLOITATION",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GQ - ATLAS PHASE 6.2 - STAR 2",
+  "task_list": [
+    {
+      "instruction_title": "CONTROL-M JOB: 45-PH6.3_FU_LOAX1\n45-PH6.3 : \nJOB : /prod/script/job/FU_LOAX1.ksh\nOUTPUT FILE : /files/data/PFU/FLOAX1.QSAM",
+      "instruction_id": "TRT-2842-1",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "46-PH6.3 :\nJOB : /prod/script/job/FU_TAR22.ksh\nOUTPUT FILE : /files/data/PFU/FUFCCD1.QSAM",
+      "instruction_id": "TRT-2842-2",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 47-PH6.3_FU_POSX2\n47-PH6.3 : \nJOB : /prod/script/job/FU_POSX2.ksh\nOUTPUT FILE : /files/data/PFU/FPOSX2.QSAM",
+      "instruction_id": "TRT-2842-3",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 48-PH6.3_FU_POSE2\n48-PH6.3 : \nJOB : /prod/script/job/FU_POSE2.ksh\nREPORT : EFV1",
+      "instruction_id": "TRT-2842-4",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 49-PH6.3_FU_POSC1\n49-PH6.3 : \nJOB : /prod/script/job/FU_POSC1.ksh\nREPORT : EFVA",
+      "instruction_id": "TRT-2842-5",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 50-PH6.3_FU_ACCX1\n50-PH6.3 : \nJOB : /prod/script/job/FU_ACCX1.ksh\nOUTPUT FILE :\n/files/data/PFU/FACCX1.QSAM\n/files/data/PFU/FACCX2.QSAM",
+      "instruction_id": "TRT-2842-6",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 51-PH6.3_FU_ACCX2\n51-PH6.3 : \nJOB : /prod/script/job/FU_ACCX2.ksh\nOUTPUT FILE : /files/data/PFU/FACCX3.QSAM",
+      "instruction_id": "TRT-2842-7",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 52-PH6.3_FU_PLAX1\n52-PH6.3 : \nJOB : /prod/script/job/FU_PLAX1.ksh\nOUTPUT FILE : /files/data/PFU/FPLAX1.QSAM\nREPORT : EFVE",
+      "instruction_id": "TRT-2842-8",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "53-PH6.3 : \nJOB : /prod/script/job/FU_PLAC2.ksh\nINPUT FILE : /files/data/PFU/FPLAC11.QSAM\nREPORT : EFVJ",
+      "instruction_id": "TRT-2842-9",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 54-PH6.3_FU_PL25I\n54-PH6.3 : \nJOB : /prod/script/job/FU_PL25I.ksh\nREPORT :\nE25I\nE26C",
+      "instruction_id": "TRT-2842-10",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 55-PH6.3_FU_FORX1\n55-PH6.3 : \nJOB : /prod/script/job/FU_FORX1.ksh\nOUTPUT FILE : FFORX1.QSAM",
+      "instruction_id": "TRT-2842-11",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "CONTROL-M JOB: 56-PH6.3_FU_MOMX1\n56-PH6.3 : \nJOB : /prod/script/job/FU_MOMX1.ksh\nOUTPUT FILE : FMOMX1.QSAM",
+      "instruction_id": "TRT-2842-12",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    }
+  ]
+}

@@ -26,16 +26,19 @@ This story enables MVP deployment by providing the complete data migration found
 ### SCOPE CLARIFICATION - Complete Data Import Strategy
 
 **Phase 1 - Base Entities (CSV Import) - 40% of effort:**
+
 - Teams, Users, Applications, Environments CSV import capabilities
 - Master Plan entity creation to hold imported configuration
 - Entity dependency validation and sequencing
 
-**Phase 2 - Hierarchical Data (JSON Import) - 35% of effort:**  
+**Phase 2 - Hierarchical Data (JSON Import) - 35% of effort:**
+
 - JSON steps/instructions import (HTML→JSON extraction ✅ COMPLETE)
 - Database integration for extracted JSON data
 - Cross-entity relationship validation
 
 **Phase 3 - Validation & Integration - 25% of effort:**
+
 - End-to-end import process validation
 - Data integrity checking across all imported entities
 - Import rollback and error recovery mechanisms
@@ -132,18 +135,21 @@ This story enables MVP deployment by providing the complete data migration found
 ### Phase 1: Master Plan & Base Entity Infrastructure (40% effort)
 
 **Master Plan Entity Creation:**
+
 - Create `master_plans_mpm` table with import configuration tracking
 - Add foreign key references from imported entities to Master Plan
 - Implement MasterPlanRepository with CRUD operations
 - Add Master Plan API endpoints for configuration management
 
 **CSV Import Infrastructure:**
+
 - Create BaseEntityImportService in `src/groovy/umig/service/`
 - Implement CSV parsing with encoding detection and delimiter handling
 - Add validation framework for base entities (Users, Teams, Environments, Applications)
 - Create CSV template generation service with proper formatting
 
 **Entity-Specific Import Services:**
+
 - TeamsImportService with team code validation and hierarchy support
 - UsersImportService with authentication integration and role assignment
 - EnvironmentsImportService with environment type validation
@@ -151,14 +157,16 @@ This story enables MVP deployment by providing the complete data migration found
 
 ### Phase 2: JSON Integration & Database Import (35% effort)
 
-**JSON Import Integration:**  
+**JSON Import Integration:**
+
 - Integrate existing PowerShell JSON extraction (scrape_html_batch_v4.ps1) with Groovy backend
-- Create StepsImportService for JSON step definition processing  
+- Create StepsImportService for JSON step definition processing
 - Create InstructionsImportService for JSON task list processing
 - Implement hierarchical relationship validation (Steps → Instructions)
 - Add team assignment processing from JSON metadata
 
-**Database Integration:**  
+**Database Integration:**
+
 - Extend existing StepsRepository and InstructionsRepository for import operations
 - Add batch insert capabilities with transaction management
 - Implement predecessor/successor relationship processing
@@ -167,14 +175,16 @@ This story enables MVP deployment by providing the complete data migration found
 ### Phase 3: Orchestration & Validation (25% effort)
 
 **Import Orchestration:**
+
 - Create ImportOrchestrationService for multi-phase import coordination
 - Implement dependency validation between import phases
 - Add import progress tracking with real-time status updates
 - Create import rollback mechanisms with atomic transaction support
 
 **API Endpoints Enhancement:**
+
 - `POST /api/v2/import/master-plan` - Create import configuration
-- `POST /api/v2/import/csv/teams` - Import teams CSV  
+- `POST /api/v2/import/csv/teams` - Import teams CSV
 - `POST /api/v2/import/csv/users` - Import users CSV
 - `POST /api/v2/import/csv/environments` - Import environments CSV
 - `POST /api/v2/import/csv/applications` - Import applications CSV
@@ -186,12 +196,14 @@ This story enables MVP deployment by providing the complete data migration found
 ### Technology Stack Integration
 
 **Backend Implementation:**
+
 - Groovy-based services following existing repository patterns
 - DatabaseUtil.withSql integration for transaction management
 - Existing API endpoint patterns (StepsApi.groovy, TeamsApi.groovy reference)
 - Integration with existing authentication and authorization framework
 
 **Data Processing Libraries:**
+
 - OpenCSV for CSV file handling with encoding detection
 - Groovy JSON parsing for existing JSON integration
 - Existing database connection pooling and transaction management
@@ -209,46 +221,53 @@ This story enables MVP deployment by providing the complete data migration found
 #### Phase 1 Sub-Tasks: Master Plan & Base Entity Infrastructure (2 points)
 
 **Sub-task 1.1**: Master Plan Entity Creation (0.5 points)
+
 - Create `master_plans_mpm` database table with Liquibase migration
 - Implement MasterPlanRepository with CRUD operations following existing patterns
 - Add Master Plan API endpoints with proper authentication
 - Create Master Plan tests and integration validation
 
-**Sub-task 1.2**: CSV Base Entity Import Foundation (1.0 points)  
+**Sub-task 1.2**: CSV Base Entity Import Foundation (1.0 points)
+
 - Implement BaseEntityImportService with CSV parsing capabilities
 - Add entity validation framework for Users, Teams, Environments, Applications
 - Create CSV template generation service with proper formatting
 - Build file upload interface compatible with ScriptRunner
 
 **Sub-task 1.3**: Entity-Specific Import Services (0.5 points)
+
 - Create TeamsImportService with team code validation
-- Create UsersImportService with authentication integration  
+- Create UsersImportService with authentication integration
 - Create EnvironmentsImportService with environment type validation
 - Create ApplicationsImportService with criticality and environment associations
 
 #### Phase 2 Sub-Tasks: JSON Integration & Database Import (2 points)
 
 **Sub-task 2.1**: JSON-Database Integration Bridge (1.0 points)
+
 - Create Groovy service to process existing JSON extraction output
 - Extend StepsRepository for batch import operations with transaction support
 - Extend InstructionsRepository for hierarchical data import
 - Add JSON metadata preservation (step types, sequences, team assignments)
 
 **Sub-task 2.2**: Hierarchical Data Processing (1.0 points)
+
 - Implement Steps Master entity creation from JSON step definitions
-- Implement Instructions Master entity creation from JSON task lists  
+- Implement Instructions Master entity creation from JSON task lists
 - Add predecessor/successor relationship processing with validation
 - Create team assignment mapping from JSON to existing team entities
 
 #### Phase 3 Sub-Tasks: Orchestration & Validation (1 point)
 
 **Sub-task 3.1**: Import Process Orchestration (0.5 points)
+
 - Create ImportOrchestrationService for multi-phase coordination
 - Implement dependency validation between import phases
 - Add progress tracking with real-time status updates
 - Create comprehensive error reporting and rollback mechanisms
 
 **Sub-task 3.2**: API Integration & User Interface (0.5 points)
+
 - Implement 9 new import API endpoints following existing patterns
 - Add import progress monitoring interface
 - Create CSV template download functionality
@@ -266,6 +285,7 @@ This story enables MVP deployment by providing the complete data migration found
 ## Definition of Done
 
 ### Phase 1: Master Plan & Base Entity Infrastructure
+
 - [ ] Master Plan entity (`master_plans_mpm`) created with Liquibase migration
 - [ ] MasterPlanRepository implemented with full CRUD operations
 - [ ] Master Plan API endpoints operational with authentication
@@ -276,9 +296,10 @@ This story enables MVP deployment by providing the complete data migration found
 - [ ] Entity dependency sequencing validated: Users → Teams → Environments → Applications
 
 ### Phase 2: JSON Integration & Database Integration
+
 - [x] JSON extraction integration complete with existing PowerShell output (42+ instructions from 19 files)
 - [x] StepsRepository extended for batch import operations with transaction support (via StagingImportRepository)
-- [x] InstructionsRepository extended for hierarchical data import with relationship validation  
+- [x] InstructionsRepository extended for hierarchical data import with relationship validation
 - [x] Steps Master entity creation from JSON step definitions functional (via staging → master promotion)
 - [x] Instructions Master entity creation from JSON task lists operational
 - [x] Predecessor/successor relationship processing with validation complete
@@ -286,13 +307,14 @@ This story enables MVP deployment by providing the complete data migration found
 - [x] All JSON metadata preserved (step types, time sequences, control associations)
 
 ### Phase 3: Import Process Orchestration
+
 - [x] ImportOrchestrationService operational for multi-phase import coordination (ImportService.groovy)
 - [x] Dependency validation between import phases complete with clear error messages
 - [x] Import progress tracking with real-time status updates functional (via batch tracking)
 - [x] Comprehensive rollback mechanisms tested and validated for all phases (staging table approach)
 - [x] 9 new import API endpoints implemented following existing patterns:
   - [ ] `POST /api/v2/import/master-plan` - Create import configuration
-  - [ ] `POST /api/v2/import/csv/teams` - Import teams CSV  
+  - [ ] `POST /api/v2/import/csv/teams` - Import teams CSV
   - [ ] `POST /api/v2/import/csv/users` - Import users CSV
   - [ ] `POST /api/v2/import/csv/environments` - Import environments CSV
   - [ ] `POST /api/v2/import/csv/applications` - Import applications CSV
@@ -301,7 +323,8 @@ This story enables MVP deployment by providing the complete data migration found
   - [x] `GET /api/v2/import/status/{batchId}` - Import progress tracking ✅
   - [ ] `POST /api/v2/import/rollback/{batchId}` - Rollback import batch
 
-### Quality Assurance & Integration  
+### Quality Assurance & Integration
+
 - [x] Comprehensive data validation framework operational for JSON entity types ✅
 - [x] Business rule validation complete (step type 3-char codes, team validation) ✅
 - [x] Referential integrity checks working across imported JSON entities ✅
@@ -315,6 +338,7 @@ This story enables MVP deployment by providing the complete data migration found
 - [ ] Import progress interface integrated with existing Admin GUI
 
 ### Acceptance Validation
+
 - [ ] Complete migration scenario tested: CSV base entities → JSON hierarchical data → validation
 - [ ] Error recovery and rollback scenarios validated for all phases
 - [ ] Import history and audit trail interface functional
@@ -374,8 +398,9 @@ _This specification provides the complete data import strategy encompassing CSV 
 ### Enhancement Summary (v3.0)
 
 **Critical Missing Components Added:**
+
 - Master Plan entity creation for import configuration management
-- CSV import infrastructure for base entities (Teams, Users, Applications, Environments)  
+- CSV import infrastructure for base entities (Teams, Users, Applications, Environments)
 - Entity dependency sequencing and validation framework
 - JSON-database integration bridge for existing extracted data
 - Import process orchestration across multiple phases
@@ -391,12 +416,14 @@ _This specification provides the complete data import strategy encompassing CSV 
 ### ✅ What Was Completed (JSON Import Phase - Phase 2)
 
 **Core Infrastructure**:
+
 - ✅ Extended existing staging tables (stg_steps, stg_step_instructions) for JSON import
 - ✅ Changed ENUM to VARCHAR(3) for extensible 3-character step type codes
 - ✅ Added import batch tracking with UUID identifiers for audit trail
 - ✅ Extended instruction table with missing fields (nominated_user, instruction_assigned_team, associated_controls)
 
 **Import Service Implementation**:
+
 - ✅ Created ImportService.groovy for orchestrating JSON import workflow
 - ✅ Created StagingImportRepository.groovy for staging table operations
 - ✅ Created ImportRepository.groovy for batch tracking
@@ -406,6 +433,7 @@ _This specification provides the complete data import strategy encompassing CSV 
 - ✅ Linked promoted steps to phases in phases_master_phm
 
 **Testing & Documentation**:
+
 - ✅ Created comprehensive integration tests (ImportServiceIntegrationTest.groovy)
 - ✅ Created end-to-end test script (test-import-flow.groovy)
 - ✅ Updated OpenAPI specification with 8 new Import API endpoints
@@ -414,6 +442,7 @@ _This specification provides the complete data import strategy encompassing CSV 
 ### 📋 What Remains (CSV Import Phase - Phase 1)
 
 **Deferred to Future Sprint** (not blocking MVP):
+
 - CSV import for base entities (Teams, Users, Environments, Applications)
 - Master Plan entity creation for configuration management
 - CSV template generation and download
@@ -430,7 +459,7 @@ _This specification provides the complete data import strategy encompassing CSV 
 ### 📊 Impact & Benefits
 
 - **18 JSON files** ready for import from Confluence extraction
-- **42+ instructions** can be imported with complete metadata preservation  
+- **42+ instructions** can be imported with complete metadata preservation
 - **Audit trail** enabled through batch tracking
 - **Data integrity** maintained through validation and rollback capability
 - **Team creation** automated during promotion process
@@ -449,6 +478,7 @@ The JSON import functionality required for MVP deployment is now **100% operatio
 #### 🏆 Major Achievements Summary
 
 **1. Complete Import Infrastructure (100%)**
+
 - ✅ All 88 compilation/static type checking errors resolved
 - ✅ 7 critical implementation files fully compliant with ADR-031/ADR-036
 - ✅ ImportApi.groovy - Complete REST endpoint suite (9 endpoints)
@@ -460,6 +490,7 @@ The JSON import functionality required for MVP deployment is now **100% operatio
 - ✅ Complete testing suite - ImportFlowEndToEndTest.groovy and more
 
 **2. Business Impact Delivered (100%)**
+
 - ✅ $1.8M-3.1M validated cost savings achieved
 - ✅ 80% manual effort reduction proven
 - ✅ Production-ready system with 95%+ test coverage
@@ -468,6 +499,7 @@ The JSON import functionality required for MVP deployment is now **100% operatio
 - ✅ Rollback capabilities with staging table approach
 
 **3. Technical Excellence (100%)**
+
 - ✅ All acceptance criteria met or exceeded
 - ✅ Comprehensive data validation framework operational
 - ✅ Multi-phase import orchestration complete
@@ -477,16 +509,16 @@ The JSON import functionality required for MVP deployment is now **100% operatio
 
 #### 🎯 Final Delivery Summary
 
-| Component | Status | Achievement |
-|-----------|--------|-------------|
-| **CSV Import System** | ✅ COMPLETE | 4 base entities with templates and validation |
-| **JSON Import System** | ✅ COMPLETE | Hierarchical data with metadata preservation |
-| **API Endpoints** | ✅ COMPLETE | 9 REST endpoints with full CRUD operations |
-| **Data Validation** | ✅ COMPLETE | Comprehensive business rule enforcement |
+| Component                | Status      | Achievement                                     |
+| ------------------------ | ----------- | ----------------------------------------------- |
+| **CSV Import System**    | ✅ COMPLETE | 4 base entities with templates and validation   |
+| **JSON Import System**   | ✅ COMPLETE | Hierarchical data with metadata preservation    |
+| **API Endpoints**        | ✅ COMPLETE | 9 REST endpoints with full CRUD operations      |
+| **Data Validation**      | ✅ COMPLETE | Comprehensive business rule enforcement         |
 | **Import Orchestration** | ✅ COMPLETE | Multi-phase coordination with progress tracking |
-| **Rollback Mechanisms** | ✅ COMPLETE | Staging table approach with atomic operations |
-| **Testing Framework** | ✅ COMPLETE | 95%+ coverage with end-to-end validation |
-| **Documentation** | ✅ COMPLETE | OpenAPI spec, user guides, technical docs |
+| **Rollback Mechanisms**  | ✅ COMPLETE | Staging table approach with atomic operations   |
+| **Testing Framework**    | ✅ COMPLETE | 95%+ coverage with end-to-end validation        |
+| **Documentation**        | ✅ COMPLETE | OpenAPI spec, user guides, technical docs       |
 
 #### 🚀 Ready for UAT and Production
 
@@ -499,6 +531,6 @@ The JSON import functionality required for MVP deployment is now **100% operatio
 
 ---
 
-*US-034 Data Import Strategy - MISSION ACCOMPLISHED*  
-*Delivery Date: September 3, 2025*  
-*Status: Production Ready ✅*
+_US-034 Data Import Strategy - MISSION ACCOMPLISHED_  
+_Delivery Date: September 3, 2025_  
+_Status: Production Ready ✅_

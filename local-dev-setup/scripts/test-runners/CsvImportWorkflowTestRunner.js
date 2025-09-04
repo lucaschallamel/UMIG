@@ -3,7 +3,7 @@
 /**
  * UMIG CSV Import Workflow Test Runner
  * Comprehensive validation of CSV import workflows for US-034 Data Import Strategy
- * 
+ *
  * Tests complete CSV import workflows including:
  * - Individual entity CSV imports (Teams, Users, Applications, Environments)
  * - Dependency sequencing validation (Teams -> Users)
@@ -11,10 +11,10 @@
  * - Template generation and validation
  * - Error handling for malformed CSV data
  * - Performance validation for production-scale datasets
- * 
+ *
  * Part of US-034 Data Import Strategy completion
  * Follows cross-platform JavaScript testing patterns established in August 2025
- * 
+ *
  * @author UMIG Integration Test Suite
  * @since Sprint 6 - US-034
  */
@@ -43,7 +43,7 @@ const CONFIG = {
 // Color utilities
 const colors = {
   red: "\x1b[31m",
-  green: "\x1b[32m", 
+  green: "\x1b[32m",
   yellow: "\x1b[33m",
   blue: "\x1b[34m",
   magenta: "\x1b[35m",
@@ -138,10 +138,15 @@ function printPerformance(message, duration, threshold) {
 }
 
 // CSV import test helper
-async function testCsvImport(entityType, csvData, expectedStatus = [200, 201, 202], shouldSucceed = true) {
+async function testCsvImport(
+  entityType,
+  csvData,
+  expectedStatus = [200, 201, 202],
+  shouldSucceed = true,
+) {
   const testName = `CSV Import - ${entityType.charAt(0).toUpperCase() + entityType.slice(1)}`;
   testResults.total++;
-  
+
   const testResult = {
     name: testName,
     entityType,
@@ -156,9 +161,9 @@ async function testCsvImport(entityType, csvData, expectedStatus = [200, 201, 20
 
   try {
     const startTime = Date.now();
-    
+
     const command = `curl -s -w "\\n%{http_code}" --max-time 30 -X POST "${CONFIG.baseUrl}/import/csv/${entityType}" -H "Content-Type: text/csv" --data '${csvData}'`;
-    
+
     const result = execSync(command, {
       encoding: "utf8",
       timeout: CONFIG.timeout,
@@ -174,7 +179,7 @@ async function testCsvImport(entityType, csvData, expectedStatus = [200, 201, 20
 
     // Validate status
     const statusValid = expectedStatus.includes(testResult.statusCode);
-    
+
     // Parse response body for import results
     if (responseBody && statusValid) {
       try {
@@ -195,29 +200,41 @@ async function testCsvImport(entityType, csvData, expectedStatus = [200, 201, 20
     }
 
     // Performance validation
-    const performanceValid = testResult.responseTime <= CONFIG.performanceThreshold;
+    const performanceValid =
+      testResult.responseTime <= CONFIG.performanceThreshold;
 
     // Log results
     if (testResult.success && statusValid) {
-      printSuccess(`${testName} - Status: ${testResult.statusCode}, Records: ${testResult.recordsImported}`);
+      printSuccess(
+        `${testName} - Status: ${testResult.statusCode}, Records: ${testResult.recordsImported}`,
+      );
     } else {
-      printError(`${testName} - Status: ${testResult.statusCode} (expected: ${expectedStatus.join(" or ")})`);
+      printError(
+        `${testName} - Status: ${testResult.statusCode} (expected: ${expectedStatus.join(" or ")})`,
+      );
       testResult.error = `Status validation failed: ${testResult.statusCode}`;
     }
 
-    printPerformance(`${testName} - Performance`, testResult.responseTime, CONFIG.performanceThreshold);
+    printPerformance(
+      `${testName} - Performance`,
+      testResult.responseTime,
+      CONFIG.performanceThreshold,
+    );
 
     if (CONFIG.verbose && responseBody && responseBody.length < 1000) {
-      console.log(colors.dim + `Response: ${responseBody.substring(0, 300)}${responseBody.length > 300 ? "..." : ""}` + colors.reset);
+      console.log(
+        colors.dim +
+          `Response: ${responseBody.substring(0, 300)}${responseBody.length > 300 ? "..." : ""}` +
+          colors.reset,
+      );
     }
-
   } catch (error) {
     testResult.error = error.message;
     printError(`${testName} - Failed: ${error.message}`);
   }
 
   testResults.tests.push(testResult);
-  
+
   if (testResult.success) {
     testResults.passed++;
   } else {
@@ -230,26 +247,36 @@ async function testCsvImport(entityType, csvData, expectedStatus = [200, 201, 20
 // Test individual entity CSV imports
 async function testIndividualCsvImports() {
   printSubHeader("Individual Entity CSV Import Tests");
-  
+
   const entityTests = [
     { entity: "teams", data: CSV_TEST_DATA.teams, expectedRecords: 3 },
-    { entity: "applications", data: CSV_TEST_DATA.applications, expectedRecords: 3 },
-    { entity: "environments", data: CSV_TEST_DATA.environments, expectedRecords: 3 },
+    {
+      entity: "applications",
+      data: CSV_TEST_DATA.applications,
+      expectedRecords: 3,
+    },
+    {
+      entity: "environments",
+      data: CSV_TEST_DATA.environments,
+      expectedRecords: 3,
+    },
   ];
 
   const results = [];
-  
+
   for (const test of entityTests) {
     const result = await testCsvImport(test.entity, test.data);
     results.push(result);
-    
+
     // Verify expected number of records
     if (result.success && result.recordsImported !== test.expectedRecords) {
-      printWarning(`${test.entity} expected ${test.expectedRecords} records, imported ${result.recordsImported}`);
+      printWarning(
+        `${test.entity} expected ${test.expectedRecords} records, imported ${result.recordsImported}`,
+      );
     }
 
     // Small delay between imports
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   return results;
@@ -258,51 +285,62 @@ async function testIndividualCsvImports() {
 // Test CSV template generation
 async function testCsvTemplateGeneration() {
   printSubHeader("CSV Template Generation Tests");
-  
+
   const templateEntities = ["teams", "users", "applications", "environments"];
-  
+
   for (const entity of templateEntities) {
     testResults.total++;
-    
+
     printInfo(`Testing ${entity} CSV template generation`);
-    
+
     try {
       const startTime = Date.now();
-      
+
       const command = `curl -s -w "\\n%{http_code}" --max-time 10 "${CONFIG.baseUrl}/import/csv/${entity}/template"`;
       const result = execSync(command, { encoding: "utf8", timeout: 10000 });
-      
+
       const endTime = Date.now();
       const responseTime = endTime - startTime;
-      
+
       const lines = result.trim().split("\\n");
       const statusCode = parseInt(lines[lines.length - 1]);
       const templateContent = lines.slice(0, -1).join("\\n");
-      
+
       if (statusCode === 200 && templateContent.length > 0) {
         // Validate CSV template format
-        const csvLines = templateContent.split("\\n").filter(line => line.trim());
+        const csvLines = templateContent
+          .split("\\n")
+          .filter((line) => line.trim());
         const hasHeaders = csvLines.length > 0 && csvLines[0].includes(",");
-        const hasExpectedColumns = templateContent.includes(`${entity.slice(0, 3)}_`); // e.g., "tms_", "usr_"
-        
+        const hasExpectedColumns = templateContent.includes(
+          `${entity.slice(0, 3)}_`,
+        ); // e.g., "tms_", "usr_"
+
         if (hasHeaders && hasExpectedColumns) {
           printSuccess(`${entity} template - Valid CSV format with headers`);
           testResults.passed++;
         } else {
-          printWarning(`${entity} template - Invalid CSV format or missing expected columns`);
+          printWarning(
+            `${entity} template - Invalid CSV format or missing expected columns`,
+          );
           testResults.failed++;
         }
-        
+
         printPerformance(`${entity} template generation`, responseTime, 1000);
-        
+
         if (CONFIG.verbose) {
-          console.log(colors.dim + `Template preview: ${templateContent.split("\\n")[0]}` + colors.reset);
+          console.log(
+            colors.dim +
+              `Template preview: ${templateContent.split("\\n")[0]}` +
+              colors.reset,
+          );
         }
       } else {
-        printError(`${entity} template generation failed - Status: ${statusCode}`);
+        printError(
+          `${entity} template generation failed - Status: ${statusCode}`,
+        );
         testResults.failed++;
       }
-      
     } catch (error) {
       printError(`${entity} template generation failed: ${error.message}`);
       testResults.failed++;
@@ -314,31 +352,38 @@ async function testCsvTemplateGeneration() {
 async function testDependencySequencing() {
   printSubHeader("Dependency Sequencing Tests");
   testResults.dependencyTests++;
-  
+
   // Test 1: Users import without teams (should fail or have validation errors)
   printInfo("Testing users import without teams (should fail)");
-  const usersWithoutTeams = await testCsvImport("users", CSV_TEST_DATA.users, [400, 422, 500], false);
-  
+  const usersWithoutTeams = await testCsvImport(
+    "users",
+    CSV_TEST_DATA.users,
+    [400, 422, 500],
+    false,
+  );
+
   if (!usersWithoutTeams.success || usersWithoutTeams.statusCode >= 400) {
     printSuccess("Users import correctly failed without team dependencies ✓");
   } else {
     printWarning("Users import should fail without team dependencies ⚠️");
   }
-  
+
   // Test 2: Import teams first, then users (should succeed)
   printInfo("Testing proper dependency sequence: Teams → Users");
-  
+
   // Import teams first
   const teamsResult = await testCsvImport("teams", CSV_TEST_DATA.teams);
-  await new Promise(resolve => setTimeout(resolve, 1000)); // Allow DB commit
-  
+  await new Promise((resolve) => setTimeout(resolve, 1000)); // Allow DB commit
+
   // Then import users
   const usersResult = await testCsvImport("users", CSV_TEST_DATA.users);
-  
+
   if (teamsResult.success && usersResult.success) {
     printSuccess("Dependency sequence Teams → Users completed successfully ✓");
   } else {
-    printError("Dependency sequence failed - Teams or Users import unsuccessful ❌");
+    printError(
+      "Dependency sequence failed - Teams or Users import unsuccessful ❌",
+    );
   }
 }
 
@@ -346,7 +391,7 @@ async function testDependencySequencing() {
 async function testErrorHandling() {
   printSubHeader("Error Handling Tests");
   testResults.errorHandlingTests++;
-  
+
   const errorTests = [
     {
       name: "Invalid Teams CSV (missing required fields)",
@@ -357,7 +402,7 @@ async function testErrorHandling() {
     },
     {
       name: "Users with Invalid Team Reference",
-      entity: "users", 
+      entity: "users",
       data: CSV_TEST_DATA.invalidUsers,
       expectedStatus: [400, 422, 500],
       shouldFail: true,
@@ -378,18 +423,23 @@ async function testErrorHandling() {
     },
     {
       name: "Headers Only CSV",
-      entity: "teams", 
+      entity: "teams",
       data: "tms_id,tms_name,tms_email,tms_description",
       expectedStatus: [200, 400, 422],
       shouldFail: false, // Might succeed with 0 records
     },
   ];
-  
+
   for (const errorTest of errorTests) {
     printInfo(`Testing ${errorTest.name}`);
-    
-    const result = await testCsvImport(errorTest.entity, errorTest.data, errorTest.expectedStatus, !errorTest.shouldFail);
-    
+
+    const result = await testCsvImport(
+      errorTest.entity,
+      errorTest.data,
+      errorTest.expectedStatus,
+      !errorTest.shouldFail,
+    );
+
     if (errorTest.shouldFail && (result.statusCode >= 400 || !result.success)) {
       printSuccess(`${errorTest.name} - Correctly handled invalid data ✓`);
     } else if (!errorTest.shouldFail && result.success) {
@@ -397,49 +447,57 @@ async function testErrorHandling() {
     } else {
       printWarning(`${errorTest.name} - Error handling may need review ⚠️`);
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 }
 
 // Test performance with larger datasets
 async function testPerformanceWithLargeDatasets() {
   if (CONFIG.quickMode && !CONFIG.largeDataset) {
-    printInfo("Skipping large dataset performance tests in quick mode (use --large-dataset to force)");
+    printInfo(
+      "Skipping large dataset performance tests in quick mode (use --large-dataset to force)",
+    );
     return;
   }
-  
+
   printSubHeader("Large Dataset Performance Tests");
   testResults.performanceTests++;
-  
+
   // Generate large CSV datasets
   const largeDatasets = {
     teams: generateLargeTeamsCsv(100),
     applications: generateLargeApplicationsCsv(200),
     environments: generateLargeEnvironmentsCsv(50),
   };
-  
+
   for (const [entity, csvData] of Object.entries(largeDatasets)) {
-    printInfo(`Testing ${entity} with large dataset (${csvData.split("\\n").length - 1} records)`);
-    
+    printInfo(
+      `Testing ${entity} with large dataset (${csvData.split("\\n").length - 1} records)`,
+    );
+
     const startTime = Date.now();
     const result = await testCsvImport(entity, csvData, [200, 201, 202], true);
     const duration = Date.now() - startTime;
-    
+
     // Use bulk performance threshold for large datasets
     if (duration <= CONFIG.bulkPerformanceThreshold) {
-      printSuccess(`${entity} large dataset processed within ${CONFIG.bulkPerformanceThreshold}ms threshold`);
+      printSuccess(
+        `${entity} large dataset processed within ${CONFIG.bulkPerformanceThreshold}ms threshold`,
+      );
     } else {
-      printWarning(`${entity} large dataset took ${duration}ms (exceeds ${CONFIG.bulkPerformanceThreshold}ms threshold)`);
+      printWarning(
+        `${entity} large dataset took ${duration}ms (exceeds ${CONFIG.bulkPerformanceThreshold}ms threshold)`,
+      );
     }
-    
+
     if (result.success && result.recordsImported > 0) {
       const throughput = Math.round(result.recordsImported / (duration / 1000));
       printInfo(`${entity} throughput: ${throughput} records/second`);
     }
-    
+
     // Cleanup delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 }
 
@@ -447,50 +505,69 @@ async function testPerformanceWithLargeDatasets() {
 async function testWorkflowOrchestration() {
   printSubHeader("Workflow Orchestration Tests");
   testResults.workflowTests++;
-  
+
   printInfo("Testing complete CSV import workflow orchestration");
-  
+
   // Simulate batch import workflow: Teams → Applications → Environments → Users
   const workflowSteps = [
     { name: "Teams", entity: "teams", data: CSV_TEST_DATA.teams },
-    { name: "Applications", entity: "applications", data: CSV_TEST_DATA.applications }, 
-    { name: "Environments", entity: "environments", data: CSV_TEST_DATA.environments },
+    {
+      name: "Applications",
+      entity: "applications",
+      data: CSV_TEST_DATA.applications,
+    },
+    {
+      name: "Environments",
+      entity: "environments",
+      data: CSV_TEST_DATA.environments,
+    },
     { name: "Users", entity: "users", data: CSV_TEST_DATA.users },
   ];
-  
+
   const workflowResults = [];
   let workflowStartTime = Date.now();
-  
+
   for (const step of workflowSteps) {
     printInfo(`Workflow Step: Importing ${step.name}`);
-    
+
     const result = await testCsvImport(step.entity, step.data);
     workflowResults.push(result);
-    
+
     if (!result.success) {
       printError(`Workflow failed at step: ${step.name}`);
       break;
     }
-    
+
     // Brief pause between workflow steps
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  
+
   const workflowDuration = Date.now() - workflowStartTime;
-  const successfulSteps = workflowResults.filter(r => r.success).length;
-  const totalRecords = workflowResults.reduce((sum, r) => sum + r.recordsImported, 0);
-  
+  const successfulSteps = workflowResults.filter((r) => r.success).length;
+  const totalRecords = workflowResults.reduce(
+    (sum, r) => sum + r.recordsImported,
+    0,
+  );
+
   if (successfulSteps === workflowSteps.length) {
-    printSuccess(`Complete workflow orchestration succeeded in ${workflowDuration}ms`);
+    printSuccess(
+      `Complete workflow orchestration succeeded in ${workflowDuration}ms`,
+    );
     printSuccess(`Total records imported: ${totalRecords}`);
-    
+
     if (workflowDuration <= CONFIG.bulkPerformanceThreshold) {
-      printSuccess(`Workflow completed within ${CONFIG.bulkPerformanceThreshold}ms threshold ✓`);
+      printSuccess(
+        `Workflow completed within ${CONFIG.bulkPerformanceThreshold}ms threshold ✓`,
+      );
     } else {
-      printWarning(`Workflow took ${workflowDuration}ms (exceeds ${CONFIG.bulkPerformanceThreshold}ms threshold) ⚠️`);
+      printWarning(
+        `Workflow took ${workflowDuration}ms (exceeds ${CONFIG.bulkPerformanceThreshold}ms threshold) ⚠️`,
+      );
     }
   } else {
-    printError(`Workflow partially failed - ${successfulSteps}/${workflowSteps.length} steps completed`);
+    printError(
+      `Workflow partially failed - ${successfulSteps}/${workflowSteps.length} steps completed`,
+    );
   }
 }
 
@@ -500,38 +577,47 @@ async function testConcurrentImports() {
     printInfo("Skipping concurrent import tests in quick mode");
     return;
   }
-  
+
   printSubHeader("Concurrent Import Tests");
-  
+
   printInfo("Testing concurrent CSV imports (non-dependent entities)");
-  
+
   const concurrentImports = [
     { entity: "teams", data: generateLargeTeamsCsv(20, "Concurrent1") },
-    { entity: "applications", data: generateLargeApplicationsCsv(30, "Concurrent") },
-    { entity: "environments", data: generateLargeEnvironmentsCsv(15, "Concurrent") },
+    {
+      entity: "applications",
+      data: generateLargeApplicationsCsv(30, "Concurrent"),
+    },
+    {
+      entity: "environments",
+      data: generateLargeEnvironmentsCsv(15, "Concurrent"),
+    },
   ];
-  
+
   const promises = concurrentImports.map(async (importData) => {
     return await testCsvImport(importData.entity, importData.data);
   });
-  
+
   const startTime = Date.now();
-  
+
   try {
     const results = await Promise.all(promises);
     const duration = Date.now() - startTime;
-    
-    const successfulImports = results.filter(r => r.success).length;
+
+    const successfulImports = results.filter((r) => r.success).length;
     const totalRecords = results.reduce((sum, r) => sum + r.recordsImported, 0);
-    
+
     if (successfulImports === concurrentImports.length) {
-      printSuccess(`All ${concurrentImports.length} concurrent imports succeeded`);
+      printSuccess(
+        `All ${concurrentImports.length} concurrent imports succeeded`,
+      );
       printSuccess(`Total records imported concurrently: ${totalRecords}`);
       printInfo(`Concurrent execution time: ${duration}ms`);
     } else {
-      printWarning(`Only ${successfulImports}/${concurrentImports.length} concurrent imports succeeded`);
+      printWarning(
+        `Only ${successfulImports}/${concurrentImports.length} concurrent imports succeeded`,
+      );
     }
-    
   } catch (error) {
     printError(`Concurrent import test failed: ${error.message}`);
   }
@@ -583,21 +669,31 @@ function generateTestReport() {
   if (testResults.failed > 0) {
     console.log(`\\n${colors.bold}Failed Tests:${colors.reset}`);
     testResults.tests
-      .filter(test => !test.success)
-      .forEach(test => {
-        console.log(`  ❌ ${test.name}: ${test.error || `Status ${test.statusCode}`}`);
+      .filter((test) => !test.success)
+      .forEach((test) => {
+        console.log(
+          `  ❌ ${test.name}: ${test.error || `Status ${test.statusCode}`}`,
+        );
         if (test.responseTime > CONFIG.performanceThreshold) {
-          console.log(`     Performance: ${test.responseTime}ms (exceeds threshold)`);
+          console.log(
+            `     Performance: ${test.responseTime}ms (exceeds threshold)`,
+          );
         }
       });
   }
 
   // Performance analysis
-  const performanceTests = testResults.tests.filter(test => test.responseTime > 0);
+  const performanceTests = testResults.tests.filter(
+    (test) => test.responseTime > 0,
+  );
   if (performanceTests.length > 0) {
-    const avgResponseTime = performanceTests.reduce((sum, test) => sum + test.responseTime, 0) / performanceTests.length;
-    const maxResponseTime = Math.max(...performanceTests.map(test => test.responseTime));
-    
+    const avgResponseTime =
+      performanceTests.reduce((sum, test) => sum + test.responseTime, 0) /
+      performanceTests.length;
+    const maxResponseTime = Math.max(
+      ...performanceTests.map((test) => test.responseTime),
+    );
+
     console.log(`\\n${colors.bold}Performance Analysis:${colors.reset}`);
     console.log(`  Average Response Time: ${Math.round(avgResponseTime)}ms`);
     console.log(`  Maximum Response Time: ${maxResponseTime}ms`);
@@ -605,26 +701,37 @@ function generateTestReport() {
   }
 
   // Import statistics
-  const importTests = testResults.tests.filter(test => test.recordsImported > 0);
+  const importTests = testResults.tests.filter(
+    (test) => test.recordsImported > 0,
+  );
   if (importTests.length > 0) {
-    const totalRecords = importTests.reduce((sum, test) => sum + test.recordsImported, 0);
+    const totalRecords = importTests.reduce(
+      (sum, test) => sum + test.recordsImported,
+      0,
+    );
     console.log(`\\n${colors.bold}Import Statistics:${colors.reset}`);
     console.log(`  Total Records Imported: ${totalRecords}`);
     console.log(`  Successful Imports: ${importTests.length}`);
-    console.log(`  Average Records per Import: ${Math.round(totalRecords / importTests.length)}`);
+    console.log(
+      `  Average Records per Import: ${Math.round(totalRecords / importTests.length)}`,
+    );
   }
 
   // Coverage assessment
   console.log(`\\n${colors.bold}CSV Workflow Coverage:${colors.reset}`);
-  const coverage = (testResults.passed / testResults.total * 100).toFixed(1);
-  console.log(`  Test Coverage: ${coverage}% (${testResults.passed}/${testResults.total} tests passed)`);
-  
+  const coverage = ((testResults.passed / testResults.total) * 100).toFixed(1);
+  console.log(
+    `  Test Coverage: ${coverage}% (${testResults.passed}/${testResults.total} tests passed)`,
+  );
+
   if (coverage >= 95) {
     printSuccess("Excellent test coverage - 95%+ requirement met ✓");
   } else if (coverage >= 85) {
     printWarning(`Good test coverage but below 95% target (${coverage}%) ⚠️`);
   } else {
-    printError(`Insufficient test coverage - ${coverage}% is below acceptable threshold ❌`);
+    printError(
+      `Insufficient test coverage - ${coverage}% is below acceptable threshold ❌`,
+    );
   }
 
   return testResults.failed === 0;
@@ -634,16 +741,22 @@ function generateTestReport() {
 async function main() {
   try {
     printHeader("UMIG CSV Import Workflow Test Suite - US-034");
-    printInfo("Comprehensive validation of CSV import workflows, dependencies, and error handling");
-    
+    printInfo(
+      "Comprehensive validation of CSV import workflows, dependencies, and error handling",
+    );
+
     if (CONFIG.quickMode) {
-      printInfo("Running in quick mode - skipping some performance and concurrent tests");
+      printInfo(
+        "Running in quick mode - skipping some performance and concurrent tests",
+      );
     }
-    
+
     if (CONFIG.largeDataset) {
-      printInfo("Large dataset testing enabled - will test with production-scale data");
+      printInfo(
+        "Large dataset testing enabled - will test with production-scale data",
+      );
     }
-    
+
     if (CONFIG.verbose) {
       printInfo("Verbose mode enabled - detailed responses will be shown");
     }
@@ -651,7 +764,9 @@ async function main() {
     console.log(`\\nConfiguration:`);
     console.log(`  Base URL: ${CONFIG.baseUrl}`);
     console.log(`  Performance Threshold: ${CONFIG.performanceThreshold}ms`);
-    console.log(`  Bulk Performance Threshold: ${CONFIG.bulkPerformanceThreshold}ms`);
+    console.log(
+      `  Bulk Performance Threshold: ${CONFIG.bulkPerformanceThreshold}ms`,
+    );
     console.log(`  Timeout: ${CONFIG.timeout}ms`);
 
     // Execute all test suites
@@ -668,7 +783,6 @@ async function main() {
 
     // Exit with appropriate code
     process.exit(success ? 0 : 1);
-
   } catch (error) {
     printError(`Test execution failed: ${error.message}`);
     console.error(error.stack);
@@ -722,7 +836,7 @@ if (process.argv.includes("--help") || process.argv.includes("-h")) {
 }
 
 // Execute main function
-main().catch(error => {
+main().catch((error) => {
   printError(`Fatal error: ${error.message}`);
   console.error(error.stack);
   process.exit(1);
