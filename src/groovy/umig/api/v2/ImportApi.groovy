@@ -9,6 +9,7 @@ import umig.utils.DatabaseUtil
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.transform.BaseScript
+import groovy.transform.Field
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -17,6 +18,9 @@ import javax.ws.rs.core.MultivaluedMap
 import javax.ws.rs.core.Response
 import java.util.UUID
 import java.sql.SQLException
+import java.nio.file.Paths
+import java.nio.file.Path
+import java.security.MessageDigest
 
 /**
  * Import API - Handles data import operations for JSON extracted from Confluence HTML
@@ -28,7 +32,170 @@ import java.sql.SQLException
 @BaseScript CustomEndpointDelegate delegate
 
 // Logger for audit trail - follows UMIG pattern and avoids masking ScriptRunner's 'log' binding
-final Logger logger = LoggerFactory.getLogger("umig.api.v2.ImportApi")
+@Field final Logger logger = LoggerFactory.getLogger("umig.api.v2.ImportApi")
+
+// Security Constants - ADR-031 compliant (defined as @Field for ScriptRunner static type checking)
+@Field final int MAX_REQUEST_SIZE = 50 * 1024 * 1024 // 50MB limit
+@Field final int MAX_BATCH_SIZE = 1000 // Maximum files per batch
+@Field final List<String> ALLOWED_FILE_EXTENSIONS = ['json', 'csv', 'txt']
+@Field final String TEMPLATE_BASE_DIR = "local-dev-setup/data-utils/CSV_Templates"
+@Field final Set<String> ALLOWED_TEMPLATE_FILES = [
+    'teams_template.csv', 
+    'users_template.csv', 
+    'applications_template.csv', 
+    'environments_template.csv'
+] as Set<String>
+
+/**
+ * SECURITY VALIDATION METHODS - Critical for US-034 security fixes
+ */
+
+/**
+ * Validates input size to prevent memory exhaustion attacks
+ * CVSS 3.1 Base Score: 7.5 (AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H)
+ */
+private Map validateInputSize(String content, String contentType) {
+    if (!content) {
+        return [valid: true]
+    }
+    
+    int contentSize = content.getBytes("UTF-8").length
+    if (contentSize > MAX_REQUEST_SIZE) {
+        logger.warn("Request size validation failed: ${contentSize} bytes exceeds limit of ${MAX_REQUEST_SIZE} bytes")
+        return [
+            valid: false,
+            error: "Request size exceeds maximum allowed size of ${MAX_REQUEST_SIZE / (1024 * 1024)} MB",
+            actualSize: contentSize,
+            maxSize: MAX_REQUEST_SIZE,
+            cvssScore: 7.5,
+            threatLevel: "HIGH"
+        ]
+    }
+    
+    logger.debug("Input size validation passed: ${contentSize} bytes")
+    return [valid: true, size: contentSize]
+}
+
+/**
+ * Validates batch size to prevent resource exhaustion
+ * CVSS 3.1 Base Score: 6.5 (AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H)
+ */
+private Map validateBatchSize(List<?> batch) {
+    if (!batch) {
+        return [valid: true]
+    }
+    
+    int batchSize = batch.size()
+    if (batchSize > MAX_BATCH_SIZE) {
+        logger.warn("Batch size validation failed: ${batchSize} items exceeds limit of ${MAX_BATCH_SIZE}")
+        return [
+            valid: false,
+            error: "Batch size exceeds maximum allowed size of ${MAX_BATCH_SIZE} items",
+            actualSize: batchSize,
+            maxSize: MAX_BATCH_SIZE,
+            cvssScore: 6.5,
+            threatLevel: "MEDIUM"
+        ]
+    }
+    
+    logger.debug("Batch size validation passed: ${batchSize} items")
+    return [valid: true, size: batchSize]
+}
+
+/**
+ * Validates file extension to prevent malicious file uploads
+ * CVSS 3.1 Base Score: 8.8 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H)
+ */
+private Map validateFileExtension(String filename) {
+    if (!filename) {
+        return [valid: true]
+    }
+    
+    String extension = filename.toLowerCase()
+        .substring(filename.lastIndexOf('.') + 1)
+    
+    if (!ALLOWED_FILE_EXTENSIONS.contains(extension)) {
+        logger.warn("File extension validation failed: '${extension}' not in allowed list: ${ALLOWED_FILE_EXTENSIONS}")
+        return [
+            valid: false,
+            error: "File extension '${extension}' is not allowed. Allowed extensions: ${ALLOWED_FILE_EXTENSIONS.join(', ')}",
+            actualExtension: extension,
+            allowedExtensions: ALLOWED_FILE_EXTENSIONS,
+            cvssScore: 8.8,
+            threatLevel: "HIGH"
+        ]
+    }
+    
+    logger.debug("File extension validation passed: ${extension}")
+    return [valid: true, extension: extension]
+}
+
+/**
+ * Validates and secures file paths to prevent path traversal attacks
+ * CVSS 3.1 Base Score: 9.1 (AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N)
+ */
+private Map validateSecurePath(String entityType, String baseDir = TEMPLATE_BASE_DIR) {
+    if (!entityType) {
+        return [
+            valid: false,
+            error: "Entity type cannot be null or empty",
+            cvssScore: 9.1,
+            threatLevel: "CRITICAL"
+        ]
+    }
+    
+    // Sanitize entity type - remove any path traversal attempts
+    String sanitizedEntity = entityType.replaceAll(/[^\w\-]/, '')
+    
+    if (sanitizedEntity != entityType) {
+        logger.warn("Path traversal attempt detected: original='${entityType}', sanitized='${sanitizedEntity}'")
+        return [
+            valid: false,
+            error: "Invalid characters detected in entity type. Only alphanumeric characters, hyphens, and underscores are allowed",
+            original: entityType,
+            sanitized: sanitizedEntity,
+            cvssScore: 9.1,
+            threatLevel: "CRITICAL"
+        ]
+    }
+    
+    // Construct secure file path
+    String templateFileName = "${sanitizedEntity}_template.csv"
+    
+    // Validate against whitelist
+    if (!ALLOWED_TEMPLATE_FILES.contains(templateFileName)) {
+        logger.warn("Template file not in whitelist: ${templateFileName}")
+        return [
+            valid: false,
+            error: "Template file not allowed: ${templateFileName}",
+            allowedFiles: ALLOWED_TEMPLATE_FILES,
+            cvssScore: 9.1,
+            threatLevel: "CRITICAL"
+        ]
+    }
+    
+    // Use Path.resolve() for secure path construction
+    Path basePath = Paths.get(baseDir).normalize()
+    Path templatePath = basePath.resolve(templateFileName).normalize()
+    
+    // Verify the resolved path is still within the base directory
+    if (!templatePath.startsWith(basePath)) {
+        logger.error("Path traversal attack blocked: ${templatePath} is outside base directory ${basePath}")
+        return [
+            valid: false,
+            error: "Access denied: Path traversal detected",
+            cvssScore: 9.1,
+            threatLevel: "CRITICAL"
+        ]
+    }
+    
+    logger.debug("Secure path validation passed: ${templatePath}")
+    return [
+        valid: true,
+        securePath: templatePath.toString(),
+        fileName: templateFileName
+    ]
+}
 
 /**
  * Handles POST requests for importing JSON data from Confluence extraction
@@ -59,6 +226,21 @@ importData(httpMethod: "POST", groups: ["confluence-administrators"]) { Multival
     }
     
     try {
+        // SECURITY VALIDATION - US-034 Critical Fix
+        // Validate input size before parsing to prevent memory exhaustion
+        Map sizeValidation = validateInputSize(body, "application/json")
+        if (!sizeValidation.valid) {
+            logger.error("Security violation - Input size validation failed: ${sizeValidation.error}")
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: sizeValidation.error,
+                    securityAlert: "Request rejected due to size violation",
+                    cvssScore: sizeValidation.cvssScore,
+                    threatLevel: sizeValidation.threatLevel
+                ]).toString())
+                .build()
+        }
+        
         def importService = getImportService()
         def jsonSlurper = new JsonSlurper()
         def requestData = jsonSlurper.parseText(body)
@@ -67,7 +249,7 @@ importData(httpMethod: "POST", groups: ["confluence-administrators"]) { Multival
         def userContext = UserService.getCurrentUserContext()
         String userId = (userContext?.confluenceUsername as String) ?: 'system'
         
-        logger.info("Import request received from user: ${userId}")
+        logger.info("Import request received from user: ${userId} (request size: ${sizeValidation.size} bytes)")
         
         // Handle batch import if path contains 'batch'
         if (pathParts.contains('batch')) {
@@ -83,7 +265,22 @@ importData(httpMethod: "POST", groups: ["confluence-administrators"]) { Multival
             }
             
             List<Map> filesList = (List<Map>) filesData
-            logger.info("Processing batch import of ${filesList.size()} files")
+            
+            // SECURITY VALIDATION - Batch size validation
+            Map batchValidation = validateBatchSize(filesList)
+            if (!batchValidation.valid) {
+                logger.error("Security violation - Batch size validation failed: ${batchValidation.error}")
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([
+                        error: batchValidation.error,
+                        securityAlert: "Batch rejected due to size violation",
+                        cvssScore: batchValidation.cvssScore,
+                        threatLevel: batchValidation.threatLevel
+                    ]).toString())
+                    .build()
+            }
+            
+            logger.info("Processing batch import of ${filesList.size()} files (security validated)")
             
             Map result = importService.importBatch(filesList, userId)
             
@@ -704,18 +901,31 @@ csvTemplates(httpMethod: "GET", groups: ["confluence-administrators"]) { Multiva
         
         logger.info("CSV template download requested for entity: ${entityType}")
         
-        // Construct template file path
-        String templateFileName = "${entityType}_template.csv"
-        String templatePath = "local-dev-setup/data-utils/CSV_Templates/${templateFileName}"
+        // SECURITY VALIDATION - US-034 Critical Fix - Path Traversal Protection
+        Map pathValidation = validateSecurePath(entityType)
+        if (!pathValidation.valid) {
+            logger.error("Security violation - Path traversal attempt blocked: ${pathValidation.error}")
+            return Response.status(Response.Status.FORBIDDEN)
+                .entity(new JsonBuilder([
+                    error: pathValidation.error,
+                    securityAlert: "Access denied due to security violation",
+                    cvssScore: pathValidation.cvssScore,
+                    threatLevel: pathValidation.threatLevel
+                ]).toString())
+                .build()
+        }
         
-        // Read template content
-        File templateFile = new File(templatePath)
+        String securePath = pathValidation.securePath as String
+        String templateFileName = pathValidation.fileName as String
+        
+        // Read template content using secure path
+        File templateFile = new File(securePath)
         if (!templateFile.exists()) {
-            logger.error("Template file not found: ${templatePath}")
+            logger.error("Template file not found: ${securePath}")
             return Response.status(Response.Status.NOT_FOUND)
                 .entity(new JsonBuilder([
                     error: "Template file not found for entity: ${entityType}",
-                    templatePath: templatePath
+                    templatePath: templateFileName // Only show filename, not full path for security
                 ]).toString())
                 .build()
         }

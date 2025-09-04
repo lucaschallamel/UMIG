@@ -95,7 +95,7 @@ flowchart TD
 **Location**: `/src/groovy/umig/api/v2/ImportApi.groovy`  
 **Purpose**: Unified REST API endpoints for both CSV and JSON import operations
 
-#### CSV Import Endpoints:
+#### CSV Import Endpoints
 
 - `POST /api/v2/import/csv/teams` - Import teams from CSV
 - `POST /api/v2/import/csv/users` - Import users from CSV
@@ -103,12 +103,12 @@ flowchart TD
 - `POST /api/v2/import/csv/environments` - Import environments from CSV
 - `POST /api/v2/import/csv/all` - Import all base entities in proper sequence
 
-#### JSON Import Endpoints:
+#### JSON Import Endpoints
 
 - `POST /api/v2/import/json` - Import single JSON file
 - `POST /api/v2/import/batch` - Import multiple JSON files
 
-#### Management & Monitoring Endpoints:
+#### Management & Monitoring Endpoints
 
 - `GET /api/v2/import/status/{batchId}` - Check import status
 - `GET /api/v2/import/history` - Get import history

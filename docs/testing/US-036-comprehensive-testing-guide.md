@@ -329,13 +329,14 @@ https://confluence.company.com/stepview.html?ite_id=550e8400-e29b-41d4-a716-4466
 #### Mobile Layout Adaptation (M-005: Layout Testing)
 
 **Testing Matrix**:
-| Screen Size | Device | Orientation | Priority |
-|-------------|---------|-------------|----------|
-| 320px | iPhone SE | Portrait | High |
-| 375px | iPhone 12/13 | Portrait | High |
-| 414px | iPhone 14 Plus | Portrait | High |
-| 768px | iPad Mini | Portrait | Medium |
-| 1024px | iPad Pro | Landscape | Medium |
+
+| Screen Size | Device         | Orientation | Priority |
+| ----------- | -------------- | ----------- | -------- |
+| 320px       | iPhone SE      | Portrait    | High     |
+| 375px       | iPhone 12/13   | Portrait    | High     |
+| 414px       | iPhone 14 Plus | Portrait    | High     |
+| 768px       | iPad Mini      | Portrait    | Medium   |
+| 1024px      | iPad Pro       | Landscape   | Medium   |
 
 **Layout Elements**:
 

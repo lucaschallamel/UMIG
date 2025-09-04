@@ -307,7 +307,7 @@ spring init --language=groovy --dependencies=web,data-jpa,security
 
 ## Decision Framework
 
-### Choose This Approach (EPIC-101) If:
+### Choose This Approach (EPIC-101) If
 
 ✅ **Timeline pressure** - Need results in 2-4 months  
 ✅ **Budget constraints** - Limited to <$300k  
@@ -315,7 +315,7 @@ spring init --language=groovy --dependencies=web,data-jpa,security
 ✅ **Current system works** - Happy with functionality  
 ✅ **Team expertise** - Groovy skills available
 
-### Choose Full Rewrite (EPIC-100) If:
+### Choose Full Rewrite (EPIC-100) If
 
 ❌ Long-term platform change required  
 ❌ Current architecture fundamentally broken  

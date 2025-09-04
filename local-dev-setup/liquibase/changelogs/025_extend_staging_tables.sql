@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset LucasChallamel:030_extend_staging_tables author:UMIG Development Team
+-- changeset LucasChallamel:025_extend_staging_tables author:UMIG Development Team
 -- comment: Extend staging tables for JSON import functionality (US-034)
 
 -- Step 1: Convert ENUM to VARCHAR(3) for flexible step type codes

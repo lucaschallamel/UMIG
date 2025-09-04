@@ -669,7 +669,7 @@ def updatableFields = ['ctm_name', 'ctm_description', 'ctm_order']
 #### Registration Steps
 
 1. **Access ScriptRunner Admin**
-   - Navigate: http://localhost:8090 → Login as admin
+   - Navigate: <http://localhost:8090> → Login as admin
    - Go to: Confluence Administration → ScriptRunner → REST Endpoints
 
 2. **Create New REST Endpoint**
@@ -1882,23 +1882,30 @@ DatabaseUtil.withSql { sql ->
 #### Phase 3: Data Transformation Tracking (ESSENTIAL FOR TYPE CASTING BUGS)
 
 1. **Entry Point**: Log original request data with types
+
    ```groovy
    log.info("Request data: ${requestData}")
    log.info("Request types: ${requestData.collectEntries { k, v -> [k, "${v} (${v?.getClass()?.name})"] }}")
    ```
+
 2. **Type Conversion**: Log parameter transformations with before/after comparison
+
    ```groovy
    log.info("BEFORE conversion: ${originalData}")
    def convertedData = convertToPostgreSQLTypes(originalData)
    log.info("AFTER conversion: ${convertedData}")
    log.info("Type changes: ${convertedData.collectEntries { k, v -> [k, v?.getClass()?.name] }}")
    ```
+
 3. **SQL Parameters**: Log final database parameters to verify types
+
    ```groovy
    log.info("Final SQL params: ${sqlParams}")
    log.info("SQL param types: ${sqlParams.collectEntries { k, v -> [k, "${v?.getClass()?.name}"] }}")
    ```
+
 4. **Response**: Log returned data structure to verify enrichment
+
    ```groovy
    log.info("Response structure: ${response?.keySet()}")
    log.info("Status metadata present: ${response?.statusMetadata != null}")
@@ -1988,7 +1995,7 @@ private void validatePostgreSQLTypes(Map params) {
 }
 ```
 
-#### Mandatory Type Conversion Pattern with Error Handling:
+#### Mandatory Type Conversion Pattern with Error Handling
 
 ```groovy
 // Apply before ALL repository operations - prevents cascading errors
@@ -2311,7 +2318,7 @@ JOIN status_sts status ON entity.status_id = status.sts_id
 
 ### 🚨 Emergency Debugging for Cascading Failures
 
-#### When Multiple Endpoints Fail Simultaneously (BATTLE-TESTED APPROACH):
+#### When Multiple Endpoints Fail Simultaneously (BATTLE-TESTED APPROACH)
 
 **Real-World Success**: This exact sequence resolved the Migrations API cascading failure (August 22, 2025)
 
@@ -2334,7 +2341,7 @@ JOIN status_sts status ON entity.status_id = status.sts_id
    - Add optional fields one by one until failure occurs
    - Focus on date, UUID, and status fields first
 
-#### Critical Error Patterns (PROVEN DIAGNOSTIC SIGNATURES):
+#### Critical Error Patterns (PROVEN DIAGNOSTIC SIGNATURES)
 
 **"Invalid UUID format: [object Object]"**:
 
@@ -2360,7 +2367,7 @@ JOIN status_sts status ON entity.status_id = status.sts_id
 - **Quick Fix**: Preserve existing required fields when updating
 - **Verify**: Check all NOT NULL constraints in table schema
 
-#### Emergency Triage Decision Tree:
+#### Emergency Triage Decision Tree
 
 ```
 Multiple endpoints failing?
