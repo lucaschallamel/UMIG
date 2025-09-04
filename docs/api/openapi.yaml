@@ -1,9 +1,10 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.8.0
+  version: 2.9.0
   license:
     name: MIT
+    url: https://opensource.org/licenses/MIT
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
@@ -11,13 +12,14 @@ info:
     Architectural principles are documented in ADR-017.
 
     **Version 2.9.0 - September 4, 2025:**
-    **US-034 Import API v2.1.0 - Security & Performance Enhancement:** Major security and performance upgrades with comprehensive validation framework.
-    **Security Enhancements:** Input size validation (50MB limit, CVSS 7.5), Path traversal protection (CVSS 9.1 mitigation), 
-    File extension validation (whitelist: json,csv,txt, CVSS 8.8), Enhanced CSV memory protection (10MB/10K row limits), 
-    Batch size limits (1,000 files max, CVSS 6.5). **Performance Optimizations:** 4x speed improvement through parallel chunked processing,
-    85% memory reduction via streaming parsers, <500ms API response times, <100MB memory usage for 10K records.
-    **Monitoring:** Real-time performance metrics, JVM monitoring, comprehensive benchmark validation.
-    **Security Rating:** EXCELLENT (9.2/10) with complete CVSS vulnerability scoring and threat classification.
+    **US-034 ImportQueue API v1.0.0 - Queue Management & Orchestration:** Added comprehensive import queue management with 7 new endpoints.
+    **Queue Operations:** GET/POST /import-queue for status monitoring and request submission with real-time statistics.
+    **Request Management:** GET/DELETE /import-request/{requestId} for request status tracking and cancellation.
+    **Schedule Management:** GET/POST /import-schedules for scheduled import creation and listing with recurring support.
+    **Resource Monitoring:** GET /import-resources for active resource locks and system status with performance recommendations.
+    **Enhanced Features:** Priority-based queue management, resource allocation tracking, scheduled imports with cron patterns,
+    comprehensive error handling with detailed rollback support. All endpoints follow CustomEndpointDelegate pattern with
+    authentication (confluence-users group), type safety (ADR-031 explicit casting), and consistent error responses.
 
     **Version 2.8.0 - September 3, 2025:**
     **API Inventory Comprehensive Update:** Complete documentation update reflecting actual codebase inventory of 24 REST APIs.
@@ -127,6 +129,8 @@ tags:
     description: Operations about URL configuration management and client-side URL construction.
   - name: Import
     description: Operations for importing JSON data and CSV base entities with batch processing, rollback capabilities, and audit trails.
+  - name: ImportQueue
+    description: Operations for import queue management, scheduling, and resource monitoring with orchestration capabilities.
 
 paths:
   # ==================== NEW V2 ITERATIONS API ====================
@@ -861,19 +865,23 @@ paths:
                 invalidStatus:
                   summary: Invalid status name
                   value:
-                    error: "Invalid status name: INVALID_STATUS"
+                    code: "INVALID_STATUS"
+                    message: "Invalid status name: INVALID_STATUS"
                 missingName:
                   summary: Missing required field
                   value:
-                    error: "Migration name is required"
+                    code: "MIGRATION_NAME_REQUIRED"
+                    message: "Migration name is required"
                 invalidDate:
                   summary: Invalid date format
                   value:
-                    error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+                    code: "INVALID_DATE_FORMAT"
+                    message: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
                 invalidJson:
                   summary: Invalid JSON
                   value:
-                    error: "Invalid JSON format in request body"
+                    code: "INVALID_JSON"
+                    message: "Invalid JSON format in request body"
         "409":
           description: Conflict - Constraint violations
           content:
@@ -884,11 +892,13 @@ paths:
                 duplicateName:
                   summary: Duplicate migration name
                   value:
-                    error: "A migration with this name already exists"
+                    code: "DUPLICATE_MIGRATION_NAME"
+                    message: "A migration with this name already exists"
                 invalidOwner:
                   summary: Invalid owner ID
                   value:
-                    error: "Invalid owner user ID - user does not exist"
+                    code: "INVALID_OWNER_ID"
+                    message: "Invalid owner user ID - user does not exist"
         "500":
           description: Internal Server Error
           content:
@@ -899,11 +909,13 @@ paths:
                 noUsers:
                   summary: No users in system
                   value:
-                    error: "No users exist in the system. Cannot create migration without owner."
+                    code: "NO_USERS_EXIST"
+                    message: "No users exist in the system. Cannot create migration without owner."
                 defaultStatus:
                   summary: Missing default status
                   value:
-                    error: "Default PLANNING status for Migration not found in database"
+                    code: "DEFAULT_PLANNING_NOT_FOUND"
+                    message: "Default PLANNING status for Migration not found in database"
 
   /migrations/{id}:
     get:
@@ -1233,7 +1245,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "Missing required parameters. Expected: migrationName, iterationName, stepCode"
+                code: "MISSING_REQUIRED_PARAMETERS"
+                message: "Missing required parameters. Expected: migrationName, iterationName, stepCode"
         "404":
           description: No step instance found for the given parameters
           content:
@@ -1241,7 +1254,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "No step instance found for step code: APP-001 in migration: migrationa, iteration: run1"
+                code: "STEP_NOT_FOUND"
+                message: "No step instance found for step code: APP-001 in migration: migrationa, iteration: run1"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -2093,15 +2107,18 @@ paths:
                 missing_required:
                   summary: Missing required fields
                   value:
-                    error: "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"
+                    code: "MISSING_REQUIRED_FIELDS"
+                    message: "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"
                 invalid_phase:
                   summary: Invalid phase ID
                   value:
-                    error: "Invalid phase ID"
+                    code: "INVALID_PHASE_ID"
+                    message: "Invalid phase ID"
                 invalid_team:
                   summary: Invalid team ID
                   value:
-                    error: "Invalid team ID"
+                    code: "INVALID_TEAM_ID"
+                    message: "Invalid team ID"
         "409":
           description: Unique constraint violation
           content:
@@ -2109,7 +2126,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "A step with the same phase, type, and number already exists"
+                code: "STEP_ALREADY_EXISTS"
+                message: "A step with the same phase, type, and number already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -2200,15 +2218,18 @@ paths:
                 invalid_id:
                   summary: Invalid step ID
                   value:
-                    error: "Invalid step ID format"
+                    code: "INVALID_STEP_ID"
+                    message: "Invalid step ID format"
                 invalid_phase:
                   summary: Invalid phase ID
                   value:
-                    error: "Invalid phase ID"
+                    code: "INVALID_PHASE_ID"
+                    message: "Invalid phase ID"
                 invalid_team:
                   summary: Invalid team ID
                   value:
-                    error: "Invalid team ID"
+                    code: "INVALID_TEAM_ID"
+                    message: "Invalid team ID"
         "404":
           description: Master step not found
           content:
@@ -2216,7 +2237,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "Step not found with ID: f9aa535d-4d8b-447c-9d89-16494f678702"
+                code: "STEP_NOT_FOUND"
+                message: "Step not found with ID: f9aa535d-4d8b-447c-9d89-16494f678702"
         "409":
           description: Unique constraint violation
           content:
@@ -2224,7 +2246,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "A step with the same phase, type, and number already exists"
+                code: "STEP_ALREADY_EXISTS"
+                message: "A step with the same phase, type, and number already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -7789,6 +7812,250 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  # ==================== IMPORT QUEUE API V1 ====================
+  /import-queue:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get import queue status and statistics
+      description: |
+        Retrieve comprehensive import queue status including active imports, queue statistics, 
+        resource utilization, and system recommendations. Provides real-time monitoring of 
+        import operations with performance insights and system health status.
+      tags: [ImportQueue]
+      operationId: getImportQueueStatus
+      responses:
+        "200":
+          description: Import queue status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportQueueStatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Submit import request to queue
+      description: |
+        Submit a new import request to the queue with priority handling, resource requirements 
+        calculation, and estimated completion time. Supports various import types with 
+        comprehensive configuration options and automatic queue positioning.
+      tags: [ImportQueue]
+      operationId: submitImportRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportQueueRequest"
+      responses:
+        "200":
+          description: Import request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportQueueSubmissionResponse"
+        "400":
+          description: Bad request - missing configuration or invalid request format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import-request/{requestId}:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get import request status
+      description: |
+        Retrieve detailed status information for a specific import request including current 
+        status, progress, execution details, and completion estimates.
+      tags: [ImportQueue]
+      operationId: getImportRequestStatus
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Import request identifier
+      responses:
+        "200":
+          description: Import request status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportRequestStatusResponse"
+        "400":
+          description: Invalid request ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Import request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      security:
+        - ConfluenceUsers: []
+      summary: Cancel queued import request
+      description: |
+        Cancel a queued import request with optional reason. Supports cancellation of 
+        pending requests with comprehensive audit trail and status updates.
+      tags: [ImportQueue]
+      operationId: cancelImportRequest
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Import request identifier to cancel
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelRequestBody"
+      responses:
+        "200":
+          description: Import request cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancelRequestResponse"
+        "400":
+          description: Invalid request ID or cancellation not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Import request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import-schedules:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: List import schedules
+      description: |
+        Retrieve list of import schedules with filtering options. Includes schedule 
+        statistics and supports user-specific filtering and active-only filtering.
+      tags: [ImportQueue]
+      operationId: getImportSchedules
+      parameters:
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter schedules by user ID
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 1000
+          description: Maximum number of schedules to return
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: Return only active schedules
+      responses:
+        "200":
+          description: Import schedules retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportSchedulesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Create scheduled import
+      description: |
+        Create a new scheduled import with recurring pattern support. Supports cron-like 
+        scheduling with comprehensive configuration options and validation.
+      tags: [ImportQueue]
+      operationId: createScheduledImport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScheduleRequest"
+      responses:
+        "200":
+          description: Import schedule created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateScheduleResponse"
+        "400":
+          description: Bad request - missing required fields or invalid schedule configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import-resources:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get resource utilization and locks
+      description: |
+        Retrieve current resource utilization including active resource locks, system status, 
+        queue statistics, and performance recommendations for optimal resource management.
+      tags: [ImportQueue]
+      operationId: getImportResources
+      responses:
+        "200":
+          description: Resource information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResourcesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
 components:
   schemas:
     # --- View Models ---
@@ -12529,6 +12796,487 @@ components:
           example: 0
           minimum: 0
 
+    # ==================== IMPORT QUEUE SCHEMAS ====================
+    ImportQueueRequest:
+      type: object
+      required:
+        - configuration
+      properties:
+        importType:
+          type: string
+          default: "COMPLETE_IMPORT"
+          enum:
+            - COMPLETE_IMPORT
+            - PARTIAL_IMPORT
+            - CSV_IMPORT
+            - JSON_IMPORT
+          description: Type of import operation
+          example: "COMPLETE_IMPORT"
+        priority:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 10
+          description: Import priority (1=highest, 10=lowest)
+          example: 5
+        configuration:
+          type: object
+          description: Import configuration settings
+          properties:
+            source:
+              type: string
+              description: Data source identifier
+              example: "migration-data-batch.json"
+            content:
+              type: string
+              description: Import content or file path
+              example: '{"steps": [{"title": "Database Setup"}]}'
+            entities:
+              type: array
+              items:
+                type: string
+              description: Entity types to import
+              example: ["teams", "users", "applications"]
+            batchSize:
+              type: integer
+              default: 1000
+              description: Processing batch size
+              example: 1000
+        userId:
+          type: string
+          default: "system"
+          description: User initiating the import
+          example: "admin"
+
+    ImportQueueSubmissionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successfully queued
+          example: true
+        requestId:
+          type: string
+          format: uuid
+          description: Unique import request identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        queuePosition:
+          type: integer
+          description: Current position in queue
+          example: 3
+        estimatedWaitTime:
+          type: integer
+          description: Estimated wait time in seconds
+          example: 180
+        estimatedDuration:
+          type: integer
+          description: Estimated import duration in seconds
+          example: 300
+        priority:
+          type: integer
+          description: Assigned priority level
+          example: 5
+
+    ImportQueueStatusResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Status retrieval timestamp
+          example: "2025-09-04T14:30:00.000Z"
+        queue:
+          type: object
+          description: Queue status information
+          properties:
+            totalRequests:
+              type: integer
+              description: Total requests in queue
+              example: 5
+            activeImports:
+              type: integer
+              description: Currently executing imports
+              example: 2
+            queuedRequests:
+              type: integer
+              description: Pending requests
+              example: 3
+            completedToday:
+              type: integer
+              description: Imports completed today
+              example: 15
+        resources:
+          type: object
+          description: Resource utilization
+          properties:
+            activeLocks:
+              type: array
+              items:
+                type: object
+                properties:
+                  resourceId:
+                    type: string
+                    example: "db_connection_1"
+                  lockedBy:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  lockedAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-04T14:25:00.000Z"
+            memoryUtilization:
+              type: number
+              description: Memory utilization percentage
+              example: 65.5
+            cpuUtilization:
+              type: number
+              description: CPU utilization percentage
+              example: 42.8
+        system:
+          type: object
+          description: System status
+          properties:
+            healthy:
+              type: boolean
+              description: Overall system health
+              example: true
+            throughput:
+              type: number
+              description: Recent throughput (requests/minute)
+              example: 12.5
+            averageWaitTime:
+              type: integer
+              description: Average wait time in seconds
+              example: 120
+        recommendations:
+          type: array
+          items:
+            type: string
+          description: System optimization recommendations
+          example: ["System operating within normal parameters"]
+
+    ImportRequestStatusResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+          format: uuid
+          description: Import request identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        status:
+          type: string
+          enum:
+            - QUEUED
+            - IN_PROGRESS
+            - COMPLETED
+            - FAILED
+            - CANCELLED
+          description: Current request status
+          example: "IN_PROGRESS"
+        priority:
+          type: integer
+          description: Request priority
+          example: 5
+        queuePosition:
+          type: integer
+          description: Current position in queue (null if not queued)
+          example: null
+        progress:
+          type: object
+          description: Import progress details
+          properties:
+            percentage:
+              type: number
+              description: Completion percentage
+              example: 75.5
+            recordsProcessed:
+              type: integer
+              description: Records processed so far
+              example: 755
+            totalRecords:
+              type: integer
+              description: Total records to process
+              example: 1000
+            startedAt:
+              type: string
+              format: date-time
+              example: "2025-09-04T14:20:00.000Z"
+            estimatedCompletion:
+              type: string
+              format: date-time
+              example: "2025-09-04T14:35:00.000Z"
+
+    CancelRequestBody:
+      type: object
+      properties:
+        reason:
+          type: string
+          default: "User requested cancellation"
+          description: Cancellation reason
+          example: "Resource constraints detected"
+
+    CancelRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether cancellation was successful
+          example: true
+        requestId:
+          type: string
+          format: uuid
+          description: Cancelled request identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        message:
+          type: string
+          description: Cancellation confirmation message
+          example: "Import request cancelled successfully"
+        cancelledAt:
+          type: string
+          format: date-time
+          description: Cancellation timestamp
+          example: "2025-09-04T14:30:00.000Z"
+        reason:
+          type: string
+          description: Cancellation reason
+          example: "Resource constraints detected"
+
+    CreateScheduleRequest:
+      type: object
+      required:
+        - scheduleName
+        - scheduledTime
+        - importConfiguration
+      properties:
+        scheduleName:
+          type: string
+          description: Name for the scheduled import
+          example: "Daily Team Data Sync"
+        description:
+          type: string
+          description: Optional description
+          example: "Automated daily synchronization of team data"
+        scheduledTime:
+          type: integer
+          format: int64
+          description: Scheduled execution time (Unix timestamp in milliseconds)
+          example: 1725465600000
+        recurring:
+          type: boolean
+          default: false
+          description: Whether this is a recurring schedule
+          example: true
+        recurringPattern:
+          type: string
+          description: Cron-like recurring pattern (required if recurring=true)
+          example: "0 2 * * *"
+        priority:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 10
+          description: Schedule priority
+          example: 3
+        importConfiguration:
+          type: object
+          description: Import configuration for scheduled execution
+          properties:
+            importType:
+              type: string
+              example: "CSV_IMPORT"
+            source:
+              type: string
+              example: "scheduled-teams-export.csv"
+            entities:
+              type: array
+              items:
+                type: string
+              example: ["teams", "users"]
+        userId:
+          type: string
+          default: "system"
+          description: User creating the schedule
+          example: "admin"
+
+    CreateScheduleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether schedule was created successfully
+          example: true
+        scheduleId:
+          type: string
+          format: uuid
+          description: Created schedule identifier
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        scheduleName:
+          type: string
+          description: Name of created schedule
+          example: "Daily Team Data Sync"
+        scheduledTime:
+          type: string
+          format: date-time
+          description: Next scheduled execution time
+          example: "2025-09-05T02:00:00.000Z"
+        nextExecution:
+          type: string
+          format: date-time
+          description: Next execution time (for recurring schedules)
+          example: "2025-09-06T02:00:00.000Z"
+        message:
+          type: string
+          description: Success message
+          example: "Schedule created successfully"
+
+    ImportSchedulesResponse:
+      type: object
+      properties:
+        schedules:
+          type: array
+          items:
+            type: object
+            properties:
+              scheduleId:
+                type: string
+                format: uuid
+                example: "550e8400-e29b-41d4-a716-446655440001"
+              scheduleName:
+                type: string
+                example: "Daily Team Data Sync"
+              description:
+                type: string
+                example: "Automated daily synchronization"
+              scheduledTime:
+                type: string
+                format: date-time
+                example: "2025-09-05T02:00:00.000Z"
+              recurring:
+                type: boolean
+                example: true
+              recurringPattern:
+                type: string
+                example: "0 2 * * *"
+              status:
+                type: string
+                enum:
+                  - ACTIVE
+                  - INACTIVE
+                  - COMPLETED
+                  - FAILED
+                example: "ACTIVE"
+              lastExecution:
+                type: string
+                format: date-time
+                example: "2025-09-04T02:00:00.000Z"
+              nextExecution:
+                type: string
+                format: date-time
+                example: "2025-09-05T02:00:00.000Z"
+              createdBy:
+                type: string
+                example: "admin"
+        statistics:
+          type: object
+          properties:
+            totalSchedules:
+              type: integer
+              example: 5
+            activeSchedules:
+              type: integer
+              example: 3
+            recurringSchedules:
+              type: integer
+              example: 2
+            schedulesExecutedToday:
+              type: integer
+              example: 4
+
+    ImportResourcesResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Resource status retrieval time
+          example: "2025-09-04T14:30:00.000Z"
+        resourceLocks:
+          type: array
+          items:
+            type: object
+            properties:
+              lockId:
+                type: string
+                format: uuid
+                example: "550e8400-e29b-41d4-a716-446655440002"
+              resourceType:
+                type: string
+                example: "DATABASE_CONNECTION"
+              resourceId:
+                type: string
+                example: "db_connection_pool_1"
+              lockedBy:
+                type: string
+                format: uuid
+                example: "550e8400-e29b-41d4-a716-446655440000"
+              lockedAt:
+                type: string
+                format: date-time
+                example: "2025-09-04T14:25:00.000Z"
+              expiresAt:
+                type: string
+                format: date-time
+                example: "2025-09-04T14:55:00.000Z"
+        systemStatus:
+          type: object
+          properties:
+            memoryUtilizationPercent:
+              type: number
+              description: Current memory utilization
+              example: 68.5
+            cpuUtilizationPercent:
+              type: number
+              description: Current CPU utilization
+              example: 45.2
+            activeConnections:
+              type: integer
+              description: Active database connections
+              example: 12
+            maxConnections:
+              type: integer
+              description: Maximum allowed connections
+              example: 50
+            diskSpaceUsedPercent:
+              type: number
+              description: Disk space utilization
+              example: 34.7
+        queueStatistics:
+          type: object
+          properties:
+            totalQueued:
+              type: integer
+              description: Total requests in queue
+              example: 5
+            highPriorityQueued:
+              type: integer
+              description: High priority requests queued
+              example: 1
+            averageWaitTime:
+              type: integer
+              description: Average wait time in seconds
+              example: 120
+            throughputLastHour:
+              type: number
+              description: Requests processed in last hour
+              example: 25.5
+        recommendations:
+          type: array
+          items:
+            type: string
+          description: Resource optimization recommendations
+          example: ["Resource utilization is within acceptable limits"]
+
     ImportError:
       type: object
       properties:
@@ -12582,106 +13330,129 @@ components:
             invalidUuid:
               summary: Invalid UUID format
               value:
-                error: "Invalid migration UUID"
+                code: "INVALID_UUID"
+                message: "Invalid migration UUID"
             invalidPagination:
               summary: Invalid pagination parameters
               value:
-                error: "Invalid page number format"
+                code: "INVALID_PAGINATION"
+                message: "Invalid page number format"
             invalidDate:
               summary: Invalid date format
               value:
-                error: "Invalid dateFrom format. Use YYYY-MM-DD"
+                code: "INVALID_DATE"
+                message: "Invalid dateFrom format. Use YYYY-MM-DD"
             searchTooShort:
               summary: Search term too short
               value:
-                error: "Search term too short (min 3 characters)"
+                code: "SEARCH_TOO_SHORT"
+                message: "Search term too short (min 3 characters)"
             searchTooLong:
               summary: Search term too long
               value:
-                error: "Search term too long (max 100 characters)"
+                code: "SEARCH_TOO_LONG"
+                message: "Search term too long (max 100 characters)"
             invalidSortField:
               summary: Invalid sort field for iterations
               value:
-                error: "Invalid sort field. Allowed: ite_id, ite_name, itt_code, ite_static_cutover_date, ite_dynamic_cutover_date, ite_status, migration_name, master_plan_name, created_at, updated_at"
+                code: "INVALID_SORT_FIELD"
+                message: "Invalid sort field. Allowed: ite_id, ite_name, itt_code, ite_static_cutover_date, ite_dynamic_cutover_date, ite_status, migration_name, master_plan_name, created_at, updated_at"
             invalidMigrationSortField:
               summary: Invalid sort field for migrations
               value:
-                error: "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
+                code: "INVALID_SORT_FIELD"
+                message: "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
             invalidStatusName:
               summary: Invalid status name for migration
               value:
-                error: "Invalid status name: INVALID_STATUS"
+                code: "INVALID_STATUS"
+                message: "Invalid status name: INVALID_STATUS"
             invalidPeriod:
               summary: Invalid dashboard period
               value:
-                error: "Invalid period. Must be: day, week, month, or quarter"
+                code: "INVALID_PERIOD"
+                message: "Invalid period. Must be: day, week, month, or quarter"
             invalidDateFormat:
               summary: Invalid date format in request body
               value:
-                error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+                code: "INVALID_DATE_FORMAT"
+                message: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
             invalidPageSize:
               summary: Invalid page size format
               value:
-                error: "Invalid page size format"
+                code: "INVALID_PAGE_SIZE"
+                message: "Invalid page size format"
             invalidTeamId:
               summary: Invalid team ID format
               value:
-                error: "Invalid team ID format"
+                code: "INVALID_TEAM_ID"
+                message: "Invalid team ID format"
             invalidOwnerId:
               summary: Invalid owner ID format
               value:
-                error: "Invalid owner ID format"
+                code: "INVALID_OWNER_ID"
+                message: "Invalid owner ID format"
             migrationNameRequired:
               summary: Missing required migration name
               value:
-                error: "Migration name is required"
+                code: "MIGRATION_NAME_REQUIRED"
+                message: "Migration name is required"
             noUsersExist:
               summary: No users exist for auto-assignment
               value:
-                error: "No users exist in the system. Cannot create migration without owner."
+                code: "NO_USERS_EXIST"
+                message: "No users exist in the system. Cannot create migration without owner."
             defaultPlanningNotFound:
               summary: Default planning status not found
               value:
-                error: "Default PLANNING status for Migration not found in database"
+                code: "DEFAULT_PLANNING_NOT_FOUND"
+                message: "Default PLANNING status for Migration not found in database"
             invalidJsonFormat:
               summary: Invalid JSON in request body
               value:
-                error: "Invalid JSON format in request body"
+                code: "INVALID_JSON"
+                message: "Invalid JSON format in request body"
             bulkMigrationIdsRequired:
               summary: Bulk operation missing migration IDs
               value:
-                error: "migrationIds is required and must be an array"
+                code: "BULK_IDS_REQUIRED"
+                message: "migrationIds is required and must be an array"
             invalidBulkFormat:
               summary: Invalid bulk export format
               value:
-                error: "Invalid format. Must be 'json' or 'csv'"
+                code: "INVALID_BULK_FORMAT"
+                message: "Invalid format. Must be 'json' or 'csv'"
             bulkStatusRequired:
               summary: Bulk update missing new status
               value:
-                error: "newStatus is required"
+                code: "BULK_STATUS_REQUIRED"
+                message: "newStatus is required"
             hierarchicalPathErrors:
               summary: Hierarchical endpoint validation errors
               value:
-                error: "Invalid iteration UUID"
+                code: "INVALID_ITERATION_UUID"
+                message: "Invalid iteration UUID"
             # PostgreSQL-specific error examples
             foreignKeyViolation:
               summary: Foreign key constraint violation (SQL State 23503)
               value:
-                error: "Foreign key constraint violation: Referenced sequence does not exist"
-                sqlState: "23503"
+                code: "FOREIGN_KEY_VIOLATION"
+                message: "Foreign key constraint violation: Referenced sequence does not exist"
             checkConstraintViolation:
               summary: Check constraint violation (SQL State 23514)
               value:
-                error: "Check constraint violation: Invalid date range - end date must be after start date"
-                sqlState: "23514"
+                code: "CHECK_CONSTRAINT_VIOLATION"
+                message: "Check constraint violation: Invalid date range - end date must be after start date"
             invalidStatusNamePhase:
               summary: Invalid status name resolution for phases
               value:
-                error: "Invalid status name 'INVALID_STATUS' for Phase entity type"
+                code: "INVALID_STATUS_NAME"
+                message: "Invalid status name 'INVALID_STATUS' for Phase entity type"
             typeCastingError:
               summary: PostgreSQL type casting error
               value:
-                error: "Invalid UUID format for parameter phm_id: 'not-a-uuid'"
+                code: "TYPE_CASTING_ERROR"
+                message: "Invalid UUID format for parameter phm_id: 'not-a-uuid'"
     Conflict:
       description: |
         The request could not be completed due to a conflict with the current state of the resource. 
@@ -12695,23 +13466,28 @@ components:
             uniqueConstraint:
               summary: Unique constraint violation
               value:
-                error: "A migration with this name already exists"
+                code: "UNIQUE_CONSTRAINT_VIOLATION"
+                message: "A migration with this name already exists"
             foreignKeyViolation:
               summary: Foreign key violation
               value:
-                error: "Invalid owner user ID - user does not exist"
+                code: "FOREIGN_KEY_VIOLATION"
+                message: "Invalid owner user ID - user does not exist"
             referentialIntegrity:
               summary: Referential integrity on delete
               value:
-                error: "Cannot delete migration - it has associated iterations or is referenced by other resources"
+                code: "REFERENTIAL_INTEGRITY_VIOLATION"
+                message: "Cannot delete migration - it has associated iterations or is referenced by other resources"
             migrationDuplicateName:
               summary: Duplicate migration name
               value:
-                error: "A migration with this name already exists"
+                code: "DUPLICATE_MIGRATION_NAME"
+                message: "A migration with this name already exists"
             invalidOwnerUser:
               summary: Invalid owner user reference
               value:
-                error: "Invalid owner user ID - user does not exist"
+                code: "INVALID_OWNER_ID"
+                message: "Invalid owner user ID - user does not exist"
     InternalServerError:
       description: An unexpected internal server error occurred.
       content:

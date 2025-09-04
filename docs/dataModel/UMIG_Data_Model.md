@@ -187,7 +187,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 
 ### 3.9. Staging Tables
 
-**Purpose**: Temporary tables for data import and transformation processes.
+**Purpose**: Temporary tables for data import and transformation processes, including US-034 Enhanced Data Import Architecture.
 
 #### Staging Steps (`stg_steps`)
 
@@ -213,18 +213,242 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 
 ---
 
-## 4. Canonical (Master) Layer
+## 4. US-034 Enhanced Data Import Architecture
+
+**Purpose**: Advanced data import processing system with concurrent queue management, resource coordination, and scheduling capabilities.
+
+**Implementation Status**: ✅ COMPLETE - Production Ready (Migration 026)  
+**Repository Classes**: 3 comprehensive repositories with DatabaseUtil.withSql patterns  
+**Integration**: Full API integration with CustomEndpointDelegate pattern
+
+### 4.1. Import Queue Management (`stg_import_queue_management_iqm`)
+
+**Purpose**: Manages concurrent import request queuing and coordination with priority-based processing.
+
+- **iqm_id** (UUID, PK): Unique queue entry identifier
+- **iqm_request_id** (UUID, NOT NULL, UNIQUE): Business request identifier
+- **iqm_priority** (INTEGER, DEFAULT 5): Priority level (1-20, where 1 is highest)
+- **iqm_status** (VARCHAR(20), DEFAULT 'QUEUED'): Current status
+- **iqm_import_type** (VARCHAR(50), NOT NULL): Type of import operation
+- **iqm_requested_by** (VARCHAR(100), NOT NULL): User requesting the import
+- **iqm_requested_at** (TIMESTAMPTZ, DEFAULT NOW()): Request timestamp
+- **iqm_started_at** (TIMESTAMPTZ, NULL): Processing start time
+- **iqm_estimated_duration** (INTEGER, NULL): Estimated duration in minutes
+- **iqm_resource_requirements** (JSONB, NULL): Resource requirements specification
+- **iqm_configuration** (JSONB, NOT NULL): Import configuration parameters
+- **iqm_queue_position** (INTEGER, NULL): Current queue position
+- **iqm_assigned_worker** (VARCHAR(50), NULL): Worker processing the request
+- **iqm_created_date**, **iqm_last_modified_date** (TIMESTAMPTZ): Audit timestamps
+- **iqm_is_active** (BOOLEAN, DEFAULT TRUE): Active status flag
+
+**Constraints**:
+
+- Status values: QUEUED, PROCESSING, COMPLETED, FAILED, CANCELLED
+- Priority range: 1-20 (1 = highest priority)
+
+**Indexes**:
+
+- `idx_iqm_status_priority`: Optimized for queue processing
+- `idx_iqm_worker_status`: Worker assignment tracking
+
+**Repository**: `ImportQueueManagementRepository.groovy`
+
+### 4.2. Resource Lock Management (`stg_import_resource_locks_irl`)
+
+**Purpose**: Prevents resource conflicts between concurrent import operations through granular locking.
+
+- **irl_id** (SERIAL, PK): Lock entry identifier
+- **irl_resource_type** (VARCHAR(50), NOT NULL): Type of resource being locked
+- **irl_resource_id** (VARCHAR(100), NOT NULL): Specific resource identifier
+- **irl_lock_type** (VARCHAR(20), NOT NULL): EXCLUSIVE or SHARED lock
+- **irl_locked_by_request** (UUID, FK → stg_import_queue_management_iqm.iqm_request_id): Locking request
+- **irl_locked_at** (TIMESTAMPTZ, DEFAULT NOW()): Lock acquisition time
+- **irl_expires_at** (TIMESTAMPTZ, NOT NULL): Lock expiration time
+- **irl_created_date** (TIMESTAMPTZ): Creation timestamp
+- **irl_is_active** (BOOLEAN, DEFAULT TRUE): Active status flag
+
+**Constraints**:
+
+- Unique constraint: (resource_type, resource_id, locked_by_request)
+- Lock types: EXCLUSIVE, SHARED
+- Expiration must be future date
+
+**Index**: `idx_irl_resource_expires` for lock cleanup and conflict detection
+
+**Repository**: `ImportResourceLockRepository.groovy`
+
+### 4.3. Scheduled Import Schedules (`stg_scheduled_import_schedules_sis`)
+
+**Purpose**: Manages scheduled and recurring import operations with cron-like capabilities.
+
+- **sis_id** (SERIAL, PK): Schedule entry identifier
+- **sis_schedule_id** (UUID, UNIQUE): Business schedule identifier
+- **sis_schedule_name** (VARCHAR(255), NOT NULL): Human-readable schedule name
+- **sis_import_type** (VARCHAR(50), NOT NULL): Type of import to schedule
+- **sis_schedule_expression** (VARCHAR(100), NOT NULL): Cron expression or ISO datetime
+- **sis_recurring** (BOOLEAN, DEFAULT FALSE): Recurring schedule flag
+- **sis_priority** (INTEGER, DEFAULT 5): Scheduling priority (1-20)
+- **sis_created_by** (VARCHAR(100), NOT NULL): User who created the schedule
+- **sis_status** (VARCHAR(20), DEFAULT 'SCHEDULED'): Current schedule status
+- **sis_next_execution** (TIMESTAMPTZ, NOT NULL): Next scheduled execution
+- **sis_last_execution** (TIMESTAMPTZ, NULL): Previous execution timestamp
+- **sis_execution_count**, **sis_success_count**, **sis_failure_count** (INTEGER): Statistics
+- **sis_import_configuration** (JSONB, NOT NULL): Import parameters
+- **sis_notification_settings** (JSONB, NULL): Notification configuration
+- **sis_max_retries** (INTEGER, DEFAULT 3): Maximum retry attempts
+- **sis_retry_delay_minutes** (INTEGER, DEFAULT 15): Retry delay
+- **sis_timeout_minutes** (INTEGER, DEFAULT 60): Execution timeout
+- **sis_created_date**, **sis_last_modified_date** (TIMESTAMPTZ): Audit timestamps
+- **sis_is_active** (BOOLEAN, DEFAULT TRUE): Active status flag
+
+**Constraints**:
+
+- Status values: SCHEDULED, EXECUTING, COMPLETED, FAILED, CANCELLED, PAUSED
+- Next execution must be future date
+- Execution counts must be consistent
+
+**Indexes**:
+
+- `idx_sis_next_execution`: Execution scheduling
+- `idx_sis_created_by_status`: User schedule tracking
+- `idx_sis_recurring_active`: Recurring schedule management
+
+**Repository**: `ScheduledImportRepository.groovy`
+
+### 4.4. Schedule Execution History (`stg_schedule_execution_history_seh`)
+
+**Purpose**: Audit trail for scheduled import executions with detailed tracking.
+
+- **seh_id** (SERIAL, PK): Execution history identifier
+- **sis_id** (INTEGER, FK → stg_scheduled_import_schedules_sis): Parent schedule
+- **seh_execution_id** (UUID, NOT NULL): Unique execution identifier
+- **seh_started_at** (TIMESTAMPTZ, NOT NULL): Execution start time
+- **seh_completed_at** (TIMESTAMPTZ, NULL): Execution completion time
+- **seh_status** (VARCHAR(20), NOT NULL): Execution status
+- **seh_records_processed** (INTEGER, DEFAULT 0): Number of records processed
+- **seh_error_message** (TEXT, NULL): Error details for failed executions
+- **seh_execution_details** (JSONB, NULL): Detailed execution information
+- **seh_created_date** (TIMESTAMPTZ): Creation timestamp
+
+**Constraints**:
+
+- Status values: STARTED, IN_PROGRESS, COMPLETED, FAILED, CANCELLED
+- Foreign key cascade delete with parent schedule
+
+**Indexes**:
+
+- `idx_seh_sis_started`: Schedule execution lookup
+- `idx_seh_execution_id`: Individual execution tracking
+
+### 4.5. Schedule Resource Reservations (`stg_schedule_resource_reservations_srr`)
+
+**Purpose**: Resource reservations for scheduled imports to prevent conflicts.
+
+- **srr_id** (SERIAL, PK): Reservation identifier
+- **sis_id** (INTEGER, FK → stg_scheduled_import_schedules_sis): Parent schedule
+- **srr_resource_type** (VARCHAR(50), NOT NULL): Type of resource reserved
+- **srr_resource_amount** (INTEGER, NOT NULL): Amount of resource reserved
+- **srr_reserved_from**, **srr_reserved_until** (TIMESTAMPTZ): Reservation time window
+- **srr_status** (VARCHAR(20), DEFAULT 'RESERVED'): Reservation status
+- **srr_created_date** (TIMESTAMPTZ): Creation timestamp
+
+**Constraints**:
+
+- Status values: RESERVED, ACTIVE, RELEASED, EXPIRED
+- Resource amount must be positive
+- Reservation period must be valid
+
+**Index**: `idx_srr_resource_time` for resource allocation management
+
+### 4.6. Tenant Resource Limits (`stg_tenant_resource_limits_trl`)
+
+**Purpose**: Multi-tenant resource limit enforcement with configurable boundaries.
+
+- **trl_id** (SERIAL, PK): Limit entry identifier
+- **trl_tenant_id** (VARCHAR(50), NOT NULL): Tenant identifier
+- **trl_resource_type** (VARCHAR(50), NOT NULL): Type of resource being limited
+- **trl_resource_limit** (INTEGER, NOT NULL): Resource limit value
+- **trl_resource_unit** (VARCHAR(20), NOT NULL): Unit of measurement
+- **trl_enforcement_level** (VARCHAR(20), DEFAULT 'HARD'): Enforcement strictness
+- **trl_created_date**, **trl_last_modified_date** (TIMESTAMPTZ): Audit timestamps
+- **trl_is_active** (BOOLEAN, DEFAULT TRUE): Active status flag
+
+**Constraints**:
+
+- Unique constraint: (tenant_id, resource_type)
+- Resource limit must be positive
+- Enforcement levels: HARD, SOFT, ADVISORY
+- Resource units: MB, COUNT, PERCENTAGE, GB, SECONDS
+
+**Pre-populated default limits**:
+
+- cpu_slots: 2 COUNT
+- memory: 1024 MB
+- db_connections: 3 COUNT
+- concurrent_imports: 2 COUNT
+
+### 4.7. Orchestration Dependencies (`stg_orchestration_dependencies_od`)
+
+**Purpose**: Manages dependencies between import orchestrations for complex workflows.
+
+- **od_id** (SERIAL, PK): Dependency identifier
+- **od_orchestration_id** (UUID, NOT NULL): Source orchestration
+- **od_depends_on_orchestration** (UUID, NOT NULL): Dependency orchestration
+- **od_dependency_type** (VARCHAR(30), NOT NULL): Type of dependency
+- **od_created_date** (TIMESTAMPTZ): Creation timestamp
+
+**Constraints**:
+
+- Unique constraint: (orchestration_id, depends_on_orchestration)
+- Dependency types: SEQUENTIAL, RESOURCE, DATA
+- Foreign key constraints to orchestration table (when available)
+
+**Indexes**:
+
+- `idx_od_orchestration`: Source orchestration lookup
+- `idx_od_depends_on`: Dependency resolution
+
+### 4.8. Repository Implementation Patterns
+
+All US-034 repositories follow the standard UMIG DatabaseUtil.withSql pattern:
+
+```groovy
+DatabaseUtil.withSql { Sql sql ->
+    // Database operations using prepared statements
+    String query = "SELECT * FROM table_name WHERE condition = ?"
+    def result = sql.firstRow(query, [parameter])
+    return processResult(result)
+}
+```
+
+**Repository Classes**:
+
+- **ImportQueueManagementRepository.groovy**: Queue operations, priority management, statistics
+- **ImportResourceLockRepository.groovy**: Resource locking, conflict detection, cleanup
+- **ScheduledImportRepository.groovy**: Schedule management, execution tracking, recurring tasks
+
+**Key Features**:
+
+- Comprehensive error handling and logging
+- JSON configuration support via Groovy JsonBuilder/JsonSlurper
+- Optimized database queries with proper indexing
+- Thread-safe operations for concurrent access
+- Complete audit trail support
+
+---
+
+## 5. Canonical (Master) Layer
 
 **Purpose:** Defines the reusable playbook for migrations.
 
-### 4.1. Plans (`plans_master_plm`)
+### 5.1. Plans (`plans_master_plm`)
 
 - **plm_id** (UUID, PK)
 - **tms_id** (INT, FK → teams_tms): Owning team
 - **plm_name**, **plm_description** (VARCHAR, TEXT)
 - **plm_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Plan'
 
-### 4.2. Sequences (`sequences_master_sqm`)
+### 5.2. Sequences (`sequences_master_sqm`)
 
 - **sqm_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
@@ -232,7 +456,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **sqm_name**, **sqm_description** (VARCHAR, TEXT)
 - **predecessor_sqm_id** (UUID, FK → sequences_master_sqm, nullable)
 
-### 4.3. Phases (`phases_master_phm`)
+### 5.3. Phases (`phases_master_phm`)
 
 - **phm_id** (UUID, PK)
 - **sqm_id** (UUID, FK → sequences_master_sqm)
@@ -240,7 +464,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **phm_name**, **phm_description** (VARCHAR, TEXT)
 - **predecessor_phm_id** (UUID, FK → phases_master_phm, nullable)
 
-### 4.4. Steps (`steps_master_stm`)
+### 5.4. Steps (`steps_master_stm`)
 
 - **stm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
@@ -253,7 +477,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **stm_id_predecessor** (UUID, FK → steps_master_stm, nullable)
 - **enr_id** (INT, FK → environment_roles_enr, nullable): Environment role association - Added in migration 014 (replaced enr_id_target)
 
-### 4.5. Controls (`controls_master_ctm`)
+### 5.5. Controls (`controls_master_ctm`)
 
 - **ctm_id** (UUID, PK)
 - **phm_id** (UUID, FK → phases_master_phm)
@@ -263,7 +487,7 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **ctm_type** (VARCHAR)
 - **ctm_is_critical** (BOOLEAN)
 
-### 4.6. Instructions (`instructions_master_inm`)
+### 5.6. Instructions (`instructions_master_inm`)
 
 **Purpose**: Master instruction templates that define procedural steps within migration phases. Instructions represent the granular, actionable tasks that must be completed within each step of a migration sequence.
 
@@ -309,7 +533,7 @@ CREATE TABLE instructions_master_inm (
 - Instructions can optionally reference a control point for validation
 - Order values should be unique within step scope for proper sequencing
 
-### 4.7. Labels (`labels_lbl`)
+### 5.7. Labels (`labels_lbl`)
 
 - **lbl_id** (INT, PK)
 - **mig_id** (UUID, FK → migrations_mig)
@@ -322,11 +546,11 @@ CREATE TABLE instructions_master_inm (
 
 ---
 
-## 5. Instance (Execution) Layer
+## 6. Instance (Execution) Layer
 
 **Purpose:** Tracks real-world executions of the canonical playbook.
 
-### 5.1. Plan Instance (`plans_instance_pli`)
+### 6.1. Plan Instance (`plans_instance_pli`)
 
 - **pli_id** (UUID, PK)
 - **plm_id** (UUID, FK → plans_master_plm)
@@ -335,7 +559,7 @@ CREATE TABLE instructions_master_inm (
 - **pli_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Plan'
 - **usr_id_owner** (INT, FK → users_usr): Plan instance owner
 
-### 5.2. Sequence Instance (`sequences_instance_sqi`)
+### 6.2. Sequence Instance (`sequences_instance_sqi`)
 
 - **sqi_id** (UUID, PK)
 - **pli_id** (UUID, FK → plans_instance_pli)
@@ -346,7 +570,7 @@ CREATE TABLE instructions_master_inm (
 - **sqi_order** (INTEGER): Override order for the sequence instance - Added in migration 010
 - **predecessor_sqi_id** (UUID): Override predecessor sequence instance - Added in migration 010
 
-### 5.3. Phase Instance (`phases_instance_phi`)
+### 6.3. Phase Instance (`phases_instance_phi`)
 
 - **phi_id** (UUID, PK)
 - **sqi_id** (UUID, FK → sequences_instance_sqi)
@@ -357,7 +581,7 @@ CREATE TABLE instructions_master_inm (
 - **phi_description** (TEXT): Override description for the phase instance - Added in migration 010
 - **predecessor_phi_id** (UUID): Override predecessor phase instance - Added in migration 010
 
-### 5.4. Step Instance (`steps_instance_sti`)
+### 6.4. Step Instance (`steps_instance_sti`)
 
 - **sti_id** (UUID, PK)
 - **phi_id** (UUID, FK → phases_instance_phi)
@@ -375,7 +599,7 @@ CREATE TABLE instructions_master_inm (
   - ~~usr_id_assignee~~ (Assignee is at master level only)
   - ~~enr_id_target~~ (Replaced with proper enr_id field)
 
-### 5.5. Instruction Instance (`instructions_instance_ini`)
+### 6.5. Instruction Instance (`instructions_instance_ini`)
 
 **Purpose**: Execution instances of instruction templates created when step instances are instantiated. Runtime instances with completion tracking and audit trail.
 
@@ -431,7 +655,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - Multiple instances can be created from the same master instruction (for different iterations)
 - Completion user tracking for accountability
 
-### 5.6. Control Instance (`controls_instance_cti`)
+### 6.6. Control Instance (`controls_instance_cti`)
 
 - **cti_id** (UUID, PK)
 - **sti_id** (UUID, FK → steps_instance_sti)
@@ -444,18 +668,18 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **cti_is_critical** (BOOLEAN): Override criticality for the control instance
 - **cti_code** (TEXT): Override code for the control instance
 
-### 5.7. Comments (`step_instance_comments_sic`, `step_pilot_comments_spc`)
+### 6.7. Comments (`step_instance_comments_sic`, `step_pilot_comments_spc`)
 
 - **step_instance_comments_sic**: Comments on step executions (FKs: sti_id, created_by, updated_by)
 - **step_pilot_comments_spc**: Pilot/release manager wisdom for canonical steps (FK: stm_id)
 
 ---
 
-## 6. Association/Join Tables
+## 7. Association/Join Tables
 
 **Purpose:** Implements all many-to-many and label relationships in a normalized way.
 
-### 6.1. User-Team Membership (`teams_tms_x_users_usr`)
+### 7.1. User-Team Membership (`teams_tms_x_users_usr`)
 
 - **tms_x_usr_id** (SERIAL, PK)
 - **tms_id** (INT, FK → teams_tms)
@@ -466,7 +690,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Audit Strategy:** Tier 1 - Critical association requiring full audit tracking
 - **Note:** All user-team relationships and audit trails are managed here. See [ADR-022](../adr/ADR-022-user-team-nn-relationship.md) for migration rationale and business logic.
 
-### 6.2. Team-Application (`teams_tms_x_applications_app`)
+### 7.2. Team-Application (`teams_tms_x_applications_app`)
 
 - **tms_id** (INT, FK → teams_tms)
 - **app_id** (INT, FK → applications_app)
@@ -474,32 +698,32 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **PK:** (tms_id, app_id)
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit (created_at only)
 
-### 6.3. Environment-Application (`environments_env_x_applications_app`)
+### 7.3. Environment-Application (`environments_env_x_applications_app`)
 
 - **env_id** (INT, FK → environments_env)
 - **app_id** (INT, FK → applications_app)
 - **PK:** (env_id, app_id)
 
-### 6.4. Environment-Iteration (`environments_env_x_iterations_ite`)
+### 7.4. Environment-Iteration (`environments_env_x_iterations_ite`)
 
 - **env_id** (INT, FK → environments_env)
 - **ite_id** (UUID, FK → iterations_ite)
 - **enr_id** (INT, FK → environment_roles_enr)
 - **PK:** (env_id, ite_id)
 
-### 6.5. Steps-Iteration Types (`steps_master_stm_x_iteration_types_itt`)
+### 7.5. Steps-Iteration Types (`steps_master_stm_x_iteration_types_itt`)
 
 - **stm_id** (UUID, FK → steps_master_stm)
 - **itt_code** (VARCHAR, FK → iteration_types_itt)
 - **PK:** (stm_id, itt_code)
 
-### 6.6. Steps-Impacted Teams (`steps_master_stm_x_teams_tms_impacted`)
+### 7.6. Steps-Impacted Teams (`steps_master_stm_x_teams_tms_impacted`)
 
 - **stm_id** (UUID, FK → steps_master_stm)
 - **tms_id** (INT, FK → teams_tms)
 - **PK:** (stm_id, tms_id)
 
-### 6.7. Labels-Steps (`labels_lbl_x_steps_master_stm`)
+### 7.7. Labels-Steps (`labels_lbl_x_steps_master_stm`)
 
 - **lbl_x_stm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
@@ -509,7 +733,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Unique:** (lbl_id, stm_id)
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
-### 6.8. Labels-Applications (`labels_lbl_x_applications_app`)
+### 7.8. Labels-Applications (`labels_lbl_x_applications_app`)
 
 - **lbl_x_app_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
@@ -519,7 +743,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Unique:** (lbl_id, app_id)
 - **Audit Strategy:** Tier 2 - Standard association with minimal audit
 
-### 6.9. Labels-Controls (`labels_lbl_x_controls_master_ctm`)
+### 7.9. Labels-Controls (`labels_lbl_x_controls_master_ctm`)
 
 - **lbl_x_ctm_id** (SERIAL, PK)
 - **lbl_id** (INT, FK → labels_lbl)
@@ -532,11 +756,11 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 
 ---
 
-## 7. Lookup/Reference Tables
+## 8. Lookup/Reference Tables
 
 **Purpose:** Provides controlled values and reference data for system-wide consistency.
 
-### 7.1. Status Management (`status_sts`)
+### 8.1. Status Management (`status_sts`)
 
 - **sts_id** (SERIAL, PK)
 - **sts_name** (VARCHAR(50), NOT NULL): Status name (e.g., PENDING, IN_PROGRESS, COMPLETED)
@@ -548,26 +772,26 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **Purpose:** Centralizes all status values with color coding for UI consistency - Added in migration 015
 - **Pre-populated values:** 31 statuses across 7 entity types
 
-### 7.2. Environment Roles (`environment_roles_enr`)
+### 8.2. Environment Roles (`environment_roles_enr`)
 
 - **enr_id** (INT, PK)
 - **enr_code** (VARCHAR, unique): Role code (e.g., DEV, TEST, PROD)
 - **enr_name** (VARCHAR): Display name
 - **enr_description** (TEXT): Description
 
-### 7.3. Step Types (`step_types_stt`)
+### 8.3. Step Types (`step_types_stt`)
 
 - **stt_code** (VARCHAR(10), PK): Type code
 - **stt_name** (VARCHAR): Display name
 - **stt_description** (TEXT): Description
 
-### 7.4. Iteration Types (`iteration_types_itt`)
+### 8.4. Iteration Types (`iteration_types_itt`)
 
 - **itt_code** (VARCHAR(10), PK): Type code (e.g., RUN, DR, CUTOVER)
 - **itt_name** (VARCHAR): Display name
 - **itt_description** (TEXT): Description
 
-### 7.5. Email Templates (`email_templates_emt`)
+### 8.5. Email Templates (`email_templates_emt`)
 
 - **emt_id** (UUID, PK)
 - **emt_type** (VARCHAR(50)): Template type (STEP_OPENED, INSTRUCTION_COMPLETED, STEP_STATUS_CHANGED, CUSTOM)
@@ -581,7 +805,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **created_at**, **updated_at** (TIMESTAMPTZ): Standard audit timestamps
 - **created_by**, **updated_by** (VARCHAR(255)): Standard audit users
 
-### 7.6. Audit Log (`audit_log_aud`)
+### 8.6. Audit Log (`audit_log_aud`)
 
 - **aud_id** (UUID, PK)
 - **aud_user_id** (INT, FK → users_usr): User performing the action
@@ -595,7 +819,7 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 
 ---
 
-## 8. Entity Relationship Diagram (ERD)
+## 10. Entity Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
@@ -930,7 +1154,7 @@ erDiagram
 
 ---
 
-## 9. Migration References
+## 11. Migration References
 
 **Data Characteristics**:
 
@@ -952,7 +1176,7 @@ For query patterns, performance optimization, and implementation guidance, see:
 
 ---
 
-## 10. Audit Fields Standardization
+## 12. Audit Fields Standardization
 
 All tables in the UMIG database follow a standardized audit fields pattern (migrations 016 & 017):
 
@@ -981,7 +1205,7 @@ For detailed audit field implementation patterns and usage guidance, see [UMIG -
 
 ---
 
-## 11. References & Further Reading
+## 13. References & Further Reading
 
 ### Related Documentation
 

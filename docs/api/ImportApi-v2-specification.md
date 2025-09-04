@@ -35,6 +35,8 @@ The API is designed to handle **enterprise-scale migration data** with advanced 
 
 ## Base Endpoints Summary
 
+### Core Import Operations
+
 | Method | Endpoint                         | Purpose                               | Auth Level |
 | ------ | -------------------------------- | ------------------------------------- | ---------- |
 | POST   | `/import/json`                   | Single JSON file import               | Admin      |
@@ -53,6 +55,18 @@ The API is designed to handle **enterprise-scale migration data** with advanced 
 | GET    | `/import/templates/{entity}`     | Download CSV templates                | Admin      |
 | DELETE | `/import/batch/{batchId}`        | Delete import batch                   | Admin      |
 | PUT    | `/import/batch/{batchId}/status` | Update batch status                   | Admin      |
+
+### US-034 Import Queue Management Operations (NEW)
+
+| Method | Endpoint                      | Purpose                            | Auth Level |
+| ------ | ----------------------------- | ---------------------------------- | ---------- |
+| GET    | `/import-queue`               | Get queue status and statistics    | User       |
+| POST   | `/import-queue`               | Submit import request to queue     | User       |
+| GET    | `/import-request/{requestId}` | Get import request status          | User       |
+| DELETE | `/import-request/{requestId}` | Cancel queued import request       | User       |
+| GET    | `/import-schedules`           | List import schedules              | User       |
+| POST   | `/import-schedules`           | Create scheduled import            | User       |
+| GET    | `/import-resources`           | Get resource utilization and locks | User       |
 
 ---
 
@@ -85,21 +99,35 @@ The API is designed to handle **enterprise-scale migration data** with advanced 
 | DELETE | /import/batch/{batchId}        | Rollback a specific import batch           | ✅ Implemented             |
 | PUT    | /import/batch/{batchId}/status | Update import batch status                 | ✅ Implemented             |
 
+### 2.2. US-034 Import Queue Management Endpoints (NEW)
+
+| Method | Path                        | Description                            | Status         |
+| ------ | --------------------------- | -------------------------------------- | -------------- |
+| GET    | /import-queue               | Get import queue status and statistics | ✅ Implemented |
+| POST   | /import-queue               | Submit import request to queue         | ✅ Implemented |
+| GET    | /import-request/{requestId} | Get import request status              | ✅ Implemented |
+| DELETE | /import-request/{requestId} | Cancel queued import request           | ✅ Implemented |
+| GET    | /import-schedules           | List import schedules                  | ✅ Implemented |
+| POST   | /import-schedules           | Create scheduled import                | ✅ Implemented |
+| GET    | /import-resources           | Get resource utilization and locks     | ✅ Implemented |
+
 ## 3. Request Details
 
 ### 3.1. Path Parameters
 
-| Name    | Type   | Required | Description                                                              |
-| ------- | ------ | -------- | ------------------------------------------------------------------------ |
-| batchId | UUID   | Yes      | Import batch identifier for operations                                   |
-| entity  | String | Yes      | Entity type for CSV templates (teams, users, applications, environments) |
+| Name      | Type   | Required | Description                                                              |
+| --------- | ------ | -------- | ------------------------------------------------------------------------ |
+| batchId   | UUID   | Yes      | Import batch identifier for operations                                   |
+| entity    | String | Yes      | Entity type for CSV templates (teams, users, applications, environments) |
+| requestId | UUID   | Yes      | Import request identifier for queue operations                           |
 
 ### 3.2. Query Parameters
 
-| Name   | Type    | Required | Description                                   |
-| ------ | ------- | -------- | --------------------------------------------- |
-| userId | String  | No       | Filter import history by username             |
-| limit  | Integer | No       | Limit number of history records (default: 50) |
+| Name       | Type    | Required | Description                                    |
+| ---------- | ------- | -------- | ---------------------------------------------- |
+| userId     | String  | No       | Filter import history or schedules by username |
+| limit      | Integer | No       | Limit number of records (default: 50)          |
+| activeOnly | Boolean | No       | Return only active schedules (default: true)   |
 
 ### 3.3. Request Body
 
@@ -278,6 +306,102 @@ team_name,team_description,team_lead
 ```json
 {
   "reason": "Data validation failed after import completion"
+}
+```
+
+### 3.4. US-034 Import Queue Request Bodies (NEW)
+
+#### Queue Import Request (POST /import-queue)
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "importType": "string (optional, default: COMPLETE_IMPORT)",
+  "priority": "number (optional, 1-10, default: 5)",
+  "configuration": {
+    "source": "string",
+    "content": "string",
+    "entities": ["string"],
+    "batchSize": "number (optional, default: 1000)"
+  },
+  "userId": "string (optional, default: system)"
+}
+```
+
+- **Example:**
+
+```json
+{
+  "importType": "JSON_IMPORT",
+  "priority": 3,
+  "configuration": {
+    "source": "migration-batch-queue.json",
+    "content": "{\"steps\": [{\"title\": \"Queued Database Setup\"}]}",
+    "batchSize": 500
+  },
+  "userId": "admin"
+}
+```
+
+#### Cancel Request (DELETE /import-request/{requestId})
+
+- **Content-Type:** application/json (optional)
+- **Schema:**
+
+```json
+{
+  "reason": "string (optional, default: User requested cancellation)"
+}
+```
+
+- **Example:**
+
+```json
+{
+  "reason": "Resource constraints detected, cancelling import"
+}
+```
+
+#### Create Schedule (POST /import-schedules)
+
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "scheduleName": "string",
+  "description": "string (optional)",
+  "scheduledTime": "number (Unix timestamp in milliseconds)",
+  "recurring": "boolean (optional, default: false)",
+  "recurringPattern": "string (optional, cron-like pattern)",
+  "priority": "number (optional, 1-10, default: 5)",
+  "importConfiguration": {
+    "importType": "string",
+    "source": "string",
+    "entities": ["string"]
+  },
+  "userId": "string (optional, default: system)"
+}
+```
+
+- **Example:**
+
+```json
+{
+  "scheduleName": "Daily Team Data Sync",
+  "description": "Automated daily synchronization of team data",
+  "scheduledTime": 1725465600000,
+  "recurring": true,
+  "recurringPattern": "0 2 * * *",
+  "priority": 3,
+  "importConfiguration": {
+    "importType": "CSV_IMPORT",
+    "source": "scheduled-teams-export.csv",
+    "entities": ["teams", "users"]
+  },
+  "userId": "admin"
 }
 ```
 
@@ -539,6 +663,241 @@ team_name,team_description,team_lead
   "reason": "Data validation failed after import completion",
   "rolledBackBy": "admin",
   "rollbackDate": "2025-09-03T14:30:15.123Z"
+}
+```
+
+### 4.3. US-034 Import Queue Success Responses (NEW)
+
+#### Queue Status Response (GET /import-queue)
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "timestamp": "string (ISO 8601 datetime)",
+  "queue": {
+    "totalRequests": "number",
+    "activeImports": "number",
+    "queuedRequests": "number",
+    "completedToday": "number"
+  },
+  "resources": {
+    "activeLocks": [
+      {
+        "resourceId": "string",
+        "lockedBy": "string (UUID)",
+        "lockedAt": "string (ISO 8601 datetime)"
+      }
+    ],
+    "memoryUtilization": "number",
+    "cpuUtilization": "number"
+  },
+  "system": {
+    "healthy": "boolean",
+    "throughput": "number",
+    "averageWaitTime": "number"
+  },
+  "recommendations": ["string"]
+}
+```
+
+- **Example:**
+
+```json
+{
+  "timestamp": "2025-09-04T14:30:00.000Z",
+  "queue": {
+    "totalRequests": 5,
+    "activeImports": 2,
+    "queuedRequests": 3,
+    "completedToday": 15
+  },
+  "resources": {
+    "activeLocks": [
+      {
+        "resourceId": "db_connection_1",
+        "lockedBy": "550e8400-e29b-41d4-a716-446655440000",
+        "lockedAt": "2025-09-04T14:25:00.000Z"
+      }
+    ],
+    "memoryUtilization": 65.5,
+    "cpuUtilization": 42.8
+  },
+  "system": {
+    "healthy": true,
+    "throughput": 12.5,
+    "averageWaitTime": 120
+  },
+  "recommendations": ["System operating within normal parameters"]
+}
+```
+
+#### Queue Submission Response (POST /import-queue)
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "success": "boolean",
+  "requestId": "string (UUID)",
+  "queuePosition": "number",
+  "estimatedWaitTime": "number (seconds)",
+  "estimatedDuration": "number (seconds)",
+  "priority": "number"
+}
+```
+
+- **Example:**
+
+```json
+{
+  "success": true,
+  "requestId": "550e8400-e29b-41d4-a716-446655440000",
+  "queuePosition": 3,
+  "estimatedWaitTime": 180,
+  "estimatedDuration": 300,
+  "priority": 5
+}
+```
+
+#### Import Request Status Response (GET /import-request/{requestId})
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "requestId": "string (UUID)",
+  "status": "string (QUEUED|IN_PROGRESS|COMPLETED|FAILED|CANCELLED)",
+  "priority": "number",
+  "queuePosition": "number (null if not queued)",
+  "progress": {
+    "percentage": "number",
+    "recordsProcessed": "number",
+    "totalRecords": "number",
+    "startedAt": "string (ISO 8601 datetime)",
+    "estimatedCompletion": "string (ISO 8601 datetime)"
+  }
+}
+```
+
+- **Example:**
+
+```json
+{
+  "requestId": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "IN_PROGRESS",
+  "priority": 5,
+  "queuePosition": null,
+  "progress": {
+    "percentage": 75.5,
+    "recordsProcessed": 755,
+    "totalRecords": 1000,
+    "startedAt": "2025-09-04T14:20:00.000Z",
+    "estimatedCompletion": "2025-09-04T14:35:00.000Z"
+  }
+}
+```
+
+#### Schedule Creation Response (POST /import-schedules)
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "success": "boolean",
+  "scheduleId": "string (UUID)",
+  "scheduleName": "string",
+  "scheduledTime": "string (ISO 8601 datetime)",
+  "nextExecution": "string (ISO 8601 datetime, for recurring)",
+  "message": "string"
+}
+```
+
+- **Example:**
+
+```json
+{
+  "success": true,
+  "scheduleId": "550e8400-e29b-41d4-a716-446655440001",
+  "scheduleName": "Daily Team Data Sync",
+  "scheduledTime": "2025-09-05T02:00:00.000Z",
+  "nextExecution": "2025-09-06T02:00:00.000Z",
+  "message": "Schedule created successfully"
+}
+```
+
+#### Import Schedules Response (GET /import-schedules)
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "schedules": [
+    {
+      "scheduleId": "string (UUID)",
+      "scheduleName": "string",
+      "description": "string",
+      "scheduledTime": "string (ISO 8601 datetime)",
+      "recurring": "boolean",
+      "recurringPattern": "string",
+      "status": "string (ACTIVE|INACTIVE|COMPLETED|FAILED)",
+      "lastExecution": "string (ISO 8601 datetime)",
+      "nextExecution": "string (ISO 8601 datetime)",
+      "createdBy": "string"
+    }
+  ],
+  "statistics": {
+    "totalSchedules": "number",
+    "activeSchedules": "number",
+    "recurringSchedules": "number",
+    "schedulesExecutedToday": "number"
+  }
+}
+```
+
+#### Resource Status Response (GET /import-resources)
+
+- **Status Code:** 200 OK
+- **Content-Type:** application/json
+- **Schema:**
+
+```json
+{
+  "timestamp": "string (ISO 8601 datetime)",
+  "resourceLocks": [
+    {
+      "lockId": "string (UUID)",
+      "resourceType": "string",
+      "resourceId": "string",
+      "lockedBy": "string (UUID)",
+      "lockedAt": "string (ISO 8601 datetime)",
+      "expiresAt": "string (ISO 8601 datetime)"
+    }
+  ],
+  "systemStatus": {
+    "memoryUtilizationPercent": "number",
+    "cpuUtilizationPercent": "number",
+    "activeConnections": "number",
+    "maxConnections": "number",
+    "diskSpaceUsedPercent": "number"
+  },
+  "queueStatistics": {
+    "totalQueued": "number",
+    "highPriorityQueued": "number",
+    "averageWaitTime": "number",
+    "throughputLastHour": "number"
+  },
+  "recommendations": ["string"]
 }
 ```
 
@@ -1010,6 +1369,122 @@ curl -X POST /rest/scriptrunner/latest/custom/import/rollback/550e8400-e29b-41d4
   -d '{
     "reason": "Data validation failed after import completion"
   }'
+```
+
+### US-034 Import Queue Management Examples (NEW)
+
+#### Get Queue Status
+
+```bash
+curl -X GET /rest/scriptrunner/latest/custom/import-queue \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Submit Import Request to Queue
+
+```bash
+curl -X POST /rest/scriptrunner/latest/custom/import-queue \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "importType": "JSON_IMPORT",
+    "priority": 3,
+    "configuration": {
+      "source": "migration-queue-batch.json",
+      "content": "{\"steps\": [{\"title\": \"Queued Database Setup\", \"instructions\": [{\"text\": \"Configure database\", \"order\": 1}]}]}",
+      "batchSize": 500
+    },
+    "userId": "admin"
+  }'
+```
+
+#### Get Import Request Status
+
+```bash
+curl -X GET /rest/scriptrunner/latest/custom/import-request/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Cancel Import Request
+
+```bash
+curl -X DELETE /rest/scriptrunner/latest/custom/import-request/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "reason": "Resource constraints detected, cancelling import"
+  }'
+```
+
+#### List Import Schedules
+
+```bash
+# Get all schedules for current user
+curl -X GET /rest/scriptrunner/latest/custom/import-schedules \
+  -H "Authorization: Bearer <token>"
+
+# Get schedules with filtering
+curl -X GET "/rest/scriptrunner/latest/custom/import-schedules?userId=admin&limit=20&activeOnly=true" \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Create Scheduled Import
+
+```bash
+curl -X POST /rest/scriptrunner/latest/custom/import-schedules \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "scheduleName": "Daily Team Data Sync",
+    "description": "Automated daily synchronization of team data",
+    "scheduledTime": 1725465600000,
+    "recurring": true,
+    "recurringPattern": "0 2 * * *",
+    "priority": 3,
+    "importConfiguration": {
+      "importType": "CSV_IMPORT",
+      "source": "scheduled-teams-export.csv",
+      "entities": ["teams", "users"]
+    },
+    "userId": "admin"
+  }'
+```
+
+#### Get Resource Status and Utilization
+
+```bash
+curl -X GET /rest/scriptrunner/latest/custom/import-resources \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Queue Management Workflow Example
+
+```bash
+# 1. Check queue status
+curl -X GET /rest/scriptrunner/latest/custom/import-queue \
+  -H "Authorization: Bearer <token>"
+
+# 2. Submit high-priority import
+curl -X POST /rest/scriptrunner/latest/custom/import-queue \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{
+    "importType": "COMPLETE_IMPORT",
+    "priority": 2,
+    "configuration": {
+      "source": "urgent-migration.json",
+      "content": "{\"steps\": [{\"title\": \"Urgent Migration Step\"}]}",
+      "batchSize": 1000
+    }
+  }'
+
+# 3. Monitor request progress (use requestId from step 2)
+curl -X GET /rest/scriptrunner/latest/custom/import-request/{requestId} \
+  -H "Authorization: Bearer <token>"
+
+# 4. Check resource utilization
+curl -X GET /rest/scriptrunner/latest/custom/import-resources \
+  -H "Authorization: Bearer <token>"
 ```
 
 ## 14. Notes

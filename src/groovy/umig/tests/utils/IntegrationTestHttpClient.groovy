@@ -96,6 +96,32 @@ class IntegrationTestHttpClient {
     }
     
     /**
+     * Execute POST request with custom timeout
+     * @param endpoint API endpoint (relative to baseUrl)
+     * @param payload Request payload (will be converted to JSON)
+     * @param customTimeoutMs Custom timeout in milliseconds
+     * @return HttpResponse object with status, body, and timing information
+     */
+    HttpResponse postWithTimeout(String endpoint, Object payload, int customTimeoutMs) {
+        def url = buildUrl(endpoint, [:])
+        def jsonPayload = payload ? new JsonBuilder(payload).toString() : null
+        return executeRequestWithTimeout(url, "POST", jsonPayload, customTimeoutMs)
+    }
+    
+    /**
+     * Execute PUT request with custom timeout
+     * @param endpoint API endpoint (relative to baseUrl)
+     * @param payload Request payload (will be converted to JSON)
+     * @param customTimeoutMs Custom timeout in milliseconds
+     * @return HttpResponse object with status, body, and timing information
+     */
+    HttpResponse putWithTimeout(String endpoint, Object payload, int customTimeoutMs) {
+        def url = buildUrl(endpoint, [:])
+        def jsonPayload = payload ? new JsonBuilder(payload).toString() : null
+        return executeRequestWithTimeout(url, "PUT", jsonPayload, customTimeoutMs)
+    }
+    
+    /**
      * Execute HTTP request with comprehensive error handling and timing
      * @param url Complete URL for the request
      * @param method HTTP method (GET, POST, PUT, DELETE)
@@ -112,6 +138,82 @@ class IntegrationTestHttpClient {
             connection.requestMethod = method
             connection.connectTimeout = timeoutMs
             connection.readTimeout = timeoutMs
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.setRequestProperty("Accept", "application/json")
+            
+            // Configure authentication
+            AuthenticationHelper.configureAuthentication(connection)
+            
+            // Send payload if present
+            if (jsonPayload && (method == "POST" || method == "PUT")) {
+                connection.doOutput = true
+                connection.outputStream.withWriter("UTF-8") { writer ->
+                    writer.write(jsonPayload)
+                    writer.flush()
+                }
+            }
+            
+            // Execute request and measure timing
+            def responseTime = System.currentTimeMillis() - startTime
+            def statusCode = connection.responseCode
+            def responseBody = ""
+            
+            // Read response body
+            try {
+                if (statusCode >= 200 && statusCode < 300) {
+                    responseBody = connection.inputStream.text
+                } else {
+                    responseBody = connection.errorStream?.text ?: ""
+                }
+            } catch (IOException e) {
+                responseBody = "Error reading response: ${e.message}"
+            }
+            
+            def totalTime = System.currentTimeMillis() - startTime
+            
+            return new HttpResponse(
+                statusCode: statusCode,
+                body: responseBody,
+                responseTimeMs: totalTime,
+                url: url,
+                method: method,
+                success: statusCode >= 200 && statusCode < 300
+            )
+            
+        } catch (Exception e) {
+            def totalTime = System.currentTimeMillis() - startTime
+            return new HttpResponse(
+                statusCode: -1,
+                body: "Connection error: ${AuthenticationHelper.sanitizeErrorMessage(e.message)}",
+                responseTimeMs: totalTime,
+                url: url,
+                method: method,
+                success: false,
+                exception: e
+            )
+        } finally {
+            connection?.disconnect()
+        }
+    }
+    
+    /**
+     * Execute HTTP request with custom timeout and comprehensive error handling
+     * @param url Complete URL for the request
+     * @param method HTTP method (GET, POST, PUT, DELETE)
+     * @param jsonPayload JSON payload for request body (optional)
+     * @param customTimeoutMs Custom timeout in milliseconds
+     * @return HttpResponse object with all response details
+     */
+    private HttpResponse executeRequestWithTimeout(String url, String method, String jsonPayload, int customTimeoutMs) {
+        def startTime = System.currentTimeMillis()
+        HttpURLConnection connection = null
+        
+        try {
+            // Setup connection
+            connection = new URL(url).openConnection() as HttpURLConnection
+            connection.requestMethod = method
+            connection.connectTimeout = customTimeoutMs
+            connection.readTimeout = customTimeoutMs
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("Accept", "application/json")
             

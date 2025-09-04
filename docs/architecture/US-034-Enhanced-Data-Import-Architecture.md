@@ -39,6 +39,7 @@
 **COMPLETE SOLUTION DELIVERED**: Enterprise-grade import queue management with persistent job tracking, resource coordination, and comprehensive monitoring capabilities.
 
 **Key Achievements**:
+
 - Database-backed queue system with 7 specialized tables
 - Resource conflict prevention with granular locking
 - Real-time job status tracking and progress monitoring
@@ -47,7 +48,7 @@
 
 ### 1.2 Implemented Architecture
 
-#### 1.2.1 ✅ Implemented Database Schema (7 Tables with stg_ prefix)
+#### 1.2.1 ✅ Implemented Database Schema (7 Tables with stg\_ prefix)
 
 **All tables implemented with proper UMIG patterns and optimization:**
 
@@ -64,7 +65,7 @@ CREATE TABLE stg_import_queue (
     INDEX idx_status_priority (status, priority DESC, created_date)
 );
 
--- 2. Resource Coordination and Locking  
+-- 2. Resource Coordination and Locking
 CREATE TABLE stg_import_resources (
     resource_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     entity_id VARCHAR(100) NOT NULL,
@@ -134,12 +135,12 @@ CREATE TABLE stg_scheduled_imports (
 ```groovy
 // 1. ImportQueueManagementRepository.groovy
 class ImportQueueManagementRepository {
-    
+
     // Create import job with validation and queuing
     Map createJob(Map jobConfig) {
         return DatabaseUtil.withSql { sql ->
             def result = sql.executeInsert("""
-                INSERT INTO stg_import_queue 
+                INSERT INTO stg_import_queue
                 (job_id, priority, status, config_json, created_date, scheduled_date)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, [
@@ -153,19 +154,19 @@ class ImportQueueManagementRepository {
             return [success: true, jobId: result[0][0]]
         }
     }
-    
+
     // Get jobs with advanced filtering and pagination
-    List<Map> getJobs(String status = null, Integer priority = null, 
+    List<Map> getJobs(String status = null, Integer priority = null,
                       Date fromDate = null, Date toDate = null, Integer limit = 50) {
         return DatabaseUtil.withSql { sql ->
             String query = """
-                SELECT job_id, priority, status, config_json, 
+                SELECT job_id, priority, status, config_json,
                        created_date, scheduled_date, started_date, completed_date
-                FROM stg_import_queue 
+                FROM stg_import_queue
                 WHERE 1=1
             """
             List<Object> params = []
-            
+
             if (status) {
                 query += " AND status = ?"
                 params.add(status)
@@ -182,22 +183,22 @@ class ImportQueueManagementRepository {
                 query += " AND created_date <= ?"
                 params.add(new Timestamp(toDate.time))
             }
-            
+
             query += " ORDER BY priority DESC, created_date ASC LIMIT ?"
             params.add(limit)
-            
+
             return sql.rows(query, params)
         }
     }
-    
+
     // Resource allocation and capacity planning
     Map getCapacityStatus() {
         return DatabaseUtil.withSql { sql ->
             def activeJobs = sql.firstRow("""
-                SELECT COUNT(*) as active_count FROM stg_import_queue 
+                SELECT COUNT(*) as active_count FROM stg_import_queue
                 WHERE status IN ('PROCESSING', 'QUEUED')
             """)
-            
+
             def systemLoad = sql.firstRow("""
                 SELECT AVG(progress_percent) as avg_progress,
                        COUNT(*) as total_jobs_today
@@ -205,7 +206,7 @@ class ImportQueueManagementRepository {
                 JOIN stg_import_queue iq ON ic.job_id = iq.job_id
                 WHERE DATE(ic.created_date) = CURRENT_DATE
             """)
-            
+
             return [
                 activeJobs: activeJobs.active_count,
                 averageProgress: systemLoad.avg_progress ?: 0,
@@ -216,15 +217,15 @@ class ImportQueueManagementRepository {
     }
 }
 
-// 2. ImportResourceLockRepository.groovy  
+// 2. ImportResourceLockRepository.groovy
 class ImportResourceLockRepository {
-    
+
     // Acquire resource lock with conflict detection
     Map acquireLock(String entityId, String lockType, String lockedBy, int durationMinutes = 5) {
         return DatabaseUtil.withSql { sql ->
             try {
                 sql.executeInsert("""
-                    INSERT INTO stg_import_resources 
+                    INSERT INTO stg_import_resources
                     (resource_id, entity_id, lock_type, locked_by, locked_at, expires_at)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """, [
@@ -244,25 +245,25 @@ class ImportResourceLockRepository {
             }
         }
     }
-    
+
     // Release lock with cleanup
     Map releaseLock(String entityId, String lockedBy) {
         return DatabaseUtil.withSql { sql ->
             int updated = sql.executeUpdate("""
-                UPDATE stg_import_resources 
-                SET expires_at = CURRENT_TIMESTAMP 
+                UPDATE stg_import_resources
+                SET expires_at = CURRENT_TIMESTAMP
                 WHERE entity_id = ? AND locked_by = ? AND expires_at > CURRENT_TIMESTAMP
             """, [entityId, lockedBy])
-            
+
             return [success: updated > 0, released: updated > 0]
         }
     }
-    
+
     // Cleanup expired locks
     int cleanupExpiredLocks() {
         return DatabaseUtil.withSql { sql ->
             return sql.executeUpdate("""
-                DELETE FROM stg_import_resources 
+                DELETE FROM stg_import_resources
                 WHERE expires_at <= CURRENT_TIMESTAMP
             """)
         }
@@ -271,24 +272,24 @@ class ImportResourceLockRepository {
 
 // 3. ScheduledImportRepository.groovy
 class ScheduledImportRepository {
-    
+
     // Create scheduled import with cron expression
     Map createSchedule(String name, String description, Timestamp scheduledTime,
                        Boolean recurring, String recurringPattern, Map jobConfig,
                        String userId, Integer priority = 5) {
         return DatabaseUtil.withSql { sql ->
             def scheduleId = UUID.randomUUID().toString()
-            
+
             sql.executeInsert("""
-                INSERT INTO stg_scheduled_imports 
-                (schedule_id, name, description, scheduled_time, recurring, 
+                INSERT INTO stg_scheduled_imports
+                (schedule_id, name, description, scheduled_time, recurring,
                  recurring_pattern, job_config, created_by, priority, is_active)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, [
                 scheduleId, name, description, scheduledTime, recurring,
                 recurringPattern, JsonOutput.toJson(jobConfig), userId, priority, true
             ])
-            
+
             return [
                 success: true,
                 scheduleId: scheduleId,
@@ -296,7 +297,7 @@ class ScheduledImportRepository {
             ]
         }
     }
-    
+
     // Get schedules by user with filtering
     List<Map> getSchedulesByUser(String userId, Integer limit = 50, Boolean activeOnly = true) {
         return DatabaseUtil.withSql { sql ->
@@ -307,23 +308,23 @@ class ScheduledImportRepository {
                 WHERE created_by = ?
             """
             List<Object> params = [userId]
-            
+
             if (activeOnly) {
                 query += " AND is_active = true"
             }
-            
+
             query += " ORDER BY scheduled_time ASC LIMIT ?"
             params.add(limit)
-            
+
             return sql.rows(query, params)
         }
     }
-    
+
     // Schedule statistics and analytics
     Map getScheduleStatistics() {
         return DatabaseUtil.withSql { sql ->
             def stats = sql.firstRow("""
-                SELECT 
+                SELECT
                     COUNT(*) as total_schedules,
                     COUNT(CASE WHEN is_active = true THEN 1 END) as active_schedules,
                     COUNT(CASE WHEN recurring = true THEN 1 END) as recurring_schedules,
@@ -331,7 +332,7 @@ class ScheduledImportRepository {
                 FROM stg_scheduled_imports
                 WHERE is_active = true AND scheduled_time > CURRENT_TIMESTAMP
             """)
-            
+
             return [
                 totalSchedules: stats.total_schedules,
                 activeSchedules: stats.active_schedules,
@@ -355,12 +356,12 @@ importQueue(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap q
     try {
         def requestData = new JsonSlurper().parseText(body)
         def queueRepository = new ImportQueueManagementRepository()
-        
+
         // Validate required fields with ADR-031 type safety
         String importType = requestData.importType as String
         Integer priority = requestData.priority ? Integer.parseInt(requestData.priority as String) : 5
         Map importConfiguration = requestData.importConfiguration as Map
-        
+
         // Create job with validation
         Map result = queueRepository.createJob([
             importType: importType,
@@ -368,7 +369,7 @@ importQueue(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap q
             configuration: importConfiguration,
             userId: getCurrentUser()
         ])
-        
+
         return Response.ok(new JsonBuilder(result).toString()).build()
     } catch (Exception e) {
         return Response.status(Response.Status.BAD_REQUEST)
@@ -377,25 +378,25 @@ importQueue(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap q
     }
 }
 
-// 2. GET /api/v2/import-queue - List jobs with filtering  
+// 2. GET /api/v2/import-queue - List jobs with filtering
 importQueue(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams ->
     try {
         def queueRepository = new ImportQueueManagementRepository()
-        
+
         // Parse query parameters with explicit casting per ADR-031
         String status = queryParams.getFirst("status") as String
         Integer priority = queryParams.getFirst("priority") ? Integer.parseInt(queryParams.getFirst("priority") as String) : null
         Integer limit = queryParams.getFirst("limit") ? Integer.parseInt(queryParams.getFirst("limit") as String) : 50
-        
+
         List<Map> jobs = queueRepository.getJobs(status, priority, null, null, limit)
         Map capacityStatus = queueRepository.getCapacityStatus()
-        
+
         Map result = [
             jobs: jobs,
             totalCount: jobs.size(),
             capacity: capacityStatus
         ]
-        
+
         return Response.ok(new JsonBuilder(result).toString()).build()
     } catch (Exception e) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -409,14 +410,14 @@ importQueueJob(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
     try {
         String jobId = queryParams.getFirst("jobId") as String
         def queueRepository = new ImportQueueManagementRepository()
-        
+
         Map jobDetails = queueRepository.getJobDetails(jobId)
         if (!jobDetails) {
             return Response.status(Response.Status.NOT_FOUND)
                 .entity(new JsonBuilder([error: "Job not found"]).toString())
                 .build()
         }
-        
+
         return Response.ok(new JsonBuilder(jobDetails).toString()).build()
     } catch (Exception e) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -431,7 +432,7 @@ importQueueJob(httpMethod: "PUT", groups: ["confluence-users"]) { MultivaluedMap
         String jobId = queryParams.getFirst("jobId") as String
         def updateData = new JsonSlurper().parseText(body)
         def queueRepository = new ImportQueueManagementRepository()
-        
+
         Map result = queueRepository.updateJob(jobId, updateData)
         return Response.ok(new JsonBuilder(result).toString()).build()
     } catch (Exception e) {
@@ -446,7 +447,7 @@ importQueueJob(httpMethod: "DELETE", groups: ["confluence-users"]) { Multivalued
     try {
         String jobId = queryParams.getFirst("jobId") as String
         def queueRepository = new ImportQueueManagementRepository()
-        
+
         Map result = queueRepository.cancelJob(jobId, getCurrentUser())
         return Response.ok(new JsonBuilder(result).toString()).build()
     } catch (Exception e) {
@@ -462,7 +463,7 @@ importQueueExecute(httpMethod: "POST", groups: ["confluence-users"]) { Multivalu
         String jobId = queryParams.getFirst("jobId") as String
         def queueRepository = new ImportQueueManagementRepository()
         def orchestrationService = new ImportOrchestrationService()
-        
+
         // Get job configuration
         Map jobDetails = queueRepository.getJobDetails(jobId)
         if (!jobDetails || jobDetails.status != 'QUEUED') {
@@ -470,11 +471,11 @@ importQueueExecute(httpMethod: "POST", groups: ["confluence-users"]) { Multivalu
                 .entity(new JsonBuilder([error: "Job not available for execution"]).toString())
                 .build()
         }
-        
+
         // Start execution
         Map executionResult = orchestrationService.executeQueuedJob(jobId, jobDetails.configuration)
         return Response.ok(new JsonBuilder(executionResult).toString()).build()
-        
+
     } catch (Exception e) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .entity(new JsonBuilder([error: "Failed to start job execution"]).toString())
@@ -487,17 +488,17 @@ importQueueStatus(httpMethod: "GET", groups: ["confluence-users"]) { Multivalued
     try {
         def queueRepository = new ImportQueueManagementRepository()
         def resourceRepository = new ImportResourceLockRepository()
-        
+
         Map queueStatus = queueRepository.getCapacityStatus()
         Map resourceStatus = resourceRepository.getResourceUtilization()
-        
+
         Map result = [
             queue: queueStatus,
             resources: resourceStatus,
             systemHealth: getSystemHealthStatus(),
             timestamp: new Timestamp(System.currentTimeMillis()).toString()
         ]
-        
+
         return Response.ok(new JsonBuilder(result).toString()).build()
     } catch (Exception e) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -513,7 +514,7 @@ importSchedules(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMa
 }
 
 importSchedules(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body ->
-    // Implementation matches the actual code in ImportQueueApi.groovy  
+    // Implementation matches the actual code in ImportQueueApi.groovy
     // Creates new scheduled import with validation
 }
 ```
@@ -525,25 +526,24 @@ importSchedules(httpMethod: "POST", groups: ["confluence-users"]) { MultivaluedM
 ```javascript
 // Import Queue Management GUI - Complete Admin Integration
 class ImportQueueGUI {
-    
-    constructor() {
-        this.refreshInterval = null;
-        this.currentFilter = 'all';
-        this.isLoading = false;
-    }
-    
-    // Initialize the import queue interface
-    init() {
-        this.createQueueInterface();
-        this.loadInitialData();
-        this.setupEventListeners();
-        this.startRealTimeUpdates();
-    }
-    
-    // Create the main queue management interface
-    createQueueInterface() {
-        const container = document.getElementById('import-queue-container');
-        container.innerHTML = `
+  constructor() {
+    this.refreshInterval = null;
+    this.currentFilter = "all";
+    this.isLoading = false;
+  }
+
+  // Initialize the import queue interface
+  init() {
+    this.createQueueInterface();
+    this.loadInitialData();
+    this.setupEventListeners();
+    this.startRealTimeUpdates();
+  }
+
+  // Create the main queue management interface
+  createQueueInterface() {
+    const container = document.getElementById("import-queue-container");
+    container.innerHTML = `
             <div class="import-queue-header">
                 <h2>Import Queue Management</h2>
                 <div class="queue-actions">
@@ -617,35 +617,36 @@ class ImportQueueGUI {
                 </nav>
             </div>
         `;
+  }
+
+  // Load initial queue data
+  async loadInitialData() {
+    this.isLoading = true;
+    try {
+      const response = await fetch(
+        "/rest/scriptrunner/latest/custom/importQueue",
+      );
+      const data = await response.json();
+
+      this.updateQueueTable(data.jobs);
+      this.updateSystemStatus(data.capacity);
+    } catch (error) {
+      console.error("Failed to load queue data:", error);
+      this.showError("Failed to load import queue data");
+    } finally {
+      this.isLoading = false;
     }
-    
-    // Load initial queue data
-    async loadInitialData() {
-        this.isLoading = true;
-        try {
-            const response = await fetch('/rest/scriptrunner/latest/custom/importQueue');
-            const data = await response.json();
-            
-            this.updateQueueTable(data.jobs);
-            this.updateSystemStatus(data.capacity);
-            
-        } catch (error) {
-            console.error('Failed to load queue data:', error);
-            this.showError('Failed to load import queue data');
-        } finally {
-            this.isLoading = false;
-        }
-    }
-    
-    // Update the queue table with job data
-    updateQueueTable(jobs) {
-        const tbody = document.getElementById('queue-table-body');
-        tbody.innerHTML = '';
-        
-        jobs.forEach(job => {
-            const row = document.createElement('tr');
-            row.className = `job-row status-${job.status.toLowerCase()}`;
-            row.innerHTML = `
+  }
+
+  // Update the queue table with job data
+  updateQueueTable(jobs) {
+    const tbody = document.getElementById("queue-table-body");
+    tbody.innerHTML = "";
+
+    jobs.forEach((job) => {
+      const row = document.createElement("tr");
+      row.className = `job-row status-${job.status.toLowerCase()}`;
+      row.innerHTML = `
                 <td>
                     <span class="job-id" title="${job.jobId}">${job.jobId.substring(0, 8)}...</span>
                 </td>
@@ -659,14 +660,14 @@ class ImportQueueGUI {
                         ${job.status}
                     </span>
                 </td>
-                <td>${job.importType || 'JSON_IMPORT'}</td>
+                <td>${job.importType || "JSON_IMPORT"}</td>
                 <td>
                     <span title="${job.createdDate}">
                         ${this.formatDate(job.createdDate)}
                     </span>
                 </td>
                 <td>
-                    ${job.scheduledDate ? this.formatDate(job.scheduledDate) : '-'}
+                    ${job.scheduledDate ? this.formatDate(job.scheduledDate) : "-"}
                 </td>
                 <td>
                     <div class="progress-container">
@@ -687,72 +688,84 @@ class ImportQueueGUI {
                     </div>
                 </td>
             `;
-            tbody.appendChild(row);
-        });
+      tbody.appendChild(row);
+    });
+  }
+
+  // Update system status panel
+  updateSystemStatus(capacity) {
+    document.getElementById("active-jobs").textContent =
+      capacity.activeJobs || 0;
+    document.getElementById("available-slots").textContent =
+      capacity.availableSlots || 0;
+    document.getElementById("queue-length").textContent =
+      capacity.queueLength || 0;
+    document.getElementById("avg-progress").textContent = Math.round(
+      capacity.averageProgress || 0,
+    );
+    document.getElementById("jobs-today").textContent =
+      capacity.totalJobsToday || 0;
+  }
+
+  // Setup event listeners
+  setupEventListeners() {
+    // Filter changes
+    document.getElementById("status-filter").addEventListener("change", (e) => {
+      this.applyFilters();
+    });
+
+    document
+      .getElementById("priority-filter")
+      .addEventListener("change", (e) => {
+        this.applyFilters();
+      });
+
+    // Action buttons
+    document.getElementById("create-job-btn").addEventListener("click", () => {
+      this.showCreateJobModal();
+    });
+
+    document
+      .getElementById("refresh-queue-btn")
+      .addEventListener("click", () => {
+        this.loadInitialData();
+      });
+  }
+
+  // Start real-time updates (every 5 seconds)
+  startRealTimeUpdates() {
+    this.refreshInterval = setInterval(() => {
+      if (!this.isLoading) {
+        this.loadInitialData();
+      }
+    }, 5000);
+  }
+
+  // Apply filters to queue data
+  async applyFilters() {
+    const statusFilter = document.getElementById("status-filter").value;
+    const priorityFilter = document.getElementById("priority-filter").value;
+
+    let params = new URLSearchParams();
+    if (statusFilter !== "all") params.append("status", statusFilter);
+    if (priorityFilter !== "all") params.append("priority", priorityFilter);
+
+    try {
+      const response = await fetch(
+        `/rest/scriptrunner/latest/custom/importQueue?${params.toString()}`,
+      );
+      const data = await response.json();
+      this.updateQueueTable(data.jobs);
+    } catch (error) {
+      console.error("Failed to apply filters:", error);
     }
-    
-    // Update system status panel
-    updateSystemStatus(capacity) {
-        document.getElementById('active-jobs').textContent = capacity.activeJobs || 0;
-        document.getElementById('available-slots').textContent = capacity.availableSlots || 0;
-        document.getElementById('queue-length').textContent = capacity.queueLength || 0;
-        document.getElementById('avg-progress').textContent = Math.round(capacity.averageProgress || 0);
-        document.getElementById('jobs-today').textContent = capacity.totalJobsToday || 0;
-    }
-    
-    // Setup event listeners
-    setupEventListeners() {
-        // Filter changes
-        document.getElementById('status-filter').addEventListener('change', (e) => {
-            this.applyFilters();
-        });
-        
-        document.getElementById('priority-filter').addEventListener('change', (e) => {
-            this.applyFilters();
-        });
-        
-        // Action buttons
-        document.getElementById('create-job-btn').addEventListener('click', () => {
-            this.showCreateJobModal();
-        });
-        
-        document.getElementById('refresh-queue-btn').addEventListener('click', () => {
-            this.loadInitialData();
-        });
-    }
-    
-    // Start real-time updates (every 5 seconds)
-    startRealTimeUpdates() {
-        this.refreshInterval = setInterval(() => {
-            if (!this.isLoading) {
-                this.loadInitialData();
-            }
-        }, 5000);
-    }
-    
-    // Apply filters to queue data
-    async applyFilters() {
-        const statusFilter = document.getElementById('status-filter').value;
-        const priorityFilter = document.getElementById('priority-filter').value;
-        
-        let params = new URLSearchParams();
-        if (statusFilter !== 'all') params.append('status', statusFilter);
-        if (priorityFilter !== 'all') params.append('priority', priorityFilter);
-        
-        try {
-            const response = await fetch(`/rest/scriptrunner/latest/custom/importQueue?${params.toString()}`);
-            const data = await response.json();
-            this.updateQueueTable(data.jobs);
-        } catch (error) {
-            console.error('Failed to apply filters:', error);
-        }
-    }
-    
-    // Get appropriate actions for a job based on its status
-    getJobActions(job) {
-        switch (job.status) {
-            case 'QUEUED':
-                return `
+  }
+
+  // Get appropriate actions for a job based on its status
+  getJobActions(job) {
+    switch (job.status) {
+      case "QUEUED":
+        return `
                     <button class="btn btn-sm btn-success" onclick="importQueueGUI.executeJob('${job.jobId}')" 
                             title="Execute Job">
                         <i class="fas fa-play"></i>
@@ -766,8 +779,8 @@ class ImportQueueGUI {
                         <i class="fas fa-times"></i>
                     </button>
                 `;
-            case 'PROCESSING':
-                return `
+      case "PROCESSING":
+        return `
                     <button class="btn btn-sm btn-warning" onclick="importQueueGUI.pauseJob('${job.jobId}')" 
                             title="Pause Job">
                         <i class="fas fa-pause"></i>
@@ -777,95 +790,101 @@ class ImportQueueGUI {
                         <i class="fas fa-stop"></i>
                     </button>
                 `;
-            case 'FAILED':
-                return `
+      case "FAILED":
+        return `
                     <button class="btn btn-sm btn-info" onclick="importQueueGUI.retryJob('${job.jobId}')" 
                             title="Retry Job">
                         <i class="fas fa-redo"></i>
                     </button>
                 `;
-            default:
-                return '';
-        }
+      default:
+        return "";
     }
-    
-    // Execute a queued job
-    async executeJob(jobId) {
-        try {
-            const response = await fetch(`/rest/scriptrunner/latest/custom/importQueueExecute?jobId=${jobId}`, {
-                method: 'POST'
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showSuccess('Job execution started successfully');
-                this.loadInitialData();
-            } else {
-                this.showError(result.error || 'Failed to start job execution');
-            }
-        } catch (error) {
-            console.error('Failed to execute job:', error);
-            this.showError('Failed to execute job');
-        }
+  }
+
+  // Execute a queued job
+  async executeJob(jobId) {
+    try {
+      const response = await fetch(
+        `/rest/scriptrunner/latest/custom/importQueueExecute?jobId=${jobId}`,
+        {
+          method: "POST",
+        },
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        this.showSuccess("Job execution started successfully");
+        this.loadInitialData();
+      } else {
+        this.showError(result.error || "Failed to start job execution");
+      }
+    } catch (error) {
+      console.error("Failed to execute job:", error);
+      this.showError("Failed to execute job");
     }
-    
-    // Cancel a job
-    async cancelJob(jobId) {
-        if (!confirm('Are you sure you want to cancel this job?')) return;
-        
-        try {
-            const response = await fetch(`/rest/scriptrunner/latest/custom/importQueueJob?jobId=${jobId}`, {
-                method: 'DELETE'
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-                this.showSuccess('Job cancelled successfully');
-                this.loadInitialData();
-            } else {
-                this.showError(result.error || 'Failed to cancel job');
-            }
-        } catch (error) {
-            console.error('Failed to cancel job:', error);
-            this.showError('Failed to cancel job');
-        }
+  }
+
+  // Cancel a job
+  async cancelJob(jobId) {
+    if (!confirm("Are you sure you want to cancel this job?")) return;
+
+    try {
+      const response = await fetch(
+        `/rest/scriptrunner/latest/custom/importQueueJob?jobId=${jobId}`,
+        {
+          method: "DELETE",
+        },
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        this.showSuccess("Job cancelled successfully");
+        this.loadInitialData();
+      } else {
+        this.showError(result.error || "Failed to cancel job");
+      }
+    } catch (error) {
+      console.error("Failed to cancel job:", error);
+      this.showError("Failed to cancel job");
     }
-    
-    // Utility methods
-    getPriorityClass(priority) {
-        if (priority <= 3) return 'low';
-        if (priority <= 6) return 'normal';
-        return 'high';
+  }
+
+  // Utility methods
+  getPriorityClass(priority) {
+    if (priority <= 3) return "low";
+    if (priority <= 6) return "normal";
+    return "high";
+  }
+
+  formatDate(dateString) {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleString();
+  }
+
+  showSuccess(message) {
+    // Implementation for success messages
+    console.log("Success:", message);
+  }
+
+  showError(message) {
+    // Implementation for error messages
+    console.error("Error:", message);
+  }
+
+  // Cleanup when component is destroyed
+  destroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
     }
-    
-    formatDate(dateString) {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleString();
-    }
-    
-    showSuccess(message) {
-        // Implementation for success messages
-        console.log('Success:', message);
-    }
-    
-    showError(message) {
-        // Implementation for error messages  
-        console.error('Error:', message);
-    }
-    
-    // Cleanup when component is destroyed
-    destroy() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-            this.refreshInterval = null;
-        }
-    }
+  }
 }
 
 // Initialize the GUI when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-    window.importQueueGUI = new ImportQueueGUI();
-    window.importQueueGUI.init();
+document.addEventListener("DOMContentLoaded", function () {
+  window.importQueueGUI = new ImportQueueGUI();
+  window.importQueueGUI.init();
 });
 ```
 
@@ -876,6 +895,7 @@ document.addEventListener('DOMContentLoaded', function() {
 **Comprehensive configuration system covering all operational parameters:**
 
 **Queue Management Configuration**:
+
 ```groovy
 // Core Queue Parameters
 public static final int MAX_CONCURRENT_IMPORTS = 3
@@ -895,8 +915,9 @@ public static final Map<String, Map<String, Object>> IMPORT_TYPE_CONFIG = [
 ```
 
 **Key Features**:
+
 - Environment-specific parameter overrides
-- Runtime configuration validation  
+- Runtime configuration validation
 - Performance threshold management
 - Error handling and retry policies
 - Integration with UMIG configuration patterns

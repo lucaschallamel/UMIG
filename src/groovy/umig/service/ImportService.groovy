@@ -23,6 +23,8 @@ class ImportService {
     
     // Performance Constants - US-034 Enhancement
     private static final int MAX_BATCH_SIZE = 1000 // Maximum files per batch
+    private static final int CHUNK_SIZE = 50 // Process files in chunks to manage memory
+    private static final int CHUNKING_THRESHOLD = 20 // Use chunking for batches larger than this
     
     private StagingImportRepository stagingRepository
     private ImportRepository importRepository
@@ -202,51 +204,102 @@ class ImportService {
             performanceMetrics: [
                 batchSize: jsonFiles?.size() ?: 0,
                 startTime: System.currentTimeMillis(),
-                memoryUsageStart: Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+                memoryUsageStart: Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory(),
+                chunksProcessed: 0,
+                totalChunks: shouldUseChunkedProcessing(jsonFiles?.size() ?: 0) ? 
+                    Math.ceil(((jsonFiles?.size() ?: 0) / CHUNK_SIZE) as double) as Integer : 1,
+                chunkSize: CHUNK_SIZE
             ]
         ]
         
         // Count by step type
         Map stepTypeCounts = [:]
         
-        jsonFiles.each { fileData ->
-            try {
-                Map fileMap = (Map) fileData
-                Map result = importJsonData(
-                    fileMap.content as String, 
-                    fileMap.filename as String, 
-                    userId
-                )
-                
-                if (result.success) {
-                    batchResult.successCount = ((int) batchResult.successCount) + 1
-                    Map resultStats = (Map) result.statistics
-                    String stepType = resultStats.stepType as String
-                    stepTypeCounts[stepType] = ((Integer) (stepTypeCounts[stepType] ?: 0)) + 1
-                } else if (((List) result.warnings)?.size() > 0) {
-                    batchResult.skippedCount = ((int) batchResult.skippedCount) + 1
-                } else {
+        // US-034 PERFORMANCE ENHANCEMENT: Chunked processing for large batches
+        // Process files in chunks to prevent memory exhaustion
+        int totalFiles = jsonFiles?.size() ?: 0
+        boolean useChunking = shouldUseChunkedProcessing(totalFiles)
+        int effectiveChunkSize = useChunking ? CHUNK_SIZE : totalFiles
+        int chunksProcessed = 0
+        int totalChunks = useChunking ? Math.ceil((totalFiles / CHUNK_SIZE) as double) as Integer : 1
+        
+        if (useChunking) {
+            log.info("Processing ${totalFiles} files in ${totalChunks} chunks of max ${CHUNK_SIZE} files each")
+        } else {
+            log.info("Processing ${totalFiles} files in single batch (below chunking threshold of ${CHUNKING_THRESHOLD})")
+        }
+        
+        for (int chunkStart = 0; chunkStart < totalFiles; chunkStart += effectiveChunkSize) {
+            int chunkEnd = Math.min(chunkStart + effectiveChunkSize, totalFiles)
+            List chunkFiles = jsonFiles[chunkStart..<chunkEnd]
+            chunksProcessed++
+            
+            if (useChunking) {
+                log.debug("Processing chunk ${chunksProcessed}/${totalChunks}: files ${chunkStart + 1}-${chunkEnd}")
+            }
+            
+            // Process chunk with memory monitoring
+            long chunkStartMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+            
+            chunkFiles.each { fileData ->
+                try {
+                    Map fileMap = (Map) fileData
+                    Map result = importJsonData(
+                        fileMap.content as String, 
+                        fileMap.filename as String, 
+                        userId
+                    )
+                    
+                    if (result.success) {
+                        batchResult.successCount = ((int) batchResult.successCount) + 1
+                        Map resultStats = (Map) result.statistics
+                        String stepType = resultStats.stepType as String
+                        stepTypeCounts[stepType] = ((Integer) (stepTypeCounts[stepType] ?: 0)) + 1
+                    } else if (((List) result.warnings)?.size() > 0) {
+                        batchResult.skippedCount = ((int) batchResult.skippedCount) + 1
+                    } else {
+                        batchResult.failureCount = ((int) batchResult.failureCount) + 1
+                    }
+                    
+                    ((List) batchResult.results) << [
+                        filename: fileMap.filename,
+                        success: result.success,
+                        stepId: result.stepId,
+                        statistics: result.statistics,
+                        errors: result.errors,
+                        warnings: result.warnings
+                    ]
+                    
+                } catch (Exception e) {
+                    Map fileMap = (Map) fileData
+                    log.error("Failed to process file ${fileMap.filename}: ${e.message}")
                     batchResult.failureCount = ((int) batchResult.failureCount) + 1
+                    ((List) batchResult.results) << [
+                        filename: fileMap.filename,
+                        success: false,
+                        errors: [e.message]
+                    ]
                 }
+            }
+            
+            // Memory management between chunks
+            long chunkEndMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+            long chunkMemoryUsed = chunkEndMemory - chunkStartMemory
+            
+            log.debug("Chunk ${chunksProcessed} completed. Memory used: ${chunkMemoryUsed / (1024 * 1024)} MB")
+            
+            // Optimize resources after each chunk to prevent memory buildup (only for chunked processing)
+            if (useChunking && (chunksProcessed % 5 == 0 || chunkMemoryUsed > (100 * 1024 * 1024))) { // Every 5 chunks or if >100MB used
+                log.debug("Performing inter-chunk resource optimization")
+                System.gc()
+                Thread.yield()
                 
-                ((List) batchResult.results) << [
-                    filename: fileMap.filename,
-                    success: result.success,
-                    stepId: result.stepId,
-                    statistics: result.statistics,
-                    errors: result.errors,
-                    warnings: result.warnings
-                ]
-                
-            } catch (Exception e) {
-                Map fileMap = (Map) fileData
-                log.error("Failed to process file ${fileMap.filename}: ${e.message}")
-                batchResult.failureCount = ((int) batchResult.failureCount) + 1
-                ((List) batchResult.results) << [
-                    filename: fileMap.filename,
-                    success: false,
-                    errors: [e.message]
-                ]
+                // Brief pause to allow GC to complete
+                try {
+                    Thread.sleep(50)
+                } catch (InterruptedException ignored) {
+                    Thread.currentThread().interrupt()
+                }
             }
         }
         
@@ -265,23 +318,26 @@ class ImportService {
         long memoryUsageEnd = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
         long durationMs = endTime - startTime
         long memoryDelta = memoryUsageEnd - memoryUsageStart
-        int totalFiles = (batchResult.totalFiles as Integer)
+        int totalFilesInBatch = (batchResult.totalFiles as Integer)
         
         performanceMetrics.memoryUsageEnd = memoryUsageEnd
         performanceMetrics.durationMs = durationMs
         performanceMetrics.memoryDelta = memoryDelta
         performanceMetrics.filesPerSecond = durationMs > 0 ? 
-            ((totalFiles as Double) * 1000.0d) / (durationMs as Double) : 0.0d
+            ((totalFilesInBatch as Double) * 1000.0d) / (durationMs as Double) : 0.0d
         
         // Additional performance analysis - US-034
         performanceMetrics.memoryEfficiency = calculateMemoryEfficiency(performanceMetrics)
         performanceMetrics.throughputRating = calculateThroughputRating(performanceMetrics.filesPerSecond as Double)
         performanceMetrics.resourceUtilization = getResourceUtilizationSummary()
+        performanceMetrics.chunksProcessed = totalChunks
+        performanceMetrics.avgFilesPerChunk = totalFilesInBatch > 0 ? (totalFilesInBatch as Double) / (totalChunks as Double) : 0.0d
         
-        log.info("Batch import completed: ${batchResult.totalFiles} files, ${performanceMetrics.durationMs}ms, ${String.format('%.2f', performanceMetrics.filesPerSecond)} files/sec, Memory efficiency: ${performanceMetrics.memoryEfficiency}")
+        log.info("Batch import completed: ${batchResult.totalFiles} files in ${performanceMetrics.chunksProcessed} chunks, ${performanceMetrics.durationMs}ms, ${String.format('%.2f', performanceMetrics.filesPerSecond)} files/sec, Memory efficiency: ${performanceMetrics.memoryEfficiency}")
         
-        // Clean up resources after large batch operations
+        // Final cleanup after all chunks processed - US-034 Enhancement
         if (jsonFiles.size() >= 100) {
+            log.debug("Performing final resource optimization after processing ${totalChunks} chunks")
             optimizeResourceUsage()
         }
         
@@ -499,6 +555,14 @@ class ImportService {
         } else {
             return "OPTIMAL memory usage for current workload."
         }
+    }
+    
+    /**
+     * Determine if chunked processing should be used based on batch size
+     */
+    private boolean shouldUseChunkedProcessing(int batchSize) {
+        // Use chunked processing for larger batches to manage memory
+        return batchSize > CHUNKING_THRESHOLD
     }
     
     /**
