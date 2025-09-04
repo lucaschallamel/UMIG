@@ -169,6 +169,7 @@ java.lang.LinkageError: loader constraint violation for class org.apache.xerces.
 ## US-034 Data Import Testing Patterns
 
 ### Overview
+
 US-034 introduced comprehensive data import capabilities with CSV/JSON support, orchestration, progress tracking, and rollback mechanisms. The testing framework validates all aspects of the import system including performance targets.
 
 ### Key Testing Achievements
@@ -181,22 +182,26 @@ US-034 introduced comprehensive data import capabilities with CSV/JSON support, 
 ### Testing Lessons Learned
 
 #### 1. Database Connection Best Practices
+
 - **Use Correct Database**: umig_app_db (NOT confluence_db)
 - **Credentials**: umig_app_user with password 123456
 - **Connection Pattern**: Always verify database context before testing
 
 #### 2. NodeJS Test Runner Integration
+
 - **Preferred Method**: Use IntegrationTestRunner.js for consistent environment setup
 - **Alternative**: Direct Groovy execution for isolated test debugging
 - **Environment**: Ensure .env.example is properly configured with test credentials
 
 #### 3. Table Structure Validation
+
 - **Reference Source**: Always check liquibase migration files (e.g., 030_extend_staging_tables.sql)
 - **Staging Tables**: stg_steps, stg_step_instructions for data staging
 - **Orchestration Tables**: stg_import_orchestrations_ior, stg_import_progress_tracking_ipt
 - **Batch Management**: import_batches_imb for transaction control
 
 #### 4. Performance Testing Patterns
+
 ```groovy
 // Example: Complex 3-table join performance test
 def startTime = System.currentTimeMillis()
@@ -214,6 +219,7 @@ assert executionTime < 500 // Target: <500ms
 ```
 
 #### 5. Import Workflow Testing
+
 - **Phase Sequencing**: Validate entity dependencies (teams → users → applications → environments → steps)
 - **Progress Tracking**: Monitor real-time status updates during import execution
 - **Rollback Testing**: Verify transactional integrity and cleanup on failure
@@ -222,6 +228,7 @@ assert executionTime < 500 // Target: <500ms
 ### Integration with US-037 BaseIntegrationTest Framework
 
 All US-034 tests follow the standardized BaseIntegrationTest patterns:
+
 - Setup/teardown lifecycle management
 - Consistent authentication handling
 - Standardized error reporting
@@ -235,6 +242,7 @@ All US-034 tests follow the standardized BaseIntegrationTest patterns:
 **📊 Comprehensive Standards Document**: [`INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./INTEGRATION_TEST_VALIDATION_STANDARDS.md)
 
 This document provides:
+
 - **Validation Framework**: Complete standards for integration test suite validation
 - **Framework Compliance**: US-037 BaseIntegrationTest compliance requirements (95%+ target)
 - **Performance Standards**: Production-scale performance validation criteria
@@ -242,6 +250,7 @@ This document provides:
 - **Quality Metrics**: Coverage requirements, success criteria, and compliance checklists
 
 **Use this document when**:
+
 - Developing new integration test suites
 - Validating existing test coverage
 - Establishing quality gates for integration testing

@@ -216,12 +216,12 @@ IDLE_TIMEOUT=600000
 
 **Strategic Decision Support Matrix**:
 
-| Criterion | Current | EPIC-101 | EPIC-100 |
-|-----------|---------|-----------|-----------|
-| Development Cost | ✅ $0 | ⚠️ $150k-250k | ❌ $744k-1,074k |
-| Time to Market | ✅ Immediate | ⚠️ 2-4 months | ❌ 7-9 months |
-| Migration Risk | ✅ None | ⚠️ High | ❌ Very High |
-| 5-Year TCO | ✅ $1M | ⚠️ $1.8M-2.45M | ❌ $2.84M-4.07M |
+| Criterion        | Current      | EPIC-101       | EPIC-100        |
+| ---------------- | ------------ | -------------- | --------------- |
+| Development Cost | ✅ $0        | ⚠️ $150k-250k  | ❌ $744k-1,074k |
+| Time to Market   | ✅ Immediate | ⚠️ 2-4 months  | ❌ 7-9 months   |
+| Migration Risk   | ✅ None      | ⚠️ High        | ❌ Very High    |
+| 5-Year TCO       | ✅ $1M       | ⚠️ $1.8M-2.45M | ❌ $2.84M-4.07M |
 
 ## Testing Infrastructure Patterns Excellence (September 4, 2025)
 

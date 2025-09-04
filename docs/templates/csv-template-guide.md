@@ -11,12 +11,12 @@ This guide provides comprehensive documentation for CSV templates used in the UM
 
 ## Quick Reference
 
-| Template File | Entity Type | Dependencies | Sample Records | Required Fields |
-|---------------|-------------|---------------|----------------|-----------------|
-| `teams_template.csv` | Teams | None | 10 | tms_id, tms_name |
-| `applications_template.csv` | Applications | None | 15 | app_id, app_code |
-| `environments_template.csv` | Environments | None | 10 | env_id, env_code |
-| `users_template.csv` | Users | Teams (tms_id) | 15 | usr_id, usr_code, usr_first_name, usr_last_name, usr_email |
+| Template File               | Entity Type  | Dependencies   | Sample Records | Required Fields                                            |
+| --------------------------- | ------------ | -------------- | -------------- | ---------------------------------------------------------- |
+| `teams_template.csv`        | Teams        | None           | 10             | tms_id, tms_name                                           |
+| `applications_template.csv` | Applications | None           | 15             | app_id, app_code                                           |
+| `environments_template.csv` | Environments | None           | 10             | env_id, env_code                                           |
+| `users_template.csv`        | Users        | Teams (tms_id) | 15             | usr_id, usr_code, usr_first_name, usr_last_name, usr_email |
 
 ## Import Order Dependencies
 
@@ -55,12 +55,12 @@ tms_id,tms_name,tms_email,tms_description
 
 ### Field Specifications
 
-| Field Name | Type | Required | Max Length | Unique | Description |
-|------------|------|----------|------------|---------|-------------|
-| `tms_id` | Integer | ✅ Yes | N/A | ✅ Yes | Primary key identifier for team |
-| `tms_name` | String | ✅ Yes | 64 chars | ✅ Yes | Team display name |
-| `tms_email` | String | ❌ No | 255 chars | ✅ Yes | Team contact email (if provided) |
-| `tms_description` | String | ❌ No | Text | ❌ No | Team purpose and responsibilities |
+| Field Name        | Type    | Required | Max Length | Unique | Description                       |
+| ----------------- | ------- | -------- | ---------- | ------ | --------------------------------- |
+| `tms_id`          | Integer | ✅ Yes   | N/A        | ✅ Yes | Primary key identifier for team   |
+| `tms_name`        | String  | ✅ Yes   | 64 chars   | ✅ Yes | Team display name                 |
+| `tms_email`       | String  | ❌ No    | 255 chars  | ✅ Yes | Team contact email (if provided)  |
+| `tms_description` | String  | ❌ No    | Text       | ❌ No  | Team purpose and responsibilities |
 
 ### Validation Rules
 
@@ -115,12 +115,12 @@ app_id,app_code,app_name,app_description
 
 ### Field Specifications
 
-| Field Name | Type | Required | Max Length | Unique | Description |
-|------------|------|----------|------------|---------|-------------|
-| `app_id` | Integer | ✅ Yes | N/A | ✅ Yes | Primary key identifier for application |
-| `app_code` | String | ✅ Yes | 50 chars | ✅ Yes | Application code identifier |
-| `app_name` | String | ❌ No | 64 chars | ❌ No | Application display name |
-| `app_description` | String | ❌ No | Text | ❌ No | Application purpose and functionality |
+| Field Name        | Type    | Required | Max Length | Unique | Description                            |
+| ----------------- | ------- | -------- | ---------- | ------ | -------------------------------------- |
+| `app_id`          | Integer | ✅ Yes   | N/A        | ✅ Yes | Primary key identifier for application |
+| `app_code`        | String  | ✅ Yes   | 50 chars   | ✅ Yes | Application code identifier            |
+| `app_name`        | String  | ❌ No    | 64 chars   | ❌ No  | Application display name               |
+| `app_description` | String  | ❌ No    | Text       | ❌ No  | Application purpose and functionality  |
 
 ### Validation Rules
 
@@ -170,12 +170,12 @@ env_id,env_code,env_name,env_description
 
 ### Field Specifications
 
-| Field Name | Type | Required | Max Length | Unique | Description |
-|------------|------|----------|------------|---------|-------------|
-| `env_id` | Integer | ✅ Yes | N/A | ✅ Yes | Primary key identifier for environment |
-| `env_code` | String | ✅ Yes | 10 chars | ✅ Yes | Environment code identifier |
-| `env_name` | String | ❌ No | 64 chars | ❌ No | Environment display name |
-| `env_description` | String | ❌ No | Text | ❌ No | Environment purpose and usage |
+| Field Name        | Type    | Required | Max Length | Unique | Description                            |
+| ----------------- | ------- | -------- | ---------- | ------ | -------------------------------------- |
+| `env_id`          | Integer | ✅ Yes   | N/A        | ✅ Yes | Primary key identifier for environment |
+| `env_code`        | String  | ✅ Yes   | 10 chars   | ✅ Yes | Environment code identifier            |
+| `env_name`        | String  | ❌ No    | 64 chars   | ❌ No  | Environment display name               |
+| `env_description` | String  | ❌ No    | Text       | ❌ No  | Environment purpose and usage          |
 
 ### Validation Rules
 
@@ -230,16 +230,16 @@ usr_id,usr_code,usr_first_name,usr_last_name,usr_email,usr_is_admin,tms_id,rls_i
 
 ### Field Specifications
 
-| Field Name | Type | Required | Max Length | Unique | Description |
-|------------|------|----------|------------|---------|-------------|
-| `usr_id` | Integer | ✅ Yes | N/A | ✅ Yes | Primary key identifier for user |
-| `usr_code` | String | ✅ Yes | 3 chars | ✅ Yes | 3-character user code |
-| `usr_first_name` | String | ✅ Yes | 50 chars | ❌ No | User's first name |
-| `usr_last_name` | String | ✅ Yes | 50 chars | ❌ No | User's last name |
-| `usr_email` | String | ✅ Yes | 255 chars | ✅ Yes | User's email address |
-| `usr_is_admin` | Boolean | ❌ No | N/A | ❌ No | Admin privileges (true/false) |
-| `tms_id` | Integer | ❌ No | N/A | ❌ No | Team assignment (foreign key) |
-| `rls_id` | Integer | ❌ No | N/A | ❌ No | Role assignment (foreign key) |
+| Field Name       | Type    | Required | Max Length | Unique | Description                     |
+| ---------------- | ------- | -------- | ---------- | ------ | ------------------------------- |
+| `usr_id`         | Integer | ✅ Yes   | N/A        | ✅ Yes | Primary key identifier for user |
+| `usr_code`       | String  | ✅ Yes   | 3 chars    | ✅ Yes | 3-character user code           |
+| `usr_first_name` | String  | ✅ Yes   | 50 chars   | ❌ No  | User's first name               |
+| `usr_last_name`  | String  | ✅ Yes   | 50 chars   | ❌ No  | User's last name                |
+| `usr_email`      | String  | ✅ Yes   | 255 chars  | ✅ Yes | User's email address            |
+| `usr_is_admin`   | Boolean | ❌ No    | N/A        | ❌ No  | Admin privileges (true/false)   |
+| `tms_id`         | Integer | ❌ No    | N/A        | ❌ No  | Team assignment (foreign key)   |
+| `rls_id`         | Integer | ❌ No    | N/A        | ❌ No  | Role assignment (foreign key)   |
 
 ### Validation Rules
 
@@ -255,6 +255,7 @@ usr_id,usr_code,usr_first_name,usr_last_name,usr_email,usr_is_admin,tms_id,rls_i
 ### Foreign Key Dependencies
 
 **CRITICAL**: Users template has foreign key dependency on Teams:
+
 - **tms_id** must reference an existing `tms_id` from the teams table
 - Teams must be imported successfully before importing users
 - Invalid team references will cause import failures
@@ -288,22 +289,26 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/u
 ### Field Value Standards
 
 #### String Fields
+
 - **Empty Values**: Leave blank for NULL values (don't use "null", "NULL", or "N/A")
 - **Quoted Values**: Quote strings containing commas: `"Smith, John"`
 - **Special Characters**: UTF-8 special characters supported
 - **Whitespace**: Leading/trailing whitespace automatically trimmed
 
 #### Numeric Fields
+
 - **Integers**: Plain numbers without quotes: `123`
 - **No Formatting**: Don't use thousand separators or currency symbols
 - **Valid Range**: Positive integers only for ID fields
 
 #### Boolean Fields
+
 - **Accepted Values**: `true`, `false` (case-insensitive)
 - **Alternative Values**: `TRUE`, `False`, `1`, `0` also accepted
 - **Default Value**: Empty field defaults to `false` for boolean fields
 
 #### Email Fields
+
 - **Format Validation**: Must be valid email format: `user@domain.com`
 - **Uniqueness**: Email addresses must be unique across all users
 - **Case Handling**: Email addresses are case-insensitive
@@ -311,6 +316,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/u
 ### Sample CSV Format Examples
 
 #### Properly Formatted CSV
+
 ```csv
 usr_id,usr_code,usr_first_name,usr_last_name,usr_email,usr_is_admin,tms_id,rls_id
 1,JDO,John,Doe,john.doe@company.com,true,1,1
@@ -319,12 +325,13 @@ usr_id,usr_code,usr_first_name,usr_last_name,usr_email,usr_is_admin,tms_id,rls_i
 ```
 
 #### Common Formatting Errors
+
 ```csv
 # INCORRECT - Don't quote numeric fields
 usr_id,usr_code,usr_first_name,usr_last_name,usr_email
 "1","JDO","John","Doe","john.doe@company.com"
 
-# INCORRECT - Don't use NULL for empty values  
+# INCORRECT - Don't use NULL for empty values
 usr_id,usr_code,usr_first_name,usr_last_name,usr_email,tms_id
 1,JDO,John,Doe,john.doe@company.com,NULL
 
@@ -340,10 +347,11 @@ usr_id,usr_code,usr_first_name,usr_last_name,usr_email,tms_id
 ### Complete Import Workflow
 
 1. **Download Templates**
+
    ```bash
    # Download all templates
    curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/templates/teams" -o teams_template.csv
-   curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/templates/applications" -o applications_template.csv  
+   curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/templates/applications" -o applications_template.csv
    curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/templates/environments" -o environments_template.csv
    curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/templates/users" -o users_template.csv
    ```
@@ -355,6 +363,7 @@ usr_id,usr_code,usr_first_name,usr_last_name,usr_email,tms_id
    - Save as new files (e.g., `teams_prepared.csv`)
 
 3. **Import in Dependency Order**
+
    ```bash
    # Step 1: Import Teams (no dependencies)
    curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/teams" \
@@ -378,6 +387,7 @@ usr_id,usr_code,usr_first_name,usr_last_name,usr_email,tms_id
    ```
 
 4. **Validate Import Results**
+
    ```bash
    # Check import history
    curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/history"
@@ -410,6 +420,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 #### 1. Foreign Key Constraint Violations
 
 **Error Message**:
+
 ```json
 {
   "success": false,
@@ -419,7 +430,8 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 ```
 
 **Cause**: User references team ID that doesn't exist  
-**Resolution**: 
+**Resolution**:
+
 - Ensure teams are imported first
 - Verify tms_id values in users CSV match existing teams
 - Check for typos in team ID references
@@ -427,6 +439,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 #### 2. Duplicate Key Violations
 
 **Error Message**:
+
 ```json
 {
   "success": false,
@@ -436,7 +449,8 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 ```
 
 **Cause**: Attempting to import duplicate records  
-**Resolution**: 
+**Resolution**:
+
 - Check for duplicate records in CSV file
 - Remove or modify duplicate entries
 - Consider if re-import is necessary
@@ -444,6 +458,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 #### 3. Data Validation Failures
 
 **Error Message**:
+
 ```json
 {
   "success": false,
@@ -453,7 +468,8 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 ```
 
 **Cause**: Data doesn't meet field validation requirements  
-**Resolution**: 
+**Resolution**:
+
 - Validate email addresses are properly formatted
 - Check field length restrictions
 - Ensure required fields are not empty
@@ -461,6 +477,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 #### 4. CSV Format Issues
 
 **Error Message**:
+
 ```json
 {
   "success": false,
@@ -470,7 +487,8 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 ```
 
 **Cause**: CSV structure doesn't match template  
-**Resolution**: 
+**Resolution**:
+
 - Verify column headers match template exactly
 - Check for missing or extra columns
 - Ensure proper CSV encoding (UTF-8)
@@ -488,9 +506,11 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
    - Check for circular dependencies
 
 3. **Review Import Statistics**
+
    ```bash
    curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/statistics"
    ```
+
    - Check success/failure rates
    - Review processing times
    - Identify patterns in errors
@@ -499,6 +519,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
    ```bash
    curl -X GET "http://localhost:8090/rest/scriptrunner/latest/custom/import/history?limit=50"
    ```
+
    - Review recent imports
    - Check error messages and details
    - Identify successful import patterns
@@ -506,6 +527,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/csv/a
 ### Recovery Procedures
 
 #### Rollback Failed Import
+
 ```bash
 # Rollback specific import batch
 curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/rollback/{batchId}" \
@@ -514,6 +536,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/rollb
 ```
 
 #### Re-import Corrected Data
+
 1. Fix data issues identified in error messages
 2. Validate corrected CSV files locally
 3. Re-execute import in proper dependency order
@@ -528,7 +551,7 @@ curl -X POST "http://localhost:8090/rest/scriptrunner/latest/custom/import/rollb
 For ongoing maintenance and updates:
 
 1. **Export Current Data**: Extract current system state
-2. **Prepare Delta**: Create CSV with only new/changed records  
+2. **Prepare Delta**: Create CSV with only new/changed records
 3. **Validate Dependencies**: Ensure referential integrity
 4. **Import Changes**: Execute incremental import
 5. **Verify Results**: Validate import success and data integrity
@@ -554,18 +577,21 @@ Templates can be generated from external systems:
 ### Data Migration Scenarios
 
 #### Initial System Setup
+
 - Import complete organizational structure
 - Establish all base entities before migration data
 - Validate relationships and data integrity
 - Test with subset before full import
 
 #### Organizational Restructuring
+
 - Export current structure
 - Modify team assignments and hierarchies
 - Import updated organizational data
 - Validate new structure and relationships
 
 #### System Integration
+
 - Map external system entities to UMIG structure
 - Transform external data to CSV format
 - Execute phased import with validation
@@ -578,6 +604,7 @@ Templates can be generated from external systems:
 ### Data Validation Checklist
 
 #### Pre-Import Validation
+
 - [ ] **CSV Format**: Valid UTF-8 encoding, proper headers
 - [ ] **Required Fields**: All mandatory fields populated
 - [ ] **Data Types**: Correct data types for each field
@@ -588,6 +615,7 @@ Templates can be generated from external systems:
 - [ ] **Boolean Values**: Proper true/false values
 
 #### Post-Import Validation
+
 - [ ] **Import Statistics**: Review success/failure counts
 - [ ] **Data Integrity**: Verify relationships are correct
 - [ ] **Completeness**: Confirm all expected records imported
@@ -597,6 +625,7 @@ Templates can be generated from external systems:
 ### Testing Procedures
 
 #### Unit Testing
+
 ```bash
 # Test individual entity imports
 ./test-csv-import.sh teams_template.csv
@@ -606,6 +635,7 @@ Templates can be generated from external systems:
 ```
 
 #### Integration Testing
+
 ```bash
 # Test complete import workflow
 ./test-complete-import-workflow.sh
@@ -618,6 +648,7 @@ Templates can be generated from external systems:
 ```
 
 #### Performance Testing
+
 ```bash
 # Test large dataset imports
 ./test-large-csv-import.sh 10000-users.csv
@@ -693,7 +724,7 @@ Templates can be generated from external systems:
 ### Contact Information
 
 - **Technical Support**: UMIG Development Team
-- **System Administration**: Confluence Administrators  
+- **System Administration**: Confluence Administrators
 - **Documentation Updates**: Create issues for template or documentation improvements
 - **Feature Requests**: Submit enhancement requests through project management system
 
@@ -732,26 +763,26 @@ echo "All templates downloaded to current directory"
 validate_csv() {
   local file=$1
   local entity=$2
-  
+
   echo "Validating ${file} for ${entity} import..."
-  
+
   # Check file exists
   if [ ! -f "$file" ]; then
     echo "✗ File not found: $file"
     return 1
   fi
-  
+
   # Check file size
   if [ ! -s "$file" ]; then
     echo "✗ File is empty: $file"
     return 1
   fi
-  
+
   # Check UTF-8 encoding
   if ! file "$file" | grep -q "UTF-8"; then
     echo "⚠ Warning: File may not be UTF-8 encoded"
   fi
-  
+
   # Check header row based on entity type
   case $entity in
     "teams")
@@ -779,7 +810,7 @@ validate_csv() {
       fi
       ;;
   esac
-  
+
   echo "✓ ${file} validation passed"
   return 0
 }
@@ -797,18 +828,18 @@ validate_csv() {
 
 monitor_import() {
   local batch_id=$1
-  
+
   if [ -z "$batch_id" ]; then
     echo "Usage: monitor_import <batch_id>"
     return 1
   fi
-  
+
   echo "Monitoring import batch: $batch_id"
-  
+
   while true; do
     status=$(curl -s "http://localhost:8090/rest/scriptrunner/latest/custom/import/batch/$batch_id" | \
              jq -r '.status' 2>/dev/null)
-    
+
     case $status in
       "COMPLETED")
         echo "✓ Import completed successfully"
@@ -825,7 +856,7 @@ monitor_import() {
         echo "? Unknown status: $status"
         ;;
     esac
-    
+
     sleep 5
   done
 }

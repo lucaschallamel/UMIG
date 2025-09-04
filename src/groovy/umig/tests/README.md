@@ -148,6 +148,7 @@ This comprehensive document establishes validation standards for all UMIG integr
 - **✅ Reference Implementation**: US-034 Data Import Strategy as complete example
 
 **Essential for**:
+
 - Developing new integration test suites with consistent quality standards
 - Validating test coverage and framework compliance before production deployment
 - Creating validation reports and quality gate assessments
@@ -271,7 +272,7 @@ npm run test:integration            # Integration tests via NPM
 ### For Daily Development
 
 - **Use `npm run test:all`** for comprehensive validation before commits
-- **Use `npm run test:us022`** and `npm run test:us028`** for user story validation
+- **Use `npm run test:us022`** and `npm run test:us028`\*\* for user story validation
 - **Use pattern filters** (`npm run test:unit -- --pattern api`) for targeted testing
 - **Leverage parallel execution** for faster unit test feedback during development
 - **Reference validation standards** ([`INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./integration/INTEGRATION_TEST_VALIDATION_STANDARDS.md)) when developing integration test suites

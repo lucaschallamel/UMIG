@@ -5,24 +5,28 @@ This directory contains CSV templates for importing base entity data into the UM
 ## Templates Available
 
 ### 1. teams_template.csv
+
 - **Purpose**: Import team definitions
 - **Required Fields**: tms_id, tms_name, tms_email, tms_description
 - **Dependencies**: None (import first)
 - **Sample Records**: 10 teams included
 
 ### 2. applications_template.csv
+
 - **Purpose**: Import application definitions
 - **Required Fields**: app_id, app_code, app_name, app_description
 - **Dependencies**: None
 - **Sample Records**: 15 applications included
 
 ### 3. environments_template.csv
+
 - **Purpose**: Import environment definitions
 - **Required Fields**: env_id, env_code, env_name, env_description
 - **Dependencies**: None
 - **Sample Records**: 10 environments included
 
 ### 4. users_template.csv
+
 - **Purpose**: Import user accounts
 - **Required Fields**: usr_id, usr_code, usr_first_name, usr_last_name, usr_email, usr_is_admin, tms_id, rls_id
 - **Dependencies**: Teams must be imported first (references tms_id)
@@ -31,6 +35,7 @@ This directory contains CSV templates for importing base entity data into the UM
 ## Import Order
 
 Due to foreign key dependencies, import entities in this order:
+
 1. Teams (no dependencies)
 2. Applications (no dependencies)
 3. Environments (no dependencies)
@@ -98,11 +103,13 @@ def allResults = csvService.importAllBaseEntities([
 ## Validation Rules
 
 ### Teams
+
 - `tms_name`: Required, max 64 characters
 - `tms_email`: Optional but must be unique if provided, max 255 characters
 - `tms_description`: Optional text field
 
 ### Users
+
 - `usr_code`: Required, exactly 3 characters, must be unique
 - `usr_first_name`: Required, max 50 characters
 - `usr_last_name`: Required, max 50 characters
@@ -112,11 +119,13 @@ def allResults = csvService.importAllBaseEntities([
 - `rls_id`: Optional, must reference existing role
 
 ### Applications
+
 - `app_code`: Required, unique, max 50 characters
 - `app_name`: Optional, max 64 characters
 - `app_description`: Optional text field
 
 ### Environments
+
 - `env_code`: Required, unique, max 10 characters
 - `env_name`: Optional, max 64 characters
 - `env_description`: Optional text field
@@ -124,6 +133,7 @@ def allResults = csvService.importAllBaseEntities([
 ## Error Handling
 
 The import service will:
+
 1. Skip duplicate records (based on unique keys)
 2. Continue processing after errors
 3. Report detailed error messages per row
@@ -133,6 +143,7 @@ The import service will:
 ## Integration with US-034
 
 These CSV templates are part of the US-034 Data Import Strategy:
+
 - Provides base entity data required before importing steps/instructions
 - Works alongside the JSON extraction from Confluence HTML
 - Enables complete migration configuration setup

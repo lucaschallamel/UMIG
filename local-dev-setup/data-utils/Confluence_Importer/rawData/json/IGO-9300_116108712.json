@@ -1,1 +1,48 @@
-{"step_type":"IGO","step_number":9300,"title":"ATLAS - EOD*2 IT ACCOUNTING CHECKS","predecessor":"IGO-9300","successor":"IGO-9300","primary_team":"ATLAS","impacted_teams":"CONTROLS","macro_time_sequence":"G - WEEK-END 2 - P&amp;C","time_sequence":"GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2","task_list":[{"instruction_title":"Check Cash Accounting report :\n- Accounting balance sheet E01B","instruction_id":"IGO-9300-1","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"Check Securities Accounting report :\n- Accounting balance sheet E155","instruction_id":"IGO-9300-2","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"Check there is no accounting in date on 01\nIF KO, WE MUST REPLAY THE EOD*2","instruction_id":"IGO-9300-3","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"Check Cas hAccounting report :\n- Rejects list E40C","instruction_id":"IGO-9300-4","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""},{"instruction_title":"Check Securities Accounting report :\n- Rejects list E152","instruction_id":"IGO-9300-5","nominated_user":"","instruction_assigned_team":"ATLAS","associated_controls":""}]}
+{
+  "step_type": "IGO",
+  "step_number": 9300,
+  "title": "ATLAS - EOD*2 IT ACCOUNTING CHECKS",
+  "predecessor": "IGO-9300",
+  "successor": "IGO-9300",
+  "primary_team": "ATLAS",
+  "impacted_teams": "CONTROLS",
+  "macro_time_sequence": "G - WEEK-END 2 - P&amp;C",
+  "time_sequence": "GR - ATLAS PHASE 6.3 - PROCESSING AFTER STAR 2",
+  "task_list": [
+    {
+      "instruction_title": "Check Cash Accounting report :\n- Accounting balance sheet E01B",
+      "instruction_id": "IGO-9300-1",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "Check Securities Accounting report :\n- Accounting balance sheet E155",
+      "instruction_id": "IGO-9300-2",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "Check there is no accounting in date on 01\nIF KO, WE MUST REPLAY THE EOD*2",
+      "instruction_id": "IGO-9300-3",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "Check Cas hAccounting report :\n- Rejects list E40C",
+      "instruction_id": "IGO-9300-4",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    },
+    {
+      "instruction_title": "Check Securities Accounting report :\n- Rejects list E152",
+      "instruction_id": "IGO-9300-5",
+      "nominated_user": "",
+      "instruction_assigned_team": "ATLAS",
+      "associated_controls": ""
+    }
+  ]
+}
