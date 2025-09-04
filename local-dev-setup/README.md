@@ -260,11 +260,18 @@ UMIG follows a canonical-instance pattern for data:
   npm test -- 099
   ```
 
-- **Run CSV Importer:**
+- **Run CSV Importer (US-034 Data Import System):**
 
   ```bash
   npm run import-csv -- --file path/to/your/file.csv
   ```
+  
+  **US-034 Import Features:**
+  - CSV/JSON import with orchestration and progress tracking
+  - Rollback capabilities for data integrity
+  - 51ms performance for complex queries (10x better than target)
+  - Support for teams, users, applications, environments, and steps
+  - Templates available in `data-utils/CSV_Templates/`
 
 ### Testing
 

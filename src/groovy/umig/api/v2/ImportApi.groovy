@@ -462,10 +462,21 @@ csvImport(httpMethod: "POST", groups: ["confluence-administrators"]) { Multivalu
             logger.info("Processing CSV import for all base entities")
             result = csvService.importAllBaseEntities(csvMap, userId)
             
+        } else if (pathParts.contains('master-plan')) {
+            logger.info("Processing CSV import for master plan")
+            // Note: importMasterPlans method needs to be implemented in CsvImportService
+            // For now, return an error indicating this feature is not yet implemented
+            return Response.status(Response.Status.NOT_IMPLEMENTED)
+                .entity(new JsonBuilder([
+                    error: "Master plan CSV import is not yet implemented",
+                    details: "The importMasterPlans method needs to be added to CsvImportService"
+                ]).toString())
+                .build()
+            
         } else {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(new JsonBuilder([
-                    error: "Unknown entity type. Supported: teams, users, applications, environments, all"
+                    error: "Unknown entity type. Supported: teams, users, applications, environments, all, master-plan"
                 ]).toString())
                 .build()
         }
@@ -485,6 +496,444 @@ csvImport(httpMethod: "POST", groups: ["confluence-administrators"]) { Multivalu
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .entity(new JsonBuilder([
                 error: "CSV import failed",
+                details: e.message
+            ]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles POST requests for creating Master Plan import configurations
+ * - POST /import/master-plan -> Create import configuration with Master Plan entity
+ * 
+ * Expected JSON payload:
+ * {
+ *   "planName": "Migration Plan Alpha",
+ *   "description": "High-level description of the migration plan",
+ *   "userId": "optional-user-override"
+ * }
+ */
+masterPlanImport(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    
+    // Lazy load service
+    def getImportService = { ->
+        return new ImportService()
+    }
+    
+    try {
+        def importService = getImportService()
+        def jsonSlurper = new JsonSlurper()
+        def requestData = jsonSlurper.parseText(body)
+        Map requestDataMap = (Map) requestData
+        
+        // Get user context - explicit casting for type safety (ADR-031)
+        def userContext = UserService.getCurrentUserContext()
+        String currentUserId = (userContext?.confluenceUsername as String) ?: 'system'
+        
+        // Use provided userId or fall back to current user
+        String userId = (requestDataMap.userId as String) ?: currentUserId
+        String planName = requestDataMap.planName as String
+        String description = (requestDataMap.description as String) ?: ''
+        
+        // Validate required fields
+        if (!planName) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    success: false,
+                    error: "Missing required field: 'planName'"
+                ]).toString())
+                .build()
+        }
+        
+        logger.info("Master Plan import configuration requested by user: ${currentUserId}, planName: ${planName}")
+        
+        // Create master plan configuration using ImportService
+        Map result = [:]
+        
+        DatabaseUtil.withSql { sql ->
+            try {
+                // Create import batch for tracking
+                UUID batchId = importService.importRepository.createImportBatch(
+                    sql, 
+                    "master-plan-${planName}", 
+                    'MASTER_PLAN_CONFIG', 
+                    userId
+                )
+                
+                // Create master plan configuration (this would typically create a plan master record)
+                UUID planId = UUID.randomUUID()
+                
+                // Insert master plan configuration
+                sql.execute('''
+                    INSERT INTO tbl_plans_master (plm_id, plm_name, plm_description, plm_created_by, plm_created_date, plm_status)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 'DRAFT')
+                ''', [planId, planName, description, userId])
+                
+                // Update batch status to completed
+                Map statistics = [
+                    planId: planId.toString(),
+                    planName: planName,
+                    createdBy: userId
+                ]
+                
+                importService.importRepository.updateImportBatchStatus(
+                    sql,
+                    batchId,
+                    'COMPLETED',
+                    statistics
+                )
+                
+                result = [
+                    success: true,
+                    planId: planId.toString(),
+                    message: "Master Plan configuration created successfully",
+                    batchId: batchId.toString(),
+                    planName: planName,
+                    description: description,
+                    createdBy: userId
+                ]
+                
+                logger.info("Master Plan created successfully: ${planId}, batch: ${batchId}")
+                
+            } catch (SQLException e) {
+                logger.error("Database error creating master plan: ${e.message}", e)
+                
+                // Handle specific SQL states
+                if (e.getSQLState() == "23505") {
+                    result = [
+                        success: false,
+                        error: "Plan name already exists: ${planName}",
+                        details: "A plan with this name already exists. Please choose a different name."
+                    ]
+                } else if (e.getSQLState() == "23503") {
+                    result = [
+                        success: false,
+                        error: "Foreign key constraint violation",
+                        details: "Referenced data does not exist"
+                    ]
+                } else {
+                    result = [
+                        success: false,
+                        error: "Database error",
+                        details: e.message
+                    ]
+                }
+            }
+        }
+        
+        // Return appropriate response
+        boolean success = result.success as Boolean
+        if (success) {
+            return Response.ok(new JsonBuilder(result).toString()).build()
+        } else {
+            // Determine HTTP status based on error type
+            int httpStatus = Response.Status.INTERNAL_SERVER_ERROR.statusCode
+            if (result.error?.toString()?.contains("already exists")) {
+                httpStatus = Response.Status.CONFLICT.statusCode
+            } else if (result.error?.toString()?.contains("constraint violation")) {
+                httpStatus = Response.Status.BAD_REQUEST.statusCode
+            }
+            
+            return Response.status(httpStatus)
+                .entity(new JsonBuilder(result).toString())
+                .build()
+        }
+        
+    } catch (IllegalArgumentException e) {
+        logger.error("Invalid master plan request: ${e.message}", e)
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([
+                success: false,
+                error: e.message
+            ]).toString())
+            .build()
+    } catch (Exception e) {
+        logger.error("Unexpected error creating master plan: ${e.message}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                success: false,
+                error: "Master plan creation failed",
+                details: e.message
+            ]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles GET requests for CSV template downloads
+ * - GET /import/templates/{entity} -> Download CSV templates for base entities
+ * 
+ * Supported entities: teams, users, applications, environments
+ * Returns CSV file with proper headers for direct download
+ */
+csvTemplates(httpMethod: "GET", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    try {
+        // Check for templates path segment
+        if (!pathParts.contains('templates')) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Invalid template path. Expected: /import/templates/{entity}"
+                ]).toString())
+                .build()
+        }
+        
+        // Get entity type from path
+        int templateIndex = pathParts.indexOf('templates')
+        if (templateIndex + 1 >= pathParts.size()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Missing entity type. Supported: teams, users, applications, environments"
+                ]).toString())
+                .build()
+        }
+        
+        String entityType = pathParts[templateIndex + 1]
+        
+        // Validate entity type
+        List<String> supportedEntities = ['teams', 'users', 'applications', 'environments']
+        if (!supportedEntities.contains(entityType)) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    error: "Unsupported entity type: ${entityType}. Supported: ${supportedEntities.join(', ')}"
+                ]).toString())
+                .build()
+        }
+        
+        logger.info("CSV template download requested for entity: ${entityType}")
+        
+        // Construct template file path
+        String templateFileName = "${entityType}_template.csv"
+        String templatePath = "local-dev-setup/data-utils/CSV_Templates/${templateFileName}"
+        
+        // Read template content
+        File templateFile = new File(templatePath)
+        if (!templateFile.exists()) {
+            logger.error("Template file not found: ${templatePath}")
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([
+                    error: "Template file not found for entity: ${entityType}",
+                    templatePath: templatePath
+                ]).toString())
+                .build()
+        }
+        
+        String csvContent = templateFile.text
+        
+        logger.info("Serving CSV template: ${templateFileName} (${csvContent.length()} characters)")
+        
+        // Return CSV file with proper headers for download
+        return Response.ok(csvContent)
+            .header("Content-Type", "text/csv; charset=utf-8")
+            .header("Content-Disposition", "attachment; filename=\"${templateFileName}\"")
+            .header("Cache-Control", "no-cache, no-store, must-revalidate")
+            .header("Pragma", "no-cache")
+            .header("Expires", "0")
+            .build()
+        
+    } catch (IOException e) {
+        logger.error("IO error reading template file: ${e.message}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                error: "Failed to read template file",
+                details: e.message
+            ]).toString())
+            .build()
+    } catch (Exception e) {
+        logger.error("Unexpected error serving template: ${e.message}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                error: "Template download failed",
+                details: e.message
+            ]).toString())
+            .build()
+    }
+}
+
+/**
+ * Handles POST requests for import batch rollback (extends existing rollback functionality)
+ * - POST /import/rollback/{batchId} -> Rollback specific import batch
+ * 
+ * Expected JSON payload:
+ * {
+ *   "reason": "Reason for rollback (optional)"
+ * }
+ */
+rollbackBatch(httpMethod: "POST", groups: ["confluence-administrators"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def extraPath = getAdditionalPath(request)
+    def pathParts = extraPath?.split('/')?.findAll { it } ?: []
+    
+    // Lazy load repository
+    def getImportRepository = { ->
+        return new ImportRepository()
+    }
+    
+    try {
+        // Check for rollback path segment
+        if (!pathParts.contains('rollback')) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    success: false,
+                    error: "Invalid rollback path. Expected: /import/rollback/{batchId}"
+                ]).toString())
+                .build()
+        }
+        
+        // Get batch ID from path
+        int rollbackIndex = pathParts.indexOf('rollback')
+        if (rollbackIndex + 1 >= pathParts.size()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    success: false,
+                    error: "Missing batch ID. Expected: /import/rollback/{batchId}"
+                ]).toString())
+                .build()
+        }
+        
+        UUID batchId
+        try {
+            batchId = UUID.fromString(pathParts[rollbackIndex + 1])
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new JsonBuilder([
+                    success: false,
+                    error: "Invalid batch ID format: must be a valid UUID"
+                ]).toString())
+                .build()
+        }
+        
+        // Parse rollback reason from body
+        def jsonSlurper = new JsonSlurper()
+        def requestDataRaw = body ? jsonSlurper.parseText(body) : [:]
+        Map requestData = (Map) requestDataRaw
+        String reason = (requestData.reason as String) ?: "Manual rollback requested via API"
+        
+        // Get user context for audit trail
+        def userContext = UserService.getCurrentUserContext()
+        String userId = (userContext?.confluenceUsername as String) ?: 'system'
+        
+        logger.info("Import batch rollback requested by user: ${userId}, batch: ${batchId}, reason: ${reason}")
+        
+        def importRepository = getImportRepository()
+        
+        // Check if batch exists and get details
+        Map batchDetails = importRepository.getImportBatchDetails(batchId)
+        if (!batchDetails) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new JsonBuilder([
+                    success: false,
+                    error: "Import batch not found: ${batchId}"
+                ]).toString())
+                .build()
+        }
+        
+        // Perform rollback with audit trail
+        Map rollbackResult = [:]
+        List<String> rollbackActions = []
+        
+        DatabaseUtil.withSql { sql ->
+            try {
+                sql.withTransaction {
+                    // Get all items in the batch for rollback
+                    List batchItems = sql.rows('''
+                        SELECT imb_source_identifier, imb_import_type, imb_statistics
+                        FROM tbl_import_batches 
+                        WHERE imb_id = ?
+                    ''', [batchId])
+                    
+                    if (batchItems.isEmpty()) {
+                        throw new IllegalArgumentException("No import data found for batch: ${batchId}")
+                    }
+                    
+                    // Rollback staging data first
+                    int stagingDeleted = sql.executeUpdate('''
+                        DELETE FROM stg_steps WHERE sts_batch_id = ?
+                    ''', [batchId])
+                    rollbackActions << ("Deleted ${stagingDeleted} staging steps" as String)
+                    
+                    int instructionsDeleted = sql.executeUpdate('''
+                        DELETE FROM stg_step_instructions 
+                        WHERE sti_step_id IN (
+                            SELECT sts_id FROM stg_steps WHERE sts_batch_id = ?
+                        )
+                    ''', [batchId])
+                    rollbackActions << ("Deleted ${instructionsDeleted} staging instructions" as String)
+                    
+                    // Update batch status to ROLLED_BACK
+                    Map rollbackStats = [
+                        rolledBackBy: userId,
+                        rolledBackDate: new Date().toString(),
+                        reason: reason,
+                        rollbackActions: rollbackActions
+                    ]
+                    
+                    importRepository.updateImportBatchStatus(
+                        sql,
+                        batchId,
+                        'ROLLED_BACK',
+                        rollbackStats
+                    )
+                    
+                    // Log rollback action
+                    sql.execute('''
+                        INSERT INTO tbl_import_audit_log (ial_id, ial_batch_id, ial_action, ial_user_id, ial_timestamp, ial_details)
+                        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
+                    ''', [
+                        UUID.randomUUID(),
+                        batchId,
+                        'ROLLBACK',
+                        userId,
+                        new JsonBuilder([reason: reason, actions: rollbackActions]).toString()
+                    ])
+                    
+                    rollbackResult = [
+                        success: true,
+                        message: "Import batch successfully rolled back",
+                        batchId: batchId.toString(),
+                        rollbackActions: rollbackActions,
+                        reason: reason,
+                        rolledBackBy: userId,
+                        rollbackDate: new Date().toString()
+                    ]
+                }
+            } catch (SQLException e) {
+                logger.error("Database error during rollback: ${e.message}", e)
+                rollbackResult = [
+                    success: false,
+                    error: "Database error during rollback",
+                    details: e.message
+                ]
+            }
+        }
+        
+        logger.info("Import batch rollback completed: ${rollbackResult}")
+        
+        // Return appropriate response
+        boolean success = rollbackResult.success as Boolean
+        if (success) {
+            return Response.ok(new JsonBuilder(rollbackResult).toString()).build()
+        } else {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder(rollbackResult).toString())
+                .build()
+        }
+        
+    } catch (IllegalArgumentException e) {
+        logger.error("Invalid rollback request: ${e.message}", e)
+        return Response.status(Response.Status.BAD_REQUEST)
+            .entity(new JsonBuilder([
+                success: false,
+                error: e.message
+            ]).toString())
+            .build()
+    } catch (Exception e) {
+        logger.error("Unexpected error during rollback: ${e.message}", e)
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new JsonBuilder([
+                success: false,
+                error: "Rollback failed",
                 details: e.message
             ]).toString())
             .build()

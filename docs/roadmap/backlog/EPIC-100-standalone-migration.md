@@ -65,7 +65,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 - Database migration from PostgreSQL to Oracle v19
 - Authentication system replacement (Confluence → LDAP)
 - Frontend migration from AUI to React
-- All 13 REST APIs recreation
+- All 24 REST APIs recreation
 - Admin GUI, IterationView, and StepView interfaces
 - Email notification system
 - Data migration and validation

@@ -787,7 +787,7 @@ CREATE TABLE steps_instance_sti (
 **Phase 3: Application Migration (2-4 hours)**
 
 1. **Update ScriptRunner**: Modify database pool configuration
-2. **Test APIs**: Validate all 13 REST endpoints
+2. **Test APIs**: Validate all 24 REST endpoints
 3. **Performance Tuning**: Oracle-specific optimization
 4. **Monitoring Setup**: Oracle Enterprise Manager integration
 
