@@ -14,7 +14,7 @@ This document provides comprehensive security guidelines for the **US-034 Enhanc
 - ✅ **Enterprise Authentication** - Full integration with UMIG `groups: ["confluence-users"]` pattern
 - ✅ **Database Security** - Complete parameterized queries with ADR-031 type safety compliance
 - ✅ **Resource Coordination Security** - Secure resource locking preventing unauthorized access
-- ✅ **Comprehensive Audit Trail** - Complete operation logging through `stg_import_audit` table  
+- ✅ **Comprehensive Audit Trail** - Complete operation logging through `stg_import_audit` table
 - ✅ **API Security** - All endpoints secured following CustomEndpointDelegate patterns
 - ✅ **Configuration Security** - Secure parameter management with validation
 - ✅ **Production-Ready Security** - Enterprise-grade protection across all system layers
@@ -29,7 +29,7 @@ The US-034 Enhanced Data Import Architecture employs **enterprise-grade security
 2. **Service Layer Security** - Secure database coordination with validation
 3. **Repository Layer Security** - Parameterized queries with type safety (ADR-031)
 4. **Database Security** - Comprehensive audit trail and secure table design
-5. **Resource Security** - Secure resource locking and coordination patterns  
+5. **Resource Security** - Secure resource locking and coordination patterns
 6. **Configuration Security** - Secure parameter management and validation
 7. **Monitoring Security** - Secure health tracking and performance monitoring
 
