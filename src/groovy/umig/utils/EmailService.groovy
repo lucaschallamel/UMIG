@@ -19,6 +19,9 @@ import javax.mail.*
 import javax.mail.internet.*
 import java.util.Properties
 
+// HTML sanitization
+import org.apache.commons.text.StringEscapeUtils
+
 // Repository imports
 import umig.repository.AuditLogRepository
 import umig.repository.EmailTemplateRepository
@@ -676,7 +679,20 @@ class EmailService {
      */
     private static boolean isLocalDevelopment() {
         def env = System.getProperty('umig.environment', 'production')
-        return env.toLowerCase() in ['local', 'development', 'dev'] || true  // Force local dev mode for testing
+        return env.toLowerCase() in ['local', 'development', 'dev']
+    }
+    
+    /**
+     * Sanitize text content for HTML template inclusion
+     * 
+     * @param text The text to sanitize
+     * @return HTML-safe text
+     */
+    private static String sanitizeHtmlContent(String text) {
+        if (!text) {
+            return text
+        }
+        return StringEscapeUtils.escapeHtml4(text)
     }
     
     /**
@@ -853,8 +869,13 @@ class EmailService {
         }
         // Fallback for legacy comment Map objects
         else if (comment instanceof Map) {
-            Map<String, Object> commentMap = comment as Map<String, Object>
-            return processLegacyComment(commentMap)
+            try {
+                Map<String, Object> commentMap = comment as Map<String, Object>
+                return processLegacyComment(commentMap)
+            } catch (ClassCastException e) {
+                println "EmailService: Map casting failed for comment: ${e.message}"
+                return createEmptyCommentMap()
+            }
         }
         // Fallback for objects with comment properties
         else if (comment?.hasProperty('commentId')) {
@@ -864,7 +885,7 @@ class EmailService {
         else {
             return [
                 comment_id: "",
-                comment_text: comment?.toString() ?: "",
+                comment_text: sanitizeHtmlContent(comment?.toString() ?: ""),
                 author_id: "",
                 author_name: "Anonymous",
                 created_at: "",
@@ -913,17 +934,22 @@ class EmailService {
      * Process legacy comment Map objects to template format with explicit type safety (ADR-031, ADR-043)
      */
     private static Map<String, Object> processLegacyComment(Map<String, Object> comment) {
-        // Defensive null checking
+        // Defensive null checking and type validation
         if (!comment) {
+            return createEmptyCommentMap()
+        }
+        
+        if (!(comment instanceof Map)) {
+            println "EmailService: processLegacyComment received non-Map object: ${comment.class.simpleName}"
             return createEmptyCommentMap()
         }
         
         try {
             // Safe property access with explicit casting and null checking per ADR-043
             String commentId = (comment.commentId as String) ?: (comment.comment_id as String) ?: ""
-            String commentText = (comment.text as String) ?: (comment.comment_text as String) ?: ""
+            String commentText = sanitizeHtmlContent((comment.text as String) ?: (comment.comment_text as String) ?: "")
             String authorId = (comment.authorId as String) ?: (comment.author_id as String) ?: ""
-            String authorName = (comment.authorName as String) ?: (comment.author_name as String) ?: "Anonymous"
+            String authorName = sanitizeHtmlContent((comment.authorName as String) ?: (comment.author_name as String) ?: "Anonymous")
             Object createdDate = comment.createdDate ?: comment.created_at
             
             // Safe boolean conversion with explicit casting
@@ -1014,20 +1040,36 @@ class EmailService {
             boolean requiresAttention = false
             
             // Safe property access with hasProperty checks and bracket notation for dynamic access (ADR-031, ADR-043)
-            if (comment.hasProperty('commentId') && comment['commentId'] != null) {
-                commentId = (comment['commentId'] as String) ?: ""
+            try {
+                if (comment.hasProperty('commentId') && comment['commentId'] != null) {
+                    commentId = (comment['commentId'] as String) ?: ""
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to commentId failed: ${e.message}"
             }
             
-            if (comment.hasProperty('text') && comment['text'] != null) {
-                commentText = (comment['text'] as String) ?: ""
+            try {
+                if (comment.hasProperty('text') && comment['text'] != null) {
+                    commentText = sanitizeHtmlContent((comment['text'] as String) ?: "")
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to text failed: ${e.message}"
             }
             
-            if (comment.hasProperty('authorId') && comment['authorId'] != null) {
-                authorId = (comment['authorId'] as String) ?: ""
+            try {
+                if (comment.hasProperty('authorId') && comment['authorId'] != null) {
+                    authorId = (comment['authorId'] as String) ?: ""
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to authorId failed: ${e.message}"
             }
             
-            if (comment.hasProperty('authorName') && comment['authorName'] != null) {
-                authorName = (comment['authorName'] as String) ?: "Anonymous"
+            try {
+                if (comment.hasProperty('authorName') && comment['authorName'] != null) {
+                    authorName = sanitizeHtmlContent((comment['authorName'] as String) ?: "Anonymous")
+                }
+            } catch (Exception e) {
+                println "EmailService: Safe access to authorName failed: ${e.message}"
             }
             
             if (comment.hasProperty('createdDate')) {
