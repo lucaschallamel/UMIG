@@ -56,6 +56,7 @@ Frontend → StepsApi → StepRepository.completeInstructionWithNotification()
 2. **Navigate to a StepView** page with incomplete instructions
 3. **Complete an instruction** by clicking the completion button
 4. **Check the audit_log_aud table**:
+
    ```sql
    SELECT aud_id, aud_action, aud_entity_type, aud_entity_id, aud_details, aud_timestamp
    FROM audit_log_aud
@@ -63,6 +64,7 @@ Frontend → StepsApi → StepRepository.completeInstructionWithNotification()
    ORDER BY aud_timestamp DESC
    LIMIT 10;
    ```
+
 5. **Verify audit records are created** with proper details
 
 ### Expected Audit Log Entries

@@ -116,7 +116,7 @@ static void testFindAllMasterControls() {
 
 ## Implementation Steps
 
-### For Each Failing Test:
+### For Each Failing Test
 
 1. **Remove imports** that reference ScriptRunner or umig packages
 2. **Add mock classes** (MockSql, DatabaseUtil)

@@ -71,7 +71,7 @@ type(scope): concise description
 ```
 
 Types: feat, fix, docs, style, refactor, perf, test, chore
-Adhere to ConventionalCommit specification: https://www.conventionalcommits.org/en/v1.0.0/#specification
+Adhere to ConventionalCommit specification: <https://www.conventionalcommits.org/en/v1.0.0/#specification>
 
 ## Mandatory Security Implementation Standards
 

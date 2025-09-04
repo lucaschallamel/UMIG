@@ -3,12 +3,13 @@
 # https://megalinter.io/latest/configuration/
 
 # Disable validating all files and enable only specified linters
-VALIDATE_ALL_CODEBASE: false
+VALIDATE_ALL_CODEBASE: true
 
 # Enable linters for technologies found in your project
 ENABLE_LINTERS:
   - ANSIBLE_ANSIBLE_LINT
   - DOCKERFILE_HADOLINT
+  - GROOVY_NPM_GROOVY_LINT
   - JAVASCRIPT_ES
   - JAVASCRIPT_PRETTIER
   - JSON_JSONLINT
@@ -19,12 +20,25 @@ ENABLE_LINTERS:
   - XML_XMLLINT
   - YAML_YAMLLINT
 
-# Apply automated fixes for formatters
+# Apply automated fixes for formatters (Groovy excluded - report only)
 APPLY_FIXES: [JAVASCRIPT_PRETTIER, SQL_SQLFLUFF, MARKDOWN_MARKDOWNLINT]
 
 # --- Linter-specific configurations ---
 
+# Groovy configuration
+GROOVY_NPM_GROOVY_LINT_CONFIG_FILE: .groovylintrc.json
+GROOVY_NPM_GROOVY_LINT_FILE_EXTENSIONS: [".groovy"]
+GROOVY_NPM_GROOVY_LINT_FILE_NAMES_REGEX: ".*\\.groovy$"
+GROOVY_NPM_GROOVY_LINT_FILTER_REGEX_INCLUDE: "(src/groovy/.*\\.groovy$)"
+GROOVY_NPM_GROOVY_LINT_ARGUMENTS: "--failon none --no-fix --noserver"
+GROOVY_NPM_GROOVY_LINT_DISABLE_ERRORS: true
+GROOVY_NPM_GROOVY_LINT_CLI_LINT_MODE: list_of_files
+
 # --- Global configurations ---
+
+# Additional directories to scan
+ADDITIONAL_EXCLUDED_DIRECTORIES: []
+LINTER_RULES_PATH: .
 
 # Ignore specific files and directories
 FILTER_REGEX_EXCLUDE: (^\.archive/|node_modules/|local-dev-setup/data-utils/coverage/|megalinter-reports/)

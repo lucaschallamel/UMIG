@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-09-04T09:35:04.427Z",
+  "overallDuration": 53470,
+  "totalPhases": 4,
+  "successful": 2,
+  "failed": 2,
+  "phases": [
+    {
+      "name": "API Smoke Tests",
+      "success": false,
+      "duration": 52972,
+      "error": "Command failed: node scripts/test-runners/ApiSmokeTestRunner.js"
+    },
+    {
+      "name": "Immediate Health Check",
+      "success": true,
+      "duration": 190,
+      "error": null
+    },
+    {
+      "name": "Phase B Test Execution",
+      "success": true,
+      "duration": 169,
+      "error": null
+    },
+    {
+      "name": "Integration Tests",
+      "success": false,
+      "duration": 33,
+      "error": "Command failed: node scripts/test-runners/UATTestRunner.js\nnode:internal/modules/esm/resolve:274\n    throw new ERR_MODULE_NOT_FOUND(\n          ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/scripts/test-runners/test-runners/UATValidationRunner.js' imported from /Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/scripts/test-runners/UATTestRunner.js\n    at finalizeResolution (node:internal/modules/esm/resolve:274:11)\n    at moduleResolve (node:internal/modules/esm/resolve:859:10)\n    at defaultResolve (node:internal/modules/esm/resolve:983:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:717:20)\n    at ModuleLoader.resolve (node:internal/modules/esm/loader:694:38)\n    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:308:38)\n    at ModuleJob._link (node:internal/modules/esm/module_job:183:49) {\n  code: 'ERR_MODULE_NOT_FOUND',\n  url: 'file:///Users/lucaschallamel/Documents/GitHub/UMIG/local-dev-setup/scripts/test-runners/test-runners/UATValidationRunner.js'\n}\n\nNode.js v22.19.0\n"
+    }
+  ]
+}

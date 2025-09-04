@@ -1,8 +1,8 @@
 # UMIG Architecture Requirements Specification
 
-**Version:** 1.2  
-**Date:** August 28, 2025  
-**Status:** Final - All 49 ADRs Incorporated  
+**Version:** 1.3  
+**Date:** September 4, 2025  
+**Status:** Final - All 49 ADRs + US-034 Phase 4-5 Enhancements Incorporated  
 **TOGAF Phase:** Phase A-D Requirements  
 **Part of:** UMIG Enterprise Architecture
 
@@ -81,17 +81,25 @@ This document consolidates all architectural requirements for the Unified Migrat
 
 ### 2.4 Data Management Domain
 
-| ID        | Requirement                                            | Priority | Source            |
-| --------- | ------------------------------------------------------ | -------- | ----------------- |
-| FR-DM-001 | System shall support PostgreSQL for development        | Critical | ADR-003           |
-| FR-DM-002 | System shall support Oracle for production             | Critical | Tech Architecture |
-| FR-DM-003 | System shall use Liquibase for schema management       | Critical | ADR-008           |
-| FR-DM-004 | System shall support bulk data import from JSON        | High     | ADR-028           |
-| FR-DM-005 | System shall maintain full audit columns on all tables | Critical | US-002b           |
-| FR-DM-006 | System shall use centralized status management         | High     | ADR-035           |
-| FR-DM-007 | System shall import 500+ JSON files in under 3 minutes | High     | ADR-028           |
-| FR-DM-008 | System shall enforce PostgreSQL type casting standards | Critical | ADR-043           |
-| FR-DM-009 | System shall maintain single data enrichment point     | Critical | ADR-047           |
+| ID        | Requirement                                                        | Priority | Source            |
+| --------- | ------------------------------------------------------------------ | -------- | ----------------- |
+| FR-DM-001 | System shall support PostgreSQL for development                    | Critical | ADR-003           |
+| FR-DM-002 | System shall support Oracle for production                         | Critical | Tech Architecture |
+| FR-DM-003 | System shall use Liquibase for schema management                   | Critical | ADR-008           |
+| FR-DM-004 | System shall support bulk data import from JSON                    | High     | ADR-028           |
+| FR-DM-005 | System shall maintain full audit columns on all tables             | Critical | US-002b           |
+| FR-DM-006 | System shall use centralized status management                     | High     | ADR-035           |
+| FR-DM-007 | System shall import 500+ JSON files in under 3 minutes             | High     | ADR-028           |
+| FR-DM-008 | System shall enforce PostgreSQL type casting standards             | Critical | ADR-043           |
+| FR-DM-009 | System shall maintain single data enrichment point                 | Critical | ADR-047           |
+| FR-DM-010 | System shall support concurrent data import operations             | High     | US-034 Phase 4    |
+| FR-DM-011 | System shall provide import preview with validation                | High     | US-034 Phase 4    |
+| FR-DM-012 | System shall support scheduled import execution                    | Medium   | US-034 Phase 4    |
+| FR-DM-013 | System shall implement streaming CSV processing with memory limits | High     | US-034 Phase 5    |
+| FR-DM-014 | System shall maintain import queue management with priority        | High     | US-034 Phase 4    |
+| FR-DM-015 | System shall provide comprehensive security validation with CVSS   | Critical | US-034 Phase 5    |
+| FR-DM-016 | System shall achieve 4x import performance improvement             | High     | US-034 Phase 5    |
+| FR-DM-017 | System shall reduce memory usage by 85% during import operations   | High     | US-034 Phase 5    |
 
 ### 2.5 API Services Domain
 
@@ -122,6 +130,13 @@ This document consolidates all architectural requirements for the Unified Migrat
 | NFR-P-007 | Data import performance        | <3 minutes for 500 files | Import time         | ADR-028               |
 | NFR-P-008 | URL construction response time | <50ms                    | Service latency     | ADR-048               |
 | NFR-P-009 | Configuration cache efficiency | >80% hit rate            | Cache metrics       | ADR-048               |
+| NFR-P-010 | Concurrent import operations   | 3 simultaneous imports   | Active imports      | US-034 Phase 4        |
+| NFR-P-011 | Import queue processing        | <5s queue latency        | Queue processing    | US-034 Phase 4        |
+| NFR-P-012 | Streaming CSV processing       | 10MB/10K row limits      | Memory efficiency   | US-034 Phase 5        |
+| NFR-P-013 | Import performance enhancement | 4x speed improvement     | Throughput metrics  | US-034 Phase 5        |
+| NFR-P-014 | Memory optimization            | 85% reduction            | Memory usage        | US-034 Phase 5        |
+| NFR-P-015 | Import preview generation      | <30s for 20 files        | Preview latency     | US-034 Phase 4        |
+| NFR-P-016 | Schedule execution accuracy    | ±2 minutes timing        | Schedule precision  | US-034 Phase 4        |
 
 ### 3.2 Security Requirements
 
@@ -141,6 +156,13 @@ This document consolidates all architectural requirements for the Unified Migrat
 | NFR-S-012 | Security monitoring and incident response   | SIEM integration + Threat detection + Automated response                | Security Operations |
 | NFR-S-013 | Platform security integration               | Confluence/ScriptRunner security + Plugin validation + Sandbox controls | Platform Security   |
 | NFR-S-014 | Development-production security parity      | Consistent security controls + Testing + Validation                     | DevSecOps           |
+| NFR-S-015 | CVSS vulnerability scoring implementation   | Complete CVSS v3.1 scoring with threat classification                   | US-034 Phase 5      |
+| NFR-S-016 | Path traversal protection                   | Whitelist validation + Path sanitization + CVSS 9.1 mitigation          | US-034 Phase 5      |
+| NFR-S-017 | File extension validation                   | Strict whitelist enforcement + CVSS 8.8 security controls               | US-034 Phase 5      |
+| NFR-S-018 | Input size validation                       | 50MB request limits + CVSS 7.5 protection                               | US-034 Phase 5      |
+| NFR-S-019 | Batch size security limits                  | 1000 file maximum + CVSS 6.5 controls                                   | US-034 Phase 5      |
+| NFR-S-020 | Comprehensive security audit logging        | Complete threat tracking + Security event classification                | US-034 Phase 5      |
+| NFR-S-021 | Defense-in-depth import security            | Multiple validation layers + Excellent (9.2/10) security rating         | US-034 Phase 5      |
 
 ### 3.3 Reliability & Availability Requirements
 
@@ -236,6 +258,11 @@ This document consolidates all architectural requirements for the Unified Migrat
 | TC-013 | Must use java.sql types for dates                       | No java.util.Date allowed                 | ADR-043           |
 | TC-014 | Single data enrichment point                            | Repository layer only                     | ADR-047           |
 | TC-015 | Key-value configuration pattern                         | JOIN-based config retrieval               | ADR-048           |
+| TC-016 | Maximum 3 concurrent import operations                  | Resource contention prevention            | US-034 Phase 4    |
+| TC-017 | Streaming CSV processing memory limits                  | 10MB/10K row constraints                  | US-034 Phase 5    |
+| TC-018 | Import queue size limitations                           | Maximum 10 queued operations              | US-034 Phase 4    |
+| TC-019 | CVSS scoring mandatory for security validations         | All import threats must be scored         | US-034 Phase 5    |
+| TC-020 | Batch processing size constraints                       | 1000 file maximum per batch               | US-034 Phase 5    |
 
 ### 4.2 Business Constraints
 
@@ -381,6 +408,52 @@ This document consolidates all architectural requirements for the Unified Migrat
 | **Enhanced Error Responses**           | Structured errors with actionable guidance       | ADR-039          | Yes       |
 | **Specific Test Mocks**                | All mocks must validate exact SQL structure      | ADR-026          | Yes       |
 | **Environment-Aware URL Construction** | Multi-environment support with caching           | ADR-048          | Yes       |
+| **Concurrent Import Coordination**     | Thread-safe resource allocation and queue mgmt   | US-034 Phase 4   | Yes       |
+| **CVSS Security Validation**           | Comprehensive threat scoring and mitigation      | US-034 Phase 5   | Yes       |
+| **Streaming Data Processing**          | Memory-efficient processing with adaptive limits | US-034 Phase 5   | Yes       |
+| **Import Queue Management**            | Priority-based scheduling with resource planning | US-034 Phase 4   | Yes       |
+
+### 8.3 US-034 Data Import Strategy Integration
+
+#### 8.3.1 Phase 4-5 Enhancements Summary
+
+The US-034 Data Import Strategy represents a comprehensive enhancement to UMIG's data processing capabilities, achieving:
+
+**Phase 4 Achievements (Concurrent Operations)**:
+
+- ✅ **Concurrent Import Handling**: Support for 3 simultaneous import operations
+- ✅ **Import Queue Management**: Priority-based scheduling with resource allocation
+- ✅ **Import Preview System**: Pre-validation and processing estimation
+- ✅ **Import Scheduling**: Cron-based scheduling with tenant isolation
+- ✅ **Enhanced Orchestration**: Multi-tenant coordination with conflict detection
+
+**Phase 5 Achievements (Performance & Security)**:
+
+- ✅ **Excellent Security Rating**: 9.2/10 with comprehensive CVSS scoring
+- ✅ **4x Performance Improvement**: Through parallel chunked processing
+- ✅ **85% Memory Reduction**: Via streaming parsers and adaptive management
+- ✅ **Defense-in-Depth Security**: Multiple validation layers across all endpoints
+- ✅ **Comprehensive Audit Logging**: Complete threat tracking and classification
+
+#### 8.3.2 Architecture Integration Points
+
+| Integration Domain    | Enhancement                                   | Impact                     |
+| --------------------- | --------------------------------------------- | -------------------------- |
+| **Data Architecture** | Enhanced schema with concurrent mgmt tables   | Multi-tenant isolation     |
+| **API Architecture**  | Extended endpoints with security validations  | CVSS-scored error handling |
+| **Service Layer**     | Streaming processing with memory optimization | 85% memory reduction       |
+| **Security Layer**    | CVSS v3.1 scoring with threat classification  | 9.2/10 security rating     |
+| **Performance Layer** | Parallel processing with adaptive chunking    | 4x throughput improvement  |
+
+#### 8.3.3 Requirements Traceability
+
+All US-034 enhancements maintain full traceability to:
+
+- **Functional Requirements**: FR-DM-010 through FR-DM-017
+- **Performance Requirements**: NFR-P-010 through NFR-P-016
+- **Security Requirements**: NFR-S-015 through NFR-S-021
+- **Technical Constraints**: TC-016 through TC-020
+- **Implementation Patterns**: Concurrent coordination, CVSS validation, streaming processing
 
 ### 8.3 Validation Criteria
 
@@ -498,11 +571,12 @@ Complete checklist for ADR compliance available in implementation documentation.
 
 ### D. Revision History
 
-| Version | Date       | Author            | Description                                               |
-| ------- | ---------- | ----------------- | --------------------------------------------------------- |
-| 1.0     | 2025-08-28 | Architecture Team | Initial requirements specification from first 20 ADRs     |
-| 1.1     | 2025-08-28 | Architecture Team | Expanded with ADRs 21-40                                  |
-| 1.2     | 2025-08-28 | Architecture Team | Final version with all 49 ADRs comprehensively integrated |
+| Version | Date       | Author            | Description                                                                                                                                                              |
+| ------- | ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0     | 2025-08-28 | Architecture Team | Initial requirements specification from first 20 ADRs                                                                                                                    |
+| 1.1     | 2025-08-28 | Architecture Team | Expanded with ADRs 21-40                                                                                                                                                 |
+| 1.2     | 2025-08-28 | Architecture Team | Final version with all 49 ADRs comprehensively integrated                                                                                                                |
+| 1.3     | 2025-09-04 | Architecture Team | US-034 Phase 4-5 enhancements integrated: concurrent operations, security (CVSS 9.2/10), performance (4x improvement), streaming processing, comprehensive audit logging |
 
 ---
 

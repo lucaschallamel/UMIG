@@ -18,9 +18,9 @@ npm run generate-data:erase
 
 ## Service URLs
 
-- **Confluence**: http://localhost:8090
+- **Confluence**: <http://localhost:8090>
 - **PostgreSQL**: localhost:5432
-- **MailHog** (email testing): http://localhost:8025
+- **MailHog** (email testing): <http://localhost:8025>
 
 ## Testing Commands
 

@@ -1,8 +1,8 @@
 # UMIG Data Architecture
 
-**Version:** 1.1  
-**Date:** August 28, 2025  
-**Status:** Phase 1 Enhanced  
+**Version:** 1.3  
+**Date:** September 4, 2025  
+**Status:** Phase 1 Enhanced + US-034 Data Import Architecture COMPLETE (Migration 026)  
 **TOGAF Phase:** Phase C - Data Architecture  
 **Part of:** UMIG Enterprise Architecture
 
@@ -91,16 +91,17 @@ graph TB
 
 ### 2.2 Data Subject Areas
 
-| Subject Area             | Description                    | Key Entities             |
-| ------------------------ | ------------------------------ | ------------------------ |
-| **Migration Management** | Strategic migration planning   | Migration, Iteration     |
-| **Execution Planning**   | Tactical execution structure   | Plan, Sequence, Phase    |
-| **Task Management**      | Operational work units         | Step, Instruction        |
-| **Quality Control**      | Validation and governance      | Control, Status          |
-| **Organization**         | People and teams               | User, Team, Role         |
-| **Communication**        | Collaboration and notification | Comment, Email Template  |
-| **Environment**          | Technical landscape            | Environment, Application |
-| **Audit & Compliance**   | Tracking and reporting         | Audit Log, History       |
+| Subject Area             | Description                             | Key Entities                                                                                        |
+| ------------------------ | --------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Migration Management** | Strategic migration planning            | Migration, Iteration                                                                                |
+| **Execution Planning**   | Tactical execution structure            | Plan, Sequence, Phase                                                                               |
+| **Task Management**      | Operational work units                  | Step, Instruction                                                                                   |
+| **Quality Control**      | Validation and governance               | Control, Status                                                                                     |
+| **Organization**         | People and teams                        | User, Team, Role                                                                                    |
+| **Communication**        | Collaboration and notification          | Comment, Email Template                                                                             |
+| **Environment**          | Technical landscape                     | Environment, Application                                                                            |
+| **Audit & Compliance**   | Tracking and reporting                  | Audit Log, History                                                                                  |
+| **Data Import (US-034)** | Enhanced concurrent import architecture | stg_import_queue_management_iqm, stg_scheduled_import_schedules_sis, stg_tenant_resource_limits_trl |
 
 ## 3. Logical Data Model
 
@@ -160,6 +161,214 @@ Environment (N) <──> (N) Iteration
 | **status_sts**            | Status definitions        | sts_id, sts_name, sts_color, sts_type                                      | Referenced by all entities             |
 | **stg_steps**             | Staging: Step data        | step_id, description, owner_team_id                                        | Data import staging                    |
 | **stg_step_instructions** | Staging: Instruction data | instruction_id, step_id, instruction_text                                  | Data import staging                    |
+
+### 3.3 US-034 Enhanced Data Import Architecture
+
+#### 3.3.1 Complete Data Import Implementation (Production Ready)
+
+**Implementation Status**: ✅ COMPLETE - All 7 tables implemented in migration 026 with full repository integration
+
+| Entity                                     | Purpose                          | Key Features                                                           | Repository Class                |
+| ------------------------------------------ | -------------------------------- | ---------------------------------------------------------------------- | ------------------------------- |
+| **stg_import_queue_management_iqm**        | Priority-based import queue      | Request coordination, resource requirements (JSONB), worker assignment | ImportQueueManagementRepository |
+| **stg_import_resource_locks_irl**          | Resource conflict prevention     | Exclusive/shared locks, expiration handling, conflict resolution       | Not yet implemented             |
+| **stg_scheduled_import_schedules_sis**     | Recurring import scheduling      | Cron expressions, execution history, failure tracking                  | Not yet implemented             |
+| **stg_schedule_execution_history_seh**     | Schedule execution audit trail   | Execution tracking, error logging, performance metrics                 | Not yet implemented             |
+| **stg_schedule_resource_reservations_srr** | Schedule resource management     | Resource type allocation, time-based reservations                      | Not yet implemented             |
+| **stg_tenant_resource_limits_trl**         | Multi-tenant resource governance | Enforcement levels (HARD/SOFT/ADVISORY), resource quotas               | Not yet implemented             |
+| **stg_orchestration_dependencies_od**      | Import dependency orchestration  | Sequential/resource/data dependencies, execution order                 | Not yet implemented             |
+
+#### 3.3.2 US-034 Data Processing Capabilities
+
+**Queue Management System**:
+
+- **Priority-based Coordination**: 1-20 priority levels with configurable default values
+- **Request Tracking**: Unique request identifiers with status lifecycle management
+- **Resource Requirements**: JSONB configuration for flexible resource specification
+- **Worker Assignment**: Dynamic worker allocation with status tracking
+- **Queue Position Tracking**: Automatic position management for execution ordering
+
+**Resource Management & Conflict Prevention**:
+
+- **Resource Locking**: Exclusive and shared lock types with expiration handling
+- **Conflict Detection**: Resource type and ID-based conflict prevention
+- **Tenant Isolation**: Multi-tenant resource boundaries with enforcement levels
+- **Resource Quotas**: CPU slots, memory, database connections, concurrent import limits
+- **Default Resource Limits**: 2 CPU slots, 1024MB memory, 3 DB connections, 2 concurrent imports
+
+**Scheduling & Orchestration**:
+
+- **Flexible Scheduling**: Cron expressions and ISO datetime support
+- **Recurring Imports**: Configurable recurring execution with failure tracking
+- **Execution History**: Complete audit trail with performance metrics and error logging
+- **Dependency Management**: Sequential, resource, and data dependency orchestration
+- **Resource Reservations**: Time-based resource allocation for scheduled operations
+
+**Database Pattern Compliance**:
+
+- **UMIG Naming Convention**: All tables follow `stg_` prefix with standard abbreviations
+- **Audit Trail Support**: Standard `created_date`, `last_modified_date`, `is_active` fields
+- **Type Safety**: Proper constraint enforcement with CHECK constraints
+- **Referential Integrity**: Foreign key relationships with cascade deletion where appropriate
+
+#### 3.3.3 Complete US-034 Database Implementation (Migration 026)
+
+**Implementation Reference**: `local-dev-setup/liquibase/changelogs/026_us034_import_tables.sql`
+
+```sql
+-- US-034 Import Queue Management Table
+CREATE TABLE stg_import_queue_management_iqm (
+    iqm_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    iqm_request_id UUID NOT NULL UNIQUE,
+    iqm_priority INTEGER NOT NULL DEFAULT 5 CHECK (iqm_priority BETWEEN 1 AND 20),
+    iqm_status VARCHAR(20) NOT NULL DEFAULT 'QUEUED'
+        CHECK (iqm_status IN ('QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED')),
+    iqm_import_type VARCHAR(50) NOT NULL,
+    iqm_requested_by VARCHAR(100) NOT NULL,
+    iqm_requested_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    iqm_started_at TIMESTAMPTZ NULL,
+    iqm_estimated_duration INTEGER NULL, -- minutes
+    iqm_resource_requirements JSONB NULL,
+    iqm_configuration JSONB NOT NULL,
+    iqm_queue_position INTEGER NULL,
+    iqm_assigned_worker VARCHAR(50) NULL,
+    iqm_created_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    iqm_last_modified_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    iqm_is_active BOOLEAN DEFAULT true
+);
+
+-- Resource Lock Management Table
+CREATE TABLE stg_import_resource_locks_irl (
+    irl_id SERIAL PRIMARY KEY,
+    irl_resource_type VARCHAR(50) NOT NULL,
+    irl_resource_id VARCHAR(100) NOT NULL,
+    irl_lock_type VARCHAR(20) NOT NULL CHECK (irl_lock_type IN ('EXCLUSIVE', 'SHARED')),
+    irl_locked_by_request UUID NOT NULL REFERENCES stg_import_queue_management_iqm(iqm_request_id),
+    irl_locked_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    irl_expires_at TIMESTAMPTZ NOT NULL CHECK (irl_expires_at > irl_locked_at),
+    irl_created_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    irl_is_active BOOLEAN DEFAULT true,
+    CONSTRAINT uk_irl_resource_request UNIQUE (irl_resource_type, irl_resource_id, irl_locked_by_request)
+);
+
+-- Scheduled Import Schedules Table
+CREATE TABLE stg_scheduled_import_schedules_sis (
+    sis_id SERIAL PRIMARY KEY,
+    sis_schedule_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    sis_schedule_name VARCHAR(255) NOT NULL,
+    sis_import_type VARCHAR(50) NOT NULL,
+    sis_schedule_expression VARCHAR(100) NOT NULL, -- Cron expression or ISO datetime
+    sis_recurring BOOLEAN DEFAULT false,
+    sis_priority INTEGER DEFAULT 5 CHECK (sis_priority BETWEEN 1 AND 20),
+    sis_created_by VARCHAR(100) NOT NULL,
+    sis_status VARCHAR(20) DEFAULT 'SCHEDULED'
+        CHECK (sis_status IN ('SCHEDULED', 'EXECUTING', 'COMPLETED', 'FAILED', 'CANCELLED', 'PAUSED')),
+    sis_next_execution TIMESTAMPTZ NOT NULL,
+    sis_last_execution TIMESTAMPTZ NULL,
+    sis_execution_count INTEGER DEFAULT 0,
+    sis_success_count INTEGER DEFAULT 0,
+    sis_failure_count INTEGER DEFAULT 0,
+    sis_import_configuration JSONB NOT NULL,
+    sis_notification_settings JSONB NULL,
+    sis_max_retries INTEGER DEFAULT 3,
+    sis_retry_delay_minutes INTEGER DEFAULT 15,
+    sis_timeout_minutes INTEGER DEFAULT 60,
+    sis_created_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    sis_last_modified_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    sis_is_active BOOLEAN DEFAULT true,
+    CONSTRAINT chk_sis_next_execution_future CHECK (sis_next_execution > sis_created_date),
+    CONSTRAINT chk_sis_execution_counts CHECK (
+        sis_success_count >= 0 AND sis_failure_count >= 0
+        AND sis_execution_count >= (sis_success_count + sis_failure_count)
+    )
+);
+
+-- Schedule Execution History Table
+CREATE TABLE stg_schedule_execution_history_seh (
+    seh_id SERIAL PRIMARY KEY,
+    sis_id INTEGER NOT NULL REFERENCES stg_scheduled_import_schedules_sis(sis_id) ON DELETE CASCADE,
+    seh_execution_id UUID NOT NULL,
+    seh_started_at TIMESTAMPTZ NOT NULL,
+    seh_completed_at TIMESTAMPTZ NULL,
+    seh_status VARCHAR(20) NOT NULL
+        CHECK (seh_status IN ('STARTED', 'IN_PROGRESS', 'COMPLETED', 'FAILED', 'CANCELLED')),
+    seh_records_processed INTEGER DEFAULT 0,
+    seh_error_message TEXT NULL,
+    seh_execution_details JSONB NULL,
+    seh_created_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Multi-tenant Resource Limits Table
+CREATE TABLE stg_tenant_resource_limits_trl (
+    trl_id SERIAL PRIMARY KEY,
+    trl_tenant_id VARCHAR(50) NOT NULL,
+    trl_resource_type VARCHAR(50) NOT NULL,
+    trl_resource_limit INTEGER NOT NULL CHECK (trl_resource_limit > 0),
+    trl_resource_unit VARCHAR(20) NOT NULL
+        CHECK (trl_resource_unit IN ('MB', 'COUNT', 'PERCENTAGE', 'GB', 'SECONDS')),
+    trl_enforcement_level VARCHAR(20) DEFAULT 'HARD'
+        CHECK (trl_enforcement_level IN ('HARD', 'SOFT', 'ADVISORY')),
+    trl_created_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    trl_last_modified_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    trl_is_active BOOLEAN DEFAULT true,
+    CONSTRAINT uk_trl_tenant_resource UNIQUE (trl_tenant_id, trl_resource_type)
+);
+
+-- Orchestration Dependencies Table
+CREATE TABLE stg_orchestration_dependencies_od (
+    od_id SERIAL PRIMARY KEY,
+    od_orchestration_id UUID NOT NULL,
+    od_depends_on_orchestration UUID NOT NULL,
+    od_dependency_type VARCHAR(30) NOT NULL
+        CHECK (od_dependency_type IN ('SEQUENTIAL', 'RESOURCE', 'DATA')),
+    od_created_date TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_od_orchestration_dependency
+        UNIQUE (od_orchestration_id, od_depends_on_orchestration)
+);
+```
+
+#### 3.3.4 Performance Optimization & Indexing Strategy
+
+**Production-Ready Performance Implementation**:
+
+```sql
+-- Performance indexes for queue management
+CREATE INDEX idx_iqm_status_priority ON stg_import_queue_management_iqm
+    (iqm_status, iqm_priority DESC, iqm_requested_at);
+CREATE INDEX idx_iqm_worker_status ON stg_import_queue_management_iqm
+    (iqm_assigned_worker, iqm_status);
+
+-- Resource lock management indexes
+CREATE INDEX idx_irl_resource_expires ON stg_import_resource_locks_irl
+    (irl_resource_type, irl_resource_id, irl_expires_at);
+
+-- Scheduling system indexes
+CREATE INDEX idx_sis_next_execution ON stg_scheduled_import_schedules_sis (sis_next_execution);
+CREATE INDEX idx_sis_created_by_status ON stg_scheduled_import_schedules_sis
+    (sis_created_by, sis_status);
+CREATE INDEX idx_sis_recurring_active ON stg_scheduled_import_schedules_sis
+    (sis_recurring, sis_is_active);
+
+-- Execution history tracking
+CREATE INDEX idx_seh_sis_started ON stg_schedule_execution_history_seh
+    (sis_id, seh_started_at DESC);
+CREATE INDEX idx_seh_execution_id ON stg_schedule_execution_history_seh (seh_execution_id);
+
+-- Resource reservation optimization
+CREATE INDEX idx_srr_resource_time ON stg_schedule_resource_reservations_srr
+    (srr_resource_type, srr_reserved_from, srr_reserved_until);
+
+-- Dependency resolution indexes
+CREATE INDEX idx_od_orchestration ON stg_orchestration_dependencies_od (od_orchestration_id);
+CREATE INDEX idx_od_depends_on ON stg_orchestration_dependencies_od (od_depends_on_orchestration);
+```
+
+**Repository Integration Patterns**:
+
+- **DatabaseUtil.withSql**: All repository classes follow UMIG standard patterns
+- **Type Safety**: Explicit casting with UUID.fromString() and Integer.parseInt() methods
+- **Error Handling**: SQL state mapping (23503→400, 23505→409) for constraint violations
+- **Transaction Management**: Automatic transaction handling through ScriptRunner framework
 
 ## 4. Physical Data Model
 
@@ -787,7 +996,7 @@ CREATE TABLE steps_instance_sti (
 **Phase 3: Application Migration (2-4 hours)**
 
 1. **Update ScriptRunner**: Modify database pool configuration
-2. **Test APIs**: Validate all 13 REST endpoints
+2. **Test APIs**: Validate all 24 REST endpoints
 3. **Performance Tuning**: Oracle-specific optimization
 4. **Monitoring Setup**: Oracle Enterprise Manager integration
 

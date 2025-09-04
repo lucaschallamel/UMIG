@@ -255,6 +255,7 @@ e.printStackTrace()
    ```
 
 2. **Security Audit Logging**
+
    ```groovy
    // Add security event logging
    void logSecurityEvent(String event, Map<String, Object> context) {

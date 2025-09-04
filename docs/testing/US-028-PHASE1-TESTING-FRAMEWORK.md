@@ -96,15 +96,16 @@ Unit Tests (Logic) ─────────── 50%
 **Priority**: HIGH
 
 **Filter Test Matrix**:
-| Filter Type | Parameter | Test UUID | Expected Behavior |
-|-------------|-----------|-----------|-------------------|
-| Migration | `migrationId` | Valid UUID | Returns all steps in migration |
-| Iteration | `iterationId` | Valid UUID | Returns steps in specific iteration |
-| Plan | `planId` | Valid UUID | Returns steps in plan |
-| Sequence | `sequenceId` | Valid UUID | Returns steps in sequence |
-| Phase | `phaseId` | Valid UUID | Returns steps in phase |
-| Team | `teamId` | Valid UUID | Returns steps assigned to team |
-| Label | `labelId` | Valid UUID | Returns steps with label |
+
+| Filter Type | Parameter     | Test UUID  | Expected Behavior                   |
+| ----------- | ------------- | ---------- | ----------------------------------- |
+| Migration   | `migrationId` | Valid UUID | Returns all steps in migration      |
+| Iteration   | `iterationId` | Valid UUID | Returns steps in specific iteration |
+| Plan        | `planId`      | Valid UUID | Returns steps in plan               |
+| Sequence    | `sequenceId`  | Valid UUID | Returns steps in sequence           |
+| Phase       | `phaseId`     | Valid UUID | Returns steps in phase              |
+| Team        | `teamId`      | Valid UUID | Returns steps assigned to team      |
+| Label       | `labelId`     | Valid UUID | Returns steps with label            |
 
 **Combined Filters Test**:
 
@@ -125,12 +126,13 @@ Unit Tests (Logic) ─────────── 50%
 4. Confirm real-time UI update
 
 **Status Update Matrix**:
-| From Status | To Status | Expected Result |
-|-------------|-----------|-----------------|
-| NOT_STARTED | IN_PROGRESS | Update successful |
-| IN_PROGRESS | COMPLETED | Update successful |
-| COMPLETED | IN_PROGRESS | Update successful (rollback) |
-| NOT_STARTED | COMPLETED | Update successful (skip) |
+
+| From Status | To Status   | Expected Result              |
+| ----------- | ----------- | ---------------------------- |
+| NOT_STARTED | IN_PROGRESS | Update successful            |
+| IN_PROGRESS | COMPLETED   | Update successful            |
+| COMPLETED   | IN_PROGRESS | Update successful (rollback) |
+| NOT_STARTED | COMPLETED   | Update successful (skip)     |
 
 ---
 

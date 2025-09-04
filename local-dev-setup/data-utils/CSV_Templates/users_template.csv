@@ -1,0 +1,16 @@
+usr_id,usr_code,usr_first_name,usr_last_name,usr_email,usr_is_admin,tms_id,rls_id
+1,JDO,John,Doe,john.doe@company.com,true,1,1
+2,JSM,Jane,Smith,jane.smith@company.com,false,2,2
+3,RJO,Robert,Johnson,robert.johnson@company.com,false,3,2
+4,MDA,Mary,Davis,mary.davis@company.com,false,4,3
+5,MWI,Michael,Wilson,michael.wilson@company.com,false,5,3
+6,PBR,Patricia,Brown,patricia.brown@company.com,false,6,2
+7,JJO,James,Jones,james.jones@company.com,false,7,3
+8,JWI,Jennifer,Williams,jennifer.williams@company.com,false,8,2
+9,WMI,William,Miller,william.miller@company.com,false,9,3
+10,LTA,Linda,Taylor,linda.taylor@company.com,true,10,1
+11,DMO,David,Moore,david.moore@company.com,false,1,3
+12,SAN,Sarah,Anderson,sarah.anderson@company.com,false,2,2
+13,JTH,Joseph,Thomas,joseph.thomas@company.com,false,3,3
+14,JJA,Jessica,Jackson,jessica.jackson@company.com,false,4,2
+15,CWH,Charles,White,charles.white@company.com,false,5,3

@@ -91,22 +91,24 @@ The Phases API has been significantly enhanced with advanced repository capabili
 #### GET /phases/master
 
 **Legacy Parameters (Backward Compatibility):**
-| Name | Type | Required | Description |
+
+| Name       | Type | Required | Description                                |
 | ---------- | ---- | -------- | ------------------------------------------ |
-| sequenceId | UUID | No | Filter master phases by sequence master ID |
+| sequenceId | UUID | No       | Filter master phases by sequence master ID |
 
 **Admin GUI Parameters (Enhanced Features):**
-| Name | Type | Required | Default | Description |
-| -------------- | ------------ | -------- | ----------- | ------------------------------------------------ |
-| page | Integer | No | 1 | Page number for pagination (1-based) |
-| size | Integer | No | 50 | Number of items per page (1-100) |
-| sort | String | No | phm_name | Field to sort by: phm_id, phm_name, phm_status, created_at, updated_at, step_count, instance_count |
-| direction | String | No | asc | Sort direction: asc, desc |
-| status | String/Array | No | - | Filter by status name(s). Single value or array |
-| ownerId | String | No | - | Filter by owner team ID (through plan master) |
-| search | String | No | - | Search in phase name and description |
-| startDateFrom | Date | No | - | Filter by creation date from (YYYY-MM-DD) |
-| startDateTo | Date | No | - | Filter by creation date to (YYYY-MM-DD) |
+
+| Name          | Type         | Required | Default  | Description                                                                                        |
+| ------------- | ------------ | -------- | -------- | -------------------------------------------------------------------------------------------------- |
+| page          | Integer      | No       | 1        | Page number for pagination (1-based)                                                               |
+| size          | Integer      | No       | 50       | Number of items per page (1-100)                                                                   |
+| sort          | String       | No       | phm_name | Field to sort by: phm_id, phm_name, phm_status, created_at, updated_at, step_count, instance_count |
+| direction     | String       | No       | asc      | Sort direction: asc, desc                                                                          |
+| status        | String/Array | No       | -        | Filter by status name(s). Single value or array                                                    |
+| ownerId       | String       | No       | -        | Filter by owner team ID (through plan master)                                                      |
+| search        | String       | No       | -        | Search in phase name and description                                                               |
+| startDateFrom | Date         | No       | -        | Filter by creation date from (YYYY-MM-DD)                                                          |
+| startDateTo   | Date         | No       | -        | Filter by creation date to (YYYY-MM-DD)                                                            |
 
 **Enhanced Response Structure:**
 The Admin GUI endpoint returns a structured response with pagination metadata:

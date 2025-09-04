@@ -195,6 +195,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
    ```
 
 4. **Template Variable Enhancement**:
+
    ```groovy
    // Add step content variables: stepName, stepStatus, stepDescription
    // Add formatted instruction variables: formattedInstructions, instructionCount
@@ -227,6 +228,7 @@ The scope expansion recognizes that modern users often work primarily from mobil
    ```
 
 3. **Context Extraction and User Resolution**:
+
    ```groovy
    // Extract migration and iteration codes from step instances
    // Fix user authentication context in macro environment

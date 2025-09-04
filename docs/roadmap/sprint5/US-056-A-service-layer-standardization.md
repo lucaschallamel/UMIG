@@ -223,6 +223,7 @@ This phase creates the core infrastructure needed for subsequent phases while ma
    ```
 
 4. **JSON Schema Definition** (`stepDataSchema.json`):
+
    ```json
    {
      "$schema": "http://json-schema.org/draft-07/schema#",
