@@ -97,6 +97,7 @@ This decision enables:
    - `stepview.confluence.page.title` - Human-readable page title
 
 4. **URL Format Pattern**
+
    ```
    {baseURL}/pages/viewpage.action?pageId={pageId}&mig={migrationCode}&ite={iterationCode}&stepid={stepCode}
    ```

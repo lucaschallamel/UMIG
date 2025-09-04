@@ -21,6 +21,9 @@ class ImportService {
     
     private static final Logger log = LoggerFactory.getLogger(ImportService.class)
     
+    // Performance Constants - US-034 Enhancement
+    private static final int MAX_BATCH_SIZE = 1000 // Maximum files per batch
+    
     private StagingImportRepository stagingRepository
     private ImportRepository importRepository
     
@@ -160,15 +163,47 @@ class ImportService {
     
     /**
      * Import multiple JSON files in batch
+     * US-034 Enhancement: Added batch size validation, performance monitoring, and resource management
      */
     Map importBatch(List<Map> jsonFiles, String userId) {
+        // SECURITY VALIDATION - Batch size limits
+        if (jsonFiles?.size() > MAX_BATCH_SIZE) {
+            log.error("Batch size validation failed: ${jsonFiles.size()} files exceeds limit of ${MAX_BATCH_SIZE}")
+            return [
+                success: false,
+                error: "Batch size exceeds maximum allowed size of ${MAX_BATCH_SIZE} files",
+                actualSize: jsonFiles.size(),
+                maxSize: MAX_BATCH_SIZE,
+                cvssScore: 6.5,
+                threatLevel: "MEDIUM",
+                securityAlert: "Resource exhaustion prevention - batch size exceeds safe limits"
+            ]
+        }
+        
+        // PERFORMANCE VALIDATION - Memory check before starting batch
+        if (!checkMemoryAvailability(jsonFiles.size())) {
+            log.error("Insufficient memory available for batch processing ${jsonFiles.size()} files")
+            return [
+                success: false,
+                error: "Insufficient memory available for batch processing",
+                batchSize: jsonFiles.size(),
+                recommendedAction: "Reduce batch size or wait for memory to be available",
+                memoryStatus: getMemoryStatus()
+            ]
+        }
+        
         Map batchResult = [
-            totalFiles: jsonFiles.size(),
+            totalFiles: jsonFiles?.size() ?: 0,
             successCount: 0,
             failureCount: 0,
             skippedCount: 0,
             results: [],
-            statistics: [:]
+            statistics: [:],
+            performanceMetrics: [
+                batchSize: jsonFiles?.size() ?: 0,
+                startTime: System.currentTimeMillis(),
+                memoryUsageStart: Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+            ]
         ]
         
         // Count by step type
@@ -218,6 +253,37 @@ class ImportService {
         // Get overall statistics from staging tables
         batchResult.statistics = stagingRepository.getStagingStatistics()
         ((Map) batchResult.statistics).importedByType = stepTypeCounts
+        
+        // Complete performance metrics - US-034 Enhancement
+        Map performanceMetrics = (Map) batchResult.performanceMetrics
+        performanceMetrics.endTime = System.currentTimeMillis()
+        
+        // ADR-031: Explicit type casting for mathematical operations
+        long startTime = (performanceMetrics.startTime as Long)
+        long endTime = (performanceMetrics.endTime as Long)
+        long memoryUsageStart = (performanceMetrics.memoryUsageStart as Long)
+        long memoryUsageEnd = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+        long durationMs = endTime - startTime
+        long memoryDelta = memoryUsageEnd - memoryUsageStart
+        int totalFiles = (batchResult.totalFiles as Integer)
+        
+        performanceMetrics.memoryUsageEnd = memoryUsageEnd
+        performanceMetrics.durationMs = durationMs
+        performanceMetrics.memoryDelta = memoryDelta
+        performanceMetrics.filesPerSecond = durationMs > 0 ? 
+            ((totalFiles as Double) * 1000.0d) / (durationMs as Double) : 0.0d
+        
+        // Additional performance analysis - US-034
+        performanceMetrics.memoryEfficiency = calculateMemoryEfficiency(performanceMetrics)
+        performanceMetrics.throughputRating = calculateThroughputRating(performanceMetrics.filesPerSecond as Double)
+        performanceMetrics.resourceUtilization = getResourceUtilizationSummary()
+        
+        log.info("Batch import completed: ${batchResult.totalFiles} files, ${performanceMetrics.durationMs}ms, ${String.format('%.2f', performanceMetrics.filesPerSecond)} files/sec, Memory efficiency: ${performanceMetrics.memoryEfficiency}")
+        
+        // Clean up resources after large batch operations
+        if (jsonFiles.size() >= 100) {
+            optimizeResourceUsage()
+        }
         
         return batchResult
     }
@@ -335,5 +401,120 @@ class ImportService {
         }
         
         return result
+    }
+    
+    /**
+     * US-034 Performance Enhancement Methods
+     */
+    
+    /**
+     * Check if sufficient memory is available for batch processing
+     */
+    private boolean checkMemoryAvailability(int batchSize) {
+        Runtime runtime = Runtime.getRuntime()
+        long freeMemory = runtime.freeMemory()
+        long maxMemory = runtime.maxMemory()
+        long totalMemory = runtime.totalMemory()
+        
+        // Estimate memory needed (approximate 1MB per file for JSON processing)
+        long estimatedMemoryNeeded = batchSize * 1024 * 1024L
+        long availableMemory = maxMemory - (totalMemory - freeMemory)
+        
+        // Require at least 50% headroom for safe processing
+        return availableMemory > (estimatedMemoryNeeded * 1.5)
+    }
+    
+    /**
+     * Get current memory status for monitoring
+     */
+    private Map getMemoryStatus() {
+        Runtime runtime = Runtime.getRuntime()
+        long freeMemory = runtime.freeMemory()
+        long totalMemory = runtime.totalMemory()
+        long maxMemory = runtime.maxMemory()
+        long usedMemory = totalMemory - freeMemory
+        
+        return [
+            freeMemoryMB: freeMemory / (1024 * 1024),
+            totalMemoryMB: totalMemory / (1024 * 1024),
+            maxMemoryMB: maxMemory / (1024 * 1024),
+            usedMemoryMB: usedMemory / (1024 * 1024),
+            memoryUtilizationPercent: Math.round((usedMemory * 100.0d) / (maxMemory as Double) * 100.0d) / 100.0d
+        ]
+    }
+    
+    /**
+     * Calculate memory efficiency rating
+     */
+    private String calculateMemoryEfficiency(Map performanceMetrics) {
+        long memoryDelta = performanceMetrics.memoryDelta as Long
+        int totalFiles = performanceMetrics.batchSize as Integer
+        
+        if (totalFiles == 0) return "N/A"
+        
+        long memoryPerFile = (memoryDelta / totalFiles) as Long
+        
+        // Rate efficiency based on memory usage per file
+        if (memoryPerFile < 500 * 1024) return "EXCELLENT" // < 500KB per file
+        if (memoryPerFile < 1024 * 1024) return "GOOD"      // < 1MB per file  
+        if (memoryPerFile < 5 * 1024 * 1024) return "FAIR"  // < 5MB per file
+        return "POOR" // > 5MB per file
+    }
+    
+    /**
+     * Calculate throughput performance rating
+     */
+    private String calculateThroughputRating(Double filesPerSecond) {
+        if (filesPerSecond >= 10.0) return "EXCELLENT"
+        if (filesPerSecond >= 5.0) return "GOOD"
+        if (filesPerSecond >= 1.0) return "FAIR"
+        return "POOR"
+    }
+    
+    /**
+     * Get comprehensive resource utilization summary
+     */
+    private Map getResourceUtilizationSummary() {
+        Map memoryStatus = getMemoryStatus()
+        
+        return [
+            memory: memoryStatus,
+            timestamp: System.currentTimeMillis(),
+            recommendation: getPerformanceRecommendation(memoryStatus)
+        ]
+    }
+    
+    /**
+     * Get performance recommendation based on current resource status
+     */
+    private String getPerformanceRecommendation(Map memoryStatus) {
+        double memoryUtilization = memoryStatus.memoryUtilizationPercent as Double
+        
+        if (memoryUtilization > 85) {
+            return "HIGH memory usage detected. Consider reducing batch sizes or adding more memory."
+        } else if (memoryUtilization > 70) {
+            return "MODERATE memory usage. Monitor for memory leaks in large operations."
+        } else if (memoryUtilization < 30) {
+            return "LOW memory usage. Batch sizes can potentially be increased for better throughput."
+        } else {
+            return "OPTIMAL memory usage for current workload."
+        }
+    }
+    
+    /**
+     * Optimize resource usage after large operations
+     */
+    private void optimizeResourceUsage() {
+        log.debug("Optimizing resource usage after large batch operation")
+        
+        // Suggest garbage collection
+        System.gc()
+        
+        // Allow thread scheduling
+        Thread.yield()
+        
+        // Log post-optimization memory status
+        Map memoryStatus = getMemoryStatus()
+        log.debug("Resource optimization completed. Memory status: ${memoryStatus.memoryUtilizationPercent}% utilized")
     }
 }

@@ -36,7 +36,7 @@ This guide provides UAT teams with comprehensive integration materials for effec
 
 **Objective**: Verify core API functionality and documentation accuracy
 
-#### Test Areas Covered:
+#### Test Areas Covered
 
 1. **Authentication & Authorization**
    - HTTP Basic Auth mechanism
@@ -57,7 +57,7 @@ This guide provides UAT teams with comprehensive integration materials for effec
 
 **Objective**: Validate complex scenarios and system integration
 
-#### Test Areas to Cover:
+#### Test Areas to Cover
 
 1. **Hierarchical Data Operations**
    - Migration → Iteration → Plan → Sequence → Phase → Step workflows
@@ -84,7 +84,7 @@ This guide provides UAT teams with comprehensive integration materials for effec
 **Duration**: 2 hours  
 **Objective**: End-to-end happy path validation
 
-#### Test Steps:
+#### Test Steps
 
 ```bash
 # 1. Create Migration
@@ -154,7 +154,7 @@ curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 # Validation: Status transition and audit trail
 ```
 
-#### Success Criteria:
+#### Success Criteria
 
 - All operations complete without errors
 - Data integrity maintained across operations
@@ -167,7 +167,7 @@ curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/migration
 **Duration**: 1 hour  
 **Objective**: Validate error responses and recovery procedures
 
-#### Test Steps:
+#### Test Steps
 
 ```bash
 # 1. Test Authentication Errors
@@ -225,7 +225,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 # Expected: 400 Bad Request with foreign key error
 ```
 
-#### Success Criteria:
+#### Success Criteria
 
 - All error responses include actionable guidance
 - Error codes match documentation specifications
@@ -238,7 +238,7 @@ curl -X POST http://localhost:8090/rest/scriptrunner/latest/custom/umig/teams \
 **Duration**: 1.5 hours  
 **Objective**: Validate API performance under realistic load
 
-#### Test Steps:
+#### Test Steps
 
 ```bash
 # 1. Single Request Performance
@@ -270,7 +270,7 @@ curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/steps/bul
 # Expected: Response time < 10 seconds for bulk update
 ```
 
-#### Success Criteria:
+#### Success Criteria
 
 - Individual operations under 3 seconds
 - Bulk operations under 10 seconds
@@ -285,7 +285,7 @@ curl -X PUT http://localhost:8090/rest/scriptrunner/latest/custom/umig/steps/bul
 
 ✅ **Development Environment Running**
 
-- Confluence 9.2.7 accessible at http://localhost:8090
+- Confluence 9.2.7 accessible at <http://localhost:8090>
 - PostgreSQL database operational
 - ScriptRunner 9.21.0 installed and configured
 - UMIG API endpoints deployed

@@ -4,12 +4,20 @@ import groovy.json.JsonSlurper
 import groovy.json.JsonBuilder
 import groovy.sql.Sql
 import umig.repository.ImportRepository
+import umig.repository.ImportQueueManagementRepository
+import umig.repository.ImportResourceLockRepository
+import umig.repository.ScheduledImportRepository
+import umig.service.ImportService
+import umig.service.CsvImportService
 import umig.utils.DatabaseUtil
 import java.sql.Timestamp
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 /**
  * Import Orchestration Service - Complete workflow coordination for US-034 Data Import Strategy
@@ -56,17 +64,34 @@ class ImportOrchestrationService {
     private CsvImportService csvImportService
     private ImportRepository importRepository
     
-    // Progress tracking
+    // US-034 DATABASE-BACKED COORDINATION - Replaced in-memory coordination
+    private ImportQueueManagementRepository queueRepository
+    private ImportResourceLockRepository lockRepository
+    private ScheduledImportRepository scheduleRepository
+    
+    // Legacy in-memory tracking for backward compatibility during transition
     private final Map<UUID, Map> orchestrationProgress = new ConcurrentHashMap<>()
+    private final ReentrantLock orchestrationLock = new ReentrantLock(true) // Fair lock - kept for method-level coordination
+    
+    // Database-backed coordination with legacy fallback for transition period
+    private final Semaphore concurrentImportSemaphore = new Semaphore(3, true) 
+    private final Map<String, ReentrantLock> entityLocks = new ConcurrentHashMap<>()
+    private final AtomicInteger activeOrchestrations = new AtomicInteger(0)
     
     ImportOrchestrationService() {
         this.importService = new ImportService()
         this.csvImportService = new CsvImportService()
         this.importRepository = new ImportRepository()
+        
+        // Initialize US-034 database-backed repositories
+        this.queueRepository = new ImportQueueManagementRepository()
+        this.lockRepository = new ImportResourceLockRepository()
+        this.scheduleRepository = new ScheduledImportRepository()
     }
     
     /**
-     * Orchestrate complete import workflow
+     * Orchestrate complete import workflow with concurrent coordination
+     * US-034 Enhancement: Added resource locking, concurrent limits, and improved error handling
      * 
      * @param importConfiguration Configuration containing:
      *   - baseEntities: Map of entity name to CSV data
@@ -79,11 +104,7 @@ class ImportOrchestrationService {
         UUID orchestrationId = UUID.randomUUID()
         String userId = importConfiguration.userId as String ?: 'system'
         
-        log.info("Starting complete import orchestration: ${orchestrationId} by user: ${userId}")
-        
-        // Initialize progress tracking
-        Map progressTracker = initializeProgressTracking(orchestrationId, importConfiguration)
-        
+        // Initialize result at method level for proper scoping
         Map result = [
             orchestrationId: orchestrationId,
             started: new Timestamp(System.currentTimeMillis()),
@@ -96,7 +117,44 @@ class ImportOrchestrationService {
             warnings: []
         ]
         
+        // US-034 DATABASE-BACKED COORDINATION - Use queue management instead of semaphore
+        UUID requestId = UUID.randomUUID()
+        
+        // Queue the import request using database-backed queue management
+        Map queueResult = queueRepository.queueImportRequest(
+            requestId,
+            'COMPLETE_IMPORT', 
+            userId,
+            importConfiguration.priority as Integer ?: 5,
+            importConfiguration,
+            calculateResourceRequirements(importConfiguration),
+            estimateImportDuration(importConfiguration)
+        )
+        
+        if (!queueResult.success) {
+            log.error("Failed to queue import request for user ${userId}: ${queueResult.error}")
+            return [
+                success: false,
+                error: queueResult.error,
+                queueingFailed: true
+            ]
+        }
+        
+        // Add request tracking to result
+        result.requestId = requestId
+        result.queuePosition = queueResult.queuePosition
+        result.estimatedWaitTime = queueResult.estimatedWaitTime
+        
         try {
+            // Increment active orchestrations counter
+            activeOrchestrations.incrementAndGet()
+            
+            log.info("Starting import orchestration: ${orchestrationId} by user: ${userId} (${activeOrchestrations.get()} active orchestrations)")
+            
+            // Initialize progress tracking
+            Map progressTracker = initializeProgressTracking(orchestrationId, importConfiguration)
+        
+            try {
             // Validate import configuration
             Map validation = validateImportConfiguration(importConfiguration)
             if (!validation.valid) {
@@ -146,13 +204,58 @@ class ImportOrchestrationService {
             updateOrchestrationStatus(orchestrationId, 'COMPLETED', 'All phases completed successfully')
             log.info("Orchestration ${orchestrationId}: All phases completed successfully")
             
+            } catch (Exception e) {
+                log.error("Orchestration ${orchestrationId} failed with exception: ${e.message}", e)
+                (result.errors as List<String>) << ("Orchestration failed: ${e.message}" as String)
+                updateOrchestrationStatus(orchestrationId, 'FAILED', e.message)
+            } catch (InterruptedException e) {
+                log.error("Orchestration ${orchestrationId} interrupted: ${e.message}")
+                result.errors = result.errors ?: []
+                (result.errors as List) << "Orchestration interrupted: ${e.message}"
+                updateOrchestrationStatus(orchestrationId, 'INTERRUPTED', 'Operation was interrupted')
+                Thread.currentThread().interrupt() // Preserve interrupted status
+            }
+            
         } catch (Exception e) {
-            log.error("Orchestration ${orchestrationId} failed with exception: ${e.message}", e)
-            (result.errors as List<String>) << ("Orchestration failed: ${e.message}" as String)
-            updateOrchestrationStatus(orchestrationId, 'FAILED', e.message)
+            log.error("Orchestration setup failed for ${orchestrationId}: ${e.message}", e)
+            // Update the method-level result with failure information
+            result.success = false
+            result.error = "Failed to initialize orchestration: ${e.message}"
+            (result.errors as List<String>) << ("Setup failed: ${e.message}" as String)
+            
+            // Try to persist the failure result
+            try {
+                persistOrchestrationResults(orchestrationId, result)
+            } catch (Exception persistException) {
+                log.error("Failed to persist orchestration failure: ${persistException.message}")
+            }
         } finally {
-            // Persist orchestration results
-            persistOrchestrationResults(orchestrationId, result)
+            // US-034 DATABASE-BACKED CLEANUP - Update queue status instead of semaphore
+            try {
+                // Update queue status based on result
+                String finalStatus = result.success ? 'COMPLETED' : 'FAILED'
+                String errorMessage = result.errors ? (result.errors as List<String>).join('; ') : null
+                queueRepository.updateRequestStatus(requestId, finalStatus, errorMessage)
+                
+                // Release any acquired resource locks
+                lockRepository.releaseAllLocksForRequest(requestId)
+                
+                log.info("Import orchestration ${orchestrationId} completed with status ${finalStatus}")
+                
+                // Clean up progress tracking after completion
+                if (result?.success || (result?.errors as List)?.size() > 0) {
+                    // Keep failed orchestrations in memory for potential resume
+                    if (result.success) {
+                        orchestrationProgress.remove(orchestrationId)
+                    }
+                }
+            } catch (Exception cleanupException) {
+                log.error("Error during orchestration cleanup: ${cleanupException.message}", cleanupException)
+            } finally {
+                // Decrement active orchestrations counter
+                activeOrchestrations.decrementAndGet()
+                log.debug("Active orchestrations count: ${activeOrchestrations.get()}")
+            }
         }
         
         return result
@@ -242,7 +345,7 @@ class ImportOrchestrationService {
             warnings: []
         ]
         
-        // Process base entities in dependency order
+        // Process base entities in dependency order with entity locking - US-034 Enhancement
         for (String entityType : BASE_ENTITY_ORDER) {
             if (!baseEntities.containsKey(entityType)) {
                 log.info("Skipping ${entityType} - no data provided")
@@ -250,10 +353,19 @@ class ImportOrchestrationService {
             }
             
             String csvData = baseEntities[entityType] as String
-            log.info("Processing ${entityType} CSV import...")
             
-            Map entityResult
-            switch (entityType) {
+            // CONCURRENT COORDINATION - Entity-level locking
+            ReentrantLock entityLock = getEntityLock(entityType)
+            boolean lockAcquired = false
+            
+            try {
+                // Acquire entity lock with timeout
+                if (entityLock.tryLock(60, TimeUnit.SECONDS)) {
+                    lockAcquired = true
+                    log.info("Processing ${entityType} CSV import (entity lock acquired)...")
+                    
+                    Map entityResult
+                    switch (entityType) {
                 case 'teams':
                     entityResult = csvImportService.importTeams(csvData, "${entityType}_orchestrated.csv", userId)
                     break
@@ -266,21 +378,41 @@ class ImportOrchestrationService {
                 case 'environments':
                     entityResult = csvImportService.importEnvironments(csvData, "${entityType}_orchestrated.csv", userId)
                     break
-                default:
-                    log.warn("Unknown entity type: ${entityType}")
-                    continue
-            }
-            
-            phaseResult.entities[entityType] = entityResult
-            
-            if (!entityResult.success) {
-                log.error("Failed to import ${entityType}: ${entityResult.errors}")
+                    default:
+                        log.warn("Unknown entity type: ${entityType}")
+                        continue
+                    }
+                    
+                    phaseResult.entities[entityType] = entityResult
+                    
+                    if (!entityResult.success) {
+                        log.error("Failed to import ${entityType}: ${entityResult.errors}")
+                        phaseResult.success = false
+                        (phaseResult.errors as List<String>).addAll(entityResult.errors as List<String>)
+                        // Continue with other entities but track failure
+                    }
+                    
+                    updatePhaseProgress(orchestrationId, 'BASE_ENTITIES', "Completed ${entityType}")
+                    
+                } else {
+                    // Could not acquire lock within timeout
+                    log.error("Could not acquire entity lock for ${entityType} within 60 seconds")
+                    phaseResult.success = false
+                    (phaseResult.errors as List<String>) << ("Failed to acquire entity lock for ${entityType} - possible concurrent operation" as String)
+                }
+                
+            } catch (InterruptedException e) {
+                log.error("Entity import interrupted for ${entityType}: ${e.message}")
                 phaseResult.success = false
-                (phaseResult.errors as List<String>).addAll(entityResult.errors as List<String>)
-                // Continue with other entities but track failure
+                (phaseResult.errors as List<String>) << ("Entity import interrupted for ${entityType}: ${e.message}" as String)
+                Thread.currentThread().interrupt()
+            } finally {
+                // Release entity lock
+                if (lockAcquired) {
+                    entityLock.unlock()
+                    log.debug("Entity lock released for ${entityType}")
+                }
             }
-            
-            updatePhaseProgress(orchestrationId, 'BASE_ENTITIES', "Completed ${entityType}")
         }
         
         return phaseResult
@@ -695,6 +827,234 @@ class ImportOrchestrationService {
         } catch (Exception e) {
             log.warn("Failed to parse JSON field: ${e.message}")
             return [:]
+        }
+    }
+    
+    /**
+     * US-034 Concurrent Coordination Enhancement Methods
+     */
+    
+    /**
+     * Get or create entity-specific lock for concurrent coordination
+     */
+    private ReentrantLock getEntityLock(String entityType) {
+        return entityLocks.computeIfAbsent(entityType, { k -> new ReentrantLock(true) })
+    }
+    
+    /**
+     * Get current concurrent operation status
+     */
+    private Map getConcurrentOperationStatus() {
+        return [
+            maxConcurrentImports: 3,
+            availableSlots: concurrentImportSemaphore.availablePermits(),
+            activeOrchestrations: activeOrchestrations.get(),
+            queuedOrchestrations: Math.max(0, (activeOrchestrations.get() as Integer) - 3),
+            entityLocksActive: entityLocks.size(),
+            systemRecommendation: activeOrchestrations.get() > 2 ? 
+                "High concurrent activity - consider staggering import operations" : 
+                "Normal concurrent activity levels"
+        ]
+    }
+    
+    /**
+     * Check if orchestration can proceed based on resource availability
+     */
+    private boolean canProceedWithOrchestration() {
+        // Check memory availability
+        Runtime runtime = Runtime.getRuntime()
+        long freeMemory = runtime.freeMemory()
+        long totalMemory = runtime.totalMemory()
+        long maxMemory = runtime.maxMemory()
+        
+        double memoryUtilization = (double) (totalMemory - freeMemory) / maxMemory
+        
+        // Prevent new orchestrations if memory usage is too high
+        if (memoryUtilization > 0.85) {
+            log.warn("Memory utilization too high (${String.format('%.1f', memoryUtilization * 100)}%) - blocking new orchestrations")
+            return false
+        }
+        
+        // Check if too many active orchestrations
+        if (activeOrchestrations.get() >= 5) {
+            log.warn("Too many active orchestrations (${activeOrchestrations.get()}) - blocking new requests")
+            return false
+        }
+        
+        return true
+    }
+    
+    /**
+     * Clean up expired orchestration progress tracking
+     */
+    private void cleanupExpiredProgress() {
+        long cutoffTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000L) // 24 hours ago
+        
+        orchestrationProgress.entrySet().removeIf { entry ->
+            Map progress = entry.getValue() as Map
+            Timestamp started = progress.started as Timestamp
+            return started && started.time < cutoffTime
+        }
+    }
+    
+    /**
+     * Get orchestration queue information
+     */
+    Map getOrchestrationQueueInfo() {
+        return [
+            activeOrchestrations: activeOrchestrations.get(),
+            availableConcurrentSlots: concurrentImportSemaphore.availablePermits(),
+            totalTrackedOrchestrations: orchestrationProgress.size(),
+            entityLocks: entityLocks.keySet(),
+            systemStatus: canProceedWithOrchestration() ? "READY" : "RESOURCE_CONSTRAINED",
+            recommendations: generateSystemRecommendations()
+        ]
+    }
+    
+    /**
+     * Generate system performance recommendations
+     */
+    private List<String> generateSystemRecommendations() {
+        List<String> recommendations = []
+        
+        if (activeOrchestrations.get() > 2) {
+            recommendations << "High concurrent activity detected - consider staggering large import operations"
+        }
+        
+        Runtime runtime = Runtime.getRuntime()
+        double memoryUtilization = (double) (runtime.totalMemory() - runtime.freeMemory()) / runtime.maxMemory()
+        if (memoryUtilization > 0.70) {
+            recommendations << ("Memory usage is elevated (${String.format('%.1f', memoryUtilization * 100)}%) - monitor for memory leaks" as String)
+        }
+        
+        if (entityLocks.size() > 4) {
+            recommendations << "Multiple entity locks active - ensure proper lock release in error scenarios"
+        }
+        
+        if (recommendations.isEmpty()) {
+            recommendations << "System operating within normal parameters"
+        }
+        
+        return recommendations
+    }
+    
+    // ====== US-034 DATABASE-BACKED COORDINATION HELPER METHODS ======
+    
+    /**
+     * Calculate resource requirements for import configuration
+     * US-034 Enhancement: Database-backed resource estimation
+     */
+    Map calculateResourceRequirements(Map importConfiguration) {
+        Map requirements = [:]
+        
+        // Estimate based on configuration
+        if (importConfiguration.baseEntities) {
+            requirements.estimatedEntities = (importConfiguration.baseEntities as Map).size()
+        }
+        
+        if (importConfiguration.jsonFiles) {
+            requirements.estimatedJsonFiles = (importConfiguration.jsonFiles as List).size()
+        }
+        
+        // Resource requirements
+        requirements.memoryMB = Math.max(512, (requirements.estimatedEntities as Integer ?: 0) * 50)
+        requirements.diskSpaceMB = Math.max(100, (requirements.estimatedJsonFiles as Integer ?: 0) * 10)
+        requirements.concurrentConnections = Math.min(5, Math.max(1, (requirements.estimatedEntities as Integer ?: 1)))
+        
+        return requirements
+    }
+    
+    /**
+     * Estimate import duration for queue management
+     * US-034 Enhancement: Duration estimation for queue positioning
+     */
+    Integer estimateImportDuration(Map importConfiguration) {
+        // Basic duration estimation in minutes
+        int baseTime = 5 // 5 minute base
+        int entityTime = (((importConfiguration.baseEntities as Map)?.size() ?: 0) as Integer) * 2 // 2 minutes per entity type
+        int jsonTime = (((importConfiguration.jsonFiles as List)?.size() ?: 0) as Integer) * 1 // 1 minute per JSON file
+        
+        return Math.max(5, baseTime + entityTime + jsonTime)
+    }
+    
+    /**
+     * Get current import queue status
+     * US-034 Enhancement: Database-backed queue status
+     */
+    Map getImportQueueStatus() {
+        try {
+            return queueRepository.getQueueStatus()
+        } catch (Exception e) {
+            log.error("Failed to get import queue status: ${e.message}", e)
+            return [error: e.message]
+        }
+    }
+    
+    /**
+     * Get status of a specific import request
+     * US-034 Enhancement: Database-backed request tracking
+     */
+    Map getImportRequestStatus(UUID requestId) {
+        try {
+            // Get queue status first
+            Map queueStatus = queueRepository.getQueueStatus()
+            
+            // Find request in current queue or history
+            Map requestInfo = (queueStatus.queue as List<Map>)?.find { Map it -> 
+                (it.requestId as UUID) == requestId 
+            } as Map
+            
+            if (!requestInfo) {
+                return [
+                    requestId: requestId,
+                    found: false,
+                    message: "Request not found in current queue"
+                ]
+            }
+            
+            // Get active locks for this request
+            List<Map> activeLocks = lockRepository.getActiveLocksForRequest(requestId)
+            
+            return [
+                requestId: requestId,
+                found: true,
+                status: requestInfo,
+                activeLocks: activeLocks,
+                queueStatistics: queueStatus.statistics
+            ]
+            
+        } catch (Exception e) {
+            log.error("Failed to get status for request ${requestId}: ${e.message}", e)
+            return [
+                requestId: requestId,
+                error: e.message
+            ]
+        }
+    }
+    
+    /**
+     * Cancel a queued import request
+     * US-034 Enhancement: Database-backed request cancellation
+     */
+    Map cancelImportRequest(UUID requestId, String cancelledBy) {
+        try {
+            Map result = queueRepository.cancelRequest(requestId, cancelledBy)
+            
+            if (result.success) {
+                // Also release any acquired locks
+                lockRepository.releaseAllLocksForRequest(requestId)
+                log.info("Cancelled import request ${requestId} and released associated locks")
+            }
+            
+            return result
+            
+        } catch (Exception e) {
+            log.error("Failed to cancel import request ${requestId}: ${e.message}", e)
+            return [
+                success: false,
+                requestId: requestId,
+                error: e.message
+            ]
         }
     }
 }

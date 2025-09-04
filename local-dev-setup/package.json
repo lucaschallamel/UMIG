@@ -62,6 +62,8 @@
     "lint:md:aggressive": "prettier --check '**/*.md' --prose-wrap always --print-width 80 --tab-width 2 --single-quote --trailing-comma all",
     "markdownlint": "markdownlint '../**/*.md' --ignore '../node_modules/**' --ignore '../local-dev-setup/node_modules/**'",
     "markdownlint:fix": "markdownlint '../**/*.md' --ignore '../node_modules/**' --ignore '../local-dev-setup/node_modules/**' --fix",
+    "lint:mega": "podman run --rm -v \"$PWD/..:/tmp/lint:rw\" -e MEGALINTER_CONFIG=/tmp/lint/.mega-linter.yml -e DEFAULT_WORKSPACE=/tmp/lint oxsecurity/megalinter-java:latest",
+    "lint:mega:docker": "docker run --rm -v \"$PWD/..:/tmp/lint:rw\" -e MEGALINTER_CONFIG=/tmp/lint/.mega-linter.yml -e DEFAULT_WORKSPACE=/tmp/lint oxsecurity/megalinter-java:latest",
     "mailhog:test": "node scripts/utilities/test-mailhog-smtp.js",
     "mailhog:check": "curl -s http://localhost:8025/api/v2/messages | jq '.count'",
     "mailhog:clear": "curl -X DELETE http://localhost:8025/api/v1/messages && echo 'MailHog inbox cleared'",

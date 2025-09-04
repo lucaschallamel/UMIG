@@ -175,6 +175,7 @@ The UMIG application implements a sophisticated dual authentication context mana
   - Fallback: Anonymous (error state requiring investigation)
 - **Session-Level Caching**: Expensive user lookups are cached at the session level to optimize performance
 - **Frontend Authentication Requirements**:
+
   ```javascript
   headers: {
     "X-Atlassian-Token": "no-check",  // XSRF protection

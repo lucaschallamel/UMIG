@@ -52,6 +52,7 @@ Install Groovy version 3.0.15 for command-line testing and development. This spe
    ```
 
 4. **Verify Installation**:
+
    ```bash
    groovy --version
    # Should output: Groovy Version: 3.0.15 JVM: [your Java version]
