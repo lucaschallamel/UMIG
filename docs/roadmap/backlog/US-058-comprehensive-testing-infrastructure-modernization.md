@@ -4,7 +4,7 @@
 **Story Type**: Technical Debt / Infrastructure  
 **Priority**: High  
 **Complexity**: Large (13 story points)  
-**Sprint**: 7  
+**Sprint**: 7
 
 ## Story Summary
 
@@ -13,6 +13,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 ## Business Value & Technical Benefits
 
 ### Business Impact
+
 - **Quality Assurance**: Reduced production defects through comprehensive automated testing
 - **Development Velocity**: Faster feature delivery with confident refactoring capabilities
 - **Risk Mitigation**: Early detection of regressions and security vulnerabilities
@@ -20,6 +21,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 - **Maintenance Cost**: Reduced long-term maintenance through organized, reusable test infrastructure
 
 ### Technical Benefits
+
 - Unified testing strategy across all test types (Unit, Integration, E2E, Security, Performance)
 - Standardized test frameworks, patterns, and tooling
 - Improved test reliability and reduced flakiness
@@ -29,6 +31,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 ## Acceptance Criteria
 
 ### AC1: Unified Testing Framework Architecture
+
 **Given** the current mixed testing infrastructure  
 **When** implementing the unified testing framework  
 **Then** we must achieve:
@@ -40,6 +43,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 - [ ] Consistent naming conventions and organization patterns
 
 ### AC2: Enhanced E2E Testing Infrastructure
+
 **Given** scattered Playwright configurations and missing page object models  
 **When** implementing enhanced E2E infrastructure  
 **Then** we must deliver:
@@ -52,6 +56,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 - [ ] Authentication flow E2E test coverage (all user scenarios)
 
 ### AC3: Comprehensive Test Coverage Enhancement
+
 **Given** existing coverage gaps across test types  
 **When** implementing comprehensive coverage enhancement  
 **Then** we must achieve:
@@ -64,6 +69,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 - [ ] Performance regression testing for all critical APIs
 
 ### AC4: CI/CD Integration and Automation
+
 **Given** limited CI/CD test integration  
 **When** implementing automated CI/CD test execution  
 **Then** we must deliver:
@@ -75,6 +81,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 - [ ] Automated test quality metrics collection and reporting
 
 ### AC5: Test Quality and Maintainability Standards
+
 **Given** inconsistent test quality and maintainability issues  
 **When** implementing quality standards  
 **Then** we must establish:
@@ -88,7 +95,9 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 ## Technical Implementation Tasks
 
 ### Phase 1: Infrastructure Foundation (3 days)
+
 1. **Centralized Configuration Setup**
+
    ```
    src/tests/
    ├── config/
@@ -118,43 +127,46 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
    - Create test category separation (unit, integration, e2e, security)
 
 ### Phase 2: E2E Testing Enhancement (4 days)
+
 1. **Playwright Configuration Centralization**
+
    ```javascript
    // playwright.config.js
    module.exports = {
-     testDir: './src/tests/e2e',
+     testDir: "./src/tests/e2e",
      use: {
-       baseURL: 'http://localhost:8090',
-       screenshot: 'only-on-failure',
-       video: 'retain-on-failure',
-       trace: 'on-first-retry'
+       baseURL: "http://localhost:8090",
+       screenshot: "only-on-failure",
+       video: "retain-on-failure",
+       trace: "on-first-retry",
      },
      projects: [
-       { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-       { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-       { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-       { name: 'mobile', use: { ...devices['iPhone 13'] } }
-     ]
+       { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+       { name: "firefox", use: { ...devices["Desktop Firefox"] } },
+       { name: "webkit", use: { ...devices["Desktop Safari"] } },
+       { name: "mobile", use: { ...devices["iPhone 13"] } },
+     ],
    };
    ```
 
 2. **Page Object Model Implementation**
+
    ```javascript
    // src/tests/page-objects/BasePage.js
    class BasePage {
      constructor(page) {
        this.page = page;
      }
-     
+
      async navigateToAdmin() {
-       await this.page.goto('/plugins/servlet/scriptrunner/admin');
+       await this.page.goto("/plugins/servlet/scriptrunner/admin");
      }
-     
+
      async waitForPageLoad() {
-       await this.page.waitForLoadState('networkidle');
+       await this.page.waitForLoadState("networkidle");
      }
    }
-   
+
    // src/tests/page-objects/admin/MigrationPage.js
    class MigrationPage extends BasePage {
      async createMigration(migrationData) {
@@ -164,25 +176,30 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
    ```
 
 ### Phase 3: Test Coverage Enhancement (3 days)
+
 1. **API Error Handling Test Scenarios**
+
    ```javascript
    // src/tests/integration/api-error-handling.test.js
-   describe('API Error Handling', () => {
-     test('should handle 400 Bad Request with validation details', async () => {
-       const response = await apiClient.post('/migrations', { invalid: 'data' });
+   describe("API Error Handling", () => {
+     test("should handle 400 Bad Request with validation details", async () => {
+       const response = await apiClient.post("/migrations", {
+         invalid: "data",
+       });
        expect(response.status).toBe(400);
-       expect(response.data).toHaveProperty('validationErrors');
+       expect(response.data).toHaveProperty("validationErrors");
      });
-     
-     test('should handle 403 Forbidden with proper authentication', async () => {
-       const response = await apiClient.get('/admin-only-endpoint');
+
+     test("should handle 403 Forbidden with proper authentication", async () => {
+       const response = await apiClient.get("/admin-only-endpoint");
        expect(response.status).toBe(403);
-       expect(response.data.message).toContain('insufficient permissions');
+       expect(response.data.message).toContain("insufficient permissions");
      });
    });
    ```
 
 2. **Security Test Automation Integration**
+
    ```groovy
    // src/groovy/umig/tests/security/AutomatedSecurityTestSuite.groovy
    class AutomatedSecurityTestSuite extends ComprehensiveSecurityTest {
@@ -190,7 +207,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
      void testSqlInjectionPrevention() {
        // Automated SQL injection testing
      }
-     
+
      @Test
      void testAuthenticationFlowSecurity() {
        // Authentication security validation
@@ -199,13 +216,15 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
    ```
 
 ### Phase 4: CI/CD Integration (2 days)
+
 1. **GitHub Actions Workflow Enhancement**
+
    ```yaml
    # .github/workflows/comprehensive-testing.yml
    name: Comprehensive Testing Suite
-   
+
    on: [push, pull_request]
-   
+
    jobs:
      unit-tests:
        runs-on: ubuntu-latest
@@ -213,7 +232,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
          - uses: actions/checkout@v4
          - name: Run Unit Tests
            run: npm run test:unit
-           
+
      integration-tests:
        runs-on: ubuntu-latest
        services:
@@ -224,7 +243,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
        steps:
          - name: Run Integration Tests
            run: npm run test:integration
-           
+
      e2e-tests:
        runs-on: ubuntu-latest
        steps:
@@ -248,15 +267,17 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
      fullyParallel: true,
      retries: process.env.CI ? 2 : 0,
      reporter: [
-       ['html', { outputFolder: 'test-results/html-report' }],
-       ['junit', { outputFile: 'test-results/junit.xml' }],
-       ['github']
-     ]
+       ["html", { outputFolder: "test-results/html-report" }],
+       ["junit", { outputFile: "test-results/junit.xml" }],
+       ["github"],
+     ],
    };
    ```
 
 ### Phase 5: Quality Standards and Documentation (2 days)
+
 1. **Test Quality Metrics Implementation**
+
    ```javascript
    // src/tests/utils/QualityMetrics.js
    class TestQualityMetrics {
@@ -265,24 +286,27 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
          executionTime: this.measureExecutionTime(),
          coverage: this.getCoverageData(),
          flakyTests: this.identifyFlakyTests(),
-         duplicateAssertions: this.findDuplicateAssertions()
+         duplicateAssertions: this.findDuplicateAssertions(),
        };
      }
    }
    ```
 
 2. **Comprehensive Test Documentation**
+
    ```markdown
    # Testing Guide (docs/testing/TESTING_GUIDE.md)
-   
+
    ## Test Types and Execution
+
    - Unit Tests: `npm run test:unit`
    - Integration Tests: `npm run test:integration`
    - E2E Tests: `npm run test:e2e`
    - Security Tests: `npm run test:security`
    - Performance Tests: `npm run test:performance`
-   
+
    ## Writing Tests
+
    - Follow standardized test structure
    - Use page object models for E2E tests
    - Implement proper test data management
@@ -292,18 +316,21 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 ## Testing Strategy Improvements
 
 ### Test Execution Strategy
+
 1. **Parallel Execution**: Implement worker-based parallel test execution for performance
 2. **Smart Test Selection**: Run only relevant tests based on code changes
 3. **Retry Logic**: Automatic retry for flaky tests with exponential backoff
 4. **Test Isolation**: Ensure complete test isolation with proper cleanup
 
 ### Test Data Management
+
 1. **Fixture Management**: Centralized test data fixtures with version control
 2. **Database Seeding**: Automated test database setup and teardown
 3. **Mock Data**: Comprehensive mock data sets for various test scenarios
 4. **Environment Parity**: Consistent test data across development and CI environments
 
 ### Quality Assurance
+
 1. **Test Linting**: ESLint rules specific to test files
 2. **Coverage Thresholds**: Minimum coverage requirements per test type
 3. **Performance Monitoring**: Test execution time monitoring and optimization
@@ -312,24 +339,28 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 ## Success Metrics and Validation Criteria
 
 ### Coverage Metrics
+
 - **Unit Test Coverage**: ≥85% line coverage, ≥80% branch coverage
 - **Integration Test Coverage**: All API endpoints covered with positive/negative scenarios
 - **E2E Test Coverage**: All critical user journeys automated
 - **Security Test Coverage**: All OWASP Top 10 scenarios automated
 
 ### Performance Metrics
+
 - **Test Execution Time**: <5 minutes for full test suite
 - **Parallel Execution**: 50% reduction in total execution time
 - **Flaky Test Rate**: <2% of total test executions
 - **CI/CD Integration**: Zero manual intervention required
 
 ### Quality Metrics
+
 - **Test Maintainability Index**: >80 (based on complexity and duplication)
 - **Test Documentation Coverage**: 100% of test categories documented
 - **Developer Satisfaction**: >4.5/5 rating on testing experience survey
 - **Bug Detection Rate**: 90% of production bugs caught in testing phases
 
 ### Validation Criteria
+
 1. **Framework Integration**: All test types execute successfully with unified configuration
 2. **CI/CD Pipeline**: Full test suite executes automatically on all pull requests
 3. **Cross-browser Compatibility**: E2E tests pass on Chrome, Firefox, and Safari
@@ -339,6 +370,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 ## Dependencies and Risk Considerations
 
 ### Dependencies
+
 - **Infrastructure**: Requires stable local development environment
 - **Tools**: Playwright, Jest, Groovy testing framework updates
 - **CI/CD**: GitHub Actions configuration permissions
@@ -346,6 +378,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 - **Team Training**: Developer education on new testing patterns
 
 ### Risk Mitigation
+
 1. **Test Flakiness Risk**
    - **Mitigation**: Implement robust wait strategies and retry mechanisms
    - **Monitoring**: Continuous flaky test detection and remediation
@@ -363,6 +396,7 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
    - **Monitoring**: Developer feedback collection and iteration
 
 ### Breaking Changes
+
 - Test file locations may need updates for existing tests
 - CI/CD pipeline configuration changes required
 - New dependencies added to package.json and build scripts
@@ -371,13 +405,13 @@ As a **Development Team**, I want to **modernize and standardize our comprehensi
 
 **Total Duration**: 14 days (2.8 weeks)
 
-| Phase | Duration | Focus | Deliverables |
-|-------|----------|-------|-------------|
-| Phase 1 | 3 days | Infrastructure Foundation | Centralized config, directory structure |
-| Phase 2 | 4 days | E2E Enhancement | Playwright config, page objects |
-| Phase 3 | 3 days | Coverage Enhancement | API error tests, security automation |
-| Phase 4 | 2 days | CI/CD Integration | GitHub Actions, parallel execution |
-| Phase 5 | 2 days | Quality Standards | Metrics, documentation |
+| Phase   | Duration | Focus                     | Deliverables                            |
+| ------- | -------- | ------------------------- | --------------------------------------- |
+| Phase 1 | 3 days   | Infrastructure Foundation | Centralized config, directory structure |
+| Phase 2 | 4 days   | E2E Enhancement           | Playwright config, page objects         |
+| Phase 3 | 3 days   | Coverage Enhancement      | API error tests, security automation    |
+| Phase 4 | 2 days   | CI/CD Integration         | GitHub Actions, parallel execution      |
+| Phase 5 | 2 days   | Quality Standards         | Metrics, documentation                  |
 
 ## Definition of Done
 
