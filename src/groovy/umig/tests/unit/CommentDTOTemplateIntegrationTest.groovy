@@ -3,6 +3,8 @@ package umig.tests.unit
 import spock.lang.Specification
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
 
 import umig.dto.StepDataTransferObject
 import umig.dto.CommentDTO
@@ -12,12 +14,16 @@ import umig.dto.CommentDTO
  * 
  * Tests the enhanced CommentDTO and its integration with StepDataTransferObject
  * to ensure proper template variable mapping for email notifications.
+ * 
+ * Note: Static type checking completely disabled for this test class to allow
+ * dynamic Map operations required by Spock assertions and template testing
  */
+@TypeChecked(TypeCheckingMode.SKIP)
 class CommentDTOTemplateIntegrationTest extends Specification {
     
     def "CommentDTO toTemplateMap should produce template-compatible properties"() {
         given: "A CommentDTO with all fields populated"
-        def comment = CommentDTO.builder()
+        CommentDTO comment = CommentDTO.builder()
             .commentId("test-comment-123")
             .text("This is a test comment")
             .authorId("user-456")
@@ -32,39 +38,39 @@ class CommentDTOTemplateIntegrationTest extends Specification {
             .build()
         
         when: "Converting to template map"
-        def templateMap = comment.toTemplateMap()
+        def templateMapResult = comment.toTemplateMap()
         
         then: "Template-expected property names are present"
-        templateMap.comment_id == "test-comment-123"
-        templateMap.comment_text == "This is a test comment"
-        templateMap.author_id == "user-456"
-        templateMap.author_name == "John Doe"
-        templateMap.created_at == "2025-01-15T14:30:00"
+        templateMapResult.comment_id == "test-comment-123"
+        templateMapResult.comment_text == "This is a test comment"
+        templateMapResult.author_id == "user-456"
+        templateMapResult.author_name == "John Doe"
+        templateMapResult.created_at == "2025-01-15T14:30:00"
         
         and: "Status fields are mapped correctly"
-        templateMap.is_active == true
-        templateMap.is_resolved == false
+        templateMapResult.is_active == true
+        templateMapResult.is_resolved == false
         
         and: "Enhanced fields are present"
-        templateMap.priority == 3
-        templateMap.comment_type == "IMPORTANT"
-        templateMap.reply_count == 2
-        templateMap.requires_attention == true
+        templateMapResult.priority == 3
+        templateMapResult.comment_type == "IMPORTANT"
+        templateMapResult.reply_count == 2
+        templateMapResult.requires_attention == true
         
         and: "Computed display fields are generated"
-        templateMap.formatted_date == "Jan 15, 2025 14:30"
-        templateMap.short_date == "Jan 15"
-        templateMap.time_only == "14:30"
-        templateMap.is_priority == true  // priority > 2
-        templateMap.is_recent == false   // not within 24 hours
+        templateMapResult.formatted_date == "Jan 15, 2025 14:30"
+        templateMapResult.short_date == "Jan 15"
+        templateMapResult.time_only == "14:30"
+        templateMapResult.is_priority == true  // priority > 2
+        templateMapResult.is_recent == false   // not within 24 hours
     }
     
     def "CommentDTO toTemplateMap should handle null values defensively"() {
         given: "A minimal CommentDTO with null fields"
-        def comment = new CommentDTO()
+        CommentDTO comment = new CommentDTO()
         
         when: "Converting to template map"
-        def templateMap = comment.toTemplateMap()
+        Map<String, Object> templateMap = comment.toTemplateMap()
         
         then: "Default values are provided for template safety"
         templateMap.comment_id == ""
@@ -81,7 +87,7 @@ class CommentDTOTemplateIntegrationTest extends Specification {
     
     def "StepDataTransferObject toTemplateMap should use CommentDTO template mapping"() {
         given: "A StepDataTransferObject with CommentDTO instances"
-        def comment1 = CommentDTO.builder()
+        CommentDTO comment1 = CommentDTO.builder()
             .commentId("comment-1")
             .text("First comment")
             .authorName("Alice")
@@ -89,7 +95,7 @@ class CommentDTOTemplateIntegrationTest extends Specification {
             .priority(2)
             .build()
             
-        def comment2 = CommentDTO.builder()
+        CommentDTO comment2 = CommentDTO.builder()
             .commentId("comment-2")
             .text("Second comment")
             .authorName("Bob")
@@ -98,27 +104,29 @@ class CommentDTOTemplateIntegrationTest extends Specification {
             .requiresAttention(true)
             .build()
         
-        def stepDTO = StepDataTransferObject.builder()
+        List<CommentDTO> commentList = [comment1, comment2]
+        StepDataTransferObject stepDTO = StepDataTransferObject.builder()
             .stepId("step-123")
             .stepName("Test Step")
             .stepStatus("IN_PROGRESS")
-            .comments([comment1, comment2])
+            .comments(commentList)
             .build()
         
         when: "Converting StepDTO to template map"
         def templateMap = stepDTO.toTemplateMap()
         
         then: "Recent comments use template-compatible properties"
-        templateMap.recentComments.size() == 2
+        def recentComments = templateMap.recentComments
+        recentComments.size() == 2
         
-        def mappedComment1 = templateMap.recentComments[0]
+        def mappedComment1 = recentComments[0]
         mappedComment1.comment_id == "comment-1"
         mappedComment1.comment_text == "First comment"
         mappedComment1.author_name == "Alice"
         mappedComment1.priority == 2
         mappedComment1.is_priority == false
         
-        def mappedComment2 = templateMap.recentComments[1]
+        def mappedComment2 = recentComments[1]
         mappedComment2.comment_id == "comment-2"
         mappedComment2.comment_text == "Second comment"
         mappedComment2.author_name == "Bob"
@@ -129,27 +137,30 @@ class CommentDTOTemplateIntegrationTest extends Specification {
     
     def "StepDataTransferObject should handle legacy comment objects gracefully"() {
         given: "A legacy comment object (non-CommentDTO)"
-        def legacyComment = [
+        Map<String, Object> legacyComment = [
             commentId: "legacy-comment-123",
             text: "Legacy comment text",
             authorName: "Legacy User",
             createdDate: LocalDateTime.of(2025, 1, 10, 10, 0)
         ]
         
-        def stepDTO = StepDataTransferObject.builder()
+        List<Object> commentList = [legacyComment]
+        StepDataTransferObject.Builder builder = StepDataTransferObject.builder()
+        StepDataTransferObject stepDTO = builder
             .stepId("step-456")
-            .stepName("Legacy Test Step")
+            .stepName("Legacy Test Step")  
             .stepStatus("COMPLETED")
-            .comments([legacyComment])
+            .comments(commentList as List<CommentDTO>)
             .build()
         
         when: "Converting to template map"
         def templateMap = stepDTO.toTemplateMap()
         
         then: "Legacy comments are mapped to template-compatible format"
-        templateMap.recentComments.size() == 1
+        def recentComments = templateMap.recentComments
+        recentComments.size() == 1
         
-        def mappedComment = templateMap.recentComments[0]
+        def mappedComment = recentComments[0]
         mappedComment.comment_id == "legacy-comment-123"
         mappedComment.comment_text == "Legacy comment text"
         mappedComment.author_name == "Legacy User"
@@ -159,7 +170,7 @@ class CommentDTOTemplateIntegrationTest extends Specification {
     
     def "CommentDTO builder should set sensible defaults"() {
         given: "A CommentDTO built with minimal information"
-        def comment = CommentDTO.builder()
+        CommentDTO comment = CommentDTO.builder()
             .text("Simple comment")
             .authorName("Test User")
             .build()
