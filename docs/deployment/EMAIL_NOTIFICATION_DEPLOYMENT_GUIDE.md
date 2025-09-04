@@ -73,6 +73,7 @@ This guide covers the deployment of the enhanced email notification system that 
    ```
 
 3. **Verify email templates have URL support**:
+
    ```sql
    SELECT emt_type, emt_subject
    FROM email_templates_emt
@@ -235,6 +236,7 @@ The enhanced system maintains full backward compatibility:
    ```
 
 3. **Configuration Cache Status**:
+
    ```groovy
    import umig.utils.UrlConstructionService
    def cached = UrlConstructionService.getCachedConfigurations()
@@ -259,6 +261,7 @@ The enhanced system maintains full backward compatibility:
    ```
 
 3. **Email Delivery Monitoring**: Check audit logs for notification success rates
+
    ```sql
    -- Monitor email notification success rates
    SELECT

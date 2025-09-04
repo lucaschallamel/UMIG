@@ -1,0 +1,16 @@
+app_id,app_code,app_name,app_description
+1,CRM,Customer Relationship Management,Main CRM system for customer data and interactions
+2,ERP,Enterprise Resource Planning,Core ERP system for business operations
+3,HRM,Human Resources Management,HR management and employee portal
+4,FIN,Financial System,Financial management and accounting system
+5,INV,Inventory Management,Inventory tracking and warehouse management
+6,SCM,Supply Chain Management,Supply chain and logistics management
+7,BI,Business Intelligence,Analytics and reporting platform
+8,CMS,Content Management System,Corporate website and content management
+9,ECOM,E-Commerce Platform,Online sales and order management
+10,MDM,Master Data Management,Master data governance and synchronization
+11,MKT,Marketing Automation,Marketing campaigns and lead management
+12,SUP,Support Ticketing,Customer support and ticketing system
+13,DOC,Document Management,Document storage and collaboration
+14,COMM,Communications Platform,Internal communications and messaging
+15,SEC,Security Management,Security monitoring and incident response

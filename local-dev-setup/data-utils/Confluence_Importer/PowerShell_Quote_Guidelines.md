@@ -1,7 +1,9 @@
 # PowerShell Quote Handling Best Practices
 
 ## The Problem
+
 Mixing `"`, `'`, and `` ` `` (backtick) in PowerShell can cause parsing errors, especially when:
+
 - Embedding variables in strings
 - Working with HTML/XML content that contains quotes
 - Using regular expressions with special characters
@@ -9,17 +11,20 @@ Mixing `"`, `'`, and `` ` `` (backtick) in PowerShell can cause parsing errors, 
 ## Quote Types in PowerShell
 
 ### 1. Single Quotes (`'`) - Literal Strings
+
 - **Use for**: Static text, regex patterns, HTML/XML snippets
 - **Behavior**: No variable expansion, no escape sequences (except `''` for a literal single quote)
 - **Example**: `'<div class="test">Content</div>'`
 
 ### 2. Double Quotes (`"`) - Expandable Strings
+
 - **Use for**: Strings that need variable interpolation
 - **Behavior**: Variables are expanded, escape sequences work
 - **Example**: `"Hello $userName"`
 - **Escaping**: Use `""` for a literal quote or backtick `` `" ``
 
 ### 3. Backtick (`` ` ``) - Escape Character
+
 - **Use for**: Escaping special characters within double-quoted strings
 - **Common escapes**: `` `n `` (newline), `` `t `` (tab), `` `" `` (quote)
 - **Avoid**: Complex nesting with variables
@@ -27,6 +32,7 @@ Mixing `"`, `'`, and `` ` `` (backtick) in PowerShell can cause parsing errors, 
 ## Recommended Patterns
 
 ### Pattern 1: String Concatenation (Most Robust)
+
 ```powershell
 # Instead of embedding variables with backticks:
 # BAD: "data-name=`"$DataName`""
@@ -36,12 +42,14 @@ $pattern = 'data-name="' + $DataName + '"'
 ```
 
 ### Pattern 2: Format Operator
+
 ```powershell
 # For complex strings with multiple variables
 $pattern = 'data-name="{0}" data-value="{1}"' -f $DataName, $DataValue
 ```
 
 ### Pattern 3: Here-Strings for Complex Content
+
 ```powershell
 # For multi-line or complex HTML/XML
 $template = @'
@@ -52,6 +60,7 @@ $template = @'
 ```
 
 ### Pattern 4: Regex Patterns
+
 ```powershell
 # Always use single quotes for regex patterns
 $pattern = '<h1[^>]*id="[^"]*-TASKLIST"[^>]*>.*?</table>'
@@ -63,6 +72,7 @@ $pattern = '<div[^>]*data-name="' + $DataName + '"[^>]*>'
 ## Specific Fixes for Your Script
 
 ### Fix 1: Dynamic Pattern Building
+
 ```powershell
 # Original (problematic):
 if ($state -eq 0 -and $line -match "data-name=`"$DataName`"") {
@@ -73,6 +83,7 @@ if ($state -eq 0 -and $line -match $pattern) {
 ```
 
 ### Fix 2: JSON String Escaping
+
 ```powershell
 # For JSON, double the quotes:
 $text = $text -replace '"', '""'
@@ -81,6 +92,7 @@ $text = $text -replace '"', '""'
 ```
 
 ### Fix 3: Complex Regex Patterns
+
 ```powershell
 # Use single quotes and concatenation:
 $titlePattern = '<div[^>]*class="table-excerpt tei[^"]*"[^>]*' +
@@ -88,6 +100,7 @@ $titlePattern = '<div[^>]*class="table-excerpt tei[^"]*"[^>]*' +
 ```
 
 ## Testing Your Quotes
+
 ```powershell
 # Test function to verify quote handling
 function Test-QuotePattern {
@@ -117,10 +130,10 @@ Test-QuotePattern 'data-name="test"'
 
 ## Quick Reference
 
-| Scenario | Bad Practice | Good Practice |
-|----------|-------------|---------------|
-| Variable in pattern | `"data-name=`"$var`""` | `'data-name="' + $var + '"'` |
-| Regex pattern | `"[^\"]*"` | `'[^"]*'` |
-| JSON escaping | `$text -replace '"', '\"'` | `$text -replace '"', '""'` |
-| HTML content | `"<div class=\"test\">"` | `'<div class="test">'` |
-| Path with spaces | `"C:\Program Files\App"` | `'C:\Program Files\App'` |
+| Scenario            | Bad Practice               | Good Practice                |
+| ------------------- | -------------------------- | ---------------------------- |
+| Variable in pattern | `"data-name=`"$var`""`     | `'data-name="' + $var + '"'` |
+| Regex pattern       | `"[^\"]*"`                 | `'[^"]*'`                    |
+| JSON escaping       | `$text -replace '"', '\"'` | `$text -replace '"', '""'`   |
+| HTML content        | `"<div class=\"test\">"`   | `'<div class="test">'`       |
+| Path with spaces    | `"C:\Program Files\App"`   | `'C:\Program Files\App'`     |

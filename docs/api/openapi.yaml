@@ -1,12 +1,40 @@
 openapi: 3.0.0
 info:
   title: UMIG API V2
-  version: 2.6.0
+  version: 2.9.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
   description: |
     REST API for the Unified Migration and Implementation Governance (UMIG) application.
 
     This API follows RESTful principles and is implemented using ScriptRunner Groovy scripts. It supersedes the V1 API.
     Architectural principles are documented in ADR-017.
+
+    **Version 2.9.0 - September 4, 2025:**
+    **US-034 ImportQueue API v1.0.0 - Queue Management & Orchestration:** Added comprehensive import queue management with 7 new endpoints.
+    **Queue Operations:** GET/POST /import-queue for status monitoring and request submission with real-time statistics.
+    **Request Management:** GET/DELETE /import-request/{requestId} for request status tracking and cancellation.
+    **Schedule Management:** GET/POST /import-schedules for scheduled import creation and listing with recurring support.
+    **Resource Monitoring:** GET /import-resources for active resource locks and system status with performance recommendations.
+    **Enhanced Features:** Priority-based queue management, resource allocation tracking, scheduled imports with cron patterns,
+    comprehensive error handling with detailed rollback support. All endpoints follow CustomEndpointDelegate pattern with
+    authentication (confluence-users group), type safety (ADR-031 explicit casting), and consistent error responses.
+
+    **Version 2.8.0 - September 3, 2025:**
+    **API Inventory Comprehensive Update:** Complete documentation update reflecting actual codebase inventory of 24 REST APIs.
+    Updated from previously documented 13 APIs to accurate count including all production, configuration, and specialized endpoints.
+    Categories: Core Entity Management (8), Migration Hierarchy (7), Configuration & Administration (5), Specialized & Integration (4).
+    All APIs follow consistent patterns established in ADR-017 with proper authentication, error handling, and repository patterns.
+
+    **Version 2.7.0 - September 3, 2025:**
+    **Import API v2.0.0:** Added comprehensive data import operations with 14 endpoints for JSON and CSV imports.
+    Supports single JSON file imports, batch JSON imports, CSV base entity imports (teams, users, applications, environments),
+    and master plan configuration. Features include batch processing with audit trails, rollback capabilities with detailed
+    action tracking, import history with filtering, comprehensive statistics, and CSV template downloads.
+    Enhanced error handling with SQL state mappings (23505→409 Conflict, 23503→400 Bad Request).
+    **Note:** CSV master-plan import (POST /import/csv/master-plan) returns HTTP 501 NOT_IMPLEMENTED pending development.
+    All other endpoints fully operational with comprehensive validation and type safety (ADR-031).
 
     **Version 2.6.0 - August 27, 2025:**
     **URL Configuration API v1.0.0:** Added complete URL Configuration API with 4 endpoints for client-side URL construction.
@@ -99,11 +127,17 @@ tags:
     description: Serves static web assets.
   - name: UrlConfiguration
     description: Operations about URL configuration management and client-side URL construction.
+  - name: Import
+    description: Operations for importing JSON data and CSV base entities with batch processing, rollback capabilities, and audit trails.
+  - name: ImportQueue
+    description: Operations for import queue management, scheduling, and resource monitoring with orchestration capabilities.
 
 paths:
   # ==================== NEW V2 ITERATIONS API ====================
   /iterationsList:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all iterations with pagination
       description: |
         Retrieve all iterations with comprehensive filtering, pagination, and search capabilities.
@@ -175,11 +209,11 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
     post:
       summary: Create new iteration
+      security:
+        - ConfluenceUsers: []
       description: |
         Create a new iteration with validation and automatic field assignment.
         Migration ID is required and must exist. Name uniqueness is enforced.
@@ -191,30 +225,10 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateIterationRequest"
-            examples:
-              basic:
-                summary: Basic iteration creation
-                value:
-                  ite_name: "Phase 1 Iteration"
-                  mig_id: "123e4567-e89b-12d3-a456-426614174000"
-                  ite_static_cutover_date: "2025-08-15"
-              complete:
-                summary: Complete iteration with all fields
-                value:
-                  ite_name: "Production Cutover"
-                  ite_description: "Final production migration phase"
-                  mig_id: "123e4567-e89b-12d3-a456-426614174000"
-                  itt_code: "PROD"
-                  ite_static_cutover_date: "2025-08-15T14:30:00"
-                  ite_dynamic_cutover_date: "2025-08-15T16:00:00"
-              alternative_fields:
-                summary: Alternative field naming example
-                value:
-                  name: "Phase 2 Development"
-                  ite_description: "Second phase development iteration"
-                  migrationId: "123e4567-e89b-12d3-a456-426614174001"
-                  itt_code: "DEV"
-                  ite_static_cutover_date: "2025-09-01"
+            example:
+              ite_name: "Phase 1 Iteration"
+              mig_id: "123e4567-e89b-12d3-a456-426614174000"
+              ite_static_cutover_date: "2025-08-15"
       responses:
         "201":
           description: Iteration created successfully
@@ -228,19 +242,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                missing_name:
-                  summary: Missing iteration name
-                  value:
-                    error: "Iteration name is required"
-                missing_migration:
-                  summary: Missing migration ID
-                  value:
-                    error: "Migration ID is required"
-                invalid_uuid:
-                  summary: Invalid migration ID format
-                  value:
-                    error: "Invalid migration ID format"
+              example:
+                error: "Iteration name is required"
         "409":
           description: Conflict - iteration name already exists
           content:
@@ -251,11 +254,11 @@ paths:
                 error: "An iteration with this name already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
   /iterationsList/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: Get single iteration by ID
       description: Retrieve a specific iteration with full metadata and relationships
       tags: [Iterations]
@@ -293,10 +296,10 @@ paths:
                 error: "Iteration not found"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
     put:
+      security:
+        - ConfluenceUsers: []
       summary: Update iteration
       description: |
         Update an existing iteration with validation.
@@ -317,19 +320,10 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UpdateIterationRequest"
-            examples:
-              standard_fields:
-                summary: Update using standard field names
-                value:
-                  ite_name: "Updated Iteration Name"
-                  ite_description: "Updated description"
-                  ite_static_cutover_date: "2025-08-20"
-              alternative_fields:
-                summary: Update using alternative field naming
-                value:
-                  name: "Updated Iteration (Alternative)"
-                  ite_description: "Updated with alternative naming"
-                  itt_code: "UPD"
+            example:
+              ite_name: "Updated Iteration Name"
+              ite_description: "Updated description"
+              ite_static_cutover_date: "2025-08-20"
       responses:
         "200":
           description: Iteration updated successfully
@@ -359,10 +353,10 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
     delete:
+      security:
+        - ConfluenceUsers: []
       summary: Delete iteration
       description: |
         Delete an iteration. Will fail if the iteration has associated plans or is referenced by other resources.
@@ -405,12 +399,12 @@ paths:
                 error: "Cannot delete iteration - it has associated plans or is referenced by other resources"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
   # ==================== NEW V2 STATUS API ====================
   /status:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: Get statuses by entity type
       description: |
         Retrieve status information for different entity types.
@@ -449,46 +443,31 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/StatusInfo"
-              examples:
-                migration_statuses:
-                  summary: Migration statuses
-                  value:
-                    - id: 1
-                      name: "PLANNING"
-                      color: "#FFA500"
-                      type: "Migration"
-                    - id: 2
-                      name: "IN_PROGRESS"
-                      color: "#007BFF"
-                      type: "Migration"
-                    - id: 3
-                      name: "COMPLETED"
-                      color: "#28A745"
-                      type: "Migration"
+              example:
+                - id: 1
+                  name: "PLANNING"
+                  color: "#FFA500"
+                  type: "Migration"
+                - id: 2
+                  name: "IN_PROGRESS"
+                  color: "#007BFF"
+                  type: "Migration"
         "400":
           description: Missing or invalid entity type
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-              examples:
-                missing_type:
-                  summary: Missing entity type parameter
-                  value:
-                    error: "Missing required parameter 'entityType'"
-                    message: "Valid entity types: Migration, Iteration, Plan, Sequence, Phase, Step, Control, Instruction"
-                invalid_type:
-                  summary: Invalid entity type
-                  value:
-                    error: "Invalid entity type: INVALID_TYPE"
-                    message: "Valid entity types: Migration, Iteration, Plan, Sequence, Phase, Step, Control, Instruction"
+              example:
+                error: "Missing required parameter 'entityType'"
+                message: "Valid entity types: Migration, Iteration, Plan, Sequence, Phase, Step, Control, Instruction"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
   /migrations/{migId}/iterations/{iteId}:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: Get a specific iteration
       tags: [Migrations]
       operationId: getIterationById
@@ -521,6 +500,8 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/plan-instances:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all plan instances for an iteration
       tags: [Migrations]
       operationId: listPlanInstancesForIteration
@@ -555,6 +536,8 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/sequences:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all sequences for an iteration
       tags: [Migrations]
       operationId: listSequencesForIteration
@@ -589,6 +572,8 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/phases:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all phases for an iteration
       tags: [Migrations]
       operationId: listPhasesForIteration
@@ -623,6 +608,8 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all sequences for a plan instance
       tags: [Migrations]
       operationId: listSequencesForPlanInstance
@@ -657,6 +644,8 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/phases:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all phases for a plan instance
       tags: [Migrations]
       operationId: listPhasesForPlanInstance
@@ -691,6 +680,8 @@ paths:
 
   /migrations/{migId}/iterations/{iteId}/plan-instances/{pliId}/sequences/{seqId}/phases:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all phases for a sequence
       tags: [Migrations]
       operationId: listPhasesForSequence
@@ -731,6 +722,8 @@ paths:
 
   /migrations:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all migrations with advanced filtering and pagination
       tags: [Migrations]
       operationId: listMigrations
@@ -820,6 +813,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       summary: Create a new migration
       tags: [Migrations]
       operationId: createMigration
@@ -870,19 +865,23 @@ paths:
                 invalidStatus:
                   summary: Invalid status name
                   value:
-                    error: "Invalid status name: INVALID_STATUS"
+                    code: "INVALID_STATUS"
+                    message: "Invalid status name: INVALID_STATUS"
                 missingName:
                   summary: Missing required field
                   value:
-                    error: "Migration name is required"
+                    code: "MIGRATION_NAME_REQUIRED"
+                    message: "Migration name is required"
                 invalidDate:
                   summary: Invalid date format
                   value:
-                    error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+                    code: "INVALID_DATE_FORMAT"
+                    message: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
                 invalidJson:
                   summary: Invalid JSON
                   value:
-                    error: "Invalid JSON format in request body"
+                    code: "INVALID_JSON"
+                    message: "Invalid JSON format in request body"
         "409":
           description: Conflict - Constraint violations
           content:
@@ -893,11 +892,13 @@ paths:
                 duplicateName:
                   summary: Duplicate migration name
                   value:
-                    error: "A migration with this name already exists"
+                    code: "DUPLICATE_MIGRATION_NAME"
+                    message: "A migration with this name already exists"
                 invalidOwner:
                   summary: Invalid owner ID
                   value:
-                    error: "Invalid owner user ID - user does not exist"
+                    code: "INVALID_OWNER_ID"
+                    message: "Invalid owner user ID - user does not exist"
         "500":
           description: Internal Server Error
           content:
@@ -908,14 +909,18 @@ paths:
                 noUsers:
                   summary: No users in system
                   value:
-                    error: "No users exist in the system. Cannot create migration without owner."
+                    code: "NO_USERS_EXIST"
+                    message: "No users exist in the system. Cannot create migration without owner."
                 defaultStatus:
                   summary: Missing default status
                   value:
-                    error: "Default PLANNING status for Migration not found in database"
+                    code: "DEFAULT_PLANNING_NOT_FOUND"
+                    message: "Default PLANNING status for Migration not found in database"
 
   /migrations/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: Get a single migration by ID with status metadata
       tags: [Migrations]
       operationId: getMigrationById
@@ -940,6 +945,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
+      security:
+        - ConfluenceUsers: []
       summary: Update a migration
       tags: [Migrations]
       operationId: updateMigration
@@ -972,6 +979,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       summary: Delete a migration
       tags: [Migrations]
       operationId: deleteMigration
@@ -1000,6 +1009,8 @@ paths:
 
   /migrations/dashboard/summary:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: Get dashboard summary data
       tags: [Migrations, Dashboard]
       operationId: getDashboardSummary
@@ -1015,6 +1026,8 @@ paths:
 
   /migrations/dashboard/progress:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: Get progress aggregation data
       tags: [Migrations, Dashboard]
       operationId: getDashboardProgress
@@ -1051,6 +1064,8 @@ paths:
 
   /migrations/dashboard/metrics:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: Get performance metrics (placeholder)
       tags: [Migrations, Dashboard]
       operationId: getDashboardMetrics
@@ -1082,6 +1097,8 @@ paths:
 
   /migrations/bulk/status:
     put:
+      security:
+        - ConfluenceUsers: []
       summary: Bulk update migration status (placeholder)
       tags: [Migrations, Bulk Operations]
       operationId: bulkUpdateMigrationStatus
@@ -1105,6 +1122,8 @@ paths:
 
   /migrations/bulk/export:
     post:
+      security:
+        - ConfluenceUsers: []
       summary: Bulk export migrations to JSON/CSV
       tags: [Migrations, Bulk Operations]
       operationId: bulkExportMigrations
@@ -1128,6 +1147,8 @@ paths:
 
   /migrations/{migId}/iterations:
     get:
+      security:
+        - ConfluenceUsers: []
       summary: List all iterations for a migration
       tags: [Migrations]
       operationId: listIterationsForMigration
@@ -1156,6 +1177,8 @@ paths:
 
   /step-view:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - StepView
       summary: Get all step view data
@@ -1175,6 +1198,8 @@ paths:
 
   /stepViewApi/instance:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - StepView
       summary: Get step instance details by migration, iteration, and step code
@@ -1220,7 +1245,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "Missing required parameters. Expected: migrationName, iterationName, stepCode"
+                code: "MISSING_REQUIRED_PARAMETERS"
+                message: "Missing required parameters. Expected: migrationName, iterationName, stepCode"
         "404":
           description: No step instance found for the given parameters
           content:
@@ -1228,12 +1254,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "No step instance found for step code: APP-001 in migration: migrationa, iteration: run1"
+                code: "STEP_NOT_FOUND"
+                message: "No step instance found for step code: APP-001 in migration: migrationa, iteration: run1"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
   /teams:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Get teams with optional hierarchical filtering
@@ -1291,6 +1320,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Create a new team
@@ -1312,6 +1343,8 @@ paths:
 
   /teams/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Get a team by ID
@@ -1333,6 +1366,8 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Update a team
@@ -1358,6 +1393,8 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Delete a team
@@ -1379,6 +1416,8 @@ paths:
 
   /teams/{teamId}/users/{userId}:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Add a user to a team
@@ -1401,6 +1440,8 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Remove a user from a team
@@ -1425,6 +1466,8 @@ paths:
 
   /teams/{id}/applications:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Get applications associated with a team
@@ -1452,6 +1495,8 @@ paths:
 
   /teams/{teamId}/applications/{applicationId}:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Add an application to a team
@@ -1476,6 +1521,8 @@ paths:
         "409":
           description: Application is already associated with this team.
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Teams
       summary: Remove an application from a team
@@ -1500,6 +1547,8 @@ paths:
 
   /environments:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get all environments with counts
@@ -1556,6 +1605,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Create a new environment
@@ -1583,6 +1634,8 @@ paths:
 
   /environments/roles:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get all environment roles
@@ -1602,6 +1655,8 @@ paths:
 
   /environments/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get an environment by ID
@@ -1627,6 +1682,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Update an environment
@@ -1660,6 +1717,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Delete an environment
@@ -1689,6 +1748,8 @@ paths:
 
   /environments/{id}/iterations:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Get iterations grouped by role
@@ -1716,6 +1777,8 @@ paths:
 
   /environments/{id}/applications/{appId}:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Associate an application with an environment
@@ -1746,6 +1809,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Remove application association
@@ -1774,6 +1839,8 @@ paths:
 
   /environments/{id}/iterations/{iteId}:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Associate an iteration with an environment
@@ -1817,6 +1884,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Environments
       summary: Remove iteration association
@@ -1846,6 +1915,8 @@ paths:
 
   /steps:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get steps with hierarchical filtering for runsheet
@@ -1919,6 +1990,8 @@ paths:
 
   /steps/master:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get master steps with pagination and Admin GUI support
@@ -1991,6 +2064,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Create new master step
@@ -2032,15 +2107,18 @@ paths:
                 missing_required:
                   summary: Missing required fields
                   value:
-                    error: "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"
+                    code: "MISSING_REQUIRED_FIELDS"
+                    message: "Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required"
                 invalid_phase:
                   summary: Invalid phase ID
                   value:
-                    error: "Invalid phase ID"
+                    code: "INVALID_PHASE_ID"
+                    message: "Invalid phase ID"
                 invalid_team:
                   summary: Invalid team ID
                   value:
-                    error: "Invalid team ID"
+                    code: "INVALID_TEAM_ID"
+                    message: "Invalid team ID"
         "409":
           description: Unique constraint violation
           content:
@@ -2048,12 +2126,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "A step with the same phase, type, and number already exists"
+                code: "STEP_ALREADY_EXISTS"
+                message: "A step with the same phase, type, and number already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
   /steps/master/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get single master step by ID
@@ -2091,6 +2172,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Update existing master step
@@ -2135,15 +2218,18 @@ paths:
                 invalid_id:
                   summary: Invalid step ID
                   value:
-                    error: "Invalid step ID format"
+                    code: "INVALID_STEP_ID"
+                    message: "Invalid step ID format"
                 invalid_phase:
                   summary: Invalid phase ID
                   value:
-                    error: "Invalid phase ID"
+                    code: "INVALID_PHASE_ID"
+                    message: "Invalid phase ID"
                 invalid_team:
                   summary: Invalid team ID
                   value:
-                    error: "Invalid team ID"
+                    code: "INVALID_TEAM_ID"
+                    message: "Invalid team ID"
         "404":
           description: Master step not found
           content:
@@ -2151,7 +2237,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "Step not found with ID: f9aa535d-4d8b-447c-9d89-16494f678702"
+                code: "STEP_NOT_FOUND"
+                message: "Step not found with ID: f9aa535d-4d8b-447c-9d89-16494f678702"
         "409":
           description: Unique constraint violation
           content:
@@ -2159,12 +2246,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
               example:
-                error: "A step with the same phase, type, and number already exists"
+                code: "STEP_ALREADY_EXISTS"
+                message: "A step with the same phase, type, and number already exists"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
   /steps/instance/{stepInstanceId}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get step instance details with instructions
@@ -2195,6 +2285,8 @@ paths:
 
   /steps/{stepInstanceId}/status:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Update step instance status
@@ -2230,6 +2322,8 @@ paths:
 
   /steps/{stepInstanceId}/open:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Mark step as opened by PILOT
@@ -2268,6 +2362,8 @@ paths:
 
   /steps/{stepInstanceId}/instructions/{instructionId}/complete:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Mark instruction as completed
@@ -2313,6 +2409,8 @@ paths:
 
   /steps/{stepInstanceId}/instructions/{instructionId}/incomplete:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Mark instruction as incomplete
@@ -2359,6 +2457,8 @@ paths:
 
   /steps/{stepInstanceId}/comments:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Get comments for a step instance
@@ -2402,6 +2502,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Create a new comment for a step instance
@@ -2451,6 +2553,8 @@ paths:
 
   /comments/{commentId}:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Update a comment
@@ -2501,6 +2605,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Comments
       summary: Delete a comment
@@ -2549,6 +2655,8 @@ paths:
 
   /steps/summary:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get dashboard summary metrics for steps
@@ -2578,6 +2686,8 @@ paths:
 
   /steps/progress:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Get detailed progress tracking data
@@ -2607,6 +2717,8 @@ paths:
 
   /steps/export:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Export steps data in JSON or CSV format
@@ -2688,6 +2800,8 @@ paths:
 
   /steps/bulk/status:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Bulk update step status
@@ -2715,6 +2829,8 @@ paths:
 
   /steps/bulk/assign:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Bulk assign steps to team
@@ -2742,6 +2858,8 @@ paths:
 
   /steps/bulk/reorder:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Steps
       summary: Bulk reorder steps within phases
@@ -2771,6 +2889,8 @@ paths:
 
   /instructions:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get master instructions with hierarchical filtering
@@ -2847,6 +2967,8 @@ paths:
           $ref: "#/components/responses/Conflict"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
 
   /instructions/master/{instructionId}:
     get:
@@ -2874,7 +2996,11 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
+      security:
+        - ConfluenceUsers: []
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Update master instruction
@@ -2908,6 +3034,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Delete master instruction
@@ -2935,6 +3063,8 @@ paths:
 
   /instructions/master/{stepId}/reorder:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Reorder master instructions within a step
@@ -2968,8 +3098,10 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /instructions/instance/{stepInstanceId}:
+  /instructions/instance/by-step/{stepInstanceId}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction instances for a step instance
@@ -2997,6 +3129,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Create instruction instances for a step
@@ -3034,6 +3168,8 @@ paths:
 
   /instructions/instance/{instructionInstanceId}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction instance by ID
@@ -3059,6 +3195,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Delete instruction instance
@@ -3086,6 +3224,8 @@ paths:
 
   /instructions/instance/{instructionInstanceId}/complete:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Mark instruction instance as completed
@@ -3121,6 +3261,8 @@ paths:
 
   /instructions/instance/{instructionInstanceId}/uncomplete:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Mark instruction instance as not completed
@@ -3150,6 +3292,8 @@ paths:
 
   /instructions/bulk/complete:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Bulk complete instruction instances
@@ -3175,6 +3319,8 @@ paths:
 
   /instructions/analytics/progress:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction progress analytics
@@ -3217,6 +3363,8 @@ paths:
 
   /instructions/analytics/completion:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Get instruction completion timeline
@@ -3252,6 +3400,8 @@ paths:
 
   /instructions/bulk:
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Instructions
       summary: Bulk delete instruction instances
@@ -3308,6 +3458,8 @@ paths:
 
   /controls/master:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get all master control templates with pagination and sorting
@@ -3388,6 +3540,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create a new master control template
@@ -3415,6 +3569,8 @@ paths:
 
   /controls/master/{controlId}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get master control by ID
@@ -3441,6 +3597,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Update master control
@@ -3475,6 +3633,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Delete master control
@@ -3504,6 +3664,8 @@ paths:
 
   /controls/master/reorder:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Reorder master controls within phase
@@ -3525,6 +3687,8 @@ paths:
 
   /controls/master/bulk:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create multiple master controls
@@ -3556,6 +3720,8 @@ paths:
 
   /controls/master/{controlId}/instantiate:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create instance from master control
@@ -3591,6 +3757,8 @@ paths:
 
   /controls/instance:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get control instances with hierarchical filtering
@@ -3661,6 +3829,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create a new control instance
@@ -3688,6 +3858,8 @@ paths:
 
   /controls/instance/{instanceId}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Get control instance by ID
@@ -3714,6 +3886,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Update control instance
@@ -3748,6 +3922,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Delete control instance
@@ -3771,6 +3947,8 @@ paths:
 
   /controls/instance/{instanceId}/status:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Update control instance status
@@ -3809,6 +3987,8 @@ paths:
 
   /controls/instance/{instanceId}/validate:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Validate control with IT/Business approval
@@ -3844,6 +4024,8 @@ paths:
 
   /controls/instance/{instanceId}/override:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Override control with justification
@@ -3879,6 +4061,8 @@ paths:
 
   /controls/instance/bulk:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Create multiple control instances
@@ -3910,6 +4094,8 @@ paths:
 
   /controls/instance/bulk/validate:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Validate all controls in a phase
@@ -3945,6 +4131,8 @@ paths:
 
   /controls/{phaseId}/progress:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Controls
       summary: Calculate control progress for phase
@@ -3974,6 +4162,8 @@ paths:
 
   /statuses:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Statuses
       summary: Get all statuses
@@ -3993,6 +4183,8 @@ paths:
 
   /statuses/{type}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Statuses
       summary: Get statuses by entity type
@@ -4023,6 +4215,8 @@ paths:
 
   /iterationTypes:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Iterations
       summary: Get all iteration types
@@ -4045,6 +4239,8 @@ paths:
 
   /user/context:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Users
       summary: Get user context with role information (v2.1.0)
@@ -4076,6 +4272,8 @@ paths:
 
   /labels:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Get labels with optional hierarchical filtering
@@ -4134,6 +4332,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Create a new label
@@ -4165,6 +4365,8 @@ paths:
 
   /labels/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Get a specific label by ID
@@ -4190,6 +4392,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Update an existing label
@@ -4229,6 +4433,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Delete a label
@@ -4251,6 +4457,8 @@ paths:
 
   /labels/{id}/steps:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Get steps associated with a label
@@ -4282,6 +4490,8 @@ paths:
 
   /labels/{labelId}/applications/{applicationId}:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Add application association to label
@@ -4315,6 +4525,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Remove application association from label
@@ -4347,6 +4559,8 @@ paths:
 
   /labels/{labelId}/steps/{stepId}:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Add step association to label
@@ -4381,6 +4595,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Labels
       summary: Remove step association from label
@@ -4414,6 +4630,8 @@ paths:
 
   /plans/master:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get all master plans
@@ -4432,6 +4650,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Create a new master plan
@@ -4463,6 +4683,8 @@ paths:
 
   /plans/master/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get master plan by ID
@@ -4495,6 +4717,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Update master plan
@@ -4535,6 +4759,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Delete master plan
@@ -4564,6 +4790,8 @@ paths:
 
   /plans:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get plan instances
@@ -4612,6 +4840,8 @@ paths:
 
   /plans/instance:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Create plan instance
@@ -4643,6 +4873,8 @@ paths:
 
   /plans/instance/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Get plan instance by ID
@@ -4675,6 +4907,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Update plan instance
@@ -4709,6 +4943,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Delete plan instance
@@ -4738,6 +4974,8 @@ paths:
 
   /plans/{id}/status:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Plans
       summary: Update plan instance status
@@ -4767,11 +5005,7 @@ paths:
                     - type: integer
                       description: Status ID (references status_sts table)
                   description: New status - accepts either status name (string) or status ID (integer) for flexible input handling
-                  examples:
-                    - "PLANNING"
-                    - "ACTIVE"
-                    - 1
-                    - 2
+                  example: "PLANNING"
       responses:
         "200":
           description: Status updated successfully
@@ -4788,6 +5022,8 @@ paths:
 
   /sequences/master:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get all master sequences
@@ -4806,6 +5042,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Create a new master sequence
@@ -4837,6 +5075,8 @@ paths:
 
   /sequences/master/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get master sequence by ID
@@ -4869,6 +5109,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update master sequence
@@ -4909,6 +5151,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Delete master sequence
@@ -4938,6 +5182,8 @@ paths:
 
   /sequences/master/{id}/order:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update master sequence order
@@ -4973,6 +5219,8 @@ paths:
 
   /sequences:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get sequence instances
@@ -5028,6 +5276,8 @@ paths:
 
   /sequences/instance:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Create sequence instance
@@ -5059,6 +5309,8 @@ paths:
 
   /sequences/instance/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Get sequence instance by ID
@@ -5091,6 +5343,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update sequence instance
@@ -5125,6 +5379,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Delete sequence instance
@@ -5154,6 +5410,8 @@ paths:
 
   /sequences/instance/{id}/status:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Sequences
       summary: Update sequence instance status
@@ -5196,6 +5454,8 @@ paths:
   # === PHASES API ENDPOINTS ===
   /phases/master:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get all master phases with advanced filtering and pagination
@@ -5335,6 +5595,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Create master phase
@@ -5360,6 +5622,8 @@ paths:
 
   /phases/master/{phm_id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get master phase by ID
@@ -5385,6 +5649,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update master phase
@@ -5418,6 +5684,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Delete master phase
@@ -5445,6 +5713,8 @@ paths:
 
   /phases/master/{phm_id}/instantiate:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Instantiate phases from master
@@ -5488,6 +5758,8 @@ paths:
 
   /phases/instance:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase instances
@@ -5548,6 +5820,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Create phase instance
@@ -5573,6 +5847,8 @@ paths:
 
   /phases/instance/{phi_id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase instance by ID
@@ -5598,6 +5874,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update phase instance
@@ -5631,6 +5909,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Delete phase instance
@@ -5658,6 +5938,8 @@ paths:
 
   /phases/instance/{phi_id}/status:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update phase instance status
@@ -5694,6 +5976,8 @@ paths:
 
   /phases/{phi_id}/controls:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase control points
@@ -5723,6 +6007,8 @@ paths:
 
   /phases/{phi_id}/controls/validate:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Validate phase control points
@@ -5750,6 +6036,8 @@ paths:
 
   /phases/{phi_id}/controls/{cti_id}:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Update control point
@@ -5792,6 +6080,8 @@ paths:
 
   /phases/{phi_id}/controls/{cti_id}/override:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Override control point
@@ -5834,6 +6124,8 @@ paths:
 
   /phases/{phi_id}/progress:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Get phase progress
@@ -5861,6 +6153,8 @@ paths:
 
   /phases/master/reorder:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Bulk reorder master phases
@@ -5886,6 +6180,8 @@ paths:
 
   /phases/instance/reorder:
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Bulk reorder phase instances
@@ -5911,6 +6207,8 @@ paths:
 
   /phases/master/{phm_id}/move:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Move master phase
@@ -5946,6 +6244,8 @@ paths:
 
   /phases/instance/{phi_id}/move:
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Phases
       summary: Move phase instance
@@ -5981,6 +6281,8 @@ paths:
 
   /applications:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Applications
       summary: Get all applications
@@ -6000,6 +6302,8 @@ paths:
 
   /users:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Users
       summary: Get all users
@@ -6061,24 +6365,6 @@ paths:
             enum: [asc, desc]
             default: asc
           description: Sort direction
-        - name: teamId
-          in: query
-          required: false
-          schema:
-            type: integer
-          description: Filter users by team membership
-        - name: userCode
-          in: query
-          required: false
-          schema:
-            type: string
-          description: Find user by exact code match (for authentication)
-        - name: active
-          in: query
-          required: false
-          schema:
-            type: boolean
-          description: Filter users by active status (true for active, false for inactive)
       responses:
         "200":
           description: A paginated list of users.
@@ -6107,6 +6393,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Users
       summary: Create a new user
@@ -6142,6 +6430,8 @@ paths:
 
   /users/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Users
       summary: Get user by ID
@@ -6167,6 +6457,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Users
       summary: Update user
@@ -6210,6 +6502,8 @@ paths:
           $ref: "#/components/responses/InternalServerError"
 
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - Users
       summary: Delete user
@@ -6238,6 +6532,8 @@ paths:
 
   /emailTemplates:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Get all email templates
@@ -6271,6 +6567,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     post:
+      security:
+        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Create a new email template
@@ -6298,6 +6596,8 @@ paths:
 
   /emailTemplates/{id}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Get an email template by ID
@@ -6325,6 +6625,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     put:
+      security:
+        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Update an email template
@@ -6360,6 +6662,8 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
     delete:
+      security:
+        - ConfluenceUsers: []
       tags:
         - EmailTemplates
       summary: Delete an email template
@@ -6383,8 +6687,10 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
-  /webapp/{path+}:
+  /webapp/{path}:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - WebApp
       summary: Serve a static asset
@@ -6411,6 +6717,8 @@ paths:
   # ==================== URL CONFIGURATION API ====================
   /api/v2/urlConfiguration:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - UrlConfiguration
       summary: Get URL configuration for client-side construction
@@ -6465,11 +6773,11 @@ paths:
                 timestamp: "2025-08-27T14:30:00Z"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
   /api/v2/urlConfiguration/health:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - UrlConfiguration
       summary: Health check for URL configuration service
@@ -6500,8 +6808,6 @@ paths:
                 details: "Database connection slow"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      security:
-        - ConfluenceUsers: []
 
   /api/v2/urlConfiguration/clearCache:
     post:
@@ -6531,6 +6837,8 @@ paths:
 
   /api/v2/urlConfiguration/debug:
     get:
+      security:
+        - ConfluenceUsers: []
       tags:
         - UrlConfiguration
       summary: Debug information for URL configuration troubleshooting
@@ -6565,8 +6873,1188 @@ paths:
                 timestamp: "2025-08-27T14:30:00Z"
         "500":
           $ref: "#/components/responses/InternalServerError"
+
+  # ==================== IMPORT API V2 ====================
+  /import/json:
+    post:
       security:
         - ConfluenceUsers: []
+      summary: Import single JSON file
+      description: |
+        Import a single JSON file containing migration data. The JSON content is validated and stored in staging tables before promotion to master tables.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importJson
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JsonImportRequest"
+      responses:
+        "200":
+          description: Import completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonImportResponse"
+        "400":
+          description: Bad request - invalid JSON format, missing required fields, or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: Standard validation error
+                  value:
+                    error: "Missing required fields: 'source' and 'content'"
+                security_size_limit:
+                  summary: Request size security validation (CVSS 7.5)
+                  value:
+                    error: "Request size exceeds maximum allowed size"
+                    cvssScore: 7.5
+                    threatLevel: "HIGH"
+                    securityCode: "INPUT_SIZE_VIOLATION"
+                security_file_extension:
+                  summary: File extension security validation (CVSS 8.8)
+                  value:
+                    error: "Invalid file extension - only json, csv, txt files allowed"
+                    cvssScore: 8.8
+                    threatLevel: "HIGH"
+                    securityCode: "FILE_EXTENSION_VIOLATION"
+                batch_size_limit:
+                  summary: Batch size security validation (CVSS 6.5)
+                  value:
+                    error: "Batch size exceeds maximum allowed size"
+                    cvssScore: 6.5
+                    threatLevel: "MEDIUM"
+                    securityCode: "BATCH_SIZE_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              example:
+                error: "Insufficient permissions for import operations"
+        "409":
+          description: Data conflict - duplicate data detected or critical security violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                data_conflict:
+                  summary: Standard data conflict
+                  value:
+                    error: "Duplicate data detected"
+                    details: "Step already exists"
+                security_path_traversal:
+                  summary: Path traversal security violation (CVSS 9.1)
+                  value:
+                    error: "Path traversal attack blocked"
+                    cvssScore: 9.1
+                    threatLevel: "CRITICAL"
+                    securityCode: "PATH_TRAVERSAL_VIOLATION"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/batch:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Import multiple JSON files as a batch
+      description: |
+        Import multiple JSON files as a single batch operation. Files are processed sequentially with comprehensive statistics tracking.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchImportRequest"
+      responses:
+        "200":
+          description: Batch import completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchImportResponse"
+        "400":
+          description: Bad request - invalid format, empty files array, or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: Standard validation error
+                  value:
+                    error: "Empty files array provided"
+                security_batch_size:
+                  summary: Batch size security validation (CVSS 6.5)
+                  value:
+                    error: "Batch size exceeds maximum allowed size of 1000 files"
+                    cvssScore: 6.5
+                    threatLevel: "MEDIUM"
+                    securityCode: "BATCH_SIZE_VIOLATION"
+                security_size_limit:
+                  summary: Total request size validation (CVSS 7.5)
+                  value:
+                    error: "Total batch size exceeds 50MB limit"
+                    cvssScore: 7.5
+                    threatLevel: "HIGH"
+                    securityCode: "INPUT_SIZE_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/csv/teams:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Import teams from CSV
+      description: |
+        Import team data from CSV format. Supports team_name, team_description, and team_lead fields.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importTeamsCsv
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              example: |
+                team_name,team_description,team_lead
+                "Infrastructure Team","Manages servers and infrastructure","john.doe"
+                "Development Team","Application development","jane.smith"
+      responses:
+        "200":
+          description: Teams imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsvImportResponse"
+        "400":
+          description: Bad request - invalid CSV format or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: CSV format validation error
+                  value:
+                    error: "Invalid CSV format - missing required headers"
+                security_csv_size:
+                  summary: CSV size security validation
+                  value:
+                    error: "CSV content exceeds 10MB maximum size limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_SIZE_VIOLATION"
+                security_csv_rows:
+                  summary: CSV row limit validation
+                  value:
+                    error: "CSV content exceeds 10,000 row maximum limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_ROWS_VIOLATION"
+                security_file_extension:
+                  summary: File extension security validation (CVSS 8.8)
+                  value:
+                    error: "Invalid file extension - only csv files allowed for CSV imports"
+                    cvssScore: 8.8
+                    threatLevel: "HIGH"
+                    securityCode: "FILE_EXTENSION_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/csv/users:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Import users from CSV
+      description: |
+        Import user data from CSV format. Supports username, display_name, email, and role fields.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importUsersCsv
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              example: |
+                username,display_name,email,role
+                "john.doe","John Doe","john@company.com","admin"
+                "jane.smith","Jane Smith","jane@company.com","user"
+      responses:
+        "200":
+          description: Users imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsvImportResponse"
+        "400":
+          description: Bad request - invalid CSV format or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: CSV format validation error
+                  value:
+                    error: "Invalid CSV format - missing required headers"
+                security_csv_size:
+                  summary: CSV size security validation
+                  value:
+                    error: "CSV content exceeds 10MB maximum size limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_SIZE_VIOLATION"
+                security_csv_rows:
+                  summary: CSV row limit validation
+                  value:
+                    error: "CSV content exceeds 10,000 row maximum limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_ROWS_VIOLATION"
+                security_file_extension:
+                  summary: File extension security validation (CVSS 8.8)
+                  value:
+                    error: "Invalid file extension - only csv files allowed for CSV imports"
+                    cvssScore: 8.8
+                    threatLevel: "HIGH"
+                    securityCode: "FILE_EXTENSION_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/csv/applications:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Import applications from CSV
+      description: |
+        Import application data from CSV format. Supports app_name, app_description, and app_owner fields.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importApplicationsCsv
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              example: |
+                app_name,app_description,app_owner
+                "Web Portal","Main application","dev-team"
+                "API Gateway","Authentication service","platform-team"
+      responses:
+        "200":
+          description: Applications imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsvImportResponse"
+        "400":
+          description: Bad request - invalid CSV format or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: CSV format validation error
+                  value:
+                    error: "Invalid CSV format - missing required headers"
+                security_csv_size:
+                  summary: CSV size security validation
+                  value:
+                    error: "CSV content exceeds 10MB maximum size limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_SIZE_VIOLATION"
+                security_csv_rows:
+                  summary: CSV row limit validation
+                  value:
+                    error: "CSV content exceeds 10,000 row maximum limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_ROWS_VIOLATION"
+                security_file_extension:
+                  summary: File extension security validation (CVSS 8.8)
+                  value:
+                    error: "Invalid file extension - only csv files allowed for CSV imports"
+                    cvssScore: 8.8
+                    threatLevel: "HIGH"
+                    securityCode: "FILE_EXTENSION_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/csv/environments:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Import environments from CSV
+      description: |
+        Import environment data from CSV format. Supports env_name, env_description, and env_type fields.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importEnvironmentsCsv
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              example: |
+                env_name,env_description,env_type
+                "Production","Live environment","PROD"
+                "Staging","Pre-production testing","STAGING"
+      responses:
+        "200":
+          description: Environments imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsvImportResponse"
+        "400":
+          description: Bad request - invalid CSV format or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: CSV format validation error
+                  value:
+                    error: "Invalid CSV format - missing required headers"
+                security_csv_size:
+                  summary: CSV size security validation
+                  value:
+                    error: "CSV content exceeds 10MB maximum size limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_SIZE_VIOLATION"
+                security_csv_rows:
+                  summary: CSV row limit validation
+                  value:
+                    error: "CSV content exceeds 10,000 row maximum limit"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_ROWS_VIOLATION"
+                security_file_extension:
+                  summary: File extension security validation (CVSS 8.8)
+                  value:
+                    error: "Invalid file extension - only csv files allowed for CSV imports"
+                    cvssScore: 8.8
+                    threatLevel: "HIGH"
+                    securityCode: "FILE_EXTENSION_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/csv/all:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Import all base entities in proper dependency order
+      description: |
+        Import all base entities (teams, users, applications, environments) in a single operation.
+        Processes entities in proper dependency order to maintain referential integrity.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importAllCsv
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AllEntitiesCsvRequest"
+      responses:
+        "200":
+          description: All entities imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsvImportResponse"
+        "400":
+          description: Bad request - invalid JSON or CSV format, or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: Format validation error
+                  value:
+                    error: "Invalid JSON or CSV format"
+                security_batch_size:
+                  summary: Batch size security validation (CVSS 6.5)
+                  value:
+                    error: "Total CSV entries exceed maximum allowed batch size"
+                    cvssScore: 6.5
+                    threatLevel: "MEDIUM"
+                    securityCode: "BATCH_SIZE_VIOLATION"
+                security_csv_size:
+                  summary: CSV size security validation
+                  value:
+                    error: "Combined CSV content exceeds size limits"
+                    threatLevel: "MEDIUM"
+                    securityCode: "CSV_SIZE_VIOLATION"
+                security_file_extension:
+                  summary: File extension security validation (CVSS 8.8)
+                  value:
+                    error: "Invalid file extension - only csv files allowed"
+                    cvssScore: 8.8
+                    threatLevel: "HIGH"
+                    securityCode: "FILE_EXTENSION_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/csv/master-plan:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Import master plan CSV (Not Implemented)
+      description: |
+        Import master plan configuration from CSV format.
+        **This endpoint returns HTTP 501 NOT_IMPLEMENTED** until the importMasterPlans method is implemented in CsvImportService.
+      tags: [Import]
+      operationId: importMasterPlanCsv
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: string
+              example: |
+                plan_name,plan_description,plan_owner
+                "Migration Plan Alpha","High-level migration plan","admin"
+      responses:
+        "501":
+          description: Not Implemented - Feature pending implementation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              example:
+                error: "Master plan CSV import is not yet implemented"
+                details: "The importMasterPlans method needs to be added to CsvImportService"
+        "400":
+          description: Bad request - invalid CSV format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+
+  /import/master-plan:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Create master plan configuration
+      description: |
+        Create a master plan configuration entry. Plan names must be unique.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: importMasterPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MasterPlanRequest"
+      responses:
+        "200":
+          description: Master plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MasterPlanResponse"
+        "400":
+          description: Bad request - invalid format or validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "409":
+          description: Conflict - plan name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              example:
+                error: "Duplicate plan name"
+                details: "Plan name 'Migration Plan Alpha' already exists"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/rollback/{batchId}:
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Rollback import batch with audit trail
+      description: |
+        Rollback a specific import batch with comprehensive audit trail.
+        Removes imported data and updates batch status to ROLLED_BACK.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: rollbackImportBatch
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          description: Import batch identifier (UUID)
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RollbackRequest"
+      responses:
+        "200":
+          description: Batch rolled back successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RollbackResponse"
+        "400":
+          description: Bad request - invalid batch ID format or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: Batch ID validation error
+                  value:
+                    error: "Invalid batch ID format - must be a valid UUID"
+                security_input_validation:
+                  summary: Input validation security check (CVSS 7.5)
+                  value:
+                    error: "Batch ID failed security validation"
+                    cvssScore: 7.5
+                    threatLevel: "HIGH"
+                    securityCode: "INPUT_VALIDATION_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "404":
+          description: Batch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              example:
+                error: "Import batch not found: 550e8400-e29b-41d4-a716-446655440000"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/history:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get import history with optional filtering
+      description: |
+        Retrieve import history with optional filtering by user and pagination support.
+        Returns comprehensive import batch information with statistics.
+      tags: [Import]
+      operationId: getImportHistory
+      parameters:
+        - name: userId
+          in: query
+          required: false
+          description: Filter by username
+          schema:
+            type: string
+            example: "admin"
+        - name: limit
+          in: query
+          required: false
+          description: Limit number of history records (1-1000)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+            example: 10
+      responses:
+        "200":
+          description: Import history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportHistoryResponse"
+        "400":
+          description: Bad request - invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/batch/{batchId}:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get details of a specific import batch
+      description: |
+        Retrieve comprehensive details of a specific import batch including statistics and status.
+      tags: [Import]
+      operationId: getImportBatch
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          description: Import batch identifier (UUID)
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        "200":
+          description: Batch details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportBatchDetails"
+        "400":
+          description: Bad request - invalid batch ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Batch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      security:
+        - ConfluenceUsers: []
+      summary: Rollback a specific import batch
+      description: |
+        Rollback (delete) a specific import batch. Alternative endpoint to POST /import/rollback/{batchId}.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: deleteImportBatch
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          description: Import batch identifier (UUID)
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RollbackRequest"
+      responses:
+        "200":
+          description: Batch rolled back successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RollbackResponse"
+        "400":
+          description: Bad request - invalid batch ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "404":
+          description: Batch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      security:
+        - ConfluenceUsers: []
+      summary: Update import batch status
+      description: |
+        Update the status and statistics of a specific import batch.
+        Requires administrator privileges for execution.
+      tags: [Import]
+      operationId: updateImportBatchStatus
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          description: Import batch identifier (UUID)
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchStatusUpdateRequest"
+      responses:
+        "200":
+          description: Batch status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchStatusUpdateResponse"
+        "400":
+          description: Bad request - invalid format or status value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: Forbidden - administrator privileges required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "404":
+          description: Batch not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/statistics:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get overall import statistics
+      description: |
+        Retrieve overall import system statistics including total batches, success rates, and performance metrics.
+      tags: [Import]
+      operationId: getImportStatistics
+      responses:
+        "200":
+          description: Import statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportStatistics"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import/templates/{entity}:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Download CSV templates for base entities
+      description: |
+        Download CSV template files for importing base entities (teams, users, applications, environments).
+        Templates include proper headers and example data.
+      tags: [Import]
+      operationId: downloadCsvTemplate
+      parameters:
+        - name: entity
+          in: path
+          required: true
+          description: Entity type for template download
+          schema:
+            type: string
+            enum: [teams, users, applications, environments]
+            example: "teams"
+      responses:
+        "200":
+          description: CSV template downloaded successfully
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: |
+                  team_name,team_description,team_lead
+                  "Infrastructure Team","Manages servers and infrastructure","john.doe"
+                  "Development Team","Application development","jane.smith"
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename="teams_template.csv"'
+            Cache-Control:
+              schema:
+                type: string
+                example: "no-cache, no-store, must-revalidate"
+        "400":
+          description: Bad request - invalid entity type or security validation failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+              examples:
+                validation_error:
+                  summary: Entity type validation error
+                  value:
+                    error: "Invalid entity type. Must be one of: teams, users, applications, environments"
+                security_path_traversal:
+                  summary: Path traversal security validation (CVSS 9.1)
+                  value:
+                    error: "Path traversal attack blocked in entity type parameter"
+                    cvssScore: 9.1
+                    threatLevel: "CRITICAL"
+                    securityCode: "PATH_TRAVERSAL_VIOLATION"
+                security_file_extension:
+                  summary: File extension security validation (CVSS 8.8)
+                  value:
+                    error: "Template file extension validation failed"
+                    cvssScore: 8.8
+                    threatLevel: "HIGH"
+                    securityCode: "FILE_EXTENSION_VIOLATION"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # ==================== IMPORT QUEUE API V1 ====================
+  /import-queue:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get import queue status and statistics
+      description: |
+        Retrieve comprehensive import queue status including active imports, queue statistics, 
+        resource utilization, and system recommendations. Provides real-time monitoring of 
+        import operations with performance insights and system health status.
+      tags: [ImportQueue]
+      operationId: getImportQueueStatus
+      responses:
+        "200":
+          description: Import queue status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportQueueStatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Submit import request to queue
+      description: |
+        Submit a new import request to the queue with priority handling, resource requirements 
+        calculation, and estimated completion time. Supports various import types with 
+        comprehensive configuration options and automatic queue positioning.
+      tags: [ImportQueue]
+      operationId: submitImportRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportQueueRequest"
+      responses:
+        "200":
+          description: Import request submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportQueueSubmissionResponse"
+        "400":
+          description: Bad request - missing configuration or invalid request format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import-request/{requestId}:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get import request status
+      description: |
+        Retrieve detailed status information for a specific import request including current 
+        status, progress, execution details, and completion estimates.
+      tags: [ImportQueue]
+      operationId: getImportRequestStatus
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Import request identifier
+      responses:
+        "200":
+          description: Import request status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportRequestStatusResponse"
+        "400":
+          description: Invalid request ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Import request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      security:
+        - ConfluenceUsers: []
+      summary: Cancel queued import request
+      description: |
+        Cancel a queued import request with optional reason. Supports cancellation of 
+        pending requests with comprehensive audit trail and status updates.
+      tags: [ImportQueue]
+      operationId: cancelImportRequest
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Import request identifier to cancel
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelRequestBody"
+      responses:
+        "200":
+          description: Import request cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancelRequestResponse"
+        "400":
+          description: Invalid request ID or cancellation not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Import request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import-schedules:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: List import schedules
+      description: |
+        Retrieve list of import schedules with filtering options. Includes schedule 
+        statistics and supports user-specific filtering and active-only filtering.
+      tags: [ImportQueue]
+      operationId: getImportSchedules
+      parameters:
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter schedules by user ID
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 1000
+          description: Maximum number of schedules to return
+        - name: activeOnly
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description: Return only active schedules
+      responses:
+        "200":
+          description: Import schedules retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportSchedulesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      security:
+        - ConfluenceUsers: []
+      summary: Create scheduled import
+      description: |
+        Create a new scheduled import with recurring pattern support. Supports cron-like 
+        scheduling with comprehensive configuration options and validation.
+      tags: [ImportQueue]
+      operationId: createScheduledImport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateScheduleRequest"
+      responses:
+        "200":
+          description: Import schedule created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateScheduleResponse"
+        "400":
+          description: Bad request - missing required fields or invalid schedule configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /import-resources:
+    get:
+      security:
+        - ConfluenceUsers: []
+      summary: Get resource utilization and locks
+      description: |
+        Retrieve current resource utilization including active resource locks, system status, 
+        queue statistics, and performance recommendations for optimal resource management.
+      tags: [ImportQueue]
+      operationId: getImportResources
+      responses:
+        "200":
+          description: Resource information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResourcesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 
 components:
   schemas:
@@ -8704,11 +10192,7 @@ components:
             - type: integer
               description: Status ID (references status_sts table)
           description: Initial status of the master plan - accepts either status name (string) or status ID (integer) for flexible input handling
-          examples:
-            - "PLANNING"
-            - "ACTIVE"
-            - 1
-            - 2
+          example: "PLANNING"
 
     MasterPlanUpdate:
       type: object
@@ -8729,11 +10213,7 @@ components:
             - type: integer
               description: Status ID (references status_sts table)
           description: Status of the master plan - accepts either status name (string) or status ID (integer) for flexible input handling
-          examples:
-            - "PLANNING"
-            - "ACTIVE"
-            - 1
-            - 2
+          example: "PLANNING"
 
     PlanInstance:
       type: object
@@ -10205,19 +11685,10 @@ components:
         sqlState:
           type: string
           description: SQL state code for database errors
-      examples:
-        validation_error:
-          summary: Validation error
-          value:
-            error: "Iteration name is required"
-        database_error:
-          summary: Database constraint violation
-          value:
-            error: "Foreign key constraint violation"
-            message: "Invalid migration ID - migration does not exist"
-            sqlState: "23503"
-
-
+      example:
+        error: "Iteration name is required"
+        message: "Validation failed"
+        sqlState: "23000"
 
     # ==================== NEW STEPS API V2.2.0 SCHEMAS ====================
 
@@ -10736,43 +12207,1097 @@ components:
           type: integer
           description: New order position within phase
 
+    # ==================== BULK OPERATIONS RESPONSE ====================
+
     BulkUpdateResponse:
+      type: object
+      properties:
+        updated:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of successfully updated item IDs
+        failed:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+                description: ID of the item that failed to update
+              error:
+                type: string
+                description: Error message for this item
+          description: List of items that failed to update
+        summary:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of items processed
+            updated:
+              type: integer
+              description: Number of successfully updated items
+            failed:
+              type: integer
+              description: Number of failed updates
+            message:
+              type: string
+              description: Summary message
+          description: Summary statistics of the bulk operation
+
+    # ==================== IMPORT API SCHEMAS ====================
+
+    JsonImportRequest:
+      type: object
+      required:
+        - source
+        - content
+      properties:
+        source:
+          type: string
+          description: Source filename or identifier
+          example: "migration-data-2025.json"
+          minLength: 1
+          maxLength: 255
+        content:
+          type: string
+          description: JSON content as string
+          example: '{"steps": [{"title": "Configure Database", "instructions": [{"text": "Connect to production database", "order": 1}]}]}'
+          minLength: 1
+
+    BatchImportRequest:
+      type: object
+      required:
+        - files
+      properties:
+        files:
+          type: array
+          description: Array of files to import as a batch
+          minItems: 1
+          maxItems: 50
+          items:
+            type: object
+            required:
+              - filename
+              - content
+            properties:
+              filename:
+                type: string
+                description: Filename for this file
+                example: "migration-phase-1.json"
+                minLength: 1
+                maxLength: 255
+              content:
+                type: string
+                description: JSON content as string
+                example: '{"steps": [{"title": "Phase 1 Setup"}]}'
+                minLength: 1
+
+    AllEntitiesCsvRequest:
+      type: object
+      required:
+        - teams
+        - users
+        - applications
+        - environments
+      properties:
+        teams:
+          type: string
+          description: CSV content for teams import
+          example: |
+            team_name,team_description,team_lead
+            "Infrastructure Team","Manages servers","john.doe"
+        users:
+          type: string
+          description: CSV content for users import
+          example: |
+            username,display_name,email,role
+            "john.doe","John Doe","john@company.com","admin"
+        applications:
+          type: string
+          description: CSV content for applications import
+          example: |
+            app_name,app_description,app_owner
+            "Web Portal","Main application","dev-team"
+        environments:
+          type: string
+          description: CSV content for environments import
+          example: |
+            env_name,env_description,env_type
+            "Production","Live environment","PROD"
+
+    MasterPlanRequest:
+      type: object
+      required:
+        - planName
+      properties:
+        planName:
+          type: string
+          description: Name of the master plan (must be unique)
+          example: "Migration Plan Alpha"
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          description: Optional description of the master plan
+          example: "High-level description of the migration plan"
+          maxLength: 500
+        userId:
+          type: string
+          description: Optional user ID (defaults to current user)
+          example: "admin"
+          maxLength: 50
+
+    RollbackRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Optional reason for the rollback
+          example: "Data validation failed after import completion"
+          maxLength: 1000
+
+    BatchStatusUpdateRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: New status for the batch
+          enum: [COMPLETED, FAILED, IN_PROGRESS]
+          example: "COMPLETED"
+        statistics:
+          type: object
+          description: Optional statistics for the batch
+          properties:
+            recordsProcessed:
+              type: integer
+              description: Number of records processed
+              example: 150
+              minimum: 0
+            successCount:
+              type: integer
+              description: Number of successful records
+              example: 148
+              minimum: 0
+            errorCount:
+              type: integer
+              description: Number of failed records
+              example: 2
+              minimum: 0
+
+    JsonImportResponse:
       type: object
       properties:
         success:
           type: boolean
-          description: Overall operation success
+          description: Whether the import was successful
+          example: true
+        source:
+          type: string
+          description: Source filename that was imported
+          example: "migration-data-2025.json"
+        batchId:
+          type: string
+          format: uuid
+          description: Unique batch identifier for tracking
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        statistics:
+          $ref: "#/components/schemas/ImportStatisticsData"
+        errors:
+          type: array
+          description: Array of error messages (if any)
+          items:
+            type: string
+          example: []
+        warnings:
+          type: array
+          description: Array of warning messages (if any)
+          items:
+            type: string
+          example: []
+
+    BatchImportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the batch import was successful
+          example: true
+        batchId:
+          type: string
+          format: uuid
+          description: Unique batch identifier for tracking
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        filesProcessed:
+          type: integer
+          description: Number of files processed in the batch
+          example: 2
+          minimum: 0
+        overallStatistics:
+          type: object
+          description: Aggregated statistics for the entire batch
+          properties:
+            totalRecords:
+              type: integer
+              description: Total records across all files
+              example: 50
+              minimum: 0
+            successCount:
+              type: integer
+              description: Total successful records
+              example: 48
+              minimum: 0
+            errorCount:
+              type: integer
+              description: Total failed records
+              example: 2
+              minimum: 0
+        fileResults:
+          type: array
+          description: Individual results for each file in the batch
+          items:
+            type: object
+            properties:
+              filename:
+                type: string
+                description: Name of the file
+                example: "migration-phase-1.json"
+              success:
+                type: boolean
+                description: Whether this file was processed successfully
+                example: true
+              statistics:
+                $ref: "#/components/schemas/ImportStatisticsData"
+              errors:
+                type: array
+                description: Errors specific to this file
+                items:
+                  type: string
+                example: []
+
+    CsvImportResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the CSV import was successful
+          example: true
+        source:
+          type: string
+          description: Source identifier for the import
+          example: "teams_import.csv"
+        recordsProcessed:
+          type: integer
+          description: Number of records processed from CSV
+          example: 15
+          minimum: 0
+        recordsImported:
+          type: integer
+          description: Number of records successfully imported
+          example: 13
+          minimum: 0
+        recordsSkipped:
+          type: integer
+          description: Number of records skipped due to validation
+          example: 2
+          minimum: 0
+        errors:
+          type: array
+          description: Array of error messages (if any)
+          items:
+            type: string
+          example: []
+
+    MasterPlanResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the master plan creation was successful
+          example: true
+        planId:
+          type: string
+          format: uuid
+          description: Unique identifier for the created plan
+          example: "550e8400-e29b-41d4-a716-446655440012"
         message:
           type: string
           description: Success message
-        updatedCount:
-          type: integer
-          description: Number of successfully updated items
-        assignedCount:
-          type: integer
-          description: Number of successfully assigned items (for assignments)
-        reorderedCount:
-          type: integer
-          description: Number of successfully reordered items (for reordering)
-        failedCount:
-          type: integer
-          description: Number of failed operations
-        failures:
-          type: array
-          items:
-            $ref: "#/components/schemas/BulkOperationFailure"
-          description: Details of failed operations
-
-    BulkOperationFailure:
-      type: object
-      properties:
-        stepId:
+          example: "Master Plan configuration created successfully"
+        batchId:
           type: string
           format: uuid
-          description: Step ID that failed
+          description: Associated batch identifier for audit trail
+          example: "550e8400-e29b-41d4-a716-446655440013"
+        planName:
+          type: string
+          description: Name of the created plan
+          example: "Migration Plan Alpha"
+        description:
+          type: string
+          description: Plan description (if provided)
+          example: "High-level description of the migration plan"
+        createdBy:
+          type: string
+          description: User who created the plan
+          example: "admin"
+
+    RollbackResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the rollback was successful
+          example: true
+        message:
+          type: string
+          description: Rollback completion message
+          example: "Import batch successfully rolled back"
+        batchId:
+          type: string
+          format: uuid
+          description: Batch identifier that was rolled back
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        rollbackActions:
+          type: array
+          description: List of rollback actions performed
+          items:
+            type: string
+          example:
+            ["Deleted 25 staging steps", "Deleted 75 staging instructions"]
+        reason:
+          type: string
+          description: Reason for rollback (if provided)
+          example: "Data validation failed after import completion"
+        rolledBackBy:
+          type: string
+          description: User who performed the rollback
+          example: "admin"
+        rollbackDate:
+          type: string
+          format: date-time
+          description: Timestamp when rollback was performed
+          example: "2025-09-03T14:30:15.123Z"
+
+    BatchStatusUpdateResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the status update was successful
+          example: true
+        message:
+          type: string
+          description: Status update confirmation message
+          example: "Batch status updated successfully"
+        batchId:
+          type: string
+          format: uuid
+          description: Batch identifier that was updated
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        newStatus:
+          type: string
+          description: The new status that was set
+          example: "COMPLETED"
+        updatedBy:
+          type: string
+          description: User who performed the update
+          example: "admin"
+        updateDate:
+          type: string
+          format: date-time
+          description: Timestamp when update was performed
+          example: "2025-09-03T14:30:15.123Z"
+
+    ImportHistoryResponse:
+      type: object
+      properties:
+        history:
+          type: array
+          description: Array of import batch history records
+          items:
+            $ref: "#/components/schemas/ImportHistoryRecord"
+
+    ImportHistoryRecord:
+      type: object
+      properties:
+        batchId:
+          type: string
+          format: uuid
+          description: Unique batch identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        source:
+          type: string
+          description: Source identifier for the import
+          example: "migration-data-2025.json"
+        importType:
+          type: string
+          description: Type of import operation
+          enum: [JSON_IMPORT, CSV_IMPORT, BATCH_IMPORT, MASTER_PLAN]
+          example: "JSON_IMPORT"
+        status:
+          type: string
+          description: Current status of the import batch
+          enum: [COMPLETED, FAILED, IN_PROGRESS, ROLLED_BACK]
+          example: "COMPLETED"
+        userId:
+          type: string
+          description: User who initiated the import
+          example: "admin"
+        startTime:
+          type: string
+          format: date-time
+          description: When the import started
+          example: "2025-01-15T10:30:00Z"
+        endTime:
+          type: string
+          format: date-time
+          description: When the import completed (if finished)
+          example: "2025-01-15T10:32:15Z"
+        statistics:
+          $ref: "#/components/schemas/ImportStatisticsData"
+
+    ImportBatchDetails:
+      type: object
+      properties:
+        batchId:
+          type: string
+          format: uuid
+          description: Unique batch identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        source:
+          type: string
+          description: Source identifier for the import
+          example: "migration-data-2025.json"
+        importType:
+          type: string
+          description: Type of import operation
+          example: "JSON_IMPORT"
+        status:
+          type: string
+          description: Current status of the import batch
+          example: "COMPLETED"
+        userId:
+          type: string
+          description: User who initiated the import
+          example: "admin"
+        startTime:
+          type: string
+          format: date-time
+          description: When the import started
+          example: "2025-01-15T10:30:00Z"
+        endTime:
+          type: string
+          format: date-time
+          description: When the import completed
+          example: "2025-01-15T10:32:15Z"
+        statistics:
+          $ref: "#/components/schemas/ImportStatisticsData"
+        metadata:
+          type: object
+          description: Additional metadata about the batch
+          additionalProperties: true
+
+    ImportStatistics:
+      type: object
+      properties:
+        totalBatches:
+          type: integer
+          description: Total number of import batches
+          example: 25
+          minimum: 0
+        successfulBatches:
+          type: integer
+          description: Number of successful batches
+          example: 23
+          minimum: 0
+        failedBatches:
+          type: integer
+          description: Number of failed batches
+          example: 2
+          minimum: 0
+        rolledBackBatches:
+          type: integer
+          description: Number of rolled back batches
+          example: 1
+          minimum: 0
+        totalRecordsProcessed:
+          type: integer
+          description: Total records processed across all batches
+          example: 1250
+          minimum: 0
+        totalRecordsImported:
+          type: integer
+          description: Total records successfully imported
+          example: 1200
+          minimum: 0
+        averageProcessingTime:
+          type: number
+          format: float
+          description: Average processing time per batch in seconds
+          example: 45.2
+          minimum: 0
+        successRate:
+          type: number
+          format: float
+          description: Overall success rate as percentage (0-100)
+          example: 92.0
+          minimum: 0
+          maximum: 100
+        lastImportDate:
+          type: string
+          format: date-time
+          description: Timestamp of the most recent import
+          example: "2025-09-03T14:30:15.123Z"
+        byImportType:
+          type: array
+          description: Statistics broken down by import type
+          items:
+            type: object
+            properties:
+              importType:
+                type: string
+                description: Type of import
+                example: "JSON_IMPORT"
+              count:
+                type: integer
+                description: Number of batches of this type
+                example: 15
+                minimum: 0
+              successRate:
+                type: number
+                format: float
+                description: Success rate for this type
+                example: 95.0
+                minimum: 0
+                maximum: 100
+
+    ImportStatisticsData:
+      type: object
+      properties:
+        recordsProcessed:
+          type: integer
+          description: Number of records processed
+          example: 25
+          minimum: 0
+        successCount:
+          type: integer
+          description: Number of successful records
+          example: 25
+          minimum: 0
+        errorCount:
+          type: integer
+          description: Number of failed records
+          example: 0
+          minimum: 0
+
+    # ==================== IMPORT QUEUE SCHEMAS ====================
+    ImportQueueRequest:
+      type: object
+      required:
+        - configuration
+      properties:
+        importType:
+          type: string
+          default: "COMPLETE_IMPORT"
+          enum:
+            - COMPLETE_IMPORT
+            - PARTIAL_IMPORT
+            - CSV_IMPORT
+            - JSON_IMPORT
+          description: Type of import operation
+          example: "COMPLETE_IMPORT"
+        priority:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 10
+          description: Import priority (1=highest, 10=lowest)
+          example: 5
+        configuration:
+          type: object
+          description: Import configuration settings
+          properties:
+            source:
+              type: string
+              description: Data source identifier
+              example: "migration-data-batch.json"
+            content:
+              type: string
+              description: Import content or file path
+              example: '{"steps": [{"title": "Database Setup"}]}'
+            entities:
+              type: array
+              items:
+                type: string
+              description: Entity types to import
+              example: ["teams", "users", "applications"]
+            batchSize:
+              type: integer
+              default: 1000
+              description: Processing batch size
+              example: 1000
+        userId:
+          type: string
+          default: "system"
+          description: User initiating the import
+          example: "admin"
+
+    ImportQueueSubmissionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successfully queued
+          example: true
+        requestId:
+          type: string
+          format: uuid
+          description: Unique import request identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        queuePosition:
+          type: integer
+          description: Current position in queue
+          example: 3
+        estimatedWaitTime:
+          type: integer
+          description: Estimated wait time in seconds
+          example: 180
+        estimatedDuration:
+          type: integer
+          description: Estimated import duration in seconds
+          example: 300
+        priority:
+          type: integer
+          description: Assigned priority level
+          example: 5
+
+    ImportQueueStatusResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Status retrieval timestamp
+          example: "2025-09-04T14:30:00.000Z"
+        queue:
+          type: object
+          description: Queue status information
+          properties:
+            totalRequests:
+              type: integer
+              description: Total requests in queue
+              example: 5
+            activeImports:
+              type: integer
+              description: Currently executing imports
+              example: 2
+            queuedRequests:
+              type: integer
+              description: Pending requests
+              example: 3
+            completedToday:
+              type: integer
+              description: Imports completed today
+              example: 15
+        resources:
+          type: object
+          description: Resource utilization
+          properties:
+            activeLocks:
+              type: array
+              items:
+                type: object
+                properties:
+                  resourceId:
+                    type: string
+                    example: "db_connection_1"
+                  lockedBy:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  lockedAt:
+                    type: string
+                    format: date-time
+                    example: "2025-09-04T14:25:00.000Z"
+            memoryUtilization:
+              type: number
+              description: Memory utilization percentage
+              example: 65.5
+            cpuUtilization:
+              type: number
+              description: CPU utilization percentage
+              example: 42.8
+        system:
+          type: object
+          description: System status
+          properties:
+            healthy:
+              type: boolean
+              description: Overall system health
+              example: true
+            throughput:
+              type: number
+              description: Recent throughput (requests/minute)
+              example: 12.5
+            averageWaitTime:
+              type: integer
+              description: Average wait time in seconds
+              example: 120
+        recommendations:
+          type: array
+          items:
+            type: string
+          description: System optimization recommendations
+          example: ["System operating within normal parameters"]
+
+    ImportRequestStatusResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+          format: uuid
+          description: Import request identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        status:
+          type: string
+          enum:
+            - QUEUED
+            - IN_PROGRESS
+            - COMPLETED
+            - FAILED
+            - CANCELLED
+          description: Current request status
+          example: "IN_PROGRESS"
+        priority:
+          type: integer
+          description: Request priority
+          example: 5
+        queuePosition:
+          type: integer
+          description: Current position in queue (null if not queued)
+          example: null
+        progress:
+          type: object
+          description: Import progress details
+          properties:
+            percentage:
+              type: number
+              description: Completion percentage
+              example: 75.5
+            recordsProcessed:
+              type: integer
+              description: Records processed so far
+              example: 755
+            totalRecords:
+              type: integer
+              description: Total records to process
+              example: 1000
+            startedAt:
+              type: string
+              format: date-time
+              example: "2025-09-04T14:20:00.000Z"
+            estimatedCompletion:
+              type: string
+              format: date-time
+              example: "2025-09-04T14:35:00.000Z"
+
+    CancelRequestBody:
+      type: object
+      properties:
+        reason:
+          type: string
+          default: "User requested cancellation"
+          description: Cancellation reason
+          example: "Resource constraints detected"
+
+    CancelRequestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether cancellation was successful
+          example: true
+        requestId:
+          type: string
+          format: uuid
+          description: Cancelled request identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        message:
+          type: string
+          description: Cancellation confirmation message
+          example: "Import request cancelled successfully"
+        cancelledAt:
+          type: string
+          format: date-time
+          description: Cancellation timestamp
+          example: "2025-09-04T14:30:00.000Z"
+        reason:
+          type: string
+          description: Cancellation reason
+          example: "Resource constraints detected"
+
+    CreateScheduleRequest:
+      type: object
+      required:
+        - scheduleName
+        - scheduledTime
+        - importConfiguration
+      properties:
+        scheduleName:
+          type: string
+          description: Name for the scheduled import
+          example: "Daily Team Data Sync"
+        description:
+          type: string
+          description: Optional description
+          example: "Automated daily synchronization of team data"
+        scheduledTime:
+          type: integer
+          format: int64
+          description: Scheduled execution time (Unix timestamp in milliseconds)
+          example: 1725465600000
+        recurring:
+          type: boolean
+          default: false
+          description: Whether this is a recurring schedule
+          example: true
+        recurringPattern:
+          type: string
+          description: Cron-like recurring pattern (required if recurring=true)
+          example: "0 2 * * *"
+        priority:
+          type: integer
+          default: 5
+          minimum: 1
+          maximum: 10
+          description: Schedule priority
+          example: 3
+        importConfiguration:
+          type: object
+          description: Import configuration for scheduled execution
+          properties:
+            importType:
+              type: string
+              example: "CSV_IMPORT"
+            source:
+              type: string
+              example: "scheduled-teams-export.csv"
+            entities:
+              type: array
+              items:
+                type: string
+              example: ["teams", "users"]
+        userId:
+          type: string
+          default: "system"
+          description: User creating the schedule
+          example: "admin"
+
+    CreateScheduleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether schedule was created successfully
+          example: true
+        scheduleId:
+          type: string
+          format: uuid
+          description: Created schedule identifier
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        scheduleName:
+          type: string
+          description: Name of created schedule
+          example: "Daily Team Data Sync"
+        scheduledTime:
+          type: string
+          format: date-time
+          description: Next scheduled execution time
+          example: "2025-09-05T02:00:00.000Z"
+        nextExecution:
+          type: string
+          format: date-time
+          description: Next execution time (for recurring schedules)
+          example: "2025-09-06T02:00:00.000Z"
+        message:
+          type: string
+          description: Success message
+          example: "Schedule created successfully"
+
+    ImportSchedulesResponse:
+      type: object
+      properties:
+        schedules:
+          type: array
+          items:
+            type: object
+            properties:
+              scheduleId:
+                type: string
+                format: uuid
+                example: "550e8400-e29b-41d4-a716-446655440001"
+              scheduleName:
+                type: string
+                example: "Daily Team Data Sync"
+              description:
+                type: string
+                example: "Automated daily synchronization"
+              scheduledTime:
+                type: string
+                format: date-time
+                example: "2025-09-05T02:00:00.000Z"
+              recurring:
+                type: boolean
+                example: true
+              recurringPattern:
+                type: string
+                example: "0 2 * * *"
+              status:
+                type: string
+                enum:
+                  - ACTIVE
+                  - INACTIVE
+                  - COMPLETED
+                  - FAILED
+                example: "ACTIVE"
+              lastExecution:
+                type: string
+                format: date-time
+                example: "2025-09-04T02:00:00.000Z"
+              nextExecution:
+                type: string
+                format: date-time
+                example: "2025-09-05T02:00:00.000Z"
+              createdBy:
+                type: string
+                example: "admin"
+        statistics:
+          type: object
+          properties:
+            totalSchedules:
+              type: integer
+              example: 5
+            activeSchedules:
+              type: integer
+              example: 3
+            recurringSchedules:
+              type: integer
+              example: 2
+            schedulesExecutedToday:
+              type: integer
+              example: 4
+
+    ImportResourcesResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Resource status retrieval time
+          example: "2025-09-04T14:30:00.000Z"
+        resourceLocks:
+          type: array
+          items:
+            type: object
+            properties:
+              lockId:
+                type: string
+                format: uuid
+                example: "550e8400-e29b-41d4-a716-446655440002"
+              resourceType:
+                type: string
+                example: "DATABASE_CONNECTION"
+              resourceId:
+                type: string
+                example: "db_connection_pool_1"
+              lockedBy:
+                type: string
+                format: uuid
+                example: "550e8400-e29b-41d4-a716-446655440000"
+              lockedAt:
+                type: string
+                format: date-time
+                example: "2025-09-04T14:25:00.000Z"
+              expiresAt:
+                type: string
+                format: date-time
+                example: "2025-09-04T14:55:00.000Z"
+        systemStatus:
+          type: object
+          properties:
+            memoryUtilizationPercent:
+              type: number
+              description: Current memory utilization
+              example: 68.5
+            cpuUtilizationPercent:
+              type: number
+              description: Current CPU utilization
+              example: 45.2
+            activeConnections:
+              type: integer
+              description: Active database connections
+              example: 12
+            maxConnections:
+              type: integer
+              description: Maximum allowed connections
+              example: 50
+            diskSpaceUsedPercent:
+              type: number
+              description: Disk space utilization
+              example: 34.7
+        queueStatistics:
+          type: object
+          properties:
+            totalQueued:
+              type: integer
+              description: Total requests in queue
+              example: 5
+            highPriorityQueued:
+              type: integer
+              description: High priority requests queued
+              example: 1
+            averageWaitTime:
+              type: integer
+              description: Average wait time in seconds
+              example: 120
+            throughputLastHour:
+              type: number
+              description: Requests processed in last hour
+              example: 25.5
+        recommendations:
+          type: array
+          items:
+            type: string
+          description: Resource optimization recommendations
+          example: ["Resource utilization is within acceptable limits"]
+
+    ImportError:
+      type: object
+      properties:
         error:
           type: string
-          description: Error message for this step
+          description: Main error message
+          example: "Missing required fields: 'source' and 'content'"
+        details:
+          type: string
+          description: Additional error details (optional)
+          example: "The 'source' field is required for audit trail tracking"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-09-03T14:30:15.123Z"
+        batchId:
+          type: string
+          format: uuid
+          description: Associated batch ID (if applicable)
+          example: "550e8400-e29b-41d4-a716-446655440000"
 
   responses:
     Unauthorized:
@@ -10805,106 +13330,129 @@ components:
             invalidUuid:
               summary: Invalid UUID format
               value:
-                error: "Invalid migration UUID"
+                code: "INVALID_UUID"
+                message: "Invalid migration UUID"
             invalidPagination:
               summary: Invalid pagination parameters
               value:
-                error: "Invalid page number format"
+                code: "INVALID_PAGINATION"
+                message: "Invalid page number format"
             invalidDate:
               summary: Invalid date format
               value:
-                error: "Invalid dateFrom format. Use YYYY-MM-DD"
+                code: "INVALID_DATE"
+                message: "Invalid dateFrom format. Use YYYY-MM-DD"
             searchTooShort:
               summary: Search term too short
               value:
-                error: "Search term too short (min 3 characters)"
+                code: "SEARCH_TOO_SHORT"
+                message: "Search term too short (min 3 characters)"
             searchTooLong:
               summary: Search term too long
               value:
-                error: "Search term too long (max 100 characters)"
+                code: "SEARCH_TOO_LONG"
+                message: "Search term too long (max 100 characters)"
             invalidSortField:
               summary: Invalid sort field for iterations
               value:
-                error: "Invalid sort field. Allowed: ite_id, ite_name, itt_code, ite_static_cutover_date, ite_dynamic_cutover_date, ite_status, migration_name, master_plan_name, created_at, updated_at"
+                code: "INVALID_SORT_FIELD"
+                message: "Invalid sort field. Allowed: ite_id, ite_name, itt_code, ite_static_cutover_date, ite_dynamic_cutover_date, ite_status, migration_name, master_plan_name, created_at, updated_at"
             invalidMigrationSortField:
               summary: Invalid sort field for migrations
               value:
-                error: "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
+                code: "INVALID_SORT_FIELD"
+                message: "Invalid sort field. Allowed: mig_id, mig_name, mig_status, mig_type, created_at, updated_at, mig_start_date, mig_end_date, iteration_count, plan_count"
             invalidStatusName:
               summary: Invalid status name for migration
               value:
-                error: "Invalid status name: INVALID_STATUS"
+                code: "INVALID_STATUS"
+                message: "Invalid status name: INVALID_STATUS"
             invalidPeriod:
               summary: Invalid dashboard period
               value:
-                error: "Invalid period. Must be: day, week, month, or quarter"
+                code: "INVALID_PERIOD"
+                message: "Invalid period. Must be: day, week, month, or quarter"
             invalidDateFormat:
               summary: Invalid date format in request body
               value:
-                error: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
+                code: "INVALID_DATE_FORMAT"
+                message: "Invalid date format. Use YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss"
             invalidPageSize:
               summary: Invalid page size format
               value:
-                error: "Invalid page size format"
+                code: "INVALID_PAGE_SIZE"
+                message: "Invalid page size format"
             invalidTeamId:
               summary: Invalid team ID format
               value:
-                error: "Invalid team ID format"
+                code: "INVALID_TEAM_ID"
+                message: "Invalid team ID format"
             invalidOwnerId:
               summary: Invalid owner ID format
               value:
-                error: "Invalid owner ID format"
+                code: "INVALID_OWNER_ID"
+                message: "Invalid owner ID format"
             migrationNameRequired:
               summary: Missing required migration name
               value:
-                error: "Migration name is required"
+                code: "MIGRATION_NAME_REQUIRED"
+                message: "Migration name is required"
             noUsersExist:
               summary: No users exist for auto-assignment
               value:
-                error: "No users exist in the system. Cannot create migration without owner."
+                code: "NO_USERS_EXIST"
+                message: "No users exist in the system. Cannot create migration without owner."
             defaultPlanningNotFound:
               summary: Default planning status not found
               value:
-                error: "Default PLANNING status for Migration not found in database"
+                code: "DEFAULT_PLANNING_NOT_FOUND"
+                message: "Default PLANNING status for Migration not found in database"
             invalidJsonFormat:
               summary: Invalid JSON in request body
               value:
-                error: "Invalid JSON format in request body"
+                code: "INVALID_JSON"
+                message: "Invalid JSON format in request body"
             bulkMigrationIdsRequired:
               summary: Bulk operation missing migration IDs
               value:
-                error: "migrationIds is required and must be an array"
+                code: "BULK_IDS_REQUIRED"
+                message: "migrationIds is required and must be an array"
             invalidBulkFormat:
               summary: Invalid bulk export format
               value:
-                error: "Invalid format. Must be 'json' or 'csv'"
+                code: "INVALID_BULK_FORMAT"
+                message: "Invalid format. Must be 'json' or 'csv'"
             bulkStatusRequired:
               summary: Bulk update missing new status
               value:
-                error: "newStatus is required"
+                code: "BULK_STATUS_REQUIRED"
+                message: "newStatus is required"
             hierarchicalPathErrors:
               summary: Hierarchical endpoint validation errors
               value:
-                error: "Invalid iteration UUID"
+                code: "INVALID_ITERATION_UUID"
+                message: "Invalid iteration UUID"
             # PostgreSQL-specific error examples
             foreignKeyViolation:
               summary: Foreign key constraint violation (SQL State 23503)
               value:
-                error: "Foreign key constraint violation: Referenced sequence does not exist"
-                sqlState: "23503"
+                code: "FOREIGN_KEY_VIOLATION"
+                message: "Foreign key constraint violation: Referenced sequence does not exist"
             checkConstraintViolation:
               summary: Check constraint violation (SQL State 23514)
               value:
-                error: "Check constraint violation: Invalid date range - end date must be after start date"
-                sqlState: "23514"
+                code: "CHECK_CONSTRAINT_VIOLATION"
+                message: "Check constraint violation: Invalid date range - end date must be after start date"
             invalidStatusNamePhase:
               summary: Invalid status name resolution for phases
               value:
-                error: "Invalid status name 'INVALID_STATUS' for Phase entity type"
+                code: "INVALID_STATUS_NAME"
+                message: "Invalid status name 'INVALID_STATUS' for Phase entity type"
             typeCastingError:
               summary: PostgreSQL type casting error
               value:
-                error: "Invalid UUID format for parameter phm_id: 'not-a-uuid'"
+                code: "TYPE_CASTING_ERROR"
+                message: "Invalid UUID format for parameter phm_id: 'not-a-uuid'"
     Conflict:
       description: |
         The request could not be completed due to a conflict with the current state of the resource. 
@@ -10918,23 +13466,28 @@ components:
             uniqueConstraint:
               summary: Unique constraint violation
               value:
-                error: "A migration with this name already exists"
+                code: "UNIQUE_CONSTRAINT_VIOLATION"
+                message: "A migration with this name already exists"
             foreignKeyViolation:
               summary: Foreign key violation
               value:
-                error: "Invalid owner user ID - user does not exist"
+                code: "FOREIGN_KEY_VIOLATION"
+                message: "Invalid owner user ID - user does not exist"
             referentialIntegrity:
               summary: Referential integrity on delete
               value:
-                error: "Cannot delete migration - it has associated iterations or is referenced by other resources"
+                code: "REFERENTIAL_INTEGRITY_VIOLATION"
+                message: "Cannot delete migration - it has associated iterations or is referenced by other resources"
             migrationDuplicateName:
               summary: Duplicate migration name
               value:
-                error: "A migration with this name already exists"
+                code: "DUPLICATE_MIGRATION_NAME"
+                message: "A migration with this name already exists"
             invalidOwnerUser:
               summary: Invalid owner user reference
               value:
-                error: "Invalid owner user ID - user does not exist"
+                code: "INVALID_OWNER_ID"
+                message: "Invalid owner user ID - user does not exist"
     InternalServerError:
       description: An unexpected internal server error occurred.
       content:

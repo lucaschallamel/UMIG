@@ -8,7 +8,7 @@
 **Total Story Points**: 475  
 **Estimated Timeline**: 7-9 months  
 **Team Size Required**: 5-6 developers  
-**Budget Estimate**: $300k-470k  
+**Budget Estimate**: $300k-470k
 
 ---
 
@@ -19,6 +19,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Business Case
 
 ### Drivers
+
 - Architecture committee mandate for technology standardization
 - Elimination of Confluence/ScriptRunner licensing dependencies ($150k+ annual savings)
 - Alignment with enterprise Linux/Tomcat/Oracle standards
@@ -26,6 +27,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 - Enhanced scalability and performance capabilities
 
 ### Success Criteria
+
 - 100% feature parity with current system
 - Zero data loss during migration
 - <3 second response time for all operations
@@ -36,6 +38,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Technical Overview
 
 ### Current Architecture
+
 - **Platform**: Confluence 9.2.7 + ScriptRunner 9.21.0
 - **Backend**: Groovy 3.0.15 REST APIs
 - **Frontend**: Vanilla JS with AUI components
@@ -44,6 +47,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 - **Scale**: 1000+ users, 1,443+ step instances
 
 ### Target Architecture
+
 - **Platform**: Linux/Tomcat 9.0+
 - **Backend**: Spring Boot 3.1+ (Java 17)
 - **Frontend**: React with TypeScript
@@ -52,7 +56,9 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 - **Deployment**: WAR file deployment
 
 ### Migration Strategy
+
 **Recommended Approach**: Strangler Fig Pattern with parallel operation
+
 - Gradual feature migration over 7-9 months
 - Blue-Green deployment for risk mitigation
 - Parallel validation with existing system
@@ -61,11 +67,12 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Scope & Deliverables
 
 ### In Scope
+
 - Complete application re-architecture to Spring Boot
 - Database migration from PostgreSQL to Oracle v19
 - Authentication system replacement (Confluence → LDAP)
 - Frontend migration from AUI to React
-- All 13 REST APIs recreation
+- All 24 REST APIs recreation
 - Admin GUI, IterationView, and StepView interfaces
 - Email notification system
 - Data migration and validation
@@ -73,6 +80,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 - Legacy system decommissioning
 
 ### Out of Scope
+
 - New feature development (feature parity only)
 - Process re-engineering
 - Data model redesign
@@ -81,6 +89,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Technical Requirements
 
 ### Functional Requirements
+
 1. **Data Management**
    - Hierarchical model: Migrations → Iterations → Plans → Sequences → Phases → Steps → Instructions
    - Support for 5+ migrations, 30+ iterations, 1,443+ step instances
@@ -98,6 +107,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
    - Role-based access (NORMAL/PILOT/ADMIN)
 
 ### Non-Functional Requirements
+
 - **Performance**: <3s response time, 1000+ concurrent users
 - **Availability**: 99.9% uptime (8.77 hours/year max downtime)
 - **Security**: LDAP integration, encryption, audit trails
@@ -106,6 +116,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Risk Assessment
 
 ### Critical Risks
+
 1. **Authentication Migration** (HIGH)
    - Impact: User access disruption
    - Mitigation: Phased rollout with fallback
@@ -119,6 +130,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
    - Mitigation: User testing, design system
 
 ### Risk Mitigation Strategy
+
 - Strangler Fig pattern for gradual migration
 - Comprehensive testing at each phase
 - Parallel system operation during transition
@@ -128,6 +140,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Resource Requirements
 
 ### Team Composition
+
 - 2x Senior Java Developers (Spring Boot expertise)
 - 1x Frontend Developer (React/TypeScript)
 - 1x Database Administrator (Oracle specialist)
@@ -137,6 +150,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 - 0.5x Business Analyst
 
 ### Infrastructure
+
 - Development environment (Linux/Tomcat/Oracle)
 - Testing environment (full production replica)
 - Staging environment (pre-production validation)
@@ -145,42 +159,49 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Timeline & Phases
 
 ### Phase 1: Foundation (Months 1-2) - 55 Points
+
 - Infrastructure setup (Linux/Tomcat/Oracle)
 - Spring Boot application bootstrap
 - Authentication framework (LDAP)
 - Testing framework establishment
 
 ### Phase 2: Data Architecture (Months 2-3) - 65 Points
+
 - PostgreSQL to Oracle schema mapping
 - Data migration scripts and validation
 - JPA entity model creation
 - Repository layer implementation
 
 ### Phase 3: API Recreation (Months 3-4) - 85 Points
+
 - Core entity APIs (Users, Teams, etc.)
 - Complex business logic APIs
 - API security and authentication
 - Integration testing
 
 ### Phase 4: Frontend Migration (Months 4-6) - 95 Points
+
 - React framework setup
 - Admin GUI development
 - IterationView and StepView
 - Mobile responsiveness
 
 ### Phase 5: Advanced Features (Months 5-7) - 70 Points
+
 - Email notification system
 - Import/Export functionality
 - Audit trail implementation
 - Performance optimization
 
 ### Phase 6: Testing & Validation (Months 6-8) - 60 Points
+
 - Comprehensive testing suites
 - User acceptance testing
 - Performance testing
 - Security testing
 
 ### Phase 7: Cutover & Stabilization (Months 7-9) - 45 Points
+
 - Production deployment
 - Data migration execution
 - Go-live support
@@ -189,17 +210,20 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Cost Breakdown
 
 ### Development Costs
+
 - Development team (9 months): $450k-600k
 - Project management: $50k-75k
 - **Subtotal**: $500k-675k
 
 ### Infrastructure Costs
+
 - Oracle Database licensing: $50k-100k/year
 - Server infrastructure: $30k-50k
 - Migration tools: $20k-40k
 - **Subtotal**: $100k-190k
 
 ### Additional Costs
+
 - Training and documentation: $20k-30k
 - Contingency (20%): $124k-179k
 - **Subtotal**: $144k-209k
@@ -210,47 +234,50 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 
 ### Critical Path Stories (First 10)
 
-| Story ID | Title | Points | Priority |
-|----------|-------|--------|----------|
-| US-101 | Linux/Tomcat Environment Setup | 8 | Critical |
-| US-102 | Oracle Database v19 Provisioning | 8 | Critical |
-| US-104 | Spring Boot Application Bootstrap | 8 | Critical |
-| US-105 | Spring Security/LDAP Integration | 13 | Critical |
-| US-201 | PostgreSQL to Oracle Schema Mapping | 13 | Critical |
-| US-204 | JPA Entity Model Creation | 13 | Critical |
-| US-301 | Users & Teams APIs | 13 | Critical |
-| US-306 | Phases API with Business Logic | 13 | High |
-| US-406 | Admin GUI for Entity Management | 21 | High |
-| US-501 | Email Notification System | 13 | High |
+| Story ID | Title                               | Points | Priority |
+| -------- | ----------------------------------- | ------ | -------- |
+| US-101   | Linux/Tomcat Environment Setup      | 8      | Critical |
+| US-102   | Oracle Database v19 Provisioning    | 8      | Critical |
+| US-104   | Spring Boot Application Bootstrap   | 8      | Critical |
+| US-105   | Spring Security/LDAP Integration    | 13     | Critical |
+| US-201   | PostgreSQL to Oracle Schema Mapping | 13     | Critical |
+| US-204   | JPA Entity Model Creation           | 13     | Critical |
+| US-301   | Users & Teams APIs                  | 13     | Critical |
+| US-306   | Phases API with Business Logic      | 13     | High     |
+| US-406   | Admin GUI for Entity Management     | 21     | High     |
+| US-501   | Email Notification System           | 13     | High     |
 
 ### Story Distribution by Phase
 
-| Phase | Story Count | Total Points | Percentage |
-|-------|------------|--------------|------------|
-| Foundation | 8 | 55 | 11.6% |
-| Data Architecture | 8 | 65 | 13.7% |
-| API Recreation | 10 | 85 | 17.9% |
-| Frontend Migration | 10 | 95 | 20.0% |
-| Advanced Features | 10 | 70 | 14.7% |
-| Testing & Validation | 8 | 60 | 12.6% |
-| Cutover | 8 | 45 | 9.5% |
-| **TOTAL** | **62** | **475** | **100%** |
+| Phase                | Story Count | Total Points | Percentage |
+| -------------------- | ----------- | ------------ | ---------- |
+| Foundation           | 8           | 55           | 11.6%      |
+| Data Architecture    | 8           | 65           | 13.7%      |
+| API Recreation       | 10          | 85           | 17.9%      |
+| Frontend Migration   | 10          | 95           | 20.0%      |
+| Advanced Features    | 10          | 70           | 14.7%      |
+| Testing & Validation | 8           | 60           | 12.6%      |
+| Cutover              | 8           | 45           | 9.5%       |
+| **TOTAL**            | **62**      | **475**      | **100%**   |
 
 ## Dependencies & Constraints
 
 ### Technical Dependencies
+
 - Oracle Database v19 licensing and provisioning
 - Linux/Tomcat infrastructure availability
 - LDAP/Active Directory integration access
 - Network connectivity between tiers
 
 ### Organizational Dependencies
+
 - Architecture committee approvals
 - Database team support for Oracle
 - Infrastructure team for server provisioning
 - Security team for reviews and approvals
 
 ### Constraints
+
 - 9-month delivery window (non-negotiable)
 - Budget ceiling of $1M
 - Minimal business disruption during cutover
@@ -259,18 +286,21 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Success Metrics
 
 ### Technical Metrics
+
 - Response time: 100% of operations <3s
 - Availability: ≥99.9% uptime achieved
 - Security: Zero critical vulnerabilities
 - Quality: <5% defect rate in production
 
 ### Business Metrics
+
 - User adoption: 95% within 2 weeks
 - Feature parity: 100% functionality preserved
 - Cost savings: $150k+ annual licensing reduction
 - Maintenance effort: 20% reduction achieved
 
 ### Process Metrics
+
 - Timeline adherence: Delivery within 9 months
 - Budget compliance: Within $1M budget
 - Change management: 90% training completion
@@ -279,6 +309,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 ## Approval & Sign-off
 
 ### Required Approvals
+
 - [ ] Architecture Committee
 - [ ] IT Leadership
 - [ ] Budget Approval
@@ -286,6 +317,7 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 - [ ] User Representative Groups
 
 ### Key Stakeholders
+
 - **Sponsor**: Architecture Committee Chair
 - **Business Owner**: UMIG Product Owner
 - **Technical Lead**: Enterprise Architecture Team
@@ -302,6 +334,6 @@ This epic encompasses the complete migration of UMIG from its current Confluence
 
 ---
 
-*Last Updated: December 29, 2024*  
-*Status: Pending Architecture Committee Review*  
-*Next Steps: Stakeholder review session scheduled for January 2025*
+_Last Updated: December 29, 2024_  
+_Status: Pending Architecture Committee Review_  
+_Next Steps: Stakeholder review session scheduled for January 2025_

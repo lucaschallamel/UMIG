@@ -128,6 +128,7 @@ This is the final Phase 3 of the US-039 Enhanced Email Notifications epic, focus
    ```
 
 3. **Template Personalization Enhancement**:
+
    ```html
    <!-- Enhance mobile templates with dynamic content sections -->
    <!-- Add role-based conditional content rendering -->
@@ -158,6 +159,7 @@ This is the final Phase 3 of the US-039 Enhanced Email Notifications epic, focus
    ```
 
 3. **Preference Management Interface**:
+
    ```javascript
    // Create user notification preference management UI
    // Add time zone and business hours preference settings
@@ -188,6 +190,7 @@ This is the final Phase 3 of the US-039 Enhanced Email Notifications epic, focus
    ```
 
 3. **Advanced Feature Health Monitoring**:
+
    ```groovy
    // Add monitoring for personalization processing performance
    // Implement scheduling service health checks

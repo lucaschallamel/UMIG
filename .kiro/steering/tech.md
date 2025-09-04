@@ -62,9 +62,9 @@ liquibase --defaults-file=liquibase/liquibase.properties update
 
 ## Service URLs (Development)
 
-- **Confluence**: http://localhost:8090
+- **Confluence**: <http://localhost:8090>
 - **PostgreSQL**: localhost:5432
-- **MailHog**: http://localhost:8025
+- **MailHog**: <http://localhost:8025>
 
 ## Code Standards
 

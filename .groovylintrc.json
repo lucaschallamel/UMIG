@@ -1,0 +1,216 @@
+{
+  "extends": "recommended",
+  "rules": {
+    "CompileStatic": {
+      "enabled": false
+    },
+    "DuplicateStringLiteral": {
+      "enabled": true,
+      "doNotApplyToFilesMatching": ".*Test.*"
+    },
+    "MethodSize": {
+      "enabled": true,
+      "maxLines": 150
+    },
+    "ClassSize": {
+      "enabled": true,
+      "maxLines": 2000
+    },
+    "LineLength": {
+      "enabled": true,
+      "length": 150,
+      "ignoreImportStatements": true,
+      "ignorePackageStatements": true,
+      "ignoreLineRegex": ".*@BaseScript.*|.*http://.*|.*https://.*|.*@Grab.*|.*@Grapes.*"
+    },
+    "UnnecessaryGString": {
+      "enabled": true
+    },
+    "SpaceAfterComma": {
+      "enabled": true
+    },
+    "SpaceAfterOpeningBrace": {
+      "enabled": true
+    },
+    "SpaceBeforeClosingBrace": {
+      "enabled": true
+    },
+    "SpaceBeforeOpeningBrace": {
+      "enabled": true
+    },
+    "Indentation": {
+      "enabled": true,
+      "spacesPerIndentLevel": 4
+    },
+    "UnusedImport": {
+      "enabled": true
+    },
+    "UnusedVariable": {
+      "enabled": true,
+      "ignoreVariableNames": "sql|binding|request|response|delegate"
+    },
+    "UnusedPrivateMethod": {
+      "enabled": true
+    },
+    "UnnecessaryReturnKeyword": {
+      "enabled": false
+    },
+    "UnnecessarySemicolon": {
+      "enabled": true
+    },
+    "ConsecutiveBlankLines": {
+      "enabled": true,
+      "maximumAllowed": 2
+    },
+    "TrailingWhitespace": {
+      "enabled": true
+    },
+    "SpaceAroundMapEntryColon": {
+      "enabled": true,
+      "characterBeforeColonRegex": "",
+      "characterAfterColonRegex": " "
+    },
+    "ClosureAsLastMethodParameter": {
+      "enabled": true
+    },
+    "ElseBlockBraces": {
+      "enabled": true
+    },
+    "IfStatementBraces": {
+      "enabled": true
+    },
+    "ForStatementBraces": {
+      "enabled": true
+    },
+    "WhileStatementBraces": {
+      "enabled": true
+    },
+    "ExplicitArrayListInstantiation": {
+      "enabled": true
+    },
+    "ExplicitLinkedListInstantiation": {
+      "enabled": true
+    },
+    "ExplicitHashMapInstantiation": {
+      "enabled": true
+    },
+    "GStringAsMapKey": {
+      "enabled": true
+    },
+    "DuplicateMapKey": {
+      "enabled": true
+    },
+    "DuplicateSetValue": {
+      "enabled": true
+    },
+    "BitwiseOperatorInConditional": {
+      "enabled": true
+    },
+    "ExplicitCallToAndMethod": {
+      "enabled": true
+    },
+    "ExplicitCallToOrMethod": {
+      "enabled": true
+    },
+    "ExplicitCallToGetAtMethod": {
+      "enabled": true
+    },
+    "EmptyCatchBlock": {
+      "enabled": true
+    },
+    "EmptyFinallyBlock": {
+      "enabled": true
+    },
+    "EmptyIfStatement": {
+      "enabled": true
+    },
+    "EmptyTryBlock": {
+      "enabled": true
+    },
+    "EmptyWhileStatement": {
+      "enabled": true
+    },
+    "EqualsAndHashCode": {
+      "enabled": true
+    },
+    "ThrowExceptionFromFinallyBlock": {
+      "enabled": true
+    },
+    "ReturnFromFinallyBlock": {
+      "enabled": true
+    },
+    "SimpleDateFormatMissingLocale": {
+      "enabled": true
+    },
+    "MissingNewInThrowStatement": {
+      "enabled": true
+    },
+    "ClassJavadoc": {
+      "enabled": false
+    },
+    "MethodName": {
+      "enabled": true,
+      "regex": "^[a-z][a-zA-Z0-9]*$",
+      "ignoreMethodNames": ".*_.*"
+    },
+    "VariableName": {
+      "enabled": true,
+      "regex": "^[a-z][a-zA-Z0-9]*$",
+      "ignoreVariableNames": ".*_.*|SQL.*"
+    },
+    "FieldName": {
+      "enabled": true,
+      "regex": "^[a-z][a-zA-Z0-9]*$",
+      "ignoreFieldNames": ".*_.*"
+    },
+    "ParameterName": {
+      "enabled": true,
+      "regex": "^[a-z][a-zA-Z0-9]*$"
+    },
+    "ConstantName": {
+      "enabled": true,
+      "regex": "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"
+    },
+    "PackageName": {
+      "enabled": true,
+      "regex": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$"
+    },
+    "ClassName": {
+      "enabled": true,
+      "regex": "^[A-Z][a-zA-Z0-9]*$"
+    },
+    "InterfaceName": {
+      "enabled": true,
+      "regex": "^[A-Z][a-zA-Z0-9]*$"
+    }
+  },
+  "groovyVersion": "3.0.15",
+  "sourcePattern": "src/groovy/**/*.groovy",
+  "ignorePattern": "**/node_modules/**,**/build/**,**/target/**,**/out/**,**/bin/**",
+  "fix": false,
+  "format": "json",
+  "output": "groovy-lint-report.json",
+  "verbose": false,
+  "failOnError": false,
+  "returnRules": true,
+  "failOnWarning": false,
+  "failOnInfo": false,
+  "codenarcRulesets": "",
+  "customRuleset": {
+    "description": "UMIG ScriptRunner Custom Rules",
+    "rules": {
+      "DisableStaticCompilationCheck": {
+        "enabled": false,
+        "description": "ScriptRunner doesn't always support @CompileStatic"
+      },
+      "IgnoreScriptRunnerAnnotations": {
+        "enabled": true,
+        "description": "Ignore ScriptRunner-specific annotations like @BaseScript"
+      },
+      "GrabAnnotation": {
+        "enabled": false,
+        "description": "Disable @Grab/@Grapes processing to avoid Ivy dependency issues"
+      }
+    }
+  }
+}

@@ -238,7 +238,7 @@ GET /rest/scriptrunner/latest/custom/steps?migrationId=xxx → 200
 
 **US-028 Enhanced IterationView Phase 1** receives conditional QA approval pending resolution of the critical API endpoint configuration issue.
 
-### Sign-Off Requirements Met:
+### Sign-Off Requirements Met
 
 - [x] Comprehensive test plan established
 - [x] Automated testing framework implemented

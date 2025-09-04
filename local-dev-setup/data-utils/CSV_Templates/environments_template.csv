@@ -1,0 +1,11 @@
+env_id,env_code,env_name,env_description
+1,DEV,Development,Development environment for coding and unit testing
+2,QA,Quality Assurance,QA environment for functional and integration testing
+3,UAT,User Acceptance Testing,UAT environment for business validation
+4,STG,Staging,Staging environment mirroring production
+5,PROD,Production,Live production environment
+6,DR,Disaster Recovery,Disaster recovery environment
+7,PERF,Performance,Performance testing environment
+8,TRAIN,Training,Training environment for user education
+9,DEMO,Demo,Demo environment for sales and presentations
+10,SANDBOX,Sandbox,Sandbox environment for experimentation

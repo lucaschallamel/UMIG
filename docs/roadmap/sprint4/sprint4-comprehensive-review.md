@@ -548,6 +548,7 @@ True Factors Affecting Velocity:
    - Sequence optimization for minimal blocking
 
 3. **Scope Risk Assessment**
+
    ```
    Green (1-3 points): Standard estimation
    Yellow (5 points): +25% buffer

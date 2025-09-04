@@ -133,10 +133,32 @@ Based on our testing evolution, the following dependencies cause issues with Gro
 // Your test code here
 ```
 
+## 📊 Validation Standards
+
+### Integration Test Validation Standards
+
+**📋 Comprehensive Standards Framework**: [`integration/INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./integration/INTEGRATION_TEST_VALIDATION_STANDARDS.md)
+
+This comprehensive document establishes validation standards for all UMIG integration test suites:
+
+- **✅ Framework Compliance**: US-037 BaseIntegrationTest compliance (95%+ target)
+- **✅ Performance Standards**: Production-scale validation criteria (<500ms API, <60s large data)
+- **✅ Coverage Requirements**: 95%+ comprehensive test coverage standards
+- **✅ Quality Metrics**: Success criteria, compliance checklists, and validation frameworks
+- **✅ Reference Implementation**: US-034 Data Import Strategy as complete example
+
+**Essential for**:
+
+- Developing new integration test suites with consistent quality standards
+- Validating test coverage and framework compliance before production deployment
+- Creating validation reports and quality gate assessments
+- Establishing performance benchmarks and regression detection
+
 ## Structure
 
 - `unit/`: Unit tests with mocked dependencies using Spock framework
 - `integration/`: Integration tests requiring live database connections
+  - **📊 [`INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./integration/INTEGRATION_TEST_VALIDATION_STANDARDS.md)**: Comprehensive validation standards and compliance framework
 - `validation/`: Quality gate and database validation scripts
   - `US024QualityGateValidator.groovy`: Quality gate validation for ADR compliance
   - `DatabaseQualityValidator.groovy`: Direct database layer validation, performance testing, and data integrity checks
@@ -144,8 +166,6 @@ Based on our testing evolution, the following dependencies cause issues with Gro
 - `compatibility/`: Backward compatibility validation
 - `performance/`: Performance testing and benchmarks
 - `upgrade/`: Upgrade validation tests
-- `run-unit-tests.sh`: Unit test runner script
-- `run-integration-tests.sh`: Integration test runner script
 
 ### Validation Scripts
 
@@ -255,6 +275,7 @@ npm run test:integration            # Integration tests via NPM
 - **Use `npm run test:us022`** and `npm run test:us028`\*\* for user story validation
 - **Use pattern filters** (`npm run test:unit -- --pattern api`) for targeted testing
 - **Leverage parallel execution** for faster unit test feedback during development
+- **Reference validation standards** ([`INTEGRATION_TEST_VALIDATION_STANDARDS.md`](./integration/INTEGRATION_TEST_VALIDATION_STANDARDS.md)) when developing integration test suites
 
 ### For CI/CD Integration
 

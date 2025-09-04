@@ -245,6 +245,7 @@ npm run test:uat:quick
    ```
 
 3. **Full Validation**:
+
    ```bash
    npm run test:all                              # Complete test suite
    ```
