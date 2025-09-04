@@ -169,18 +169,7 @@ CREATE INDEX IF NOT EXISTS idx_od_depends_on ON stg_orchestration_dependencies_o
 
 -- Add foreign key constraints (will be successful once stg_import_orchestrations_ior table exists)
 -- These constraints ensure referential integrity between orchestration dependencies
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'stg_import_orchestrations_ior') THEN
-        ALTER TABLE stg_orchestration_dependencies_od 
-        ADD CONSTRAINT fk_od_orchestration_id 
-        FOREIGN KEY (od_orchestration_id) REFERENCES stg_import_orchestrations_ior(ior_id) ON DELETE CASCADE;
-        
-        ALTER TABLE stg_orchestration_dependencies_od 
-        ADD CONSTRAINT fk_od_depends_on_orchestration 
-        FOREIGN KEY (od_depends_on_orchestration) REFERENCES stg_import_orchestrations_ior(ior_id) ON DELETE CASCADE;
-    END IF;
-END $$;
+-- Note: These constraints will be added in a future migration once stg_import_orchestrations_ior table is created
 
 -- Step 8: Add comments for US-034 tables
 COMMENT ON TABLE stg_import_queue_management_iqm IS 'US-034: Manages concurrent import request queuing and coordination';
