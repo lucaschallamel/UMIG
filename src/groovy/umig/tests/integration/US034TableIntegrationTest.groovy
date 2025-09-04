@@ -71,7 +71,7 @@ class US034TableIntegrationTest {
         
         assert queueResult.success
         assert queueResult.requestId == requestId
-        assert queueResult.queuePosition >= 1
+        assert (queueResult.queuePosition as Integer) >= 1
         
         // Verify data was written to database
         DatabaseUtil.withSql { Sql sql ->
@@ -155,8 +155,8 @@ class US034TableIntegrationTest {
         // Test checking lock status
         Map lockStatus = lockRepository.checkResourceLockStatus('MIGRATION', 'test-migration-123')
         assert lockStatus.locked == true
-        assert lockStatus.locks.size() == 1
-        assert lockStatus.locks[0].lockType == 'EXCLUSIVE'
+        assert (lockStatus.locks as List).size() == 1
+        assert ((lockStatus.locks as List)[0] as Map).lockType == 'EXCLUSIVE'
         
         // Test conflicting lock attempt
         UUID conflictRequestId = UUID.randomUUID()
@@ -168,7 +168,7 @@ class US034TableIntegrationTest {
             30
         )
         assert !conflictResult.success
-        assert conflictResult.error.contains('already locked')
+        assert (conflictResult.error as String).contains('already locked')
         
         // Test lock release
         Map releaseResult = lockRepository.releaseAllLocksForRequest(requestId)
@@ -213,7 +213,7 @@ class US034TableIntegrationTest {
         assert scheduleResult.scheduleId != null
         assert scheduleResult.scheduleName == scheduleName
         
-        Integer scheduleId = scheduleResult.scheduleId
+        Integer scheduleId = scheduleResult.scheduleId as Integer
         
         // Verify schedule exists in database
         DatabaseUtil.withSql { Sql sql ->
@@ -320,7 +320,7 @@ class US034TableIntegrationTest {
         assert orchestrationResult.containsKey('success') || orchestrationResult.containsKey('queued')
         
         if (orchestrationResult.containsKey('requestId')) {
-            UUID requestId = orchestrationResult.requestId
+            UUID requestId = orchestrationResult.requestId as UUID
             
             // Verify request exists in queue database
             DatabaseUtil.withSql { Sql sql ->
@@ -442,13 +442,13 @@ class US034TableIntegrationTest {
             
             // Step 6: Verify all components worked together
             Map queueStatus = queueRepository.getQueueStatus()
-            assert queueStatus.statistics.completed >= 1
+            assert ((queueStatus.statistics as Map).completed as Integer) >= 1
             
             List<Map> activeLocks = lockRepository.getActiveLocksForRequest(requestId)
             assert activeLocks.size() >= 1
             
             Map scheduleStats = scheduleRepository.getScheduleStatistics()
-            assert scheduleStats.statistics.activeSchedules >= 1
+            assert ((scheduleStats.statistics as Map).activeSchedules as Integer) >= 1
             
         } finally {
             // Cleanup: Release locks

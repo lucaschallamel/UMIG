@@ -307,10 +307,10 @@ class ImportApiSecurityValidationTest {
             
             // Check for CVSS scores for each vulnerability type
             Map<String, Double> expectedCvssScores = [
-                "Input Size": 7.5,
-                "Path Traversal": 9.1, 
-                "File Extension": 8.8,
-                "Batch Size": 6.5
+                "Input Size": 7.5 as Double,
+                "Path Traversal": 9.1 as Double, 
+                "File Extension": 8.8 as Double,
+                "Batch Size": 6.5 as Double
             ]
             
             expectedCvssScores.each { vulnType, expectedScore ->

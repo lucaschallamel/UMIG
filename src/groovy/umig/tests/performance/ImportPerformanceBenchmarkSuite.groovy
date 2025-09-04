@@ -124,39 +124,39 @@ class ImportPerformanceBenchmarkSuite {
         log.info("Starting comprehensive performance benchmark suite")
         
         Map results = [
-            suiteStartTime: System.currentTimeMillis(),
-            jsonImportBenchmarks: [],
-            csvImportBenchmarks: [],
-            memoryUsageBenchmarks: [],
-            scalabilityBenchmarks: [],
-            overallSummary: [:]
+            suiteStartTime: (System.currentTimeMillis() as Long),
+            jsonImportBenchmarks: ([] as List),
+            csvImportBenchmarks: ([] as List),
+            memoryUsageBenchmarks: ([] as List),
+            scalabilityBenchmarks: ([] as List),
+            overallSummary: ([:] as Map)
         ]
         
         try {
             // JSON Import Benchmarks
             log.info("Running JSON import performance benchmarks...")
-            results.jsonImportBenchmarks = runJsonImportBenchmarks()
+            results.jsonImportBenchmarks = (runJsonImportBenchmarks() as Map)
             
             // CSV Import Benchmarks  
             log.info("Running CSV import performance benchmarks...")
-            results.csvImportBenchmarks = runCsvImportBenchmarks()
+            results.csvImportBenchmarks = (runCsvImportBenchmarks() as Map)
             
             // Memory Usage Benchmarks
             log.info("Running memory usage benchmarks...")
-            results.memoryUsageBenchmarks = runMemoryUsageBenchmarks()
+            results.memoryUsageBenchmarks = (runMemoryUsageBenchmarks() as Map)
             
             // Scalability Benchmarks
             log.info("Running scalability benchmarks...")
-            results.scalabilityBenchmarks = runScalabilityBenchmarks()
+            results.scalabilityBenchmarks = (runScalabilityBenchmarks() as Map)
             
             // Generate overall summary
-            results.overallSummary = generateOverallSummary(results)
+            results.overallSummary = (generateOverallSummary(results) as Map)
             
-            log.info("Complete benchmark suite finished in ${System.currentTimeMillis() - results.suiteStartTime}ms")
+            log.info("Complete benchmark suite finished in ${(System.currentTimeMillis() - (results.suiteStartTime as Long)) as Long}ms")
             
         } catch (Exception e) {
             log.error("Benchmark suite failed: ${e.message}", e)
-            results.error = e.message
+            results.error = (e.message as String)
         }
         
         return results
@@ -167,19 +167,20 @@ class ImportPerformanceBenchmarkSuite {
      */
     Map runJsonImportBenchmarks() {
         Map results = [
-            smallDataset: [],
-            mediumDataset: [],
-            largeDataset: []
+            smallDataset: (null as PerformanceComparison),
+            mediumDataset: (null as PerformanceComparison),
+            largeDataset: (null as PerformanceComparison)
         ]
         
         // Small dataset (100 records)
-        results.smallDataset = benchmarkJsonImport(SMALL_DATASET_SIZE, "small")
+        PerformanceComparison smallComparison = benchmarkJsonImport(SMALL_DATASET_SIZE, "small")
+        results.smallDataset = (smallComparison as PerformanceComparison)
         
         // Medium dataset (1,000 records) 
-        results.mediumDataset = benchmarkJsonImport(MEDIUM_DATASET_SIZE, "medium")
+        results.mediumDataset = (benchmarkJsonImport(MEDIUM_DATASET_SIZE, "medium") as PerformanceComparison)
         
         // Large dataset (5,000 records)
-        results.largeDataset = benchmarkJsonImport(LARGE_DATASET_SIZE, "large")
+        results.largeDataset = (benchmarkJsonImport(LARGE_DATASET_SIZE, "large") as PerformanceComparison)
         
         return results
     }
@@ -189,17 +190,17 @@ class ImportPerformanceBenchmarkSuite {
      */
     Map runCsvImportBenchmarks() {
         Map results = [
-            teamsImport: [],
-            usersImport: [],
-            applicationsImport: [],
-            environmentsImport: []
+            teamsImport: (null as PerformanceComparison),
+            usersImport: (null as PerformanceComparison),
+            applicationsImport: (null as PerformanceComparison),
+            environmentsImport: (null as PerformanceComparison)
         ]
         
         // Test each CSV entity type
-        results.teamsImport = benchmarkCsvImport("teams", MEDIUM_DATASET_SIZE)
-        results.usersImport = benchmarkCsvImport("users", MEDIUM_DATASET_SIZE)
-        results.applicationsImport = benchmarkCsvImport("applications", MEDIUM_DATASET_SIZE)
-        results.environmentsImport = benchmarkCsvImport("environments", MEDIUM_DATASET_SIZE)
+        results.teamsImport = (benchmarkCsvImport("teams", MEDIUM_DATASET_SIZE) as PerformanceComparison)
+        results.usersImport = (benchmarkCsvImport("users", MEDIUM_DATASET_SIZE) as PerformanceComparison)
+        results.applicationsImport = (benchmarkCsvImport("applications", MEDIUM_DATASET_SIZE) as PerformanceComparison)
+        results.environmentsImport = (benchmarkCsvImport("environments", MEDIUM_DATASET_SIZE) as PerformanceComparison)
         
         return results
     }
@@ -209,19 +210,20 @@ class ImportPerformanceBenchmarkSuite {
      */
     Map runMemoryUsageBenchmarks() {
         Map results = [
-            memoryStressTesting: [],
-            garbageCollectionImpact: [],
-            peakMemoryAnalysis: []
+            memoryStressTesting: (null as Map),
+            garbageCollectionImpact: (null as Map),
+            peakMemoryAnalysis: (null as Map)
         ]
         
         // Memory stress testing with very large datasets
-        results.memoryStressTesting = benchmarkMemoryUsage(XLARGE_DATASET_SIZE)
+        Map memoryStressResults = (benchmarkMemoryUsage(XLARGE_DATASET_SIZE) as Map)
+        results.memoryStressTesting = (memoryStressResults as Map)
         
         // GC impact analysis
-        results.garbageCollectionImpact = analyzeGarbageCollectionImpact()
+        results.garbageCollectionImpact = (analyzeGarbageCollectionImpact() as Map)
         
         // Peak memory analysis
-        results.peakMemoryAnalysis = analyzePeakMemoryUsage()
+        results.peakMemoryAnalysis = (analyzePeakMemoryUsage() as Map)
         
         return results
     }
@@ -231,21 +233,21 @@ class ImportPerformanceBenchmarkSuite {
      */
     Map runScalabilityBenchmarks() {
         Map results = [
-            throughputScaling: [],
-            concurrentProcessing: [],
-            chunkSizeOptimization: []
+            throughputScaling: ([] as List),
+            concurrentProcessing: (null as Map),
+            chunkSizeOptimization: (null as Map)
         ]
         
         // Test throughput at different scales
         [100, 500, 1000, 2000, 5000].each { size ->
-            results.throughputScaling << benchmarkThroughputScaling(size)
+            (results.throughputScaling as List) << (benchmarkThroughputScaling(size) as Map)
         }
         
         // Concurrent processing benchmark
-        results.concurrentProcessing = benchmarkConcurrentProcessing()
+        results.concurrentProcessing = (benchmarkConcurrentProcessing() as Map)
         
         // Chunk size optimization
-        results.chunkSizeOptimization = benchmarkChunkSizeOptimization()
+        results.chunkSizeOptimization = (benchmarkChunkSizeOptimization() as Map)
         
         return results
     }
@@ -314,7 +316,7 @@ class ImportPerformanceBenchmarkSuite {
     private Map benchmarkMemoryUsage(int recordCount) {
         log.info("Benchmarking memory usage with ${recordCount} records")
         
-        Map results = [:]
+        Map results = ([:] as Map)
         
         // Force GC before test
         System.gc()
@@ -333,12 +335,12 @@ class ImportPerformanceBenchmarkSuite {
         long endTime = System.currentTimeMillis()
         long endMemory = getCurrentMemoryUsage()
         
-        results.original = [
-            memoryUsedMB: (endMemory - startMemory) / 1024 / 1024,
-            processingTimeMs: endTime - startTime,
-            recordsProcessed: recordCount,
-            success: originalResult.successCount > 0
-        ]
+        results.original = ([
+            memoryUsedMB: (((endMemory - startMemory) / 1024 / 1024) as Long),
+            processingTimeMs: ((endTime - startTime) as Long),
+            recordsProcessed: (recordCount as Integer),
+            success: ((originalResult.successCount as Integer) > 0) ? true : false
+        ] as Map)
         
         // Force GC and wait
         System.gc()
@@ -353,19 +355,19 @@ class ImportPerformanceBenchmarkSuite {
         endTime = System.currentTimeMillis()
         endMemory = getCurrentMemoryUsage()
         
-        results.optimized = [
-            memoryUsedMB: (endMemory - startMemory) / 1024 / 1024,
-            processingTimeMs: endTime - startTime,
-            recordsProcessed: recordCount,
-            success: optimizedResult.successCount > 0
-        ]
+        results.optimized = ([
+            memoryUsedMB: (((endMemory - startMemory) / 1024 / 1024) as Long),
+            processingTimeMs: ((endTime - startTime) as Long),
+            recordsProcessed: (recordCount as Integer),
+            success: ((optimizedResult.successCount as Integer) > 0) ? true : false
+        ] as Map)
         
         // Calculate improvement
-        results.memoryImprovement = results.original.memoryUsedMB > 0 ? 
-            1.0 - (results.optimized.memoryUsedMB / results.original.memoryUsedMB) : 0.0
+        results.memoryImprovement = (((results.original as Map).memoryUsedMB as Long) > 0 ? 
+            1.0 - (((results.optimized as Map).memoryUsedMB as Long) / ((results.original as Map).memoryUsedMB as Long)) : 0.0) as Double
         
-        results.speedImprovement = results.optimized.processingTimeMs > 0 ?
-            results.original.processingTimeMs / results.optimized.processingTimeMs : 1.0
+        results.speedImprovement = (((results.optimized as Map).processingTimeMs as Long) > 0 ?
+            ((results.original as Map).processingTimeMs as Long) / ((results.optimized as Map).processingTimeMs as Long) : 1.0) as Double
         
         return results
     }
@@ -376,7 +378,7 @@ class ImportPerformanceBenchmarkSuite {
     private Map analyzeGarbageCollectionImpact() {
         log.info("Analyzing garbage collection impact")
         
-        Map results = [:]
+        Map results = ([:] as Map)
         
         // Get GC metrics before test
         def gcBefore = getGCMetrics()
@@ -391,10 +393,10 @@ class ImportPerformanceBenchmarkSuite {
         // Get GC metrics after test
         def gcAfter = getGCMetrics()
         
-        results.gcCollections = gcAfter.totalCollections - gcBefore.totalCollections
-        results.gcTimeMs = gcAfter.totalTimeMs - gcBefore.totalTimeMs
+        results.gcCollections = (gcAfter.totalCollections as Long) - (gcBefore.totalCollections as Long)
+        results.gcTimeMs = (gcAfter.totalTimeMs as Long) - (gcBefore.totalTimeMs as Long)
         results.processingTimeMs = endTime - startTime
-        results.gcOverheadPercent = (results.gcTimeMs / results.processingTimeMs) * 100
+        results.gcOverheadPercent = ((results.gcTimeMs as Long) / (results.processingTimeMs as Long)) * 100
         results.recordsProcessed = LARGE_DATASET_SIZE
         
         return results
@@ -417,12 +419,12 @@ class ImportPerformanceBenchmarkSuite {
         
         CompletableFuture<Void> monitoringTask = CompletableFuture.runAsync({
             while (!Thread.currentThread().isInterrupted()) {
-                long currentMemory = getCurrentMemoryUsage() / 1024 / 1024
-                results.memorySnapshots << [
+                long currentMemory = (getCurrentMemoryUsage() / 1024 / 1024) as long
+                (results.memorySnapshots as List).add([
                     timestamp: System.currentTimeMillis(),
                     memoryUsageMB: currentMemory
-                ]
-                results.peakMemoryMB = Math.max(results.peakMemoryMB, currentMemory)
+                ])
+                results.peakMemoryMB = Math.max((results.peakMemoryMB as Long), currentMemory)
                 
                 try {
                     Thread.sleep(500) // Sample every 500ms
@@ -439,7 +441,9 @@ class ImportPerformanceBenchmarkSuite {
         monitoringTask.cancel(true)
         
         // Calculate memory efficiency score (lower peak = better score)
-        results.memoryEfficiencyScore = Math.max(0, 100 - (results.peakMemoryMB / TARGET_MAX_MEMORY_MB) * 100)
+        // Fix: Use explicit double casting instead of wrapper conversion
+        double peakMemoryMB = (results.peakMemoryMB as Long) as double
+        results.memoryEfficiencyScore = Math.max(0, 100 - (peakMemoryMB / TARGET_MAX_MEMORY_MB) * 100)
         
         return results
     }
@@ -494,16 +498,16 @@ class ImportPerformanceBenchmarkSuite {
         long endTime = System.currentTimeMillis()
         
         int totalRecords = numTasks * recordsPerTask
-        int totalSuccess = results.collect { it.successCount }.sum()
+        int totalSuccess = (results.collect { (it.successCount as Integer) }.sum() as Integer)
         
         return [
-            concurrentTasks: numTasks,
-            recordsPerTask: recordsPerTask,
-            totalRecords: totalRecords,
-            totalSuccessful: totalSuccess,
-            totalProcessingTimeMs: endTime - startTime,
-            overallThroughput: totalRecords * 1000.0 / (endTime - startTime),
-            concurrencyEfficiency: (totalRecords / (endTime - startTime)) / (recordsPerTask / 1000.0)
+            concurrentTasks: (numTasks as Integer),
+            recordsPerTask: (recordsPerTask as Integer),
+            totalRecords: (totalRecords as Integer),
+            totalSuccessful: (totalSuccess as Integer),
+            totalProcessingTimeMs: ((endTime - startTime) as Long),
+            overallThroughput: ((totalRecords * 1000.0 / (endTime - startTime)) as Double),
+            concurrencyEfficiency: (((totalRecords / (endTime - startTime)) / (recordsPerTask / 1000.0)) as Double)
         ]
     }
     
@@ -514,7 +518,7 @@ class ImportPerformanceBenchmarkSuite {
         log.info("Benchmarking chunk size optimization")
         
         List<Map> testData = generateJsonTestData(LARGE_DATASET_SIZE)
-        Map results = [:]
+        Map results = ([:] as Map)
         
         // Test different chunk sizes
         [250, 500, 1000, 2000, 5000].each { chunkSize ->
@@ -528,13 +532,13 @@ class ImportPerformanceBenchmarkSuite {
             long endTime = System.currentTimeMillis()
             long endMemory = getCurrentMemoryUsage()
             
-            results[chunkSize] = [
-                chunkSize: chunkSize,
-                processingTimeMs: endTime - startTime,
-                memoryUsedMB: (endMemory - startMemory) / 1024 / 1024,
-                throughput: LARGE_DATASET_SIZE * 1000.0 / (endTime - startTime),
-                successCount: result.successCount
-            ]
+            results[chunkSize] = ([
+                chunkSize: (chunkSize as Integer),
+                processingTimeMs: ((endTime - startTime) as Long),
+                memoryUsedMB: (((endMemory - startMemory) / 1024 / 1024) as Long),
+                throughput: ((LARGE_DATASET_SIZE * 1000.0 / (endTime - startTime)) as Double),
+                successCount: (result.successCount as Integer)
+            ] as Map)
             
             // Allow memory cleanup between tests
             System.gc()
@@ -566,19 +570,20 @@ class ImportPerformanceBenchmarkSuite {
             if (service instanceof PerformanceOptimizedImportService) {
                 importResult = service.importBatchOptimized(testData, "benchmark-user")
             } else {
-                importResult = service.importBatch(testData, "benchmark-user")
+                importResult = (service as ImportService).importBatch(testData, "benchmark-user")
             }
             
             long endTime = System.currentTimeMillis()
             long endMemory = getCurrentMemoryUsage()
             
             result.processingTimeMs = endTime - startTime
-            result.memoryUsedMB = (endMemory - baselineMemory) / 1024 / 1024
+            result.memoryUsedMB = ((endMemory - baselineMemory) / 1024 / 1024) as long
             result.recordsProcessed = testData.size()
-            result.successCount = importResult.successCount ?: 0
-            result.errorCount = importResult.failureCount ?: 0
-            result.throughputRecordsPerSec = result.processingTimeMs > 0 ? 
-                (result.recordsProcessed * 1000.0) / result.processingTimeMs : 0
+            result.successCount = ((importResult.successCount ?: 0) as Number).intValue()
+            result.errorCount = ((importResult.failureCount ?: 0) as Number).intValue()
+            // Fix: Use explicit double casting to ensure consistent type
+            result.throughputRecordsPerSec = (result.processingTimeMs > 0 ? 
+                (result.recordsProcessed * 1000.0d) / result.processingTimeMs : 0.0d) as double
             
             // Check if targets are met
             result.targetsMet = result.memoryUsedMB <= TARGET_MAX_MEMORY_MB && 
@@ -603,7 +608,7 @@ class ImportPerformanceBenchmarkSuite {
         } catch (Exception e) {
             log.error("Benchmark failed for ${testName}: ${e.message}", e)
             result.errorCount = 1
-            result.additionalMetrics.error = e.message
+            result.additionalMetrics.error = (e.message as String)
         }
         
         return result
@@ -631,23 +636,23 @@ class ImportPerformanceBenchmarkSuite {
             switch (entityType) {
                 case "teams":
                     importResult = service instanceof PerformanceOptimizedCsvImportService ?
-                        service.importTeamsOptimized(csvData, "benchmark.csv", "benchmark-user") :
-                        service.importTeams(csvData, "benchmark.csv", "benchmark-user")
+                        (service as PerformanceOptimizedCsvImportService).importTeamsOptimized(csvData, "benchmark.csv", "benchmark-user") :
+                        (service as CsvImportService).importTeams(csvData, "benchmark.csv", "benchmark-user")
                     break
                 case "users":
                     importResult = service instanceof PerformanceOptimizedCsvImportService ?
-                        service.importUsersOptimized(csvData, "benchmark.csv", "benchmark-user") :
-                        service.importUsers(csvData, "benchmark.csv", "benchmark-user")
+                        (service as PerformanceOptimizedCsvImportService).importUsersOptimized(csvData, "benchmark.csv", "benchmark-user") :
+                        (service as CsvImportService).importUsers(csvData, "benchmark.csv", "benchmark-user")
                     break
                 case "applications":
                     importResult = service instanceof PerformanceOptimizedCsvImportService ?
-                        service.importApplicationsOptimized(csvData, "benchmark.csv", "benchmark-user") :
-                        service.importApplications(csvData, "benchmark.csv", "benchmark-user")
+                        (service as PerformanceOptimizedCsvImportService).importApplicationsOptimized(csvData, "benchmark.csv", "benchmark-user") :
+                        (service as CsvImportService).importApplications(csvData, "benchmark.csv", "benchmark-user")
                     break
                 case "environments":
                     importResult = service instanceof PerformanceOptimizedCsvImportService ?
-                        service.importEnvironmentsOptimized(csvData, "benchmark.csv", "benchmark-user") :
-                        service.importEnvironments(csvData, "benchmark.csv", "benchmark-user")
+                        (service as PerformanceOptimizedCsvImportService).importEnvironmentsOptimized(csvData, "benchmark.csv", "benchmark-user") :
+                        (service as CsvImportService).importEnvironments(csvData, "benchmark.csv", "benchmark-user")
                     break
                 default:
                     throw new IllegalArgumentException("Unknown entity type: ${entityType}")
@@ -657,13 +662,14 @@ class ImportPerformanceBenchmarkSuite {
             long endMemory = getCurrentMemoryUsage()
             
             result.processingTimeMs = endTime - startTime
-            result.memoryUsedMB = (endMemory - startMemory) / 1024 / 1024
+            result.memoryUsedMB = ((endMemory - startMemory) / 1024 / 1024) as long
             result.peakMemoryMB = result.memoryUsedMB
-            result.recordsProcessed = importResult.recordsProcessed ?: 0
-            result.successCount = importResult.recordsImported ?: 0
-            result.errorCount = importResult.errors?.size() ?: 0
-            result.throughputRecordsPerSec = result.processingTimeMs > 0 ? 
-                (result.recordsProcessed * 1000.0) / result.processingTimeMs : 0
+            result.recordsProcessed = ((importResult.recordsProcessed ?: 0) as Number).intValue()
+            result.successCount = ((importResult.recordsImported ?: 0) as Number).intValue()
+            result.errorCount = (importResult.errors as List)?.size() ?: 0
+            // Fix: Use explicit double casting to ensure consistent type
+            result.throughputRecordsPerSec = (result.processingTimeMs > 0 ? 
+                (result.recordsProcessed * 1000.0d) / result.processingTimeMs : 0.0d) as double
             
             result.targetsMet = result.memoryUsedMB <= TARGET_MAX_MEMORY_MB && 
                                result.throughputRecordsPerSec >= TARGET_MIN_THROUGHPUT
@@ -671,7 +677,7 @@ class ImportPerformanceBenchmarkSuite {
         } catch (Exception e) {
             log.error("CSV benchmark failed for ${testName}: ${e.message}", e)
             result.errorCount = 1
-            result.additionalMetrics.error = e.message
+            result.additionalMetrics.error = (e.message as String)
         }
         
         return result
@@ -698,21 +704,21 @@ class ImportPerformanceBenchmarkSuite {
         
         // Generate observations
         if (comparison.memoryImprovement >= TARGET_MEMORY_REDUCTION) {
-            comparison.observations << "✅ Memory reduction target achieved: ${(comparison.memoryImprovement * 100).round(1)}%"
+            (comparison.observations as List).add("✅ Memory reduction target achieved: ${(comparison.memoryImprovement * 100).round(1)}%")
         } else {
-            comparison.observations << "❌ Memory reduction target missed: ${(comparison.memoryImprovement * 100).round(1)}% (target: ${TARGET_MEMORY_REDUCTION * 100}%)"
+            (comparison.observations as List).add("❌ Memory reduction target missed: ${(comparison.memoryImprovement * 100).round(1)}% (target: ${TARGET_MEMORY_REDUCTION * 100}%)")
         }
         
         if (comparison.speedImprovement >= TARGET_SPEED_IMPROVEMENT) {
-            comparison.observations << "✅ Speed improvement target achieved: ${comparison.speedImprovement.round(2)}x faster"
+            (comparison.observations as List).add("✅ Speed improvement target achieved: ${comparison.speedImprovement.round(2)}x faster")
         } else {
-            comparison.observations << "❌ Speed improvement target missed: ${comparison.speedImprovement.round(2)}x (target: ${TARGET_SPEED_IMPROVEMENT}x)"
+            (comparison.observations as List).add("❌ Speed improvement target missed: ${comparison.speedImprovement.round(2)}x (target: ${TARGET_SPEED_IMPROVEMENT}x)")
         }
         
         if (optimized.throughputRecordsPerSec >= TARGET_MIN_THROUGHPUT) {
-            comparison.observations << "✅ Throughput target met: ${optimized.throughputRecordsPerSec.round(1)} records/sec"
+            (comparison.observations as List).add("✅ Throughput target met: ${optimized.throughputRecordsPerSec.round(1)} records/sec")
         } else {
-            comparison.observations << "❌ Throughput target missed: ${optimized.throughputRecordsPerSec.round(1)} records/sec (target: ${TARGET_MIN_THROUGHPUT})"
+            (comparison.observations as List).add("❌ Throughput target missed: ${optimized.throughputRecordsPerSec.round(1)} records/sec (target: ${TARGET_MIN_THROUGHPUT})")
         }
         
         log.info("Performance comparison for ${testDescription}: Memory improvement: ${(comparison.memoryImprovement * 100).round(1)}%, Speed improvement: ${comparison.speedImprovement.round(2)}x")
@@ -724,18 +730,18 @@ class ImportPerformanceBenchmarkSuite {
      * Generate overall summary of benchmark results
      */
     private Map generateOverallSummary(Map results) {
-        Map summary = [
-            totalTests: 0,
-            targetsMetCount: 0,
-            averageMemoryImprovement: 0,
-            averageSpeedImprovement: 0,
-            recommendations: []
-        ]
+        Map summary = ([
+            totalTests: (0 as Integer),
+            targetsMetCount: (0 as Integer),
+            averageMemoryImprovement: (0.0d as Double),
+            averageSpeedImprovement: (0.0d as Double),
+            recommendations: ([] as List)
+        ] as Map)
         
         // Collect all performance comparisons
         List<PerformanceComparison> allComparisons = []
         
-        results.jsonImportBenchmarks.values().each { datasetResults ->
+        (results.jsonImportBenchmarks as Map).values().each { datasetResults ->
             if (datasetResults instanceof List) {
                 allComparisons.addAll(datasetResults)
             } else if (datasetResults instanceof PerformanceComparison) {
@@ -743,7 +749,7 @@ class ImportPerformanceBenchmarkSuite {
             }
         }
         
-        results.csvImportBenchmarks.values().each { entityResults ->
+        (results.csvImportBenchmarks as Map).values().each { entityResults ->
             if (entityResults instanceof List) {
                 allComparisons.addAll(entityResults)
             } else if (entityResults instanceof PerformanceComparison) {
@@ -752,32 +758,32 @@ class ImportPerformanceBenchmarkSuite {
         }
         
         if (!allComparisons.isEmpty()) {
-            summary.totalTests = allComparisons.size()
-            summary.targetsMetCount = allComparisons.count { it.targetsAchieved }
-            summary.averageMemoryImprovement = allComparisons.collect { it.memoryImprovement }.sum() / allComparisons.size()
-            summary.averageSpeedImprovement = allComparisons.collect { it.speedImprovement }.sum() / allComparisons.size()
+            summary.totalTests = (allComparisons.size() as Integer)
+            summary.targetsMetCount = (allComparisons.count { it.targetsAchieved } as Integer)
+            summary.averageMemoryImprovement = ((allComparisons.collect { it.memoryImprovement }.sum() as Double) / allComparisons.size()) as Double
+            summary.averageSpeedImprovement = ((allComparisons.collect { it.speedImprovement }.sum() as Double) / allComparisons.size()) as Double
             
             // Generate recommendations
-            if (summary.averageMemoryImprovement >= TARGET_MEMORY_REDUCTION) {
-                summary.recommendations << "✅ Memory optimization targets achieved across ${summary.targetsMetCount}/${summary.totalTests} tests"
+            if ((summary.averageMemoryImprovement as Double) >= TARGET_MEMORY_REDUCTION) {
+                (summary.recommendations as List).add("✅ Memory optimization targets achieved across ${summary.targetsMetCount}/${summary.totalTests} tests")
             } else {
-                summary.recommendations << "⚠️ Consider further memory optimizations - average improvement: ${(summary.averageMemoryImprovement * 100).round(1)}%"
+                (summary.recommendations as List).add("⚠️ Consider further memory optimizations - average improvement: ${((summary.averageMemoryImprovement as Double) * 100).round(1)}%")
             }
             
-            if (summary.averageSpeedImprovement >= TARGET_SPEED_IMPROVEMENT) {
-                summary.recommendations << "✅ Performance improvement targets achieved - average speed increase: ${summary.averageSpeedImprovement.round(2)}x"
+            if ((summary.averageSpeedImprovement as Double) >= TARGET_SPEED_IMPROVEMENT) {
+                (summary.recommendations as List).add("✅ Performance improvement targets achieved - average speed increase: ${(summary.averageSpeedImprovement as Double).round(2)}x")
             } else {
-                summary.recommendations << "⚠️ Consider additional performance tuning - average improvement: ${summary.averageSpeedImprovement.round(2)}x"
+                (summary.recommendations as List).add("⚠️ Consider additional performance tuning - average improvement: ${(summary.averageSpeedImprovement as Double).round(2)}x")
             }
             
             // Overall success rate
-            double successRate = summary.targetsMetCount / summary.totalTests
+            double successRate = (summary.targetsMetCount as Integer) / (summary.totalTests as Integer)
             if (successRate >= 0.8) {
-                summary.recommendations << "🎉 Excellent performance optimization success rate: ${(successRate * 100).round(1)}%"
+                (summary.recommendations as List).add("🎉 Excellent performance optimization success rate: ${(successRate * 100).round(1)}%")
             } else if (successRate >= 0.6) {
-                summary.recommendations << "👍 Good performance optimization success rate: ${(successRate * 100).round(1)}%"
+                (summary.recommendations as List).add("👍 Good performance optimization success rate: ${(successRate * 100).round(1)}%")
             } else {
-                summary.recommendations << "📈 Performance optimization needs improvement - success rate: ${(successRate * 100).round(1)}%"
+                (summary.recommendations as List).add("📈 Performance optimization needs improvement - success rate: ${(successRate * 100).round(1)}%")
             }
         }
         
@@ -790,31 +796,31 @@ class ImportPerformanceBenchmarkSuite {
         List<Map> testData = []
         
         (1..count).each { i ->
-            String jsonContent = new JsonBuilder([
-                step_type: "TST",
-                step_number: i,
-                title: "Test Step ${i}",
-                description: "Performance benchmark test step ${i}",
-                primary_team: "TEST_TEAM",
-                impacted_teams: ["TEAM_A", "TEAM_B"],
-                task_list: [
-                    [
-                        instruction_id: "${i}_1",
-                        instruction_text: "Test instruction ${i}.1",
-                        duration_minutes: 5
-                    ],
-                    [
-                        instruction_id: "${i}_2", 
-                        instruction_text: "Test instruction ${i}.2",
-                        duration_minutes: 3
-                    ]
-                ]
-            ]).toString()
+            String jsonContent = new JsonBuilder(([
+                step_type: ("TST" as String),
+                step_number: (i as Integer),
+                title: ("Test Step ${i}" as String),
+                description: ("Performance benchmark test step ${i}" as String),
+                primary_team: ("TEST_TEAM" as String),
+                impacted_teams: (["TEAM_A", "TEAM_B"] as List),
+                task_list: ([
+                    ([
+                        instruction_id: ("${i}_1" as String),
+                        instruction_text: ("Test instruction ${i}.1" as String),
+                        duration_minutes: (5 as Integer)
+                    ] as Map),
+                    ([
+                        instruction_id: ("${i}_2" as String), 
+                        instruction_text: ("Test instruction ${i}.2" as String),
+                        duration_minutes: (3 as Integer)
+                    ] as Map)
+                ] as List)
+            ] as Map)).toString()
             
-            testData << [
-                filename: "test_step_${i}.json",
-                content: jsonContent
-            ]
+            testData << ([
+                filename: ("test_step_${i}.json" as String),
+                content: (jsonContent as String)
+            ] as Map)
         }
         
         return testData
@@ -863,13 +869,13 @@ class ImportPerformanceBenchmarkSuite {
     
     private Map getGCMetrics() {
         def gcBeans = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans()
-        long totalCollections = gcBeans.collect { it.collectionCount }.sum() ?: 0
-        long totalTimeMs = gcBeans.collect { it.collectionTime }.sum() ?: 0
+        long totalCollections = (gcBeans.collect { it.collectionCount }.sum() as Long) ?: 0L
+        long totalTimeMs = (gcBeans.collect { it.collectionTime }.sum() as Long) ?: 0L
         
-        return [
-            totalCollections: totalCollections,
-            totalTimeMs: totalTimeMs
-        ]
+        return ([
+            totalCollections: (totalCollections as Long),
+            totalTimeMs: (totalTimeMs as Long)
+        ] as Map)
     }
     
     /**
@@ -879,8 +885,8 @@ class ImportPerformanceBenchmarkSuite {
         log.info("Running quick performance validation test")
         
         Map result = [
-            testName: "Quick Performance Validation",
-            startTime: System.currentTimeMillis()
+            testName: ("Quick Performance Validation" as String),
+            startTime: (System.currentTimeMillis() as Long)
         ]
         
         try {
@@ -895,27 +901,29 @@ class ImportPerformanceBenchmarkSuite {
                 "QUICK_VALIDATION"
             )
             
-            result.result = optimizedResult.toMap()
-            result.success = optimizedResult.targetsMet
-            result.memoryUsedMB = optimizedResult.memoryUsedMB
-            result.throughputRecordsPerSec = optimizedResult.throughputRecordsPerSec
-            result.processingTimeMs = optimizedResult.processingTimeMs
+            result.result = (optimizedResult.toMap() as Map)
+            // Fix: Use String representation to satisfy intersection type constraints (Serializable, Comparable, Constable, ConstantDesc)
+            result.success = (optimizedResult.targetsMet ? "true" : "false") as String
+            result.memoryUsedMB = (optimizedResult.memoryUsedMB as Long)
+            result.throughputRecordsPerSec = (optimizedResult.throughputRecordsPerSec as Double)
+            result.processingTimeMs = (optimizedResult.processingTimeMs as Long)
             
             if (optimizedResult.targetsMet) {
-                result.message = "✅ Performance validation passed - all targets met"
+                result.message = ("✅ Performance validation passed - all targets met" as String)
             } else {
-                result.message = "❌ Performance validation failed - targets not met"
+                result.message = ("❌ Performance validation failed - targets not met" as String)
             }
             
         } catch (Exception e) {
             log.error("Quick performance validation failed: ${e.message}", e)
-            result.success = false
-            result.error = e.message
-            result.message = "❌ Performance validation failed with error: ${e.message}"
+            // Fix: Use String representation to satisfy intersection type constraints (Serializable, Comparable, Constable, ConstantDesc)
+            result.success = "false" as String
+            result.error = (e.message as String)
+            result.message = ("❌ Performance validation failed with error: ${e.message}" as String)
         }
         
-        result.endTime = System.currentTimeMillis()
-        result.totalTimeMs = result.endTime - result.startTime
+        result.endTime = (System.currentTimeMillis() as Long)
+        result.totalTimeMs = (((result.endTime as Long) - (result.startTime as Long)) as Long)
         
         return result
     }
