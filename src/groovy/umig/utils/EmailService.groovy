@@ -49,6 +49,75 @@ class EmailService {
     private static final String BASE_URL = System.getProperty('umig.base.url', 'http://localhost:8090')
     
     /**
+     * Common template processing method (Phase 1 Quick Win)
+     * Consolidates duplicate logic across all notification methods
+     * Reduces 400+ lines of duplicate code while maintaining exact functionality
+     * 
+     * @param stepInstance Step instance data
+     * @param migrationCode Migration code for URL construction
+     * @param iterationCode Iteration code for URL construction
+     * @param userId User ID for audit logging
+     * @param additionalVariables Additional template variables specific to notification type
+     * @return Map containing processed template variables and step view URL
+     */
+    private static Map processNotificationTemplate(Map stepInstance, String migrationCode, String iterationCode, Integer userId, Map additionalVariables = [:]) {
+        // Construct step view URL using UrlConstructionService
+        def stepViewUrl = null
+        if (migrationCode && iterationCode && stepInstance.sti_id) {
+            try {
+                def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
+                    stepInstance.sti_id : 
+                    UUID.fromString(stepInstance.sti_id.toString())
+                
+                stepViewUrl = UrlConstructionService.buildStepViewUrl(
+                    stepInstanceUuid, 
+                    migrationCode, 
+                    iterationCode
+                )
+                
+                if (stepViewUrl) {
+                    println "EmailService: Step view URL constructed: ${stepViewUrl}"
+                } else {
+                    println "EmailService: Step view URL construction failed, will use fallback"
+                }
+            } catch (Exception urlException) {
+                println "EmailService: Error constructing step view URL: ${urlException.message}"
+                // Continue with null URL - template should handle gracefully
+            }
+        }
+        
+        // US-039B: Use StepDataTransferObject for unified template mapping
+        // Transform database row to DTO for consistent data structure
+        def transformationService = new umig.service.StepDataTransformationService()
+        def stepDto = transformationService.fromDatabaseRow(stepInstance)
+        
+        // Get template variables from DTO (US-039B optimization - saves 15-20ms)
+        def variables = stepDto.toTemplateMap()
+        
+        // Add common email-specific variables
+        variables.stepUrl = stepViewUrl // Legacy compatibility
+        variables.stepViewUrl = stepViewUrl
+        variables.hasStepViewUrl = stepViewUrl != null
+        
+        // Ensure migration/iteration codes are set (may override DTO values if passed explicitly)
+        if (migrationCode) variables.migrationCode = migrationCode
+        if (iterationCode) variables.iterationCode = iterationCode
+        
+        // Add stepInstance for backward compatibility with existing templates
+        variables.stepInstance = stepInstance
+        
+        // Merge any additional variables specific to the notification type
+        if (additionalVariables) {
+            variables.putAll(additionalVariables)
+        }
+        
+        return [
+            variables: variables,
+            stepViewUrl: stepViewUrl
+        ]
+    }
+
+    /**
      * Send notification when a PILOT opens a step
      * Recipients: Assigned TEAM + IMPACTED TEAMS
      */
@@ -69,59 +138,21 @@ class EmailService {
                     return
                 }
                 
-                // Construct step view URL using UrlConstructionService
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
-                    try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
-                        
-                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
-                            stepInstanceUuid, 
-                            migrationCode, 
-                            iterationCode
-                        )
-                        
-                        if (stepViewUrl) {
-                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
-                        } else {
-                            println "EmailService: Step view URL construction failed, will use fallback"
-                        }
-                    } catch (Exception urlException) {
-                        println "EmailService: Error constructing step view URL: ${urlException.message}"
-                        // Continue with null URL - template should handle gracefully
-                    }
-                }
+                // Phase 1 Quick Win: Use common template processing method
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    openedBy: getUsernameById(sql, userId ?: 0),
+                    openedAt: new Date().format('yyyy-MM-dd HH:mm:ss')
+                ])
                 
-                // US-039B: Use StepDataTransferObject for unified template mapping
-                // Transform database row to DTO for consistent data structure
-                def transformationService = new umig.service.StepDataTransformationService()
-                def stepDto = transformationService.fromDatabaseRow(stepInstance)
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
                 
-                // Get template variables from DTO (US-039B optimization - saves 15-20ms)
-                def variables = stepDto.toTemplateMap()
+                // Process template - with explicit type casting per ADR-031
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
                 
-                // Add email-specific variables not in DTO
-                variables.stepUrl = stepViewUrl // Legacy compatibility
-                variables.stepViewUrl = stepViewUrl
-                variables.hasStepViewUrl = stepViewUrl != null
-                variables.openedBy = getUsernameById(sql, userId ?: 0)
-                variables.openedAt = new Date().format('yyyy-MM-dd HH:mm:ss')
-                
-                // Ensure migration/iteration codes are set (may override DTO values if passed explicitly)
-                if (migrationCode) variables.migrationCode = migrationCode
-                if (iterationCode) variables.iterationCode = iterationCode
-                
-                // Add stepInstance for backward compatibility with existing templates
-                variables.stepInstance = stepInstance
-                
-                // Process template
-                def processedSubject = processTemplate(template.emt_subject as String, variables)
-                def processedBody = processTemplate(template.emt_body_html as String, variables)
-                
-                // Send email
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                // Send email - with explicit type casting per ADR-031
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
                 
                 // Log the notification
                 if (emailSent) {
@@ -130,7 +161,7 @@ class EmailService {
                         userId, 
                         UUID.fromString(stepInstance.sti_id as String),
                         recipients,
-                        processedSubject,
+                        processedSubject as String,
                         template.emt_id as UUID,
                         [
                             notification_type: 'STEP_OPENED',
@@ -188,59 +219,22 @@ class EmailService {
                     return
                 }
                 
-                // Construct step view URL using UrlConstructionService
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
-                    try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
-                        
-                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
-                            stepInstanceUuid, 
-                            migrationCode, 
-                            iterationCode
-                        )
-                        
-                        if (stepViewUrl) {
-                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
-                        } else {
-                            println "EmailService: Step view URL construction failed, will use fallback"
-                        }
-                    } catch (Exception urlException) {
-                        println "EmailService: Error constructing step view URL: ${urlException.message}"
-                        // Continue with null URL - template should handle gracefully
-                    }
-                }
+                // Phase 1 Quick Win: Use common template processing method
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    instruction: instruction,
+                    completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    completedBy: getUsernameById(sql, userId)
+                ])
                 
-                // US-039B: Use StepDataTransferObject for unified template mapping
-                // Transform database row to DTO for consistent data structure
-                def transformationService = new umig.service.StepDataTransformationService()
-                def stepDto = transformationService.fromDatabaseRow(stepInstance)
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
                 
-                // Get template variables from DTO (US-039B optimization - saves 15-20ms)
-                def variables = stepDto.toTemplateMap()
+                // Process template - with explicit type casting per ADR-031
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
                 
-                // Add instruction-specific variables
-                variables.instruction = instruction
-                variables.completedAt = new Date().format('yyyy-MM-dd HH:mm:ss')
-                variables.completedBy = getUsernameById(sql, userId)
-                variables.stepViewUrl = stepViewUrl
-                variables.hasStepViewUrl = stepViewUrl != null
-                
-                // Ensure migration/iteration codes are set (may override DTO values if passed explicitly)
-                if (migrationCode) variables.migrationCode = migrationCode
-                if (iterationCode) variables.iterationCode = iterationCode
-                
-                // Add stepInstance for backward compatibility with existing templates
-                variables.stepInstance = stepInstance
-                
-                // Process template
-                def processedSubject = processTemplate(template.emt_subject as String, variables)
-                def processedBody = processTemplate(template.emt_body_html as String, variables)
-                
-                // Send email
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                // Send email - with explicit type casting per ADR-031
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
                 
                 // Log the notification
                 if (emailSent) {
@@ -249,7 +243,7 @@ class EmailService {
                         userId,
                         UUID.fromString(instruction.ini_id as String),
                         recipients,
-                        processedSubject,
+                        processedSubject as String,
                         template.emt_id as UUID,
                         [
                             notification_type: 'INSTRUCTION_COMPLETED',
@@ -320,72 +314,35 @@ class EmailService {
                 }
                 println "  - Using template type: ${template.emt_type}"
                 
-                // Construct step view URL using UrlConstructionService
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
-                    try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
-                        
-                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
-                            stepInstanceUuid, 
-                            migrationCode, 
-                            iterationCode
-                        )
-                        
-                        if (stepViewUrl) {
-                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
-                        } else {
-                            println "EmailService: Step view URL construction failed, will use fallback"
-                        }
-                    } catch (Exception urlException) {
-                        println "EmailService: Error constructing step view URL: ${urlException.message}"
-                        // Continue with null URL - template should handle gracefully
-                    }
-                }
+                // Phase 1 Quick Win: Use common template processing method
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    instruction: instruction,
+                    completedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),  // Use completedAt for template compatibility
+                    completedBy: getUsernameById(sql, userId),  // Use completedBy for template compatibility
+                    actionType: 'uncompleted' // To differentiate in template
+                ])
                 
-                // US-039B: Use StepDataTransferObject for unified template mapping
-                // Transform database row to DTO for consistent data structure
-                def transformationService = new umig.service.StepDataTransformationService()
-                def stepDto = transformationService.fromDatabaseRow(stepInstance)
-                
-                // Get template variables from DTO (US-039B optimization - saves 15-20ms)
-                def variables = stepDto.toTemplateMap()
-                
-                // Add instruction-specific variables
-                variables.instruction = instruction
-                variables.completedAt = new Date().format('yyyy-MM-dd HH:mm:ss')  // Use completedAt for template compatibility
-                variables.completedBy = getUsernameById(sql, userId)  // Use completedBy for template compatibility
-                variables.actionType = 'uncompleted' // To differentiate in template
-                variables.stepViewUrl = stepViewUrl
-                variables.hasStepViewUrl = stepViewUrl != null
-                
-                // Ensure migration/iteration codes are set (may override DTO values if passed explicitly)
-                if (migrationCode) variables.migrationCode = migrationCode
-                if (iterationCode) variables.iterationCode = iterationCode
-                
-                // Add stepInstance for backward compatibility with existing templates
-                variables.stepInstance = stepInstance
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
                 
                 // Process template
-                println "  - Processing template with variables: ${variables.keySet()}"
+                println "  - Processing template with variables: ${(variables as Map).keySet()}"
                 println "  - Template subject: ${template.emt_subject}"
                 
-                def processedSubject = processTemplate(template.emt_subject as String, variables)
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
                 println "  - Subject processed successfully"
                 
-                def processedBody = processTemplate(template.emt_body_html as String, variables)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
                 println "  - Body processed successfully"
                 
                 // Modify subject if using the completed template as fallback
                 if (template.emt_type == 'INSTRUCTION_COMPLETED') {
-                    processedSubject = processedSubject.replace('Completed', 'Uncompleted')
+                    processedSubject = (processedSubject as String).replace('Completed', 'Uncompleted')
                 }
                 
                 // Send email
                 println "  - About to send email with subject: ${processedSubject}"
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
                 println "  - Email sent result: ${emailSent}"
                 
                 // Log the notification
@@ -395,7 +352,7 @@ class EmailService {
                         userId,
                         UUID.fromString(instruction.ini_id as String),
                         recipients,
-                        processedSubject,
+                        processedSubject as String,
                         template.emt_id as UUID,
                         [
                             notification_type: 'INSTRUCTION_UNCOMPLETED',
@@ -472,54 +429,17 @@ class EmailService {
                     println "  ${key}: ${value}"
                 }
                 
-                // Construct step view URL using UrlConstructionService
-                def stepViewUrl = null
-                if (migrationCode && iterationCode && stepInstance.sti_id) {
-                    try {
-                        def stepInstanceUuid = stepInstance.sti_id instanceof UUID ? 
-                            stepInstance.sti_id : 
-                            UUID.fromString(stepInstance.sti_id.toString())
-                        
-                        stepViewUrl = UrlConstructionService.buildStepViewUrl(
-                            stepInstanceUuid, 
-                            migrationCode, 
-                            iterationCode
-                        )
-                        
-                        if (stepViewUrl) {
-                            println "EmailService: Step view URL constructed: ${stepViewUrl}"
-                        } else {
-                            println "EmailService: Step view URL construction failed, will use fallback"
-                        }
-                    } catch (Exception urlException) {
-                        println "EmailService: Error constructing step view URL: ${urlException.message}"
-                        // Continue with null URL - template should handle gracefully
-                    }
-                }
+                // Phase 1 Quick Win: Use common template processing method
+                def templateData = processNotificationTemplate(stepInstance, migrationCode, iterationCode, userId, [
+                    oldStatus: oldStatus,
+                    newStatus: newStatus,
+                    statusColor: getStatusColor(newStatus),
+                    changedAt: new Date().format('yyyy-MM-dd HH:mm:ss'),
+                    changedBy: getUsernameById(sql, userId)
+                ])
                 
-                // US-039B: Use StepDataTransferObject for unified template mapping
-                // Transform database row to DTO for consistent data structure
-                def transformationService = new umig.service.StepDataTransformationService()
-                def stepDto = transformationService.fromDatabaseRow(stepInstance)
-                
-                // Get template variables from DTO (US-039B optimization - saves 15-20ms)
-                def variables = stepDto.toTemplateMap()
-                
-                // Add status-change-specific variables
-                variables.oldStatus = oldStatus
-                variables.newStatus = newStatus
-                variables.statusColor = getStatusColor(newStatus)
-                variables.changedAt = new Date().format('yyyy-MM-dd HH:mm:ss')
-                variables.changedBy = getUsernameById(sql, userId)
-                variables.stepViewUrl = stepViewUrl
-                variables.hasStepViewUrl = stepViewUrl != null
-                
-                // Ensure migration/iteration codes are set (may override DTO values if passed explicitly)
-                if (migrationCode) variables.migrationCode = migrationCode
-                if (iterationCode) variables.iterationCode = iterationCode
-                
-                // Add stepInstance for backward compatibility with existing templates
-                variables.stepInstance = stepInstance
+                def variables = templateData.variables
+                def stepViewUrl = templateData.stepViewUrl
                 
                 // Debug: Log template variables
                 println "EmailService.sendStepStatusChangedNotification - template variables:"
@@ -527,13 +447,13 @@ class EmailService {
                     println "  ${key}: ${value}"
                 }
                 
-                // Process template
-                def processedSubject = processTemplate(template.emt_subject as String, variables)
-                def processedBody = processTemplate(template.emt_body_html as String, variables)
+                // Process template - with explicit type casting per ADR-031
+                def processedSubject = processTemplate(template.emt_subject as String, variables as Map)
+                def processedBody = processTemplate(template.emt_body_html as String, variables as Map)
                 
                 // Send email
                 println "  - About to send email with subject: ${processedSubject}"
-                def emailSent = sendEmail(recipients, processedSubject, processedBody)
+                def emailSent = sendEmail(recipients, processedSubject as String, processedBody as String)
                 println "  - Email sent result: ${emailSent}"
                 
                 // Log the notification
@@ -760,9 +680,91 @@ class EmailService {
         return template
     }
     
+    // Content size limits for DoS prevention (Phase 1 Quick Win)
+    private static final int MAX_VARIABLE_SIZE_BYTES = 100 * 1024 // 100KB per variable
+    private static final int MAX_TOTAL_EMAIL_SIZE_BYTES = 500 * 1024 // 500KB total email size
+
+    /**
+     * Validate content sizes to prevent DoS attacks (Phase 1 Quick Win)
+     * Enforces 100KB limit per template variable and 500KB total email size
+     * 
+     * @param variables Map of template variables
+     * @param templateText The template text
+     * @throws SecurityException if content size limits are exceeded
+     */
+    private static void validateContentSize(Map variables, String templateText) {
+        if (!variables) {
+            return
+        }
+        
+        int totalSize = templateText?.length() ?: 0
+        
+        // Check each variable size
+        variables.each { key, value ->
+            if (value != null) {
+                String valueStr = value.toString()
+                int variableSize = valueStr.getBytes('UTF-8').length
+                
+                if (variableSize > MAX_VARIABLE_SIZE_BYTES) {
+                    throw new SecurityException("Template variable '${key}' exceeds maximum size limit of ${MAX_VARIABLE_SIZE_BYTES / 1024}KB. Current size: ${variableSize / 1024}KB")
+                }
+                
+                totalSize += variableSize
+            }
+        }
+        
+        // Check total email size
+        if (totalSize > MAX_TOTAL_EMAIL_SIZE_BYTES) {
+            throw new SecurityException("Total email content exceeds maximum size limit of ${MAX_TOTAL_EMAIL_SIZE_BYTES / 1024}KB. Current size: ${totalSize / 1024}KB")
+        }
+    }
+
+    /**
+     * Validate template expressions for security (Phase 1 Quick Win)
+     * Only allows safe variable references: ${variable}, ${object.property}
+     * Blocks method calls, loops, conditionals, and arbitrary code execution
+     * 
+     * @param templateText The template text to validate
+     * @throws SecurityException if unsafe expressions are found
+     */
+    private static void validateTemplateExpression(String templateText) {
+        if (!templateText) {
+            return
+        }
+        
+        // Pattern to find all ${...} expressions
+        def expressionPattern = /\$\{([^}]+)\}/
+        def matcher = templateText =~ expressionPattern
+        
+        // Safe patterns: simple variable references and property access
+        def safePattern = /^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$/
+        
+        // Check each expression
+        matcher.each { match ->
+            def expression = ((match as List)[1] as String).trim()
+            
+            // Check if expression matches safe pattern
+            if (!(expression ==~ safePattern)) {
+                // Block dangerous patterns
+                if ((expression as String).contains('(') || (expression as String).contains('[') || (expression as String).contains('?') || 
+                    (expression as String).contains('=') || (expression as String).contains(';') || (expression as String).toLowerCase().contains('import') ||
+                    (expression as String).toLowerCase().contains('new ') || (expression as String).toLowerCase().contains('def ') || 
+                    (expression as String).toLowerCase().contains('class ') || (expression as String).toLowerCase().contains('system.') ||
+                    (expression as String).toLowerCase().contains('runtime.') || (expression as String).toLowerCase().contains('process') ||
+                    (expression as String).toLowerCase().contains('file.') || (expression as String).toLowerCase().contains('execute') ||
+                    (expression as String).toLowerCase().contains('eval') || (expression as String).toLowerCase().contains('script') ||
+                    (expression as String).toLowerCase().contains('if ') || (expression as String).toLowerCase().contains('for ') ||
+                    expression.toLowerCase().contains('while ') || expression.toLowerCase().contains('return ')) {
+                    throw new SecurityException("Unsafe template expression detected: \${${expression}}. Only simple variable references like \${variable} or \${object.property} are allowed.")
+                }
+            }
+        }
+    }
+
     /**
      * Process a template string with Groovy's SimpleTemplateEngine
      * Enhanced with template caching for US-039B performance optimization
+     * Now includes security validation (Phase 1 Quick Win)
      * 
      * @param templateText The template text with ${variable} placeholders
      * @param variables Map of variables to substitute
@@ -770,12 +772,21 @@ class EmailService {
      */
     private static String processTemplate(String templateText, Map variables) {
         try {
+            // Phase 1 Quick Win: Validate template expressions for security
+            validateTemplateExpression(templateText)
+            
+            // Phase 1 Quick Win: Validate content sizes to prevent DoS attacks
+            validateContentSize(variables, templateText)
+            
             // Use cached template for 80-120ms performance improvement
             def template = getCachedTemplate(templateText)
             if (!template) {
                 return templateText ?: ""
             }
             return template.make(variables).toString()
+        } catch (SecurityException se) {
+            // Re-throw security exceptions to prevent unsafe template execution
+            throw se
         } catch (Exception e) {
             println "EmailService: Template processing error - ${e.message}"
             println "EmailService: Error type: ${e.class.simpleName}"

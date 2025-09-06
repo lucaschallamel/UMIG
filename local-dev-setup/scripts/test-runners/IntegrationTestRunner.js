@@ -30,6 +30,9 @@ export class IntegrationTestRunner extends BaseTestRunner {
     // Check prerequisites
     await this.checkPrerequisites();
 
+    // Compile helper classes for all integration tests
+    await this.compileIntegrationHelpers();
+
     // Run tests in logical order
     const testSequence = [
       // US-022 Core expansion tests
@@ -131,6 +134,9 @@ export class IntegrationTestRunner extends BaseTestRunner {
    */
   async runCoreAPIs() {
     this.logHeader("Core API Integration Tests");
+
+    // Compile helper classes for core API tests
+    await this.compileIntegrationHelpers();
 
     const coreTests = [
       "PlansApiIntegrationTest.groovy",
@@ -315,7 +321,7 @@ export class IntegrationTestRunner extends BaseTestRunner {
   }
 
   /**
-   * Compile integration helper classes
+   * Compile integration helper classes and utilities
    */
   async compileIntegrationHelpers() {
     const helperFile = path.join(
@@ -327,13 +333,24 @@ export class IntegrationTestRunner extends BaseTestRunner {
       "AuthenticationTest.groovy",
     );
 
+    // Add test utility classes that are required by integration tests
+    const utilsDir = path.join(this.paths.testDir, "utils");
+    const baseIntegrationTest = path.join(
+      utilsDir,
+      "BaseIntegrationTest.groovy",
+    );
+    const httpClient = path.join(utilsDir, "IntegrationTestHttpClient.groovy");
+    const httpResponse = path.join(utilsDir, "HttpResponse.groovy");
+
     try {
       // Create a temporary directory for compiled classes using centralized path
       await execa("mkdir", ["-p", this.paths.tempDir]);
 
-      // Compile both AuthenticationHelper and AuthenticationTest together
-      console.log("📦 Compiling integration helper classes...");
+      // Compile all helper classes together
+      console.log("📦 Compiling integration helper classes and utilities...");
       const filesToCompile = [];
+
+      // Add authentication helpers
       if (fs.existsSync(helperFile)) {
         filesToCompile.push(helperFile);
       }
@@ -341,7 +358,19 @@ export class IntegrationTestRunner extends BaseTestRunner {
         filesToCompile.push(authTestFile);
       }
 
+      // Add test utility classes
+      if (fs.existsSync(baseIntegrationTest)) {
+        filesToCompile.push(baseIntegrationTest);
+      }
+      if (fs.existsSync(httpClient)) {
+        filesToCompile.push(httpClient);
+      }
+      if (fs.existsSync(httpResponse)) {
+        filesToCompile.push(httpResponse);
+      }
+
       if (filesToCompile.length > 0) {
+        console.log(`  Compiling ${filesToCompile.length} utility classes...`);
         await execa("groovyc", [
           "-cp",
           this.paths.sourceDir,
@@ -353,13 +382,18 @@ export class IntegrationTestRunner extends BaseTestRunner {
         // Add compiled classes to classpath for future tests
         process.env.GROOVY_CLASSPATH = `${this.paths.tempDir}:${process.env.GROOVY_CLASSPATH || ""}`;
 
-        console.log("✅ Helper classes compiled successfully\n");
+        console.log("✅ Helper classes and utilities compiled successfully\n");
+      } else {
+        console.log("⚠️  No helper classes found to compile");
       }
     } catch (error) {
       console.log(
         "⚠️  Warning: Could not compile helper classes:",
         error.message,
       );
+      if (this.options.verbose) {
+        console.log("Error details:", error.stderr || error.stdout);
+      }
     }
   }
 
@@ -430,3 +464,66 @@ export class IntegrationTestRunner extends BaseTestRunner {
 }
 
 export default IntegrationTestRunner;
+
+// Main execution when called directly
+async function main() {
+  const args = process.argv.slice(2);
+  const flags = {
+    auth: args.includes("--auth"),
+    core: args.includes("--core"),
+    verbose: args.includes("--verbose") || args.includes("-v"),
+    help: args.includes("--help") || args.includes("-h"),
+  };
+
+  if (flags.help) {
+    console.log(`
+UMIG Integration Test Runner
+
+Usage:
+  npm run test:integration                  # Run all integration tests
+  npm run test:integration:auth            # Run authenticated tests only
+  npm run test:integration:core            # Run core API tests only
+  
+Options:
+  --auth      Run only authenticated integration tests
+  --core      Run only core API integration tests  
+  --verbose   Enable verbose output
+  --help      Show this help message
+    `);
+    process.exit(0);
+  }
+
+  const runner = new IntegrationTestRunner({
+    verbose: flags.verbose,
+    timeout: 180000, // 3 minutes for integration tests
+  });
+
+  try {
+    let results;
+
+    if (flags.auth) {
+      console.log("🔐 Running authenticated integration tests...");
+      results = await runner.runAuthenticated();
+    } else if (flags.core) {
+      console.log("🏗️ Running core API integration tests...");
+      results = await runner.runCoreAPIs();
+    } else {
+      console.log("🧪 Running all integration tests...");
+      results = await runner.runAll();
+    }
+
+    // Exit with appropriate code
+    process.exit(results.failed > 0 ? 1 : 0);
+  } catch (error) {
+    console.error("❌ Integration test execution failed:", error.message);
+    if (flags.verbose) {
+      console.error(error.stack);
+    }
+    process.exit(2);
+  }
+}
+
+// Execute if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}
