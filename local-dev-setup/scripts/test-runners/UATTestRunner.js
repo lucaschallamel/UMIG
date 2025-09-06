@@ -9,7 +9,7 @@
  *   npm run test:uat -- --quick        # Run quick validation only
  */
 
-import { UATValidationRunner } from "./test-runners/UATValidationRunner.js";
+import { UATValidationRunner } from "./UATValidationRunner.js";
 import { program } from "commander";
 
 // Parse command line arguments

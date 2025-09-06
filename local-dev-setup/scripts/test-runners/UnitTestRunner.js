@@ -227,3 +227,68 @@ class SampleUnitTest {
 }
 
 export default UnitTestRunner;
+
+// Main execution when called directly
+async function main() {
+  const args = process.argv.slice(2);
+  const flags = {
+    pattern: args.find((arg) => arg.startsWith("--pattern=")),
+    category: args.find((arg) => arg.startsWith("--category=")),
+    verbose: args.includes("--verbose") || args.includes("-v"),
+    help: args.includes("--help") || args.includes("-h"),
+  };
+
+  if (flags.help) {
+    console.log(`
+UMIG Unit Test Runner
+
+Usage:
+  npm run test:unit                        # Run all unit tests
+  npm run test:unit:pattern               # Run unit tests matching pattern
+  npm run test:unit:category              # Run unit tests by category
+  
+Options:
+  --pattern=<pattern>  Run tests matching pattern
+  --category=<cat>     Run tests by category
+  --verbose            Enable verbose output
+  --help               Show this help message
+    `);
+    process.exit(0);
+  }
+
+  const runner = new UnitTestRunner({
+    verbose: flags.verbose,
+    timeout: 60000, // 1 minute for unit tests
+  });
+
+  try {
+    let results;
+
+    if (flags.pattern) {
+      const pattern = flags.pattern.split("=")[1];
+      console.log(`🧪 Running unit tests matching pattern: ${pattern}`);
+      results = await runner.runPattern(pattern);
+    } else if (flags.category) {
+      const category = flags.category.split("=")[1];
+      console.log(`🧪 Running unit tests for category: ${category}`);
+      results = await runner.runCategory(category);
+    } else {
+      console.log("🧪 Running all unit tests...");
+      results = await runner.runAll();
+    }
+
+    // Exit with appropriate code
+    process.exit(results.failed > 0 ? 1 : 0);
+  } catch (error) {
+    console.error("❌ Unit test execution failed:", error.message);
+    if (flags.verbose) {
+      console.error(error.stack);
+    }
+    process.exit(2);
+  }
+}
+
+// Execute if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}
