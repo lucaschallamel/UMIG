@@ -1,6 +1,7 @@
 package umig.service
 
-import umig.dto.StepDataTransferObject
+import umig.dto.StepInstanceDTO
+import umig.dto.StepMasterDTO
 import umig.dto.CommentDTO
 import umig.utils.DatabaseUtil
 import org.slf4j.Logger
@@ -16,10 +17,10 @@ import java.util.UUID
  * Step Data Transformation Service for US-056-A Service Layer Standardization
  * 
  * Provides comprehensive data transformation between different formats used across UMIG:
- * - Database result rows → StepDataTransferObject
- * - Legacy Step entities → StepDataTransferObject  
- * - StepDataTransferObject → Database parameters
- * - StepDataTransferObject → Email template data
+ * - Database result rows → StepInstanceDTO (instances) & StepMasterDTO (masters)
+ * - Legacy Step entities → StepInstanceDTO  
+ * - StepInstanceDTO → Database parameters
+ * - StepInstanceDTO/StepMasterDTO → Email template data
  * 
  * This service eliminates inconsistent data transformations that caused template rendering
  * failures and provides a single source of truth for Step data format conversion.
@@ -42,16 +43,16 @@ class StepDataTransformationService {
     // ========================================
     
     /**
-     * Transform database result row to StepDataTransferObject
+     * Transform database result row to StepInstanceDTO
      * 
-     * Handles all database field mappings with defensive null checking and type conversion.
-     * Supports both step master and step instance data structures.
+     * Handles instance execution fields with defensive null checking and type conversion.
+     * Used for Step instances (steps_instance_sti) with execution data.
      * 
      * @param row Database result row (GroovyRowResult or Map)
-     * @return Fully populated StepDataTransferObject
+     * @return Fully populated StepInstanceDTO
      * @throws IllegalArgumentException if row is null or missing required fields
      */
-    StepDataTransferObject fromDatabaseRow(Map row) {
+    StepInstanceDTO fromDatabaseRow(Map row) {
         if (!row) {
             throw new IllegalArgumentException("Database row cannot be null")
         }
@@ -59,7 +60,7 @@ class StepDataTransformationService {
         log.debug("Transforming database row to DTO: {}", row.keySet())
         
         try {
-            return StepDataTransferObject.builder()
+            return StepInstanceDTO.builder()
                 // Core identification - with defensive UUID handling
                 .stepId(safeUUIDToString(row.stm_id ?: row.sti_id))
                 .stepInstanceId(safeUUIDToString(row.sti_id))
@@ -114,9 +115,9 @@ class StepDataTransformationService {
      * Transform multiple database rows to DTO list with batch optimization
      * 
      * @param rows List of database result rows
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
-    List<StepDataTransferObject> batchTransformFromDatabaseRows(List<Map> rows) {
+    List<StepInstanceDTO> batchTransformFromDatabaseRows(List<Map> rows) {
         if (!rows) {
             return []
         }
@@ -134,19 +135,122 @@ class StepDataTransformationService {
     }
     
     // ========================================
+    // MASTER DTO TRANSFORMATION METHODS (US-056F)
+    // ========================================
+    
+    /**
+     * Transform database result row to StepMasterDTO
+     * 
+     * Handles master-only fields with defensive null checking and type conversion.
+     * Used for Step master templates (steps_master_stm) without execution data.
+     * 
+     * @param row Database result row (GroovyRowResult or Map)
+     * @return Fully populated StepMasterDTO
+     * @throws IllegalArgumentException if row is null or missing required fields
+     */
+    StepMasterDTO fromMasterDatabaseRow(Map row) {
+        if (!row) {
+            throw new IllegalArgumentException("Database row cannot be null")
+        }
+        
+        log.debug("Transforming master database row to StepMasterDTO: {}", row.keySet())
+        
+        try {
+            return StepMasterDTO.builder()
+                // Core identification - master specific fields
+                .stepMasterId(safeUUIDToString(row.stm_id ?: row.stepMasterId))
+                .stepTypeCode(safeString(row.stt_code ?: row.stepTypeCode))
+                .stepNumber(safeInteger(row.stm_number ?: row.stepNumber))
+                .stepName(safeString(row.stm_name ?: row.stepName))
+                .stepDescription(safeString(row.stm_description ?: row.stepDescription))
+                
+                // Hierarchical context - parent phase only for masters
+                .phaseId(safeUUIDToString(row.phm_id ?: row.phaseId))
+                
+                // Temporal fields - ISO string format for masters
+                .createdDate(safeTimestampToISOString(row.stm_created_date ?: row.created_date))
+                .lastModifiedDate(safeTimestampToISOString(row.stm_last_modified_date ?: row.last_modified_date))
+                .isActive(safeBoolean(row.stm_is_active ?: row.is_active, true))
+                
+                // Computed metadata fields
+                .instructionCount(safeInteger(row.instruction_count, 0))
+                .instanceCount(safeInteger(row.instance_count, 0))
+                
+                .build()
+                
+        } catch (Exception e) {
+            log.error("Failed to transform master database row to StepMasterDTO: ${e.message}", e)
+            log.error("Row data: {}", row)
+            throw new RuntimeException("Master database row transformation failed: ${e.message}", e)
+        }
+    }
+    
+    /**
+     * Transform multiple master database rows to StepMasterDTO list with batch optimization
+     * 
+     * @param rows List of master database result rows
+     * @return List of StepMasterDTOs
+     */
+    List<StepMasterDTO> fromMasterDatabaseRows(List<Map> rows) {
+        if (!rows) {
+            return []
+        }
+        
+        log.debug("Batch transforming {} master database rows to StepMasterDTOs", rows.size())
+        
+        try {
+            return rows.collect { row ->
+                fromMasterDatabaseRow(row)
+            }
+        } catch (Exception e) {
+            log.error("Batch transformation from master database rows failed: ${e.message}", e)
+            throw new RuntimeException("Batch master database transformation failed: ${e.message}", e)
+        }
+    }
+    
+    // ========================================
+    // INSTANCE DTO TRANSFORMATION METHODS (RENAMED FOR CLARITY)
+    // ========================================
+    
+    /**
+     * Transform database result row to StepInstanceDTO (renamed from fromDatabaseRow)
+     * 
+     * Handles instance execution fields with defensive null checking and type conversion.
+     * Used for Step instances (steps_instance_sti) with execution data.
+     * 
+     * @param row Database result row (GroovyRowResult or Map)
+     * @return Fully populated StepInstanceDTO
+     * @deprecated Method name - use fromInstanceDatabaseRow() for clarity
+     */
+    StepInstanceDTO fromInstanceDatabaseRow(Map row) {
+        return fromDatabaseRow(row) // Delegate to existing method for backward compatibility
+    }
+    
+    /**
+     * Transform multiple instance database rows to StepInstanceDTO list
+     * 
+     * @param rows List of instance database result rows  
+     * @return List of StepInstanceDTOs
+     * @deprecated Method name - use fromInstanceDatabaseRows() for clarity
+     */
+    List<StepInstanceDTO> fromInstanceDatabaseRows(List<Map> rows) {
+        return batchTransformFromDatabaseRows(rows) // Delegate to existing method
+    }
+    
+    // ========================================
     // LEGACY ENTITY TO DTO TRANSFORMATION  
     // ========================================
     
     /**
-     * Transform legacy Step entity to StepDataTransferObject
+     * Transform legacy Step entity to StepInstanceDTO
      * 
      * Supports migration from existing Step domain objects to unified DTO format.
      * Handles various legacy field naming conventions and data structures.
      * 
      * @param step Legacy step entity (Map or domain object)
-     * @return StepDataTransferObject
+     * @return StepInstanceDTO
      */
-    StepDataTransferObject fromStepEntity(Map step) {
+    StepInstanceDTO fromStepEntity(Map step) {
         if (!step) {
             throw new IllegalArgumentException("Step entity cannot be null")
         }
@@ -154,7 +258,7 @@ class StepDataTransformationService {
         log.debug("Transforming legacy Step entity to DTO")
         
         try {
-            return StepDataTransferObject.builder()
+            return StepInstanceDTO.builder()
                 // Handle legacy field variations
                 .stepId(safeUUIDToString(step.id ?: step.stepId ?: step.stm_id))
                 .stepInstanceId(safeUUIDToString(step.instanceId ?: step.stepInstanceId ?: step.sti_id))
@@ -481,6 +585,22 @@ class StepDataTransformationService {
         }
         
         return null
+    }
+    
+    /**
+     * Safely convert timestamp to ISO string format for StepMasterDTO
+     * Returns null for null inputs, formatted ISO string for valid timestamps
+     */
+    private String safeTimestampToISOString(Object timestamp) {
+        LocalDateTime localDateTime = safeTimestampToLocalDateTime(timestamp)
+        if (localDateTime == null) return null
+        
+        try {
+            return localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        } catch (Exception e) {
+            log.debug("Failed to format LocalDateTime to ISO string: {}", localDateTime)
+            return localDateTime.toString()
+        }
     }
     
     /**
