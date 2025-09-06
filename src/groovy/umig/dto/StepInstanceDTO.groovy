@@ -3,6 +3,7 @@ package umig.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
+import umig.util.JsonUtil
 import groovy.transform.ToString
 import groovy.transform.EqualsAndHashCode
 import groovy.util.logging.Slf4j
@@ -318,14 +319,7 @@ class StepInstanceDTO {
      * @return JSON representation
      */
     String toJson() {
-        try {
-            ObjectMapper mapper = new ObjectMapper()
-            mapper.findAndRegisterModules()  // Support for Java 8 time types
-            return mapper.writeValueAsString(this)
-        } catch (Exception e) {
-            log.error("Failed to serialize StepInstanceDTO to JSON: ${e.message}", e)
-            throw new RuntimeException("JSON serialization failed: ${e.message}", e)
-        }
+        return JsonUtil.toJson(this)
     }
     
     /**
@@ -334,14 +328,7 @@ class StepInstanceDTO {
      * @return StepInstanceDTO instance
      */
     static StepInstanceDTO fromJson(String jsonString) {
-        try {
-            ObjectMapper mapper = new ObjectMapper()
-            mapper.findAndRegisterModules()  // Support for Java 8 time types
-            return mapper.readValue(jsonString, StepInstanceDTO.class)
-        } catch (Exception e) {
-            log.error("Failed to deserialize JSON to StepInstanceDTO: ${e.message}", e)
-            throw new RuntimeException("JSON deserialization failed: ${e.message}", e)
-        }
+        return JsonUtil.fromJson(jsonString, StepInstanceDTO.class)
     }
     
     /**

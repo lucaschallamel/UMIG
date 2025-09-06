@@ -213,29 +213,7 @@ class StepDataTransformationService {
     // ========================================
     
     /**
-     * Transform database result row to StepInstanceDTO (renamed from fromDatabaseRow)
-     * 
-     * Handles instance execution fields with defensive null checking and type conversion.
-     * Used for Step instances (steps_instance_sti) with execution data.
-     * 
-     * @param row Database result row (GroovyRowResult or Map)
-     * @return Fully populated StepInstanceDTO
-     * @deprecated Method name - use fromInstanceDatabaseRow() for clarity
-     */
-    StepInstanceDTO fromInstanceDatabaseRow(Map row) {
-        return fromDatabaseRow(row) // Delegate to existing method for backward compatibility
-    }
-    
-    /**
-     * Transform multiple instance database rows to StepInstanceDTO list
-     * 
-     * @param rows List of instance database result rows  
-     * @return List of StepInstanceDTOs
-     * @deprecated Method name - use fromInstanceDatabaseRows() for clarity
-     */
-    List<StepInstanceDTO> fromInstanceDatabaseRows(List<Map> rows) {
-        return batchTransformFromDatabaseRows(rows) // Delegate to existing method
-    }
+
     
     // ========================================
     // LEGACY ENTITY TO DTO TRANSFORMATION  
