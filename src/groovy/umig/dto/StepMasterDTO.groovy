@@ -3,6 +3,7 @@ package umig.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
+import umig.util.JsonUtil
 import groovy.transform.ToString
 import groovy.transform.EqualsAndHashCode
 import groovy.util.logging.Slf4j
@@ -99,12 +100,7 @@ class StepMasterDTO {
      * @return JSON string representation of the DTO
      */
     String toJson() {
-        try {
-            return new ObjectMapper().writeValueAsString(this)
-        } catch (Exception e) {
-            log.error("Failed to serialize StepMasterDTO to JSON", e)
-            return "{}"
-        }
+        return JsonUtil.toJson(this)
     }
     
     /**
@@ -113,12 +109,7 @@ class StepMasterDTO {
      * @return StepMasterDTO instance
      */
     static StepMasterDTO fromJson(String json) {
-        try {
-            return new ObjectMapper().readValue(json, StepMasterDTO.class)
-        } catch (Exception e) {
-            log.error("Failed to deserialize JSON to StepMasterDTO", e)
-            return null
-        }
+        return JsonUtil.fromJson(json, StepMasterDTO.class)
     }
     
     /**

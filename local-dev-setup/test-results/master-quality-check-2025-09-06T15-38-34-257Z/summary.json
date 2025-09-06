@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-09-06T15:40:15.761Z",
+  "overallDuration": 101501,
+  "totalPhases": 4,
+  "successful": 0,
+  "failed": 4,
+  "phases": [
+    {
+      "name": "API Smoke Tests",
+      "success": false,
+      "duration": 29882,
+      "error": "Command failed: node scripts/test-runners/ApiSmokeTestRunner.js"
+    },
+    {
+      "name": "Immediate Health Check",
+      "success": false,
+      "duration": 17679,
+      "error": "Command failed: npm run test:unit"
+    },
+    {
+      "name": "Phase B Test Execution",
+      "success": false,
+      "duration": 20231,
+      "error": "Command failed: npm run test:integration"
+    },
+    {
+      "name": "Integration Tests",
+      "success": false,
+      "duration": 33472,
+      "error": "Command failed: node scripts/test-runners/UATTestRunner.js"
+    }
+  ]
+}
