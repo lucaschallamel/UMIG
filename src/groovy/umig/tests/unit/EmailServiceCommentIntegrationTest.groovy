@@ -6,7 +6,7 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 
 import umig.utils.EmailService
-import umig.dto.StepDataTransferObject
+import umig.dto.StepInstanceDTO
 import umig.dto.CommentDTO
 
 /**

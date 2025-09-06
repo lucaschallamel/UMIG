@@ -323,7 +323,7 @@ class StepInstanceDTO {
             mapper.findAndRegisterModules()  // Support for Java 8 time types
             return mapper.writeValueAsString(this)
         } catch (Exception e) {
-            log.error("Failed to serialize StepDataTransferObject to JSON: ${e.message}", e)
+            log.error("Failed to serialize StepInstanceDTO to JSON: ${e.message}", e)
             throw new RuntimeException("JSON serialization failed: ${e.message}", e)
         }
     }
