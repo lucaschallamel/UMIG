@@ -158,23 +158,23 @@ class StepDataTransformationService {
         try {
             return StepMasterDTO.builder()
                 // Core identification - master specific fields
-                .stepMasterId(safeUUIDToString(row.stm_id ?: row.stepMasterId))
-                .stepTypeCode(safeString(row.stt_code ?: row.stepTypeCode))
-                .stepNumber(safeInteger(row.stm_number ?: row.stepNumber))
-                .stepName(safeString(row.stm_name ?: row.stepName))
-                .stepDescription(safeString(row.stm_description ?: row.stepDescription))
+                .withStepMasterId(safeUUIDToString(row.stm_id ?: row.stepMasterId))
+                .withStepTypeCode(safeString(row.stt_code ?: row.stepTypeCode))
+                .withStepNumber(safeInteger(row.stm_number ?: row.stepNumber))
+                .withStepName(safeString(row.stm_name ?: row.stepName))
+                .withStepDescription(safeString(row.stm_description ?: row.stepDescription))
                 
                 // Hierarchical context - parent phase only for masters
-                .phaseId(safeUUIDToString(row.phm_id ?: row.phaseId))
+                .withPhaseId(safeUUIDToString(row.phm_id ?: row.phaseId))
                 
                 // Temporal fields - ISO string format for masters
-                .createdDate(safeTimestampToISOString(row.stm_created_date ?: row.created_date))
-                .lastModifiedDate(safeTimestampToISOString(row.stm_last_modified_date ?: row.last_modified_date))
-                .isActive(safeBoolean(row.stm_is_active ?: row.is_active, true))
+                .withCreatedDate(safeTimestampToISOString(row.stm_created_date ?: row.created_date))
+                .withLastModifiedDate(safeTimestampToISOString(row.stm_last_modified_date ?: row.last_modified_date))
+                .withIsActive(safeBoolean(row.stm_is_active ?: row.is_active, true))
                 
                 // Computed metadata fields
-                .instructionCount(safeInteger(row.instruction_count, 0))
-                .instanceCount(safeInteger(row.instance_count, 0))
+                .withInstructionCount(safeInteger(row.instruction_count, 0))
+                .withInstanceCount(safeInteger(row.instance_count, 0))
                 
                 .build()
                 
@@ -303,17 +303,17 @@ class StepDataTransformationService {
     // ========================================
     
     /**
-     * Convert StepDataTransferObject to database insert/update parameters
+     * Convert StepInstanceDTO to database insert/update parameters
      * 
      * Transforms DTO back to database format for persistence operations.
      * Handles UUID conversion, date formatting, and null value mapping.
      * 
-     * @param dto StepDataTransferObject to convert
+     * @param dto StepInstanceDTO to convert
      * @return Map of database parameters ready for SQL operations
      */
-    Map<String, Object> toDatabaseParams(StepDataTransferObject dto) {
+    Map<String, Object> toDatabaseParams(StepInstanceDTO dto) {
         if (!dto) {
-            throw new IllegalArgumentException("StepDataTransferObject cannot be null")
+            throw new IllegalArgumentException("StepInstanceDTO cannot be null")
         }
         
         // Validate DTO before conversion
@@ -367,15 +367,15 @@ class StepDataTransformationService {
     // ========================================
     
     /**
-     * Convert StepDataTransferObject to email template variable map
+     * Convert StepInstanceDTO to email template variable map
      * 
      * This is the critical method that resolves template rendering failures by providing
      * consistent, safe data structure for email template processing.
      * 
-     * @param dto StepDataTransferObject to convert
+     * @param dto StepInstanceDTO to convert
      * @return Map suitable for email template processing with defensive defaults
      */
-    Map<String, Object> toEmailTemplateData(StepDataTransferObject dto) {
+    Map<String, Object> toEmailTemplateData(StepInstanceDTO dto) {
         if (!dto) {
             log.warn("Null DTO provided to email template conversion, returning empty map")
             return [:]
@@ -437,7 +437,7 @@ class StepDataTransformationService {
      * @param dto Original DTO (may be partially valid)
      * @return Minimal safe template data
      */
-    private Map<String, Object> createSafeEmailTemplateFallback(StepDataTransferObject dto) {
+    private Map<String, Object> createSafeEmailTemplateFallback(StepInstanceDTO dto) {
         return [
             stepId: dto?.stepId ?: "unknown",
             stepInstanceId: dto?.stepInstanceId ?: "",
@@ -472,7 +472,7 @@ class StepDataTransformationService {
      * @param dtos List of DTOs to transform
      * @return List of email template data maps
      */
-    List<Map<String, Object>> batchTransformToEmailTemplateData(List<StepDataTransferObject> dtos) {
+    List<Map<String, Object>> batchTransformToEmailTemplateData(List<StepInstanceDTO> dtos) {
         if (!dtos) {
             return []
         }
@@ -490,7 +490,7 @@ class StepDataTransformationService {
      * @param dtos List of DTOs to transform
      * @return List of database parameter maps
      */
-    List<Map<String, Object>> batchTransformToDatabaseParams(List<StepDataTransferObject> dtos) {
+    List<Map<String, Object>> batchTransformToDatabaseParams(List<StepInstanceDTO> dtos) {
         if (!dtos) {
             return []
         }

@@ -1,6 +1,6 @@
 package umig.tests.integration
 
-import umig.dto.StepDataTransferObject
+import umig.dto.StepInstanceDTO
 import umig.dto.CommentDTO
 import umig.service.StepDataTransformationService
 import umig.repository.StepRepository
@@ -15,7 +15,7 @@ import java.time.LocalDateTime
  * Pure Groovy testing patterns following ADR-036.
  * 
  * Tests cover:
- * 1. StepDataTransferObject creation and validation
+ * 1. StepInstanceDTO creation and validation
  * 2. Service transformation methods (DTO ↔ Database ↔ Email Template)
  * 3. Repository integration with DTO methods
  * 4. End-to-end data consistency validation
@@ -30,7 +30,7 @@ class StepDataTransformationServiceIntegrationTest {
     private StepRepository stepRepository
     private String testStepId
     private String testStepInstanceId
-    private StepDataTransferObject testDTO
+    private StepInstanceDTO testDTO
     
     // Test execution results
     private static List<String> testResults = []
@@ -48,7 +48,7 @@ class StepDataTransformationServiceIntegrationTest {
         testStepInstanceId = UUID.randomUUID().toString()
         
         // Create comprehensive test DTO using helper method
-        testDTO = createTestStepDataTransferObject(testStepId, testStepInstanceId)
+        testDTO = createTestStepInstanceDTO(testStepId, testStepInstanceId)
     }
     
     /**
@@ -107,8 +107,8 @@ class StepDataTransformationServiceIntegrationTest {
         println "\n🧪 Test 1: DTO Creation and Validation"
         
         try {
-            // Creating a comprehensive StepDataTransferObject
-            def dto = createTestStepDataTransferObject(testStepId, testStepInstanceId)
+            // Creating a comprehensive StepInstanceDTO
+            def dto = createTestStepInstanceDTO(testStepId, testStepInstanceId)
             
             // DTO should be created successfully
             assert dto != null, "DTO should not be null"
@@ -351,7 +351,7 @@ class StepDataTransformationServiceIntegrationTest {
             assert caughtException != null, "Caught exception should not be null"
             
             // Handling DTO with validation errors for database conversion
-            def invalidDTO = new StepDataTransferObject()  // Missing required fields
+            def invalidDTO = new StepInstanceDTO()  // Missing required fields
             def validationExceptionThrown = false
             def caughtValidationException = null
             try {
@@ -388,7 +388,7 @@ class StepDataTransformationServiceIntegrationTest {
             assert jsonString.contains("US-056-A Integration Test Step"), "JSON should contain step name"
             
             // Parsing JSON back to DTO
-            def parsedDTO = StepDataTransferObject.fromJson(jsonString)
+            def parsedDTO = StepInstanceDTO.fromJson(jsonString)
             
             // Parsed DTO should match original
             assert parsedDTO != null, "Parsed DTO should not be null"
@@ -442,7 +442,7 @@ class StepDataTransformationServiceIntegrationTest {
             
             // US-056-A Phase 1 objectives should be met
             // 1. Unified data structure ✓
-            assert roundTripDTO instanceof StepDataTransferObject, "Round trip DTO should be StepDataTransferObject instance"
+            assert roundTripDTO instanceof StepInstanceDTO, "Round trip DTO should be StepInstanceDTO instance"
             // 2. Consistent transformations ✓  
             assert finalTemplateData.stepDisplayName != null, "Final template stepDisplayName should not be null"
             // 3. Template rendering safety ✓
@@ -471,8 +471,8 @@ class StepDataTransformationServiceIntegrationTest {
     /**
      * Helper method to create comprehensive test DTO
      */
-    private StepDataTransferObject createTestStepDataTransferObject(String stepId, String stepInstanceId) {
-        return StepDataTransferObject.builder()
+    private StepInstanceDTO createTestStepInstanceDTO(String stepId, String stepInstanceId) {
+        return StepInstanceDTO.builder()
             .stepId(stepId)
             .stepInstanceId(stepInstanceId)
             .stepName("US-056-A Integration Test Step")
@@ -503,8 +503,8 @@ class StepDataTransformationServiceIntegrationTest {
     /**
      * Helper method to create simple test DTO for batch operations
      */
-    private StepDataTransferObject createSimpleTestDTO(String stepId, String stepName, String status) {
-        return StepDataTransferObject.builder()
+    private StepInstanceDTO createSimpleTestDTO(String stepId, String stepName, String status) {
+        return StepInstanceDTO.builder()
             .stepId(stepId)
             .stepInstanceId(UUID.randomUUID().toString())
             .stepName(stepName)

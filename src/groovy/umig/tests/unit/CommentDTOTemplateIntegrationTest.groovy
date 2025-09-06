@@ -6,13 +6,13 @@ import java.time.format.DateTimeFormatter
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 
-import umig.dto.StepDataTransferObject
+import umig.dto.StepInstanceDTO
 import umig.dto.CommentDTO
 
 /**
  * Unit tests for CommentDTO Template Integration (US-056B)
  * 
- * Tests the enhanced CommentDTO and its integration with StepDataTransferObject
+ * Tests the enhanced CommentDTO and its integration with StepInstanceDTO
  * to ensure proper template variable mapping for email notifications.
  * 
  * Note: Static type checking completely disabled for this test class to allow
@@ -85,8 +85,8 @@ class CommentDTOTemplateIntegrationTest extends Specification {
         templateMap.is_recent == false
     }
     
-    def "StepDataTransferObject toTemplateMap should use CommentDTO template mapping"() {
-        given: "A StepDataTransferObject with CommentDTO instances"
+    def "StepInstanceDTO toTemplateMap should use CommentDTO template mapping"() {
+        given: "A StepInstanceDTO with CommentDTO instances"
         CommentDTO comment1 = CommentDTO.builder()
             .commentId("comment-1")
             .text("First comment")
@@ -105,7 +105,7 @@ class CommentDTOTemplateIntegrationTest extends Specification {
             .build()
         
         List<CommentDTO> commentList = [comment1, comment2]
-        StepDataTransferObject stepDTO = StepDataTransferObject.builder()
+        StepInstanceDTO stepDTO = StepInstanceDTO.builder()
             .stepId("step-123")
             .stepName("Test Step")
             .stepStatus("IN_PROGRESS")
@@ -135,7 +135,7 @@ class CommentDTOTemplateIntegrationTest extends Specification {
         mappedComment2.requires_attention == true
     }
     
-    def "StepDataTransferObject should handle legacy comment objects gracefully"() {
+    def "StepInstanceDTO should handle legacy comment objects gracefully"() {
         given: "A legacy comment object (non-CommentDTO)"
         Map<String, Object> legacyComment = [
             commentId: "legacy-comment-123",
@@ -145,8 +145,8 @@ class CommentDTOTemplateIntegrationTest extends Specification {
         ]
         
         List<Object> commentList = [legacyComment]
-        StepDataTransferObject.Builder builder = StepDataTransferObject.builder()
-        StepDataTransferObject stepDTO = builder
+        StepInstanceDTO.Builder builder = StepInstanceDTO.builder()
+        StepInstanceDTO stepDTO = builder
             .stepId("step-456")
             .stepName("Legacy Test Step")  
             .stepStatus("COMPLETED")

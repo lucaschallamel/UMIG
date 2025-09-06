@@ -5,14 +5,14 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import java.time.LocalDateTime
 
-import umig.dto.StepDataTransferObject
+import umig.dto.StepInstanceDTO
 import umig.dto.CommentDTO
 import umig.utils.EnhancedEmailService
 
 /**
  * Integration tests for US-056B Template Integration
  * 
- * Verifies end-to-end integration between StepDataTransferObject,
+ * Verifies end-to-end integration between StepInstanceDTO,
  * CommentDTO, and EnhancedEmailService template processing.
  * 
  * NOTE: Static type checking is disabled for this Spock test to avoid
@@ -30,7 +30,7 @@ class EmailTemplateIntegrationTest extends Specification {
     }
     
     def "Enhanced CommentDTO should integrate seamlessly with email templates"() {
-        given: "A StepDataTransferObject with enhanced CommentDTO instances"
+        given: "A StepInstanceDTO with enhanced CommentDTO instances"
         def priorityComment = CommentDTO.builder()
             .commentId("priority-comment-001")
             .text("URGENT: This step requires immediate attention due to dependency conflicts!")
@@ -64,7 +64,7 @@ class EmailTemplateIntegrationTest extends Specification {
             .isResolved(true)
             .build()
         
-        def stepDTO = StepDataTransferObject.builder()
+        def stepDTO = StepInstanceDTO.builder()
             .stepId("critical-step-456")
             .stepName("Database Migration Validation")
             .stepStatus("IN_PROGRESS")
@@ -133,7 +133,7 @@ class EmailTemplateIntegrationTest extends Specification {
         def minimalComment = new CommentDTO()
         minimalComment.text = "Minimal comment"
         
-        def stepDTO = StepDataTransferObject.builder()
+        def stepDTO = StepInstanceDTO.builder()
             .stepId("minimal-step-789")
             .stepName("Minimal Step")
             .stepStatus("PENDING")
@@ -173,7 +173,7 @@ class EmailTemplateIntegrationTest extends Specification {
             createdDate: LocalDateTime.now().minusHours(1)
         ]
         
-        def stepDTO = StepDataTransferObject.builder()
+        def stepDTO = StepInstanceDTO.builder()
             .stepId("mixed-step-101")
             .stepName("Mixed Comment Step")
             .stepStatus("COMPLETED")
@@ -213,7 +213,7 @@ class EmailTemplateIntegrationTest extends Specification {
             .createdDate(LocalDateTime.now().minusMinutes(5))
             .build()
         
-        def stepInstance = StepDataTransferObject.builder()
+        def stepInstance = StepInstanceDTO.builder()
             .stepId("emergency-step-999")
             .stepName("Emergency Database Recovery")
             .stepStatus("FAILED")

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://umig.internal/schemas/StepDataTransferObject.schema.json",
+  "$id": "https://umig.internal/schemas/StepInstanceDTO.schema.json",
   "title": "Step Data Transfer Object Schema",
-  "description": "Comprehensive JSON schema for UMIG StepDataTransferObject validation (US-056-A Service Layer Standardization)",
+  "description": "Comprehensive JSON schema for UMIG StepInstanceDTO validation (US-056-A Service Layer Standardization)",
   "type": "object",
   "additionalProperties": false,
   "required": ["stepId", "stepName", "stepStatus"],
@@ -259,5 +259,5 @@
       }
     }
   ],
-  "$comment": "Schema validates StepDataTransferObject for US-056-A Service Layer Standardization. Supports Jackson serialization, email template rendering, and comprehensive business rule validation. Cross-field validation ensures completed counts never exceed total counts. All UUID fields validated with proper regex patterns. Timestamp fields validated for ISO LocalDateTime format."
+  "$comment": "Schema validates StepInstanceDTO for US-056-A Service Layer Standardization. Supports Jackson serialization, email template rendering, and comprehensive business rule validation. Cross-field validation ensures completed counts never exceed total counts. All UUID fields validated with proper regex patterns. Timestamp fields validated for ISO LocalDateTime format."
 }

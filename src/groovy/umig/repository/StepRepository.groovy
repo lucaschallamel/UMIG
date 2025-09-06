@@ -2384,9 +2384,9 @@ class StepRepository {
     }
     
     /**
-     * Find all steps in a migration and return as StepDataTransferObject list
+     * Find all steps in a migration and return as StepInstanceDTO list
      * @param migrationId Migration ID  
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findByMigrationIdAsDTO(UUID migrationId) {
         DatabaseUtil.withSql { sql ->
@@ -2401,9 +2401,9 @@ class StepRepository {
     }
     
     /**
-     * Find all steps in an iteration and return as StepDataTransferObject list
+     * Find all steps in an iteration and return as StepInstanceDTO list
      * @param iterationId Iteration ID
-     * @return List of StepDataTransferObjects  
+     * @return List of StepInstanceDTOs  
      */
     def findByIterationIdAsDTO(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
@@ -2418,10 +2418,10 @@ class StepRepository {
     }
     
     /**
-     * Find steps by status and return as StepDataTransferObject list
+     * Find steps by status and return as StepInstanceDTO list
      * @param status Step status (PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED)
      * @param limit Maximum number of results (default: 100)
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findByStatusAsDTO(String status, int limit = 100) {
         DatabaseUtil.withSql { sql ->
@@ -2437,9 +2437,9 @@ class StepRepository {
     }
     
     /**
-     * Find steps assigned to a team and return as StepDataTransferObject list
+     * Find steps assigned to a team and return as StepInstanceDTO list
      * @param teamId Team ID
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findByAssignedTeamIdAsDTO(UUID teamId) {
         DatabaseUtil.withSql { sql ->
@@ -2454,9 +2454,9 @@ class StepRepository {
     }
     
     /**
-     * Find steps with active comments and return as StepDataTransferObject list
+     * Find steps with active comments and return as StepInstanceDTO list
      * @param limit Maximum number of results (default: 50)  
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findStepsWithActiveCommentsAsDTO(int limit = 50) {
         DatabaseUtil.withSql { sql ->
@@ -2472,17 +2472,17 @@ class StepRepository {
     }
     
     /**
-     * Create a new step from StepDataTransferObject
+     * Create a new step from StepInstanceDTO
      * Supports both step master and step instance creation
      * 
      * @param stepDTO Step data transfer object to create
-     * @return Created StepDataTransferObject with generated IDs
+     * @return Created StepInstanceDTO with generated IDs
      * @throws IllegalArgumentException If required fields are missing
      * @throws SQLException If database constraint violations occur
      */
-    def createDTO(StepDataTransferObject stepDTO) {
+    def createDTO(StepInstanceDTO stepDTO) {
         if (!stepDTO) {
-            throw new IllegalArgumentException("StepDataTransferObject cannot be null")
+            throw new IllegalArgumentException("StepInstanceDTO cannot be null")
         }
         
         DatabaseUtil.withSql { sql ->
@@ -2570,7 +2570,7 @@ class StepRepository {
                     stepDTO.stepInstanceId = newInstanceId
                     
                     // Handle impacted teams relationships
-                    // Note: StepDataTransferObject currently doesn't support impacted teams collection
+                    // Note: StepInstanceDTO currently doesn't support impacted teams collection
                     // This would need to be handled by a separate service method if required
                     // For now, we'll use the assignedTeamId as a default relationship
                     if (stepDTO.assignedTeamId) {
@@ -2583,7 +2583,7 @@ class StepRepository {
                     }
                     
                     // Handle iteration types relationships
-                    // Note: StepDataTransferObject currently doesn't support iteration types collection
+                    // Note: StepInstanceDTO currently doesn't support iteration types collection
                     // This would need to be handled by a separate service method if required
                     // For now, we'll skip this relationship as it's not available in the DTO
                     // If needed, this could be added to the DTO in a future enhancement
@@ -2607,18 +2607,18 @@ class StepRepository {
     }
     
     /**
-     * Update an existing step from StepDataTransferObject
+     * Update an existing step from StepInstanceDTO
      * Supports both step master and step instance updates with optimistic locking
      * 
      * @param stepDTO Step data transfer object to update
-     * @return Updated StepDataTransferObject
+     * @return Updated StepInstanceDTO
      * @throws IllegalArgumentException If stepDTO is invalid or required IDs are missing
      * @throws IllegalStateException If optimistic locking fails or record not found
      * @throws SQLException If database constraint violations occur
      */
-    def updateDTO(StepDataTransferObject stepDTO) {
+    def updateDTO(StepInstanceDTO stepDTO) {
         if (!stepDTO) {
-            throw new IllegalArgumentException("StepDataTransferObject cannot be null")
+            throw new IllegalArgumentException("StepInstanceDTO cannot be null")
         }
         if (!stepDTO.stepInstanceId && !stepDTO.stepId) {
             throw new IllegalArgumentException("Either stepInstanceId or stepId must be provided for updates")
@@ -2754,15 +2754,15 @@ class StepRepository {
     }
     
     /**
-     * Save (create or update) a step from StepDataTransferObject
+     * Save (create or update) a step from StepInstanceDTO
      * Determines whether to create or update based on presence of IDs
      * 
      * @param stepDTO Step data transfer object to save
-     * @return Saved StepDataTransferObject
+     * @return Saved StepInstanceDTO
      */
-    def saveDTO(StepDataTransferObject stepDTO) {
+    def saveDTO(StepInstanceDTO stepDTO) {
         if (!stepDTO) {
-            throw new IllegalArgumentException("StepDataTransferObject cannot be null")
+            throw new IllegalArgumentException("StepInstanceDTO cannot be null")
         }
         
         // Determine if this is a create or update operation
@@ -2780,13 +2780,13 @@ class StepRepository {
     }
     
     /**
-     * Batch save multiple steps from StepDataTransferObject list
+     * Batch save multiple steps from StepInstanceDTO list
      * Optimized for performance with transaction management
      * 
      * @param stepDTOs List of Step data transfer objects to save
-     * @return List of saved StepDataTransferObjects
+     * @return List of saved StepInstanceDTOs
      */
-    def batchSaveDTO(List<StepDataTransferObject> stepDTOs) {
+    def batchSaveDTO(List<StepInstanceDTO> stepDTOs) {
         if (!stepDTOs) {
             return []
         }
@@ -2805,7 +2805,7 @@ class StepRepository {
     
     /**
      * Build the comprehensive base query for DTO population
-     * This query includes all fields needed for StepDataTransferObject construction
+     * This query includes all fields needed for StepInstanceDTO construction
      * @return SQL query string
      */
     private String buildDTOBaseQuery() {
@@ -2909,7 +2909,7 @@ class StepRepository {
     }
     
     /**
-     * Find steps with filters and return as StepDataTransferObject list with pagination
+     * Find steps with filters and return as StepInstanceDTO list with pagination
      * Enhanced version of existing findMasterStepsWithFilters that returns DTOs
      * @param filters Map of filter parameters  
      * @param pageNumber Page number (1-based)

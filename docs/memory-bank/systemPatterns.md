@@ -1,8 +1,8 @@
 # System Patterns
 
-**Last Updated**: 6 September 2025, updated for US-067 Email Security Test Coverage Industrial Complete with Security Excellence  
-**Sprint 6+ New Patterns**: Email Security Test Architecture, Attack Pattern Library Framework, Industrial Security Validation, Cross-Platform Security Testing, ADR-Compliant Security Patterns  
-**Key Achievement**: **US-067 EMAIL SECURITY TEST COVERAGE INDUSTRIAL COMPLETE** - 90%+ security coverage (up from 22% ad hoc), 25+ attack patterns across 8 security categories, <2ms performance overhead, complete ADR compliance with production-ready security validation framework
+**Last Updated**: 6 September 2025, updated for US-056F Dual DTO Architecture Complete with Major Architectural Enhancement  
+**Sprint 6+ New Patterns**: Dual DTO Architecture, Step Master/Instance Separation, Type-Safe Data Structures, Builder Pattern Consistency, Email Security Test Architecture, Attack Pattern Library Framework, Industrial Security Validation  
+**Key Achievement**: **US-056F DUAL DTO ARCHITECTURE COMPLETE** - Clean separation of Step master templates from instance executions with comprehensive refactoring (95+ references), enabling US-056C API Layer Integration (epic 75% complete)
 
 ## 1. System Architecture
 
@@ -559,36 +559,52 @@ IDLE_TIMEOUT=600000
 
 ### US-056-A Service Layer Standardization Pattern (COMPLETE - August 27, 2025)
 
-- **StepDataTransferObject Architecture Pattern:** Unified data contract implementation
+### US-056-F Dual DTO Architecture Pattern (COMPLETE - September 6, 2025) ✅
+
+- **Dual DTO Architecture Pattern:** Type-safe separation of master templates from instance executions
 
   ```groovy
-  class StepDataTransferObject {
-      // 30+ standardized properties with comprehensive type safety
-      String stepInstanceId, stepId, stepTitle, stepNumber, stepDescription
-      String phaseInstanceId, sequenceInstanceId, planInstanceId
-      Map<String, Object> stepData, additionalProperties
-      List<Map<String, Object>> comments  // Unified comment structure
+  // StepMasterDTO - Templates without execution data (231 lines)
+  class StepMasterDTO {
+      String stepMasterId, stepTypeCode, stepNumber, stepName, stepDescription
+      String phaseId  // References phase master, not instance
+      Boolean isActive
+      Integer instructionCount, instanceCount  // Metadata counts
 
-      // JSON serialization/deserialization methods
-      // Builder pattern implementation
-      // Defensive programming with null safety
+      // Builder pattern with 'with' prefix methods: withStepName(), withStepNumber()
+      // Full Jackson annotations for JSON serialization
+      // Proper toString, equals, hashCode implementation
+  }
+
+  // StepInstanceDTO - Execution records with status/assignments (516 lines)
+  class StepInstanceDTO {  // Renamed from StepDataTransferObject
+      String stepInstanceId, stepMasterId, stepTitle, stepNumber
+      String phaseInstanceId, sequenceInstanceId, planInstanceId
+      String status, assignedTeamId, assignedUserId  // Execution-specific fields
+      Date plannedStartDate, actualStartDate, completionDate  // Timeline data
+      Map<String, Object> stepData, additionalProperties
+      List<Map<String, Object>> comments, recentComments
   }
   ```
 
-- **StepDataTransformationService Pattern:** Central data transformation hub
-  - **Database → DTO Transformation:** `transformRowToDTO()`, `transformBatchToDTO()` with optimized batch processing
-  - **DTO → Template Transformation:** `transformDTOForTemplate()`, `transformDTOForAPI()` with consistent property naming
-  - **Legacy Entity Migration:** `transformLegacyEntity()`, `migrateToUnifiedFormat()` supporting gradual migration
-  - **Performance Optimization:** Batch processing, caching strategy, minimized database round trips
-- **Enhanced Repository Integration Pattern:** Parallel code path implementation
+- **Enhanced StepDataTransformationService Pattern:** Dual transformation hub (580 lines)
+  - **Master Transformation:** `fromMasterDatabaseRow()`, `fromMasterDatabaseRows()` for template processing
+  - **Instance Transformation:** `fromInstanceDatabaseRow()` (renamed from `fromDatabaseRow()`) for execution data
+  - **Builder Pattern Consistency:** 'with' prefix methods throughout for developer experience
+  - **Type Safety Excellence:** Complete static type checking compliance with defensive null handling
+- **Enhanced Repository Integration Pattern:** Master/Instance method separation
 
   ```groovy
-  // Enhanced StepRepository methods maintaining backward compatibility
-  StepDataTransferObject findByIdAsDTO(String stepId)
-  StepDataTransferObject findByInstanceIdAsDTO(String stepInstanceId)
-  List<StepDataTransferObject> findByPhaseIdAsDTO(String phaseInstanceId)
-  List<StepDataTransferObject> findAllAsDTO()
-  StepDataTransferObject transformRowToDTO(Map<String, Object> row)
+  // StepRepository enhanced with dual DTO support
+  // Master-specific methods
+  StepMasterDTO findMasterByIdAsDTO(UUID stepMasterId)
+  List<StepMasterDTO> findAllMastersAsDTO()
+
+  // Instance-specific methods (maintained backward compatibility)
+  StepInstanceDTO findByIdAsDTO(String stepId)
+  StepInstanceDTO findByInstanceIdAsDTO(String stepInstanceId)
+  List<StepInstanceDTO> findByPhaseIdAsDTO(String phaseInstanceId)
+  List<StepInstanceDTO> findAllAsDTO()
   ```
 
 - **Static Type Checking Resolution Pattern:** Production reliability through compile-time validation
