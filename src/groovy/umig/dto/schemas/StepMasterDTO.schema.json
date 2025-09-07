@@ -1,0 +1,87 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://umig.internal/schemas/StepMasterDTO.schema.json",
+  "title": "Step Master Data Transfer Object Schema",
+  "description": "JSON schema for UMIG StepMasterDTO validation for template/blueprint Step entities (US-056F Dual DTO Architecture)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["stepMasterId", "stepTypeCode", "stepNumber", "stepName"],
+  "properties": {
+    "stepMasterId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Primary step master identifier in UUID format"
+    },
+    "stepTypeCode": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 50,
+      "description": "Step type code (e.g., 'CUTOVER', 'PREPARATION', 'VALIDATION')"
+    },
+    "stepNumber": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9999,
+      "description": "Step number within the type sequence"
+    },
+    "stepName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Human-readable step name (required)"
+    },
+    "stepDescription": {
+      "type": ["string", "null"],
+      "maxLength": 2000,
+      "description": "Detailed step description"
+    },
+    "phaseId": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Parent phase identifier in UUID format"
+    },
+    "createdDate": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?$",
+      "description": "Creation timestamp in ISO LocalDateTime format"
+    },
+    "lastModifiedDate": {
+      "type": ["string", "null"],
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?$",
+      "description": "Last modification timestamp in ISO LocalDateTime format"
+    },
+    "isActive": {
+      "type": ["boolean", "null"],
+      "default": true,
+      "description": "Active status flag"
+    },
+    "instructionCount": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "default": 0,
+      "description": "Count of associated instruction templates"
+    },
+    "instanceCount": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "default": 0,
+      "description": "Count of instances created from this master template"
+    }
+  },
+  "examples": [
+    {
+      "stepMasterId": "550e8400-e29b-41d4-a716-446655440000",
+      "stepTypeCode": "CUTOVER",
+      "stepNumber": 1,
+      "stepName": "Database Schema Migration",
+      "stepDescription": "Migrate user tables from legacy schema to new normalized structure",
+      "phaseId": "550e8400-e29b-41d4-a716-446655440006",
+      "createdDate": "2025-08-27T09:00:00.000",
+      "lastModifiedDate": "2025-08-27T10:30:00.000",
+      "isActive": true,
+      "instructionCount": 5,
+      "instanceCount": 12
+    }
+  ],
+  "$comment": "Schema validates StepMasterDTO for US-056F Dual DTO Architecture. Represents template/blueprint Step entities without execution data. Used for master step records that define templates, not runtime instances. All UUID fields validated with proper regex patterns. Timestamp fields validated for ISO LocalDateTime format without timezone."
+}

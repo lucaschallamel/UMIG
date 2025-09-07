@@ -51,7 +51,7 @@ class TemplateRetrievalService {
                 SELECT emt_name, emt_subject, emt_body_html, emt_type 
                 FROM email_templates_emt 
                 WHERE emt_type = $1 AND emt_is_active = true
-                ORDER BY emt_created_date DESC
+                ORDER BY created_at DESC
                 LIMIT 1
             `;
 
@@ -93,7 +93,7 @@ class TemplateRetrievalService {
                 SELECT emt_name, emt_subject, emt_body_html, emt_type 
                 FROM email_templates_emt 
                 WHERE emt_is_active = true
-                ORDER BY emt_type, emt_created_date DESC
+                ORDER BY emt_type, created_at DESC
             `;
 
       const result = await client.query(query);

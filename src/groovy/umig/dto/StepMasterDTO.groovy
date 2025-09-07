@@ -3,7 +3,7 @@ package umig.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.ObjectMapper
-import umig.util.JsonUtil
+import umig.utils.JsonUtil
 import groovy.transform.ToString
 import groovy.transform.EqualsAndHashCode
 import groovy.util.logging.Slf4j
