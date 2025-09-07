@@ -20,14 +20,10 @@ INSERT INTO email_templates_emt (
     emt_body_text,
     emt_type,
     emt_is_active,
-    emt_created_date,
-    emt_updated_date,
-    emt_created_by,
-    emt_updated_by,
-    created_by,
     created_at,
-    updated_by,
-    updated_at
+    updated_at,
+    created_by,
+    updated_by
 ) VALUES (
     'a3f7b892-9c4d-4e89-b2a1-8f5c6d7e9abc'::uuid,
     'Default Instruction Uncompleted Template',
@@ -98,11 +94,7 @@ INSERT INTO email_templates_emt (
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP,
     'system',
-    NULL,
-    'system',
-    CURRENT_TIMESTAMP,
-    'system',
-    CURRENT_TIMESTAMP
+    'system'
 );
 
 -- Add comment documenting this new template type

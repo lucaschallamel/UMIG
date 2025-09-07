@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
  * Email Template Performance Validator for US-039B
  * 
  * Validates the performance improvements from template caching and 
- * StepDataTransferObject.toTemplateMap() integration optimizations.
+ * StepInstanceDTO.toTemplateMap() integration optimizations.
  * 
  * Performance Targets:
  * - Template processing: ≤200ms per email generation
@@ -133,7 +133,7 @@ class EmailTemplatePerformanceValidator {
     }
     
     /**
-     * Create sample template variables (simulating StepDataTransferObject.toTemplateMap())
+     * Create sample template variables (simulating StepInstanceDTO.toTemplateMap())
      */
     static Map<String, Object> createSampleTemplateData() {
         return [

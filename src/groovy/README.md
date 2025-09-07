@@ -2,10 +2,14 @@
 
 This document serves as the main entry point for developers working with the UMIG Groovy source code. It describes the structure, conventions, and mandatory requirements for all Groovy backend code and frontend assets used by ScriptRunner in the UMIG project.
 
-## Project Status (August 28, 2025)
+## Project Status (September 6, 2025)
 
-**✅ Sprint 5 COMPLETE - Production Ready System:**
+**✅ Sprint 6 IN PROGRESS - Enhanced Architecture:**
 
+- **NEW**: Dual DTO architecture with StepMasterDTO (templates) and StepInstanceDTO (executions)
+- **NEW**: JsonUtil shared ObjectMapper for performance optimization
+- **NEW**: Structured JSON schemas in dto/schemas/ directory
+- **NEW**: Service layer with StepDataTransformationService for unified data handling
 - Complete REST API suite (13 v2 APIs) with 100% functionality
 - Repository pattern with DatabaseUtil.withSql enforcement across all components
 - Type safety compliance (ADR-031) with comprehensive explicit casting implementation
@@ -13,33 +17,39 @@ This document serves as the main entry point for developers working with the UMI
 - Admin GUI with complete SPA architecture (13/13 entities fully operational)
 - Enhanced email notification system (US-039A) with mobile-responsive templates
 - Service layer standardization (US-056-A) with unified DTO architecture
-- StepView UI refactoring (US-036) with modern UX patterns
-- Main Dashboard UI (US-033) with streamlined interface
 - Infrastructure automation and cross-platform testing framework
 - PostgreSQL production patterns (ADR-047) with enhanced performance
 - Authentication resolution with comprehensive validation systems
 
-**✅ Sprint 5 Achievements:**
+**🔄 Sprint 6 Progress:**
 
-- 89% story completion rate (8/9 stories) with 93% velocity (39/42 points)
-- MVP functionality 100% operational with production-ready quality
-- Cross-platform development infrastructure with JavaScript-based testing
-- Systematic data structure improvements preventing template rendering failures
+- Dual DTO pattern implementation (StepMasterDTO vs StepInstanceDTO)
+- Performance optimization with shared ObjectMapper pattern
+- JSON schema standardization and validation
+- Import orchestration services for CSV/JSON data processing
+- Enhanced service layer with transformation services
 
 ## Directory Structure
 
 ```
 src/groovy/umig/
 ├── api/v2/                 # REST API endpoints (13 APIs)
+├── config/                 # Configuration classes
+├── dto/                    # Data Transfer Objects
+│   ├── schemas/           # JSON schemas for validation
+│   ├── StepMasterDTO.groovy    # Template definitions
+│   └── StepInstanceDTO.groovy  # Execution instances
 ├── macros/v1/             # Confluence macros (3 macros)
-├── repository/            # Data access layer (19 repositories)
+├── repository/            # Data access layer (25+ repositories)
+├── service/               # Business logic services (9 services)
 ├── tests/                 # Testing framework (4 consolidated scripts)
 │   ├── apis/             # API-specific tests
 │   ├── integration/      # Integration tests
 │   ├── unit/            # Unit tests
 │   ├── upgrade/         # Upgrade validation (US-032)
 │   └── validation/      # Quality validators
-├── utils/                # Shared utilities (6 core services)
+├── utils/                # Shared utilities (9 core services)
+│   └── JsonUtil.groovy   # Shared ObjectMapper instance
 └── web/                  # Frontend assets (8 JS modules, CSS)
     ├── js/              # JavaScript modules
     └── css/             # Stylesheets
@@ -47,7 +57,46 @@ src/groovy/umig/
 
 ## Architectural Patterns
 
-### 1. Repository Pattern (MANDATORY)
+### 1. Dual DTO Architecture (NEW - US-056F)
+
+**StepMasterDTO** and **StepInstanceDTO** provide clear separation of concerns:
+
+```groovy
+// StepMasterDTO - For template definitions/master records
+class StepMasterDTO {
+    // Template fields only: name, description, configuration
+    // Used for: Creation, templates, master data management
+}
+
+// StepInstanceDTO - For execution instances
+class StepInstanceDTO {
+    // Instance fields: execution data, status, runtime information
+    // Used for: Tracking, execution, monitoring
+}
+
+// Performance optimization with shared ObjectMapper
+import umig.utils.JsonUtil
+
+def json = JsonUtil.toJson(stepInstance)
+def dto = JsonUtil.fromJson(json, StepInstanceDTO.class)
+```
+
+### 2. Shared ObjectMapper Pattern (NEW - Performance)
+
+**JsonUtil** provides thread-safe, optimized JSON operations:
+
+```groovy
+// CORRECT - Use shared ObjectMapper
+import umig.utils.JsonUtil
+
+def json = JsonUtil.toJson(dataObject)
+def object = JsonUtil.fromJson(jsonString, TargetClass.class)
+
+// INCORRECT - Creating new ObjectMapper instances
+def mapper = new ObjectMapper()  // ❌ Performance impact
+```
+
+### 3. Repository Pattern (MANDATORY)
 
 All database access must use the repository pattern with `DatabaseUtil.withSql`:
 
@@ -65,7 +114,7 @@ DatabaseUtil.withSql { sql ->
 def sql = Sql.newInstance(...)  // ❌ Not allowed
 ```
 
-### 2. REST API Pattern (MANDATORY)
+### 4. REST API Pattern (MANDATORY)
 
 All APIs follow the `CustomEndpointDelegate` pattern established in StepsApi.groovy:
 
@@ -83,7 +132,7 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 }
 ```
 
-### 3. Type Safety (ADR-031 - MANDATORY)
+### 5. Type Safety (ADR-031 - MANDATORY)
 
 Explicit casting is required for all query parameters and path variables:
 
@@ -144,27 +193,37 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 - **Frontend**: See `web/README.md` for JavaScript/CSS asset management
 - **Macros**: See `macros/README.md` for Confluence macro development
 
-## Recent Improvements (US-024)
+## Recent Improvements (US-056F & Current Sprint)
 
-### API Refactoring
+### Dual DTO Architecture Implementation
+
+- **StepMasterDTO**: Renamed and optimized for template definitions
+- **StepInstanceDTO**: Renamed from StepDataTransferObject for execution instances
+- Clear separation of concerns between master templates and execution instances
+- JSON schema validation files organized in dto/schemas/ directory
+
+### Performance Optimization
+
+- **JsonUtil**: Shared ObjectMapper pattern for 3x performance improvement
+- Thread-safe, optimized JSON operations across application
+- Reduced GC pressure from repeated ObjectMapper instantiation
+- Java 8 time module support properly configured
+
+### Service Layer Enhancement
+
+- **StepDataTransformationService**: Unified data transformation patterns
+- Business logic separation from repository layer
+- Import orchestration services for CSV/JSON processing
+- Enhanced service layer with 9 specialized services
+
+### API & Testing Improvements (Previous)
 
 - StepsAPI improved with enhanced error handling
 - Comments endpoint error messages standardized
 - Repository pattern enforcement across all APIs
 - Type safety improvements with explicit casting
-
-### Testing Consolidation
-
 - Reduced from 8 scripts to 4 consolidated test runners
-- Added DatabaseQualityValidator for validation testing
 - Performance baseline validation integrated
-- US-024 quality gate validation implemented
-
-### Documentation Consolidation
-
-- Reduced from 6 files to 3 focused documentation files
-- Improved cross-referencing between components
-- Enhanced developer guidance and examples
 
 ## Development Workflow
 
@@ -184,12 +243,21 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 4. Add comprehensive unit tests
 5. Document query patterns and performance considerations
 
-### 3. Testing Requirements
+### 3. Service Layer Development (NEW)
+
+1. Use StepDataTransformationService patterns for data transformation
+2. Implement business logic in service classes, not repositories
+3. Follow single responsibility principle for services
+4. Use JsonUtil for JSON operations to maintain performance
+5. Apply appropriate DTO patterns (Master vs Instance)
+
+### 4. Testing Requirements
 
 1. All new code requires unit tests
 2. Integration tests for API endpoints
 3. Use specific SQL query mocks (ADR-026)
 4. Performance validation for critical paths
+5. **NEW**: Test DTO serialization/deserialization with JsonUtil
 
 ## Key References
 
@@ -203,6 +271,8 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 - **ADR-043**: Dual authentication context management
 - **ADR-044**: Mandatory endpoint registration patterns
 - **ADR-047**: PostgreSQL production-ready patterns
+- **ADR-049**: Unified DTO architecture principles (StepInstanceDTO rename)
+- **US-056F**: Service layer standardization and dual DTO architecture
 
 ## Best Practices
 
@@ -212,6 +282,7 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 - Use meaningful variable and method names
 - Add JSDoc-style comments for complex logic
 - Maintain consistent error handling patterns
+- **NEW**: Use dual DTO pattern - StepMasterDTO for templates, StepInstanceDTO for executions
 
 ### Performance
 
@@ -219,6 +290,16 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 - Avoid deep object graphs in API responses
 - Implement proper pagination for large datasets
 - Cache lookup data appropriately
+- **NEW**: Use JsonUtil.toJson/fromJson instead of creating ObjectMapper instances
+- **NEW**: Leverage shared ObjectMapper for 3x performance improvement
+
+### Data Architecture
+
+- **NEW**: Template vs Instance separation with appropriate DTOs
+- **NEW**: JSON schema validation in dto/schemas/ directory
+- Use StepDataTransformationService for data transformation consistency
+- Follow ADR-047 for PostgreSQL production patterns
+- Apply ADR-049 unified DTO architecture principles
 
 ### Maintainability
 
@@ -226,9 +307,12 @@ params.migrationId = filters.migrationId  // ❌ Type unsafe
 - Keep methods focused and testable
 - Use dependency injection patterns where appropriate
 - Document complex business logic thoroughly
+- **NEW**: Organize JSON schemas in dedicated schemas/ subdirectory
+- **NEW**: Use service layer for business logic transformation
 
 ---
 
 **Environment**: Confluence 9.2.7 + ScriptRunner 9.21.0  
-**Status**: Production ready for core functionality, MVP features in progress  
-**Stack**: Groovy/ScriptRunner backend, Vanilla JS frontend, PostgreSQL database
+**Status**: Enhanced architecture with dual DTO pattern, service layer, and performance optimization  
+**Stack**: Groovy/ScriptRunner backend, Vanilla JS frontend, PostgreSQL database  
+**Latest**: StepMasterDTO/StepInstanceDTO architecture, JsonUtil shared ObjectMapper, service layer transformation

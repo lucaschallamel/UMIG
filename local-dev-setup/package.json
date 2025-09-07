@@ -117,7 +117,9 @@
     "test:import:groovy:performance": "groovy src/groovy/umig/tests/integration/ImportPerformanceTest.groovy",
     "test:us034": "npm run test:import",
     "test:us034:comprehensive": "npm run test:import && npm run test:import:groovy",
-    "test:us034:quick": "npm run test:import:api:quick && npm run test:import:workflow:quick && npm run test:import:performance:quick"
+    "test:us034:quick": "npm run test:import:api:quick && npm run test:import:workflow:quick && npm run test:import:performance:quick",
+    "test:us056a": "node scripts/test-runners/IntegrationTestRunner.js --us056a",
+    "test:us056a:runtime": "groovy src/groovy/umig/tests/integration/StepDataTransformationServiceRuntimeTest.groovy"
   },
   "author": "Lucas Challamel",
   "license": "ISC",

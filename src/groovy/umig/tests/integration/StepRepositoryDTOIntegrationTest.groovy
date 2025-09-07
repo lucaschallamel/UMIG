@@ -1,7 +1,7 @@
 package umig.tests.integration
 
 import umig.repository.StepRepository
-import umig.dto.StepDataTransferObject
+import umig.dto.StepInstanceDTO
 import umig.service.StepDataTransformationService
 import java.util.UUID
 import java.util.Date
@@ -65,7 +65,7 @@ class StepRepositoryDTOIntegrationTest {
         setupTestData()
         
         // Test Case 1: Create complete step with relationships
-        def newStepDTO = new StepDataTransferObject(
+        def newStepDTO = new StepInstanceDTO(
             // Core identification - using actual DTO properties
             stepId: UUID.randomUUID().toString(),
             stepName: "Test Step Creation via DTO",
@@ -89,7 +89,7 @@ class StepRepositoryDTOIntegrationTest {
         )
         
         // Execute createDTO
-        StepDataTransferObject createdDTO = stepRepository.createDTO(newStepDTO) as StepDataTransferObject
+        StepInstanceDTO createdDTO = stepRepository.createDTO(newStepDTO) as StepInstanceDTO
         
         // Validate creation success
         assert createdDTO != null
@@ -101,7 +101,7 @@ class StepRepositoryDTOIntegrationTest {
         assert createdDTO.priority == 8
         
         // Validate it can be retrieved using correct method and UUID casting
-        StepDataTransferObject retrievedDTO = stepRepository.findByIdAsDTO(UUID.fromString(createdDTO.stepInstanceId as String)) as StepDataTransferObject
+        StepInstanceDTO retrievedDTO = stepRepository.findByIdAsDTO(UUID.fromString(createdDTO.stepInstanceId as String)) as StepInstanceDTO
         assert retrievedDTO != null
         assert retrievedDTO.stepName == createdDTO.stepName
         
@@ -127,7 +127,7 @@ class StepRepositoryDTOIntegrationTest {
         }
         
         // Retrieve current step with proper type casting
-        StepDataTransferObject originalDTO = stepRepository.findByIdAsDTO(testStepInstanceId as UUID) as StepDataTransferObject
+        StepInstanceDTO originalDTO = stepRepository.findByIdAsDTO(testStepInstanceId as UUID) as StepInstanceDTO
         assert originalDTO != null
         
         // Modify DTO properties
@@ -137,7 +137,7 @@ class StepRepositoryDTOIntegrationTest {
         originalDTO.priority = 6
         
         // Execute updateDTO with proper type
-        StepDataTransferObject updatedDTO = stepRepository.updateDTO(originalDTO) as StepDataTransferObject
+        StepInstanceDTO updatedDTO = stepRepository.updateDTO(originalDTO) as StepInstanceDTO
         
         // Validate update success
         assert updatedDTO != null
@@ -149,7 +149,7 @@ class StepRepositoryDTOIntegrationTest {
         assert updatedDTO.lastModifiedDate != null
         
         // Validate persistence with proper type casting
-        StepDataTransferObject retrievedUpdatedDTO = stepRepository.findByIdAsDTO(testStepInstanceId as UUID) as StepDataTransferObject
+        StepInstanceDTO retrievedUpdatedDTO = stepRepository.findByIdAsDTO(testStepInstanceId as UUID) as StepInstanceDTO
         assert retrievedUpdatedDTO.stepName == "Updated Step Name via DTO"
         assert retrievedUpdatedDTO.stepStatus == "IN_PROGRESS"
         
@@ -166,7 +166,7 @@ class StepRepositoryDTOIntegrationTest {
      */
     def testSaveDTO() {
         // Test Case 1: Save new step (should route to createDTO)
-        def newStepDTO = new StepDataTransferObject(
+        def newStepDTO = new StepInstanceDTO(
             stepId: UUID.randomUUID().toString(),
             stepName: "Test Save New Step via DTO",
             stepDescription: "Testing saveDTO create path",
@@ -177,7 +177,7 @@ class StepRepositoryDTOIntegrationTest {
             priority: 5
         )
         
-        StepDataTransferObject savedNewDTO = stepRepository.saveDTO(newStepDTO) as StepDataTransferObject
+        StepInstanceDTO savedNewDTO = stepRepository.saveDTO(newStepDTO) as StepInstanceDTO
         assert savedNewDTO != null
         assert savedNewDTO.stepId != null
         assert savedNewDTO.stepInstanceId != null
@@ -189,7 +189,7 @@ class StepRepositoryDTOIntegrationTest {
         savedNewDTO.stepName = "Updated via Save DTO"
         savedNewDTO.stepDescription = "Testing saveDTO update path"
         
-        StepDataTransferObject savedUpdatedDTO = stepRepository.saveDTO(savedNewDTO) as StepDataTransferObject
+        StepInstanceDTO savedUpdatedDTO = stepRepository.saveDTO(savedNewDTO) as StepInstanceDTO
         assert savedUpdatedDTO != null
         assert savedUpdatedDTO.stepInstanceId == savedNewDTO.stepInstanceId
         assert savedUpdatedDTO.stepName == "Updated via Save DTO"
@@ -211,7 +211,7 @@ class StepRepositoryDTOIntegrationTest {
         
         // Create multiple test steps
         for (int i = 1; i <= 3; i++) {
-            batchStepDTOs << new StepDataTransferObject(
+            batchStepDTOs << new StepInstanceDTO(
                 stepId: UUID.randomUUID().toString(),
                 stepName: "Batch Test Step ${i}",
                 stepDescription: "Testing batch save operation ${i}",
@@ -224,20 +224,20 @@ class StepRepositoryDTOIntegrationTest {
         }
         
         // Execute batch save
-        List<StepDataTransferObject> savedBatchDTOs = stepRepository.batchSaveDTO(batchStepDTOs as List<StepDataTransferObject>) as List<StepDataTransferObject>
+        List<StepInstanceDTO> savedBatchDTOs = stepRepository.batchSaveDTO(batchStepDTOs as List<StepInstanceDTO>) as List<StepInstanceDTO>
         
         // Validate batch operation success
         assert savedBatchDTOs != null
         assert savedBatchDTOs.size() == 3
         
-        savedBatchDTOs.eachWithIndex { StepDataTransferObject dto, index ->
+        savedBatchDTOs.eachWithIndex { StepInstanceDTO dto, index ->
             assert dto.stepId != null
             assert dto.stepInstanceId != null
             assert dto.stepName == "Batch Test Step ${index + 1}"
             assert dto.priority == 5 + (index + 1)
             
             // Validate individual persistence with proper type casting
-            StepDataTransferObject retrievedDTO = stepRepository.findByIdAsDTO(UUID.fromString(dto.stepInstanceId as String)) as StepDataTransferObject
+            StepInstanceDTO retrievedDTO = stepRepository.findByIdAsDTO(UUID.fromString(dto.stepInstanceId as String)) as StepInstanceDTO
             assert retrievedDTO.stepName == dto.stepName
         }
         
@@ -265,7 +265,7 @@ class StepRepositoryDTOIntegrationTest {
         
         // Test Case 2: Missing required fields
         try {
-            def invalidDTO = new StepDataTransferObject()
+            def invalidDTO = new StepInstanceDTO()
             stepRepository.createDTO(invalidDTO)
             assert false, "Should throw IllegalArgumentException for missing required fields"
         } catch (IllegalArgumentException e) {
@@ -275,7 +275,7 @@ class StepRepositoryDTOIntegrationTest {
         
         // Test Case 3: Update with invalid ID
         try {
-            def invalidUpdateDTO = new StepDataTransferObject(
+            def invalidUpdateDTO = new StepInstanceDTO(
                 stepInstanceId: "00000000-0000-0000-0000-000000000000",
                 stepId: "00000000-0000-0000-0000-000000000000",
                 stepName: "Invalid Update Test",
@@ -304,7 +304,7 @@ class StepRepositoryDTOIntegrationTest {
         }
         
         // Retrieve using both old and new methods
-        StepDataTransferObject dtoResult = stepRepository.findByIdAsDTO(testStepInstanceId as UUID) as StepDataTransferObject
+        StepInstanceDTO dtoResult = stepRepository.findByIdAsDTO(testStepInstanceId as UUID) as StepInstanceDTO
         def legacyResult = stepRepository.findStepInstanceDetailsById(testStepInstanceId as UUID)
         
         // Validate consistency (where applicable)
@@ -331,7 +331,7 @@ class StepRepositoryDTOIntegrationTest {
         def startTime = System.currentTimeMillis()
         
         // Test individual operation performance
-        def singleDTO = new StepDataTransferObject(
+        def singleDTO = new StepInstanceDTO(
             stepId: UUID.randomUUID().toString(),
             stepName: "Performance Test Step",
             stepDescription: "Testing operation performance",
@@ -341,7 +341,7 @@ class StepRepositoryDTOIntegrationTest {
             stepType: "TECH"
         )
         
-        StepDataTransferObject createdDTO = stepRepository.createDTO(singleDTO) as StepDataTransferObject
+        StepInstanceDTO createdDTO = stepRepository.createDTO(singleDTO) as StepInstanceDTO
         def singleOpTime = System.currentTimeMillis() - startTime
         
         assert singleOpTime < 3000, "Single operation should complete within 3 seconds"
@@ -350,7 +350,7 @@ class StepRepositoryDTOIntegrationTest {
         startTime = System.currentTimeMillis()
         def batchDTOs = []
         for (int i = 1; i <= 5; i++) {
-            batchDTOs << new StepDataTransferObject(
+            batchDTOs << new StepInstanceDTO(
                 stepId: UUID.randomUUID().toString(),
                 stepName: "Performance Batch Step ${i}",
                 stepStatus: "PENDING",
@@ -360,7 +360,7 @@ class StepRepositoryDTOIntegrationTest {
             )
         }
         
-        List<StepDataTransferObject> batchResults = stepRepository.batchSaveDTO(batchDTOs as List<StepDataTransferObject>) as List<StepDataTransferObject>
+        List<StepInstanceDTO> batchResults = stepRepository.batchSaveDTO(batchDTOs as List<StepInstanceDTO>) as List<StepInstanceDTO>
         def batchOpTime = System.currentTimeMillis() - startTime
         
         assert batchResults.size() == 5

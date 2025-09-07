@@ -414,7 +414,7 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
 package umig.repository
 
 import groovy.sql.Sql
-import umig.util.DatabaseUtil
+import umig.utils.DatabaseUtil
 import umig.service.UserService
 import java.sql.Timestamp
 
@@ -1032,7 +1032,7 @@ package umig.tests.unit
 
 import spock.lang.Specification
 import umig.repository.MigrationTypesRepository
-import umig.util.DatabaseUtil
+import umig.utils.DatabaseUtil
 
 class MigrationTypesRepositoryTest extends Specification {
 

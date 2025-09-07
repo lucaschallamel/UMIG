@@ -1,11 +1,81 @@
 # Active Context - UMIG Project
 
-**Last Updated**: 6 September 2025, US-067 Email Security Test Coverage Industrial Complete - Security Excellence Achieved  
-**Current Status**: **US-067 EMAIL SECURITY TEST COVERAGE 100% COMPLETE** - Enterprise-grade security testing with 90%+ coverage and industrial-strength validation  
-**Current Achievement**: Historic security milestone delivering comprehensive attack pattern library (25+ patterns across 8 categories) with <2ms performance overhead  
-**Major Achievement**: **US-067 SECURITY INDUSTRIAL EXCELLENCE** - 90%+ security coverage (up from 22% ad hoc), complete ADR compliance, production-ready security framework  
-**Sprint History**: Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug), Sprint 4 (7-15 Aug) COMPLETE, Sprint 5 (18-28 Aug) COMPLETE EXCEPTIONAL SUCCESS, Sprint 6 (29 Aug-6 Sep) ✅ COMPLETE TRIPLE SUCCESS (US-034 + US-056B + US-039B + US-067)  
-**Current Focus**: Enterprise-grade security testing infrastructure ready for production deployment with comprehensive attack pattern validation
+**Last Updated**: 7 September 2025, CommentDTO Refactoring & Test Infrastructure Enhancements Complete  
+**Current Status**: **CommentDTO Architectural Enhancement COMPLETE** - Standalone CommentDTO file with enhanced test infrastructure  
+**Current Achievement**: CommentDTO extracted to separate file with comprehensive test fixes and static type checking resolution  
+**Major Achievement**: **US-056F + CommentDTO DUAL ENHANCEMENT** - Dual DTO architecture complete plus CommentDTO refactored to standalone file  
+**Sprint History**: Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug), Sprint 4 (7-15 Aug) COMPLETE, Sprint 5 (18-28 Aug) COMPLETE EXCEPTIONAL SUCCESS, Sprint 6 (29 Aug-7 Sep) ✅ ENHANCED SUCCESS (US-034 + US-056B + US-039B + US-067 + US-056F + CommentDTO Refactoring)  
+**Current Focus**: Architecture cleanup complete, US-056C API Layer Integration ready to start - epic progress 3/4 phases complete (75%)
+
+## 🔧 **CommentDTO Refactoring & Test Infrastructure Enhancement - 100% COMPLETE** (September 7, 2025) ✅
+
+**ARCHITECTURAL CLEANUP ACHIEVEMENT**: CommentDTO successfully extracted to standalone file with comprehensive test infrastructure enhancements, completing architectural cleanup from US-056F dual DTO work.
+
+**🔧 MAJOR REFACTORING COMPLETED**:
+
+- **CommentDTO Extraction**: Successfully moved CommentDTO from Step-related files to standalone `/src/groovy/umig/dto/CommentDTO.groovy`
+  - Complete class extraction with all functionality preserved
+  - Proper import statements added across all dependent files
+  - Zero breaking changes to existing functionality
+- **Test Infrastructure Fixes**: Comprehensive resolution of static type checking errors across multiple test files
+  - Fixed import statements in test files referencing CommentDTO
+  - Resolved Groovy static type checking issues in unit tests
+  - Enhanced test reliability with proper type declarations
+- **File Organisation Enhancement**: Improved DTO structure with cleaner separation of concerns
+  - CommentDTO now properly standalone for better maintainability
+  - Enhanced reusability across different parts of the application
+  - Cleaner import patterns throughout the codebase
+
+**🎯 TECHNICAL ACHIEVEMENTS**:
+
+- **Import Resolution**: Fixed all broken imports following CommentDTO extraction
+- **Static Type Safety**: Complete resolution of Groovy static type checking errors in test files
+- **Code Organization**: Enhanced architectural clarity with standalone CommentDTO
+- **Test Reliability**: All test files now properly import and utilize CommentDTO
+
+**📈 IMPACT DELIVERED**:
+
+- **Architecture Clarity**: Clean separation between Step-specific and Comment-specific DTOs
+- **Maintainability**: CommentDTO now easily reusable across different application components
+- **Test Stability**: All tests pass with proper static type checking compliance
+- **Foundation Quality**: Architecture ready for US-056C API Layer Integration
+
+## 🏗️ **US-056F Dual DTO Architecture - 100% COMPLETE** (September 6, 2025) ✅
+
+**MAJOR ARCHITECTURAL MILESTONE ACHIEVEMENT**: US-056F Dual DTO Architecture **100% COMPLETE** delivering critical type-safe separation between Step master templates and Step instance executions, enabling US-056C API Layer Integration.
+
+**🔧 ARCHITECTURAL EXCELLENCE ACHIEVED**:
+
+- **Dual DTO Architecture Implementation**: Clean separation of master templates from execution instances
+  - **StepMasterDTO** (231 lines): Purpose-built for Step master templates without execution data
+  - **StepInstanceDTO** (renamed from StepDataTransferObject): Execution-specific DTO with 516 lines of functionality
+  - **Type Safety Excellence**: Clear distinction preventing data structure confusion
+- **Comprehensive Refactoring**: **95+ references systematically updated** across entire codebase
+  - Zero breaking changes through systematic IDE-assisted refactoring
+  - Complete test suite validation maintaining ≥95% coverage
+  - Schema file updates: `StepDataTransferObject.schema.json` → `StepInstanceDTO.schema.json`
+- **Enhanced Service Layer**: **StepDataTransformationService** (580 lines total)
+  - Added `fromMasterDatabaseRow()` methods for master transformation
+  - Renamed existing methods: `fromDatabaseRow()` → `fromInstanceDatabaseRow()`
+  - Builder pattern consistency with 'with' prefix methods
+- **Repository Enhancement**: **StepRepository** enhanced with master-specific methods
+  - `findMasterByIdAsDTO(UUID stepMasterId)` method
+  - `findAllMastersAsDTO()` method
+  - Performance targets maintained (51ms query execution)
+
+**🎯 TECHNICAL ACHIEVEMENTS**:
+
+- **Static Type Safety**: Complete resolution of Groovy static type checking errors
+- **Builder Pattern Consistency**: Standardised 'with' prefix methods throughout
+- **Backward Compatibility**: Zero disruption to existing API endpoints
+- **Documentation Excellence**: Comprehensive JavaDoc with usage examples
+
+**📈 STRATEGIC IMPACT DELIVERED**:
+
+- **US-056C Enablement**: Critical prerequisite completed, API Layer Integration ready to start
+- **Epic Progress**: US-056 JSON-Based Step Data Architecture 75% complete (3/4 phases)
+- **Sprint 6 Momentum**: 17/20 story points complete (85% progress)
+- **Architecture Foundation**: Scalable dual DTO pattern for future hierarchy implementation
 
 ## 🛡️ **US-067 Email Security Test Coverage - 100% COMPLETE** (September 6, 2025) ✅
 

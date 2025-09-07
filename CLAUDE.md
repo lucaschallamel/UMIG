@@ -106,8 +106,10 @@ entityName(httpMethod: "GET", groups: ["confluence-users"]) { request, binding -
 
 ### Service Layer (US-056)
 
-- `StepDataTransferObject` - Unified DTO (516 lines)
+- `StepInstanceDTO` - Instance execution DTO (516 lines)
+- `StepMasterDTO` - Master template DTO (231 lines)
 - `StepDataTransformationService` - Data transformation (580 lines)
+- Dual DTO architecture for master/instance separation (US-056F)
 - Single enrichment point pattern (ADR-047)
 
 ## Critical Development Rules

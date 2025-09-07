@@ -1,6 +1,12 @@
 package umig.tests.integration
 
-import umig.dto.StepDataTransferObject
+// Add Jackson dependencies for DTO classes
+@Grab('com.fasterxml.jackson.core:jackson-databind:2.15.2')
+@Grab('com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2')
+@Grab('org.postgresql:postgresql:42.7.3')
+
+import umig.dto.StepInstanceDTO
+import umig.dto.StepMasterDTO
 import umig.dto.CommentDTO
 import umig.service.StepDataTransformationService
 import umig.repository.StepRepository
@@ -15,10 +21,11 @@ import java.time.LocalDateTime
  * Pure Groovy testing patterns following ADR-036.
  * 
  * Tests cover:
- * 1. StepDataTransferObject creation and validation
- * 2. Service transformation methods (DTO ↔ Database ↔ Email Template)
- * 3. Repository integration with DTO methods
- * 4. End-to-end data consistency validation
+ * 1. StepInstanceDTO creation and validation
+ * 2. StepMasterDTO creation and validation
+ * 3. Service transformation methods (DTO ↔ Database ↔ Email Template)
+ * 4. Repository integration with DTO methods
+ * 5. End-to-end data consistency validation
  * 
  * Framework: ADR-036 Pure Groovy (Zero external dependencies)
  * 
@@ -30,7 +37,7 @@ class StepDataTransformationServiceIntegrationTest {
     private StepRepository stepRepository
     private String testStepId
     private String testStepInstanceId
-    private StepDataTransferObject testDTO
+    private StepInstanceDTO testDTO
     
     // Test execution results
     private static List<String> testResults = []
@@ -48,7 +55,7 @@ class StepDataTransformationServiceIntegrationTest {
         testStepInstanceId = UUID.randomUUID().toString()
         
         // Create comprehensive test DTO using helper method
-        testDTO = createTestStepDataTransferObject(testStepId, testStepInstanceId)
+        testDTO = createTestStepInstanceDTO(testStepId, testStepInstanceId)
     }
     
     /**
@@ -67,9 +74,11 @@ class StepDataTransformationServiceIntegrationTest {
         
         try {
             testDTOCreationAndValidation()
+            testMasterDTOCreationAndValidation()
             testServiceTransformationDTOToDatabaseParams()
             testServiceTransformationDTOToEmailTemplateData()
             testServiceTransformationDatabaseRowToDTO()
+            testServiceTransformationMasterDatabaseRowToDTO()
             testBatchTransformationValidation()
             testErrorHandlingAndEdgeCases()
             testJSONSchemaValidationIntegration()
@@ -107,8 +116,8 @@ class StepDataTransformationServiceIntegrationTest {
         println "\n🧪 Test 1: DTO Creation and Validation"
         
         try {
-            // Creating a comprehensive StepDataTransferObject
-            def dto = createTestStepDataTransferObject(testStepId, testStepInstanceId)
+            // Creating a comprehensive StepInstanceDTO
+            def dto = createTestStepInstanceDTO(testStepId, testStepInstanceId)
             
             // DTO should be created successfully
             assert dto != null, "DTO should not be null"
@@ -149,8 +158,35 @@ class StepDataTransformationServiceIntegrationTest {
         }
     }
     
+    void testMasterDTOCreationAndValidation() {
+        println "\n🧪 Test 2: Master DTO Creation and Validation"
+        
+        try {
+            // Creating a comprehensive StepMasterDTO
+            def masterDto = createTestStepMasterDTO()
+            
+            // Master DTO should be created successfully
+            assert masterDto != null, "Master DTO should not be null"
+            assert masterDto.stepMasterId != null, "StepMasterId should not be null"
+            assert masterDto.stepName == "US-056F Master Test Step", "StepName should match"
+            assert masterDto.stepTypeCode == "VALIDATION", "StepTypeCode should match"
+            
+            // JSON serialization should work
+            def jsonString = masterDto.toJson()
+            assert jsonString.contains(masterDto.stepMasterId), "JSON should contain stepMasterId"
+            
+            testResults.add("✅ Master DTO Creation and Validation - PASSED")
+            println "   ✅ All Master DTO creation and validation checks passed"
+            
+        } catch (Exception e) {
+            failedTests.add("Master DTO Creation and Validation: ${e.message}".toString())
+            println "   ❌ Master DTO Creation and Validation failed: ${e.message}"
+            throw e
+        }
+    }
+    
     void testServiceTransformationDTOToDatabaseParams() {
-        println "\n🧪 Test 2: Service Transformation - DTO to Database Parameters"
+        println "\n🧪 Test 3: Service Transformation - DTO to Database Parameters"
         
         try {
             // Converting DTO to database parameters
@@ -190,7 +226,7 @@ class StepDataTransformationServiceIntegrationTest {
     }
     
     void testServiceTransformationDTOToEmailTemplateData() {
-        println "\n🧪 Test 3: Service Transformation - DTO to Email Template Data"
+        println "\n🧪 Test 4: Service Transformation - DTO to Email Template Data"
         
         try {
             // Converting DTO to email template data
@@ -239,7 +275,7 @@ class StepDataTransformationServiceIntegrationTest {
     }
     
     void testServiceTransformationDatabaseRowToDTO() {
-        println "\n🧪 Test 4: Service Transformation - Database Row to DTO"
+        println "\n🧪 Test 5: Service Transformation - Database Row to DTO"
         
         try {
             // A mock database row with typical field names
@@ -279,8 +315,39 @@ class StepDataTransformationServiceIntegrationTest {
         }
     }
     
+    void testServiceTransformationMasterDatabaseRowToDTO() {
+        println "\n🧪 Test 6: Service Transformation - Master Database Row to DTO"
+        
+        try {
+            // A mock master database row with typical field names
+            def mockMasterDbRow = createMockMasterDatabaseRow()
+            
+            // Converting master database row to DTO
+            def masterDtoFromDb = transformationService.fromMasterDatabaseRow(mockMasterDbRow)
+            
+            // Master DTO should be created correctly from database row
+            assert masterDtoFromDb != null, "Master DTO from DB should not be null"
+            assert masterDtoFromDb.stepMasterId != null, "stepMasterId should not be null"
+            assert masterDtoFromDb.stepName == "DB Master Row Test Step", "stepName should be 'DB Master Row Test Step'"
+            assert masterDtoFromDb.stepTypeCode == "CUTOVER", "stepTypeCode should be 'CUTOVER'"
+            assert masterDtoFromDb.stepNumber == 10, "stepNumber should be 10"
+            
+            // Temporal fields should be in string format for masters
+            assert masterDtoFromDb.createdDate instanceof String, "createdDate should be String for masters"
+            assert masterDtoFromDb.lastModifiedDate instanceof String, "lastModifiedDate should be String for masters"
+            
+            testResults.add("✅ Service Transformation Master Database Row to DTO - PASSED")
+            println "   ✅ All master database row to DTO transformation checks passed"
+            
+        } catch (Exception e) {
+            failedTests.add("Service Transformation Master Database Row to DTO: ${e.message}".toString())
+            println "   ❌ Service Transformation Master Database Row to DTO failed: ${e.message}"
+            throw e
+        }
+    }
+    
     void testBatchTransformationValidation() {
-        println "\n🧪 Test 5: Batch Transformation Validation"
+        println "\n🧪 Test 7: Batch Transformation Validation"
         
         try {
             // Multiple test DTOs
@@ -325,7 +392,7 @@ class StepDataTransformationServiceIntegrationTest {
     }
     
     void testErrorHandlingAndEdgeCases() {
-        println "\n🧪 Test 6: Error Handling and Edge Cases"
+        println "\n🧪 Test 8: Error Handling and Edge Cases"
         
         try {
             // Handling null DTO in transformation service
@@ -351,7 +418,7 @@ class StepDataTransformationServiceIntegrationTest {
             assert caughtException != null, "Caught exception should not be null"
             
             // Handling DTO with validation errors for database conversion
-            def invalidDTO = new StepDataTransferObject()  // Missing required fields
+            def invalidDTO = new StepInstanceDTO()  // Missing required fields
             def validationExceptionThrown = false
             def caughtValidationException = null
             try {
@@ -376,7 +443,7 @@ class StepDataTransformationServiceIntegrationTest {
     }
     
     void testJSONSchemaValidationIntegration() {
-        println "\n🧪 Test 7: JSON Schema Validation Integration"
+        println "\n🧪 Test 9: JSON Schema Validation Integration"
         
         try {
             // Converting DTO to JSON
@@ -388,7 +455,7 @@ class StepDataTransformationServiceIntegrationTest {
             assert jsonString.contains("US-056-A Integration Test Step"), "JSON should contain step name"
             
             // Parsing JSON back to DTO
-            def parsedDTO = StepDataTransferObject.fromJson(jsonString)
+            def parsedDTO = StepInstanceDTO.fromJson(jsonString)
             
             // Parsed DTO should match original
             assert parsedDTO != null, "Parsed DTO should not be null"
@@ -412,7 +479,7 @@ class StepDataTransformationServiceIntegrationTest {
     }
     
     void testEndToEndIntegrationSuccessValidation() {
-        println "\n🧪 Test 8: End-to-End Integration Success Validation"
+        println "\n🧪 Test 10: End-to-End Integration Success Validation"
         
         try {
             // Performing complete round-trip transformation
@@ -442,7 +509,7 @@ class StepDataTransformationServiceIntegrationTest {
             
             // US-056-A Phase 1 objectives should be met
             // 1. Unified data structure ✓
-            assert roundTripDTO instanceof StepDataTransferObject, "Round trip DTO should be StepDataTransferObject instance"
+            assert roundTripDTO instanceof StepInstanceDTO, "Round trip DTO should be StepInstanceDTO instance"
             // 2. Consistent transformations ✓  
             assert finalTemplateData.stepDisplayName != null, "Final template stepDisplayName should not be null"
             // 3. Template rendering safety ✓
@@ -471,8 +538,8 @@ class StepDataTransformationServiceIntegrationTest {
     /**
      * Helper method to create comprehensive test DTO
      */
-    private StepDataTransferObject createTestStepDataTransferObject(String stepId, String stepInstanceId) {
-        return StepDataTransferObject.builder()
+    private StepInstanceDTO createTestStepInstanceDTO(String stepId, String stepInstanceId) {
+        return StepInstanceDTO.builder()
             .stepId(stepId)
             .stepInstanceId(stepInstanceId)
             .stepName("US-056-A Integration Test Step")
@@ -503,8 +570,8 @@ class StepDataTransformationServiceIntegrationTest {
     /**
      * Helper method to create simple test DTO for batch operations
      */
-    private StepDataTransferObject createSimpleTestDTO(String stepId, String stepName, String status) {
-        return StepDataTransferObject.builder()
+    private StepInstanceDTO createSimpleTestDTO(String stepId, String stepName, String status) {
+        return StepInstanceDTO.builder()
             .stepId(stepId)
             .stepInstanceId(UUID.randomUUID().toString())
             .stepName(stepName)
@@ -607,5 +674,47 @@ class StepDataTransformationServiceIntegrationTest {
         mockRow.last_comment_date = new java.sql.Timestamp(System.currentTimeMillis())
         
         return mockRow
+    }
+    
+    /**
+     * Helper method to create comprehensive test StepMasterDTO
+     */
+    private StepMasterDTO createTestStepMasterDTO() {
+        def stepMasterId = UUID.randomUUID().toString()
+        
+        return StepMasterDTO.builder()
+            .withStepMasterId(stepMasterId)
+            .withStepTypeCode("VALIDATION")
+            .withStepNumber(5)
+            .withStepName("US-056F Master Test Step")
+            .withStepDescription("Comprehensive test step master for DTO transformation validation")
+            .withPhaseId(UUID.randomUUID().toString())
+            .withCreatedDate(new java.util.Date().toString())
+            .withLastModifiedDate(new java.util.Date().toString())
+            .withIsActive(true)
+            .withInstructionCount(3)
+            .withInstanceCount(2)
+            .build()
+    }
+    
+    /**
+     * Helper method to create mock master database row for testing
+     */
+    private Map createMockMasterDatabaseRow() {
+        def stepMasterId = UUID.randomUUID().toString()
+        
+        return [
+            stm_id: UUID.fromString(stepMasterId),
+            stt_code: "CUTOVER",
+            stm_number: 10,
+            stm_name: "DB Master Row Test Step",
+            stm_description: "Test master step from database row",
+            phm_id: UUID.randomUUID(),
+            stm_created_date: new java.sql.Timestamp(System.currentTimeMillis()),
+            stm_last_modified_date: new java.sql.Timestamp(System.currentTimeMillis()),
+            stm_is_active: true,
+            instruction_count: 5,
+            instance_count: 3
+        ]
     }
 }

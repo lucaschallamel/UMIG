@@ -86,7 +86,7 @@ class EmailService {
             }
         }
         
-        // US-039B: Use StepDataTransferObject for unified template mapping
+        // US-039B: Use StepInstanceDTO for unified template mapping
         // Transform database row to DTO for consistent data structure
         def transformationService = new umig.service.StepDataTransformationService()
         def stepDto = transformationService.fromDatabaseRow(stepInstance)
