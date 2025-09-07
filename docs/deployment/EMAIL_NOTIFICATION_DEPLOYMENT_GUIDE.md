@@ -69,7 +69,7 @@ This guide covers the deployment of the enhanced email notification system that 
 
    ```bash
    # Run the email template update script
-   psql -h localhost -U umig_user -d umig_db -f src/groovy/umig/sql/email-templates-with-urls.sql
+   psql -h localhost -U umig_user -d umig_db -f local-dev-setup/liquibase/changelogs/027_email_templates_with_urls.sql
    ```
 
 3. **Verify email templates have URL support**:

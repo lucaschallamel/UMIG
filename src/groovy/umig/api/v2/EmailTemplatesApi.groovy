@@ -35,8 +35,41 @@ import umig.utils.DatabaseUtil
  * @since 2025-01-16
  */
 
-// GET /emailTemplates - List all email templates
-emailTemplates(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body ->
+// GET /emailTemplates - List all email templates OR get specific template by ID
+emailTemplates(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
+    def templateId = getTemplateIdFromPath(request)
+    
+    // If there's an ID in the path, get specific template
+    if (templateId) {
+        try {
+            def template = DatabaseUtil.withSql { sql ->
+                sql.firstRow("""
+                    SELECT emt_id, emt_type, emt_name, emt_subject, emt_body_html, emt_body_text,
+                           emt_is_active, emt_created_date, emt_updated_date, emt_created_by, emt_updated_by
+                    FROM email_templates_emt 
+                    WHERE emt_id = ?
+                """, [UUID.fromString(templateId)])
+            }
+            
+            if (!template) {
+                def error = [error: "Email template not found"]
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new JsonBuilder(error).toString())
+                    .build()
+            }
+            
+            return Response.ok(new JsonBuilder(template).toString()).build()
+            
+        } catch (Exception e) {
+            log.error("EmailTemplatesApi: Error retrieving template ${templateId}", e)
+            def error = [error: "Failed to retrieve email template: ${e.message}"]
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new JsonBuilder(error).toString())
+                .build()
+        }
+    }
+    
+    // No ID in path - list all templates
     try {
         def activeOnly = queryParams.getFirst("activeOnly")?.asBoolean() ?: false
         
@@ -54,45 +87,6 @@ emailTemplates(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
     } catch (Exception e) {
         log.error("EmailTemplatesApi: Error listing templates", e)
         def error = [error: "Failed to retrieve email templates: ${e.message}"]
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-            .entity(new JsonBuilder(error).toString())
-            .build()
-    }
-}
-
-// GET /emailTemplates/{id} - Get specific email template
-emailTemplates(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    def templateId = getTemplateIdFromPath(request)
-    
-    if (!templateId) {
-        def error = [error: "Template ID is required"]
-        return Response.status(Response.Status.BAD_REQUEST)
-            .entity(new JsonBuilder(error).toString())
-            .build()
-    }
-    
-    try {
-        def template = DatabaseUtil.withSql { sql ->
-            sql.firstRow("""
-                SELECT emt_id, emt_type, emt_name, emt_subject, emt_body_html, emt_body_text,
-                       emt_is_active, emt_created_date, emt_updated_date, emt_created_by, emt_updated_by
-                FROM email_templates_emt 
-                WHERE emt_id = ?
-            """, [UUID.fromString(templateId)])
-        }
-        
-        if (!template) {
-            def error = [error: "Email template not found"]
-            return Response.status(Response.Status.NOT_FOUND)
-                .entity(new JsonBuilder(error).toString())
-                .build()
-        }
-        
-        return Response.ok(new JsonBuilder(template).toString()).build()
-        
-    } catch (Exception e) {
-        log.error("EmailTemplatesApi: Error retrieving template ${templateId}", e)
-        def error = [error: "Failed to retrieve email template: ${e.message}"]
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
             .entity(new JsonBuilder(error).toString())
             .build()

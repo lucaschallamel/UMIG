@@ -100,21 +100,25 @@ const API_ENDPOINTS = [
   // ========== SPECIAL PURPOSE APIs (6) ==========
   {
     name: "Import Statistics API",
-    path: "/import/statistics",
+    path: "/importHistory/statistics",
     group: "Special",
   },
   {
     name: "Step View Instance API",
-    path: "/stepViewApi/instance?stepCode=ADT-001",
+    path: "/stepViewApi/instance?migrationName=Migration 2: Organic next generation website&iterationName=CUTOVER Iteration 1 for Plan d81386d2-72f6-427a-a624-22394317c023&stepCode=GON-26",
     group: "Special",
   }, // Requires parameters
-  { name: "User Context API", path: "/user/context", group: "Special" },
   {
-    name: "URL Configuration Health API",
-    path: "/api/v2/urlConfiguration/health",
+    name: "User Context API",
+    path: "/user/context?username=ADM",
     group: "Special",
   },
-  { name: "Web App API", path: "/webapp/health", group: "Special" }, // WebApi health endpoint
+  {
+    name: "URL Configuration Health API",
+    path: "/urlConfigurationHealth",
+    group: "Special",
+  },
+  // Web App API removed - /webapp/health endpoint does not exist
   { name: "Test Endpoint API", path: "/users", group: "Special" }, // testEndpoint.groovy maps to existing endpoint
 ];
 

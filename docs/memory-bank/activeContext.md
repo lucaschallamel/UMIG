@@ -1,11 +1,44 @@
 # Active Context - UMIG Project
 
-**Last Updated**: 6 September 2025, US-056F Dual DTO Architecture Complete - Major Architectural Enhancement Achieved  
-**Current Status**: **US-056F DUAL DTO ARCHITECTURE 100% COMPLETE** - Critical architectural foundation for Step master/instance separation  
-**Current Achievement**: Major architectural milestone delivering type-safe dual DTO pattern with comprehensive refactoring (95+ references updated)  
-**Major Achievement**: **US-056F DUAL DTO EXCELLENCE** - Clean separation of Step master templates from instance executions, enabling US-056C API Layer Integration  
-**Sprint History**: Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug), Sprint 4 (7-15 Aug) COMPLETE, Sprint 5 (18-28 Aug) COMPLETE EXCEPTIONAL SUCCESS, Sprint 6 (29 Aug-6 Sep) ✅ QUADRUPLE SUCCESS (US-034 + US-056B + US-039B + US-067 + US-056F)  
-**Current Focus**: US-056C API Layer Integration ready to start - epic progress 3/4 phases complete (75%)
+**Last Updated**: 7 September 2025, CommentDTO Refactoring & Test Infrastructure Enhancements Complete  
+**Current Status**: **CommentDTO Architectural Enhancement COMPLETE** - Standalone CommentDTO file with enhanced test infrastructure  
+**Current Achievement**: CommentDTO extracted to separate file with comprehensive test fixes and static type checking resolution  
+**Major Achievement**: **US-056F + CommentDTO DUAL ENHANCEMENT** - Dual DTO architecture complete plus CommentDTO refactored to standalone file  
+**Sprint History**: Sprint 1 (16-27 Jun), Sprint 2 (28 Jun-17 Jul), Sprint 3 (30 Jul-6 Aug), Sprint 4 (7-15 Aug) COMPLETE, Sprint 5 (18-28 Aug) COMPLETE EXCEPTIONAL SUCCESS, Sprint 6 (29 Aug-7 Sep) ✅ ENHANCED SUCCESS (US-034 + US-056B + US-039B + US-067 + US-056F + CommentDTO Refactoring)  
+**Current Focus**: Architecture cleanup complete, US-056C API Layer Integration ready to start - epic progress 3/4 phases complete (75%)
+
+## 🔧 **CommentDTO Refactoring & Test Infrastructure Enhancement - 100% COMPLETE** (September 7, 2025) ✅
+
+**ARCHITECTURAL CLEANUP ACHIEVEMENT**: CommentDTO successfully extracted to standalone file with comprehensive test infrastructure enhancements, completing architectural cleanup from US-056F dual DTO work.
+
+**🔧 MAJOR REFACTORING COMPLETED**:
+
+- **CommentDTO Extraction**: Successfully moved CommentDTO from Step-related files to standalone `/src/groovy/umig/dto/CommentDTO.groovy`
+  - Complete class extraction with all functionality preserved
+  - Proper import statements added across all dependent files
+  - Zero breaking changes to existing functionality
+- **Test Infrastructure Fixes**: Comprehensive resolution of static type checking errors across multiple test files
+  - Fixed import statements in test files referencing CommentDTO
+  - Resolved Groovy static type checking issues in unit tests
+  - Enhanced test reliability with proper type declarations
+- **File Organisation Enhancement**: Improved DTO structure with cleaner separation of concerns
+  - CommentDTO now properly standalone for better maintainability
+  - Enhanced reusability across different parts of the application
+  - Cleaner import patterns throughout the codebase
+
+**🎯 TECHNICAL ACHIEVEMENTS**:
+
+- **Import Resolution**: Fixed all broken imports following CommentDTO extraction
+- **Static Type Safety**: Complete resolution of Groovy static type checking errors in test files
+- **Code Organization**: Enhanced architectural clarity with standalone CommentDTO
+- **Test Reliability**: All test files now properly import and utilize CommentDTO
+
+**📈 IMPACT DELIVERED**:
+
+- **Architecture Clarity**: Clean separation between Step-specific and Comment-specific DTOs
+- **Maintainability**: CommentDTO now easily reusable across different application components
+- **Test Stability**: All tests pass with proper static type checking compliance
+- **Foundation Quality**: Architecture ready for US-056C API Layer Integration
 
 ## 🏗️ **US-056F Dual DTO Architecture - 100% COMPLETE** (September 6, 2025) ✅
 
