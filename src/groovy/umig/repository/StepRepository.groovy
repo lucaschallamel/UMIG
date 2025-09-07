@@ -4,7 +4,8 @@ import umig.utils.DatabaseUtil
 import umig.utils.EmailService
 import umig.utils.AuthenticationService
 import umig.service.StepDataTransformationService
-import umig.dto.StepDataTransferObject
+import umig.dto.StepInstanceDTO
+import umig.dto.StepMasterDTO
 // Note: Audit logging is temporarily disabled
 // import umig.repository.InstructionRepository  // Not used
 // import umig.repository.AuditLogRepository      // Temporarily disabled
@@ -19,8 +20,8 @@ import groovy.sql.Sql
 class StepRepository {
     
     /**
-     * Service for transforming database rows to StepDataTransferObject DTOs
-     * Following US-056-A Service Layer Standardization pattern
+     * Service for transforming database rows to StepInstanceDTO and StepMasterDTO
+     * Following US-056F Dual DTO Architecture pattern
      */
     private final StepDataTransformationService transformationService = new StepDataTransformationService()
     /**
@@ -2238,10 +2239,105 @@ class StepRepository {
         return new umig.service.StepDataTransformationService()
     }
     
+    // ========================================
+    // MASTER DTO METHODS (US-056F DUAL DTO ARCHITECTURE)
+    // ========================================
+    
     /**
-     * Find step by ID and return as StepDataTransferObject
+     * Find step master by ID and return as StepMasterDTO
+     * @param stepMasterId Step master ID (UUID)
+     * @return StepMasterDTO or null if not found
+     */
+    def findMasterByIdAsDTO(UUID stepMasterId) {
+        DatabaseUtil.withSql { sql ->
+            def row = sql.firstRow('''
+                SELECT stm.stm_id,
+                       stm.stt_code,
+                       stm.stm_number,
+                       stm.stm_name,
+                       stm.stm_description,
+                       stm.phm_id,
+                       stm.created_date,
+                       stm.last_modified_date,
+                       stm.is_active,
+                       (SELECT COUNT(*) FROM instructions_master_inm 
+                        WHERE inm.stm_id = stm.stm_id) as instruction_count,
+                       (SELECT COUNT(*) FROM steps_instance_sti 
+                        WHERE sti.stm_id = stm.stm_id) as instance_count
+                FROM steps_master_stm stm
+                WHERE stm.stm_id = :stepMasterId
+            ''', [stepMasterId: stepMasterId])
+            
+            return row ? transformationService.fromMasterDatabaseRow(row) : null
+        }
+    }
+    
+    /**
+     * Find all step masters and return as StepMasterDTOs
+     * @return List of StepMasterDTOs
+     */
+    def findAllMastersAsDTO() {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows('''
+                SELECT stm.stm_id,
+                       stm.stt_code,
+                       stm.stm_number,
+                       stm.stm_name,
+                       stm.stm_description,
+                       stm.phm_id,
+                       stm.created_date,
+                       stm.last_modified_date,
+                       stm.is_active,
+                       (SELECT COUNT(*) FROM instructions_master_inm 
+                        WHERE inm.stm_id = stm.stm_id) as instruction_count,
+                       (SELECT COUNT(*) FROM steps_instance_sti 
+                        WHERE sti.stm_id = stm.stm_id) as instance_count
+                FROM steps_master_stm stm
+                ORDER BY stm.stt_code, stm.stm_number
+            ''')
+            
+            return transformationService.fromMasterDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Find step masters by phase ID and return as StepMasterDTOs
+     * @param phaseId Phase master ID (UUID)
+     * @return List of StepMasterDTOs for the phase
+     */
+    def findMastersByPhaseIdAsDTO(UUID phaseId) {
+        DatabaseUtil.withSql { sql ->
+            def rows = sql.rows('''
+                SELECT stm.stm_id,
+                       stm.stt_code,
+                       stm.stm_number,
+                       stm.stm_name,
+                       stm.stm_description,
+                       stm.phm_id,
+                       stm.created_date,
+                       stm.last_modified_date,
+                       stm.is_active,
+                       (SELECT COUNT(*) FROM instructions_master_inm 
+                        WHERE inm.stm_id = stm.stm_id) as instruction_count,
+                       (SELECT COUNT(*) FROM steps_instance_sti 
+                        WHERE sti.stm_id = stm.stm_id) as instance_count
+                FROM steps_master_stm stm
+                WHERE stm.phm_id = :phaseId
+                ORDER BY stm.stm_number
+            ''', [phaseId: phaseId])
+            
+            return transformationService.fromMasterDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    // ========================================
+    // INSTANCE DTO METHODS (RENAMED FOR CLARITY)
+    // ========================================
+    
+    /**
+     * Find step by ID and return as StepInstanceDTO (renamed from findByIdAsDTO)
      * @param stepId Step master or instance ID
-     * @return StepDataTransferObject or null if not found
+     * @return StepInstanceDTO or null if not found
      */
     def findByIdAsDTO(UUID stepId) {
         DatabaseUtil.withSql { sql ->
@@ -2255,9 +2351,9 @@ class StepRepository {
     }
     
     /**
-     * Find step by instance ID and return as StepDataTransferObject  
+     * Find step by instance ID and return as StepInstanceDTO  
      * @param stepInstanceId Step instance ID
-     * @return StepDataTransferObject or null if not found
+     * @return StepInstanceDTO or null if not found
      */
     def findByInstanceIdAsDTO(UUID stepInstanceId) {
         DatabaseUtil.withSql { sql ->
@@ -2271,9 +2367,9 @@ class StepRepository {
     }
     
     /**
-     * Find all steps in a phase and return as StepDataTransferObject list
+     * Find all steps in a phase and return as StepInstanceDTO list
      * @param phaseId Phase ID (use instance ID for proper hierarchical filtering)
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findByPhaseIdAsDTO(UUID phaseId) {
         DatabaseUtil.withSql { sql ->
@@ -2288,9 +2384,9 @@ class StepRepository {
     }
     
     /**
-     * Find all steps in a migration and return as StepDataTransferObject list
+     * Find all steps in a migration and return as StepInstanceDTO list
      * @param migrationId Migration ID  
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findByMigrationIdAsDTO(UUID migrationId) {
         DatabaseUtil.withSql { sql ->
@@ -2305,9 +2401,9 @@ class StepRepository {
     }
     
     /**
-     * Find all steps in an iteration and return as StepDataTransferObject list
+     * Find all steps in an iteration and return as StepInstanceDTO list
      * @param iterationId Iteration ID
-     * @return List of StepDataTransferObjects  
+     * @return List of StepInstanceDTOs  
      */
     def findByIterationIdAsDTO(UUID iterationId) {
         DatabaseUtil.withSql { sql ->
@@ -2322,10 +2418,10 @@ class StepRepository {
     }
     
     /**
-     * Find steps by status and return as StepDataTransferObject list
+     * Find steps by status and return as StepInstanceDTO list
      * @param status Step status (PENDING, IN_PROGRESS, COMPLETED, FAILED, CANCELLED)
      * @param limit Maximum number of results (default: 100)
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findByStatusAsDTO(String status, int limit = 100) {
         DatabaseUtil.withSql { sql ->
@@ -2341,9 +2437,9 @@ class StepRepository {
     }
     
     /**
-     * Find steps assigned to a team and return as StepDataTransferObject list
+     * Find steps assigned to a team and return as StepInstanceDTO list
      * @param teamId Team ID
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findByAssignedTeamIdAsDTO(UUID teamId) {
         DatabaseUtil.withSql { sql ->
@@ -2358,9 +2454,9 @@ class StepRepository {
     }
     
     /**
-     * Find steps with active comments and return as StepDataTransferObject list
+     * Find steps with active comments and return as StepInstanceDTO list
      * @param limit Maximum number of results (default: 50)  
-     * @return List of StepDataTransferObjects
+     * @return List of StepInstanceDTOs
      */
     def findStepsWithActiveCommentsAsDTO(int limit = 50) {
         DatabaseUtil.withSql { sql ->
@@ -2376,17 +2472,17 @@ class StepRepository {
     }
     
     /**
-     * Create a new step from StepDataTransferObject
+     * Create a new step from StepInstanceDTO
      * Supports both step master and step instance creation
      * 
      * @param stepDTO Step data transfer object to create
-     * @return Created StepDataTransferObject with generated IDs
+     * @return Created StepInstanceDTO with generated IDs
      * @throws IllegalArgumentException If required fields are missing
      * @throws SQLException If database constraint violations occur
      */
-    def createDTO(StepDataTransferObject stepDTO) {
+    def createDTO(StepInstanceDTO stepDTO) {
         if (!stepDTO) {
-            throw new IllegalArgumentException("StepDataTransferObject cannot be null")
+            throw new IllegalArgumentException("StepInstanceDTO cannot be null")
         }
         
         DatabaseUtil.withSql { sql ->
@@ -2474,7 +2570,7 @@ class StepRepository {
                     stepDTO.stepInstanceId = newInstanceId
                     
                     // Handle impacted teams relationships
-                    // Note: StepDataTransferObject currently doesn't support impacted teams collection
+                    // Note: StepInstanceDTO currently doesn't support impacted teams collection
                     // This would need to be handled by a separate service method if required
                     // For now, we'll use the assignedTeamId as a default relationship
                     if (stepDTO.assignedTeamId) {
@@ -2487,7 +2583,7 @@ class StepRepository {
                     }
                     
                     // Handle iteration types relationships
-                    // Note: StepDataTransferObject currently doesn't support iteration types collection
+                    // Note: StepInstanceDTO currently doesn't support iteration types collection
                     // This would need to be handled by a separate service method if required
                     // For now, we'll skip this relationship as it's not available in the DTO
                     // If needed, this could be added to the DTO in a future enhancement
@@ -2511,18 +2607,18 @@ class StepRepository {
     }
     
     /**
-     * Update an existing step from StepDataTransferObject
+     * Update an existing step from StepInstanceDTO
      * Supports both step master and step instance updates with optimistic locking
      * 
      * @param stepDTO Step data transfer object to update
-     * @return Updated StepDataTransferObject
+     * @return Updated StepInstanceDTO
      * @throws IllegalArgumentException If stepDTO is invalid or required IDs are missing
      * @throws IllegalStateException If optimistic locking fails or record not found
      * @throws SQLException If database constraint violations occur
      */
-    def updateDTO(StepDataTransferObject stepDTO) {
+    def updateDTO(StepInstanceDTO stepDTO) {
         if (!stepDTO) {
-            throw new IllegalArgumentException("StepDataTransferObject cannot be null")
+            throw new IllegalArgumentException("StepInstanceDTO cannot be null")
         }
         if (!stepDTO.stepInstanceId && !stepDTO.stepId) {
             throw new IllegalArgumentException("Either stepInstanceId or stepId must be provided for updates")
@@ -2658,15 +2754,15 @@ class StepRepository {
     }
     
     /**
-     * Save (create or update) a step from StepDataTransferObject
+     * Save (create or update) a step from StepInstanceDTO
      * Determines whether to create or update based on presence of IDs
      * 
      * @param stepDTO Step data transfer object to save
-     * @return Saved StepDataTransferObject
+     * @return Saved StepInstanceDTO
      */
-    def saveDTO(StepDataTransferObject stepDTO) {
+    def saveDTO(StepInstanceDTO stepDTO) {
         if (!stepDTO) {
-            throw new IllegalArgumentException("StepDataTransferObject cannot be null")
+            throw new IllegalArgumentException("StepInstanceDTO cannot be null")
         }
         
         // Determine if this is a create or update operation
@@ -2684,13 +2780,13 @@ class StepRepository {
     }
     
     /**
-     * Batch save multiple steps from StepDataTransferObject list
+     * Batch save multiple steps from StepInstanceDTO list
      * Optimized for performance with transaction management
      * 
      * @param stepDTOs List of Step data transfer objects to save
-     * @return List of saved StepDataTransferObjects
+     * @return List of saved StepInstanceDTOs
      */
-    def batchSaveDTO(List<StepDataTransferObject> stepDTOs) {
+    def batchSaveDTO(List<StepInstanceDTO> stepDTOs) {
         if (!stepDTOs) {
             return []
         }
@@ -2709,7 +2805,7 @@ class StepRepository {
     
     /**
      * Build the comprehensive base query for DTO population
-     * This query includes all fields needed for StepDataTransferObject construction
+     * This query includes all fields needed for StepInstanceDTO construction
      * @return SQL query string
      */
     private String buildDTOBaseQuery() {
@@ -2813,7 +2909,7 @@ class StepRepository {
     }
     
     /**
-     * Find steps with filters and return as StepDataTransferObject list with pagination
+     * Find steps with filters and return as StepInstanceDTO list with pagination
      * Enhanced version of existing findMasterStepsWithFilters that returns DTOs
      * @param filters Map of filter parameters  
      * @param pageNumber Page number (1-based)

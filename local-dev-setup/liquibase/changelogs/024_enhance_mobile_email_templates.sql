@@ -336,8 +336,8 @@ SET
 </html>',
     emt_name = 'Mobile-Responsive Step Status Changed',
     emt_subject = '[UMIG] ${stepInstance.sti_code ?: stepInstance.sti_name} → ${newStatus}',
-    emt_updated_date = NOW(),
-    emt_updated_by = 'system'
+    updated_at = NOW(),
+    updated_by = 'system'
 WHERE emt_type = 'STEP_STATUS_CHANGED' 
   AND emt_is_active = true;
 
@@ -448,8 +448,8 @@ SET
 </html>',
     emt_name = 'Mobile-Responsive Step Opened',
     emt_subject = '[UMIG] ${stepInstance.sti_code ?: stepInstance.sti_name} Ready',
-    emt_updated_date = NOW(),
-    emt_updated_by = 'system'
+    updated_at = NOW(),
+    updated_by = 'system'
 WHERE emt_type = 'STEP_OPENED' 
   AND emt_is_active = true;
 
@@ -544,8 +544,8 @@ SET
 </html>',
     emt_name = 'Mobile-Responsive Instruction Completed',
     emt_subject = '[UMIG] ${instruction.ini_name} Complete',
-    emt_updated_date = NOW(),
-    emt_updated_by = 'system'
+    updated_at = NOW(),
+    updated_by = 'system'
 WHERE emt_type = 'INSTRUCTION_COMPLETED' 
   AND emt_is_active = true;
 
@@ -556,8 +556,8 @@ INSERT INTO email_templates_emt (
     emt_subject, 
     emt_body_html, 
     emt_is_active,
-    emt_created_by,
-    emt_updated_by
+    created_by,
+    updated_by
 )
 SELECT 
     'STEP_NOTIFICATION_MOBILE',

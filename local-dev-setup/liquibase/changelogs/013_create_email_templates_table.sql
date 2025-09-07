@@ -12,10 +12,10 @@ CREATE TABLE email_templates_emt (
     emt_body_text TEXT,
     emt_type VARCHAR(50) NOT NULL CHECK (emt_type IN ('STEP_OPENED', 'INSTRUCTION_COMPLETED', 'STEP_STATUS_CHANGED', 'CUSTOM')),
     emt_is_active BOOLEAN DEFAULT true,
-    emt_created_date TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    emt_updated_date TIMESTAMP WITH TIME ZONE DEFAULT now(),
-    emt_created_by VARCHAR(255),
-    emt_updated_by VARCHAR(255)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    created_by VARCHAR(255),
+    updated_by VARCHAR(255)
 );
 
 -- Add comments for documentation
@@ -32,7 +32,7 @@ CREATE INDEX idx_emt_type ON email_templates_emt(emt_type) WHERE emt_is_active =
 CREATE INDEX idx_emt_name ON email_templates_emt(emt_name);
 
 -- Insert default templates
-INSERT INTO email_templates_emt (emt_name, emt_type, emt_subject, emt_body_html, emt_created_by) VALUES
+INSERT INTO email_templates_emt (emt_name, emt_type, emt_subject, emt_body_html, created_by) VALUES
 ('Default Step Opened Template', 'STEP_OPENED', 
 '[UMIG] Step Ready: ${stepInstance.sti_name} - ${stepInstance.migration_name ?: "Migration"}',
 '<html>

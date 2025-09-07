@@ -72,7 +72,7 @@ class US056BPhase2ValidationRunner extends BaseTestRunner {
           "groovy",
           "umig",
           "dto",
-          "StepDataTransferObject.groovy",
+          "StepInstanceDTO.groovy",
         ),
         emailService: path.join(
           this.projectRoot,
@@ -366,7 +366,7 @@ class US056BPhase2ValidationRunner extends BaseTestRunner {
 
       if (!stepDTOContent) {
         throw new ValidationError(
-          "StepDataTransferObject.groovy content is empty or unreadable",
+          "StepInstanceDTO.groovy content is empty or unreadable",
           {
             context: "template_mapping_file_content",
           },

@@ -168,3 +168,5 @@ tmp/lint/
 **/local-dev-setup_confluence_data.tar.gz
 **/local-dev-setup_postgres_data.tar.gz
 .kiro/settings/mcp.json
+test-results/.last-run.json
+local-dev-setup/test-results/*
