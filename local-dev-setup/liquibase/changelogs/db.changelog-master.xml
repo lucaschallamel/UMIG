@@ -32,6 +32,8 @@
     <include file="025_extend_staging_tables.sql" relativeToChangelogFile="true"/>
     <include file="026_us034_import_tables.sql" relativeToChangelogFile="true"/>
     <include file="027_email_templates_with_urls.sql" relativeToChangelogFile="true"/>
+    <include file="028_enhance_iteration_types_master.sql" relativeToChangelogFile="true"/>
+    <include file="029_create_migration_types_master.sql" relativeToChangelogFile="true"/>
     <include file="999_grant_app_user_privileges.sql" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

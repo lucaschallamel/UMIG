@@ -132,51 +132,53 @@ This implementation plan provides a comprehensive, phased approach for developin
 
 **Database Design Specifications**:
 
-**Primary Table**: `tbl_migration_types_master`
+**Primary Table**: `migration_types_master_mtm`
 
 ```sql
--- Following UMIG naming conventions and patterns
-CREATE TABLE tbl_migration_types_master (
-    mgt_name VARCHAR(50) PRIMARY KEY,              -- String PK for simplicity
-    mgt_description TEXT NOT NULL,
-    mgt_color_code VARCHAR(7) DEFAULT '#007CBA',   -- Hex color validation needed
-    mgt_icon_name VARCHAR(50),                     -- Icon system integration
-    mgt_is_active BOOLEAN DEFAULT true NOT NULL,
-    mgt_display_order INTEGER DEFAULT 0,
-    mgt_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    mgt_created_by VARCHAR(255) NOT NULL,
-    mgt_updated_at TIMESTAMP,
-    mgt_updated_by VARCHAR(255),
+-- Following UMIG naming conventions and patterns (ADR-014)
+CREATE TABLE migration_types_master_mtm (
+    mtm_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,  -- Standard UUID PK
+    mtm_name VARCHAR(50) UNIQUE NOT NULL,               -- Unique name constraint
+    mtm_description TEXT NOT NULL,
+    mtm_color_code VARCHAR(7) DEFAULT '#007CBA',        -- Hex color validation needed
+    mtm_icon_name VARCHAR(50),                          -- Icon system integration
+    mtm_is_active BOOLEAN DEFAULT true NOT NULL,
+    mtm_display_order INTEGER DEFAULT 0,
+    mtm_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    mtm_created_by VARCHAR(255) NOT NULL,
+    mtm_updated_at TIMESTAMP,
+    mtm_updated_by VARCHAR(255),
 
     -- Constraints
-    CONSTRAINT ck_mgt_color_code CHECK (mgt_color_code ~ '^#[0-9A-Fa-f]{6}$'),
-    CONSTRAINT ck_mgt_name_length CHECK (LENGTH(TRIM(mgt_name)) >= 2)
+    CONSTRAINT ck_mtm_color_code CHECK (mtm_color_code ~ '^#[0-9A-Fa-f]{6}$'),
+    CONSTRAINT ck_mtm_name_length CHECK (LENGTH(TRIM(mtm_name)) >= 2)
 );
 
 -- Indexes for performance
-CREATE INDEX idx_mgt_display_order ON tbl_migration_types_master(mgt_display_order);
-CREATE INDEX idx_mgt_is_active ON tbl_migration_types_master(mgt_is_active);
+CREATE INDEX idx_mtm_display_order ON migration_types_master_mtm(mtm_display_order);
+CREATE INDEX idx_mtm_is_active ON migration_types_master_mtm(mtm_is_active);
+CREATE INDEX idx_mtm_name ON migration_types_master_mtm(mtm_name);
 ```
 
 **Migration Strategy**:
 
 ```sql
 -- Data population from existing migrations
-INSERT INTO tbl_migration_types_master (
-    mgt_name,
-    mgt_description,
-    mgt_display_order,
-    mgt_created_by
+INSERT INTO migration_types_master_mtm (
+    mtm_name,
+    mtm_description,
+    mtm_display_order,
+    mtm_created_by
 )
 SELECT DISTINCT
-    migration_type,
-    'Existing migration type - ' || migration_type,
-    ROW_NUMBER() OVER (ORDER BY migration_type),
+    mig_type,
+    'Existing migration type - ' || mig_type,
+    ROW_NUMBER() OVER (ORDER BY mig_type),
     'system-migration'
-FROM tbl_migrations_master
-WHERE migration_type IS NOT NULL
-AND TRIM(migration_type) != ''
-AND migration_type NOT IN (SELECT mgt_name FROM tbl_migration_types_master);
+FROM migrations_mig
+WHERE mig_type IS NOT NULL
+AND TRIM(mig_type) != ''
+AND mig_type NOT IN (SELECT mtm_name FROM migration_types_master_mtm);
 ```
 
 #### Task 2.2: API Architecture Design
@@ -332,47 +334,54 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
     <changeSet id="create-migration-types-master" author="us042-implementation">
         <comment>Create Migration Types Master table for dynamic type management</comment>
 
-        <createTable tableName="tbl_migration_types_master">
-            <column name="mgt_name" type="VARCHAR(50)">
+        <createTable tableName="migration_types_master_mtm">
+            <column name="mtm_id" type="UUID" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="mgt_description" type="TEXT">
+            <column name="mtm_name" type="VARCHAR(50)">
+                <constraints unique="true" nullable="false"/>
+            </column>
+            <column name="mtm_description" type="TEXT">
                 <constraints nullable="false"/>
             </column>
-            <column name="mgt_color_code" type="VARCHAR(7)" defaultValue="#007CBA">
+            <column name="mtm_color_code" type="VARCHAR(7)" defaultValue="#007CBA">
                 <constraints nullable="false"/>
             </column>
-            <column name="mgt_icon_name" type="VARCHAR(50)"/>
-            <column name="mgt_is_active" type="BOOLEAN" defaultValueBoolean="true">
+            <column name="mtm_icon_name" type="VARCHAR(50)"/>
+            <column name="mtm_is_active" type="BOOLEAN" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
-            <column name="mgt_display_order" type="INTEGER" defaultValueNumeric="0"/>
-            <column name="mgt_created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="mgt_created_by" type="VARCHAR(255)">
+            <column name="mtm_display_order" type="INTEGER" defaultValueNumeric="0"/>
+            <column name="mtm_created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="mtm_created_by" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="mgt_updated_at" type="TIMESTAMP"/>
-            <column name="mgt_updated_by" type="VARCHAR(255)"/>
+            <column name="mtm_updated_at" type="TIMESTAMP"/>
+            <column name="mtm_updated_by" type="VARCHAR(255)"/>
         </createTable>
 
         <!-- Constraints -->
         <sql>
-            ALTER TABLE tbl_migration_types_master
-            ADD CONSTRAINT ck_mgt_color_code
-            CHECK (mgt_color_code ~ '^#[0-9A-Fa-f]{6}$');
+            ALTER TABLE migration_types_master_mtm
+            ADD CONSTRAINT ck_mtm_color_code
+            CHECK (mtm_color_code ~ '^#[0-9A-Fa-f]{6}$');
 
-            ALTER TABLE tbl_migration_types_master
-            ADD CONSTRAINT ck_mgt_name_length
-            CHECK (LENGTH(TRIM(mgt_name)) >= 2);
+            ALTER TABLE migration_types_master_mtm
+            ADD CONSTRAINT ck_mtm_name_length
+            CHECK (LENGTH(TRIM(mtm_name)) >= 2);
         </sql>
 
         <!-- Indexes -->
-        <createIndex indexName="idx_mgt_display_order" tableName="tbl_migration_types_master">
-            <column name="mgt_display_order"/>
+        <createIndex indexName="idx_mtm_display_order" tableName="migration_types_master_mtm">
+            <column name="mtm_display_order"/>
         </createIndex>
 
-        <createIndex indexName="idx_mgt_is_active" tableName="tbl_migration_types_master">
-            <column name="mgt_is_active"/>
+        <createIndex indexName="idx_mtm_is_active" tableName="migration_types_master_mtm">
+            <column name="mtm_is_active"/>
+        </createIndex>
+
+        <createIndex indexName="idx_mtm_name" tableName="migration_types_master_mtm">
+            <column name="mtm_name"/>
         </createIndex>
     </changeSet>
 
@@ -380,23 +389,23 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
         <comment>Populate initial migration types from existing data</comment>
 
         <sql>
-            INSERT INTO tbl_migration_types_master (
-                mgt_name,
-                mgt_description,
-                mgt_display_order,
-                mgt_created_by
+            INSERT INTO migration_types_master_mtm (
+                mtm_name,
+                mtm_description,
+                mtm_display_order,
+                mtm_created_by
             )
             SELECT DISTINCT
-                migration_type,
-                'Migrated from existing data - ' || migration_type,
-                ROW_NUMBER() OVER (ORDER BY migration_type),
+                mig_type,
+                'Migrated from existing data - ' || mig_type,
+                ROW_NUMBER() OVER (ORDER BY mig_type),
                 'system-migration'
-            FROM tbl_migrations_master
-            WHERE migration_type IS NOT NULL
-            AND TRIM(migration_type) != ''
+            FROM migrations_mig
+            WHERE mig_type IS NOT NULL
+            AND TRIM(mig_type) != ''
             AND NOT EXISTS (
-                SELECT 1 FROM tbl_migration_types_master
-                WHERE mgt_name = migration_type
+                SELECT 1 FROM migration_types_master_mtm
+                WHERE mtm_name = mig_type
             );
         </sql>
     </changeSet>
@@ -422,17 +431,18 @@ class MigrationTypesRepository {
 
     private static final String BASE_QUERY = """
         SELECT
-            mgt_name as name,
-            mgt_description as description,
-            mgt_color_code as colorCode,
-            mgt_icon_name as iconName,
-            mgt_is_active as isActive,
-            mgt_display_order as displayOrder,
-            mgt_created_at as createdAt,
-            mgt_created_by as createdBy,
-            mgt_updated_at as updatedAt,
-            mgt_updated_by as updatedBy
-        FROM tbl_migration_types_master
+            mtm_id as id,
+            mtm_name as name,
+            mtm_description as description,
+            mtm_color_code as colorCode,
+            mtm_icon_name as iconName,
+            mtm_is_active as isActive,
+            mtm_display_order as displayOrder,
+            mtm_created_at as createdAt,
+            mtm_created_by as createdBy,
+            mtm_updated_at as updatedAt,
+            mtm_updated_by as updatedBy
+        FROM migration_types_master_mtm
     """
 
     /**
@@ -447,12 +457,12 @@ class MigrationTypesRepository {
 
             // Apply filters
             if (filters.isActive != null) {
-                whereConditions << "mgt_is_active = ?"
+                whereConditions << "mtm_is_active = ?"
                 params << Boolean.valueOf(filters.isActive as String)
             }
 
             if (filters.name) {
-                whereConditions << "LOWER(mgt_name) LIKE LOWER(?)"
+                whereConditions << "LOWER(mtm_name) LIKE LOWER(?)"
                 params << "%${filters.name}%"
             }
 
@@ -461,7 +471,7 @@ class MigrationTypesRepository {
             if (whereConditions) {
                 query += " WHERE " + whereConditions.join(" AND ")
             }
-            query += " ORDER BY mgt_display_order, mgt_name"
+            query += " ORDER BY mtm_display_order, mtm_name"
 
             return sql.rows(query, params)
         }
@@ -474,7 +484,7 @@ class MigrationTypesRepository {
      */
     Map<String, Object> findByName(String name) {
         return DatabaseUtil.withSql { Sql sql ->
-            def query = BASE_QUERY + " WHERE mgt_name = ?"
+            def query = BASE_QUERY + " WHERE mtm_name = ?"
             def results = sql.rows(query, [name])
             return results ? results[0] : null
         }
@@ -494,14 +504,15 @@ class MigrationTypesRepository {
             validateMigrationType(migrationType, false)
 
             def insertQuery = """
-                INSERT INTO tbl_migration_types_master (
-                    mgt_name, mgt_description, mgt_color_code,
-                    mgt_icon_name, mgt_is_active, mgt_display_order,
-                    mgt_created_by, mgt_created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO migration_types_master_mtm (
+                    mtm_id, mtm_name, mtm_description, mtm_color_code,
+                    mtm_icon_name, mtm_is_active, mtm_display_order,
+                    mtm_created_by, mtm_created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
             sql.execute(insertQuery, [
+                UUID.randomUUID(),
                 migrationType.name as String,
                 migrationType.description as String,
                 migrationType.colorCode ?: '#007CBA',
@@ -536,15 +547,15 @@ class MigrationTypesRepository {
             def now = new Timestamp(System.currentTimeMillis())
 
             def updateQuery = """
-                UPDATE tbl_migration_types_master
-                SET mgt_description = ?,
-                    mgt_color_code = ?,
-                    mgt_icon_name = ?,
-                    mgt_is_active = ?,
-                    mgt_display_order = ?,
-                    mgt_updated_by = ?,
-                    mgt_updated_at = ?
-                WHERE mgt_name = ?
+                UPDATE migration_types_master_mtm
+                SET mtm_description = ?,
+                    mtm_color_code = ?,
+                    mtm_icon_name = ?,
+                    mtm_is_active = ?,
+                    mtm_display_order = ?,
+                    mtm_updated_by = ?,
+                    mtm_updated_at = ?
+                WHERE mtm_name = ?
             """
 
             sql.execute(updateQuery, [
@@ -571,7 +582,7 @@ class MigrationTypesRepository {
         return DatabaseUtil.withSql { Sql sql ->
             // Check if migration type is in use
             def usageCheck = sql.rows(
-                "SELECT COUNT(*) as count FROM tbl_migrations_master WHERE migration_type = ?",
+                "SELECT COUNT(*) as count FROM migrations_mig WHERE mig_type = ?",
                 [name]
             )
 
@@ -581,7 +592,7 @@ class MigrationTypesRepository {
                 )
             }
 
-            def deleteQuery = "DELETE FROM tbl_migration_types_master WHERE mgt_name = ?"
+            def deleteQuery = "DELETE FROM migration_types_master_mtm WHERE mtm_name = ?"
             def rowsAffected = sql.executeUpdate(deleteQuery, [name])
 
             return rowsAffected > 0
@@ -595,9 +606,9 @@ class MigrationTypesRepository {
     Set<String> getTypesInUse() {
         return DatabaseUtil.withSql { Sql sql ->
             def results = sql.rows(
-                "SELECT DISTINCT migration_type FROM tbl_migrations_master WHERE migration_type IS NOT NULL"
+                "SELECT DISTINCT mig_type FROM migrations_mig WHERE mig_type IS NOT NULL"
             )
-            return results.collect { it.migration_type } as Set<String>
+            return results.collect { it.mig_type } as Set<String>
         }
     }
 
