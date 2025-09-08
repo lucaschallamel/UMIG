@@ -37,7 +37,7 @@ async function generateMigrations(config, options = {}) {
   console.log(
     "Generating migrations and their associated plans and iterations...",
   );
-  const { COUNT, START_DATE_RANGE, DURATION_MONTHS, ITERATIONS, TYPE } =
+  const { COUNT, START_DATE_RANGE, DURATION_MONTHS, ITERATIONS } =
     config.MIGRATIONS;
   const { PER_MIGRATION } = config.CANONICAL_PLANS;
 
@@ -75,6 +75,26 @@ async function generateMigrations(config, options = {}) {
     (row) => row.sts_id,
   );
 
+  // Fetch available migration types from migration_types_master table
+  const migrationTypesResult = await client.query(
+    "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master WHERE mtm_active = true ORDER BY mtm_display_order",
+  );
+
+  let migrationTypes = migrationTypesResult.rows;
+  if (migrationTypes.length === 0) {
+    console.warn(
+      "No active migration types found in migration_types_master table. Using fallback type 'EXTERNAL'.",
+    );
+    // Fallback to hardcoded type if table is empty (backward compatibility)
+    migrationTypes = [
+      { mtm_id: null, mtm_code: "EXTERNAL", mtm_name: "External Migration" },
+    ];
+  } else {
+    console.log(
+      `Found ${migrationTypes.length} active migration types: ${migrationTypes.map((t) => t.mtm_code).join(", ")}`,
+    );
+  }
+
   for (let i = 0; i < COUNT; i++) {
     const ownerId = faker.helpers.arrayElement(users).usr_id;
     const startDate = randomDateInRange(
@@ -83,6 +103,9 @@ async function generateMigrations(config, options = {}) {
     );
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + DURATION_MONTHS);
+
+    // Select a random migration type for this migration
+    const selectedType = faker.helpers.arrayElement(migrationTypes);
 
     const migQuery = `
       INSERT INTO migrations_mig (usr_id_owner, mig_name, mig_description, mig_status, mig_type, mig_start_date, mig_end_date, created_by, created_at, updated_by, updated_at)
@@ -94,7 +117,7 @@ async function generateMigrations(config, options = {}) {
       `Migration ${i + 1}: ${faker.company.catchPhrase()}`,
       faker.lorem.sentence(),
       faker.helpers.arrayElement(migrationStatusIds),
-      TYPE,
+      selectedType.mtm_code, // Use the dynamic migration type code
       startDate,
       endDate,
       "generator",

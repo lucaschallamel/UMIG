@@ -52,24 +52,24 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 
 ### Database Changes
 
-**New Table: `tbl_migration_types_master`**
+**New Table: `migration_types_master_mtm`**
 
 ```sql
-- mgt_name VARCHAR(50) PRIMARY KEY  -- Migration type name as primary key
-- mgt_description TEXT
-- mgt_color_code VARCHAR(7)         -- Hex color for UI
-- mgt_icon_name VARCHAR(50)         -- Icon identifier
-- mgt_is_active BOOLEAN DEFAULT true
-- mgt_display_order INTEGER
-- mgt_created_at TIMESTAMP
-- mgt_created_by VARCHAR(255)
-- mgt_updated_at TIMESTAMP
-- mgt_updated_by VARCHAR(255)
+- mtm_name VARCHAR(50) PRIMARY KEY  -- Migration type name as primary key
+- mtm_description TEXT
+- mtm_color_code VARCHAR(7)         -- Hex color for UI
+- mtm_icon_name VARCHAR(50)         -- Icon identifier
+- mtm_is_active BOOLEAN DEFAULT true
+- mtm_display_order INTEGER
+- mtm_created_at TIMESTAMP
+- mtm_created_by VARCHAR(255)
+- mtm_updated_at TIMESTAMP
+- mtm_updated_by VARCHAR(255)
 ```
 
 **No Changes to Existing Tables**
 
-- `tbl_migrations_master` remains unchanged
+- `migrations_mig` remains unchanged
 - Existing migration_type field continues to work
 - No foreign key relationships needed
 
@@ -291,27 +291,27 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 
 ```sql
 -- Step 1: Create migration_types_master table
-CREATE TABLE tbl_migration_types_master (
-    mgt_name VARCHAR(50) PRIMARY KEY,
-    mgt_description TEXT,
-    mgt_color_code VARCHAR(7) DEFAULT '#007CBA',
-    mgt_icon_name VARCHAR(50),
-    mgt_is_active BOOLEAN DEFAULT true,
-    mgt_display_order INTEGER,
-    mgt_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    mgt_created_by VARCHAR(255),
-    mgt_updated_at TIMESTAMP,
-    mgt_updated_by VARCHAR(255)
+CREATE TABLE migration_types_master_mtm (
+    mtm_name VARCHAR(50) PRIMARY KEY,
+    mtm_description TEXT,
+    mtm_color_code VARCHAR(7) DEFAULT '#007CBA',
+    mtm_icon_name VARCHAR(50),
+    mtm_is_active BOOLEAN DEFAULT true,
+    mtm_display_order INTEGER,
+    mtm_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    mtm_created_by VARCHAR(255),
+    mtm_updated_at TIMESTAMP,
+    mtm_updated_by VARCHAR(255)
 );
 
 -- Step 2: Insert existing migration types
-INSERT INTO tbl_migration_types_master (mgt_name, mgt_description, mgt_display_order)
+INSERT INTO migration_types_master_mtm (mtm_name, mtm_description, mtm_display_order)
 SELECT DISTINCT
-    migration_type,
+    mig_type,
     'Standard migration type',
-    ROW_NUMBER() OVER (ORDER BY migration_type)
-FROM tbl_migrations_master
-WHERE migration_type IS NOT NULL AND migration_type != '';
+    ROW_NUMBER() OVER (ORDER BY mig_type)
+FROM migrations_mig
+WHERE mig_type IS NOT NULL AND mig_type != '';
 ```
 
 **Complete Backward Compatibility**
@@ -322,7 +322,7 @@ WHERE migration_type IS NOT NULL AND migration_type != '';
 
 **Simple Rollback**
 
-- Just DROP the new migration_types_master table
+- Just DROP the new migration_types_master_mtm table
 - Zero impact on existing functionality
 - No data restoration needed
 
@@ -357,7 +357,7 @@ WHERE migration_type IS NOT NULL AND migration_type != '';
 ### Sub-tasks
 
 1. **Database Schema & Migration** (1 point)
-   - Create migration_types_master table
+   - Create migration_types_master_mtm table
    - Simple data population script
    - No foreign key relationships needed
 
