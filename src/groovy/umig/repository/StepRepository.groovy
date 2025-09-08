@@ -2472,6 +2472,179 @@ class StepRepository {
     }
     
     /**
+     * Find filtered step instances and return as StepInstanceDTOs (hierarchical filtering)
+     * This is the DTO version of findFilteredStepInstances for the main GET /steps endpoint
+     * @param filters Map of filter parameters (migrationId, iterationId, planId, sequenceId, phaseId, teamId, labelId)
+     * @return List of StepInstanceDTOs with hierarchical ordering
+     */
+    def findFilteredStepInstancesAsDTO(Map filters) {
+        DatabaseUtil.withSql { sql ->
+            def query = buildDTOBaseQuery()
+            def params = [:]
+            def whereConditions = ["sti.sti_is_active = true"]
+            
+            // Add hierarchical filters
+            if (filters.migrationId) {
+                whereConditions << "mig.mig_id = :migrationId"
+                params.migrationId = UUID.fromString(filters.migrationId as String)
+            }
+            
+            if (filters.iterationId) {
+                whereConditions << "ite.ite_id = :iterationId"
+                params.iterationId = UUID.fromString(filters.iterationId as String)
+            }
+            
+            if (filters.planId) {
+                whereConditions << "pli.pli_id = :planId"
+                params.planId = UUID.fromString(filters.planId as String)
+            }
+            
+            if (filters.sequenceId) {
+                whereConditions << "sqi.sqi_id = :sequenceId"
+                params.sequenceId = UUID.fromString(filters.sequenceId as String)
+            }
+            
+            if (filters.phaseId) {
+                whereConditions << "phi.phi_id = :phaseId"
+                params.phaseId = UUID.fromString(filters.phaseId as String)
+            }
+            
+            // Add team filter
+            if (filters.teamId) {
+                whereConditions << "stm.tms_id_owner = :teamId"
+                params.teamId = Integer.parseInt(filters.teamId as String)
+            }
+            
+            // Add label filter (through step-label join table)
+            if (filters.labelId) {
+                whereConditions << '''EXISTS (
+                        SELECT 1 FROM labels_lbl_x_steps_master_stm lxs 
+                        WHERE lxs.stm_id = stm.stm_id AND lxs.lbl_id = :labelId
+                    )'''
+                params.labelId = Integer.parseInt(filters.labelId as String)
+            }
+            
+            def whereClause = whereConditions ? "WHERE ${whereConditions.join(' AND ')}" : ""
+            def orderByClause = "ORDER BY sqm.sqm_order, phm.phm_order, stm.stm_number"
+            
+            def finalQuery = query + " " + whereClause + " " + orderByClause
+            def rows = sql.rows(finalQuery, params)
+            
+            return transformationService.batchTransformFromDatabaseRows(rows as List<Map>)
+        }
+    }
+    
+    /**
+     * Find master steps with filters and return as StepMasterDTOs
+     * This is the DTO version of findMasterStepsWithFilters for the GET /steps/master endpoint
+     * @param filters Map of filter parameters
+     * @param pageNumber Page number (1-based)
+     * @param pageSize Number of items per page
+     * @param sortField Field to sort by
+     * @param sortDirection Sort direction (asc/desc)
+     * @return Map with StepMasterDTOs, pagination info, and filters
+     */
+    def findMasterStepsWithFiltersAsDTO(Map filters, int pageNumber = 1, int pageSize = 50, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            pageNumber = Math.max(1, pageNumber)
+            pageSize = Math.min(100, Math.max(1, pageSize))
+            
+            def whereConditions = []
+            def params = [:]
+            
+            // Build WHERE clause from filters
+            if (filters.stm_id) {
+                whereConditions << "stm.stm_id = :stmId"
+                params.stmId = UUID.fromString(filters.stm_id as String)
+            }
+            
+            if (filters.stm_name) {
+                whereConditions << "LOWER(stm.stm_name) LIKE LOWER(:stmName)"
+                params.stmName = "%${filters.stm_name}%"
+            }
+            
+            if (filters.stt_code) {
+                whereConditions << "stm.stt_code = :sttCode"
+                params.sttCode = filters.stt_code
+            }
+            
+            def whereClause = whereConditions ? "WHERE ${whereConditions.join(' AND ')}" : ""
+            
+            // Validate and set sort field
+            def allowedSortFields = ['stm_id', 'stm_name', 'stm_order', 'created_at', 'updated_at', 'instruction_count', 'instance_count', 'plm_name', 'sqm_name', 'phm_name']
+            def actualSortField = allowedSortFields.contains(sortField) ? sortField : 'stm.stm_order'
+            def actualSortDirection = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+            
+            // Count query for pagination
+            def countQuery = """
+                SELECT COUNT(DISTINCT stm.stm_id)
+                FROM steps_master_stm stm
+                JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                ${whereClause}
+            """
+            
+            def totalCount = sql.firstRow(countQuery, params)[0] as Integer
+            def totalPages = Math.ceil(totalCount / (double) pageSize) as Integer
+            
+            // Main query with pagination
+            def offset = (pageNumber - 1) * pageSize
+            params.limit = pageSize
+            params.offset = offset
+            
+            def dataQuery = """
+                SELECT stm.stm_id,
+                       stm.stt_code,
+                       stm.stm_number,
+                       stm.stm_name,
+                       stm.stm_description,
+                       stm.phm_id,
+                       stm.created_date,
+                       stm.last_modified_date,
+                       stm.is_active,
+                       phm.phm_name,
+                       sqm.sqm_name,
+                       plm.plm_name,
+                       tms.tms_name as owner_team_name,
+                       (SELECT COUNT(*) FROM instructions_master_inm inm 
+                        WHERE inm.stm_id = stm.stm_id) as instruction_count,
+                       (SELECT COUNT(*) FROM steps_instance_sti sti 
+                        WHERE sti.stm_id = stm.stm_id) as instance_count
+                FROM steps_master_stm stm
+                JOIN phases_master_phm phm ON stm.phm_id = phm.phm_id
+                JOIN sequences_master_sqm sqm ON phm.sqm_id = sqm.sqm_id
+                JOIN plans_master_plm plm ON sqm.plm_id = plm.plm_id
+                LEFT JOIN teams_tms tms ON stm.tms_id_owner = tms.tms_id
+                ${whereClause}
+                ORDER BY ${actualSortField} ${actualSortDirection}
+                LIMIT :limit OFFSET :offset
+            """
+            
+            def rows = sql.rows(dataQuery, params)
+            def dtos = transformationService.fromMasterDatabaseRows(rows as List<Map>)
+            
+            return [
+                data: dtos,
+                pagination: [
+                    pageNumber: pageNumber,
+                    pageSize: pageSize,
+                    totalPages: totalPages,
+                    totalCount: totalCount,
+                    hasNext: pageNumber < totalPages,
+                    hasPrevious: pageNumber > 1
+                ],
+                filters: filters,
+                sort: [
+                    field: actualSortField,
+                    direction: actualSortDirection
+                ]
+            ]
+        }
+    }
+    
+    /**
      * Create a new step from StepInstanceDTO
      * Supports both step master and step instance creation
      * 
