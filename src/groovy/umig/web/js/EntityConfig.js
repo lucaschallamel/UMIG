@@ -3386,6 +3386,254 @@
       defaultSort: { field: "sti_order", direction: "asc" },
       permissions: ["confluence-users"],
     },
+
+    iterationTypes: {
+      name: "Iteration Types",
+      description: "Manage iteration types and their configurations",
+      fields: [
+        {
+          key: "itt_code",
+          label: "Code",
+          type: "text",
+          required: true,
+          maxLength: 20,
+          readonly: false,
+        },
+        {
+          key: "itt_name",
+          label: "Name",
+          type: "text",
+          required: true,
+          maxLength: 100,
+        },
+        {
+          key: "itt_description",
+          label: "Description",
+          type: "textarea",
+          maxLength: 500,
+        },
+        {
+          key: "itt_color",
+          label: "Color",
+          type: "color",
+          required: true,
+          default: "#6B73FF",
+        },
+        {
+          key: "itt_icon",
+          label: "Icon",
+          type: "text",
+          maxLength: 50,
+          default: "play-circle",
+        },
+        {
+          key: "itt_display_order",
+          label: "Display Order",
+          type: "number",
+          required: true,
+          default: 0,
+        },
+        {
+          key: "itt_active",
+          label: "Active",
+          type: "boolean",
+          required: true,
+          default: true,
+        },
+        {
+          key: "created_at",
+          label: "Created At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
+      ],
+      tableColumns: [
+        "itt_code",
+        "itt_name",
+        "itt_description",
+        "itt_color",
+        "itt_icon",
+        "itt_display_order",
+        "itt_active",
+      ],
+      sortMapping: {
+        itt_code: "itt_code",
+        itt_name: "itt_name",
+        itt_description: "itt_description",
+        itt_color: "itt_color",
+        itt_icon: "itt_icon",
+        itt_display_order: "itt_display_order",
+        itt_active: "itt_active",
+      },
+      customRenderers: {
+        itt_color: function (value) {
+          if (!value) return "";
+          return `<div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background-color: ${value}; border-radius: 3px; margin-right: 8px; border: 1px solid #ddd;"></div>${value}</div>`;
+        },
+        itt_active: function (value) {
+          const isActive = value === true || value === "true" || value === 1;
+          const badgeClass = isActive
+            ? "aui-badge-complete"
+            : "aui-badge-error";
+          const text = isActive ? "Active" : "Inactive";
+          return `<span class="aui-badge ${badgeClass}">${text}</span>`;
+        },
+      },
+      defaultSort: { field: "itt_display_order", direction: "asc" },
+      permissions: ["superadmin"],
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+    },
+
+    migrationTypes: {
+      name: "Migration Types",
+      description: "Manage migration types and their configurations",
+      fields: [
+        {
+          key: "mtm_id",
+          label: "ID",
+          type: "number",
+          readonly: true,
+          primaryKey: true,
+        },
+        {
+          key: "mtm_code",
+          label: "Code",
+          type: "text",
+          required: true,
+          maxLength: 20,
+          readonly: false,
+        },
+        {
+          key: "mtm_name",
+          label: "Name",
+          type: "text",
+          required: true,
+          maxLength: 100,
+        },
+        {
+          key: "mtm_description",
+          label: "Description",
+          type: "textarea",
+          maxLength: 500,
+        },
+        {
+          key: "mtm_color",
+          label: "Color",
+          type: "color",
+          required: true,
+          default: "#6B73FF",
+        },
+        {
+          key: "mtm_icon",
+          label: "Icon",
+          type: "text",
+          maxLength: 50,
+          default: "migration",
+        },
+        {
+          key: "mtm_display_order",
+          label: "Display Order",
+          type: "number",
+          required: true,
+          default: 0,
+        },
+        {
+          key: "mtm_active",
+          label: "Active",
+          type: "boolean",
+          required: true,
+          default: true,
+        },
+        {
+          key: "created_at",
+          label: "Created At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "created_by",
+          label: "Created By",
+          type: "text",
+          readonly: true,
+        },
+        {
+          key: "updated_at",
+          label: "Updated At",
+          type: "datetime",
+          readonly: true,
+        },
+        {
+          key: "updated_by",
+          label: "Updated By",
+          type: "text",
+          readonly: true,
+        },
+      ],
+      tableColumns: [
+        "mtm_code",
+        "mtm_name",
+        "mtm_description",
+        "mtm_color",
+        "mtm_icon",
+        "mtm_display_order",
+        "mtm_active",
+      ],
+      sortMapping: {
+        mtm_id: "mtm_id",
+        mtm_code: "mtm_code",
+        mtm_name: "mtm_name",
+        mtm_description: "mtm_description",
+        mtm_color: "mtm_color",
+        mtm_icon: "mtm_icon",
+        mtm_display_order: "mtm_display_order",
+        mtm_active: "mtm_active",
+      },
+      customRenderers: {
+        mtm_color: function (value) {
+          if (!value) return "";
+          return `<div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background-color: ${value}; border-radius: 3px; margin-right: 8px; border: 1px solid #ddd;"></div>${value}</div>`;
+        },
+        mtm_active: function (value) {
+          const isActive = value === true || value === "true" || value === 1;
+          const badgeClass = isActive
+            ? "aui-badge-complete"
+            : "aui-badge-error";
+          const text = isActive ? "Active" : "Inactive";
+          return `<span class="aui-badge ${badgeClass}">${text}</span>`;
+        },
+      },
+      defaultSort: { field: "mtm_display_order", direction: "asc" },
+      permissions: ["superadmin"],
+      ui: {
+        enableBulkActions: false,
+        enableExport: false,
+        enableRowSelection: false,
+        enableSelectAll: false,
+      },
+    },
   };
 
   // API endpoints configuration
@@ -3400,6 +3648,7 @@
       iterationTypes: "/iterationTypes",
       labels: "/labels",
       migrations: "/migrations",
+      migrationTypes: "/migrationTypes",
 
       // Legacy endpoints (maintained for backward compatibility)
       plans: "/plans/master", // Master plans endpoint

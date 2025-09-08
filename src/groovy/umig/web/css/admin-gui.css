@@ -1000,7 +1000,6 @@
 }
 
 .form-field input[type="text"],
-.form-field input[type="color"],
 .form-field textarea,
 .form-field select {
   width: 100%;
@@ -1012,9 +1011,31 @@
   margin: 0;
 }
 
+/* Special styling for color inputs - maintain native appearance */
+.form-field input[type="color"] {
+  width: auto;
+  min-width: 60px;
+  height: 40px;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: none;
+  box-sizing: border-box;
+}
+
+.form-field input[type="color"]:hover {
+  border-color: var(--primary-color);
+}
+
+.form-field input[type="color"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
 /* Modal-specific form field spacing fixes */
 .modal-body .form-field input[type="text"],
-.modal-body .form-field input[type="color"],
 .modal-body .form-field textarea,
 .modal-body .form-field select {
   width: 100%;
@@ -1026,8 +1047,89 @@
   margin: 0;
 }
 
-/* Comprehensive modal input field fix - catches all input types */
-.modal-body input,
+/* Modal-specific color input styling */
+.modal-body .form-field input[type="color"] {
+  width: auto;
+  min-width: 60px;
+  height: 40px;
+  padding: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: none;
+  box-sizing: border-box;
+}
+
+/* Enhanced color field container styling */
+.color-field-container {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.color-field-container input[type="color"] {
+  width: 60px !important;
+  height: 40px !important;
+  min-width: 60px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 2px;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.color-field-container input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-field-container input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 3px;
+}
+
+.color-field-container input[type="text"] {
+  width: 100px !important;
+  min-width: 100px;
+  font-family: "Courier New", Consolas, monospace;
+  font-size: 13px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.color-field-container .color-preview {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Responsive color field on smaller screens */
+@media (max-width: 480px) {
+  .color-field-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .color-field-container input[type="text"] {
+    width: 100% !important;
+    min-width: auto;
+  }
+}
+
+/* Comprehensive modal input field fix - catches all input types except color */
+.modal-body
+  input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),
 .modal-body textarea,
 .modal-body select {
   width: 100%;

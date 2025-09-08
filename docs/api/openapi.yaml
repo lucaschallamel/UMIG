@@ -131,6 +131,8 @@ tags:
     description: Operations for importing JSON data and CSV base entities with batch processing, rollback capabilities, and audit trails.
   - name: ImportQueue
     description: Operations for import queue management, scheduling, and resource monitoring with orchestration capabilities.
+  - name: MigrationTypes
+    description: Operations about migration types with comprehensive sorting, filtering, and CRUD functionality.
 
 paths:
   # ==================== NEW V2 ITERATIONS API ====================
@@ -4219,21 +4221,1326 @@ paths:
         - ConfluenceUsers: []
       tags:
         - Iterations
-      summary: Get all iteration types
+      summary: Get all iteration types with enhanced filtering and sorting
       description: |
-        Retrieves all available iteration types for reference data.
-        Used primarily for populating dropdowns in the Admin GUI.
-        Returns a simple list of iteration type codes and names.
+        Retrieves all available iteration types with comprehensive filtering, pagination, and sorting capabilities.
+        Supports both legacy Admin GUI requests and modern paginated requests.
+
+        **Sorting Support**: 11 fields (itt_code, itt_name, itt_description, itt_color, itt_icon, itt_display_order, itt_active, created_by, created_at, updated_by, updated_at)
+        **Pagination**: Enterprise-grade pagination with metadata
+        **Filtering**: Include/exclude inactive iteration types
+        **Statistics**: Optional usage statistics with `stats=true`
       operationId: getAllIterationTypes
+      parameters:
+        - name: includeInactive
+          in: query
+          description: Include inactive iteration types (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: stats
+          in: query
+          description: Include usage statistics instead of basic listing
+          schema:
+            type: boolean
+            default: false
+        - name: page
+          in: query
+          description: Page number (1-based indexing)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          description: Page size (1-1000, default 50)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 50
+        - name: sort
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            enum:
+              [
+                itt_code,
+                itt_name,
+                itt_description,
+                itt_color,
+                itt_icon,
+                itt_display_order,
+                itt_active,
+                created_by,
+                created_at,
+                updated_by,
+                updated_at,
+              ]
+        - name: direction
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
       responses:
         "200":
-          description: List of all iteration types
+          description: List of iteration types (paginated if page/size parameters provided)
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    description: Simple array for legacy requests
+                    items:
+                      $ref: "#/components/schemas/IterationType"
+                  - type: object
+                    description: Paginated response with metadata
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/IterationType"
+                      pagination:
+                        type: object
+                        properties:
+                          currentPage:
+                            type: integer
+                          pageSize:
+                            type: integer
+                          totalItems:
+                            type: integer
+                          totalPages:
+                            type: integer
+                          hasNext:
+                            type: boolean
+                          hasPrevious:
+                            type: boolean
+              examples:
+                simpleList:
+                  summary: Simple list for legacy Admin GUI
+                  value:
+                    - itt_code: "PILOT"
+                      itt_name: "Pilot Migration"
+                      itt_active: true
+                paginatedResponse:
+                  summary: Paginated response with metadata
+                  value:
+                    data:
+                      - itt_code: "PILOT"
+                        itt_name: "Pilot Migration"
+                        itt_description: "Small scale pilot migration"
+                        itt_color: "#6B73FF"
+                        itt_icon: "pilot"
+                        itt_display_order: 1
+                        itt_active: true
+                        created_by: "admin"
+                        created_at: "2024-01-01T12:00:00Z"
+                        updated_by: "admin"
+                        updated_at: "2024-01-01T12:00:00Z"
+                    pagination:
+                      currentPage: 1
+                      pageSize: 50
+                      totalItems: 5
+                      totalPages: 1
+                      hasNext: false
+                      hasPrevious: false
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Iterations
+      summary: Create a new iteration type
+      description: |
+        Creates a new iteration type with comprehensive validation.
+        Requires itt_code and itt_name. Supports color, icon, and display order customization.
+      operationId: createIterationType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itt_code:
+                  type: string
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                  maxLength: 20
+                  description: Unique iteration type code (alphanumeric, underscore, dash only)
+                  example: "PILOT"
+                itt_name:
+                  type: string
+                  maxLength: 100
+                  description: Display name for the iteration type
+                  example: "Pilot Migration"
+                itt_description:
+                  type: string
+                  maxLength: 500
+                  description: Optional description
+                  example: "Small scale pilot migration for testing"
+                itt_color:
+                  type: string
+                  pattern: "^#[0-9A-Fa-f]{6}$"
+                  description: Hex color code for visual differentiation
+                  example: "#6B73FF"
+                itt_icon:
+                  type: string
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                  maxLength: 50
+                  description: Icon name for UI display
+                  example: "pilot"
+                itt_display_order:
+                  type: integer
+                  description: Sort order for display (default 0)
+                  default: 0
+                itt_active:
+                  type: boolean
+                  description: Whether the iteration type is active (default true)
+                  default: true
+              required:
+                - itt_code
+                - itt_name
+            examples:
+              minimalCreate:
+                summary: Minimal creation with required fields only
+                value:
+                  itt_code: "PILOT"
+                  itt_name: "Pilot Migration"
+              fullCreate:
+                summary: Complete creation with all optional fields
+                value:
+                  itt_code: "FULL_PROD"
+                  itt_name: "Full Production"
+                  itt_description: "Complete production migration with all systems"
+                  itt_color: "#FF6B6B"
+                  itt_icon: "production"
+                  itt_display_order: 10
+                  itt_active: true
+      responses:
+        "201":
+          description: Iteration type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IterationType"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missingRequiredField:
+                  summary: Missing required field
+                  value:
+                    error: "itt_code is required"
+                invalidColorFormat:
+                  summary: Invalid color format
+                  value:
+                    error: "itt_color must be a valid hex color code (e.g., #6B73FF)"
+                invalidCodeFormat:
+                  summary: Invalid code format
+                  value:
+                    error: "itt_code must contain only alphanumeric characters, underscores, and dashes"
+        "409":
+          description: Conflict - iteration type code already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                duplicateCode:
+                  summary: Duplicate iteration type code
+                  value:
+                    error: "Iteration type with code 'PILOT' already exists"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /iterationTypes/{code}:
+    get:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Iterations
+      summary: Get iteration type by code
+      description: |
+        Retrieves a specific iteration type by its unique code.
+      operationId: getIterationTypeByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique iteration type code
+          example: "PILOT"
+      responses:
+        "200":
+          description: Iteration type details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IterationType"
+        "404":
+          description: Iteration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Iteration type not found
+                  value:
+                    error: "Iteration type with code 'NONEXISTENT' not found"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Iterations
+      summary: Update iteration type by code
+      description: |
+        Updates an existing iteration type. All fields except itt_code are updatable.
+        Supports partial updates - only provided fields will be modified.
+      operationId: updateIterationTypeByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique iteration type code
+          example: "PILOT"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itt_name:
+                  type: string
+                  maxLength: 100
+                  description: Display name for the iteration type
+                  example: "Updated Pilot Migration"
+                itt_description:
+                  type: string
+                  maxLength: 500
+                  description: Optional description
+                  example: "Updated description for pilot migration"
+                itt_color:
+                  type: string
+                  pattern: "^#[0-9A-Fa-f]{6}$"
+                  description: Hex color code for visual differentiation
+                  example: "#FF6B6B"
+                itt_icon:
+                  type: string
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                  maxLength: 50
+                  description: Icon name for UI display
+                  example: "updated_icon"
+                itt_display_order:
+                  type: integer
+                  description: Sort order for display
+                  example: 5
+                itt_active:
+                  type: boolean
+                  description: Whether the iteration type is active
+                  example: false
+            examples:
+              partialUpdate:
+                summary: Partial update - name and color only
+                value:
+                  itt_name: "Updated Pilot Migration"
+                  itt_color: "#FF6B6B"
+              fullUpdate:
+                summary: Complete update of all fields
+                value:
+                  itt_name: "Completely Updated Pilot"
+                  itt_description: "Fully updated description"
+                  itt_color: "#00FF00"
+                  itt_icon: "new_icon"
+                  itt_display_order: 15
+                  itt_active: false
+      responses:
+        "200":
+          description: Iteration type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IterationType"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidColorFormat:
+                  summary: Invalid color format
+                  value:
+                    error: "itt_color must be a valid hex color code (e.g., #6B73FF)"
+                invalidDisplayOrder:
+                  summary: Invalid display order
+                  value:
+                    error: "itt_display_order must be a valid integer"
+        "404":
+          description: Iteration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Iteration type not found for update
+                  value:
+                    error: "Iteration type with code 'NONEXISTENT' not found"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      security:
+        - ConfluenceUsers: []
+      tags:
+        - Iterations
+      summary: Soft delete iteration type by code
+      description: |
+        Performs soft deletion by setting itt_active = false.
+        Checks for blocking relationships before allowing deletion.
+        Cannot delete iteration types that are still referenced by iterations or step templates.
+      operationId: deleteIterationTypeByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique iteration type code to delete
+          example: "PILOT"
+      responses:
+        "204":
+          description: Iteration type soft deleted successfully
+        "404":
+          description: Iteration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Iteration type not found for deletion
+                  value:
+                    error: "Iteration type with code 'NONEXISTENT' not found"
+        "409":
+          description: Cannot delete due to existing references
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: string
+                  blocking_relationships:
+                    type: object
+                    properties:
+                      iterations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            ite_name:
+                              type: string
+                            mig_name:
+                              type: string
+                      steps_master:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            stm_name:
+                              type: string
+              examples:
+                hasIterations:
+                  summary: Cannot delete - has iteration references
+                  value:
+                    error: "Cannot delete iteration type 'PILOT' because it is still in use by:"
+                    details:
+                      ["Iterations: Pilot Wave 1 (in migration: Project Alpha)"]
+                    blocking_relationships:
+                      iterations:
+                        - ite_name: "Pilot Wave 1"
+                          mig_name: "Project Alpha"
+                hasStepTemplates:
+                  summary: Cannot delete - has step template references
+                  value:
+                    error: "Cannot delete iteration type 'PILOT' because it is still in use by:"
+                    details: ["Step templates: Pilot Setup, Pilot Validation"]
+                    blocking_relationships:
+                      steps_master:
+                        - stm_name: "Pilot Setup"
+                        - stm_name: "Pilot Validation"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrationTypes:
+    get:
+      security:
+        - ConfluenceUsers: []
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Get all migration types with comprehensive filtering and sorting
+      description: |
+        Retrieves all migration types with advanced filtering, pagination, and sorting capabilities.
+        Supports both legacy Admin GUI requests and modern paginated requests.
+
+        **Sorting Support**: 12 fields (mtm_id, mtm_code, mtm_name, mtm_description, mtm_color, mtm_icon, mtm_display_order, mtm_active, created_by, created_at, updated_by, updated_at)
+        **Pagination**: Enterprise-grade pagination with metadata (ready for future implementation)
+        **Filtering**: Include/exclude inactive migration types
+        **Statistics**: Optional usage statistics with special endpoints
+      operationId: getAllMigrationTypes
+      parameters:
+        - name: includeInactive
+          in: query
+          description: Include inactive migration types (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: page
+          in: query
+          description: Page number (1-based indexing, pagination ready)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: size
+          in: query
+          description: Page size (1-100, default 50, pagination ready)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: sort
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            enum:
+              [
+                mtm_id,
+                mtm_code,
+                mtm_name,
+                mtm_description,
+                mtm_color,
+                mtm_icon,
+                mtm_display_order,
+                mtm_active,
+                created_by,
+                created_at,
+                updated_by,
+                updated_at,
+              ]
+        - name: direction
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        "200":
+          description: List of migration types (with sorting support)
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/IterationType"
+                  $ref: "#/components/schemas/MigrationType"
+              examples:
+                sortedList:
+                  summary: Sorted list with all fields
+                  value:
+                    - mtm_id: 1
+                      mtm_code: "PILOT"
+                      mtm_name: "Pilot Migration"
+                      mtm_description: "Small scale pilot migration for testing"
+                      mtm_color: "#6B73FF"
+                      mtm_icon: "pilot"
+                      mtm_display_order: 1
+                      mtm_active: true
+                      created_by: "admin"
+                      created_at: "2024-01-01T12:00:00Z"
+                      updated_by: "admin"
+                      updated_at: "2024-01-01T12:00:00Z"
+                    - mtm_id: 2
+                      mtm_code: "FULL_PROD"
+                      mtm_name: "Full Production"
+                      mtm_description: "Complete production migration"
+                      mtm_color: "#FF6B6B"
+                      mtm_icon: "production"
+                      mtm_display_order: 2
+                      mtm_active: true
+                      created_by: "admin"
+                      created_at: "2024-01-01T12:00:00Z"
+                      updated_by: "admin"
+                      updated_at: "2024-01-01T12:00:00Z"
+        "400":
+          description: Invalid sort field or validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidSortField:
+                  summary: Invalid sort field
+                  value:
+                    error: "Invalid sort field 'invalid_field'. Allowed fields are: mtm_id, mtm_code, mtm_name, mtm_description, mtm_color, mtm_icon, mtm_display_order, mtm_active, created_by, created_at, updated_by, updated_at"
+                invalidPageNumber:
+                  summary: Invalid page number
+                  value:
+                    error: "Invalid page number format"
+                invalidPageSize:
+                  summary: Invalid page size
+                  value:
+                    error: "Invalid page size format"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      security:
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Create a new migration type
+      description: |
+        Creates a new migration type with comprehensive validation.
+        Requires mtm_code and mtm_name. Supports color, icon, and display order customization.
+        Automatically handles audit fields (created_by, updated_by).
+      operationId: createMigrationType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mtm_code:
+                  type: string
+                  maxLength: 20
+                  description: Unique migration type code
+                  example: "PILOT"
+                mtm_name:
+                  type: string
+                  maxLength: 100
+                  description: Display name for the migration type
+                  example: "Pilot Migration"
+                mtm_description:
+                  type: string
+                  maxLength: 500
+                  description: Optional description
+                  example: "Small scale pilot migration for testing purposes"
+                mtm_color:
+                  type: string
+                  pattern: "^#[0-9A-Fa-f]{6}$"
+                  description: Hex color code for visual differentiation
+                  example: "#6B73FF"
+                mtm_icon:
+                  type: string
+                  maxLength: 50
+                  description: Icon name for UI display
+                  example: "pilot"
+                mtm_display_order:
+                  type: integer
+                  description: Sort order for display (default 0)
+                  default: 0
+                mtm_active:
+                  type: boolean
+                  description: Whether the migration type is active (default true)
+                  default: true
+              required:
+                - mtm_code
+                - mtm_name
+            examples:
+              minimalCreate:
+                summary: Minimal creation with required fields only
+                value:
+                  mtm_code: "PILOT"
+                  mtm_name: "Pilot Migration"
+              fullCreate:
+                summary: Complete creation with all optional fields
+                value:
+                  mtm_code: "FULL_PROD"
+                  mtm_name: "Full Production Migration"
+                  mtm_description: "Complete production migration with all systems and data"
+                  mtm_color: "#FF6B6B"
+                  mtm_icon: "production"
+                  mtm_display_order: 10
+                  mtm_active: true
+      responses:
+        "201":
+          description: Migration type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationType"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missingRequiredField:
+                  summary: Missing required field
+                  value:
+                    error: "mtm_code and mtm_name are required"
+                invalidFormat:
+                  summary: Invalid field format
+                  value:
+                    error: "Invalid field format or constraints violated"
+        "409":
+          description: Conflict - migration type code already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                duplicateCode:
+                  summary: Duplicate migration type code
+                  value:
+                    error: "Migration type code already exists"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrationTypes/selection:
+    get:
+      security:
+        - ConfluenceUsers: []
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Get active migration types for selection dropdowns
+      description: |
+        Retrieves active migration types optimized for dropdown selection.
+        Returns simplified structure for UI components.
+      operationId: getMigrationTypesForSelection
+      responses:
+        "200":
+          description: Active migration types for selection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    mtm_id:
+                      type: integer
+                    mtm_code:
+                      type: string
+                    mtm_name:
+                      type: string
+                    mtm_color:
+                      type: string
+                    mtm_icon:
+                      type: string
+              examples:
+                selectionList:
+                  summary: Migration types for dropdown selection
+                  value:
+                    - mtm_id: 1
+                      mtm_code: "PILOT"
+                      mtm_name: "Pilot Migration"
+                      mtm_color: "#6B73FF"
+                      mtm_icon: "pilot"
+                    - mtm_id: 2
+                      mtm_code: "FULL_PROD"
+                      mtm_name: "Full Production"
+                      mtm_color: "#FF6B6B"
+                      mtm_icon: "production"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrationTypes/stats:
+    get:
+      security:
+        - ConfluenceUsers: []
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Get migration type usage statistics
+      description: |
+        Retrieves usage statistics for migration types including usage counts
+        and relationships with migrations.
+      operationId: getMigrationTypeUsageStats
+      responses:
+        "200":
+          description: Migration type usage statistics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    mtm_id:
+                      type: integer
+                    mtm_code:
+                      type: string
+                    mtm_name:
+                      type: string
+                    usage_count:
+                      type: integer
+                      description: Number of migrations using this type
+                    last_used:
+                      type: string
+                      format: date-time
+                      description: Last usage timestamp
+              examples:
+                usageStats:
+                  summary: Usage statistics for migration types
+                  value:
+                    - mtm_id: 1
+                      mtm_code: "PILOT"
+                      mtm_name: "Pilot Migration"
+                      usage_count: 5
+                      last_used: "2024-01-15T10:30:00Z"
+                    - mtm_id: 2
+                      mtm_code: "FULL_PROD"
+                      mtm_name: "Full Production"
+                      usage_count: 12
+                      last_used: "2024-01-20T14:45:00Z"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrationTypes/{id}:
+    get:
+      security:
+        - ConfluenceUsers: []
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Get migration type by ID
+      description: |
+        Retrieves a specific migration type by its unique ID.
+      operationId: getMigrationTypeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Unique migration type ID
+          example: 1
+      responses:
+        "200":
+          description: Migration type details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationType"
+        "400":
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidIdFormat:
+                  summary: Invalid migration type ID format
+                  value:
+                    error: "Invalid migration type ID format"
+        "404":
+          description: Migration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Migration type not found
+                  value:
+                    error: "Migration type not found"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      security:
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Update migration type by ID
+      description: |
+        Updates an existing migration type. All fields except mtm_id are updatable.
+        Supports partial updates - only provided fields will be modified.
+        Automatically handles audit fields (updated_by).
+      operationId: updateMigrationTypeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Unique migration type ID
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mtm_code:
+                  type: string
+                  maxLength: 20
+                  description: Unique migration type code
+                  example: "UPDATED_PILOT"
+                mtm_name:
+                  type: string
+                  maxLength: 100
+                  description: Display name for the migration type
+                  example: "Updated Pilot Migration"
+                mtm_description:
+                  type: string
+                  maxLength: 500
+                  description: Optional description
+                  example: "Updated description for pilot migration"
+                mtm_color:
+                  type: string
+                  pattern: "^#[0-9A-Fa-f]{6}$"
+                  description: Hex color code for visual differentiation
+                  example: "#FF6B6B"
+                mtm_icon:
+                  type: string
+                  maxLength: 50
+                  description: Icon name for UI display
+                  example: "updated_icon"
+                mtm_display_order:
+                  type: integer
+                  description: Sort order for display
+                  example: 5
+                mtm_active:
+                  type: boolean
+                  description: Whether the migration type is active
+                  example: false
+            examples:
+              partialUpdate:
+                summary: Partial update - name and color only
+                value:
+                  mtm_name: "Updated Pilot Migration"
+                  mtm_color: "#FF6B6B"
+              fullUpdate:
+                summary: Complete update of all fields
+                value:
+                  mtm_code: "UPDATED_PILOT"
+                  mtm_name: "Completely Updated Pilot"
+                  mtm_description: "Fully updated description"
+                  mtm_color: "#00FF00"
+                  mtm_icon: "new_icon"
+                  mtm_display_order: 15
+                  mtm_active: false
+      responses:
+        "200":
+          description: Migration type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationType"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidIdFormat:
+                  summary: Invalid migration type ID format
+                  value:
+                    error: "Invalid migration type ID format"
+                validationError:
+                  summary: Field validation error
+                  value:
+                    error: "Invalid field format or constraints violated"
+        "404":
+          description: Migration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Migration type not found for update
+                  value:
+                    error: "Migration type not found"
+        "409":
+          description: Conflict - unique constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                duplicateCode:
+                  summary: Duplicate migration type code
+                  value:
+                    error: "Migration type code already exists"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      security:
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Delete migration type by ID
+      description: |
+        Deletes a migration type after checking for blocking relationships.
+        Cannot delete migration types that are still referenced by migrations.
+        Returns detailed information about blocking relationships if deletion is not possible.
+      operationId: deleteMigrationTypeById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Unique migration type ID to delete
+          example: 1
+      responses:
+        "200":
+          description: Migration type deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Migration type deleted successfully"
+        "400":
+          description: Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidIdFormat:
+                  summary: Invalid migration type ID format
+                  value:
+                    error: "Invalid migration type ID format"
+        "404":
+          description: Migration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Migration type not found for deletion
+                  value:
+                    error: "Migration type not found"
+        "409":
+          description: Cannot delete due to existing references
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  blockingRelationships:
+                    type: object
+                    properties:
+                      migrations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            mig_id:
+                              type: string
+                              format: uuid
+                            mig_name:
+                              type: string
+              examples:
+                hasMigrations:
+                  summary: Cannot delete - has migration references
+                  value:
+                    error: "Cannot delete migration type due to existing relationships"
+                    blockingRelationships:
+                      migrations:
+                        - mig_id: "550e8400-e29b-41d4-a716-446655440000"
+                          mig_name: "Project Alpha Migration"
+                        - mig_id: "550e8400-e29b-41d4-a716-446655440001"
+                          mig_name: "Project Beta Migration"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrationTypes/code/{code}:
+    get:
+      security:
+        - ConfluenceUsers: []
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Get migration type by code
+      description: |
+        Retrieves a specific migration type by its unique code.
+      operationId: getMigrationTypeByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique migration type code
+          example: "PILOT"
+      responses:
+        "200":
+          description: Migration type details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationType"
+        "404":
+          description: Migration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Migration type not found
+                  value:
+                    error: "Migration type not found"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      security:
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Update migration type by code
+      description: |
+        Updates an existing migration type identified by code. All fields are updatable.
+        Supports partial updates - only provided fields will be modified.
+        Automatically handles audit fields (updated_by).
+      operationId: updateMigrationTypeByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique migration type code
+          example: "PILOT"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mtm_name:
+                  type: string
+                  maxLength: 100
+                  description: Display name for the migration type
+                  example: "Updated Pilot Migration"
+                mtm_description:
+                  type: string
+                  maxLength: 500
+                  description: Optional description
+                  example: "Updated description for pilot migration"
+                mtm_color:
+                  type: string
+                  pattern: "^#[0-9A-Fa-f]{6}$"
+                  description: Hex color code for visual differentiation
+                  example: "#FF6B6B"
+                mtm_icon:
+                  type: string
+                  maxLength: 50
+                  description: Icon name for UI display
+                  example: "updated_icon"
+                mtm_display_order:
+                  type: integer
+                  description: Sort order for display
+                  example: 5
+                mtm_active:
+                  type: boolean
+                  description: Whether the migration type is active
+                  example: false
+            examples:
+              updateByCode:
+                summary: Update migration type by code
+                value:
+                  mtm_name: "Updated Pilot Migration"
+                  mtm_description: "Enhanced pilot migration for better testing"
+                  mtm_color: "#9B59B6"
+      responses:
+        "200":
+          description: Migration type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationType"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Migration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Migration type not found for update
+                  value:
+                    error: "Migration type not found"
+        "409":
+          description: Conflict - unique constraint violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    delete:
+      security:
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Delete migration type by code
+      description: |
+        Deletes a migration type identified by code after checking for blocking relationships.
+        Cannot delete migration types that are still referenced by migrations.
+      operationId: deleteMigrationTypeByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique migration type code to delete
+          example: "PILOT"
+      responses:
+        "200":
+          description: Migration type deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Migration type deleted successfully"
+        "404":
+          description: Migration type not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Migration type not found for deletion
+                  value:
+                    error: "Migration type not found"
+        "409":
+          description: Cannot delete due to existing references
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  blockingRelationships:
+                    type: object
+              examples:
+                hasReferences:
+                  summary: Cannot delete - has references
+                  value:
+                    error: "Cannot delete migration type due to existing relationships"
+                    blockingRelationships:
+                      migrations: []
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /migrationTypes/reorder:
+    post:
+      security:
+        - ConfluenceAdministrators: []
+      tags:
+        - MigrationTypes
+      summary: Reorder migration types
+      description: |
+        Updates the display order of multiple migration types in a single operation.
+        Accepts a mapping of migration type IDs to their new display orders.
+      operationId: reorderMigrationTypes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orderMap:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                  description: Mapping of migration type IDs to new display orders
+                  example:
+                    "1": 1
+                    "2": 2
+                    "3": 3
+              required:
+                - orderMap
+            examples:
+              reorderExample:
+                summary: Reorder three migration types
+                value:
+                  orderMap:
+                    "1": 3
+                    "2": 1
+                    "3": 2
+      responses:
+        "200":
+          description: Migration types reordered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Migration types reordered successfully"
+                  updatedCount:
+                    type: integer
+                    example: 3
+        "400":
+          description: Invalid request format or values
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missingOrderMap:
+                  summary: Missing orderMap in request
+                  value:
+                    error: "Missing orderMap in request body"
+                invalidIdOrOrder:
+                  summary: Invalid ID or order value
+                  value:
+                    error: "Invalid ID or order value in orderMap"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -10062,15 +11369,154 @@ components:
       properties:
         itt_code:
           type: string
-          description: Iteration type code
+          maxLength: 20
+          pattern: "^[a-zA-Z0-9_-]+$"
+          description: Unique iteration type code (alphanumeric, underscore, dash only)
           example: "PILOT"
         itt_name:
           type: string
-          description: Iteration type name
+          maxLength: 100
+          description: Display name for the iteration type
           example: "Pilot Migration"
+        itt_description:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Optional detailed description of the iteration type
+          example: "Small scale pilot migration for testing purposes"
+        itt_color:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          nullable: true
+          description: Hex color code for visual differentiation in UI
+          example: "#6B73FF"
+        itt_icon:
+          type: string
+          maxLength: 50
+          pattern: "^[a-zA-Z0-9_-]+$"
+          nullable: true
+          description: Icon name for UI display (alphanumeric, underscore, dash only)
+          example: "pilot"
+        itt_display_order:
+          type: integer
+          description: Sort order for display purposes (lower numbers appear first)
+          default: 0
+          example: 1
+        itt_active:
+          type: boolean
+          description: Whether the iteration type is active and available for selection
+          default: true
+          example: true
+        created_by:
+          type: string
+          maxLength: 255
+          description: User code who created this iteration type
+          example: "admin"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when this iteration type was created
+          example: "2024-01-01T12:00:00Z"
+        updated_by:
+          type: string
+          maxLength: 255
+          description: User code who last updated this iteration type
+          example: "admin"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when this iteration type was last updated
+          example: "2024-01-01T12:00:00Z"
       required:
         - itt_code
         - itt_name
+        - itt_display_order
+        - itt_active
+        - created_by
+        - created_at
+        - updated_by
+        - updated_at
+
+    MigrationType:
+      type: object
+      properties:
+        mtm_id:
+          type: integer
+          description: Unique migration type identifier (auto-generated primary key)
+          example: 1
+          readOnly: true
+        mtm_code:
+          type: string
+          maxLength: 20
+          description: Unique migration type code for referencing and identification
+          example: "PILOT"
+        mtm_name:
+          type: string
+          maxLength: 100
+          description: Display name for the migration type
+          example: "Pilot Migration"
+        mtm_description:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Optional detailed description of the migration type and its purpose
+          example: "Small scale pilot migration used for testing and validation purposes"
+        mtm_color:
+          type: string
+          pattern: "^#[0-9A-Fa-f]{6}$"
+          nullable: true
+          description: Hex color code for visual differentiation in UI components
+          example: "#6B73FF"
+        mtm_icon:
+          type: string
+          maxLength: 50
+          nullable: true
+          description: Icon name for UI display and visual identification
+          example: "pilot"
+        mtm_display_order:
+          type: integer
+          description: Sort order for display purposes (lower numbers appear first)
+          default: 0
+          example: 1
+        mtm_active:
+          type: boolean
+          description: Whether the migration type is active and available for selection
+          default: true
+          example: true
+        created_by:
+          type: string
+          maxLength: 255
+          description: User code who created this migration type
+          example: "admin"
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when this migration type was created
+          example: "2024-01-01T12:00:00Z"
+          readOnly: true
+        updated_by:
+          type: string
+          maxLength: 255
+          description: User code who last updated this migration type
+          example: "admin"
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when this migration type was last updated
+          example: "2024-01-01T12:00:00Z"
+          readOnly: true
+      required:
+        - mtm_id
+        - mtm_code
+        - mtm_name
+        - mtm_display_order
+        - mtm_active
+        - created_by
+        - created_at
+        - updated_by
+        - updated_at
 
     UserContext:
       type: object
@@ -13501,3 +14947,9 @@ components:
       description: |
         HTTP Basic Authentication using Confluence username and password.
         All endpoints require membership in either the "confluence-users" or "confluence-administrators" group for access control.
+    ConfluenceAdministrators:
+      type: http
+      scheme: basic
+      description: |
+        HTTP Basic Authentication using Confluence username and password.
+        Administrative endpoints require membership in the "confluence-administrators" group for enhanced access control.
