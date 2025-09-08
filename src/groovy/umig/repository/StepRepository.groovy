@@ -13,11 +13,17 @@ import java.util.UUID
 import java.sql.SQLException
 import java.sql.Timestamp
 import groovy.sql.Sql
+import java.util.logging.Logger
 
 /**
  * Repository for STEP master and instance data, including impacted teams and iteration scopes.
  */
 class StepRepository {
+    
+    /**
+     * Logger for this class
+     */
+    private static final Logger log = Logger.getLogger(StepRepository.class.getName())
     
     /**
      * Service for transforming database rows to StepInstanceDTO and StepMasterDTO
@@ -2248,7 +2254,7 @@ class StepRepository {
      * @param stepMasterId Step master ID (UUID)
      * @return StepMasterDTO or null if not found
      */
-    def findMasterByIdAsDTO(UUID stepMasterId) {
+    StepMasterDTO findMasterByIdAsDTO(UUID stepMasterId) {
         DatabaseUtil.withSql { sql ->
             def row = sql.firstRow('''
                 SELECT stm.stm_id,
@@ -3214,5 +3220,428 @@ class StepRepository {
                 ]
             ]
         }
+    }
+
+    // ========================================
+    // DTO WRITE OPERATIONS - US-056C Phase 2
+    // ========================================
+
+    /**
+     * Create a new step master from DTO
+     * Added for US-056C Phase 2 API integration
+     * 
+     * @param dto StepMasterDTO with data for new step
+     * @return Created StepMasterDTO with generated ID
+     */
+    StepMasterDTO createMasterFromDTO(Map stepData) {
+        log.fine("Creating new master step from DTO data")
+        
+        if (!stepData) {
+            throw new IllegalArgumentException("Step data cannot be null")
+        }
+        
+        return DatabaseUtil.withSql { sql ->
+            try {
+                // Generate new UUID for the step
+                def stepId = UUID.randomUUID()
+                
+                // Validate required fields
+                if (!stepData.phm_id || !stepData.tms_id_owner || !stepData.stt_code || 
+                    !stepData.stm_number || !stepData.stm_name || !stepData.enr_id_target) {
+                    throw new IllegalArgumentException("Missing required fields: phm_id, tms_id_owner, stt_code, stm_number, stm_name, enr_id_target are required")
+                }
+                
+                // Prepare parameters for insertion with type safety (ADR-031)
+                def params = [
+                    stm_id: stepId,
+                    phm_id: UUID.fromString(stepData.phm_id as String),
+                    tms_id_owner: Integer.parseInt(stepData.tms_id_owner as String),
+                    stt_code: stepData.stt_code as String,
+                    stm_number: Integer.parseInt(stepData.stm_number as String),
+                    stm_name: stepData.stm_name as String,
+                    stm_description: stepData.stm_description,
+                    stm_duration_minutes: stepData.stm_duration_minutes ? Integer.parseInt(stepData.stm_duration_minutes as String) : null,
+                    enr_id_target: Integer.parseInt(stepData.enr_id_target as String),
+                    enr_id: stepData.enr_id ? Integer.parseInt(stepData.enr_id as String) : null,
+                    stm_id_predecessor: stepData.stm_id_predecessor ? UUID.fromString(stepData.stm_id_predecessor as String) : null,
+                    created_by: 'admin',
+                    created_at: new Timestamp(System.currentTimeMillis()),
+                    updated_by: 'admin',
+                    updated_at: new Timestamp(System.currentTimeMillis())
+                ]
+                
+                def insertQuery = '''
+                    INSERT INTO steps_master_stm (
+                        stm_id, phm_id, tms_id_owner, stt_code, stm_number, 
+                        stm_name, stm_description, stm_duration_minutes, 
+                        enr_id_target, enr_id, stm_id_predecessor,
+                        created_by, created_at, updated_by, updated_at
+                    ) VALUES (
+                        :stm_id, :phm_id, :tms_id_owner, :stt_code, :stm_number,
+                        :stm_name, :stm_description, :stm_duration_minutes,
+                        :enr_id_target, :enr_id, :stm_id_predecessor,
+                        :created_by, :created_at, :updated_by, :updated_at
+                    )
+                '''
+                
+                sql.executeUpdate(insertQuery, params)
+                
+                // Retrieve the created step as DTO
+                return findMasterByIdAsDTO(stepId)
+                
+            } catch (SQLException e) {
+                log.severe("Database error creating master step: ${e.message}")
+                throw e
+            } catch (Exception e) {
+                log.severe("Failed to create master step from DTO: ${e.message}")
+                throw new RuntimeException("Failed to create master step", e)
+            }
+        }
+    }
+
+    /**
+     * Update an existing step master from DTO
+     * Added for US-056C Phase 2 API integration
+     * 
+     * @param stepMasterId UUID of step to update
+     * @param stepData Map with updated data
+     * @return Updated StepMasterDTO
+     */
+    StepMasterDTO updateMasterFromDTO(UUID stepMasterId, Map stepData) {
+        log.fine("Updating master step ${stepMasterId} from DTO data")
+        
+        if (!stepMasterId) {
+            throw new IllegalArgumentException("Step master ID cannot be null")
+        }
+        if (!stepData) {
+            throw new IllegalArgumentException("Step data cannot be null")
+        }
+        
+        return DatabaseUtil.withSql { sql ->
+            try {
+                // Build dynamic update query based on provided fields
+                def updateFields = []
+                Map<String, Object> params = [stm_id: stepMasterId]
+                
+                // Type-safe parameter extraction (ADR-031)
+                if (stepData.stt_code != null) {
+                    updateFields << "stt_code = :stt_code"
+                    params.stt_code = stepData.stt_code as String
+                }
+                if (stepData.stm_number != null) {
+                    updateFields << "stm_number = :stm_number"
+                    params.stm_number = Integer.parseInt(stepData.stm_number as String)
+                }
+                if (stepData.stm_name != null) {
+                    updateFields << "stm_name = :stm_name"
+                    params.stm_name = stepData.stm_name as String
+                }
+                if (stepData.stm_description != null) {
+                    updateFields << "stm_description = :stm_description"
+                    params.stm_description = stepData.stm_description as String
+                }
+                if (stepData.stm_duration_minutes != null) {
+                    updateFields << "stm_duration_minutes = :stm_duration_minutes"
+                    params.stm_duration_minutes = Integer.parseInt(stepData.stm_duration_minutes as String)
+                }
+                if (stepData.tms_id_owner != null) {
+                    updateFields << "tms_id_owner = :tms_id_owner"
+                    params.tms_id_owner = Integer.parseInt(stepData.tms_id_owner as String)
+                }
+                if (stepData.enr_id_target != null) {
+                    updateFields << "enr_id_target = :enr_id_target"
+                    params.enr_id_target = Integer.parseInt(stepData.enr_id_target as String)
+                }
+                if (stepData.enr_id != null) {
+                    updateFields << "enr_id = :enr_id"
+                    params.enr_id = Integer.parseInt(stepData.enr_id as String)
+                }
+                if (stepData.stm_id_predecessor != null) {
+                    updateFields << "stm_id_predecessor = :stm_id_predecessor"
+                    params.stm_id_predecessor = stepData.stm_id_predecessor == 'null' ? null : UUID.fromString(stepData.stm_id_predecessor as String)
+                }
+                if (stepData.phm_id != null) {
+                    updateFields << "phm_id = :phm_id"
+                    params.phm_id = UUID.fromString(stepData.phm_id as String)
+                }
+                
+                // Always update timestamp
+                updateFields << "updated_at = :updated_at"
+                params.updated_at = new Timestamp(System.currentTimeMillis())
+                updateFields << "updated_by = :updated_by"
+                params.updated_by = 'admin'
+                
+                if (updateFields.isEmpty()) {
+                    throw new IllegalArgumentException("No fields to update")
+                }
+                
+                def updateQuery = """
+                    UPDATE steps_master_stm 
+                    SET ${updateFields.join(', ')}
+                    WHERE stm_id = :stm_id
+                """
+                
+                def rowsUpdated = sql.executeUpdate(updateQuery, params)
+                
+                if (rowsUpdated == 0) {
+                    throw new IllegalArgumentException("Step master not found: ${stepMasterId}")
+                }
+                
+                // Retrieve the updated step as DTO
+                return findMasterByIdAsDTO(stepMasterId)
+                
+            } catch (SQLException e) {
+                log.severe("Database error updating master step: ${e.message}")
+                throw e
+            } catch (Exception e) {
+                log.severe("Failed to update master step from DTO: ${e.message}")
+                throw new RuntimeException("Failed to update master step", e)
+            }
+        }
+    }
+
+    /**
+     * Delete (archive) a step master
+     * Added for US-056C Phase 2 API integration
+     * 
+     * @param stepMasterId UUID of step to delete
+     * @return true if deleted successfully
+     */
+    boolean deleteMaster(UUID stepMasterId) {
+        log.fine("Deleting master step ${stepMasterId}")
+        
+        if (!stepMasterId) {
+            throw new IllegalArgumentException("Step master ID cannot be null")
+        }
+        
+        return DatabaseUtil.withSql { sql ->
+            try {
+                // Check if step has instances
+                def instanceCount = sql.firstRow(
+                    'SELECT COUNT(*) as count FROM steps_instance_sti WHERE stm_id = ?',
+                    [stepMasterId]
+                ).count as Integer
+                
+                if (instanceCount > 0) {
+                    throw new IllegalStateException("Cannot delete step master with ${instanceCount} active instances")
+                }
+                
+                // Delete related data first (cascade)
+                sql.execute('DELETE FROM instructions_master_inm WHERE stm_id = ?', [stepMasterId])
+                sql.execute('DELETE FROM steps_master_stm_x_teams_tms_impacted WHERE stm_id = ?', [stepMasterId])
+                sql.execute('DELETE FROM labels_lbl_x_steps_master_stm WHERE stm_id = ?', [stepMasterId])
+                sql.execute('DELETE FROM steps_master_stm_x_iteration_types_itt WHERE stm_id = ?', [stepMasterId])
+                
+                // Delete the master step
+                def rowsDeleted = sql.executeUpdate(
+                    'DELETE FROM steps_master_stm WHERE stm_id = ?',
+                    [stepMasterId]
+                )
+                
+                return rowsDeleted > 0
+                
+            } catch (SQLException e) {
+                log.severe("Database error deleting master step: ${e.message}")
+                throw e
+            } catch (Exception e) {
+                log.severe("Failed to delete master step: ${e.message}")
+                throw new RuntimeException("Failed to delete master step", e)
+            }
+        }
+    }
+    
+    // ========================================
+    // Instance DTO Operations - US-056C Phase 2
+    // ========================================
+    
+    /**
+     * Create a new step instance from DTO
+     * Added for US-056C Phase 2 API integration
+     * 
+     * @param instanceData Map with instance creation data
+     * @return Created StepInstanceDTO
+     */
+    StepInstanceDTO createInstanceFromDTO(Map instanceData) {
+        log.fine("Creating instance step from DTO data")
+        
+        if (!instanceData) {
+            throw new IllegalArgumentException("Instance data cannot be null")
+        }
+        
+        // Validate required fields
+        def requiredFields = ['stm_id', 'phi_id', 'sti_name']
+        for (field in requiredFields) {
+            if (!instanceData[field]) {
+                throw new IllegalArgumentException("Missing required field: ${field}")
+            }
+        }
+        
+        return (DatabaseUtil.withSql { sql ->
+            try {
+                def instanceId = UUID.randomUUID()
+                
+                // Type-safe parameter extraction (ADR-031)
+                Map<String, Object> params = [
+                    sti_id: instanceId,
+                    stm_id: UUID.fromString(instanceData.stm_id as String),
+                    phi_id: UUID.fromString(instanceData.phi_id as String),
+                    sti_name: instanceData.sti_name as String,
+                    sti_description: instanceData.sti_description as String ?: null,
+                    sti_status: instanceData.sti_status ? Integer.parseInt(instanceData.sti_status as String) : 1, // Default: NOT_STARTED
+                    sti_is_active: instanceData.sti_is_active != null ? Boolean.parseBoolean(instanceData.sti_is_active as String) : true,
+                    sti_assigned_user_id: instanceData.sti_assigned_user_id as String ?: null,
+                    sti_assigned_team_id: instanceData.sti_assigned_team_id ? Integer.parseInt(instanceData.sti_assigned_team_id as String) : null,
+                    sti_planned_start_time: instanceData.sti_planned_start_time ? Timestamp.valueOf(instanceData.sti_planned_start_time as String) : null,
+                    sti_planned_end_time: instanceData.sti_planned_end_time ? Timestamp.valueOf(instanceData.sti_planned_end_time as String) : null,
+                    sti_actual_start_time: instanceData.sti_actual_start_time ? Timestamp.valueOf(instanceData.sti_actual_start_time as String) : null,
+                    sti_actual_end_time: instanceData.sti_actual_end_time ? Timestamp.valueOf(instanceData.sti_actual_end_time as String) : null,
+                    sti_comments: instanceData.sti_comments as String ?: null,
+                    sti_created_date: new Timestamp(System.currentTimeMillis()),
+                    sti_last_modified_date: new Timestamp(System.currentTimeMillis()),
+                    sti_created_by: 'admin',
+                    sti_last_modified_by: 'admin'
+                ]
+                
+                def insertQuery = """
+                    INSERT INTO steps_instance_sti (
+                        sti_id, stm_id, phi_id, sti_name, sti_description,
+                        sti_status, sti_is_active, sti_assigned_user_id, sti_assigned_team_id,
+                        sti_planned_start_time, sti_planned_end_time,
+                        sti_actual_start_time, sti_actual_end_time,
+                        sti_comments, sti_created_date, sti_last_modified_date,
+                        sti_created_by, sti_last_modified_by
+                    ) VALUES (
+                        :sti_id, :stm_id, :phi_id, :sti_name, :sti_description,
+                        :sti_status, :sti_is_active, :sti_assigned_user_id, :sti_assigned_team_id,
+                        :sti_planned_start_time, :sti_planned_end_time,
+                        :sti_actual_start_time, :sti_actual_end_time,
+                        :sti_comments, :sti_created_date, :sti_last_modified_date,
+                        :sti_created_by, :sti_last_modified_by
+                    )
+                """
+                
+                sql.executeUpdate(insertQuery, params)
+                
+                // Retrieve the created instance as DTO
+                return findByInstanceIdAsDTO(instanceId)
+                
+            } catch (SQLException e) {
+                log.severe("Database error creating instance step: ${e.message}")
+                if (e.getSQLState() == "23503") {
+                    throw new IllegalArgumentException("Invalid foreign key reference", e)
+                } else if (e.getSQLState() == "23505") {
+                    throw new IllegalArgumentException("Duplicate instance detected", e)
+                }
+                throw e
+            } catch (Exception e) {
+                log.severe("Failed to create instance step from DTO: ${e.message}")
+                throw new RuntimeException("Failed to create instance step", e)
+            }
+        }) as StepInstanceDTO
+    }
+    
+    /**
+     * Update an existing step instance from DTO
+     * Added for US-056C Phase 2 API integration
+     * 
+     * @param instanceId UUID of instance to update
+     * @param instanceData Map with updated data
+     * @return Updated StepInstanceDTO
+     */
+    StepInstanceDTO updateInstanceFromDTO(UUID instanceId, Map instanceData) {
+        log.fine("Updating instance step ${instanceId} from DTO data")
+        
+        if (!instanceId) {
+            throw new IllegalArgumentException("Instance ID cannot be null")
+        }
+        if (!instanceData) {
+            throw new IllegalArgumentException("Instance data cannot be null")
+        }
+        
+        return (DatabaseUtil.withSql { sql ->
+            try {
+                // Build dynamic update query based on provided fields
+                def updateFields = []
+                Map<String, Object> params = [sti_id: instanceId]
+                
+                // Type-safe parameter extraction (ADR-031)
+                if (instanceData.sti_name != null) {
+                    updateFields << "sti_name = :sti_name"
+                    params.sti_name = instanceData.sti_name as String
+                }
+                if (instanceData.sti_description != null) {
+                    updateFields << "sti_description = :sti_description"
+                    params.sti_description = instanceData.sti_description as String
+                }
+                if (instanceData.sti_status != null) {
+                    updateFields << "sti_status = :sti_status"
+                    params.sti_status = Integer.parseInt(instanceData.sti_status as String)
+                }
+                if (instanceData.sti_is_active != null) {
+                    updateFields << "sti_is_active = :sti_is_active"
+                    params.sti_is_active = Boolean.parseBoolean(instanceData.sti_is_active as String)
+                }
+                if (instanceData.sti_assigned_user_id != null) {
+                    updateFields << "sti_assigned_user_id = :sti_assigned_user_id"
+                    params.sti_assigned_user_id = instanceData.sti_assigned_user_id as String
+                }
+                if (instanceData.sti_assigned_team_id != null) {
+                    updateFields << "sti_assigned_team_id = :sti_assigned_team_id"
+                    params.sti_assigned_team_id = instanceData.sti_assigned_team_id == 'null' ? null : Integer.parseInt(instanceData.sti_assigned_team_id as String)
+                }
+                if (instanceData.sti_planned_start_time != null) {
+                    updateFields << "sti_planned_start_time = :sti_planned_start_time"
+                    params.sti_planned_start_time = instanceData.sti_planned_start_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_planned_start_time as String)
+                }
+                if (instanceData.sti_planned_end_time != null) {
+                    updateFields << "sti_planned_end_time = :sti_planned_end_time"
+                    params.sti_planned_end_time = instanceData.sti_planned_end_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_planned_end_time as String)
+                }
+                if (instanceData.sti_actual_start_time != null) {
+                    updateFields << "sti_actual_start_time = :sti_actual_start_time"
+                    params.sti_actual_start_time = instanceData.sti_actual_start_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_actual_start_time as String)
+                }
+                if (instanceData.sti_actual_end_time != null) {
+                    updateFields << "sti_actual_end_time = :sti_actual_end_time"
+                    params.sti_actual_end_time = instanceData.sti_actual_end_time == 'null' ? null : Timestamp.valueOf(instanceData.sti_actual_end_time as String)
+                }
+                if (instanceData.sti_comments != null) {
+                    updateFields << "sti_comments = :sti_comments"
+                    params.sti_comments = instanceData.sti_comments as String
+                }
+                
+                // Always update timestamp
+                updateFields << "sti_last_modified_date = :sti_last_modified_date"
+                params.sti_last_modified_date = new Timestamp(System.currentTimeMillis())
+                updateFields << "sti_last_modified_by = :sti_last_modified_by"
+                params.sti_last_modified_by = 'admin'
+                
+                if (updateFields.isEmpty()) {
+                    throw new IllegalArgumentException("No fields to update")
+                }
+                
+                def updateQuery = """
+                    UPDATE steps_instance_sti 
+                    SET ${updateFields.join(', ')}
+                    WHERE sti_id = :sti_id
+                """
+                
+                def rowsUpdated = sql.executeUpdate(updateQuery, params)
+                
+                if (rowsUpdated == 0) {
+                    throw new IllegalArgumentException("Step instance not found: ${instanceId}")
+                }
+                
+                // Retrieve the updated instance as DTO
+                return findByInstanceIdAsDTO(instanceId)
+                
+            } catch (SQLException e) {
+                log.severe("Database error updating instance step: ${e.message}")
+                throw e
+            } catch (Exception e) {
+                log.severe("Failed to update instance step from DTO: ${e.message}")
+                throw new RuntimeException("Failed to update instance step", e)
+            }
+        }) as StepInstanceDTO
     }
 }
