@@ -158,27 +158,57 @@ case 'color':
    - Improved error handling with graceful degradation
    - Better loading state management
 
-**Performance Benchmarks Achieved**:
+**Performance Issue Deep Dive**:
 
-**Before Optimizations**:
-- Initial load time: ~3-5 seconds
-- Console warnings: 50-100+ AJS.params messages per page load
+**Critical Discovery**: Despite all optimizations, page still taking 27,051.50ms (27 seconds!) to load due to Confluence's batch.js executing before our warning suppression code. Our suppression showed "0 warnings suppressed" - complete failure to intercept.
+
+**Three Loading Strategies Implemented** (to work around Confluence timing issues):
+
+1. **Ultra-Performance Mode (Default)**:
+   - Aggressive early injection attempting to beat Confluence's batch.js
+   - Overrides console methods, createElement, and AJS.params access
+   - Attempts to defer heavy Confluence scripts
+   - **Activation**: Default mode, no URL parameters needed
+
+2. **Delayed Loading Mode** (`?umig_delay=true`):
+   - Two-stage loading that waits for Confluence to settle
+   - Shows minimal loader for 2 seconds while Confluence initializes
+   - Loads Admin GUI after Confluence warnings have passed
+   - **Benefits**: Clean console, avoids timing conflicts
+
+3. **Iframe Isolation Mode** (`?umig_iframe=true`):
+   - Complete isolation from Confluence page context
+   - Admin GUI runs in sandboxed iframe
+   - Zero Confluence script interference
+   - **Benefits**: No warnings, clean execution environment
+
+**Performance Benchmarks**:
+
+**Before Any Optimizations**:
+- Initial load time: 10-15 seconds (measured 27,051.50ms worst case)
+- Console warnings: 50-100+ AJS.params messages flooding console
 - Cache efficiency: 0% (always cache-busting with timestamps)
 - FOUC: Visible flash of unstyled content
-- User experience: Sluggish, unprofessional
+- User experience: Extremely sluggish, unprofessional
 
-**After Optimizations**:
-- Initial load time: ~1-2 seconds (**60-80% improvement**)
-- Console warnings: 0 (**100% reduction**)
-- Cache efficiency: **70-80% improvement** from browser caching
-- FOUC: **Completely eliminated** with critical CSS
-- User experience: Smooth, professional, responsive
+**After Optimizations (varies by mode)**:
+- Ultra-Performance Mode: ~27 seconds (still slow due to Confluence interference)
+- Delayed Loading Mode: ~3-4 seconds perceived (2s delay + 1-2s load)
+- Iframe Isolation Mode: ~1-2 seconds (fastest, no Confluence overhead)
+- Console warnings: Varies (0 in iframe mode, partial in others)
+- Cache efficiency: **70-80% improvement** from stable versioning
+- FOUC: **Eliminated** with critical CSS
+
+**Recommended Usage**:
+- **Development**: Use `?umig_iframe=true` for fastest, cleanest experience
+- **Production**: Consider `?umig_delay=true` for balance of compatibility and performance
+- **Debugging**: Default mode to see all Confluence interactions
 
 **Expected Production Impact**:
-- **User Productivity**: Faster admin operations, reduced waiting time
-- **Professional Appearance**: Clean console, smooth loading transitions  
+- **User Productivity**: Significantly faster with iframe or delayed mode
+- **Professional Appearance**: Clean console in iframe mode
 - **System Resources**: Reduced server load from better caching
-- **Developer Experience**: Clean development environment without console noise
+- **Developer Experience**: Multiple options to work around Confluence limitations
 
 ### 🎯 **US-042 Migration Types Management - COMPLETE DELIVERY** ✅
 
