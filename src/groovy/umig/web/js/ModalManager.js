@@ -871,7 +871,18 @@
 
         case "color":
           const defaultValue = field.default || "#000000";
-          fieldHtml += `<input type="color" id="${field.key}" name="${field.key}" value="${value || defaultValue}" ${required} ${disabled}>`;
+          const colorValue = value || defaultValue;
+          
+          // Create enhanced color field with picker, hex input, and preview
+          fieldHtml += `
+            <div class="color-field-container">
+              <input type="color" id="${field.key}" name="${field.key}" value="${colorValue}" ${required} ${disabled} 
+                     onchange="window.ModalManager.updateColorHex('${field.key}')" />
+              <input type="text" id="${field.key}_hex" value="${colorValue.toUpperCase()}" 
+                     placeholder="#000000" pattern="^#[0-9A-Fa-f]{6}$" title="Hex color code (e.g., #FF5733)"
+                     oninput="window.ModalManager.updateColorPicker('${field.key}')" ${disabled} />
+              <div class="color-preview" id="${field.key}_preview" style="background-color: ${colorValue};"></div>
+            </div>`;
           break;
 
         case "computed":
