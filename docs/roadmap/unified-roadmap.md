@@ -22,6 +22,8 @@ This roadmap delivers UMIG's next phase with aggressive AI-accelerated timelines
 - 2025-09-05: Updated with US-039B Email Template Integration 100% completion - Template caching implementation achieving 91% performance improvement, StepDataTransferObject integration, final performance of 12.4ms average (94% better than target), cache efficiency 99.7% hit rate, all type safety requirements met, completed same-day (6 days ahead of schedule)
 - 2025-09-06: Updated with US-067 Email Security Test Coverage completion - Complete industrialization of email security testing with 90%+ coverage, fixed 15+ static type checking compilation errors across 3 security test files, implemented 25+ attack pattern library covering SQL injection, XSS, and command injection, achieved performance requirement validation (<2ms overhead), enhanced validate-email-security-integration.js with 100% validation success, complete npm script integration (test:security:email, test:us067), production-ready QA validation tool for CI/CD integration, business impact elevated from 22% ad hoc coverage to 90%+ industrial-strength security validation
 - 2025-09-06: Updated with US-056F Dual DTO Architecture completion - Successfully implemented dual DTO architecture with StepMasterDTO (231 lines) and StepInstanceDTO (renamed from StepDataTransferObject), enhanced StepDataTransformationService with builder pattern support, updated StepRepository with master-specific methods, systematic refactoring of all references throughout codebase, comprehensive testing with 95%+ coverage, performance maintained at 51ms target, unblocked US-056C for immediate development
+- 2025-09-08: Updated with US-056C API Layer Integration completion - Complete StepsApi migration to DTO pattern with Phase 1 (GET endpoints) and Phase 2 (POST/PUT/DELETE endpoints) delivered, 246+ lines of DTO write methods added to StepRepository, all 4 phases of StepsApi endpoints updated to DTO pattern, 1,787+ lines of comprehensive test code with full coverage, <51ms response times maintained, 100% ADR-031 type safety compliance, complete US-056F Dual DTO Architecture Epic delivery achieved
+- 2025-09-08: Fixed Sprint 6 unified roadmap discrepancies - Corrected sprint duration (6→9 working days), story points (15→30), completion status (COMPLETE→IN PROGRESS), added missing stories US-041, US-047, US-050 to backlog, updated all completion dates and story details to match sprint6-story-breakdown.md source of truth
 
 ## Strategic Overview
 
@@ -315,71 +317,94 @@ The following user stories were created based on project evolution and identifie
 - US-047: Master Instructions Management in Step Modals (5 points) - Integrated instruction management
 - US-050: Step ID Uniqueness Validation in StepsAPI (2 points) - Data integrity validation
 
-### ✅ Sprint 6 (Sep 2-6, 2025) - Data Import & Email Template Excellence + Architectural Foundation
+### 🔄 Sprint 6 (Sep 2-12, 2025) - Data Architecture & Advanced Features
 
-**Sprint Goal**: Complete US-034 Data Import Strategy, US-039B Email Template Integration, and establish US-056F Dual DTO Architecture foundation  
-**Sprint Duration**: 5 working days  
-**Story Points Target**: 13 story points (Enhanced scope with architectural foundation)  
-**Story Points Delivered**: 13 story points (100% velocity)  
-**Sprint Status**: COMPLETE - Exceptional triple achievement with enterprise-grade features, outstanding performance, and solid architectural foundation
+**Sprint Goal**: Complete the JSON-based Step Data Architecture implementation (US-056-B and US-056-C), integrate enhanced email templates, and deliver critical data import capabilities while establishing advanced GUI features foundation  
+**Sprint Duration**: 9 working days (Sep 2-6 and Sep 9-12)  
+**Story Points Target**: 30 story points  
+**Target Velocity**: 3.33 points/day (30 points ÷ 9 days)  
+**Sprint Status**: IN PROGRESS - Critical path complete with exceptional achievement on US-034, US-039-B, US-056-B, US-056-C, US-056-F, and US-067
 
-#### ✅ Completed Stories
+#### ✅ Completed Stories (18 of 30 points - 60% complete)
 
-- **US-034: Data Import Strategy** (8 points) ✅ **COMPLETED September 4, 2025**
-  - **Enhanced Scope**: Enterprise-grade security hardening with path traversal prevention
+- **US-034: Data Import Strategy & Implementation** (8 points) ✅ **COMPLETED September 4, 2025**
+  - **Strategic Achievement**: Production-ready automated data extraction system delivering $1.8M-3.1M validated cost savings
+  - **Enhanced Scope**: Enterprise-grade security hardening with path traversal prevention and memory protection limits (10MB CSV, 50MB request body)
   - **Performance Excellence**: 51ms query performance (10x better than 500ms target)
-  - **Comprehensive Platform**: 13 staging tables with complete import orchestration
-  - **Production Quality**: All static type checking errors resolved, complete ScriptRunner compliance
-  - **Database Integration**: Full repository patterns and service layer integration
-  - CSV/JSON import with comprehensive orchestration service
-  - Progress tracking with real-time status updates
-  - Rollback capabilities with transaction safety
-  - Memory protection limits (10MB CSV, 50MB request body)
-  - Complete API suite with 9 import endpoints operational
+  - **Database Infrastructure**: 13 staging tables with `stg_` prefix and complete orchestration platform
+  - **Production Quality**: All 88+ static type checking errors resolved, complete ScriptRunner compliance
+  - **API Suite**: 16 REST endpoints (9 import + 7 queue management) with comprehensive functionality
+  - **Business Impact**: 80% manual effort reduction through process automation
 
-- **US-039B: Email Template Integration** (3 points) ✅ **COMPLETED September 5, 2025**
-  - **Template Caching**: 91% performance improvement (98.7ms → 8.9ms baseline processing)
-  - **DTO Integration**: StepDataTransferObject.toTemplateMap() with additional 15-20ms savings
+- **US-056-B: Template Integration - EmailService Standardization** (3 points) ✅ **COMPLETED January 4, 2025**
+  - **CommentDTO Enhancement**: Enhanced with 12 template integration fields and toTemplateMap() method
+  - **Template Compatibility**: Restored from 15% failure rate to 100% success
+  - **Test Infrastructure**: Created CommentDTOTemplateIntegrationTest and EmailTemplateIntegrationTest
+  - **Technical Achievement**: Fixed Groovy static type checking issues with proper compliance
+
+- **US-039-B: Email Template Integration with Unified Data** (3 points) ✅ **COMPLETED September 5, 2025**
+  - **Performance Achievement**: 91% performance improvement (98.7ms → 8.9ms)
   - **Final Performance**: 12.4ms average (94% better than 200ms target)
   - **Cache Efficiency**: 99.7% hit rate with comprehensive validation
-  - **Type Safety**: All ADR-031/ADR-043 compliance requirements met
-  - **Backward Compatibility**: 100% maintained throughout implementation
   - **Same-Day Delivery**: Completed 6 days ahead of schedule
 
-- **US-056F: Dual DTO Architecture** (2 points) ✅ **COMPLETED September 6, 2025**
-  - **Architectural Foundation**: StepMasterDTO (231 lines) for template entities
-  - **Systematic Refactoring**: StepDataTransferObject → StepInstanceDTO with all 516 lines preserved
-  - **Service Enhancement**: Updated StepDataTransformationService with dual DTO support and builder pattern
-  - **Repository Enhancement**: Added master-specific methods to StepRepository
-  - **Codebase Updates**: Systematic replacement of all StepDataTransferObject references
-  - **Type Safety**: Full ADR-031/ADR-043 compliance maintained throughout
-  - **Testing Excellence**: Comprehensive test coverage with 95%+ coverage achieved
-  - **Performance Maintained**: 51ms query target preserved with optimized queries
-  - **Strategic Impact**: Unblocked US-056C for immediate API layer integration
+- **US-056-F: Dual DTO Architecture** (2 points) ✅ **COMPLETED September 6, 2025**
+  - **StepMasterDTO Implementation**: Complete 231-line DTO for Step master templates
+  - **StepInstanceDTO Refactoring**: Renamed from StepDataTransferObject with all 516 lines preserved
+  - **Service Layer Enhancement**: Updated StepDataTransformationService with dual DTO support
+  - **Builder Pattern**: Fixed method calls to use 'with' prefix for proper functionality
+
+- **US-056-C: API Layer Integration (Phase 3)** (2 points) ✅ **COMPLETED September 8, 2025**
+  - **Phase 1 & 2 Complete**: GET and POST/PUT/DELETE endpoints migrated to DTO pattern
+  - **Repository Enhancements**: Added 246+ lines of DTO write methods to StepRepository
+  - **Comprehensive Testing**: 1,787+ lines of test code with full coverage
+  - **Performance Excellence**: <51ms response times maintained throughout migration
 
 - **US-067: Email Security Test Coverage** (N/A points) ✅ **COMPLETED September 6, 2025**
-  - **Security Industrialization**: Complete email security testing with 90%+ coverage
-  - **Static Type Resolution**: Fixed 15+ compilation errors across 3 security test files
-  - **Attack Pattern Library**: 25+ patterns covering SQL injection, XSS, command injection
-  - **Performance Validation**: <2ms overhead requirement achieved
-  - **Integration Excellence**: Enhanced validate-email-security-integration.js with 100% success
-  - **CI/CD Integration**: Complete npm script integration (test:security:email, test:us067)
-  - **Business Impact**: Elevated from 22% ad hoc coverage to 90%+ industrial-strength validation
+  - **Security Industrialization**: 90%+ coverage achieved from 22% ad hoc coverage
+  - **Attack Pattern Library**: 25+ comprehensive patterns covering SQL injection, XSS, command injection
+  - **Performance Validation**: <2ms overhead requirement successfully achieved
+  - **CI/CD Integration**: Complete npm script integration
 
-#### 🎯 Key Achievements
+#### 📋 Remaining Stories (12 of 30 points - 40% remaining)
 
-- **Triple Story Success**: US-034, US-039B, and US-056F all completed with exceptional results
-- **Performance Excellence**: US-034 at 51ms (10x better) + US-039B at 12.4ms (94% better than targets)
-- **Architectural Foundation**: US-056F provides solid dual DTO foundation for future API development
-- **Strategic Acceleration**: US-039B completed same-day (6 days ahead of original schedule)
-- **Architecture Integration**: Seamless integration with existing patterns and services
-- **Quality Standards**: All tests passed with production-ready code quality across all stories
-- **Template Optimization**: 91% performance improvement through caching implementation
-- **DTO Architecture**: Clean separation between Step masters and instances with comprehensive testing
-- **Unblocking Achievement**: US-056C now ready for immediate development with proper foundation
-- **Documentation Updates**: Comprehensive documentation across README.md, CHANGELOG.md, and integration guides
+- **US-041: Admin GUI PILOT Features** (5 points) - READY
+  - PILOT role instance entity management (4 types)
+  - Comprehensive audit logging system
+  - Advanced instance operations and enhanced UX features
 
-### 📅 Future Sprints (Sprint 7 onwards - Sep 5, 2025+)
+- **US-047: Master Instructions Management** (5 points) - READY
+  - Instructions section in Step modals
+  - Add/Edit/Delete instruction operations with drag-and-drop reordering
+  - Team/Control dropdown integration and bulk save operations
+
+- **US-050: Step ID Uniqueness Validation** (2 points) - READY
+  - Backend validation in StepsAPI
+  - Database index optimization
+  - Frontend error handling with comprehensive error responses
+
+#### 🎯 Key Achievements (Sprint 6 Progress)
+
+- **Critical Path Complete**: US-056 architecture Epic fully delivered (US-056-B, US-056-F, US-056-C)
+- **Data Import Success**: US-034 completed with exceptional enterprise-grade features and $1.8M-3.1M cost savings
+- **Email Template Excellence**: US-039-B delivered 91% performance improvement, same-day completion
+- **Complete US-056 Epic**: Full Dual DTO Architecture from foundation (US-056-B) through API layer (US-056-C)
+- **Performance Excellence**: US-034 at 51ms (10x better) + US-039-B at 12.4ms (94% better)
+- **Security Industrialization**: US-067 elevated email security from 22% to 90%+ coverage
+- **API Layer Integration**: Complete StepsApi migration to DTO pattern with 1,787+ lines of tests
+- **60% Sprint Completion**: 18 of 30 story points delivered with critical architectural foundations complete
+- **Quality Standards**: 100% ADR-031 compliance and production-ready code quality maintained
+- **Strategic Foundation**: Architectural groundwork established for accelerated future development
+
+### 📅 Sprint 6 Completion & Future Sprints
+
+#### 🔄 Sprint 6 Remaining Work (12 points - Target completion Sep 9-12)
+
+- **US-041: Admin GUI PILOT Features** (5 points) - PILOT role instance entity management
+- **US-047: Master Instructions Management** (5 points) - Instructions section in Step modals
+- **US-050: Step ID Uniqueness Validation** (2 points) - Backend validation and frontend error handling
+
+#### 📅 Sprint 7 onwards (Sep 13, 2025+)
 
 - Advanced analytics and reporting features
 - Assignment and delegation engine enhancements
@@ -395,7 +420,8 @@ The following user stories were created based on project evolution and identifie
 
 - US-034 Data Import Strategy (8 points) - COMPLETED with enterprise-grade security, exceptional performance (51ms), and comprehensive production readiness
 - US-039B Email Template Integration (3 points) - COMPLETED same-day with 91% performance improvement, 12.4ms average processing, 99.7% cache efficiency, 6 days ahead of schedule
-- US-056F Dual DTO Architecture (2 points) - COMPLETED with StepMasterDTO implementation, systematic StepInstanceDTO refactoring, enhanced service layer with builder pattern, comprehensive testing, and US-056C unblocking
+- US-056F Dual DTO Architecture (2 points) - COMPLETED with StepMasterDTO implementation, systematic StepInstanceDTO refactoring, enhanced service layer with builder pattern, comprehensive testing
+- US-056C API Layer Integration with DTO Pattern (2 points) - COMPLETED with full StepsApi migration to DTO pattern, 246+ lines of repository enhancements, 1,787+ lines of test coverage, complete ADR-031 compliance, and <51ms performance maintained
 
 ## AI-Accelerated Sprint Plan
 
@@ -706,4 +732,4 @@ This AI-accelerated roadmap delivers comprehensive functionality in 54 working d
 
 ---
 
-> Last updated: September 6, 2025 | Sprint 6 COMPLETE: ✅ Triple Success - US-034 Data Import Strategy (8 points, enterprise security, 51ms performance), US-039B Email Template Integration (3 points, 91% performance improvement, 12.4ms average, same-day completion), US-056F Dual DTO Architecture (2 points, architectural foundation, unblocked US-056C) | Sprint 5 COMPLETE: 🚀 Exceptional Achievement (8/9 stories, 39/42 points, 93% velocity) | Core MVP + Enterprise Features + Architectural Foundation: September 6, 2025 | Enhancement Completion: October 15, 2025
+> Last updated: September 8, 2025 | Sprint 6 IN PROGRESS: 🔄 Critical Path Complete (18/30 points, 60% velocity) - US-034 Data Import Strategy (8 points, enterprise security, 51ms performance), US-039B Email Template Integration (3 points, 91% performance improvement, 12.4ms average, same-day completion), US-056F Dual DTO Architecture (2 points, architectural foundation), US-056C API Layer Integration (2 points, complete StepsApi DTO migration, 1,787+ test lines, ADR-031 compliance), US-056B Template Integration (3 points), US-067 Email Security (90%+ coverage) | Remaining: US-041 Admin GUI PILOT (5 points), US-047 Master Instructions (5 points), US-050 Step ID Validation (2 points) | Sprint 5 COMPLETE: 🚀 Exceptional Achievement (8/9 stories, 39/42 points, 93% velocity) | Enhancement Completion: October 15, 2025
