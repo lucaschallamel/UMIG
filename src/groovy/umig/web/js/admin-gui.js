@@ -1915,6 +1915,43 @@
             input.innerHTML =
               '<option value="true">Yes</option><option value="false">No</option>';
             break;
+          case "color":
+            console.log(`Creating color input for field: ${field.key}`);
+            // Create color input element
+            input = document.createElement("input");
+            input.type = "color";
+            input.style.cursor = "pointer";
+            input.style.minWidth = "60px";
+            input.style.height = "40px";
+
+            // Create text input to show hex value
+            const hexInput = document.createElement("input");
+            hexInput.type = "text";
+            hexInput.style.width = "100px";
+            hexInput.style.fontFamily = "monospace";
+            hexInput.placeholder = "#000000";
+            hexInput.pattern = "^#[0-9A-Fa-f]{6}$";
+            hexInput.title = "Hex color code (e.g., #FF5733)";
+
+            // Sync color picker with hex input
+            input.addEventListener("change", function () {
+              console.log(`Color picker changed to: ${this.value}`);
+              hexInput.value = this.value.toUpperCase();
+            });
+
+            hexInput.addEventListener("input", function () {
+              if (/^#[0-9A-Fa-f]{6}$/.test(this.value)) {
+                console.log(`Hex input changed to: ${this.value}`);
+                input.value = this.value;
+              }
+            });
+
+            // Store reference to hex input for later value setting
+            input.hexInput = hexInput;
+            console.log(
+              `Color input created successfully for field: ${field.key}`,
+            );
+            break;
           default:
             input = document.createElement("input");
             input.type = field.type;
@@ -1945,12 +1982,51 @@
             const minutes = String(date.getMinutes()).padStart(2, "0");
             const seconds = String(date.getSeconds()).padStart(2, "0");
             input.value = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          } else if (field.type === "color") {
+            // Set value for both color picker and hex input
+            input.value = value;
+            if (input.hexInput) {
+              input.hexInput.value = value.toUpperCase();
+            }
           } else {
             input.value = value;
           }
+        } else if (field.type === "color" && field.default) {
+          // Set default color if no value exists
+          input.value = field.default;
+          if (input.hexInput) {
+            input.hexInput.value = field.default.toUpperCase();
+          }
         }
 
-        fieldDiv.appendChild(input);
+        // Handle color field wrapper
+        if (field.type === "color") {
+          console.log(`Creating color wrapper for field: ${field.key}`);
+          const colorWrapper = document.createElement("div");
+          colorWrapper.className = "color-field-container";
+          colorWrapper.style.display = "flex";
+          colorWrapper.style.alignItems = "center";
+          colorWrapper.style.gap = "10px";
+
+          // Add color input first
+          colorWrapper.appendChild(input);
+          console.log(`Added color input to wrapper for field: ${field.key}`);
+
+          // Add hex input if it exists
+          if (input.hexInput) {
+            colorWrapper.appendChild(input.hexInput);
+            console.log(`Added hex input to wrapper for field: ${field.key}`);
+          } else {
+            console.warn(`No hex input found for color field: ${field.key}`);
+          }
+
+          // Add the wrapper to the field div
+          fieldDiv.appendChild(colorWrapper);
+          console.log(`Color wrapper added to field div for: ${field.key}`);
+        } else {
+          fieldDiv.appendChild(input);
+        }
+
         formFields.appendChild(fieldDiv);
       });
     },

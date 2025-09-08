@@ -10,6 +10,13 @@
 
   // Modal Manager
   const ModalManager = {
+    // Track modal state for create vs update operations
+    modalState: {
+      isCreate: false,
+      entityType: null,
+      entityId: null,
+    },
+
     /**
      * Initialize modal manager
      */
@@ -522,6 +529,16 @@
         `🔧 showEntityForm called: entityType=${entityType}, isCreate=${isCreate}, hasData=${!!data}`,
       );
 
+      // Store modal state for use in saveEntity
+      this.modalState = {
+        isCreate: isCreate,
+        entityType: entityType,
+        entityId: data
+          ? data[window.EntityConfig.getEntity(entityType).fields[0].key] ||
+            null
+          : null,
+      };
+
       const entityConfig = window.EntityConfig
         ? window.EntityConfig.getEntity(entityType)
         : null;
@@ -754,13 +771,20 @@
      */
     buildFormField: function (field, data, isCreate) {
       const value = data ? data[field.key] : "";
-      const required = field.required && !field.readonly ? "required" : "";
+
+      // Handle conditional readonly for primary key fields in edit mode
+      let isFieldReadonly = field.readonly;
+      if (field.key === "itt_code" && !isCreate) {
+        isFieldReadonly = true;
+      }
+
+      const required = field.required && !isFieldReadonly ? "required" : "";
       const maxLength = field.maxLength ? `maxlength="${field.maxLength}"` : "";
-      const disabled = field.readonly ? "disabled" : "";
-      const readonlyClass = field.readonly ? " readonly-field" : "";
+      const disabled = isFieldReadonly ? "disabled" : "";
+      const readonlyClass = isFieldReadonly ? " readonly-field" : "";
 
       let fieldHtml = `<div class="form-group${readonlyClass}">`;
-      fieldHtml += `<label for="${field.key}">${field.label}${field.required && !field.readonly ? " *" : ""}</label>`;
+      fieldHtml += `<label for="${field.key}">${field.label}${field.required && !isFieldReadonly ? " *" : ""}</label>`;
 
       switch (field.type) {
         case "text":
@@ -808,81 +832,57 @@
               }
               fieldHtml += `<option value="${optionValue}" ${selected}>${option.label}</option>`;
             });
-          } else if (field.entityType) {
-            // Entity-type select - will be populated dynamically
+          } else if (field.endpoint) {
+            console.log(
+              `Building dynamic select field ${field.key} with endpoint:`,
+              field.endpoint,
+            );
             fieldHtml += `<option value="">Loading...</option>`;
           }
-          fieldHtml += `</select>`;
-
-          // Add data attributes for entity-type selects
-          if (field.entityType) {
-            // Replace the select opening tag to add data attributes
-            fieldHtml = fieldHtml.replace(
-              `<select id="${field.key}" name="${field.key}" ${required} ${disabled}>`,
-              `<select id="${field.key}" name="${field.key}" ${required} ${disabled} data-entity-type="${field.entityType}" data-display-field="${field.displayField}" data-value-field="${field.valueField}">`,
-            );
-          }
+          fieldHtml += "</select>";
           break;
 
         case "number":
-          fieldHtml += `<input type="number" id="${field.key}" name="${field.key}" value="${value}" ${required} ${disabled}>`;
-          break;
-
-        case "color":
-          fieldHtml += `<input type="color" id="${field.key}" name="${field.key}" value="${value || "#000000"}" ${required} ${disabled}>`;
-          break;
-
-        case "date":
-          // Convert ISO datetime to date-only format for HTML5 date input
-          let dateValue = "";
-          if (value) {
-            try {
-              const dateObj = new Date(value);
-              if (!isNaN(dateObj.getTime())) {
-                dateValue = dateObj.toISOString().split("T")[0];
-              }
-            } catch (e) {
-              console.warn(`Invalid date value for ${field.key}:`, value);
-            }
-          }
-          fieldHtml += `
-            <div class="date-picker-group">
-              <input type="date" id="${field.key}" name="${field.key}" value="${dateValue}" ${required} ${disabled}>
-            </div>`;
+          const step = field.step ? `step="${field.step}"` : "";
+          const min = field.min ? `min="${field.min}"` : "";
+          const max = field.max ? `max="${field.max}"` : "";
+          fieldHtml += `<input type="number" id="${field.key}" name="${field.key}" value="${value}" ${required} ${step} ${min} ${max} ${disabled}>`;
           break;
 
         case "datetime":
-          // For datetime fields, use a similar approach but show both date and time
-          let dtValue = "";
-          let dtDate = "";
-          let dtTime = "00:00";
-          if (value) {
+          // Format the datetime value for input field
+          let formattedValue = value;
+          if (value && typeof value === "string") {
             try {
-              const dateObj = new Date(value);
-              if (!isNaN(dateObj.getTime())) {
-                dtDate = dateObj.toISOString().split("T")[0];
-                // Use UTC time instead of local time to match backend format
-                dtTime = `${dateObj.getUTCHours().toString().padStart(2, "0")}:${dateObj.getUTCMinutes().toString().padStart(2, "0")}`;
-                dtValue = value;
+              // Parse the value and format it for datetime-local input
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                formattedValue = date.toISOString().slice(0, 16);
               }
-            } catch (e) {
-              console.warn(`Invalid datetime value for ${field.key}:`, value);
+            } catch (error) {
+              console.warn(
+                `Error formatting datetime value for ${field.key}:`,
+                error,
+              );
             }
           }
-          fieldHtml += `
-            <div class="date-time-picker-group">
-              <input type="date" id="${field.key}_date" name="${field.key}_date" value="${dtDate}" ${required} ${disabled}>
-              <input type="time" id="${field.key}_time" name="${field.key}_time" value="${dtTime}" ${required} ${disabled}>
-              <input type="hidden" id="${field.key}" name="${field.key}" value="${dtValue}">
-            </div>`;
+          fieldHtml += `<input type="datetime-local" id="${field.key}" name="${field.key}" value="${formattedValue}" ${required} ${disabled}>`;
+          break;
+
+        case "color":
+          const defaultValue = field.default || "#000000";
+          fieldHtml += `<input type="color" id="${field.key}" name="${field.key}" value="${value || defaultValue}" ${required} ${disabled}>`;
+          break;
+
+        case "computed":
+        case "readonly":
+          // For computed or readonly fields, just display the value
+          fieldHtml += `<div class="readonly-value">${value || "N/A"}</div>`;
           break;
 
         default:
-          fieldHtml += `<input type="text" id="${field.key}" name="${field.key}" value="${value}" ${required} ${maxLength} ${disabled}>`;
-      }
-
-      if (field.maxLength) {
-        fieldHtml += `<small class="form-help">Maximum ${field.maxLength} characters</small>`;
+          console.warn(`Unknown field type: ${field.type}`);
+          fieldHtml += `<input type="text" id="${field.key}" name="${field.key}" value="${value}" ${required} ${disabled}>`;
       }
 
       fieldHtml += "</div>";
@@ -1744,28 +1744,31 @@
         ? window.EntityConfig.getEntity(currentEntity)
         : null;
 
-      // Check if this is create or update by looking for the primary key field
-      let isCreate = true;
+      // Use stored modal state to determine create vs update
+      let isCreate = this.modalState.isCreate;
       let entityId = null;
 
-      if (entityConfig && entityConfig.fields.length > 0) {
-        const idField = entityConfig.fields[0]; // Primary key is usually first field
-
-        // Check FormData first (for writable fields)
-        if (formData[idField.key]) {
-          isCreate = false;
-          entityId = formData[idField.key];
-        } else {
-          // For readonly ID fields, check the DOM element directly
-          const idInput = form.querySelector(`[name="${idField.key}"]`);
-          if (idInput && idInput.value && idInput.value.trim() !== "") {
-            isCreate = false;
-            entityId = idInput.value.trim();
-            console.log(
-              `Detected UPDATE operation from readonly field: ${idField.key} = ${entityId}`,
-            );
+      if (isCreate) {
+        console.log("Using CREATE mode from stored modal state");
+      } else {
+        // For update operations, get the entity ID from modal state or form data
+        entityId = this.modalState.entityId;
+        if (!entityId && entityConfig && entityConfig.fields.length > 0) {
+          const idField = entityConfig.fields[0];
+          // Check FormData first (for writable fields)
+          if (formData[idField.key]) {
+            entityId = formData[idField.key];
+          } else {
+            // For readonly ID fields, check the DOM element directly
+            const idInput = form.querySelector(`[name="${idField.key}"]`);
+            if (idInput && idInput.value && idInput.value.trim() !== "") {
+              entityId = idInput.value.trim();
+            }
           }
         }
+        console.log(
+          `Using UPDATE mode from stored modal state: entityId = ${entityId}`,
+        );
       }
 
       console.log("Save operation details:", {
@@ -2318,6 +2321,13 @@
     closeModal: function () {
       const modals = document.querySelectorAll(".modal-overlay");
       modals.forEach((modal) => modal.remove());
+
+      // Clear modal state
+      this.modalState = {
+        isCreate: false,
+        entityType: null,
+        entityId: null,
+      };
 
       // Clean up any document-level event listeners
       if (this.handleRemoveButtonClick) {
@@ -5283,6 +5293,52 @@
             );
           }
         });
+    },
+
+    /**
+     * Update hex input when color picker changes
+     */
+    updateColorHex: function (fieldKey) {
+      const colorInput = document.getElementById(fieldKey);
+      const hexInput = document.getElementById(fieldKey + "_hex");
+      const preview = document.getElementById(fieldKey + "_preview");
+
+      if (colorInput && hexInput && preview) {
+        const colorValue = colorInput.value;
+        hexInput.value = colorValue;
+        preview.style.backgroundColor = colorValue;
+      }
+    },
+
+    /**
+     * Update color picker when hex input changes
+     */
+    updateColorPicker: function (fieldKey) {
+      const colorInput = document.getElementById(fieldKey);
+      const hexInput = document.getElementById(fieldKey + "_hex");
+      const preview = document.getElementById(fieldKey + "_preview");
+
+      if (colorInput && hexInput && preview) {
+        let hexValue = hexInput.value.trim();
+
+        // Validate hex format
+        if (!hexValue.startsWith("#")) {
+          hexValue = "#" + hexValue;
+        }
+
+        // Validate hex color format (6 characters after #)
+        const hexPattern = /^#[0-9A-Fa-f]{6}$/;
+        if (hexPattern.test(hexValue)) {
+          colorInput.value = hexValue;
+          preview.style.backgroundColor = hexValue;
+          hexInput.value = hexValue;
+          // Remove any error styling
+          hexInput.style.borderColor = "var(--border-color)";
+        } else {
+          // Add error styling for invalid hex
+          hexInput.style.borderColor = "var(--danger-color)";
+        }
+      }
     },
   };
 

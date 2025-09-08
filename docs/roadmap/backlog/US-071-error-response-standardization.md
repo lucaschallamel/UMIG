@@ -208,6 +208,7 @@ class StandardErrorResponse {
 ## Error Response Examples
 
 ### Standardized Validation Error
+
 ```json
 {
   "errorCode": "VALIDATION_ERROR",
@@ -227,6 +228,7 @@ class StandardErrorResponse {
 ```
 
 ### Standardized Resource Not Found Error
+
 ```json
 {
   "errorCode": "RESOURCE_NOT_FOUND",
@@ -246,9 +248,9 @@ class StandardErrorResponse {
 
 ## Change Log
 
-| Date       | Version | Changes                                           | Author |
-| ---------- | ------- | ------------------------------------------------- | ------ |
-| 2025-01-09 | 1.0     | Initial story creation for error standardization  | System |
+| Date       | Version | Changes                                          | Author |
+| ---------- | ------- | ------------------------------------------------ | ------ |
+| 2025-01-09 | 1.0     | Initial story creation for error standardization | System |
 
 ---
 

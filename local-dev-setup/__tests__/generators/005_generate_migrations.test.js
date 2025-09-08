@@ -58,7 +58,7 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
   const mockPlans = [{ plm_id: "plan-1" }, { plm_id: "plan-2" }];
 
   const mockDbSuccess = () => {
-    client.query.mockImplementation((sql) => {
+    client.query.mockImplementation((sql, values) => {
       if (sql.includes("SELECT usr_id FROM users_usr"))
         return Promise.resolve({ rows: mockUsers });
       if (sql.includes("SELECT plm_id FROM plans_master_plm"))
@@ -67,7 +67,8 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         sql.includes(
           "SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1",
         ) &&
-        sql.includes("'Migration'")
+        values &&
+        values[0] === "Migration"
       ) {
         return Promise.resolve({
           rows: [
@@ -80,12 +81,35 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         sql.includes(
           "SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1",
         ) &&
-        sql.includes("'Iteration'")
+        values &&
+        values[0] === "Iteration"
       ) {
         return Promise.resolve({
           rows: [
             { sts_id: 3, sts_name: "PLANNING" },
             { sts_id: 4, sts_name: "IN_PROGRESS" },
+          ],
+        });
+      }
+      // Mock migration types query
+      if (
+        sql.includes(
+          "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+        )
+      ) {
+        return Promise.resolve({
+          rows: [
+            {
+              mtm_id: 1,
+              mtm_code: "INFRASTRUCTURE",
+              mtm_name: "Infrastructure Migration",
+            },
+            {
+              mtm_id: 2,
+              mtm_code: "APPLICATION",
+              mtm_name: "Application Migration",
+            },
+            { mtm_id: 3, mtm_code: "DATABASE", mtm_name: "Database Migration" },
           ],
         });
       }
@@ -215,6 +239,215 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
       expect(linkedPlanIds).toEqual(
         expect.arrayContaining(["plan-1", "plan-2"]),
       );
+    });
+
+    it("should use dynamic migration types from database when available", async () => {
+      const capturedData = {
+        migrations: [],
+        migrationTypes: [],
+      };
+
+      client.query.mockImplementation((sql, values) => {
+        if (sql.includes("SELECT usr_id FROM users_usr"))
+          return Promise.resolve({ rows: mockUsers });
+        if (sql.includes("SELECT plm_id FROM plans_master_plm"))
+          return Promise.resolve({ rows: mockPlans });
+        if (
+          sql.includes(
+            "SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1",
+          )
+        ) {
+          if (values && values[0] === "Migration") {
+            return Promise.resolve({
+              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+            });
+          }
+          if (values && values[0] === "Iteration") {
+            return Promise.resolve({
+              rows: [{ sts_id: 3, sts_name: "PLANNING" }],
+            });
+          }
+        }
+        if (
+          sql.includes(
+            "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+          )
+        ) {
+          return Promise.resolve({
+            rows: [
+              {
+                mtm_id: 1,
+                mtm_code: "INFRASTRUCTURE",
+                mtm_name: "Infrastructure Migration",
+              },
+              {
+                mtm_id: 2,
+                mtm_code: "APPLICATION",
+                mtm_name: "Application Migration",
+              },
+            ],
+          });
+        }
+        if (sql.includes("INSERT INTO migrations_mig")) {
+          capturedData.migrations.push({ mig_type: values[4] }); // mig_type is the 5th parameter
+          capturedData.migrationTypes.push(values[4]);
+          return Promise.resolve({
+            rows: [{ mig_id: `mig-${Math.random()}` }],
+          });
+        }
+        if (sql.includes("INSERT INTO iterations_ite")) {
+          return Promise.resolve({ rows: [] });
+        }
+        return Promise.resolve({ rows: [] });
+      });
+
+      await generateMigrations(CONFIG, {});
+
+      // Verify that migration types from database were used
+      expect(capturedData.migrations.length).toBe(CONFIG.MIGRATIONS.COUNT);
+      expect(capturedData.migrationTypes).toEqual(
+        expect.arrayContaining(["INFRASTRUCTURE", "APPLICATION"]),
+      );
+      // Should not contain the old hardcoded "EXTERNAL" type
+      expect(capturedData.migrationTypes).not.toContain("EXTERNAL");
+    });
+
+    it("should use fallback EXTERNAL migration type when no database types available", async () => {
+      const capturedData = {
+        migrations: [],
+        migrationTypes: [],
+      };
+
+      const consoleSpy = jest.spyOn(console, "warn");
+
+      client.query.mockImplementation((sql, values) => {
+        if (sql.includes("SELECT usr_id FROM users_usr"))
+          return Promise.resolve({ rows: mockUsers });
+        if (sql.includes("SELECT plm_id FROM plans_master_plm"))
+          return Promise.resolve({ rows: mockPlans });
+        if (
+          sql.includes(
+            "SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1",
+          )
+        ) {
+          if (values && values[0] === "Migration") {
+            return Promise.resolve({
+              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+            });
+          }
+          if (values && values[0] === "Iteration") {
+            return Promise.resolve({
+              rows: [{ sts_id: 3, sts_name: "PLANNING" }],
+            });
+          }
+        }
+        // Return empty migration types (simulate no data in table)
+        if (
+          sql.includes(
+            "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+          )
+        ) {
+          return Promise.resolve({ rows: [] });
+        }
+        if (sql.includes("INSERT INTO migrations_mig")) {
+          capturedData.migrations.push({ mig_type: values[4] });
+          capturedData.migrationTypes.push(values[4]);
+          return Promise.resolve({
+            rows: [{ mig_id: `mig-${Math.random()}` }],
+          });
+        }
+        if (sql.includes("INSERT INTO iterations_ite")) {
+          return Promise.resolve({ rows: [] });
+        }
+        return Promise.resolve({ rows: [] });
+      });
+
+      await generateMigrations(CONFIG, {});
+
+      // Verify fallback behavior
+      expect(capturedData.migrations.length).toBe(CONFIG.MIGRATIONS.COUNT);
+      expect(capturedData.migrationTypes).toEqual(["EXTERNAL", "EXTERNAL"]); // All should be EXTERNAL
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "No active migration types found in migration_types_master table. Using fallback type 'EXTERNAL'.",
+      );
+    });
+
+    it("should handle migration type selection randomly", async () => {
+      const capturedData = {
+        migrationTypes: [],
+      };
+
+      // Mock faker to return different elements on different calls
+      let callCount = 0;
+      faker.helpers.arrayElement.mockImplementation((arr) => {
+        return arr[callCount++ % arr.length];
+      });
+
+      client.query.mockImplementation((sql, values) => {
+        if (sql.includes("SELECT usr_id FROM users_usr"))
+          return Promise.resolve({ rows: mockUsers });
+        if (sql.includes("SELECT plm_id FROM plans_master_plm"))
+          return Promise.resolve({ rows: mockPlans });
+        if (
+          sql.includes(
+            "SELECT sts_id, sts_name FROM status_sts WHERE sts_type = $1",
+          )
+        ) {
+          if (values && values[0] === "Migration") {
+            return Promise.resolve({
+              rows: [{ sts_id: 1, sts_name: "PLANNING" }],
+            });
+          }
+          if (values && values[0] === "Iteration") {
+            return Promise.resolve({
+              rows: [{ sts_id: 3, sts_name: "PLANNING" }],
+            });
+          }
+        }
+        if (
+          sql.includes(
+            "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+          )
+        ) {
+          return Promise.resolve({
+            rows: [
+              {
+                mtm_id: 1,
+                mtm_code: "INFRASTRUCTURE",
+                mtm_name: "Infrastructure Migration",
+              },
+              {
+                mtm_id: 2,
+                mtm_code: "DATABASE",
+                mtm_name: "Database Migration",
+              },
+              {
+                mtm_id: 3,
+                mtm_code: "APPLICATION",
+                mtm_name: "Application Migration",
+              },
+            ],
+          });
+        }
+        if (sql.includes("INSERT INTO migrations_mig")) {
+          capturedData.migrationTypes.push(values[4]); // mig_type
+          return Promise.resolve({
+            rows: [{ mig_id: `mig-${Math.random()}` }],
+          });
+        }
+        if (sql.includes("INSERT INTO iterations_ite")) {
+          return Promise.resolve({ rows: [] });
+        }
+        return Promise.resolve({ rows: [] });
+      });
+
+      await generateMigrations(CONFIG, {});
+
+      // With our mock, first call gets index 0, second gets index 1
+      expect(capturedData.migrationTypes).toEqual([
+        "INFRASTRUCTURE",
+        "DATABASE",
+      ]);
     });
   });
 

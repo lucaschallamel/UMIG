@@ -58,12 +58,12 @@ protected void setupCompleteTestData() {
     testSequenceInstance = createTestSequenceInstance(testPlanInstance)
     testPhaseInstance = createTestPhaseInstance(testSequenceInstance)
     testStepInstance = createTestStepInstance(testPhaseInstance)
-    
+
     // Create supporting entities
     testTeam = createTestTeam()
     testEnvironment = createTestEnvironment()
     testApplication = createTestApplication()
-    
+
     // Associate entities with proper relationships
     associateTestEntities()
 }
@@ -210,6 +210,7 @@ protected void setupCompleteTestData() {
 ## Test Data Setup Examples
 
 ### Complete Hierarchical Setup
+
 ```groovy
 protected void setupCompleteStepTestData() {
     // Create complete hierarchy for step testing
@@ -217,18 +218,18 @@ protected void setupCompleteStepTestData() {
         migrationName: "Test Migration",
         status: "ACTIVE"
     ])
-    
+
     testIteration = createTestIteration(testMigration, [
         iterationName: "Test Iteration",
         startDate: new Date(),
         endDate: new Date() + 30
     ])
-    
+
     testPlanInstance = createTestPlanInstance(testIteration, [
         planName: "Test Plan",
         executionOrder: 1
     ])
-    
+
     // Continue hierarchy creation...
     setupSupportingEntities()
     associateTestRelationships()
@@ -248,9 +249,9 @@ protected void cleanupTestData() {
 
 ## Change Log
 
-| Date       | Version | Changes                                      | Author |
-| ---------- | ------- | -------------------------------------------- | ------ |
-| 2025-01-09 | 1.0     | Initial story creation for test setup gaps  | System |
+| Date       | Version | Changes                                    | Author |
+| ---------- | ------- | ------------------------------------------ | ------ |
+| 2025-01-09 | 1.0     | Initial story creation for test setup gaps | System |
 
 ---
 
