@@ -47,6 +47,7 @@ Establish comprehensive database connectivity monitoring and service orchestrati
 - [ ] Alert on database connectivity issues before they impact test execution
 
 **Health Metrics**:
+
 - Connection pool utilization <80%
 - Average query response time <100ms
 - Database availability >99.5%
@@ -67,6 +68,7 @@ Establish comprehensive database connectivity monitoring and service orchestrati
 - [ ] Provide service orchestration dashboard with real-time status indicators
 
 **Service Health Matrix**:
+
 - Confluence → PostgreSQL connectivity: <200ms response time
 - Confluence → MailHog connectivity: <500ms response time
 - Service startup sequence: Complete within 120 seconds
@@ -87,6 +89,7 @@ Establish comprehensive database connectivity monitoring and service orchestrati
 - [ ] Integration with existing test runner infrastructure (npm scripts)
 
 **Pre-Test Validation Checklist**:
+
 - Database connectivity validation
 - Service discovery and registration checks
 - Resource availability verification (memory >1GB, disk >5GB)
@@ -108,6 +111,7 @@ Establish comprehensive database connectivity monitoring and service orchestrati
 - [ ] Integration with existing monitoring infrastructure (health:check npm script)
 
 **Alert Thresholds**:
+
 - Database response time >500ms: Warning
 - Database response time >1000ms: Critical
 - Service unavailability >30 seconds: Critical
@@ -129,6 +133,7 @@ Establish comprehensive database connectivity monitoring and service orchestrati
 - [ ] Export capabilities for infrastructure health reports and SLA tracking
 
 **Dashboard Components**:
+
 - Service status matrix (Confluence, PostgreSQL, MailHog)
 - Database performance metrics (connections, query times, throughput)
 - Infrastructure resource utilization (CPU, memory, disk, network)
@@ -146,30 +151,30 @@ Establish comprehensive database connectivity monitoring and service orchestrati
 @CompileStatic
 class DatabaseHealthMonitor {
     private static final Logger log = LoggerFactory.getLogger(DatabaseHealthMonitor)
-    
+
     static Map<String, Object> checkDatabaseHealth() {
         return DatabaseUtil.withSql { sql ->
             def startTime = System.currentTimeMillis()
             def healthStatus = [:]
-            
+
             try {
                 // Connection validation
                 def connectionResult = sql.rows("SELECT 1 as test_connection")
                 def responseTime = System.currentTimeMillis() - startTime
-                
+
                 healthStatus.connectionAvailable = true
                 healthStatus.responseTime = responseTime
                 healthStatus.status = responseTime < 100 ? 'healthy' : 'warning'
-                
+
                 // Connection pool monitoring
                 healthStatus.connectionPool = getConnectionPoolMetrics()
-                
+
                 // Critical query performance validation
                 healthStatus.queryPerformance = validateCriticalQueries(sql)
-                
+
                 log.info("Database health check completed: ${healthStatus}")
                 return healthStatus
-                
+
             } catch (Exception e) {
                 log.error("Database health check failed", e)
                 healthStatus.connectionAvailable = false
@@ -179,14 +184,14 @@ class DatabaseHealthMonitor {
             }
         }
     }
-    
+
     private static Map<String, Object> validateCriticalQueries(Sql sql) {
         def queries = [
             'steps_count': 'SELECT COUNT(*) FROM tbl_step_instances',
             'plans_count': 'SELECT COUNT(*) FROM tbl_plan_instances',
             'migrations_count': 'SELECT COUNT(*) FROM tbl_migrations'
         ]
-        
+
         def results = [:]
         queries.each { name, query ->
             def startTime = System.currentTimeMillis()
@@ -218,40 +223,40 @@ class DatabaseHealthMonitor {
 @CompileStatic
 class ServiceOrchestrationMonitor {
     private static final Logger log = LoggerFactory.getLogger(ServiceOrchestrationMonitor)
-    
+
     static Map<String, Object> checkServiceOrchestration() {
         def healthStatus = [
             timestamp: new Date(),
             services: [:],
             overallStatus: 'unknown'
         ]
-        
+
         // Confluence ScriptRunner health
         healthStatus.services.confluence = checkConfluenceHealth()
-        
-        // PostgreSQL connectivity health  
+
+        // PostgreSQL connectivity health
         healthStatus.services.postgresql = DatabaseHealthMonitor.checkDatabaseHealth()
-        
+
         // MailHog SMTP health
         healthStatus.services.mailhog = checkMailHogHealth()
-        
+
         // Service integration health
         healthStatus.services.integration = checkServiceIntegration()
-        
+
         // Overall orchestration status
         healthStatus.overallStatus = calculateOverallHealth(healthStatus.services)
-        
+
         log.info("Service orchestration health check: ${healthStatus.overallStatus}")
         return healthStatus
     }
-    
+
     private static Map<String, Object> checkMailHogHealth() {
         try {
             def response = new URL('http://localhost:8025/api/v2/messages').openConnection()
             response.requestMethod = 'GET'
             response.connectTimeout = 5000
             response.readTimeout = 5000
-            
+
             def responseCode = response.responseCode
             return [
                 available: responseCode == 200,
@@ -279,63 +284,73 @@ class ServiceOrchestrationMonitor {
 // File: local-dev-setup/scripts/infrastructure-validator.js
 
 class InfrastructureValidator {
-    async validateInfrastructure() {
-        console.log('🔍 Starting infrastructure validation...')
-        
-        const validationResults = {
-            timestamp: new Date().toISOString(),
-            validations: {},
-            readyForTesting: false,
-            recommendations: []
-        }
-        
-        // Database connectivity validation
-        validationResults.validations.database = await this.validateDatabase()
-        
-        // Service orchestration validation
-        validationResults.validations.services = await this.validateServices()
-        
-        // Resource availability validation
-        validationResults.validations.resources = await this.validateResources()
-        
-        // Network connectivity validation
-        validationResults.validations.network = await this.validateNetwork()
-        
-        // Overall readiness assessment
-        validationResults.readyForTesting = this.assessReadiness(validationResults.validations)
-        
-        if (!validationResults.readyForTesting) {
-            validationResults.recommendations = this.generateRecommendations(validationResults.validations)
-        }
-        
-        return validationResults
+  async validateInfrastructure() {
+    console.log("🔍 Starting infrastructure validation...");
+
+    const validationResults = {
+      timestamp: new Date().toISOString(),
+      validations: {},
+      readyForTesting: false,
+      recommendations: [],
+    };
+
+    // Database connectivity validation
+    validationResults.validations.database = await this.validateDatabase();
+
+    // Service orchestration validation
+    validationResults.validations.services = await this.validateServices();
+
+    // Resource availability validation
+    validationResults.validations.resources = await this.validateResources();
+
+    // Network connectivity validation
+    validationResults.validations.network = await this.validateNetwork();
+
+    // Overall readiness assessment
+    validationResults.readyForTesting = this.assessReadiness(
+      validationResults.validations,
+    );
+
+    if (!validationResults.readyForTesting) {
+      validationResults.recommendations = this.generateRecommendations(
+        validationResults.validations,
+      );
     }
-    
-    async validateDatabase() {
-        try {
-            const { execSync } = require('child_process')
-            const result = execSync('curl -f http://localhost:8090/rest/scriptrunner/latest/custom/health/database', {
-                timeout: 10000,
-                encoding: 'utf8'
-            })
-            
-            const healthData = JSON.parse(result)
-            return {
-                status: healthData.status === 'healthy' ? 'pass' : 'fail',
-                responseTime: healthData.responseTime,
-                details: healthData
-            }
-        } catch (error) {
-            return {
-                status: 'fail',
-                error: error.message,
-                recommendations: ['Check database connectivity', 'Verify PostgreSQL service running']
-            }
-        }
+
+    return validationResults;
+  }
+
+  async validateDatabase() {
+    try {
+      const { execSync } = require("child_process");
+      const result = execSync(
+        "curl -f http://localhost:8090/rest/scriptrunner/latest/custom/health/database",
+        {
+          timeout: 10000,
+          encoding: "utf8",
+        },
+      );
+
+      const healthData = JSON.parse(result);
+      return {
+        status: healthData.status === "healthy" ? "pass" : "fail",
+        responseTime: healthData.responseTime,
+        details: healthData,
+      };
+    } catch (error) {
+      return {
+        status: "fail",
+        error: error.message,
+        recommendations: [
+          "Check database connectivity",
+          "Verify PostgreSQL service running",
+        ],
+      };
     }
+  }
 }
 
-module.exports = { InfrastructureValidator }
+module.exports = { InfrastructureValidator };
 ```
 
 ### Phase 4: Health Dashboard and Reporting (0.5 days)
@@ -415,20 +430,20 @@ npm run ci:health-gate           # CI/CD health gate validation
 
 ### Technical Risks
 
-| Risk                              | Impact | Probability | Mitigation Strategy                                               |
-| --------------------------------- | ------ | ----------- | ----------------------------------------------------------------- |
-| **Performance Impact**            | Medium | Low         | Lightweight monitoring with configurable intervals               |
-| **False Positive Alerts**        | Medium | Medium      | Intelligent alerting with threshold tuning and alert correlation |
-| **Monitoring Infrastructure Overhead** | Low    | Low         | Efficient monitoring design with minimal resource consumption     |
-| **Integration Complexity**       | Medium | Low         | Incremental integration with existing infrastructure patterns     |
+| Risk                                   | Impact | Probability | Mitigation Strategy                                              |
+| -------------------------------------- | ------ | ----------- | ---------------------------------------------------------------- |
+| **Performance Impact**                 | Medium | Low         | Lightweight monitoring with configurable intervals               |
+| **False Positive Alerts**              | Medium | Medium      | Intelligent alerting with threshold tuning and alert correlation |
+| **Monitoring Infrastructure Overhead** | Low    | Low         | Efficient monitoring design with minimal resource consumption    |
+| **Integration Complexity**             | Medium | Low         | Incremental integration with existing infrastructure patterns    |
 
 ### Business Risks
 
-| Risk                                | Impact | Probability | Mitigation Strategy                           |
-| ----------------------------------- | ------ | ----------- | --------------------------------------------- |
-| **Development Velocity Impact**     | Medium | Low         | Proactive monitoring improves development speed |
-| **Alert Fatigue**                 | Medium | Medium      | Intelligent alerting with severity classification |
-| **Infrastructure Complexity**     | Low    | Low         | Clear documentation and operational procedures |
+| Risk                            | Impact | Probability | Mitigation Strategy                               |
+| ------------------------------- | ------ | ----------- | ------------------------------------------------- |
+| **Development Velocity Impact** | Medium | Low         | Proactive monitoring improves development speed   |
+| **Alert Fatigue**               | Medium | Medium      | Intelligent alerting with severity classification |
+| **Infrastructure Complexity**   | Low    | Low         | Clear documentation and operational procedures    |
 
 ## Dependencies and Prerequisites
 
