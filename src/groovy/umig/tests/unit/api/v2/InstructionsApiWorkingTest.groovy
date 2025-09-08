@@ -69,8 +69,8 @@ class InstructionsApiWorkingTestClass {
         ]).toString()).build()
         
         assert response.status == 200
-        def parsed = new JsonSlurper().parseText(response.entity)
-        assert parsed.instructions.size() == 2
+        def parsed = new JsonSlurper().parseText(response.entity as String) as Map
+        assert (parsed.instructions as List).size() == 2
         assert parsed.total == 2
         
         println "✅ GET by stepId test passed"
@@ -85,7 +85,7 @@ class InstructionsApiWorkingTestClass {
             .build()
         
         assert response.status == 404
-        def parsed = new JsonSlurper().parseText(response.entity)
+        def parsed = new JsonSlurper().parseText(response.entity as String) as Map
         assert parsed.error == "Instruction not found"
         
         println "✅ Not found test passed"
@@ -100,7 +100,7 @@ class InstructionsApiWorkingTestClass {
             .build()
         
         assert response.status == 400
-        def parsed = new JsonSlurper().parseText(response.entity)
+        def parsed = new JsonSlurper().parseText(response.entity as String) as Map
         assert parsed.error == "Invalid UUID format"
         
         println "✅ Invalid UUID test passed"
@@ -118,7 +118,7 @@ class InstructionsApiWorkingTestClass {
         ]).toString()).build()
         
         assert response.status == 200
-        def parsed = new JsonSlurper().parseText(response.entity)
+        def parsed = new JsonSlurper().parseText(response.entity as String) as Map
         assert parsed.message == "Instruction updated successfully"
         
         println "✅ Update instruction test passed"
@@ -135,7 +135,7 @@ class InstructionsApiWorkingTestClass {
         ]).toString()).build()
         
         assert response.status == 200
-        def parsed = new JsonSlurper().parseText(response.entity)
+        def parsed = new JsonSlurper().parseText(response.entity as String) as Map
         assert parsed.message == "Master instruction deleted successfully"
         
         println "✅ Delete instruction test passed"
@@ -188,4 +188,4 @@ class InstructionsApiWorkingTestClass {
 }
 
 // Run the tests
-InstructionsApiWorkingTestClass.main(args)
+InstructionsApiWorkingTestClass.main([] as String[])

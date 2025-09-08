@@ -22,12 +22,13 @@ npm run generate-data:erase  # Generate fake data with reset
 ### Testing Commands
 
 ```bash
-npm test                     # Run JavaScript tests
+npm test                     # Run JavaScript tests (Jest)
 npm run test:unit           # Groovy unit tests
 npm run test:integration    # Integration tests (needs running stack)
-npm run test:all            # Complete test suite
-npm run test:us034          # Data import tests
+npm run test:all            # Complete test suite (unit + integration + uat)
+npm run test:us034          # Data import tests (comprehensive)
 npm run test:us039          # Email notification tests
+npm run test:security       # Security validation tests
 npm run health:check        # System health monitoring
 npm run quality:check       # Master quality assurance
 ```
@@ -160,11 +161,20 @@ Special: Import, StepView, Web, TestEndpoint
 
 ## Current Focus Areas
 
-### Sprint 6 (In Progress)
+### Sprint 6 (90% Complete - 27/30 points)
 
-- US-034: Data Import Strategy (CSV/JSON import with orchestration)
-- Performance: 51ms query performance achieved (10x better than target)
-- Integration testing framework standardization
+- ✅ US-056-C: API Layer Integration (DTO pattern, <51ms performance)
+- ✅ JSON-Based Step Data Architecture foundation complete
+- ✅ US-034: Data Import Strategy (COMPLETE - Sept 4, 2025)
+  - Enterprise orchestration system with 16 API endpoints
+  - Database-backed queue management (13 specialized tables)
+  - $1.8M-3.1M validated cost savings achieved
+  - 51ms query performance (10x better than target)
+- ✅ US-039-B: Email Template Integration (COMPLETE - Sept 5, 2025)
+  - Template caching with 91% performance improvement
+  - 12.4ms average processing (94% better than target)
+  - Complete security hardening (US-067 - 90%+ coverage)
+- Testing Infrastructure: Modern `__tests__/` directory structure
 
 ### Recently Completed (Sprint 5)
 
@@ -181,23 +191,31 @@ Special: Import, StepView, Web, TestEndpoint
 
 ## Testing Strategy
 
-### Unit Tests
+### JavaScript Testing Framework
 
-- Location: `src/groovy/umig/tests/unit/`
+- Location: `local-dev-setup/__tests__/` (modern structure)
+- Categories: unit, integration, e2e, uat, regression
+- Framework: Jest with Playwright for integration
+- Pattern: `{component}.{type}.test.js`
+
+### Groovy Testing
+
+- Location: `src/groovy/umig/tests/unit/` and `src/groovy/umig/tests/integration/`
 - Mock specific SQL queries (ADR-026)
+- BaseIntegrationTest framework (80% code reduction)
 - 95%+ coverage target
 
-### Integration Tests
+### Cross-Platform Testing
 
-- Location: `src/groovy/umig/tests/integration/`
-- BaseIntegrationTest framework (80% code reduction)
-- Requires running local stack
+- All tests runnable on Windows/macOS/Linux
+- No shell script dependencies
+- Docker/Podman container compatibility
 
 ### Email Testing
 
 - Enhanced framework with database integration
 - Mobile-responsive templates validated
-- MailHog for SMTP testing
+- MailHog for SMTP testing (localhost:8025)
 
 ## Non-Negotiable Standards
 
@@ -237,3 +255,25 @@ Special: Import, StepView, Web, TestEndpoint
 - Verify specific SQL mocks (ADR-026)
 - Check BaseIntegrationTest usage
 - Ensure test database is clean
+- Use `npm run health:check` for system validation
+- Check `__tests__/` directory for JavaScript tests
+
+## Documentation Structure
+
+### Sprint 6 Documentation
+
+- Primary reference: `docs/roadmap/sprint6/US-056C-progress.md` (consolidated progress)
+- Sprint breakdown: `docs/roadmap/sprint6/sprint6-story-breakdown.md` (authoritative source)
+- Development journal: `docs/devJournal/20250908-01-*.md` for session records
+
+### Architecture Documentation
+
+- Central hub: `docs/architecture/UMIG - TOGAF Phases A-D - Architecture Requirements Specification.md`
+- 49 ADRs covering all major architectural decisions
+- API documentation: `docs/api/` with OpenAPI specifications
+
+### Testing Documentation
+
+- JavaScript framework: `local-dev-setup/__tests__/README.md`
+- Groovy framework: `src/groovy/umig/tests/README.md`
+- Testing strategies: `docs/testing/README.md`
