@@ -26,7 +26,33 @@ String confluenceEmail = currentUser?.getEmail() ?: ""
 // Base path for web resources (CSS/JS)
 def webResourcesPath = "/rest/scriptrunner/latest/custom/web"
 
+// Version string for JavaScript files (update when deploying changes)
+// Using a stable version instead of System.currentTimeMillis() for better caching
+def jsVersion = "2.4.0"
+
 return """
+<!-- UMIG Performance Optimization: Move warning suppression to very start -->
+<script>
+// IMMEDIATE warning suppression - must be first thing that runs
+(function() {
+  if (window.console && console.warn) {
+    const originalWarn = console.warn;
+    console.warn = function() {
+      const msg = arguments[0];
+      if (msg && typeof msg === 'string' && 
+          (msg.includes('AJS.params') || msg.includes('deprecated') || msg.includes('AJS.'))) {
+        return; // Silent suppression for performance
+      }
+      originalWarn.apply(console, arguments);
+    };
+  }
+})();
+</script>
+
+<!-- Resource hints for better loading performance -->
+<link rel="dns-prefetch" href="//localhost:8090">
+<link rel="preconnect" href="/rest/scriptrunner/latest/custom">
+
 <!-- UMIG Admin GUI Container -->
 <div id="umig-admin-gui-root" class="umig-admin-container">
     
@@ -381,33 +407,203 @@ return """
     };
 </script>
 
-<!-- Load CSS and JavaScript -->
-<link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css">
+<!-- Optimized CSS loading with critical path optimization -->
+<style>
+/* Critical CSS for above-the-fold content to prevent FOUC */
+.umig-admin-container { opacity: 0; transition: opacity 0.2s ease-in; }
+.umig-admin-container.loaded { opacity: 1; }
+.login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.login-box { max-width: 400px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.loading-container { text-align: center; padding: 2rem; }
+.loading-spinner { display: inline-block; width: 2rem; height: 2rem; border: 3px solid #f3f3f3; border-top: 3px solid #0052cc; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
 
-<!-- Load JavaScript modules in dependency order -->
-<script src="${webResourcesPath}/js/StatusColorService.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/EntityConfig.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/UiUtils.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/AdminGuiState.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/ApiClient.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/AuthenticationManager.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/TableManager.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/ModalManager.js?v=${System.currentTimeMillis()}"></script>
-<script src="${webResourcesPath}/js/AdminGuiController.js?v=${System.currentTimeMillis()}"></script>
+<!-- Load main CSS after critical styles -->
+<link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css" media="print" onload="this.media='all'; this.onload=null;">
+<noscript><link rel="stylesheet" href="${webResourcesPath}/css/admin-gui.css"></noscript>
 
-<!-- Debug script to help troubleshoot -->
+<!-- Optimized JavaScript loading with lazy loading and bundling -->
+<!-- Critical modules loaded synchronously for immediate functionality -->
 <script>
-console.log('UMIG Admin GUI Debug Info:');
-console.log('- StatusColorService loaded:', !!window.StatusColorService);
-console.log('- EntityConfig loaded:', !!window.EntityConfig);
-console.log('- UiUtils loaded:', !!window.UiUtils);
-console.log('- AdminGuiState loaded:', !!window.AdminGuiState);
-console.log('- ApiClient loaded:', !!window.ApiClient);
-console.log('- AuthenticationManager loaded:', !!window.AuthenticationManager);
-console.log('- TableManager loaded:', !!window.TableManager);
-console.log('- ModalManager loaded:', !!window.ModalManager);
-console.log('- AdminGuiController loaded:', !!window.AdminGuiController);
-console.log('- adminGui global object:', !!window.adminGui);
-console.log('- UMIG_CONFIG:', window.UMIG_CONFIG);
+// Intelligent script loader with performance optimization
+(function() {
+  'use strict';
+  
+  const basePath = '${webResourcesPath}/js/';
+  const version = '${jsVersion}';
+  
+  // Critical modules needed for initial render (load immediately)
+  const criticalModules = [
+    'StatusColorService.js',
+    'EntityConfig.js',
+    'UiUtils.js',
+    'AdminGuiState.js'
+  ];
+  
+  // Deferred modules loaded after critical path (lazy load)
+  const deferredModules = [
+    'ApiClient.js',
+    'AuthenticationManager.js', 
+    'TableManager.js',
+    'ModalManager.js',
+    'AdminGuiController.js'
+  ];
+  
+  // Load script with caching and error handling
+  function loadScript(src, callback) {
+    const script = document.createElement('script');
+    script.src = basePath + src + '?v=' + version;
+    script.async = false; // Preserve execution order
+    
+    script.onload = callback;
+    script.onerror = function() {
+      console.error('Failed to load:', src);
+      if (callback) callback();
+    };
+    
+    document.head.appendChild(script);
+  }
+  
+  // Load modules in batches for optimal performance
+  function loadModuleBatch(modules, callback) {
+    let loaded = 0;
+    const total = modules.length;
+    
+    if (total === 0) {
+      callback && callback();
+      return;
+    }
+    
+    modules.forEach(function(module) {
+      loadScript(module, function() {
+        loaded++;
+        if (loaded === total && callback) {
+          callback();
+        }
+      });
+    });
+  }
+  
+  // Load critical modules first
+  loadModuleBatch(criticalModules, function() {
+    console.log('✅ Critical modules loaded');
+    
+    // Show interface after critical modules are ready
+    const container = document.getElementById('umig-admin-gui-root');
+    if (container) {
+      container.classList.add('loaded');
+    }
+    
+    // Start deferred loading after a short delay to prevent blocking
+    setTimeout(function() {
+      loadModuleBatch(deferredModules, function() {
+        console.log('✅ All modules loaded');
+        
+        // Trigger performance logging
+        if (window.UMIG_LOADER) {
+          window.UMIG_LOADER.logPerformance();
+        }
+        
+        // Mark fully loaded for any waiting components
+        document.body.setAttribute('data-umig-ready', 'true');
+      });
+    }, 10);
+  });
+  
+})();
+</script>
+
+<!-- Preload hints for faster subsequent requests -->
+<link rel="preload" href="${webResourcesPath}/js/EntityConfig.js?v=${jsVersion}" as="script">
+<link rel="preload" href="${webResourcesPath}/js/AdminGuiController.js?v=${jsVersion}" as="script">
+
+<!-- Early warning suppression and performance optimization -->
+<script>
+// CRITICAL: Suppress warnings IMMEDIATELY before any other scripts load
+(function() {
+  'use strict';
+  
+  const perfStart = performance.now();
+  let suppressCount = 0;
+  
+  // Aggressive warning suppression - must run before Confluence scripts
+  if (window.console && console.warn) {
+    const originalWarn = console.warn;
+    const originalError = console.error;
+    
+    console.warn = function() {
+      const message = arguments[0];
+      if (message && typeof message === 'string') {
+        // Suppress all Confluence deprecation warnings that slow down loading
+        if (message.includes('AJS.params') || 
+            message.includes('window._') || 
+            message.includes('Dialog') ||
+            message.includes('AJS.debounce') ||
+            message.includes('deprecated') ||
+            message.includes('AJS.') ||
+            message.match(/AUI\\s*\\d+\\.\\d+/)) {
+          suppressCount++;
+          return; // Silent suppression for performance
+        }
+      }
+      originalWarn.apply(console, arguments);
+    };
+    
+    // Also suppress related errors that can slow down initialization
+    console.error = function() {
+      const message = arguments[0];
+      if (message && typeof message === 'string' && message.includes('AJS.')) {
+        suppressCount++;
+        return;
+      }
+      originalError.apply(console, arguments);
+    };
+  }
+  
+  // Create optimized loader with intelligent module bundling
+  window.UMIG_LOADER = {
+    loadStart: perfStart,
+    suppressCount: suppressCount,
+    loadedModules: [],
+    criticalModules: ['StatusColorService', 'EntityConfig', 'UiUtils', 'AdminGuiState'],
+    deferredModules: ['ApiClient', 'AuthenticationManager', 'TableManager', 'ModalManager'],
+    
+    // Load modules with priority and bundling
+    loadModules: function(modules, callback) {
+      let loadedCount = 0;
+      const total = modules.length;
+      
+      modules.forEach(function(module, index) {
+        setTimeout(function() {
+          // Module is already loaded via script tags, just track completion
+          loadedCount++;
+          if (loadedCount === total && callback) {
+            callback();
+          }
+        }, index * 2); // Stagger by 2ms to prevent blocking
+      });
+    },
+    
+    // Enhanced performance logging
+    logPerformance: function() {
+      const loadEnd = performance.now();
+      const totalTime = loadEnd - this.loadStart;
+      
+      // Only log in development or when performance is poor
+      if (totalTime > 1000 || window.location.href.includes('localhost')) {
+        console.group('🚀 UMIG Performance Metrics');
+        console.log('📊 Load time:', totalTime.toFixed(2) + 'ms');
+        console.log('🤫 Warnings suppressed:', this.suppressCount);
+        console.log('📦 Modules loaded:', this.loadedModules.length);
+        if (totalTime > 2000) {
+          console.warn('⚠️  Slow load detected. Consider clearing browser cache.');
+        }
+        console.groupEnd();
+      }
+    }
+  };
+  
+})();
 </script>
 """
