@@ -126,6 +126,12 @@ return """
                             <li><a href="#" class="nav-item" data-section="labels" data-entity="labels">
                                 <span class="item-icon">🏷️</span> Labels
                             </a></li>
+                            <li><a href="#" class="nav-item" data-section="iterationTypes" data-entity="iterationTypes">
+                                <span class="item-icon">🔧</span> Iteration Types
+                            </a></li>
+                            <li><a href="#" class="nav-item" data-section="migrationTypes" data-entity="migrationTypes">
+                                <span class="item-icon">📋</span> Migration Types
+                            </a></li>
                         </ul>
                     </div>
 
