@@ -59,13 +59,6 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
     try {
         log.info("GET /iterationTypes - Fetching iteration types")
 
-        // Handle Admin GUI compatibility (handle parameterless calls)
-        if (!queryParams || queryParams.isEmpty()) {
-            def iterationTypes = iterationTypeRepository.findAllIterationTypes() as List
-            log.info("GET /iterationTypes - Found ${iterationTypes.size()} iteration types (Admin GUI)")
-            return Response.ok(new JsonBuilder(iterationTypes).toString()).build()
-        }
-
         // GET /iterationTypes/{code} - Get specific iteration type
         if (pathParts.size() == 1) {
             def ittCode = pathParts[0] as String
@@ -84,17 +77,92 @@ iterationTypes(httpMethod: "GET", groups: ["confluence-users"]) { MultivaluedMap
         // Parse query parameters
         def includeInactive = queryParams.getFirst('includeInactive') == 'true'
         def showStats = queryParams.getFirst('stats') == 'true'
-
-        def iterationTypes
-        if (showStats) {
-            iterationTypes = iterationTypeRepository.getIterationTypeUsageStats() as List
-            log.info("GET /iterationTypes - Found ${iterationTypes.size()} iteration types with usage stats")
-        } else {
-            iterationTypes = iterationTypeRepository.findAllIterationTypes(includeInactive) as List
-            log.info("GET /iterationTypes - Found ${iterationTypes.size()} iteration types (includeInactive: ${includeInactive})")
-        }
         
-        return Response.ok(new JsonBuilder(iterationTypes).toString()).build()
+        // Handle pagination and sorting parameters from Admin GUI
+        def pageParam = queryParams.getFirst('page')
+        def sizeParam = queryParams.getFirst('size')
+        def sortParam = queryParams.getFirst('sort')
+        def directionParam = queryParams.getFirst('direction')
+        
+        // Check if this is a paginated request (Admin GUI)
+        boolean isPaginatedRequest = pageParam || sizeParam || sortParam || directionParam
+        
+        if (isPaginatedRequest) {
+            // Parse pagination parameters with validation (ADR-031 Type Safety)
+            int pageNumber = 1
+            int pageSize = 50
+            String sortField = null
+            String sortDirection = 'asc'
+            
+            try {
+                if (pageParam) {
+                    pageNumber = Integer.parseInt(pageParam as String)
+                    if (pageNumber < 1) pageNumber = 1
+                }
+            } catch (NumberFormatException e) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid page parameter: must be a positive integer"]).toString())
+                    .build()
+            }
+            
+            try {
+                if (sizeParam) {
+                    pageSize = Integer.parseInt(sizeParam as String)
+                    if (pageSize < 1 || pageSize > 1000) pageSize = 50 // Reasonable limits
+                }
+            } catch (NumberFormatException e) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new JsonBuilder([error: "Invalid size parameter: must be a positive integer"]).toString())
+                    .build()
+            }
+            
+            if (sortParam) {
+                sortField = sortParam as String
+                // Validate sort field (must match repository validation)
+                def allowedSortFields = ['itt_code', 'itt_name', 'itt_description', 'itt_color', 'itt_icon', 'itt_display_order', 'itt_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+                if (!allowedSortFields.contains(sortField)) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid sort field: ${sortField}. Allowed fields: ${allowedSortFields.join(', ')}"]).toString())
+                        .build()
+                }
+            }
+            
+            if (directionParam) {
+                sortDirection = directionParam as String
+                if (!['asc', 'desc'].contains(sortDirection.toLowerCase())) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(new JsonBuilder([error: "Invalid direction parameter: must be 'asc' or 'desc'"]).toString())
+                        .build()
+                }
+            }
+            
+            log.debug("GET /iterationTypes - Paginated request: page=${pageNumber}, size=${pageSize}, sort=${sortField}, direction=${sortDirection}")
+            
+            // Use paginated repository method
+            def result = iterationTypeRepository.findAllIterationTypesWithPagination(pageNumber, pageSize, includeInactive, sortField, sortDirection)
+            
+            // Explicit casting for type safety (ADR-031)
+            def resultMap = result as Map
+            def dataList = resultMap.data as List
+            def paginationMap = resultMap.pagination as Map
+            def totalPages = paginationMap.totalPages as Integer
+            
+            log.info("GET /iterationTypes - Paginated response: ${dataList.size()} iteration types (page ${pageNumber} of ${totalPages})")
+            
+            return Response.ok(new JsonBuilder(result).toString()).build()
+        } else {
+            // Legacy non-paginated request
+            def iterationTypes
+            if (showStats) {
+                iterationTypes = iterationTypeRepository.getIterationTypeUsageStats() as List
+                log.info("GET /iterationTypes - Found ${iterationTypes.size()} iteration types with usage stats")
+            } else {
+                iterationTypes = iterationTypeRepository.findAllIterationTypes(includeInactive) as List
+                log.info("GET /iterationTypes - Found ${iterationTypes.size()} iteration types (includeInactive: ${includeInactive})")
+            }
+            
+            return Response.ok(new JsonBuilder(iterationTypes).toString()).build()
+        }
         
     } catch (SQLException e) {
         log.error("Database error in GET /iterationTypes", e)

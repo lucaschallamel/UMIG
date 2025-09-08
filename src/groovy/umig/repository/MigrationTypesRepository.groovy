@@ -18,7 +18,83 @@ class MigrationTypesRepository {
      */
     def findAllMigrationTypes(boolean includeInactive = false) {
         DatabaseUtil.withSql { sql ->
-            def query = """
+            if (includeInactive) {
+                return sql.rows("""
+                    SELECT 
+                        mtm_id,
+                        mtm_code,
+                        mtm_name,
+                        mtm_description,
+                        mtm_color,
+                        mtm_icon,
+                        mtm_display_order,
+                        mtm_active,
+                        created_by,
+                        created_at,
+                        updated_by,
+                        updated_at
+                    FROM migration_types_master
+                    ORDER BY mtm_display_order, mtm_code
+                """)
+            } else {
+                return sql.rows("""
+                    SELECT 
+                        mtm_id,
+                        mtm_code,
+                        mtm_name,
+                        mtm_description,
+                        mtm_color,
+                        mtm_icon,
+                        mtm_display_order,
+                        mtm_active,
+                        created_by,
+                        created_at,
+                        updated_by,
+                        updated_at
+                    FROM migration_types_master
+                    WHERE mtm_active = TRUE
+                    ORDER BY mtm_display_order, mtm_code
+                """)
+            }
+        }
+    }
+
+    /**
+     * Retrieves all migration types from the database with custom sorting.
+     * @param includeInactive If true, includes inactive migration types (default: false)
+     * @param sortField The field to sort by (validated against allowed fields)
+     * @param sortDirection The sort direction ('asc' or 'desc', default: 'asc')
+     * @return A list of maps, where each map is a migration type.
+     */
+    def findAllMigrationTypesWithSorting(boolean includeInactive = false, String sortField = null, String sortDirection = 'asc') {
+        DatabaseUtil.withSql { sql ->
+            // Validate sort field to prevent SQL injection (follows ADR-043 type safety)
+            def allowedSortFields = ['mtm_id', 'mtm_code', 'mtm_name', 'mtm_description', 'mtm_color', 'mtm_icon', 'mtm_display_order', 'mtm_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+            
+            // Build ORDER BY clause components safely using standard SQL approach
+            String primarySort = "mtm_display_order ASC"
+            String secondarySort = "mtm_name ASC"
+            
+            if (sortField && allowedSortFields.contains(sortField)) {
+                // Validate sort direction
+                String direction = (sortDirection?.toLowerCase() == 'desc') ? 'DESC' : 'ASC'
+                primarySort = "${sortField} ${direction}"
+                
+                // Add secondary sort for consistent ordering (following UMIG pattern)
+                if (sortField != 'mtm_display_order') {
+                    secondarySort = "mtm_display_order ASC, mtm_name ASC"
+                } else if (sortField != 'mtm_name') {
+                    secondarySort = "mtm_name ASC"
+                } else {
+                    secondarySort = "mtm_display_order ASC"
+                }
+            }
+            
+            // Build the complete ORDER BY clause as a string literal
+            String orderByClause = "${primarySort}, ${secondarySort}"
+            
+            // Base SELECT clause
+            String baseSelectClause = """
                 SELECT 
                     mtm_id,
                     mtm_code,
@@ -33,11 +109,16 @@ class MigrationTypesRepository {
                     updated_by,
                     updated_at
                 FROM migration_types_master
-                ${includeInactive ? '' : 'WHERE mtm_active = TRUE'}
-                ORDER BY mtm_display_order, mtm_code
             """
             
-            return sql.rows(query)
+            if (includeInactive) {
+                // Use string concatenation to avoid interpolation issues
+                String fullQuery = baseSelectClause + " ORDER BY " + orderByClause
+                return sql.rows(fullQuery)
+            } else {
+                String fullQuery = baseSelectClause + " WHERE mtm_active = TRUE ORDER BY " + orderByClause
+                return sql.rows(fullQuery)
+            }
         }
     }
 
@@ -276,18 +357,22 @@ class MigrationTypesRepository {
             def blocking = [:]
 
             // Get the migration type code for relationships
-            def migrationType = findMigrationTypeById(mtmId)
-            if (!migrationType) return blocking
-
-            // Check migrations using this type
+            def migrationTypeResult = findMigrationTypeById(mtmId)
+            if (!migrationTypeResult) return blocking
+            
+            // Explicit cast to fix static type checking per ADR-031 and ADR-043
+            GroovyRowResult migrationType = migrationTypeResult as GroovyRowResult
+            String mtmCode = migrationType.mtm_code as String
+            
+            // Check migrations using this type (by code, not ID)
             def migrations = sql.rows("""
                 SELECT 
                     m.mig_id, 
                     m.mig_name,
                     m.mig_description
                 FROM migrations_mig m
-                WHERE m.mtm_id = :mtmId
-            """, [mtmId: mtmId])
+                WHERE m.mig_type = :mtmCode
+            """, [mtmCode: mtmCode])
             if (migrations) blocking['migrations'] = migrations
 
             // Check if there are any step instances associated with migrations of this type
@@ -296,12 +381,15 @@ class MigrationTypesRepository {
                     si.sti_id,
                     si.sti_name,
                     m.mig_name
-                FROM step_instances_sti si
-                JOIN iterations_ite i ON i.ite_id = si.ite_id
+                FROM steps_instance_sti si
+                JOIN phases_instance_phi phi ON phi.phi_id = si.phi_id
+                JOIN sequences_instance_sqi sqi ON sqi.sqi_id = phi.sqi_id
+                JOIN plans_instance_pli pli ON pli.pli_id = sqi.pli_id
+                JOIN iterations_ite i ON i.ite_id = pli.ite_id
                 JOIN migrations_mig m ON m.mig_id = i.mig_id
-                WHERE m.mtm_id = :mtmId
+                WHERE m.mig_type = :mtmCode
                 LIMIT 10
-            """, [mtmId: mtmId])
+            """, [mtmCode: mtmCode])
             if (stepInstances) blocking['step_instances'] = stepInstances
 
             return blocking
@@ -348,12 +436,14 @@ class MigrationTypesRepository {
      */
     def getMaxDisplayOrder() {
         DatabaseUtil.withSql { sql ->
-            def result = sql.firstRow("""
+            def queryResult = sql.firstRow("""
                 SELECT COALESCE(MAX(mtm_display_order), 0) as max_order
                 FROM migration_types_master
             """)
             
-            return result.max_order
+            // Explicit cast to fix static type checking per ADR-031 and ADR-043
+            GroovyRowResult result = queryResult as GroovyRowResult
+            return result.max_order as Integer
         }
     }
 
@@ -425,19 +515,22 @@ class MigrationTypesRepository {
                     COALESCE(si.step_instance_count, 0) as step_instance_count
                 FROM migration_types_master mt
                 LEFT JOIN (
-                    SELECT mtm_id, COUNT(*) as migration_count
+                    SELECT mig_type, COUNT(*) as migration_count
                     FROM migrations_mig
-                    GROUP BY mtm_id
-                ) m ON mt.mtm_id = m.mtm_id
+                    GROUP BY mig_type
+                ) m ON mt.mtm_code = m.mig_type
                 LEFT JOIN (
                     SELECT 
-                        mg.mtm_id, 
+                        mg.mig_type, 
                         COUNT(si.sti_id) as step_instance_count
-                    FROM step_instances_sti si
-                    JOIN iterations_ite i ON i.ite_id = si.ite_id
+                    FROM steps_instance_sti si
+                    JOIN phases_instance_phi phi ON phi.phi_id = si.phi_id
+                    JOIN sequences_instance_sqi sqi ON sqi.sqi_id = phi.sqi_id
+                    JOIN plans_instance_pli pli ON pli.pli_id = sqi.pli_id
+                    JOIN iterations_ite i ON i.ite_id = pli.ite_id
                     JOIN migrations_mig mg ON mg.mig_id = i.mig_id
-                    GROUP BY mg.mtm_id
-                ) si ON mt.mtm_id = si.mtm_id
+                    GROUP BY mg.mig_type
+                ) si ON mt.mtm_code = si.mig_type
                 ORDER BY mt.mtm_display_order, mt.mtm_code
             """)
         }

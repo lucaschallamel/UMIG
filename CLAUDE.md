@@ -147,34 +147,28 @@ if (!filters || filters.isEmpty()) {
 
 ## Services & Endpoints
 
-- **Confluence**: <http://localhost:8090>
+- **Confluence**: http://localhost:8090
 - **PostgreSQL**: localhost:5432 (DB: umig_app_db)
-- **MailHog**: <http://localhost:8025>
+- **MailHog**: http://localhost:8025
 - **API Base**: `/rest/scriptrunner/latest/custom/`
 
-### Complete API Endpoints (24 total)
+### Complete API Endpoints (25 total)
 
 Core: Users, Teams, TeamMembers, Environments, Applications, Labels, Migrations, Status
 Hierarchy: Plans, Sequences, Phases, Steps, EnhancedSteps, Instructions, Iterations
-Admin: SystemConfiguration, UrlConfiguration, Controls, IterationTypes, EmailTemplates
-Special: Import, StepView, Web, TestEndpoint
+Admin: SystemConfiguration, UrlConfiguration, Controls, IterationTypes, MigrationTypes, EmailTemplates
+Special: Import, ImportQueue, StepView, Web, TestEndpoint
 
 ## Current Focus Areas
 
-### Sprint 6 (90% Complete - 27/30 points)
+### Sprint 6 (100% Complete - 30/30 points)
 
 - ✅ US-056-C: API Layer Integration (DTO pattern, <51ms performance)
-- ✅ JSON-Based Step Data Architecture foundation complete
-- ✅ US-034: Data Import Strategy (COMPLETE - Sept 4, 2025)
-  - Enterprise orchestration system with 16 API endpoints
-  - Database-backed queue management (13 specialized tables)
-  - $1.8M-3.1M validated cost savings achieved
-  - 51ms query performance (10x better than target)
-- ✅ US-039-B: Email Template Integration (COMPLETE - Sept 5, 2025)
-  - Template caching with 91% performance improvement
-  - 12.4ms average processing (94% better than target)
-  - Complete security hardening (US-067 - 90%+ coverage)
-- Testing Infrastructure: Modern `__tests__/` directory structure
+- ✅ US-034: Data Import Strategy (Enterprise orchestration, 51ms query performance)
+- ✅ US-039-B: Email Template Integration (12.4ms average processing)
+- ✅ US-042: Migration Types Management (Dynamic CRUD operations, Admin GUI integration)
+- ✅ US-043: Iteration Types Management (Enhanced readonly implementation, visual differentiation)
+- ✅ Testing Infrastructure: Modern `__tests__/` directory structure
 
 ### Recently Completed (Sprint 5)
 
@@ -188,6 +182,7 @@ Special: Import, StepView, Web, TestEndpoint
 - Authentication context reliability improved with 4-level fallback (ADR-042)
 - Template rendering failures resolved with unified DTO pattern (ADR-049)
 - Shell script elimination complete - all testing now cross-platform
+- UI-level RBAC interim solution (ADR-051) - upgrade to API-level planned (US-074)
 
 ## Testing Strategy
 
@@ -262,8 +257,8 @@ Special: Import, StepView, Web, TestEndpoint
 
 ### Sprint 6 Documentation
 
-- Primary reference: `docs/roadmap/sprint6/US-056C-progress.md` (consolidated progress)
-- Sprint breakdown: `docs/roadmap/sprint6/sprint6-story-breakdown.md` (authoritative source)
+- Primary reference: `docs/roadmap/sprint6/` (story documents)
+- Sprint overview: `docs/roadmap/unified-roadmap.md` (complete roadmap)
 - Development journal: `docs/devJournal/20250908-01-*.md` for session records
 
 ### Architecture Documentation

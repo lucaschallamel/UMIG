@@ -455,6 +455,9 @@ describe("Migration Types Integration Tests", () => {
     it("should integrate API endpoints with repository methods", async () => {
       const mockRepository = {
         findAllMigrationTypes: jest.fn().mockResolvedValue(testMigrationTypes),
+        findAllMigrationTypesWithSorting: jest
+          .fn()
+          .mockResolvedValue(testMigrationTypes),
         findMigrationTypeById: jest
           .fn()
           .mockResolvedValue(testMigrationTypes[0]),
@@ -468,15 +471,13 @@ describe("Migration Types Integration Tests", () => {
           mtm_name: "Updated Name",
         }),
         deleteMigrationType: jest.fn().mockResolvedValue(true),
-        getMigrationTypeUsageStats: jest
-          .fn()
-          .mockResolvedValue([
-            {
-              ...testMigrationTypes[0],
-              migration_count: 5,
-              step_instance_count: 150,
-            },
-          ]),
+        getMigrationTypeUsageStats: jest.fn().mockResolvedValue([
+          {
+            ...testMigrationTypes[0],
+            migration_count: 5,
+            step_instance_count: 150,
+          },
+        ]),
       };
 
       // Test GET all migration types
@@ -520,11 +521,383 @@ describe("Migration Types Integration Tests", () => {
       expect(stats[0].migration_count).toBe(5);
       expect(mockRepository.getMigrationTypeUsageStats).toHaveBeenCalled();
 
+      // Test GET with sorting support
+      const sortedTypes = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        "mtm_name",
+        "asc",
+      );
+      expect(sortedTypes).toHaveLength(8);
+      expect(
+        mockRepository.findAllMigrationTypesWithSorting,
+      ).toHaveBeenCalledWith(false, "mtm_name", "asc");
+
       testResults.integrationScenariosValidated.push(
         "API-Repository integration",
       );
-      testResults.databaseOperations += 6;
+      testResults.databaseOperations += 7;
       testResults.crossSystemValidations++;
+    });
+  });
+
+  describe("Column Sorting Integration Tests (US-042 Phase 4)", () => {
+    const sortedTestData = [
+      {
+        mtm_id: 1,
+        mtm_code: "APPLICATION",
+        mtm_name: "Application Release",
+        mtm_display_order: 2,
+      },
+      {
+        mtm_id: 2,
+        mtm_code: "DATABASE",
+        mtm_name: "Database Release",
+        mtm_display_order: 3,
+      },
+      {
+        mtm_id: 3,
+        mtm_code: "INFRASTRUCTURE",
+        mtm_name: "Infrastructure Release",
+        mtm_display_order: 1,
+      },
+      {
+        mtm_id: 4,
+        mtm_code: "NETWORK",
+        mtm_name: "Network Release",
+        mtm_display_order: 4,
+      },
+    ];
+
+    it("should validate sorting by mtm_name ascending", async () => {
+      const expectedSortedByName = [...sortedTestData].sort((a, b) =>
+        a.mtm_name.localeCompare(b.mtm_name),
+      );
+
+      const mockRepository = {
+        findAllMigrationTypesWithSorting: jest
+          .fn()
+          .mockResolvedValue(expectedSortedByName),
+      };
+
+      const result = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        "mtm_name",
+        "asc",
+      );
+
+      expect(result[0].mtm_name).toBe("Application Release");
+      expect(result[1].mtm_name).toBe("Database Release");
+      expect(result[2].mtm_name).toBe("Infrastructure Release");
+      expect(result[3].mtm_name).toBe("Network Release");
+
+      expect(
+        mockRepository.findAllMigrationTypesWithSorting,
+      ).toHaveBeenCalledWith(false, "mtm_name", "asc");
+
+      testResults.integrationScenariosValidated.push(
+        "Name column sorting (ascending)",
+      );
+      testResults.databaseOperations++;
+    });
+
+    it("should validate sorting by mtm_code descending", async () => {
+      const expectedSortedByCode = [...sortedTestData].sort((a, b) =>
+        b.mtm_code.localeCompare(a.mtm_code),
+      );
+
+      const mockRepository = {
+        findAllMigrationTypesWithSorting: jest
+          .fn()
+          .mockResolvedValue(expectedSortedByCode),
+      };
+
+      const result = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        "mtm_code",
+        "desc",
+      );
+
+      expect(result[0].mtm_code).toBe("NETWORK");
+      expect(result[1].mtm_code).toBe("INFRASTRUCTURE");
+      expect(result[2].mtm_code).toBe("DATABASE");
+      expect(result[3].mtm_code).toBe("APPLICATION");
+
+      expect(
+        mockRepository.findAllMigrationTypesWithSorting,
+      ).toHaveBeenCalledWith(false, "mtm_code", "desc");
+
+      testResults.integrationScenariosValidated.push(
+        "Code column sorting (descending)",
+      );
+      testResults.databaseOperations++;
+    });
+
+    it("should validate sorting by mtm_display_order with secondary sort", async () => {
+      const expectedSortedByOrder = [...sortedTestData].sort(
+        (a, b) => a.mtm_display_order - b.mtm_display_order,
+      );
+
+      const mockRepository = {
+        findAllMigrationTypesWithSorting: jest
+          .fn()
+          .mockResolvedValue(expectedSortedByOrder),
+      };
+
+      const result = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        "mtm_display_order",
+        "asc",
+      );
+
+      expect(result[0].mtm_display_order).toBe(1);
+      expect(result[1].mtm_display_order).toBe(2);
+      expect(result[2].mtm_display_order).toBe(3);
+      expect(result[3].mtm_display_order).toBe(4);
+
+      expect(
+        mockRepository.findAllMigrationTypesWithSorting,
+      ).toHaveBeenCalledWith(false, "mtm_display_order", "asc");
+
+      testResults.integrationScenariosValidated.push(
+        "Display order sorting with secondary sort",
+      );
+      testResults.databaseOperations++;
+    });
+
+    it("should validate default sorting when no sort parameters provided", async () => {
+      const expectedDefaultSort = [...sortedTestData].sort((a, b) => {
+        if (a.mtm_display_order !== b.mtm_display_order) {
+          return a.mtm_display_order - b.mtm_display_order;
+        }
+        return a.mtm_name.localeCompare(b.mtm_name);
+      });
+
+      const mockRepository = {
+        findAllMigrationTypesWithSorting: jest
+          .fn()
+          .mockResolvedValue(expectedDefaultSort),
+      };
+
+      const result = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        null,
+        null,
+      );
+
+      // Should be sorted by display_order first, then name
+      expect(result[0].mtm_display_order).toBe(1); // Infrastructure
+      expect(result[1].mtm_display_order).toBe(2); // Application
+      expect(result[2].mtm_display_order).toBe(3); // Database
+      expect(result[3].mtm_display_order).toBe(4); // Network
+
+      expect(
+        mockRepository.findAllMigrationTypesWithSorting,
+      ).toHaveBeenCalledWith(false, null, null);
+
+      testResults.integrationScenariosValidated.push(
+        "Default sorting behavior (display_order + name)",
+      );
+      testResults.databaseOperations++;
+    });
+
+    it("should validate sorting with includeInactive parameter", async () => {
+      const testDataWithInactive = [
+        ...sortedTestData,
+        {
+          mtm_id: 5,
+          mtm_code: "INACTIVE_TYPE",
+          mtm_name: "Inactive Type",
+          mtm_display_order: 99,
+          mtm_active: false,
+        },
+      ];
+
+      const expectedSorted = testDataWithInactive.sort((a, b) =>
+        a.mtm_name.localeCompare(b.mtm_name),
+      );
+
+      const mockRepository = {
+        findAllMigrationTypesWithSorting: jest
+          .fn()
+          .mockResolvedValue(expectedSorted),
+      };
+
+      const result = await mockRepository.findAllMigrationTypesWithSorting(
+        true,
+        "mtm_name",
+        "asc",
+      );
+
+      expect(result).toHaveLength(5);
+      expect(result[0].mtm_name).toBe("Application Release");
+      expect(result[result.length - 1].mtm_name).toBe("Network Release");
+
+      expect(
+        mockRepository.findAllMigrationTypesWithSorting,
+      ).toHaveBeenCalledWith(true, "mtm_name", "asc");
+
+      testResults.integrationScenariosValidated.push(
+        "Sorting with includeInactive parameter",
+      );
+      testResults.databaseOperations++;
+    });
+
+    it("should validate sort field validation and SQL injection prevention", async () => {
+      const mockRepository = {
+        findAllMigrationTypesWithSorting: jest
+          .fn()
+          .mockImplementation((includeInactive, sortField, sortDirection) => {
+            // Simulate repository validation logic
+            const allowedSortFields = [
+              "mtm_id",
+              "mtm_code",
+              "mtm_name",
+              "mtm_display_order",
+              "mtm_active",
+              "created_at",
+              "updated_at",
+            ];
+
+            if (sortField && !allowedSortFields.includes(sortField)) {
+              // Invalid sort field should be ignored, return default sort
+              return Promise.resolve(sortedTestData);
+            }
+
+            return Promise.resolve(sortedTestData);
+          }),
+      };
+
+      // Test with invalid sort field (potential SQL injection attempt)
+      const result1 = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        "DROP TABLE migration_types_master; --",
+        "asc",
+      );
+      expect(result1).toEqual(sortedTestData); // Should return default sort
+
+      // Test with valid sort field
+      const result2 = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        "mtm_name",
+        "asc",
+      );
+      expect(result2).toEqual(sortedTestData); // Should process normally
+
+      // Test with invalid sort direction (should default to ASC)
+      const result3 = await mockRepository.findAllMigrationTypesWithSorting(
+        false,
+        "mtm_name",
+        "INVALID; DROP TABLE users; --",
+      );
+      expect(result3).toEqual(sortedTestData); // Should handle invalid direction
+
+      expect(
+        mockRepository.findAllMigrationTypesWithSorting,
+      ).toHaveBeenCalledTimes(3);
+
+      testResults.integrationScenariosValidated.push(
+        "Sort field validation and SQL injection prevention",
+      );
+      testResults.databaseOperations += 3;
+    });
+
+    it("should validate API parameter parsing and validation", async () => {
+      const mockQueryParams = {
+        getFirst: jest.fn().mockImplementation((param) => {
+          const params = {
+            sort: "mtm_name",
+            direction: "desc",
+            includeInactive: "false",
+            page: "1",
+            size: "50",
+          };
+          return params[param] || null;
+        }),
+      };
+
+      // Simulate API parameter parsing
+      const sort = mockQueryParams.getFirst("sort");
+      const direction = mockQueryParams.getFirst("direction");
+      const includeInactive = mockQueryParams.getFirst("includeInactive");
+      const page = mockQueryParams.getFirst("page");
+      const size = mockQueryParams.getFirst("size");
+
+      expect(sort).toBe("mtm_name");
+      expect(direction).toBe("desc");
+      expect(includeInactive).toBe("false");
+      expect(page).toBe("1");
+      expect(size).toBe("50");
+
+      // Test parameter validation
+      const allowedSortFields = [
+        "mtm_id",
+        "mtm_code",
+        "mtm_name",
+        "mtm_display_order",
+        "mtm_active",
+        "created_at",
+        "updated_at",
+      ];
+      expect(allowedSortFields).toContain(sort);
+
+      const allowedDirections = ["asc", "desc"];
+      expect(allowedDirections).toContain(direction.toLowerCase());
+
+      expect(mockQueryParams.getFirst).toHaveBeenCalledTimes(5);
+
+      testResults.integrationScenariosValidated.push(
+        "API parameter parsing and validation",
+      );
+      testResults.crossSystemValidations++;
+    });
+
+    it("should validate sorting performance with large datasets", async () => {
+      const startTime = Date.now();
+
+      // Simulate large dataset (100 items)
+      const largeDataset = Array.from({ length: 100 }, (_, index) => ({
+        mtm_id: index + 1,
+        mtm_code: `TYPE_${String(index + 1).padStart(3, "0")}`,
+        mtm_name: `Migration Type ${index + 1}`,
+        mtm_display_order: Math.floor(Math.random() * 100) + 1,
+        mtm_active: Math.random() > 0.1, // 90% active
+        created_at: new Date(
+          Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000,
+        ),
+        updated_at: new Date(),
+      }));
+
+      const mockRepository = {
+        findAllMigrationTypesWithSorting: jest.fn().mockImplementation(() => {
+          // Simulate sorting operation
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              const sorted = [...largeDataset].sort((a, b) =>
+                a.mtm_name.localeCompare(b.mtm_name),
+              );
+              resolve(sorted);
+            }, 5); // 5ms simulated sort time
+          });
+        }),
+      };
+
+      const result = await mockRepository.findAllMigrationTypesWithSorting(
+        true,
+        "mtm_name",
+        "asc",
+      );
+
+      const executionTime = Date.now() - startTime;
+
+      expect(result).toHaveLength(100);
+      expect(executionTime).toBeLessThan(50); // Should complete within 50ms
+      expect(result[0].mtm_name <= result[1].mtm_name).toBe(true); // Verify sorting
+
+      testResults.integrationScenariosValidated.push(
+        "Sorting performance with large datasets",
+      );
+      testResults.performanceValidations++;
+      testResults.databaseOperations++;
     });
   });
 

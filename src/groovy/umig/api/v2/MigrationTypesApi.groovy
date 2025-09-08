@@ -96,16 +96,105 @@ migrationTypes(httpMethod: "GET", groups: ["confluence-users", "confluence-admin
             return Response.ok(new JsonBuilder(migrationType).toString()).build()
         }
         
-        // Default: GET /migrationTypes with optional includeInactive parameter
+        // Default: GET /migrationTypes with optional includeInactive parameter and sorting support
         if (pathParts.empty) {
+            // Parse query parameters
             String includeInactive = queryParams.getFirst('includeInactive') as String
+            String sort = queryParams.getFirst('sort') as String
+            String direction = queryParams.getFirst('direction') as String
+            String page = queryParams.getFirst('page') as String
+            String size = queryParams.getFirst('size') as String
+            
             boolean includeInactiveFlag = includeInactive ? Boolean.parseBoolean(includeInactive) : false
             
-            log.info("GET /migrationTypes - Fetching migration types (includeInactive: ${includeInactiveFlag})")
-            List migrationTypes = repository.findAllMigrationTypes(includeInactiveFlag) as List
-            
-            log.info("GET /migrationTypes - Found ${migrationTypes.size()} migration types")
-            return Response.ok(new JsonBuilder(migrationTypes).toString()).build()
+            // Check if this is a request with sorting/pagination parameters (admin GUI)
+            if (sort || direction || page || size) {
+                log.info("GET /migrationTypes - Admin GUI request with parameters: page=${page}, size=${size}, sort=${sort}, direction=${direction}, includeInactive=${includeInactive}")
+                
+                // Parse sort parameters
+                String sortField = null
+                String sortDirection = 'asc'
+                
+                if (sort) {
+                    // Validate sort field against allowed columns
+                    def allowedSortFields = ['mtm_id', 'mtm_code', 'mtm_name', 'mtm_description', 'mtm_color', 'mtm_icon', 'mtm_display_order', 'mtm_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+                    if (allowedSortFields.contains(sort)) {
+                        sortField = sort
+                        log.debug("Using valid sort field: ${sortField}")
+                    } else {
+                        log.warn("Invalid sort field requested: ${sort}. Allowed fields: ${allowedSortFields}")
+                        return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(new JsonBuilder([
+                                error: "Invalid sort field '${sort}'. Allowed fields are: ${allowedSortFields.join(', ')}"
+                            ]).toString())
+                            .build()
+                    }
+                }
+                
+                if (direction && ['asc', 'desc'].contains(direction.toLowerCase())) {
+                    sortDirection = direction.toLowerCase()
+                    log.debug("Using sort direction: ${sortDirection}")
+                } else if (direction) {
+                    log.warn("Invalid sort direction requested: ${direction}. Using default 'asc'")
+                }
+                
+                // Parse pagination parameters (future enhancement support)
+                Integer pageNumber = null
+                Integer pageSize = null
+                
+                if (page) {
+                    try {
+                        pageNumber = Integer.parseInt(page)
+                        if (pageNumber < 1) {
+                            log.warn("Invalid page number ${pageNumber}, using page 1")
+                            pageNumber = 1
+                        }
+                        log.debug("Using page number: ${pageNumber}")
+                    } catch (NumberFormatException e) {
+                        log.error("Failed to parse page parameter '${page}': ${e.getMessage()}")
+                        return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(new JsonBuilder([error: "Invalid page number format"]).toString())
+                            .build()
+                    }
+                }
+                
+                if (size) {
+                    try {
+                        pageSize = Integer.parseInt(size)
+                        if (pageSize < 1 || pageSize > 100) {
+                            log.warn("Page size ${pageSize} out of range, using default 50")
+                            pageSize = 50
+                        }
+                        log.debug("Using page size: ${pageSize}")
+                    } catch (NumberFormatException e) {
+                        log.error("Failed to parse size parameter '${size}': ${e.getMessage()}")
+                        return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(new JsonBuilder([error: "Invalid page size format"]).toString())
+                            .build()
+                    }
+                }
+                
+                log.info("GET /migrationTypes - Fetching migration types with sorting (includeInactive: ${includeInactiveFlag}, sort: ${sortField}, direction: ${sortDirection})")
+                
+                try {
+                    List migrationTypes = repository.findAllMigrationTypesWithSorting(includeInactiveFlag, sortField, sortDirection) as List
+                    log.info("GET /migrationTypes - Found ${migrationTypes.size()} migration types")
+                    return Response.ok(new JsonBuilder(migrationTypes).toString()).build()
+                } catch (SQLException sqlException) {
+                    log.error("SQL error in findAllMigrationTypesWithSorting - SQL State: ${sqlException.getSQLState()}, Error Code: ${sqlException.getErrorCode()}, Message: ${sqlException.getMessage()}", sqlException)
+                    throw sqlException // Re-throw to be caught by outer exception handler
+                } catch (Exception repositoryException) {
+                    log.error("Repository error in findAllMigrationTypesWithSorting: ${repositoryException.getClass().getSimpleName()}: ${repositoryException.getMessage()}", repositoryException)
+                    throw repositoryException // Re-throw to be caught by outer exception handler
+                }
+            } else {
+                // Default: simple list without sorting for backward compatibility
+                log.info("GET /migrationTypes - Fetching migration types (includeInactive: ${includeInactiveFlag})")
+                List migrationTypes = repository.findAllMigrationTypes(includeInactiveFlag) as List
+                
+                log.info("GET /migrationTypes - Found ${migrationTypes.size()} migration types")
+                return Response.ok(new JsonBuilder(migrationTypes).toString()).build()
+            }
         }
         
         // Invalid path
