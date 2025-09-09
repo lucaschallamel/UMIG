@@ -1,5 +1,7 @@
 #!/usr/bin/env groovy
 
+package umig.tests.unit
+
 /**
  * Direct Audit Logging Test
  * 
