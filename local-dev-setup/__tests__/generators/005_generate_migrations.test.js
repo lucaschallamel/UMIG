@@ -94,22 +94,22 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
       // Mock migration types query
       if (
         sql.includes(
-          "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+          "SELECT mit_id, mit_code, mit_name FROM migration_types_mit",
         )
       ) {
         return Promise.resolve({
           rows: [
             {
-              mtm_id: 1,
-              mtm_code: "INFRASTRUCTURE",
-              mtm_name: "Infrastructure Migration",
+              mit_id: 1,
+              mit_code: "INFRASTRUCTURE",
+              mit_name: "Infrastructure Migration",
             },
             {
-              mtm_id: 2,
-              mtm_code: "APPLICATION",
-              mtm_name: "Application Migration",
+              mit_id: 2,
+              mit_code: "APPLICATION",
+              mit_name: "Application Migration",
             },
-            { mtm_id: 3, mtm_code: "DATABASE", mtm_name: "Database Migration" },
+            { mit_id: 3, mit_code: "DATABASE", mit_name: "Database Migration" },
           ],
         });
       }
@@ -270,20 +270,20 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         }
         if (
           sql.includes(
-            "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+            "SELECT mit_id, mit_code, mit_name FROM migration_types_mit",
           )
         ) {
           return Promise.resolve({
             rows: [
               {
-                mtm_id: 1,
-                mtm_code: "INFRASTRUCTURE",
-                mtm_name: "Infrastructure Migration",
+                mit_id: 1,
+                mit_code: "INFRASTRUCTURE",
+                mit_name: "Infrastructure Migration",
               },
               {
-                mtm_id: 2,
-                mtm_code: "APPLICATION",
-                mtm_name: "Application Migration",
+                mit_id: 2,
+                mit_code: "APPLICATION",
+                mit_name: "Application Migration",
               },
             ],
           });
@@ -344,7 +344,7 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         // Return empty migration types (simulate no data in table)
         if (
           sql.includes(
-            "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+            "SELECT mit_id, mit_code, mit_name FROM migration_types_mit",
           )
         ) {
           return Promise.resolve({ rows: [] });
@@ -368,7 +368,7 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
       expect(capturedData.migrations.length).toBe(CONFIG.MIGRATIONS.COUNT);
       expect(capturedData.migrationTypes).toEqual(["EXTERNAL", "EXTERNAL"]); // All should be EXTERNAL
       expect(consoleSpy).toHaveBeenCalledWith(
-        "No active migration types found in migration_types_master table. Using fallback type 'EXTERNAL'.",
+        "No active migration types found in migration_types_mit table. Using fallback type 'EXTERNAL'.",
       );
     });
 
@@ -406,25 +406,25 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         }
         if (
           sql.includes(
-            "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+            "SELECT mit_id, mit_code, mit_name FROM migration_types_mit",
           )
         ) {
           return Promise.resolve({
             rows: [
               {
-                mtm_id: 1,
-                mtm_code: "INFRASTRUCTURE",
-                mtm_name: "Infrastructure Migration",
+                mit_id: 1,
+                mit_code: "INFRASTRUCTURE",
+                mit_name: "Infrastructure Migration",
               },
               {
-                mtm_id: 2,
-                mtm_code: "DATABASE",
-                mtm_name: "Database Migration",
+                mit_id: 2,
+                mit_code: "DATABASE",
+                mit_name: "Database Migration",
               },
               {
-                mtm_id: 3,
-                mtm_code: "APPLICATION",
-                mtm_name: "Application Migration",
+                mit_id: 3,
+                mit_code: "APPLICATION",
+                mit_name: "Application Migration",
               },
             ],
           });

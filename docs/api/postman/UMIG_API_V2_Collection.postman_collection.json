@@ -49315,7 +49315,7 @@
           "request": {
             "name": "Get all migration types with comprehensive filtering and sorting",
             "description": {
-              "content": "Retrieves all migration types with advanced filtering, pagination, and sorting capabilities.\nSupports both legacy Admin GUI requests and modern paginated requests.\n\n**Sorting Support**: 12 fields (mtm_id, mtm_code, mtm_name, mtm_description, mtm_color, mtm_icon, mtm_display_order, mtm_active, created_by, created_at, updated_by, updated_at)\n**Pagination**: Enterprise-grade pagination with metadata (ready for future implementation)\n**Filtering**: Include/exclude inactive migration types\n**Statistics**: Optional usage statistics with special endpoints\n",
+              "content": "Retrieves all migration types with advanced filtering, pagination, and sorting capabilities.\nSupports both legacy Admin GUI requests and modern paginated requests.\n\n**Sorting Support**: 12 fields (mit_id, mit_code, mit_name, mit_description, mit_color, mit_icon, mit_display_order, mit_active, created_by, created_at, updated_by, updated_at)\n**Pagination**: Enterprise-grade pagination with metadata (ready for future implementation)\n**Filtering**: Include/exclude inactive migration types\n**Statistics**: Optional usage statistics with special endpoints\n",
               "type": "text/plain"
             },
             "url": {
@@ -49474,7 +49474,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "[\n  {\n    \"mtm_id\": \"<integer>\",\n    \"mtm_code\": \"<string>\",\n    \"mtm_name\": \"<string>\",\n    \"mtm_display_order\": 0,\n    \"mtm_active\": true,\n    \"created_by\": \"<string>\",\n    \"created_at\": \"<dateTime>\",\n    \"updated_by\": \"<string>\",\n    \"updated_at\": \"<dateTime>\",\n    \"mtm_description\": \"<string>\",\n    \"mtm_color\": \"#BaFafE\",\n    \"mtm_icon\": \"<string>\"\n  },\n  {\n    \"mtm_id\": \"<integer>\",\n    \"mtm_code\": \"<string>\",\n    \"mtm_name\": \"<string>\",\n    \"mtm_display_order\": 0,\n    \"mtm_active\": true,\n    \"created_by\": \"<string>\",\n    \"created_at\": \"<dateTime>\",\n    \"updated_by\": \"<string>\",\n    \"updated_at\": \"<dateTime>\",\n    \"mtm_description\": \"<string>\",\n    \"mtm_color\": \"#D67Cba\",\n    \"mtm_icon\": \"<string>\"\n  }\n]",
+              "body": "[\n  {\n    \"mit_id\": \"<integer>\",\n    \"mit_code\": \"<string>\",\n    \"mit_name\": \"<string>\",\n    \"mit_display_order\": 0,\n    \"mit_active\": true,\n    \"created_by\": \"<string>\",\n    \"created_at\": \"<dateTime>\",\n    \"updated_by\": \"<string>\",\n    \"updated_at\": \"<dateTime>\",\n    \"mit_description\": \"<string>\",\n    \"mit_color\": \"#BaFafE\",\n    \"mit_icon\": \"<string>\"\n  },\n  {\n    \"mit_id\": \"<integer>\",\n    \"mit_code\": \"<string>\",\n    \"mit_name\": \"<string>\",\n    \"mit_display_order\": 0,\n    \"mit_active\": true,\n    \"created_by\": \"<string>\",\n    \"created_at\": \"<dateTime>\",\n    \"updated_by\": \"<string>\",\n    \"updated_at\": \"<dateTime>\",\n    \"mit_description\": \"<string>\",\n    \"mit_color\": \"#D67Cba\",\n    \"mit_icon\": \"<string>\"\n  }\n]",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -49660,7 +49660,7 @@
           "request": {
             "name": "Create a new migration type",
             "description": {
-              "content": "Creates a new migration type with comprehensive validation.\nRequires mtm_code and mtm_name. Supports color, icon, and display order customization.\nAutomatically handles audit fields (created_by, updated_by).\n",
+              "content": "Creates a new migration type with comprehensive validation.\nRequires mit_code and mit_name. Supports color, icon, and display order customization.\nAutomatically handles audit fields (created_by, updated_by).\n",
               "type": "text/plain"
             },
             "url": {
@@ -49682,7 +49682,7 @@
             "method": "POST",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#E02bFC\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true\n}",
+              "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#E02bFC\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -49736,7 +49736,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#E02bFC\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#E02bFC\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -49753,7 +49753,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"mtm_id\": \"<integer>\",\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#100bE1\",\n  \"mtm_icon\": \"<string>\"\n}",
+              "body": "{\n  \"mit_id\": \"<integer>\",\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#100bE1\",\n  \"mit_icon\": \"<string>\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -49788,7 +49788,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#E02bFC\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#E02bFC\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -49840,7 +49840,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#E02bFC\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#E02bFC\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -49892,7 +49892,7 @@
                 "method": "POST",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#E02bFC\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#E02bFC\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -49992,7 +49992,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "[\n  {\n    \"mtm_id\": \"<integer>\",\n    \"mtm_code\": \"<string>\",\n    \"mtm_name\": \"<string>\",\n    \"mtm_color\": \"<string>\",\n    \"mtm_icon\": \"<string>\"\n  },\n  {\n    \"mtm_id\": \"<integer>\",\n    \"mtm_code\": \"<string>\",\n    \"mtm_name\": \"<string>\",\n    \"mtm_color\": \"<string>\",\n    \"mtm_icon\": \"<string>\"\n  }\n]",
+              "body": "[\n  {\n    \"mit_id\": \"<integer>\",\n    \"mit_code\": \"<string>\",\n    \"mit_name\": \"<string>\",\n    \"mit_color\": \"<string>\",\n    \"mit_icon\": \"<string>\"\n  },\n  {\n    \"mit_id\": \"<integer>\",\n    \"mit_code\": \"<string>\",\n    \"mit_name\": \"<string>\",\n    \"mit_color\": \"<string>\",\n    \"mit_icon\": \"<string>\"\n  }\n]",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -50114,7 +50114,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "[\n  {\n    \"mtm_id\": \"<integer>\",\n    \"mtm_code\": \"<string>\",\n    \"mtm_name\": \"<string>\",\n    \"usage_count\": \"<integer>\",\n    \"last_used\": \"<dateTime>\"\n  },\n  {\n    \"mtm_id\": \"<integer>\",\n    \"mtm_code\": \"<string>\",\n    \"mtm_name\": \"<string>\",\n    \"usage_count\": \"<integer>\",\n    \"last_used\": \"<dateTime>\"\n  }\n]",
+              "body": "[\n  {\n    \"mit_id\": \"<integer>\",\n    \"mit_code\": \"<string>\",\n    \"mit_name\": \"<string>\",\n    \"usage_count\": \"<integer>\",\n    \"last_used\": \"<dateTime>\"\n  },\n  {\n    \"mit_id\": \"<integer>\",\n    \"mit_code\": \"<string>\",\n    \"mit_name\": \"<string>\",\n    \"usage_count\": \"<integer>\",\n    \"last_used\": \"<dateTime>\"\n  }\n]",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -50247,7 +50247,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"mtm_id\": \"<integer>\",\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#100bE1\",\n  \"mtm_icon\": \"<string>\"\n}",
+              "body": "{\n  \"mit_id\": \"<integer>\",\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#100bE1\",\n  \"mit_icon\": \"<string>\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -50380,7 +50380,7 @@
           "request": {
             "name": "Update migration type by ID",
             "description": {
-              "content": "Updates an existing migration type. All fields except mtm_id are updatable.\nSupports partial updates - only provided fields will be modified.\nAutomatically handles audit fields (updated_by).\n",
+              "content": "Updates an existing migration type. All fields except mit_id are updatable.\nSupports partial updates - only provided fields will be modified.\nAutomatically handles audit fields (updated_by).\n",
               "type": "text/plain"
             },
             "url": {
@@ -50413,7 +50413,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#8Cdf5e\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+              "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#8Cdf5e\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -50467,7 +50467,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#8Cdf5e\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#8Cdf5e\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -50484,7 +50484,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"mtm_id\": \"<integer>\",\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#100bE1\",\n  \"mtm_icon\": \"<string>\"\n}",
+              "body": "{\n  \"mit_id\": \"<integer>\",\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#100bE1\",\n  \"mit_icon\": \"<string>\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -50519,7 +50519,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#8Cdf5e\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#8Cdf5e\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -50571,7 +50571,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#8Cdf5e\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#8Cdf5e\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -50623,7 +50623,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#8Cdf5e\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#8Cdf5e\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -50675,7 +50675,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#8Cdf5e\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#8Cdf5e\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -51036,7 +51036,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"mtm_id\": \"<integer>\",\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#100bE1\",\n  \"mtm_icon\": \"<string>\"\n}",
+              "body": "{\n  \"mit_id\": \"<integer>\",\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#100bE1\",\n  \"mit_icon\": \"<string>\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -51163,7 +51163,7 @@
             "method": "PUT",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#a4C6DA\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+              "raw": "{\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#a4C6DA\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
               "options": {
                 "raw": {
                   "headerFamily": "json",
@@ -51217,7 +51217,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#a4C6DA\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#a4C6DA\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -51234,7 +51234,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\n  \"mtm_id\": \"<integer>\",\n  \"mtm_code\": \"<string>\",\n  \"mtm_name\": \"<string>\",\n  \"mtm_display_order\": 0,\n  \"mtm_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#100bE1\",\n  \"mtm_icon\": \"<string>\"\n}",
+              "body": "{\n  \"mit_id\": \"<integer>\",\n  \"mit_code\": \"<string>\",\n  \"mit_name\": \"<string>\",\n  \"mit_display_order\": 0,\n  \"mit_active\": true,\n  \"created_by\": \"<string>\",\n  \"created_at\": \"<dateTime>\",\n  \"updated_by\": \"<string>\",\n  \"updated_at\": \"<dateTime>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#100bE1\",\n  \"mit_icon\": \"<string>\"\n}",
               "cookie": [],
               "_postman_previewlanguage": "json"
             },
@@ -51269,7 +51269,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#a4C6DA\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#a4C6DA\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -51321,7 +51321,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#a4C6DA\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#a4C6DA\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -51373,7 +51373,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#a4C6DA\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#a4C6DA\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -51425,7 +51425,7 @@
                 "method": "PUT",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"mtm_name\": \"<string>\",\n  \"mtm_description\": \"<string>\",\n  \"mtm_color\": \"#a4C6DA\",\n  \"mtm_icon\": \"<string>\",\n  \"mtm_display_order\": \"<integer>\",\n  \"mtm_active\": \"<boolean>\"\n}",
+                  "raw": "{\n  \"mit_name\": \"<string>\",\n  \"mit_description\": \"<string>\",\n  \"mit_color\": \"#a4C6DA\",\n  \"mit_icon\": \"<string>\",\n  \"mit_display_order\": \"<integer>\",\n  \"mit_active\": \"<boolean>\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",

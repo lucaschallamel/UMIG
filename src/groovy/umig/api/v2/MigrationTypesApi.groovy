@@ -117,7 +117,7 @@ migrationTypes(httpMethod: "GET", groups: ["confluence-users", "confluence-admin
                 
                 if (sort) {
                     // Validate sort field against allowed columns
-                    def allowedSortFields = ['mtm_id', 'mtm_code', 'mtm_name', 'mtm_description', 'mtm_color', 'mtm_icon', 'mtm_display_order', 'mtm_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+                    def allowedSortFields = ['mit_id', 'mit_code', 'mit_name', 'mit_description', 'mit_color', 'mit_icon', 'mit_display_order', 'mit_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
                     if (allowedSortFields.contains(sort)) {
                         sortField = sort
                         log.debug("Using valid sort field: ${sortField}")
@@ -268,14 +268,14 @@ migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { Mult
             Map json = new JsonSlurper().parseText(body) as Map
             
             // Validate required fields
-            if (!json.mtm_code || !json.mtm_name) {
+            if (!json.mit_code || !json.mit_name) {
                 return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new JsonBuilder([error: "mtm_code and mtm_name are required"]).toString())
+                    .entity(new JsonBuilder([error: "mit_code and mit_name are required"]).toString())
                     .build()
             }
             
             // Check if code already exists
-            if (repository.migrationTypeExists(json.mtm_code as String) as Boolean) {
+            if (repository.migrationTypeExists(json.mit_code as String) as Boolean) {
                 return Response.status(Response.Status.CONFLICT)
                     .entity(new JsonBuilder([error: "Migration type code already exists"]).toString())
                     .build()
@@ -288,7 +288,7 @@ migrationTypes(httpMethod: "POST", groups: ["confluence-administrators"]) { Mult
             
             Map createdMigrationType = repository.createMigrationType(json) as Map
             
-            log.info("POST /migrationTypes - Created migration type with ID: ${createdMigrationType.mtm_id}")
+            log.info("POST /migrationTypes - Created migration type with ID: ${createdMigrationType.mit_id}")
             return Response.status(Response.Status.CREATED)
                 .entity(new JsonBuilder(createdMigrationType).toString())
                 .build()
@@ -497,7 +497,7 @@ migrationTypes(httpMethod: "DELETE", groups: ["confluence-administrators"]) { Mu
             }
             
             // Check for blocking relationships
-            Map blocking = repository.getMigrationTypeBlockingRelationships(migrationType.mtm_id as Integer) as Map
+            Map blocking = repository.getMigrationTypeBlockingRelationships(migrationType.mit_id as Integer) as Map
             if (blocking) {
                 return Response.status(Response.Status.CONFLICT)
                     .entity(new JsonBuilder([

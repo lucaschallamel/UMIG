@@ -42,84 +42,84 @@ describe("Migration Types Integration Tests", () => {
 
   const testMigrationTypes = [
     {
-      mtm_code: "ACQUISITION",
-      mtm_name: "Acquisition Data Migration",
-      mtm_description:
+      mit_code: "ACQUISITION",
+      mit_name: "Acquisition Data Migration",
+      mit_description:
         "Migration of customer, positions and contracts data as part of an external acquisition",
-      mtm_color: "#5D4037",
-      mtm_icon: "life-ring",
-      mtm_display_order: 7,
-      mtm_active: true,
+      mit_color: "#5D4037",
+      mit_icon: "life-ring",
+      mit_display_order: 7,
+      mit_active: true,
     },
     {
-      mtm_code: "INFRASTRUCTURE",
-      mtm_name: "Infrastructure Release",
-      mtm_description:
+      mit_code: "INFRASTRUCTURE",
+      mit_name: "Infrastructure Release",
+      mit_description:
         "Server, network, and infrastructure component releases requiring physical or virtual resource changes",
-      mtm_color: "#E65100",
-      mtm_icon: "server",
-      mtm_display_order: 1,
-      mtm_active: true,
+      mit_color: "#E65100",
+      mit_icon: "server",
+      mit_display_order: 1,
+      mit_active: true,
     },
     {
-      mtm_code: "APPLICATION",
-      mtm_name: "Application Release",
-      mtm_description:
+      mit_code: "APPLICATION",
+      mit_name: "Application Release",
+      mit_description:
         "Software application deployments, upgrades, and configuration changes affecting business applications",
-      mtm_color: "#1976D2",
-      mtm_icon: "desktop",
-      mtm_display_order: 2,
-      mtm_active: true,
+      mit_color: "#1976D2",
+      mit_icon: "desktop",
+      mit_display_order: 2,
+      mit_active: true,
     },
     {
-      mtm_code: "DATABASE",
-      mtm_name: "Database Release",
-      mtm_description:
+      mit_code: "DATABASE",
+      mit_name: "Database Release",
+      mit_description:
         "Database schema changes, data releases, and database platform upgrades requiring careful coordination",
-      mtm_color: "#388E3C",
-      mtm_icon: "database",
-      mtm_display_order: 3,
-      mtm_active: true,
+      mit_color: "#388E3C",
+      mit_icon: "database",
+      mit_display_order: 3,
+      mit_active: true,
     },
     {
-      mtm_code: "NETWORK",
-      mtm_name: "Network Release",
-      mtm_description:
+      mit_code: "NETWORK",
+      mit_name: "Network Release",
+      mit_description:
         "Network configuration changes, routing updates, and connectivity modifications affecting system communication",
-      mtm_color: "#7B1FA2",
-      mtm_icon: "globe",
-      mtm_display_order: 4,
-      mtm_active: true,
+      mit_color: "#7B1FA2",
+      mit_icon: "globe",
+      mit_display_order: 4,
+      mit_active: true,
     },
     {
-      mtm_code: "SECURITY",
-      mtm_name: "Security Release",
-      mtm_description:
+      mit_code: "SECURITY",
+      mit_name: "Security Release",
+      mit_description:
         "Security system updates, access control changes, and compliance-related releases requiring special handling",
-      mtm_color: "#D32F2F",
-      mtm_icon: "shield",
-      mtm_display_order: 5,
-      mtm_active: true,
+      mit_color: "#D32F2F",
+      mit_icon: "shield",
+      mit_display_order: 5,
+      mit_active: true,
     },
     {
-      mtm_code: "INTEGRATION",
-      mtm_name: "Integration Release",
-      mtm_description:
+      mit_code: "INTEGRATION",
+      mit_name: "Integration Release",
+      mit_description:
         "API changes, interface modifications, and system integration updates affecting inter-system communication",
-      mtm_color: "#F57C00",
-      mtm_icon: "link",
-      mtm_display_order: 6,
-      mtm_active: true,
+      mit_color: "#F57C00",
+      mit_icon: "link",
+      mit_display_order: 6,
+      mit_active: true,
     },
     {
-      mtm_code: "DECOMMISSION",
-      mtm_name: "System Decommission",
-      mtm_description:
+      mit_code: "DECOMMISSION",
+      mit_name: "System Decommission",
+      mit_description:
         "End-of-life system shutdown, data archival, and cleanup releases activities",
-      mtm_color: "#616161",
-      mtm_icon: "trash",
-      mtm_display_order: 8,
-      mtm_active: true,
+      mit_color: "#616161",
+      mit_icon: "trash",
+      mit_display_order: 8,
+      mit_active: true,
     },
   ];
 
@@ -133,14 +133,14 @@ describe("Migration Types Integration Tests", () => {
           // Mock migration types response
           if (
             sql.includes(
-              "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+              "SELECT mit_id, mit_code, mit_name FROM migration_types_mit",
             )
           ) {
             return Promise.resolve({
               rows: testMigrationTypes.map((mt) => ({
-                mtm_id: testMigrationTypes.indexOf(mt) + 1,
-                mtm_code: mt.mtm_code,
-                mtm_name: mt.mtm_name,
+                mit_id: testMigrationTypes.indexOf(mt) + 1,
+                mit_code: mt.mit_code,
+                mit_name: mt.mit_name,
               })),
             });
           }
@@ -199,7 +199,7 @@ describe("Migration Types Integration Tests", () => {
       // Verify migration types query was made
       const migrationTypesQuery = mockClientQueries.find((q) =>
         q.sql.includes(
-          "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+          "SELECT mit_id, mit_code, mit_name FROM migration_types_mit",
         ),
       );
       expect(migrationTypesQuery).toBeDefined();
@@ -213,7 +213,7 @@ describe("Migration Types Integration Tests", () => {
       // Verify migration types are from our test data, not hardcoded "EXTERNAL"
       migrationInserts.forEach((insert) => {
         const migrationTypeParam = insert.values[4]; // mig_type is the 5th parameter
-        expect(testMigrationTypes.map((mt) => mt.mtm_code)).toContain(
+        expect(testMigrationTypes.map((mt) => mt.mit_code)).toContain(
           migrationTypeParam,
         );
         expect(migrationTypeParam).not.toBe("EXTERNAL");
@@ -239,7 +239,7 @@ describe("Migration Types Integration Tests", () => {
           // Mock empty migration types response
           if (
             sql.includes(
-              "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master",
+              "SELECT mit_id, mit_code, mit_name FROM migration_types_mit",
             )
           ) {
             return Promise.resolve({ rows: [] });
@@ -293,7 +293,7 @@ describe("Migration Types Integration Tests", () => {
 
       // Verify fallback warning was logged
       expect(consoleSpy).toHaveBeenCalledWith(
-        "No active migration types found in migration_types_master table. Using fallback type 'EXTERNAL'.",
+        "No active migration types found in migration_types_mit table. Using fallback type 'EXTERNAL'.",
       );
 
       // Verify EXTERNAL type was used
@@ -314,43 +314,43 @@ describe("Migration Types Integration Tests", () => {
   });
 
   describe("Database Schema Integration", () => {
-    it("should validate migration_types_master table structure", async () => {
+    it("should validate migration_types_mit table structure", async () => {
       const mockClient = {
         query: jest.fn().mockResolvedValueOnce({
           rows: [
-            { column_name: "mtm_id", data_type: "integer", is_nullable: "NO" },
+            { column_name: "mit_id", data_type: "integer", is_nullable: "NO" },
             {
-              column_name: "mtm_code",
+              column_name: "mit_code",
               data_type: "character varying",
               is_nullable: "NO",
             },
             {
-              column_name: "mtm_name",
+              column_name: "mit_name",
               data_type: "character varying",
               is_nullable: "NO",
             },
             {
-              column_name: "mtm_description",
+              column_name: "mit_description",
               data_type: "text",
               is_nullable: "YES",
             },
             {
-              column_name: "mtm_color",
+              column_name: "mit_color",
               data_type: "character varying",
               is_nullable: "YES",
             },
             {
-              column_name: "mtm_icon",
+              column_name: "mit_icon",
               data_type: "character varying",
               is_nullable: "YES",
             },
             {
-              column_name: "mtm_display_order",
+              column_name: "mit_display_order",
               data_type: "integer",
               is_nullable: "YES",
             },
             {
-              column_name: "mtm_active",
+              column_name: "mit_active",
               data_type: "boolean",
               is_nullable: "YES",
             },
@@ -382,7 +382,7 @@ describe("Migration Types Integration Tests", () => {
       const columns = await mockClient.query(`
         SELECT column_name, data_type, is_nullable
         FROM information_schema.columns
-        WHERE table_name = 'migration_types_master'
+        WHERE table_name = 'migration_types_mit'
         ORDER BY ordinal_position
       `);
 
@@ -390,14 +390,14 @@ describe("Migration Types Integration Tests", () => {
 
       // Verify required columns exist
       const columnNames = columns.rows.map((col) => col.column_name);
-      expect(columnNames).toContain("mtm_id");
-      expect(columnNames).toContain("mtm_code");
-      expect(columnNames).toContain("mtm_name");
-      expect(columnNames).toContain("mtm_active");
+      expect(columnNames).toContain("mit_id");
+      expect(columnNames).toContain("mit_code");
+      expect(columnNames).toContain("mit_name");
+      expect(columnNames).toContain("mit_active");
 
       // Verify primary key field is not nullable
       const primaryKeyColumn = columns.rows.find(
-        (col) => col.column_name === "mtm_id",
+        (col) => col.column_name === "mit_id",
       );
       expect(primaryKeyColumn.is_nullable).toBe("NO");
 
@@ -412,11 +412,11 @@ describe("Migration Types Integration Tests", () => {
         query: jest.fn().mockResolvedValueOnce({
           rows: [
             {
-              constraint_name: "migrations_mig_mtm_id_fkey",
+              constraint_name: "migrations_mig_mit_id_fkey",
               table_name: "migrations_mig",
-              column_name: "mtm_id",
-              foreign_table_name: "migration_types_master",
-              foreign_column_name: "mtm_id",
+              column_name: "mit_id",
+              foreign_table_name: "migration_types_mit",
+              foreign_column_name: "mit_id",
             },
           ],
         }),
@@ -435,13 +435,13 @@ describe("Migration Types Integration Tests", () => {
         JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name
         WHERE tc.constraint_type = 'FOREIGN KEY'
         AND tc.table_name = 'migrations_mig'
-        AND ccu.table_name = 'migration_types_master'
+        AND ccu.table_name = 'migration_types_mit'
       `);
 
       expect(constraints.rows).toHaveLength(1);
-      expect(constraints.rows[0].column_name).toBe("mtm_id");
+      expect(constraints.rows[0].column_name).toBe("mit_id");
       expect(constraints.rows[0].foreign_table_name).toBe(
-        "migration_types_master",
+        "migration_types_mit",
       );
 
       testResults.integrationScenariosValidated.push(
@@ -462,13 +462,13 @@ describe("Migration Types Integration Tests", () => {
           .fn()
           .mockResolvedValue(testMigrationTypes[0]),
         createMigrationType: jest.fn().mockResolvedValue({
-          mtm_id: 5,
+          mit_id: 5,
           ...testMigrationTypes[0],
           created_by: "test-user",
         }),
         updateMigrationType: jest.fn().mockResolvedValue({
           ...testMigrationTypes[0],
-          mtm_name: "Updated Name",
+          mit_name: "Updated Name",
         }),
         deleteMigrationType: jest.fn().mockResolvedValue(true),
         getMigrationTypeUsageStats: jest.fn().mockResolvedValue([
@@ -487,25 +487,25 @@ describe("Migration Types Integration Tests", () => {
 
       // Test GET single migration type
       const singleType = await mockRepository.findMigrationTypeById(1);
-      expect(singleType.mtm_code).toBe("ACQUISITION");
+      expect(singleType.mit_code).toBe("ACQUISITION");
       expect(mockRepository.findMigrationTypeById).toHaveBeenCalledWith(1);
 
       // Test POST create migration type
       const createData = {
-        mtm_code: "TEST",
-        mtm_name: "Test Migration",
+        mit_code: "TEST",
+        mit_name: "Test Migration",
         created_by: "test-user",
       };
       const created = await mockRepository.createMigrationType(createData);
-      expect(created.mtm_id).toBe(5);
+      expect(created.mit_id).toBe(5);
       expect(mockRepository.createMigrationType).toHaveBeenCalledWith(
         createData,
       );
 
       // Test PUT update migration type
-      const updateData = { mtm_name: "Updated Name" };
+      const updateData = { mit_name: "Updated Name" };
       const updated = await mockRepository.updateMigrationType(1, updateData);
-      expect(updated.mtm_name).toBe("Updated Name");
+      expect(updated.mit_name).toBe("Updated Name");
       expect(mockRepository.updateMigrationType).toHaveBeenCalledWith(
         1,
         updateData,
@@ -524,13 +524,13 @@ describe("Migration Types Integration Tests", () => {
       // Test GET with sorting support
       const sortedTypes = await mockRepository.findAllMigrationTypesWithSorting(
         false,
-        "mtm_name",
+        "mit_name",
         "asc",
       );
       expect(sortedTypes).toHaveLength(8);
       expect(
         mockRepository.findAllMigrationTypesWithSorting,
-      ).toHaveBeenCalledWith(false, "mtm_name", "asc");
+      ).toHaveBeenCalledWith(false, "mit_name", "asc");
 
       testResults.integrationScenariosValidated.push(
         "API-Repository integration",
@@ -543,34 +543,34 @@ describe("Migration Types Integration Tests", () => {
   describe("Column Sorting Integration Tests (US-042 Phase 4)", () => {
     const sortedTestData = [
       {
-        mtm_id: 1,
-        mtm_code: "APPLICATION",
-        mtm_name: "Application Release",
-        mtm_display_order: 2,
+        mit_id: 1,
+        mit_code: "APPLICATION",
+        mit_name: "Application Release",
+        mit_display_order: 2,
       },
       {
-        mtm_id: 2,
-        mtm_code: "DATABASE",
-        mtm_name: "Database Release",
-        mtm_display_order: 3,
+        mit_id: 2,
+        mit_code: "DATABASE",
+        mit_name: "Database Release",
+        mit_display_order: 3,
       },
       {
-        mtm_id: 3,
-        mtm_code: "INFRASTRUCTURE",
-        mtm_name: "Infrastructure Release",
-        mtm_display_order: 1,
+        mit_id: 3,
+        mit_code: "INFRASTRUCTURE",
+        mit_name: "Infrastructure Release",
+        mit_display_order: 1,
       },
       {
-        mtm_id: 4,
-        mtm_code: "NETWORK",
-        mtm_name: "Network Release",
-        mtm_display_order: 4,
+        mit_id: 4,
+        mit_code: "NETWORK",
+        mit_name: "Network Release",
+        mit_display_order: 4,
       },
     ];
 
-    it("should validate sorting by mtm_name ascending", async () => {
+    it("should validate sorting by mit_name ascending", async () => {
       const expectedSortedByName = [...sortedTestData].sort((a, b) =>
-        a.mtm_name.localeCompare(b.mtm_name),
+        a.mit_name.localeCompare(b.mit_name),
       );
 
       const mockRepository = {
@@ -581,18 +581,18 @@ describe("Migration Types Integration Tests", () => {
 
       const result = await mockRepository.findAllMigrationTypesWithSorting(
         false,
-        "mtm_name",
+        "mit_name",
         "asc",
       );
 
-      expect(result[0].mtm_name).toBe("Application Release");
-      expect(result[1].mtm_name).toBe("Database Release");
-      expect(result[2].mtm_name).toBe("Infrastructure Release");
-      expect(result[3].mtm_name).toBe("Network Release");
+      expect(result[0].mit_name).toBe("Application Release");
+      expect(result[1].mit_name).toBe("Database Release");
+      expect(result[2].mit_name).toBe("Infrastructure Release");
+      expect(result[3].mit_name).toBe("Network Release");
 
       expect(
         mockRepository.findAllMigrationTypesWithSorting,
-      ).toHaveBeenCalledWith(false, "mtm_name", "asc");
+      ).toHaveBeenCalledWith(false, "mit_name", "asc");
 
       testResults.integrationScenariosValidated.push(
         "Name column sorting (ascending)",
@@ -600,9 +600,9 @@ describe("Migration Types Integration Tests", () => {
       testResults.databaseOperations++;
     });
 
-    it("should validate sorting by mtm_code descending", async () => {
+    it("should validate sorting by mit_code descending", async () => {
       const expectedSortedByCode = [...sortedTestData].sort((a, b) =>
-        b.mtm_code.localeCompare(a.mtm_code),
+        b.mit_code.localeCompare(a.mit_code),
       );
 
       const mockRepository = {
@@ -613,18 +613,18 @@ describe("Migration Types Integration Tests", () => {
 
       const result = await mockRepository.findAllMigrationTypesWithSorting(
         false,
-        "mtm_code",
+        "mit_code",
         "desc",
       );
 
-      expect(result[0].mtm_code).toBe("NETWORK");
-      expect(result[1].mtm_code).toBe("INFRASTRUCTURE");
-      expect(result[2].mtm_code).toBe("DATABASE");
-      expect(result[3].mtm_code).toBe("APPLICATION");
+      expect(result[0].mit_code).toBe("NETWORK");
+      expect(result[1].mit_code).toBe("INFRASTRUCTURE");
+      expect(result[2].mit_code).toBe("DATABASE");
+      expect(result[3].mit_code).toBe("APPLICATION");
 
       expect(
         mockRepository.findAllMigrationTypesWithSorting,
-      ).toHaveBeenCalledWith(false, "mtm_code", "desc");
+      ).toHaveBeenCalledWith(false, "mit_code", "desc");
 
       testResults.integrationScenariosValidated.push(
         "Code column sorting (descending)",
@@ -632,9 +632,9 @@ describe("Migration Types Integration Tests", () => {
       testResults.databaseOperations++;
     });
 
-    it("should validate sorting by mtm_display_order with secondary sort", async () => {
+    it("should validate sorting by mit_display_order with secondary sort", async () => {
       const expectedSortedByOrder = [...sortedTestData].sort(
-        (a, b) => a.mtm_display_order - b.mtm_display_order,
+        (a, b) => a.mit_display_order - b.mit_display_order,
       );
 
       const mockRepository = {
@@ -645,18 +645,18 @@ describe("Migration Types Integration Tests", () => {
 
       const result = await mockRepository.findAllMigrationTypesWithSorting(
         false,
-        "mtm_display_order",
+        "mit_display_order",
         "asc",
       );
 
-      expect(result[0].mtm_display_order).toBe(1);
-      expect(result[1].mtm_display_order).toBe(2);
-      expect(result[2].mtm_display_order).toBe(3);
-      expect(result[3].mtm_display_order).toBe(4);
+      expect(result[0].mit_display_order).toBe(1);
+      expect(result[1].mit_display_order).toBe(2);
+      expect(result[2].mit_display_order).toBe(3);
+      expect(result[3].mit_display_order).toBe(4);
 
       expect(
         mockRepository.findAllMigrationTypesWithSorting,
-      ).toHaveBeenCalledWith(false, "mtm_display_order", "asc");
+      ).toHaveBeenCalledWith(false, "mit_display_order", "asc");
 
       testResults.integrationScenariosValidated.push(
         "Display order sorting with secondary sort",
@@ -666,10 +666,10 @@ describe("Migration Types Integration Tests", () => {
 
     it("should validate default sorting when no sort parameters provided", async () => {
       const expectedDefaultSort = [...sortedTestData].sort((a, b) => {
-        if (a.mtm_display_order !== b.mtm_display_order) {
-          return a.mtm_display_order - b.mtm_display_order;
+        if (a.mit_display_order !== b.mit_display_order) {
+          return a.mit_display_order - b.mit_display_order;
         }
-        return a.mtm_name.localeCompare(b.mtm_name);
+        return a.mit_name.localeCompare(b.mit_name);
       });
 
       const mockRepository = {
@@ -685,10 +685,10 @@ describe("Migration Types Integration Tests", () => {
       );
 
       // Should be sorted by display_order first, then name
-      expect(result[0].mtm_display_order).toBe(1); // Infrastructure
-      expect(result[1].mtm_display_order).toBe(2); // Application
-      expect(result[2].mtm_display_order).toBe(3); // Database
-      expect(result[3].mtm_display_order).toBe(4); // Network
+      expect(result[0].mit_display_order).toBe(1); // Infrastructure
+      expect(result[1].mit_display_order).toBe(2); // Application
+      expect(result[2].mit_display_order).toBe(3); // Database
+      expect(result[3].mit_display_order).toBe(4); // Network
 
       expect(
         mockRepository.findAllMigrationTypesWithSorting,
@@ -704,16 +704,16 @@ describe("Migration Types Integration Tests", () => {
       const testDataWithInactive = [
         ...sortedTestData,
         {
-          mtm_id: 5,
-          mtm_code: "INACTIVE_TYPE",
-          mtm_name: "Inactive Type",
-          mtm_display_order: 99,
-          mtm_active: false,
+          mit_id: 5,
+          mit_code: "INACTIVE_TYPE",
+          mit_name: "Inactive Type",
+          mit_display_order: 99,
+          mit_active: false,
         },
       ];
 
       const expectedSorted = testDataWithInactive.sort((a, b) =>
-        a.mtm_name.localeCompare(b.mtm_name),
+        a.mit_name.localeCompare(b.mit_name),
       );
 
       const mockRepository = {
@@ -724,17 +724,17 @@ describe("Migration Types Integration Tests", () => {
 
       const result = await mockRepository.findAllMigrationTypesWithSorting(
         true,
-        "mtm_name",
+        "mit_name",
         "asc",
       );
 
       expect(result).toHaveLength(5);
-      expect(result[0].mtm_name).toBe("Application Release");
-      expect(result[result.length - 1].mtm_name).toBe("Network Release");
+      expect(result[0].mit_name).toBe("Application Release");
+      expect(result[result.length - 1].mit_name).toBe("Network Release");
 
       expect(
         mockRepository.findAllMigrationTypesWithSorting,
-      ).toHaveBeenCalledWith(true, "mtm_name", "asc");
+      ).toHaveBeenCalledWith(true, "mit_name", "asc");
 
       testResults.integrationScenariosValidated.push(
         "Sorting with includeInactive parameter",
@@ -749,11 +749,11 @@ describe("Migration Types Integration Tests", () => {
           .mockImplementation((includeInactive, sortField, sortDirection) => {
             // Simulate repository validation logic
             const allowedSortFields = [
-              "mtm_id",
-              "mtm_code",
-              "mtm_name",
-              "mtm_display_order",
-              "mtm_active",
+              "mit_id",
+              "mit_code",
+              "mit_name",
+              "mit_display_order",
+              "mit_active",
               "created_at",
               "updated_at",
             ];
@@ -770,7 +770,7 @@ describe("Migration Types Integration Tests", () => {
       // Test with invalid sort field (potential SQL injection attempt)
       const result1 = await mockRepository.findAllMigrationTypesWithSorting(
         false,
-        "DROP TABLE migration_types_master; --",
+        "DROP TABLE migration_types_mit; --",
         "asc",
       );
       expect(result1).toEqual(sortedTestData); // Should return default sort
@@ -778,7 +778,7 @@ describe("Migration Types Integration Tests", () => {
       // Test with valid sort field
       const result2 = await mockRepository.findAllMigrationTypesWithSorting(
         false,
-        "mtm_name",
+        "mit_name",
         "asc",
       );
       expect(result2).toEqual(sortedTestData); // Should process normally
@@ -786,7 +786,7 @@ describe("Migration Types Integration Tests", () => {
       // Test with invalid sort direction (should default to ASC)
       const result3 = await mockRepository.findAllMigrationTypesWithSorting(
         false,
-        "mtm_name",
+        "mit_name",
         "INVALID; DROP TABLE users; --",
       );
       expect(result3).toEqual(sortedTestData); // Should handle invalid direction
@@ -805,7 +805,7 @@ describe("Migration Types Integration Tests", () => {
       const mockQueryParams = {
         getFirst: jest.fn().mockImplementation((param) => {
           const params = {
-            sort: "mtm_name",
+            sort: "mit_name",
             direction: "desc",
             includeInactive: "false",
             page: "1",
@@ -822,7 +822,7 @@ describe("Migration Types Integration Tests", () => {
       const page = mockQueryParams.getFirst("page");
       const size = mockQueryParams.getFirst("size");
 
-      expect(sort).toBe("mtm_name");
+      expect(sort).toBe("mit_name");
       expect(direction).toBe("desc");
       expect(includeInactive).toBe("false");
       expect(page).toBe("1");
@@ -830,11 +830,11 @@ describe("Migration Types Integration Tests", () => {
 
       // Test parameter validation
       const allowedSortFields = [
-        "mtm_id",
-        "mtm_code",
-        "mtm_name",
-        "mtm_display_order",
-        "mtm_active",
+        "mit_id",
+        "mit_code",
+        "mit_name",
+        "mit_display_order",
+        "mit_active",
         "created_at",
         "updated_at",
       ];
@@ -856,11 +856,11 @@ describe("Migration Types Integration Tests", () => {
 
       // Simulate large dataset (100 items)
       const largeDataset = Array.from({ length: 100 }, (_, index) => ({
-        mtm_id: index + 1,
-        mtm_code: `TYPE_${String(index + 1).padStart(3, "0")}`,
-        mtm_name: `Migration Type ${index + 1}`,
-        mtm_display_order: Math.floor(Math.random() * 100) + 1,
-        mtm_active: Math.random() > 0.1, // 90% active
+        mit_id: index + 1,
+        mit_code: `TYPE_${String(index + 1).padStart(3, "0")}`,
+        mit_name: `Migration Type ${index + 1}`,
+        mit_display_order: Math.floor(Math.random() * 100) + 1,
+        mit_active: Math.random() > 0.1, // 90% active
         created_at: new Date(
           Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000,
         ),
@@ -873,7 +873,7 @@ describe("Migration Types Integration Tests", () => {
           return new Promise((resolve) => {
             setTimeout(() => {
               const sorted = [...largeDataset].sort((a, b) =>
-                a.mtm_name.localeCompare(b.mtm_name),
+                a.mit_name.localeCompare(b.mit_name),
               );
               resolve(sorted);
             }, 5); // 5ms simulated sort time
@@ -883,7 +883,7 @@ describe("Migration Types Integration Tests", () => {
 
       const result = await mockRepository.findAllMigrationTypesWithSorting(
         true,
-        "mtm_name",
+        "mit_name",
         "asc",
       );
 
@@ -891,7 +891,7 @@ describe("Migration Types Integration Tests", () => {
 
       expect(result).toHaveLength(100);
       expect(executionTime).toBeLessThan(50); // Should complete within 50ms
-      expect(result[0].mtm_name <= result[1].mtm_name).toBe(true); // Verify sorting
+      expect(result[0].mit_name <= result[1].mit_name).toBe(true); // Verify sorting
 
       testResults.integrationScenariosValidated.push(
         "Sorting performance with large datasets",
@@ -918,7 +918,7 @@ describe("Migration Types Integration Tests", () => {
       };
 
       await mockClient.query(
-        "SELECT * FROM migration_types_master WHERE mtm_active = TRUE",
+        "SELECT * FROM migration_types_mit WHERE mit_active = TRUE",
       );
 
       const executionTime = Date.now() - startTime;
@@ -939,7 +939,7 @@ describe("Migration Types Integration Tests", () => {
       // Simulate generating migrations with types lookup
       const mockClient = {
         query: jest.fn().mockImplementation((sql) => {
-          if (sql.includes("migration_types_master")) {
+          if (sql.includes("migration_types_mit")) {
             return Promise.resolve({ rows: testMigrationTypes });
           }
           return Promise.resolve({ rows: [{ usr_id: "user-1" }] });
@@ -949,7 +949,7 @@ describe("Migration Types Integration Tests", () => {
       // Simulate generating 10 migrations
       for (let i = 0; i < 10; i++) {
         await mockClient.query(
-          "SELECT mtm_id, mtm_code FROM migration_types_master WHERE mtm_active = TRUE",
+          "SELECT mit_id, mit_code FROM migration_types_mit WHERE mit_active = TRUE",
         );
         await mockClient.query("SELECT usr_id FROM users_usr");
       }
@@ -975,7 +975,7 @@ describe("Migration Types Integration Tests", () => {
             // Simulate foreign key constraint violation
             const error = new Error("Foreign key constraint violation");
             error.code = "23503";
-            error.constraint = "migrations_mig_mtm_id_fkey";
+            error.constraint = "migrations_mig_mit_id_fkey";
             throw error;
           }
           return Promise.resolve({ rows: [] });
@@ -984,12 +984,12 @@ describe("Migration Types Integration Tests", () => {
 
       try {
         await mockClient.query(`
-          INSERT INTO migrations_mig (mtm_id, mig_name, mig_type) 
+          INSERT INTO migrations_mig (mit_id, mig_name, mig_type) 
           VALUES (999, 'Test Migration', 'INVALID_TYPE')
         `);
       } catch (error) {
         expect(error.code).toBe("23503");
-        expect(error.constraint).toBe("migrations_mig_mtm_id_fkey");
+        expect(error.constraint).toBe("migrations_mig_mit_id_fkey");
       }
 
       testResults.integrationScenariosValidated.push(
@@ -1031,16 +1031,16 @@ describe("Migration Types Integration Tests", () => {
         query: jest.fn().mockImplementation((sql, values) => {
           operationLog.push({ sql: sql.substring(0, 50), values });
 
-          if (sql.includes("SELECT mtm_id")) {
+          if (sql.includes("SELECT mit_id")) {
             return Promise.resolve({
-              rows: [{ mtm_id: 2, mtm_code: "INFRASTRUCTURE" }],
+              rows: [{ mit_id: 2, mit_code: "INFRASTRUCTURE" }],
             });
           }
           if (sql.includes("INSERT INTO migrations_mig")) {
             return Promise.resolve({ rows: [{ mig_id: "mig-1" }] });
           }
           if (sql.includes("SELECT mig_id")) {
-            return Promise.resolve({ rows: [{ mig_id: "mig-1", mtm_id: 2 }] });
+            return Promise.resolve({ rows: [{ mig_id: "mig-1", mit_id: 2 }] });
           }
           return Promise.resolve({ rows: [] });
         }),
@@ -1048,15 +1048,15 @@ describe("Migration Types Integration Tests", () => {
 
       // Simulate full workflow: Create migration type → Create migration → Verify reference
       await mockClient.query(
-        "SELECT mtm_id FROM migration_types_master WHERE mtm_code = ?",
+        "SELECT mit_id FROM migration_types_mit WHERE mit_code = ?",
         ["INFRASTRUCTURE"],
       );
       await mockClient.query(
-        "INSERT INTO migrations_mig (mtm_id, mig_name) VALUES (?, ?)",
+        "INSERT INTO migrations_mig (mit_id, mig_name) VALUES (?, ?)",
         [2, "Test Migration"],
       );
       await mockClient.query(
-        "SELECT mig_id, mtm_id FROM migrations_mig WHERE mig_id = ?",
+        "SELECT mig_id, mit_id FROM migrations_mig WHERE mig_id = ?",
         ["mig-1"],
       );
 

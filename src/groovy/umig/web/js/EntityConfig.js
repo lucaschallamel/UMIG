@@ -171,7 +171,13 @@
       description:
         "Manage environments and their associations with applications and iterations",
       fields: [
-        { key: "env_id", label: "ID", type: "number", readonly: true },
+        {
+          key: "env_id",
+          label: "ID",
+          type: "number",
+          readonly: true,
+          primaryKey: true,
+        },
         {
           key: "env_code",
           label: "Environment Code",
@@ -228,7 +234,13 @@
       description:
         "Manage labels for categorizing and tagging steps and applications",
       fields: [
-        { key: "lbl_id", label: "ID", type: "number", readonly: true },
+        {
+          key: "lbl_id",
+          label: "ID",
+          type: "number",
+          readonly: true,
+          primaryKey: true,
+        },
         {
           key: "lbl_name",
           label: "Label Name",
@@ -312,6 +324,7 @@
           return `<span class="aui-label" style="background-color: ${value}; color: ${window.UiUtils ? window.UiUtils.getContrastColor(value) : "#000000"};">${value}</span>`;
         },
       },
+      filters: [],
       defaultSort: { field: "lbl_name", direction: "asc" },
       permissions: ["superadmin"],
     },
@@ -321,7 +334,13 @@
       description:
         "Manage applications and their associations with environments and teams",
       fields: [
-        { key: "app_id", label: "ID", type: "number", readonly: true },
+        {
+          key: "app_id",
+          label: "ID",
+          type: "number",
+          readonly: true,
+          primaryKey: true,
+        },
         {
           key: "app_code",
           label: "Application Code",
@@ -3392,6 +3411,13 @@
       description: "Manage iteration types and their configurations",
       fields: [
         {
+          key: "itt_id",
+          label: "ID",
+          type: "number",
+          readonly: true,
+          primaryKey: true,
+        },
+        {
           key: "itt_code",
           label: "Code",
           type: "text",
@@ -3512,14 +3538,14 @@
       description: "Manage migration types and their configurations",
       fields: [
         {
-          key: "mtm_id",
+          key: "mit_id",
           label: "ID",
           type: "number",
           readonly: true,
           primaryKey: true,
         },
         {
-          key: "mtm_code",
+          key: "mit_code",
           label: "Code",
           type: "text",
           required: true,
@@ -3527,41 +3553,41 @@
           readonly: false,
         },
         {
-          key: "mtm_name",
+          key: "mit_name",
           label: "Name",
           type: "text",
           required: true,
           maxLength: 100,
         },
         {
-          key: "mtm_description",
+          key: "mit_description",
           label: "Description",
           type: "textarea",
           maxLength: 500,
         },
         {
-          key: "mtm_color",
+          key: "mit_color",
           label: "Color",
           type: "color",
           required: true,
           default: "#6B73FF",
         },
         {
-          key: "mtm_icon",
+          key: "mit_icon",
           label: "Icon",
           type: "text",
           maxLength: 50,
           default: "migration",
         },
         {
-          key: "mtm_display_order",
+          key: "mit_display_order",
           label: "Display Order",
           type: "number",
           required: true,
           default: 0,
         },
         {
-          key: "mtm_active",
+          key: "mit_active",
           label: "Active",
           type: "boolean",
           required: true,
@@ -3593,30 +3619,30 @@
         },
       ],
       tableColumns: [
-        "mtm_code",
-        "mtm_name",
-        "mtm_description",
-        "mtm_color",
-        "mtm_icon",
-        "mtm_display_order",
-        "mtm_active",
+        "mit_code",
+        "mit_name",
+        "mit_description",
+        "mit_color",
+        "mit_icon",
+        "mit_display_order",
+        "mit_active",
       ],
       sortMapping: {
-        mtm_id: "mtm_id",
-        mtm_code: "mtm_code",
-        mtm_name: "mtm_name",
-        mtm_description: "mtm_description",
-        mtm_color: "mtm_color",
-        mtm_icon: "mtm_icon",
-        mtm_display_order: "mtm_display_order",
-        mtm_active: "mtm_active",
+        mit_id: "mit_id",
+        mit_code: "mit_code",
+        mit_name: "mit_name",
+        mit_description: "mit_description",
+        mit_color: "mit_color",
+        mit_icon: "mit_icon",
+        mit_display_order: "mit_display_order",
+        mit_active: "mit_active",
       },
       customRenderers: {
-        mtm_color: function (value) {
+        mit_color: function (value) {
           if (!value) return "";
           return `<div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background-color: ${value}; border-radius: 3px; margin-right: 8px; border: 1px solid #ddd;"></div>${value}</div>`;
         },
-        mtm_active: function (value) {
+        mit_active: function (value) {
           const isActive = value === true || value === "true" || value === 1;
           const badgeClass = isActive
             ? "aui-badge-complete"
@@ -3625,7 +3651,7 @@
           return `<span class="aui-badge ${badgeClass}">${text}</span>`;
         },
       },
-      defaultSort: { field: "mtm_display_order", direction: "asc" },
+      defaultSort: { field: "mit_display_order", direction: "asc" },
       permissions: ["superadmin"],
       ui: {
         enableBulkActions: false,

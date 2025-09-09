@@ -17,7 +17,7 @@ Phase 1 requirements analysis has been completed successfully. The current syste
 
 #### Current State
 
-- **Table**: `migrations_mig` (not `tbl_migrations_master` as documented)
+- **Table**: `migrations_mig` (not `tbl_migrations_mit` as documented)
 - **Active Types**: Only 2 types currently in use:
   - `EXTERNAL` (5 occurrences - 71%)
   - `MIGRATION` (2 occurrences - 29%)
@@ -112,7 +112,7 @@ def validTypes = ['EXTERNAL', 'INTERNAL', 'MAINTENANCE', 'ROLLBACK']
 
 ```sql
 -- Include all 4 hardcoded types plus actual usage
-INSERT INTO migration_types_master_mtm (mtm_name, mtm_description, mtm_display_order)
+INSERT INTO migration_types_mit (mit_name, mit_description, mit_display_order)
 VALUES
   ('EXTERNAL', 'External system migration', 1),
   ('MIGRATION', 'Standard migration', 2),

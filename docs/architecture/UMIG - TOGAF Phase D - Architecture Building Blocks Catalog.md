@@ -1,17 +1,18 @@
 # UMIG Architecture Building Blocks Catalog
 
 **Document ID:** UMIG-TOGAF-D-ABB-001  
-**Version:** 1.0  
-**Date:** August 28, 2025  
-**Status:** Approved  
+**Version:** 1.1  
+**Date:** September 09, 2025  
+**Status:** Security Architecture Aligned  
 **TOGAF Phase:** D (Technology Architecture)  
 **Classification:** Architecture Repository Asset
 
 ## Document Control
 
-| Version | Date       | Author            | Description                      |
-| ------- | ---------- | ----------------- | -------------------------------- |
-| 1.0     | 2025-08-28 | Architecture Team | Initial ABB Catalog from 49 ADRs |
+| Version | Date       | Author            | Description                                                            |
+| ------- | ---------- | ----------------- | ---------------------------------------------------------------------- |
+| 1.1     | 2025-09-09 | Architecture Team | Security building blocks alignment, 4-role RBAC, PostgreSQL components |
+| 1.0     | 2025-08-28 | Architecture Team | Initial ABB Catalog from 49 ADRs                                       |
 
 ## Table of Contents
 
@@ -335,6 +336,15 @@ class UIComponent {
       NORMAL: ["view"],
       PILOT: ["view", "edit", "comment"],
       ADMIN: ["view", "edit", "comment", "admin", "configure"],
+      SUPER_ADMIN: [
+        "view",
+        "edit",
+        "comment",
+        "admin",
+        "configure",
+        "system",
+        "security",
+      ],
     };
     return matrix[role] || matrix["NORMAL"];
   }
@@ -443,10 +453,12 @@ SecurityServices {
 
 #### Fallback Hierarchy (ADR-042)
 
-1. Direct platform authentication
-2. Cached session authentication
-3. System user context
-4. Anonymous (minimal permissions)
+1. **ThreadLocal Context** - Primary authentication from current thread
+2. **HTTP Headers** - Secondary authentication from request headers
+3. **Fallback Context** - Cached authentication context
+4. **Default User** - Anonymous user with minimal permissions
+
+**Current Implementation**: UserService.getCurrentUser() handles all fallback scenarios automatically
 
 **Implemented By:** Confluence platform + custom extensions
 
@@ -540,6 +552,130 @@ DataTransformation {
 
 ---
 
+### 3.7 Security Assessment & Controls (ABB-SEC-002)
+
+**Classification:** Security Services  
+**Category:** Technology-Agnostic Specification
+**Current Rating:** 6.1/10 (Moderate Risk)
+
+#### Capability Definition
+
+| Capability              | Description                | Current Status | Target Status |
+| ----------------------- | -------------------------- | -------------- | ------------- |
+| **Authentication**      | 4-level fallback hierarchy | ✅ Production  | ✅ Complete   |
+| **Authorization (UI)**  | Role-based access control  | ✅ Production  | ✅ Complete   |
+| **Authorization (API)** | API-level RBAC             | 🔄 Planned     | 🎯 US-074     |
+| **Input Validation**    | Type safety & sanitization | ✅ Production  | ✅ Complete   |
+| **XSS Protection**      | Advanced XSS prevention    | ⚠️ Basic       | 🎯 US-082     |
+| **Audit Logging**       | Comprehensive audit trail  | ✅ Production  | ✅ Complete   |
+| **DoS Protection**      | Rate limiting & throttling | ⚠️ Basic       | 🎯 ADR-046    |
+
+#### Required Interfaces
+
+```text
+SecurityAssessment {
+    + assessSecurityPosture(): SecurityReport
+    + identifyVulnerabilities(): List<Vulnerability>
+    + generateComplianceReport(): ComplianceReport
+    + trackSecurityMetrics(): SecurityMetrics
+    + implementControls(controls: List<SecurityControl>): Result
+}
+```
+
+#### Current Security Architecture
+
+**Strengths (6.1/10 factors)**:
+
+- ✅ 4-level authentication fallback (ADR-042)
+- ✅ 4-role RBAC model (NORMAL/PILOT/ADMIN/SUPER_ADMIN)
+- ✅ SQL injection prevention via Repository pattern
+- ✅ Type safety enforcement (ADR-043)
+- ✅ Comprehensive audit logging (audit_log_aud)
+- ✅ Input validation and URL sanitization
+
+**Areas for Improvement**:
+
+- 🔄 API-level RBAC (currently UI-level only)
+- 🔄 Advanced XSS protection beyond basic template escaping
+- 🔄 Enhanced DoS protection with enterprise-grade limits
+- 🔄 Security monitoring & alerting
+- 🔄 Automated vulnerability scanning
+
+#### Improvement Roadmap
+
+| Priority | Enhancement                | User Story | Timeline |
+| -------- | -------------------------- | ---------- | -------- |
+| High     | API-level RBAC             | US-074     | Sprint 7 |
+| High     | Security Assessment        | US-038     | Sprint 7 |
+| Medium   | Advanced Security Controls | US-082     | Sprint 8 |
+| Medium   | DoS Protection             | ADR-046    | Sprint 8 |
+
+**Implemented By:** Mixed platform + custom security frameworks
+
+---
+
+### 3.8 PostgreSQL Database Services (ABB-PG-001)
+
+**Classification:** Data Services  
+**Category:** Technology-Agnostic Specification
+**Version:** PostgreSQL 14+
+
+#### Capability Definition
+
+| Capability                 | Description                    | Quality Attributes              |
+| -------------------------- | ------------------------------ | ------------------------------- |
+| **Connection Management**  | Connection pooling & lifecycle | Performance: <5ms acquisition   |
+| **Transaction Management** | ACID compliance & rollback     | Reliability: 100% consistency   |
+| **Query Optimization**     | Performance tuning & indexing  | Performance: <51ms avg response |
+| **Security & Compliance**  | Encryption & audit logging     | Security: SSL/TLS + RLS         |
+
+#### Required Interfaces
+
+```text
+PostgreSQLServices {
+    + getConnection(timeout: Duration): Connection
+    + executeQuery(sql: String, params: Map): ResultSet
+    + executeTransaction(operations: List<Operation>): TransactionResult
+    + createIndex(table: String, columns: List<String>): IndexResult
+    + auditOperation(operation: String, user: String, data: Object): AuditRecord
+}
+```
+
+#### Technical Implementation
+
+**Core Features**:
+
+- Database: umig_app_db
+- Connection pooling via DatabaseUtil.withSql
+- Audit logging via audit_log_aud table
+- Row Level Security (RLS) where applicable
+- SSL/TLS encryption for production
+
+**Performance Characteristics**:
+
+- Query response: <51ms average (US-056 target)
+- Connection time: <45ms average
+- Concurrent users: 85 current, 100 target
+- Database size: 4.2GB current, <10GB target
+
+**Security Features**:
+
+- Role-based database access (umig_app, umig_read users)
+- Comprehensive audit trail via triggers
+- SSL certificate validation in production
+- Data encryption at rest (planned)
+
+**High Availability**:
+
+- Streaming replication for production
+- Automated failover capability
+- Point-in-time recovery (PITR)
+- Enterprise backup integration
+
+**Implemented By:** PostgreSQL 14+ with custom extensions
+
+---
+
 ## 4. Building Block Relationships
 
 ### 4.1 Dependency Graph
@@ -549,30 +685,37 @@ graph TD
     ABB-DQA-001[Data Quality ABB] --> SBB-TSP-001[Type Safety SBB]
     ABB-EXM-001[Exception ABB] --> SBB-ERF-001[Error Framework SBB]
     ABB-SEC-001[Security ABB] --> Platform[Confluence Auth]
+    ABB-SEC-002[Security Assessment ABB] --> SecurityFramework[Custom Security]
     ABB-NOT-001[Notification ABB] --> Email[Email Service]
     ABB-WFL-001[Workflow ABB] --> Engine[Migration Engine]
     ABB-DTS-001[Transform ABB] --> SBB-TSP-001
+    ABB-PG-001[PostgreSQL ABB] --> Database[PostgreSQL 14+]
 
     SBB-TSP-001 --> SBB-RAP-001[Repository SBB]
     SBB-ERF-001 --> SBB-RAP-001
     SBB-UCF-001[UI Framework] --> ABB-SEC-001
+    SBB-RAP-001 --> ABB-PG-001
 
     style ABB-DQA-001 fill:#f9f,stroke:#333,stroke-width:2px
     style ABB-EXM-001 fill:#f9f,stroke:#333,stroke-width:2px
     style ABB-SEC-001 fill:#f9f,stroke:#333,stroke-width:2px
+    style ABB-SEC-002 fill:#ffb,stroke:#333,stroke-width:2px
     style ABB-NOT-001 fill:#f9f,stroke:#333,stroke-width:2px
     style ABB-WFL-001 fill:#f9f,stroke:#333,stroke-width:2px
     style ABB-DTS-001 fill:#f9f,stroke:#333,stroke-width:2px
+    style ABB-PG-001 fill:#bfb,stroke:#333,stroke-width:2px
 ```
 
 ### 4.2 Composition Matrix
 
-| Use Case              | Required ABBs                         | Required SBBs                         |
-| --------------------- | ------------------------------------- | ------------------------------------- |
-| **REST API Endpoint** | ABB-SEC-001, ABB-DQA-001, ABB-EXM-001 | SBB-TSP-001, SBB-ERF-001, SBB-RAP-001 |
-| **UI Component**      | ABB-SEC-001, ABB-PRS-001              | SBB-UCF-001                           |
-| **Business Process**  | ABB-WFL-001, ABB-NOT-001              | Migration engine                      |
-| **Data Operation**    | ABB-DQA-001, ABB-DTS-001              | SBB-TSP-001, SBB-RAP-001              |
+| Use Case                | Required ABBs                                                  | Required SBBs                         |
+| ----------------------- | -------------------------------------------------------------- | ------------------------------------- |
+| **REST API Endpoint**   | ABB-SEC-001, ABB-SEC-002, ABB-DQA-001, ABB-EXM-001, ABB-PG-001 | SBB-TSP-001, SBB-ERF-001, SBB-RAP-001 |
+| **UI Component**        | ABB-SEC-001, ABB-PRS-001                                       | SBB-UCF-001                           |
+| **Business Process**    | ABB-WFL-001, ABB-NOT-001                                       | Migration engine                      |
+| **Data Operation**      | ABB-DQA-001, ABB-DTS-001, ABB-PG-001                           | SBB-TSP-001, SBB-RAP-001              |
+| **Security Assessment** | ABB-SEC-002                                                    | Security framework                    |
+| **Database Operation**  | ABB-PG-001, ABB-DQA-001                                        | SBB-RAP-001, DatabaseUtil             |
 
 ---
 
@@ -643,7 +786,16 @@ graph TD
 - TOGAF 9.2 building block standards
 - ADR-031: Type safety enforcement
 - ADR-039: Enhanced error handling
-- ADR-042: Authentication fallback
+- ADR-042: Authentication context management (4-level fallback)
+- ADR-043: Type safety enforcement (explicit casting)
+- ADR-046: DoS protection via ImportQueue configuration
+- ADR-051: UI-level RBAC implementation (current)
+
+**Security Enhancement References:**
+
+- US-038: Security assessment & improvements
+- US-074: API-level RBAC implementation (planned)
+- US-082: Advanced security controls (planned)
 
 **Audit Requirements:**
 
@@ -697,8 +849,11 @@ Complete reference implementations available at:
 | SBB-TSP-001    | 1.0     | Production | 2025-08-15   |
 | SBB-ERF-001    | 1.0     | Production | 2025-08-14   |
 | SBB-RAP-001    | 1.0     | Production | 2025-08-16   |
-| SBB-UCF-001    | 1.0     | Production | 2025-08-20   |
-| All ABBs       | 1.0     | Approved   | 2025-08-28   |
+| SBB-UCF-001    | 1.1     | Production | 2025-09-09   |
+| ABB-SEC-001    | 1.1     | Production | 2025-09-09   |
+| ABB-SEC-002    | 1.0     | Assessment | 2025-09-09   |
+| ABB-PG-001     | 1.0     | Production | 2025-09-09   |
+| Other ABBs     | 1.0     | Approved   | 2025-08-28   |
 
 ---
 
