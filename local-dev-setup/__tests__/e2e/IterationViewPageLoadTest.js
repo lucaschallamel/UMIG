@@ -101,7 +101,7 @@ test.describe("US-028 Enhanced IterationView - Page Load UAT", () => {
     page,
   }) => {
     // Track script loading and DOM events
-    const events = [];
+    // Events will be captured from page.evaluate
 
     await page.addInitScript(() => {
       window.testEvents = [];

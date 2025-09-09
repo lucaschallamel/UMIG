@@ -1,4 +1,7 @@
 #!/usr/bin/env groovy
+
+package umig.tests.unit
+
 /**
  * CommentDTO Template Integration Test (US-056B Phase 2)
  * 

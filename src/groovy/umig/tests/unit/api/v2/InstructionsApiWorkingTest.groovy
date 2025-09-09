@@ -1,4 +1,7 @@
 #!/usr/bin/env groovy
+
+package umig.tests.unit.api.v2
+
 /**
  * Standalone Unit Test for Instructions API  
  * Tests API responses with properly mocked dependencies

@@ -27,7 +27,7 @@ import java.time.LocalDateTime
  * @author UMIG Test Framework
  * @since 2025-01-17 Sprint 6
  */
-class EmailSecurityTestBase {
+abstract class EmailSecurityTestBase {
     
     // Test performance tracking
     protected static final long PERFORMANCE_THRESHOLD_MS = 2L

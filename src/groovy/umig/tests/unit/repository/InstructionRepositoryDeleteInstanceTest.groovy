@@ -1,3 +1,5 @@
+package umig.tests.unit.repository
+
 /**
  * Unit Test for InstructionRepository - deleteInstanceInstruction method
  * Tests the new deleteInstanceInstruction method added in code review

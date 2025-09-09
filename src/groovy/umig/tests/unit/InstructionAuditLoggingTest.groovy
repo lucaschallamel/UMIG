@@ -1,3 +1,5 @@
+package umig.tests.unit
+
 /**
  * Standalone test for Instruction Audit Logging implementation
  * Tests the integration between InstructionRepository and AuditLogRepository
@@ -17,13 +19,13 @@ import java.sql.SQLException
  * Tracks calls for both instruction updates and audit logging
  */
 class MockSql {
-    def mockResults = [:]
-    def capturedCalls = []
-    def queryCaptured = null
-    def paramsCaptured = null
-    def methodCalled = null
+    Map<String, Object> mockResults = [:]
+    List<Map<String, Object>> capturedCalls = []
+    String queryCaptured = null
+    Object paramsCaptured = null
+    String methodCalled = null
     
-    def firstRow(String query, Map params = [:]) {
+    Object firstRow(String query, Map params = [:]) {
         recordCall('firstRow', query, params)
         queryCaptured = query
         paramsCaptured = params
@@ -31,52 +33,57 @@ class MockSql {
         return mockResults['firstRow']
     }
     
-    def executeUpdate(String query, Map params = [:]) {
+    int executeUpdate(String query, Map params = [:]) {
         recordCall('executeUpdate', query, params)
         queryCaptured = query
         paramsCaptured = params
         methodCalled = 'executeUpdate'
-        return mockResults['executeUpdate'] ?: 1
+        return (mockResults['executeUpdate'] ?: 1) as int
     }
     
-    def execute(String query, List params = []) {
+    boolean execute(String query, List params = []) {
         recordCall('execute', query, params)
         queryCaptured = query
         paramsCaptured = params
         methodCalled = 'execute'
-        return mockResults['execute'] ?: true
+        Object result = mockResults['execute'] ?: true
+        if (result instanceof Exception) {
+            throw result
+        }
+        return result as boolean
     }
     
-    def withTransaction(Closure closure) {
+    Object withTransaction(Closure closure) {
         return closure()
     }
     
-    def setMockResult(String method, Object result) {
+    void setMockResult(String method, Object result) {
         mockResults[method] = result
     }
     
-    def recordCall(String method, String query, Object params) {
-        capturedCalls << [
+    void recordCall(String method, String query, Object params) {
+        Map<String, Object> callRecord = [
             method: method,
             query: query,
             params: params,
             timestamp: new Date()
         ]
+        capturedCalls << callRecord
     }
     
-    def getCapturedAuditCalls() {
-        return capturedCalls.findAll { call -> 
-            call.query.contains('audit_log_aud') 
+    List<Map<String, Object>> getCapturedAuditCalls() {
+        return capturedCalls.findAll { Map<String, Object> call -> 
+            (call.query as String).contains('audit_log_aud') 
         }
     }
     
-    def getCapturedInstructionCalls() {
-        return capturedCalls.findAll { call -> 
-            call.query.contains('instructions_instance_ini') 
+    List<Map<String, Object>> getCapturedInstructionCalls() {
+        return capturedCalls.findAll { Map<String, Object> call -> 
+            (call.query as String).contains('instructions_instance_ini') 
         }
     }
     
-    def reset() {
+    void reset() {
         capturedCalls.clear()
         mockResults.clear()
         queryCaptured = null
@@ -91,7 +98,7 @@ class MockSql {
 class DatabaseUtil {
     static MockSql mockSql = new MockSql()
     
-    static def withSql(Closure closure) {
+    static Object withSql(Closure closure) {
         return closure(mockSql)
     }
     
@@ -104,7 +111,7 @@ class DatabaseUtil {
  * Mock AuthenticationService
  */
 class AuthenticationService {
-    static def getSystemUser() {
+    static String getSystemUser() {
         return 'test-system-user'
     }
 }
@@ -115,19 +122,21 @@ class AuthenticationService {
  * Mock AuditLogRepository that captures audit logging calls
  */
 class AuditLogRepository {
-    static def auditCallsLog = []
+    static List<Map<String, Object>> auditCallsLog = []
     
     static void logInstructionCompleted(Object sql, Integer userId, UUID instructionInstanceId, UUID stepInstanceId) {
-        auditCallsLog << [
+        Map<String, Object> auditRecord = [
             action: 'INSTRUCTION_COMPLETED',
             userId: userId,
             instructionInstanceId: instructionInstanceId,
             stepInstanceId: stepInstanceId,
             timestamp: new Date()
-        ]
+        ] as Map<String, Object>
+        auditCallsLog.add(auditRecord)
         
         // Also call the actual SQL execute to simulate real behavior
-        sql.execute("""
+        MockSql mockSql = sql as MockSql
+        mockSql.execute("""
             INSERT INTO audit_log_aud (
                 usr_id, aud_entity_id, aud_entity_type, aud_action, aud_details
             ) VALUES (?, ?, ?, ?, ?::jsonb)
@@ -141,16 +150,18 @@ class AuditLogRepository {
     }
     
     static void logInstructionUncompleted(Object sql, Integer userId, UUID instructionInstanceId, UUID stepInstanceId) {
-        auditCallsLog << [
+        Map<String, Object> auditRecord = [
             action: 'INSTRUCTION_UNCOMPLETED',
             userId: userId,
             instructionInstanceId: instructionInstanceId,
             stepInstanceId: stepInstanceId,
             timestamp: new Date()
-        ]
+        ] as Map<String, Object>
+        auditCallsLog.add(auditRecord)
         
         // Also call the actual SQL execute to simulate real behavior
-        sql.execute("""
+        MockSql mockSql = sql as MockSql
+        mockSql.execute("""
             INSERT INTO audit_log_aud (
                 usr_id, aud_entity_id, aud_entity_type, aud_action, aud_details
             ) VALUES (?, ?, ?, ?, ?::jsonb)
@@ -175,15 +186,16 @@ class AuditLogRepository {
  */
 class InstructionRepository {
     
-    def completeInstruction(UUID iniId, Integer userId) {
+    int completeInstruction(UUID iniId, Integer userId) {
         if (!iniId || !userId) {
             throw new IllegalArgumentException("Instruction instance ID and user ID are required")
         }
         
-        DatabaseUtil.withSql { sql ->
+        return (DatabaseUtil.withSql { sql ->
             try {
                 // First, get the step instance ID for audit logging
-                def stepInfo = sql.firstRow('''
+                MockSql mockSql = sql as MockSql
+                Object stepInfo = mockSql.firstRow('''
                     SELECT sti_id 
                     FROM instructions_instance_ini 
                     WHERE ini_id = :iniId AND ini_is_completed = false
@@ -193,7 +205,7 @@ class InstructionRepository {
                     return 0 // Instruction not found or already completed
                 }
                 
-                def affectedRows = sql.executeUpdate('''
+                int affectedRows = mockSql.executeUpdate('''
                     UPDATE instructions_instance_ini 
                     SET 
                         ini_is_completed = true,
@@ -207,7 +219,9 @@ class InstructionRepository {
                 // Log to audit trail if update was successful
                 if (affectedRows > 0) {
                     try {
-                        AuditLogRepository.logInstructionCompleted(sql, userId, iniId, stepInfo.sti_id as UUID)
+                        Map<String, Object> stepInfoMap = stepInfo as Map<String, Object>
+                        UUID stepInstanceId = stepInfoMap.sti_id as UUID
+                        AuditLogRepository.logInstructionCompleted(mockSql, userId, iniId, stepInstanceId)
                     } catch (Exception auditError) {
                         // Audit logging failure shouldn't break the main flow
                         println "InstructionRepository: Failed to log instruction completion audit - ${auditError.message}"
@@ -221,18 +235,19 @@ class InstructionRepository {
                 }
                 throw new RuntimeException("Failed to complete instruction ${iniId}", e)
             }
-        }
+        }) as int
     }
     
-    def uncompleteInstruction(UUID iniId) {
+    int uncompleteInstruction(UUID iniId) {
         if (!iniId) {
             throw new IllegalArgumentException("Instruction instance ID cannot be null")
         }
         
-        DatabaseUtil.withSql { sql ->
+        return (DatabaseUtil.withSql { sql ->
             try {
                 // First, get the step instance ID and current user for audit logging
-                def instructionInfo = sql.firstRow('''
+                MockSql mockSql = sql as MockSql
+                Object instructionInfo = mockSql.firstRow('''
                     SELECT sti_id, usr_id_completed_by 
                     FROM instructions_instance_ini 
                     WHERE ini_id = :iniId AND ini_is_completed = true
@@ -242,7 +257,7 @@ class InstructionRepository {
                     return 0 // Instruction not found or not completed
                 }
                 
-                def affectedRows = sql.executeUpdate('''
+                int affectedRows = mockSql.executeUpdate('''
                     UPDATE instructions_instance_ini 
                     SET 
                         ini_is_completed = false,
@@ -257,8 +272,10 @@ class InstructionRepository {
                 if (affectedRows > 0) {
                     try {
                         // Use the original completing user ID or null if system uncompleted
-                        def auditUserId = instructionInfo.usr_id_completed_by as Integer
-                        AuditLogRepository.logInstructionUncompleted(sql, auditUserId, iniId, instructionInfo.sti_id as UUID)
+                        Map<String, Object> instructionInfoMap = instructionInfo as Map<String, Object>
+                        Integer auditUserId = instructionInfoMap.usr_id_completed_by as Integer
+                        UUID stepInstanceId = instructionInfoMap.sti_id as UUID
+                        AuditLogRepository.logInstructionUncompleted(mockSql, auditUserId, iniId, stepInstanceId)
                     } catch (Exception auditError) {
                         // Audit logging failure shouldn't break the main flow
                         println "InstructionRepository: Failed to log instruction uncompletion audit - ${auditError.message}"
@@ -269,7 +286,7 @@ class InstructionRepository {
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to uncomplete instruction ${iniId}", e)
             }
-        }
+        }) as int
     }
 }
 
@@ -300,9 +317,9 @@ class InstructionAuditLoggingTestRunner {
         println "Testing completeInstruction with audit logging..."
         
         // Setup test data
-        def instructionId = UUID.randomUUID()
-        def stepInstanceId = UUID.randomUUID()
-        def userId = 123
+        UUID instructionId = UUID.randomUUID()
+        UUID stepInstanceId = UUID.randomUUID()
+        int userId = 123
         
         // Reset mocks
         DatabaseUtil.resetMock()
@@ -314,36 +331,43 @@ class InstructionAuditLoggingTestRunner {
         DatabaseUtil.mockSql.setMockResult('execute', true)
         
         // Execute test
-        def result = repository.completeInstruction(instructionId, userId)
+        int result = repository.completeInstruction(instructionId, userId)
         
         // Validate instruction update was called
-        def instructionCalls = DatabaseUtil.mockSql.getCapturedInstructionCalls()
+        List<Map<String, Object>> instructionCalls = DatabaseUtil.mockSql.getCapturedInstructionCalls()
         assert instructionCalls.size() >= 2, "Expected at least 2 instruction calls (SELECT and UPDATE)"
         
-        def selectCall = instructionCalls.find { it.query.contains('SELECT sti_id') }
+        Map<String, Object> selectCall = instructionCalls.find { Map<String, Object> it -> 
+            (it.query as String).contains('SELECT sti_id') 
+        }
         assert selectCall != null, "Expected SELECT query to get step instance ID"
-        assert selectCall.params.iniId == instructionId
+        Map<String, Object> selectParams = selectCall.params as Map<String, Object>
+        assert selectParams.iniId == instructionId
         
-        def updateCall = instructionCalls.find { it.query.contains('UPDATE instructions_instance_ini') }
+        Map<String, Object> updateCall = instructionCalls.find { Map<String, Object> it -> 
+            (it.query as String).contains('UPDATE instructions_instance_ini') 
+        }
         assert updateCall != null, "Expected UPDATE query to complete instruction"
-        assert updateCall.params.iniId == instructionId
-        assert updateCall.params.userId == userId
-        assert updateCall.query.contains('ini_is_completed = true')
+        Map<String, Object> updateParams = updateCall.params as Map<String, Object>
+        assert updateParams.iniId == instructionId
+        assert updateParams.userId == userId
+        assert (updateCall.query as String).contains('ini_is_completed = true')
         
         // Validate audit logging was called
-        def auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
+        List<Map<String, Object>> auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
         assert auditCalls.size() == 1, "Expected exactly 1 audit call"
         
-        def auditCall = auditCalls[0]
-        assert auditCall.query.contains('INSERT INTO audit_log_aud')
-        assert auditCall.params[0] == userId, "Expected userId in audit params"
-        assert auditCall.params[1] == instructionId, "Expected instructionId in audit params"
-        assert auditCall.params[2] == 'INSTRUCTION_INSTANCE', "Expected entity type in audit params"
-        assert auditCall.params[3] == 'INSTRUCTION_COMPLETED', "Expected action in audit params"
-        assert auditCall.params[4].contains(stepInstanceId.toString()), "Expected step instance ID in audit details"
+        Map<String, Object> auditCall = auditCalls[0]
+        assert (auditCall.query as String).contains('INSERT INTO audit_log_aud')
+        List<Object> auditParams = auditCall.params as List<Object>
+        assert auditParams[0] == userId, "Expected userId in audit params"
+        assert auditParams[1] == instructionId, "Expected instructionId in audit params"
+        assert auditParams[2] == 'INSTRUCTION_INSTANCE', "Expected entity type in audit params"
+        assert auditParams[3] == 'INSTRUCTION_COMPLETED', "Expected action in audit params"
+        assert (auditParams[4] as String).contains(stepInstanceId.toString()), "Expected step instance ID in audit details"
         
         // Validate AuditLogRepository was called
-        def auditLogCalls = AuditLogRepository.auditCallsLog
+        List<Map<String, Object>> auditLogCalls = AuditLogRepository.auditCallsLog
         assert auditLogCalls.size() == 1, "Expected exactly 1 AuditLogRepository call"
         assert auditLogCalls[0].action == 'INSTRUCTION_COMPLETED'
         assert auditLogCalls[0].userId == userId
@@ -359,9 +383,9 @@ class InstructionAuditLoggingTestRunner {
         println "Testing uncompleteInstruction with audit logging..."
         
         // Setup test data
-        def instructionId = UUID.randomUUID()
-        def stepInstanceId = UUID.randomUUID()
-        def completedByUserId = 456
+        UUID instructionId = UUID.randomUUID()
+        UUID stepInstanceId = UUID.randomUUID()
+        int completedByUserId = 456
         
         // Reset mocks
         DatabaseUtil.resetMock()
@@ -373,36 +397,43 @@ class InstructionAuditLoggingTestRunner {
         DatabaseUtil.mockSql.setMockResult('execute', true)
         
         // Execute test
-        def result = repository.uncompleteInstruction(instructionId)
+        int result = repository.uncompleteInstruction(instructionId)
         
         // Validate instruction update was called
-        def instructionCalls = DatabaseUtil.mockSql.getCapturedInstructionCalls()
+        List<Map<String, Object>> instructionCalls = DatabaseUtil.mockSql.getCapturedInstructionCalls()
         assert instructionCalls.size() >= 2, "Expected at least 2 instruction calls (SELECT and UPDATE)"
         
-        def selectCall = instructionCalls.find { it.query.contains('SELECT sti_id, usr_id_completed_by') }
+        Map<String, Object> selectCall = instructionCalls.find { Map<String, Object> it ->
+            (it.query as String).contains('SELECT sti_id, usr_id_completed_by')
+        }
         assert selectCall != null, "Expected SELECT query to get instruction info"
-        assert selectCall.params.iniId == instructionId
+        Map<String, Object> selectParams = selectCall.params as Map<String, Object>
+        assert selectParams.iniId == instructionId
         
-        def updateCall = instructionCalls.find { it.query.contains('UPDATE instructions_instance_ini') }
+        Map<String, Object> updateCall = instructionCalls.find { Map<String, Object> it ->
+            (it.query as String).contains('UPDATE instructions_instance_ini')
+        }
         assert updateCall != null, "Expected UPDATE query to uncomplete instruction"
-        assert updateCall.params.iniId == instructionId
-        assert updateCall.query.contains('ini_is_completed = false')
-        assert updateCall.query.contains('usr_id_completed_by = NULL')
+        Map<String, Object> updateParams = updateCall.params as Map<String, Object>
+        assert updateParams.iniId == instructionId
+        assert (updateCall.query as String).contains('ini_is_completed = false')
+        assert (updateCall.query as String).contains('usr_id_completed_by = NULL')
         
         // Validate audit logging was called
-        def auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
+        List<Map<String, Object>> auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
         assert auditCalls.size() == 1, "Expected exactly 1 audit call"
         
-        def auditCall = auditCalls[0]
-        assert auditCall.query.contains('INSERT INTO audit_log_aud')
-        assert auditCall.params[0] == completedByUserId, "Expected original completing userId in audit params"
-        assert auditCall.params[1] == instructionId, "Expected instructionId in audit params"
-        assert auditCall.params[2] == 'INSTRUCTION_INSTANCE', "Expected entity type in audit params"
-        assert auditCall.params[3] == 'INSTRUCTION_UNCOMPLETED', "Expected action in audit params"
-        assert auditCall.params[4].contains(stepInstanceId.toString()), "Expected step instance ID in audit details"
+        Map<String, Object> auditCall = auditCalls[0]
+        assert (auditCall.query as String).contains('INSERT INTO audit_log_aud')
+        List<Object> auditParams = auditCall.params as List<Object>
+        assert auditParams[0] == completedByUserId, "Expected original completing userId in audit params"
+        assert auditParams[1] == instructionId, "Expected instructionId in audit params"
+        assert auditParams[2] == 'INSTRUCTION_INSTANCE', "Expected entity type in audit params"
+        assert auditParams[3] == 'INSTRUCTION_UNCOMPLETED', "Expected action in audit params"
+        assert (auditParams[4] as String).contains(stepInstanceId.toString()), "Expected step instance ID in audit details"
         
         // Validate AuditLogRepository was called
-        def auditLogCalls = AuditLogRepository.auditCallsLog
+        List<Map<String, Object>> auditLogCalls = AuditLogRepository.auditCallsLog
         assert auditLogCalls.size() == 1, "Expected exactly 1 AuditLogRepository call"
         assert auditLogCalls[0].action == 'INSTRUCTION_UNCOMPLETED'
         assert auditLogCalls[0].userId == completedByUserId
@@ -418,8 +449,8 @@ class InstructionAuditLoggingTestRunner {
         println "Testing completeInstruction not found - no audit logging..."
         
         // Setup test data
-        def instructionId = UUID.randomUUID()
-        def userId = 123
+        UUID instructionId = UUID.randomUUID()
+        int userId = 123
         
         // Reset mocks
         DatabaseUtil.resetMock()
@@ -429,13 +460,13 @@ class InstructionAuditLoggingTestRunner {
         DatabaseUtil.mockSql.setMockResult('firstRow', null)
         
         // Execute test
-        def result = repository.completeInstruction(instructionId, userId)
+        int result = repository.completeInstruction(instructionId, userId)
         
         // Validate no audit logging was called when instruction not found
-        def auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
+        List<Map<String, Object>> auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
         assert auditCalls.size() == 0, "Expected no audit calls when instruction not found"
         
-        def auditLogCalls = AuditLogRepository.auditCallsLog
+        List<Map<String, Object>> auditLogCalls = AuditLogRepository.auditCallsLog
         assert auditLogCalls.size() == 0, "Expected no AuditLogRepository calls when instruction not found"
         
         assert result == 0, "Expected 0 affected rows when instruction not found"
@@ -447,7 +478,7 @@ class InstructionAuditLoggingTestRunner {
         println "Testing uncompleteInstruction not found - no audit logging..."
         
         // Setup test data
-        def instructionId = UUID.randomUUID()
+        UUID instructionId = UUID.randomUUID()
         
         // Reset mocks
         DatabaseUtil.resetMock()
@@ -457,13 +488,13 @@ class InstructionAuditLoggingTestRunner {
         DatabaseUtil.mockSql.setMockResult('firstRow', null)
         
         // Execute test
-        def result = repository.uncompleteInstruction(instructionId)
+        int result = repository.uncompleteInstruction(instructionId)
         
         // Validate no audit logging was called when instruction not found
-        def auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
+        List<Map<String, Object>> auditCalls = DatabaseUtil.mockSql.getCapturedAuditCalls()
         assert auditCalls.size() == 0, "Expected no audit calls when instruction not found"
         
-        def auditLogCalls = AuditLogRepository.auditCallsLog
+        List<Map<String, Object>> auditLogCalls = AuditLogRepository.auditCallsLog
         assert auditLogCalls.size() == 0, "Expected no AuditLogRepository calls when instruction not found"
         
         assert result == 0, "Expected 0 affected rows when instruction not found"
@@ -475,9 +506,9 @@ class InstructionAuditLoggingTestRunner {
         println "Testing completeInstruction - audit failure does not break main flow..."
         
         // Setup test data
-        def instructionId = UUID.randomUUID()
-        def stepInstanceId = UUID.randomUUID()
-        def userId = 123
+        UUID instructionId = UUID.randomUUID()
+        UUID stepInstanceId = UUID.randomUUID()
+        int userId = 123
         
         // Reset mocks
         DatabaseUtil.resetMock()
@@ -487,16 +518,11 @@ class InstructionAuditLoggingTestRunner {
         DatabaseUtil.mockSql.setMockResult('firstRow', [sti_id: stepInstanceId])
         DatabaseUtil.mockSql.setMockResult('executeUpdate', 1)
         
-        // Setup mock to fail on audit logging
-        DatabaseUtil.mockSql.metaClass.execute = { String query, List params ->
-            if (query.contains('audit_log_aud')) {
-                throw new RuntimeException("Audit logging failed")
-            }
-            return true
-        }
+        // Setup mock to fail on audit logging - modify mock result to throw
+        DatabaseUtil.mockSql.setMockResult('execute', new RuntimeException("Audit logging failed"))
         
         // Execute test - should not throw despite audit failure
-        def result = repository.completeInstruction(instructionId, userId)
+        int result = repository.completeInstruction(instructionId, userId)
         
         // Main operation should still succeed
         assert result == 1, "Expected 1 affected row despite audit failure"
@@ -505,5 +531,9 @@ class InstructionAuditLoggingTestRunner {
     }
 }
 
-// Execute tests when run as script
-InstructionAuditLoggingTestRunner.main(args)
+// Execute tests when run as script  
+if (this.binding?.variables?.containsKey('args')) {
+    InstructionAuditLoggingTestRunner.main(this.binding.variables.args as String[])
+} else {
+    InstructionAuditLoggingTestRunner.main([] as String[])
+}

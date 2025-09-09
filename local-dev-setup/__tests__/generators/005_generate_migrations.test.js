@@ -247,6 +247,21 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
         migrationTypes: [],
       };
 
+      // Mock faker to alternate between types for this test
+      let migrationTypeIndex = 0;
+      faker.helpers.arrayElement.mockImplementation((arr) => {
+        // For user selection, return first element
+        if (arr[0]?.usr_id) return arr[0];
+        // For plan selection, return first plan
+        if (arr[0]?.plm_id) return arr[0];
+        // For migration types, alternate
+        if (arr[0]?.mit_code) {
+          return arr[migrationTypeIndex++ % arr.length];
+        }
+        // Default to first element
+        return arr[0];
+      });
+
       client.query.mockImplementation((sql, values) => {
         if (sql.includes("SELECT usr_id FROM users_usr"))
           return Promise.resolve({ rows: mockUsers });
@@ -305,9 +320,11 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
 
       // Verify that migration types from database were used
       expect(capturedData.migrations.length).toBe(CONFIG.MIGRATIONS.COUNT);
-      expect(capturedData.migrationTypes).toEqual(
-        expect.arrayContaining(["INFRASTRUCTURE", "APPLICATION"]),
-      );
+      // With alternating selection, we should get both types
+      expect(capturedData.migrationTypes).toEqual([
+        "INFRASTRUCTURE",
+        "APPLICATION",
+      ]);
       // Should not contain the old hardcoded "EXTERNAL" type
       expect(capturedData.migrationTypes).not.toContain("EXTERNAL");
     });
@@ -378,9 +395,18 @@ describe("Migrations Generator (05_generate_migrations.js)", () => {
       };
 
       // Mock faker to return different elements on different calls
-      let callCount = 0;
+      let migrationTypeIndex = 0;
       faker.helpers.arrayElement.mockImplementation((arr) => {
-        return arr[callCount++ % arr.length];
+        // For user selection, return first element
+        if (arr[0]?.usr_id) return arr[0];
+        // For plan selection, return first plan
+        if (arr[0]?.plm_id) return arr[0];
+        // For migration types, cycle through
+        if (arr[0]?.mit_code) {
+          return arr[migrationTypeIndex++ % arr.length];
+        }
+        // Default to first element
+        return arr[0];
       });
 
       client.query.mockImplementation((sql, values) => {

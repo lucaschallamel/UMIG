@@ -55,10 +55,89 @@ describe("StandaloneStepView", () => {
     window = dom.window;
     document = window.document;
 
+    // Mock window.location completely with a mutable object BEFORE setting globals
+    const mockLocation = {
+      hostname: "localhost",
+      port: "8090",
+      search: "",
+      pathname: "/stepview.html",
+      href: "http://localhost:8090/stepview.html",
+      protocol: "http:",
+      origin: "http://localhost:8090",
+    };
+
+    // Try to replace the entire location object
+    try {
+      Object.defineProperty(window, "location", {
+        value: mockLocation,
+        writable: true,
+        configurable: true,
+      });
+    } catch (e) {
+      // If that fails, just set it directly
+      window.location = mockLocation;
+    }
+
     // Set up global objects
     global.window = window;
     global.document = document;
     global.URLSearchParams = window.URLSearchParams;
+
+    // Make mockLocation accessible to helper functions
+    global.mockLocation = mockLocation;
+
+    // Helper function to update the URL search params
+    global.setLocationSearch = (search) => {
+      global.mockLocation.search = search;
+      global.mockLocation.href = `${global.mockLocation.protocol}//${global.mockLocation.hostname}:${global.mockLocation.port}${global.mockLocation.pathname}${search}`;
+
+      // Also update window.location if it exists
+      if (global.window && global.window.location) {
+        global.window.location.search = search;
+        global.window.location.href = global.mockLocation.href;
+      }
+    };
+
+    // Helper function to update the full URL
+    global.setLocationUrl = (
+      hostname,
+      port,
+      path = "/stepview.html",
+      search = "",
+    ) => {
+      global.mockLocation.hostname = hostname;
+      global.mockLocation.port = port;
+      global.mockLocation.pathname = path;
+      global.mockLocation.search = search;
+      const protocol =
+        hostname === "localhost" || hostname === "127.0.0.1"
+          ? "http:"
+          : "https:";
+      global.mockLocation.protocol = protocol;
+      const portStr = port ? `:${port}` : "";
+      global.mockLocation.href = `${protocol}//${hostname}${portStr}${path}${search}`;
+      global.mockLocation.origin = `${protocol}//${hostname}${portStr}`;
+
+      // Also update window.location if it exists
+      // Use individual property assignments to avoid read-only property errors
+      if (global.window && global.window.location) {
+        try {
+          global.window.location.hostname = global.mockLocation.hostname;
+          global.window.location.port = global.mockLocation.port;
+          global.window.location.pathname = global.mockLocation.pathname;
+          global.window.location.search = global.mockLocation.search;
+          global.window.location.protocol = global.mockLocation.protocol;
+          global.window.location.href = global.mockLocation.href;
+          // Skip origin as it's read-only in JSDOM
+        } catch (e) {
+          // If individual assignments fail, we'll rely on our global.mockLocation
+          console.warn(
+            "Could not update window.location properties:",
+            e.message,
+          );
+        }
+      }
+    };
 
     // Clear fetch mock
     fetch.mockClear();
@@ -95,8 +174,13 @@ describe("StandaloneStepView", () => {
       }
 
       detectApiBaseUrl() {
-        const currentHost = window.location.hostname;
-        const currentPort = window.location.port;
+        // Use our mock location to ensure we get the test data
+        const currentHost = global.mockLocation
+          ? global.mockLocation.hostname
+          : window.location.hostname;
+        const currentPort = global.mockLocation
+          ? global.mockLocation.port
+          : window.location.port;
 
         if (currentHost === "localhost" || currentHost === "127.0.0.1") {
           return `http://${currentHost}:${currentPort || 8090}/rest/scriptrunner/latest/custom`;
@@ -106,7 +190,11 @@ describe("StandaloneStepView", () => {
       }
 
       parseStepViewParams() {
-        const params = new URLSearchParams(window.location.search);
+        // Access the mocked location search directly to ensure we get the test data
+        const searchString = global.mockLocation
+          ? global.mockLocation.search
+          : window.location.search;
+        const params = new URLSearchParams(searchString);
 
         // Check for UUID format first
         if (params.has("ite_id")) {
@@ -164,7 +252,11 @@ describe("StandaloneStepView", () => {
       }
 
       initializeUserContext() {
-        const params = new URLSearchParams(window.location.search);
+        // Use our mock location to ensure we get the test data
+        const searchString = global.mockLocation
+          ? global.mockLocation.search
+          : window.location.search;
+        const params = new URLSearchParams(searchString);
 
         return {
           role: params.get("role") || "NORMAL",
@@ -202,9 +294,7 @@ describe("StandaloneStepView", () => {
   describe("URL Parameter Parsing", () => {
     test("should parse valid UUID format correctly", () => {
       const validUUID = "550e8400-e29b-41d4-a716-446655440000";
-      window.location = new URL(
-        `http://localhost:8090/stepview.html?ite_id=${validUUID}&role=PILOT`,
-      );
+      setLocationSearch(`?ite_id=${validUUID}&role=PILOT`);
 
       const stepView = new StandaloneStepView();
       const result = stepView.parseStepViewParams();
@@ -215,9 +305,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should parse valid human-readable format correctly", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?mig=migrationa&ite=run1&stepid=DEC-001&role=NORMAL",
-      );
+      setLocationSearch("?mig=migrationa&ite=run1&stepid=DEC-001&role=NORMAL");
 
       const stepView = new StandaloneStepView();
       const result = stepView.parseStepViewParams();
@@ -230,9 +318,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should reject invalid UUID format", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?ite_id=invalid-uuid",
-      );
+      setLocationSearch("?ite_id=invalid-uuid");
 
       const stepView = new StandaloneStepView();
 
@@ -242,9 +328,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should reject invalid step code format", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?mig=migrationa&ite=run1&stepid=INVALID",
-      );
+      setLocationSearch("?mig=migrationa&ite=run1&stepid=INVALID");
 
       const stepView = new StandaloneStepView();
 
@@ -254,7 +338,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should handle missing required parameters", () => {
-      window.location = new URL("http://localhost:8090/stepview.html");
+      setLocationSearch("");
 
       const stepView = new StandaloneStepView();
 
@@ -265,9 +349,7 @@ describe("StandaloneStepView", () => {
 
     test("should default to NORMAL role when not specified", () => {
       const validUUID = "550e8400-e29b-41d4-a716-446655440000";
-      window.location = new URL(
-        `http://localhost:8090/stepview.html?ite_id=${validUUID}`,
-      );
+      setLocationSearch(`?ite_id=${validUUID}`);
 
       const stepView = new StandaloneStepView();
       const result = stepView.parseStepViewParams();
@@ -341,7 +423,7 @@ describe("StandaloneStepView", () => {
 
   describe("API Base URL Detection", () => {
     test("should detect localhost development environment", () => {
-      window.location = new URL("http://localhost:8090/stepview.html");
+      setLocationUrl("localhost", "8090");
 
       const stepView = new StandaloneStepView();
       const baseUrl = stepView.detectApiBaseUrl();
@@ -352,7 +434,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should detect 127.0.0.1 development environment", () => {
-      window.location = new URL("http://127.0.0.1:8090/stepview.html");
+      setLocationUrl("127.0.0.1", "8090");
 
       const stepView = new StandaloneStepView();
       const baseUrl = stepView.detectApiBaseUrl();
@@ -363,7 +445,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should use relative path for production environment", () => {
-      window.location = new URL("https://confluence.company.com/stepview.html");
+      setLocationUrl("confluence.company.com", "");
 
       const stepView = new StandaloneStepView();
       const baseUrl = stepView.detectApiBaseUrl();
@@ -372,7 +454,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should handle custom port numbers", () => {
-      window.location = new URL("http://localhost:9090/stepview.html");
+      setLocationUrl("localhost", "9090");
 
       const stepView = new StandaloneStepView();
       const baseUrl = stepView.detectApiBaseUrl();
@@ -385,9 +467,7 @@ describe("StandaloneStepView", () => {
 
   describe("User Context Initialization", () => {
     test("should initialize NORMAL user context correctly", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?role=NORMAL&user_id=test-123",
-      );
+      setLocationSearch("?role=NORMAL&user_id=test-123");
 
       const stepView = new StandaloneStepView();
       const context = stepView.initializeUserContext();
@@ -401,9 +481,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should initialize PILOT user context correctly", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?role=PILOT&user_id=pilot-456",
-      );
+      setLocationSearch("?role=PILOT&user_id=pilot-456");
 
       const stepView = new StandaloneStepView();
       const context = stepView.initializeUserContext();
@@ -418,9 +496,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should initialize guest user context when no user_id provided", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?role=NORMAL",
-      );
+      setLocationSearch("?role=NORMAL");
 
       const stepView = new StandaloneStepView();
       const context = stepView.initializeUserContext();
@@ -432,7 +508,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should default to NORMAL role when not specified", () => {
-      window.location = new URL("http://localhost:8090/stepview.html");
+      setLocationSearch("");
 
       const stepView = new StandaloneStepView();
       const context = stepView.initializeUserContext();
@@ -507,7 +583,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should detect correct API base URL in configuration", () => {
-      window.location = new URL("http://localhost:8090/stepview.html");
+      setLocationSearch("");
 
       const stepView = new StandaloneStepView();
 
@@ -519,9 +595,7 @@ describe("StandaloneStepView", () => {
 
   describe("Error Handling", () => {
     test("should throw descriptive error for missing parameters", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?incomplete=true",
-      );
+      setLocationSearch("?incomplete=true");
 
       const stepView = new StandaloneStepView();
 
@@ -531,9 +605,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should throw descriptive error for invalid UUID", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?ite_id=not-a-uuid",
-      );
+      setLocationSearch("?ite_id=not-a-uuid");
 
       const stepView = new StandaloneStepView();
 
@@ -543,9 +615,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should throw descriptive error for invalid step code", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?mig=test&ite=run1&stepid=invalid",
-      );
+      setLocationSearch("?mig=test&ite=run1&stepid=invalid");
 
       const stepView = new StandaloneStepView();
 
@@ -589,9 +659,7 @@ describe("StandaloneStepView", () => {
 
   describe("Role-Based Access Control", () => {
     test("should correctly determine NORMAL user permissions", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?role=NORMAL",
-      );
+      setLocationSearch("?role=NORMAL");
 
       const stepView = new StandaloneStepView();
       const context = stepView.initializeUserContext();
@@ -604,9 +672,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should correctly determine PILOT user permissions", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?role=PILOT",
-      );
+      setLocationSearch("?role=PILOT");
 
       const stepView = new StandaloneStepView();
       const context = stepView.initializeUserContext();
@@ -621,9 +687,7 @@ describe("StandaloneStepView", () => {
 
   describe("Edge Cases and Boundary Conditions", () => {
     test("should handle empty query parameters gracefully", () => {
-      window.location = new URL(
-        "http://localhost:8090/stepview.html?mig=&ite=&stepid=",
-      );
+      setLocationSearch("?mig=&ite=&stepid=");
 
       const stepView = new StandaloneStepView();
 
@@ -635,9 +699,7 @@ describe("StandaloneStepView", () => {
 
     test("should handle very long parameter values", () => {
       const longValue = "a".repeat(1000);
-      window.location = new URL(
-        `http://localhost:8090/stepview.html?mig=${longValue}&ite=run1&stepid=DEC-001`,
-      );
+      setLocationSearch(`?mig=${longValue}&ite=run1&stepid=DEC-001`);
 
       const stepView = new StandaloneStepView();
       const result = stepView.parseStepViewParams();
@@ -648,9 +710,7 @@ describe("StandaloneStepView", () => {
 
     test("should handle special characters in parameters", () => {
       const specialValue = "test%20migration";
-      window.location = new URL(
-        `http://localhost:8090/stepview.html?mig=${specialValue}&ite=run1&stepid=DEC-001`,
-      );
+      setLocationSearch(`?mig=${specialValue}&ite=run1&stepid=DEC-001`);
 
       const stepView = new StandaloneStepView();
       const result = stepView.parseStepViewParams();

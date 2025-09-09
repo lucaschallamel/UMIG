@@ -1,0 +1,86 @@
+{
+  "migration_strategy": "UMIG Test Naming Convention Migration - Technology-Prefixed Commands",
+  "implementation_phases": {
+    "phase_1": "Add new commands alongside existing (backward compatible)",
+    "phase_2": "Update CI/CD and documentation",
+    "phase_3": "Deprecation period with warnings",
+    "phase_4": "Remove legacy commands"
+  },
+  "proposed_package_json_additions": {
+    "comment": "New technology-prefixed test commands for clarity",
+    "new_scripts": {
+      "test:js:unit": "jest --config jest.config.unit.js",
+      "test:js:unit:watch": "jest --config jest.config.unit.js --watch",
+      "test:js:unit:coverage": "jest --config jest.config.unit.js --coverage",
+      "test:js:integration": "jest --config jest.config.integration.js",
+      "test:js:integration:watch": "jest --config jest.config.integration.js --watch",
+      "test:js:e2e": "playwright test __tests__/e2e/",
+      "test:js:e2e:headed": "playwright test __tests__/e2e/ --headed",
+      "test:js:uat": "playwright test __tests__/uat/",
+      "test:js:uat:headed": "playwright test __tests__/uat/ --headed",
+      "test:js:regression": "jest __tests__/regression/ --verbose",
+      "test:js:security": "npm run test:security:email",
+      "test:js:all": "npm run test:js:unit && npm run test:js:integration && npm run test:js:e2e && npm run test:js:uat",
+
+      "test:groovy:unit": "cd .. && find src/groovy/umig/tests/unit -name '*.groovy' -exec groovy {} \\;",
+      "test:groovy:integration": "cd .. && find src/groovy/umig/tests/integration -name '*.groovy' -exec groovy {} \\;",
+      "test:groovy:security": "npm run test:security:import && npm run test:security:comprehensive && npm run test:security:url",
+      "test:groovy:performance": "cd .. && find src/groovy/umig/tests/performance -name '*.groovy' -exec groovy {} \\;",
+      "test:groovy:all": "npm run test:groovy:unit && npm run test:groovy:integration && npm run test:groovy:security",
+
+      "test:mixed:security": "npm run test:groovy:security && npm run test:js:security",
+      "test:mixed:import": "npm run test:import:groovy && npm run test:import",
+      "test:mixed:performance": "npm run test:groovy:performance && npm run test:performance",
+
+      "test:all:unit": "npm run test:js:unit && npm run test:groovy:unit",
+      "test:all:integration": "npm run test:js:integration && npm run test:groovy:integration",
+      "test:all:security": "npm run test:mixed:security",
+      "test:all:comprehensive": "npm run test:js:all && npm run test:groovy:all",
+      "test:all:quick": "npm run test:js:unit && npm run test:groovy:unit",
+
+      "test:technology:list": "echo 'Available test technologies: js (JavaScript/Jest), groovy (Groovy), mixed (both), all (comprehensive)'"
+    }
+  },
+  "deprecated_commands_phase_3": {
+    "comment": "Commands to be marked deprecated with warnings",
+    "commands_to_deprecate": [
+      "test:unit",
+      "test:integration",
+      "test:security",
+      "test:performance",
+      "test:groovy"
+    ],
+    "deprecation_wrapper_example": "echo 'DEPRECATED: test:unit is deprecated. Use test:js:unit for JavaScript tests or test:all:unit for all technologies.' && npm run test:js:unit"
+  },
+  "maintained_commands": {
+    "comment": "Commands to keep as they are project-specific or clearly named",
+    "keep_as_is": [
+      "test",
+      "test:us034",
+      "test:us039",
+      "test:us042",
+      "test:stepview",
+      "test:admin-gui",
+      "test:import",
+      "health:check",
+      "quality:check"
+    ]
+  },
+  "implementation_order": [
+    "1. Add all new technology-prefixed commands",
+    "2. Update CI/CD scripts to use new commands",
+    "3. Update documentation with new conventions",
+    "4. Add deprecation warnings to old commands",
+    "5. Monitor usage during 30-day deprecation period",
+    "6. Remove deprecated commands and clean up package.json"
+  ],
+  "validation_checklist": [
+    "All existing functionality preserved",
+    "New commands work correctly",
+    "CI/CD pipelines updated",
+    "Documentation reflects new structure",
+    "Team trained on new conventions",
+    "Deprecation warnings visible",
+    "Migration timeline communicated"
+  ]
+}
