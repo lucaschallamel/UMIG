@@ -51,6 +51,8 @@
         applications: "/applications",
         iterations: "/iterationsList",
         labels: "/labels",
+        iterationTypes: "/iterationTypes",
+        migrationTypes: "/migrationTypes",
         migrations: "/migrations",
         stepView: "/stepViewApi",
         plansmaster: "/plans/masters",
@@ -62,851 +64,32 @@
       },
     },
 
-    // Entity configurations
-    entities: {
-      users: {
-        name: "Users",
-        description: "Manage user accounts, roles, and permissions",
-        fields: [
-          { key: "usr_id", label: "ID", type: "number", readonly: true },
-          {
-            key: "usr_code",
-            label: "User Code",
-            type: "text",
-            required: true,
-            maxLength: 3,
-          },
-          {
-            key: "usr_first_name",
-            label: "First Name",
-            type: "text",
-            required: true,
-          },
-          {
-            key: "usr_last_name",
-            label: "Last Name",
-            type: "text",
-            required: true,
-          },
-          { key: "usr_email", label: "Email", type: "email", required: true },
-          {
-            key: "usr_is_admin",
-            label: "Super Admin",
-            type: "boolean",
-            required: true,
-          },
-          {
-            key: "usr_active",
-            label: "Active",
-            type: "boolean",
-            required: true,
-          },
-          {
-            key: "rls_id",
-            label: "Role",
-            type: "select",
-            options: [
-              { value: null, label: "No Role" },
-              { value: 1, label: "Admin" },
-              { value: 2, label: "User" },
-              { value: 3, label: "Pilot" },
-            ],
-          },
-          {
-            key: "created_at",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_at",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "usr_id",
-          "usr_code",
-          "usr_first_name",
-          "usr_last_name",
-          "usr_email",
-          "role_display",
-          "status_display",
-        ],
-        // Map display column names to database column names for sorting
-        sortMapping: {
-          usr_id: "usr_id",
-          usr_code: "usr_code",
-          usr_first_name: "usr_first_name",
-          usr_last_name: "usr_last_name",
-          usr_email: "usr_email",
-          role_display: "rls_id",
-          status_display: "usr_active",
-        },
-        filters: [
-          {
-            key: "teamId",
-            label: "Team",
-            type: "select",
-            endpoint: "/teams",
-            valueField: "tms_id",
-            textField: "tms_name",
-            placeholder: "All Teams",
-          },
-        ],
-        permissions: ["superadmin"],
-      },
-      teams: {
-        name: "Teams",
-        description: "Manage organizational teams and team memberships",
-        fields: [
-          { key: "tms_id", label: "ID", type: "number", readonly: true },
-          { key: "tms_name", label: "Team Name", type: "text", required: true },
-          { key: "tms_description", label: "Description", type: "textarea" },
-          { key: "tms_email", label: "Team Email", type: "email" },
-          {
-            key: "member_count",
-            label: "Members",
-            type: "number",
-            readonly: true,
-            computed: true,
-          },
-          {
-            key: "app_count",
-            label: "Applications",
-            type: "number",
-            readonly: true,
-            computed: true,
-          },
-          {
-            key: "created_date",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_date",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "tms_id",
-          "tms_name",
-          "tms_description",
-          "tms_email",
-          "member_count",
-          "app_count",
-        ],
-        // Map display column names to database column names for sorting
-        sortMapping: {
-          tms_id: "tms_id",
-          tms_name: "tms_name",
-          tms_description: "tms_description",
-          tms_email: "tms_email",
-          member_count: "member_count",
-          app_count: "app_count",
-        },
-        permissions: ["superadmin"],
-      },
-      environments: {
-        name: "Environments",
-        description:
-          "Manage environments and their associations with applications and iterations",
-        fields: [
-          { key: "env_id", label: "ID", type: "number", readonly: true },
-          {
-            key: "env_code",
-            label: "Environment Code",
-            type: "text",
-            required: true,
-            maxLength: 10,
-          },
-          {
-            key: "env_name",
-            label: "Environment Name",
-            type: "text",
-            required: true,
-            maxLength: 64,
-          },
-          { key: "env_description", label: "Description", type: "textarea" },
-          {
-            key: "application_count",
-            label: "Applications",
-            type: "number",
-            readonly: true,
-            computed: true,
-          },
-          {
-            key: "iteration_count",
-            label: "Iterations",
-            type: "number",
-            readonly: true,
-            computed: true,
-          },
-        ],
-        tableColumns: [
-          "env_id",
-          "env_code",
-          "env_name",
-          "env_description",
-          "application_count",
-          "iteration_count",
-        ],
-        // Map display column names to database column names for sorting
-        sortMapping: {
-          env_id: "env_id",
-          env_code: "env_code",
-          env_name: "env_name",
-          env_description: "env_description",
-          application_count: "application_count",
-          iteration_count: "iteration_count",
-        },
-        permissions: ["superadmin"],
-      },
-      plansmaster: {
-        name: "Master Plans",
-        description: "Manage master plan templates for migration execution",
-        fields: [
-          { key: "plm_id", label: "ID", type: "text", readonly: true },
-          {
-            key: "plm_name",
-            label: "Plan Name",
-            type: "text",
-            required: true,
-            maxLength: 100,
-          },
-          { key: "plm_description", label: "Description", type: "textarea" },
-          { key: "plm_version", label: "Version", type: "text", maxLength: 20 },
-          {
-            key: "plm_status",
-            label: "Status",
-            type: "select",
-            options: [
-              { value: "draft", label: "Draft" },
-              { value: "active", label: "Active" },
-              { value: "archived", label: "Archived" },
-            ],
-          },
-          {
-            key: "created_by",
-            label: "Created By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "created_at",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_by",
-            label: "Updated By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "updated_at",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "plm_id",
-          "plm_name",
-          "plm_version",
-          "plm_status",
-          "sequence_count",
-          "created_at",
-        ],
-        sortMapping: {
-          plm_id: "plm_id",
-          plm_name: "plm_name",
-          plm_version: "plm_version",
-          plm_status: "plm_status",
-          sequence_count: "sequence_count",
-          created_at: "created_at",
-        },
-        permissions: ["superadmin", "admin"],
-      },
-      plansinstance: {
-        name: "Plan Instances",
-        description: "Manage plan execution instances for iterations",
-        fields: [
-          { key: "pli_id", label: "ID", type: "text", readonly: true },
-          {
-            key: "plm_id",
-            label: "Master Plan",
-            type: "select",
-            required: true,
-            endpoint: "/plans/masters",
-            valueField: "plm_id",
-            textField: "plm_name",
-          },
-          {
-            key: "itr_id",
-            label: "Iteration",
-            type: "select",
-            required: true,
-            endpoint: "/iterationsList",
-            valueField: "itr_id",
-            textField: "itr_name",
-          },
-          {
-            key: "pli_name",
-            label: "Plan Name Override",
-            type: "text",
-            maxLength: 100,
-          },
-          {
-            key: "pli_description",
-            label: "Description Override",
-            type: "textarea",
-          },
-          {
-            key: "pli_status",
-            label: "Status",
-            type: "select",
-            options: [
-              { value: "planning", label: "Planning" },
-              { value: "ready", label: "Ready" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "completed", label: "Completed" },
-              { value: "cancelled", label: "Cancelled" },
-            ],
-          },
-          { key: "pli_start_time", label: "Start Time", type: "datetime" },
-          { key: "pli_end_time", label: "End Time", type: "datetime" },
-          {
-            key: "created_by",
-            label: "Created By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "created_at",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_by",
-            label: "Updated By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "updated_at",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "pli_id",
-          "pli_name",
-          "iteration_name",
-          "pli_status",
-          "sequence_count",
-          "pli_start_time",
-        ],
-        sortMapping: {
-          pli_id: "pli_id",
-          pli_name: "pli_name",
-          iteration_name: "itr_name",
-          pli_status: "pli_status",
-          sequence_count: "sequence_count",
-          pli_start_time: "pli_start_time",
-        },
-        filters: [
-          {
-            key: "migrationId",
-            label: "Migration",
-            type: "select",
-            endpoint: "/migrations",
-            valueField: "mig_id",
-            textField: "mig_name",
-            placeholder: "All Migrations",
-          },
-          {
-            key: "iterationId",
-            label: "Iteration",
-            type: "select",
-            endpoint: "/iterationsList",
-            valueField: "itr_id",
-            textField: "itr_name",
-            placeholder: "All Iterations",
-          },
-          {
-            key: "status",
-            label: "Status",
-            type: "select",
-            options: [
-              { value: "", label: "All Statuses" },
-              { value: "planning", label: "Planning" },
-              { value: "ready", label: "Ready" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "completed", label: "Completed" },
-              { value: "cancelled", label: "Cancelled" },
-            ],
-          },
-        ],
-        permissions: ["superadmin", "admin", "pilot"],
-      },
-      sequencesmaster: {
-        name: "Master Sequences",
-        description: "Manage master sequence templates within plans",
-        fields: [
-          { key: "sqm_id", label: "ID", type: "text", readonly: true },
-          {
-            key: "plm_id",
-            label: "Plan ID",
-            type: "select",
-            required: true,
-            endpoint: "/plans/masters",
-            valueField: "plm_id",
-            textField: "plm_name",
-          },
-          {
-            key: "sqm_name",
-            label: "Sequence Name",
-            type: "text",
-            required: true,
-            maxLength: 100,
-          },
-          { key: "sqm_description", label: "Description", type: "textarea" },
-          { key: "sqm_order", label: "Order", type: "number", min: 1 },
-          {
-            key: "predecessor_sqm_id",
-            label: "Predecessor Sequence",
-            type: "select",
-            endpoint: "/sequences/master",
-            valueField: "sqm_id",
-            textField: "sqm_name",
-            placeholder: "No Predecessor",
-          },
-          {
-            key: "created_by",
-            label: "Created By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "created_at",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_by",
-            label: "Updated By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "updated_at",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "sqm_id",
-          "sqm_name",
-          "plan_name",
-          "sqm_order",
-          "predecessor_name",
-          "phase_count",
-        ],
-        sortMapping: {
-          sqm_id: "sqm_id",
-          sqm_name: "sqm_name",
-          plan_name: "plm_name",
-          sqm_order: "sqm_order",
-          predecessor_name: "predecessor_sqm_name",
-          phase_count: "phase_count",
-        },
-        filters: [
-          {
-            key: "planId",
-            label: "Plan",
-            type: "select",
-            endpoint: "/plans/masters",
-            valueField: "plm_id",
-            textField: "plm_name",
-            placeholder: "All Plans",
-          },
-        ],
-        permissions: ["superadmin", "admin"],
-      },
-      sequencesinstance: {
-        name: "Sequence Instances",
-        description:
-          "Manage sequence execution instances within plan instances",
-        fields: [
-          { key: "sqi_id", label: "ID", type: "text", readonly: true },
-          {
-            key: "sqm_id",
-            label: "Master Sequence",
-            type: "select",
-            required: true,
-            endpoint: "/sequences/master",
-            valueField: "sqm_id",
-            textField: "sqm_name",
-          },
-          {
-            key: "pli_id",
-            label: "Plan Instance",
-            type: "select",
-            required: true,
-            endpoint: "/plans",
-            valueField: "pli_id",
-            textField: "pli_name",
-          },
-          {
-            key: "sqi_name",
-            label: "Sequence Name Override",
-            type: "text",
-            maxLength: 100,
-          },
-          {
-            key: "sqi_description",
-            label: "Description Override",
-            type: "textarea",
-          },
-          {
-            key: "sqi_status",
-            label: "Status",
-            type: "select",
-            options: [
-              { value: "pending", label: "Pending" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "completed", label: "Completed" },
-              { value: "blocked", label: "Blocked" },
-              { value: "failed", label: "Failed" },
-            ],
-          },
-          { key: "sqi_order", label: "Order Override", type: "number", min: 1 },
-          {
-            key: "predecessor_sqi_id",
-            label: "Predecessor Sequence Instance",
-            type: "select",
-            endpoint: "/sequences",
-            valueField: "sqi_id",
-            textField: "sqi_name",
-            placeholder: "No Predecessor",
-          },
-          { key: "sqi_start_time", label: "Start Time", type: "datetime" },
-          { key: "sqi_end_time", label: "End Time", type: "datetime" },
-          {
-            key: "created_by",
-            label: "Created By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "created_at",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_by",
-            label: "Updated By",
-            type: "text",
-            readonly: true,
-          },
-          {
-            key: "updated_at",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "sqi_id",
-          "sqi_name",
-          "plan_name",
-          "sqi_status",
-          "sqi_order",
-          "phase_count",
-          "sqi_start_time",
-        ],
-        sortMapping: {
-          sqi_id: "sqi_id",
-          sqi_name: "sqi_name",
-          plan_name: "pli_name",
-          sqi_status: "sqi_status",
-          sqi_order: "sqi_order",
-          phase_count: "phase_count",
-          sqi_start_time: "sqi_start_time",
-        },
-        filters: [
-          {
-            key: "migrationId",
-            label: "Migration",
-            type: "select",
-            endpoint: "/migrations",
-            valueField: "mig_id",
-            textField: "mig_name",
-            placeholder: "All Migrations",
-          },
-          {
-            key: "iterationId",
-            label: "Iteration",
-            type: "select",
-            endpoint: "/iterationsList",
-            valueField: "itr_id",
-            textField: "itr_name",
-            placeholder: "All Iterations",
-          },
-          {
-            key: "planId",
-            label: "Plan Instance",
-            type: "select",
-            endpoint: "/plans",
-            valueField: "pli_id",
-            textField: "pli_name",
-            placeholder: "All Plans",
-          },
-          {
-            key: "status",
-            label: "Status",
-            type: "select",
-            options: [
-              { value: "", label: "All Statuses" },
-              { value: "pending", label: "Pending" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "completed", label: "Completed" },
-              { value: "blocked", label: "Blocked" },
-              { value: "failed", label: "Failed" },
-            ],
-          },
-        ],
-        permissions: ["superadmin", "admin", "pilot"],
-      },
-      phasesmaster: {
-        name: "Master Phases",
-        description:
-          "Manage master phase templates and their hierarchical relationships",
-        fields: [
-          { key: "phm_id", label: "ID", type: "text", readonly: true },
-          {
-            key: "sqm_id",
-            label: "Sequence ID",
-            type: "select",
-            required: true,
-            endpoint: "/sequences-master",
-            valueField: "sqm_id",
-            textField: "sqm_name",
-          },
-          {
-            key: "phm_name",
-            label: "Phase Name",
-            type: "text",
-            required: true,
-            maxLength: 100,
-          },
-          { key: "phm_description", label: "Description", type: "textarea" },
-          { key: "phm_order", label: "Order", type: "number", min: 1 },
-          {
-            key: "predecessor_phm_id",
-            label: "Predecessor Phase",
-            type: "select",
-            endpoint: "/phases/master",
-            valueField: "phm_id",
-            textField: "phm_name",
-            placeholder: "No Predecessor",
-          },
-          {
-            key: "created_at",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_at",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "phm_id",
-          "phm_name",
-          "sequence_name",
-          "phm_order",
-          "predecessor_name",
-          "status_display",
-        ],
-        sortMapping: {
-          phm_id: "phm_id",
-          phm_name: "phm_name",
-          sequence_name: "sqm_name",
-          phm_order: "phm_order",
-          predecessor_name: "predecessor_phm_name",
-          status_display: "status",
-        },
-        filters: [
-          {
-            key: "sequenceId",
-            label: "Sequence",
-            type: "select",
-            endpoint: "/sequences-master",
-            valueField: "sqm_id",
-            textField: "sqm_name",
-            placeholder: "All Sequences",
-          },
-        ],
-        permissions: ["superadmin", "admin"],
-      },
-      phasesinstance: {
-        name: "Phase Instances",
-        description:
-          "Manage phase execution instances with control points and progress tracking",
-        fields: [
-          { key: "phi_id", label: "ID", type: "text", readonly: true },
-          {
-            key: "phm_id",
-            label: "Master Phase",
-            type: "select",
-            required: true,
-            endpoint: "/phases/master",
-            valueField: "phm_id",
-            textField: "phm_name",
-          },
-          {
-            key: "sqi_id",
-            label: "Sequence Instance",
-            type: "select",
-            required: true,
-            endpoint: "/sequences-instance",
-            valueField: "sqi_id",
-            textField: "sqi_name",
-          },
-          {
-            key: "phi_name",
-            label: "Phase Name Override",
-            type: "text",
-            maxLength: 100,
-          },
-          {
-            key: "phi_description",
-            label: "Description Override",
-            type: "textarea",
-          },
-          {
-            key: "phi_status",
-            label: "Status",
-            type: "select",
-            options: [
-              { value: "pending", label: "Pending" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "completed", label: "Completed" },
-              { value: "blocked", label: "Blocked" },
-              { value: "failed", label: "Failed" },
-            ],
-          },
-          { key: "phi_order", label: "Order Override", type: "number", min: 1 },
-          {
-            key: "predecessor_phi_id",
-            label: "Predecessor Phase Instance",
-            type: "select",
-            endpoint: "/phasesinstance",
-            valueField: "phi_id",
-            textField: "phi_name",
-            placeholder: "No Predecessor",
-          },
-          {
-            key: "phi_progress_percentage",
-            label: "Progress %",
-            type: "number",
-            readonly: true,
-            min: 0,
-            max: 100,
-          },
-          { key: "phi_start_time", label: "Start Time", type: "datetime" },
-          { key: "phi_end_time", label: "End Time", type: "datetime" },
-          {
-            key: "created_at",
-            label: "Created",
-            type: "datetime",
-            readonly: true,
-          },
-          {
-            key: "updated_at",
-            label: "Updated",
-            type: "datetime",
-            readonly: true,
-          },
-        ],
-        tableColumns: [
-          "phi_id",
-          "phi_name",
-          "sequence_name",
-          "phi_status",
-          "phi_order",
-          "progress_display",
-          "phi_start_time",
-        ],
-        sortMapping: {
-          phi_id: "phi_id",
-          phi_name: "phi_name",
-          sequence_name: "sqi_name",
-          phi_status: "phi_status",
-          phi_order: "phi_order",
-          progress_display: "phi_progress_percentage",
-          phi_start_time: "phi_start_time",
-        },
-        filters: [
-          {
-            key: "migrationId",
-            label: "Migration",
-            type: "select",
-            endpoint: "/migrations",
-            valueField: "mig_id",
-            textField: "mig_name",
-            placeholder: "All Migrations",
-          },
-          {
-            key: "iterationId",
-            label: "Iteration",
-            type: "select",
-            endpoint: "/iterationsList",
-            valueField: "ite_id",
-            textField: "ite_name",
-            placeholder: "All Iterations",
-          },
-          {
-            key: "sequenceInstanceId",
-            label: "Sequence Instance",
-            type: "select",
-            endpoint: "/sequences-instance",
-            valueField: "sqi_id",
-            textField: "sqi_name",
-            placeholder: "All Sequences",
-          },
-          {
-            key: "statusId",
-            label: "Status",
-            type: "select",
-            options: [
-              { value: "pending", label: "Pending" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "completed", label: "Completed" },
-              { value: "blocked", label: "Blocked" },
-              { value: "failed", label: "Failed" },
-            ],
-            placeholder: "All Statuses",
-          },
-        ],
-        permissions: ["superadmin", "admin", "pilot"],
-      },
-      // Other entities will be added as needed
+    // Entity configurations (delegated to EntityConfig.js)
+    // Get entities from the centralized EntityConfig module with fallback
+    get entities() {
+      if (window.EntityConfig && typeof window.EntityConfig.getAllEntities === 'function') {
+        return window.EntityConfig.getAllEntities();
+      }
+      
+      // Fallback warning if EntityConfig is not available
+      console.warn('EntityConfig not available, using empty configuration');
+      return {};
+    },
+
+    // Helper method to get a specific entity configuration
+    getEntity: function(entityName) {
+      if (window.EntityConfig && typeof window.EntityConfig.getEntity === 'function') {
+        const entity = window.EntityConfig.getEntity(entityName);
+        if (!entity) {
+          console.warn(`Entity '${entityName}' not found in EntityConfig`);
+        }
+        return entity;
+      }
+      
+      // Fallback to direct access if EntityConfig API is not available
+      console.warn('EntityConfig API not available, attempting fallback');
+      const entities = this.entities;
+      return entities[entityName] || null;
     },
 
     // Initialize the application
@@ -1205,7 +388,7 @@
 
     // Update content header based on current section
     updateContentHeader: function () {
-      const entity = this.entities[this.state.currentEntity];
+      const entity = this.getEntity(this.state.currentEntity);
       if (entity) {
         document.getElementById("contentTitle").textContent =
           `${entity.name} Management`;
@@ -1317,22 +500,81 @@
 
     // Render data table
     renderTable: function () {
-      const entity = this.entities[this.state.currentEntity];
+      const entity = this.getEntity(this.state.currentEntity);
       const data = this.state.data[this.state.currentEntity] || [];
 
-      // Render table headers
-      this.renderTableHeaders(entity);
+      if (!entity) {
+        console.error(`Entity configuration not found for: ${this.state.currentEntity}`);
+        this.showError(`Configuration error: Unable to load ${this.state.currentEntity}`);
+        return;
+      }
 
-      // Render table body
-      this.renderTableBody(entity, data);
+      // Ensure DOM elements exist before rendering
+      this.ensureTableElementsExist(() => {
+        // Render table headers
+        this.renderTableHeaders(entity);
 
-      // Update pagination
-      this.updatePagination(data.length);
+        // Render table body
+        this.renderTableBody(entity, data);
+
+        // Update pagination
+        this.updatePagination(data.length);
+      });
+    },
+
+    // Ensure table DOM elements exist before rendering
+    ensureTableElementsExist: function (callback) {
+      const maxAttempts = 20; // Increased to 1 second total wait
+      let attempts = 0;
+
+      const checkElements = () => {
+        const headerRow = document.getElementById("tableHeader");
+        const tbody = document.getElementById("tableBody");
+        const mainContent = document.getElementById("mainContent");
+        
+        // Check that elements exist and main content is visible
+        if (headerRow && tbody && mainContent && mainContent.style.display !== "none") {
+          // Elements found and visible, proceed with rendering
+          console.log(`[UMIG] Table DOM elements found and visible after ${attempts} attempts`);
+          callback();
+          return;
+        }
+        
+        attempts++;
+        if (attempts >= maxAttempts) {
+          console.error("Table elements not found after maximum attempts. DOM structure may be invalid.");
+          console.error("Expected elements: #tableHeader, #tableBody");
+          console.error("Available table elements:", document.querySelectorAll("[id*='table']"));
+          this.showError("Unable to initialize table. Please refresh the page.");
+          return;
+        }
+        
+        // Log progress for debugging
+        if (attempts % 5 === 0) {
+          console.log(`[UMIG] Waiting for table DOM elements... (attempt ${attempts}/${maxAttempts})`);
+        }
+        
+        // Wait 50ms and try again
+        setTimeout(checkElements, 50);
+      };
+
+      checkElements();
     },
 
     // Render table headers
     renderTableHeaders: function (entity) {
       const headerRow = document.getElementById("tableHeader");
+      
+      if (!headerRow) {
+        console.error("Table header element not found in DOM");
+        return;
+      }
+      
+      if (!entity || !entity.tableColumns) {
+        console.error("Invalid entity configuration provided to renderTableHeaders");
+        return;
+      }
+      
       headerRow.innerHTML = "";
 
       // Add checkbox column for row selection
@@ -1386,6 +628,12 @@
     // Render table body
     renderTableBody: function (entity, data) {
       const tbody = document.getElementById("tableBody");
+      
+      if (!tbody) {
+        console.error("Table body element not found in DOM");
+        return;
+      }
+      
       tbody.innerHTML = "";
 
       if (data.length === 0) {
@@ -1810,10 +1058,10 @@
 
     // Handle column sorting
     handleSort: function (field) {
-      const entity = this.entities[this.state.currentEntity];
+      const entity = this.getEntity(this.state.currentEntity);
 
       // Check if the field is sortable
-      if (!entity.sortMapping || !entity.sortMapping[field]) {
+      if (!entity || !entity.sortMapping || !entity.sortMapping[field]) {
         console.log(`Field ${field} is not sortable`);
         return;
       }
@@ -1857,7 +1105,11 @@
 
     // Render edit form
     renderEditForm: function (id) {
-      const entity = this.entities[this.state.currentEntity];
+      const entity = this.getEntity(this.state.currentEntity);
+      if (!entity) {
+        console.error(`Entity configuration not found for: ${this.state.currentEntity}`);
+        return;
+      }
       const formFields = document.getElementById("formFields");
       const data = this.state.data[this.state.currentEntity] || [];
       const record = id ? data.find((r) => r[entity.fields[0].key] == id) : {};
@@ -2106,7 +1358,11 @@
       const data = Object.fromEntries(formData.entries());
 
       // Enhanced validation
-      const entity = this.entities[this.state.currentEntity];
+      const entity = this.getEntity(this.state.currentEntity);
+      if (!entity) {
+        this.showError("Entity configuration not found");
+        return;
+      }
       const validationErrors = this.validateFormData(data, entity);
 
       if (validationErrors.length > 0) {
@@ -2766,7 +2022,7 @@
 
     // Render filter controls
     renderFilterControls: function () {
-      const entity = this.entities[this.state.currentEntity];
+      const entity = this.getEntity(this.state.currentEntity);
       const filterControlsDiv = document.querySelector(".filter-controls");
 
       if (!entity || !entity.filters || entity.filters.length === 0) {
