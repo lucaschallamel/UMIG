@@ -75,23 +75,23 @@ async function generateMigrations(config, options = {}) {
     (row) => row.sts_id,
   );
 
-  // Fetch available migration types from migration_types_master table
+  // Fetch available migration types from migration_types_mit table
   const migrationTypesResult = await client.query(
-    "SELECT mtm_id, mtm_code, mtm_name FROM migration_types_master WHERE mtm_active = true ORDER BY mtm_display_order",
+    "SELECT mit_id, mit_code, mit_name FROM migration_types_mit WHERE mit_active = true ORDER BY mit_display_order",
   );
 
   let migrationTypes = migrationTypesResult.rows;
   if (migrationTypes.length === 0) {
     console.warn(
-      "No active migration types found in migration_types_master table. Using fallback type 'EXTERNAL'.",
+      "No active migration types found in migration_types_mit table. Using fallback type 'EXTERNAL'.",
     );
     // Fallback to hardcoded type if table is empty (backward compatibility)
     migrationTypes = [
-      { mtm_id: null, mtm_code: "EXTERNAL", mtm_name: "External Migration" },
+      { mit_id: null, mit_code: "EXTERNAL", mit_name: "External Migration" },
     ];
   } else {
     console.log(
-      `Found ${migrationTypes.length} active migration types: ${migrationTypes.map((t) => t.mtm_code).join(", ")}`,
+      `Found ${migrationTypes.length} active migration types: ${migrationTypes.map((t) => t.mit_code).join(", ")}`,
     );
   }
 
@@ -117,7 +117,7 @@ async function generateMigrations(config, options = {}) {
       `Migration ${i + 1}: ${faker.company.catchPhrase()}`,
       faker.lorem.sentence(),
       faker.helpers.arrayElement(migrationStatusIds),
-      selectedType.mtm_code, // Use the dynamic migration type code
+      selectedType.mit_code, // Use the dynamic migration type code
       startDate,
       endDate,
       "generator",

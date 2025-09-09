@@ -238,7 +238,7 @@ Complete the JSON-based Step Data Architecture implementation (US-056-B and US-0
 
 ✅ **Database Architecture**:
 
-- NEW: 029_create_migration_types_master.sql - Migration types master table
+- NEW: 029_create_migration_types_mit.sql - Migration types master table
 - NEW: 028_enhance_iteration_types_master.sql - Enhanced iteration types schema
 - Updated db.changelog-master.xml with new migration entries
 

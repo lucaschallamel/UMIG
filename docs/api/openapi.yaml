@@ -4704,7 +4704,7 @@ paths:
         Retrieves all migration types with advanced filtering, pagination, and sorting capabilities.
         Supports both legacy Admin GUI requests and modern paginated requests.
 
-        **Sorting Support**: 12 fields (mtm_id, mtm_code, mtm_name, mtm_description, mtm_color, mtm_icon, mtm_display_order, mtm_active, created_by, created_at, updated_by, updated_at)
+        **Sorting Support**: 12 fields (mit_id, mit_code, mit_name, mit_description, mit_color, mit_icon, mit_display_order, mit_active, created_by, created_at, updated_by, updated_at)
         **Pagination**: Enterprise-grade pagination with metadata (ready for future implementation)
         **Filtering**: Include/exclude inactive migration types
         **Statistics**: Optional usage statistics with special endpoints
@@ -4738,14 +4738,14 @@ paths:
             type: string
             enum:
               [
-                mtm_id,
-                mtm_code,
-                mtm_name,
-                mtm_description,
-                mtm_color,
-                mtm_icon,
-                mtm_display_order,
-                mtm_active,
+                mit_id,
+                mit_code,
+                mit_name,
+                mit_description,
+                mit_color,
+                mit_icon,
+                mit_display_order,
+                mit_active,
                 created_by,
                 created_at,
                 updated_by,
@@ -4771,26 +4771,26 @@ paths:
                 sortedList:
                   summary: Sorted list with all fields
                   value:
-                    - mtm_id: 1
-                      mtm_code: "PILOT"
-                      mtm_name: "Pilot Migration"
-                      mtm_description: "Small scale pilot migration for testing"
-                      mtm_color: "#6B73FF"
-                      mtm_icon: "pilot"
-                      mtm_display_order: 1
-                      mtm_active: true
+                    - mit_id: 1
+                      mit_code: "PILOT"
+                      mit_name: "Pilot Migration"
+                      mit_description: "Small scale pilot migration for testing"
+                      mit_color: "#6B73FF"
+                      mit_icon: "pilot"
+                      mit_display_order: 1
+                      mit_active: true
                       created_by: "admin"
                       created_at: "2024-01-01T12:00:00Z"
                       updated_by: "admin"
                       updated_at: "2024-01-01T12:00:00Z"
-                    - mtm_id: 2
-                      mtm_code: "FULL_PROD"
-                      mtm_name: "Full Production"
-                      mtm_description: "Complete production migration"
-                      mtm_color: "#FF6B6B"
-                      mtm_icon: "production"
-                      mtm_display_order: 2
-                      mtm_active: true
+                    - mit_id: 2
+                      mit_code: "FULL_PROD"
+                      mit_name: "Full Production"
+                      mit_description: "Complete production migration"
+                      mit_color: "#FF6B6B"
+                      mit_icon: "production"
+                      mit_display_order: 2
+                      mit_active: true
                       created_by: "admin"
                       created_at: "2024-01-01T12:00:00Z"
                       updated_by: "admin"
@@ -4805,7 +4805,7 @@ paths:
                 invalidSortField:
                   summary: Invalid sort field
                   value:
-                    error: "Invalid sort field 'invalid_field'. Allowed fields are: mtm_id, mtm_code, mtm_name, mtm_description, mtm_color, mtm_icon, mtm_display_order, mtm_active, created_by, created_at, updated_by, updated_at"
+                    error: "Invalid sort field 'invalid_field'. Allowed fields are: mit_id, mit_code, mit_name, mit_description, mit_color, mit_icon, mit_display_order, mit_active, created_by, created_at, updated_by, updated_at"
                 invalidPageNumber:
                   summary: Invalid page number
                   value:
@@ -4824,7 +4824,7 @@ paths:
       summary: Create a new migration type
       description: |
         Creates a new migration type with comprehensive validation.
-        Requires mtm_code and mtm_name. Supports color, icon, and display order customization.
+        Requires mit_code and mit_name. Supports color, icon, and display order customization.
         Automatically handles audit fields (created_by, updated_by).
       operationId: createMigrationType
       requestBody:
@@ -4834,58 +4834,58 @@ paths:
             schema:
               type: object
               properties:
-                mtm_code:
+                mit_code:
                   type: string
                   maxLength: 20
                   description: Unique migration type code
                   example: "PILOT"
-                mtm_name:
+                mit_name:
                   type: string
                   maxLength: 100
                   description: Display name for the migration type
                   example: "Pilot Migration"
-                mtm_description:
+                mit_description:
                   type: string
                   maxLength: 500
                   description: Optional description
                   example: "Small scale pilot migration for testing purposes"
-                mtm_color:
+                mit_color:
                   type: string
                   pattern: "^#[0-9A-Fa-f]{6}$"
                   description: Hex color code for visual differentiation
                   example: "#6B73FF"
-                mtm_icon:
+                mit_icon:
                   type: string
                   maxLength: 50
                   description: Icon name for UI display
                   example: "pilot"
-                mtm_display_order:
+                mit_display_order:
                   type: integer
                   description: Sort order for display (default 0)
                   default: 0
-                mtm_active:
+                mit_active:
                   type: boolean
                   description: Whether the migration type is active (default true)
                   default: true
               required:
-                - mtm_code
-                - mtm_name
+                - mit_code
+                - mit_name
             examples:
               minimalCreate:
                 summary: Minimal creation with required fields only
                 value:
-                  mtm_code: "PILOT"
-                  mtm_name: "Pilot Migration"
+                  mit_code: "PILOT"
+                  mit_name: "Pilot Migration"
               fullCreate:
                 summary: Complete creation with all optional fields
                 value:
-                  mtm_code: "FULL_PROD"
-                  mtm_name: "Full Production Migration"
-                  mtm_description: "Complete production migration with all systems and data"
-                  mtm_color: "#FF6B6B"
-                  mtm_icon: "production"
-                  mtm_display_order: 10
-                  mtm_active: true
+                  mit_code: "FULL_PROD"
+                  mit_name: "Full Production Migration"
+                  mit_description: "Complete production migration with all systems and data"
+                  mit_color: "#FF6B6B"
+                  mit_icon: "production"
+                  mit_display_order: 10
+                  mit_active: true
       responses:
         "201":
           description: Migration type created successfully
@@ -4903,7 +4903,7 @@ paths:
                 missingRequiredField:
                   summary: Missing required field
                   value:
-                    error: "mtm_code and mtm_name are required"
+                    error: "mit_code and mit_name are required"
                 invalidFormat:
                   summary: Invalid field format
                   value:
@@ -4944,30 +4944,30 @@ paths:
                 items:
                   type: object
                   properties:
-                    mtm_id:
+                    mit_id:
                       type: integer
-                    mtm_code:
+                    mit_code:
                       type: string
-                    mtm_name:
+                    mit_name:
                       type: string
-                    mtm_color:
+                    mit_color:
                       type: string
-                    mtm_icon:
+                    mit_icon:
                       type: string
               examples:
                 selectionList:
                   summary: Migration types for dropdown selection
                   value:
-                    - mtm_id: 1
-                      mtm_code: "PILOT"
-                      mtm_name: "Pilot Migration"
-                      mtm_color: "#6B73FF"
-                      mtm_icon: "pilot"
-                    - mtm_id: 2
-                      mtm_code: "FULL_PROD"
-                      mtm_name: "Full Production"
-                      mtm_color: "#FF6B6B"
-                      mtm_icon: "production"
+                    - mit_id: 1
+                      mit_code: "PILOT"
+                      mit_name: "Pilot Migration"
+                      mit_color: "#6B73FF"
+                      mit_icon: "pilot"
+                    - mit_id: 2
+                      mit_code: "FULL_PROD"
+                      mit_name: "Full Production"
+                      mit_color: "#FF6B6B"
+                      mit_icon: "production"
         "500":
           $ref: "#/components/responses/InternalServerError"
 
@@ -4993,11 +4993,11 @@ paths:
                 items:
                   type: object
                   properties:
-                    mtm_id:
+                    mit_id:
                       type: integer
-                    mtm_code:
+                    mit_code:
                       type: string
-                    mtm_name:
+                    mit_name:
                       type: string
                     usage_count:
                       type: integer
@@ -5010,14 +5010,14 @@ paths:
                 usageStats:
                   summary: Usage statistics for migration types
                   value:
-                    - mtm_id: 1
-                      mtm_code: "PILOT"
-                      mtm_name: "Pilot Migration"
+                    - mit_id: 1
+                      mit_code: "PILOT"
+                      mit_name: "Pilot Migration"
                       usage_count: 5
                       last_used: "2024-01-15T10:30:00Z"
-                    - mtm_id: 2
-                      mtm_code: "FULL_PROD"
-                      mtm_name: "Full Production"
+                    - mit_id: 2
+                      mit_code: "FULL_PROD"
+                      mit_name: "Full Production"
                       usage_count: 12
                       last_used: "2024-01-20T14:45:00Z"
         "500":
@@ -5080,7 +5080,7 @@ paths:
         - MigrationTypes
       summary: Update migration type by ID
       description: |
-        Updates an existing migration type. All fields except mtm_id are updatable.
+        Updates an existing migration type. All fields except mit_id are updatable.
         Supports partial updates - only provided fields will be modified.
         Automatically handles audit fields (updated_by).
       operationId: updateMigrationTypeById
@@ -5099,36 +5099,36 @@ paths:
             schema:
               type: object
               properties:
-                mtm_code:
+                mit_code:
                   type: string
                   maxLength: 20
                   description: Unique migration type code
                   example: "UPDATED_PILOT"
-                mtm_name:
+                mit_name:
                   type: string
                   maxLength: 100
                   description: Display name for the migration type
                   example: "Updated Pilot Migration"
-                mtm_description:
+                mit_description:
                   type: string
                   maxLength: 500
                   description: Optional description
                   example: "Updated description for pilot migration"
-                mtm_color:
+                mit_color:
                   type: string
                   pattern: "^#[0-9A-Fa-f]{6}$"
                   description: Hex color code for visual differentiation
                   example: "#FF6B6B"
-                mtm_icon:
+                mit_icon:
                   type: string
                   maxLength: 50
                   description: Icon name for UI display
                   example: "updated_icon"
-                mtm_display_order:
+                mit_display_order:
                   type: integer
                   description: Sort order for display
                   example: 5
-                mtm_active:
+                mit_active:
                   type: boolean
                   description: Whether the migration type is active
                   example: false
@@ -5136,18 +5136,18 @@ paths:
               partialUpdate:
                 summary: Partial update - name and color only
                 value:
-                  mtm_name: "Updated Pilot Migration"
-                  mtm_color: "#FF6B6B"
+                  mit_name: "Updated Pilot Migration"
+                  mit_color: "#FF6B6B"
               fullUpdate:
                 summary: Complete update of all fields
                 value:
-                  mtm_code: "UPDATED_PILOT"
-                  mtm_name: "Completely Updated Pilot"
-                  mtm_description: "Fully updated description"
-                  mtm_color: "#00FF00"
-                  mtm_icon: "new_icon"
-                  mtm_display_order: 15
-                  mtm_active: false
+                  mit_code: "UPDATED_PILOT"
+                  mit_name: "Completely Updated Pilot"
+                  mit_description: "Fully updated description"
+                  mit_color: "#00FF00"
+                  mit_icon: "new_icon"
+                  mit_display_order: 15
+                  mit_active: false
       responses:
         "200":
           description: Migration type updated successfully
@@ -5347,31 +5347,31 @@ paths:
             schema:
               type: object
               properties:
-                mtm_name:
+                mit_name:
                   type: string
                   maxLength: 100
                   description: Display name for the migration type
                   example: "Updated Pilot Migration"
-                mtm_description:
+                mit_description:
                   type: string
                   maxLength: 500
                   description: Optional description
                   example: "Updated description for pilot migration"
-                mtm_color:
+                mit_color:
                   type: string
                   pattern: "^#[0-9A-Fa-f]{6}$"
                   description: Hex color code for visual differentiation
                   example: "#FF6B6B"
-                mtm_icon:
+                mit_icon:
                   type: string
                   maxLength: 50
                   description: Icon name for UI display
                   example: "updated_icon"
-                mtm_display_order:
+                mit_display_order:
                   type: integer
                   description: Sort order for display
                   example: 5
-                mtm_active:
+                mit_active:
                   type: boolean
                   description: Whether the migration type is active
                   example: false
@@ -5379,9 +5379,9 @@ paths:
               updateByCode:
                 summary: Update migration type by code
                 value:
-                  mtm_name: "Updated Pilot Migration"
-                  mtm_description: "Enhanced pilot migration for better testing"
-                  mtm_color: "#9B59B6"
+                  mit_name: "Updated Pilot Migration"
+                  mit_description: "Enhanced pilot migration for better testing"
+                  mit_color: "#9B59B6"
       responses:
         "200":
           description: Migration type updated successfully
@@ -11440,45 +11440,45 @@ components:
     MigrationType:
       type: object
       properties:
-        mtm_id:
+        mit_id:
           type: integer
           description: Unique migration type identifier (auto-generated primary key)
           example: 1
           readOnly: true
-        mtm_code:
+        mit_code:
           type: string
           maxLength: 20
           description: Unique migration type code for referencing and identification
           example: "PILOT"
-        mtm_name:
+        mit_name:
           type: string
           maxLength: 100
           description: Display name for the migration type
           example: "Pilot Migration"
-        mtm_description:
+        mit_description:
           type: string
           maxLength: 500
           nullable: true
           description: Optional detailed description of the migration type and its purpose
           example: "Small scale pilot migration used for testing and validation purposes"
-        mtm_color:
+        mit_color:
           type: string
           pattern: "^#[0-9A-Fa-f]{6}$"
           nullable: true
           description: Hex color code for visual differentiation in UI components
           example: "#6B73FF"
-        mtm_icon:
+        mit_icon:
           type: string
           maxLength: 50
           nullable: true
           description: Icon name for UI display and visual identification
           example: "pilot"
-        mtm_display_order:
+        mit_display_order:
           type: integer
           description: Sort order for display purposes (lower numbers appear first)
           default: 0
           example: 1
-        mtm_active:
+        mit_active:
           type: boolean
           description: Whether the migration type is active and available for selection
           default: true
@@ -11508,11 +11508,11 @@ components:
           example: "2024-01-01T12:00:00Z"
           readOnly: true
       required:
-        - mtm_id
-        - mtm_code
-        - mtm_name
-        - mtm_display_order
-        - mtm_active
+        - mit_id
+        - mit_code
+        - mit_name
+        - mit_display_order
+        - mit_active
         - created_by
         - created_at
         - updated_by

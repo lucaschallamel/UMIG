@@ -372,7 +372,7 @@ The following user stories were created based on project evolution and identifie
 - **US-042: Migration Types Management** (8 points) ✅ **COMPLETED September 8, 2025**
   - **Strategic Achievement**: Dynamic migration types management system enabling PILOT/ADMIN users to manage migration types
   - **Core Implementation**: MigrationTypesApi.groovy (480 lines), MigrationTypesRepository.groovy (465 lines)
-  - **Database Architecture**: NEW migration_types_master table with enhanced iteration_types schema
+  - **Database Architecture**: NEW migration_types_mit table with enhanced iteration_types schema
   - **Comprehensive Testing**: 1,324+ lines across integration, API, and repository tests
   - **Technical Achievement**: 90% code reduction using standard UMIG framework patterns
   - **Business Impact**: Zero breaking changes with complete backward compatibility, ADR-051 UI-level RBAC

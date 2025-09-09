@@ -1,14 +1,18 @@
 # UMIG Migration and Governance Document
 
-**Version:** 1.0  
-**Date:** August 28, 2025  
-**Status:** Initial Draft  
+**Version:** 1.1  
+**Date:** September 9, 2025  
+**Status:** Updated with Security Assessment Integration  
 **TOGAF Phase:** Phase E-F (Opportunities & Solutions / Migration Planning)  
 **Part of:** UMIG Enterprise Architecture
 
+**🚨 CRITICAL SECURITY DEPENDENCY**: Production deployment requires security approval per Security Assessment (6.1/10 current rating → 8.5/10 target)
+
 ## Executive Summary
 
-This document defines the migration strategy and governance framework for transitioning the UMIG system from current state to the target architecture defined in Phases A-D. It incorporates implementation planning for 49 Architectural Decision Records (ADRs) and establishes governance mechanisms to ensure architectural compliance throughout the migration.
+This document defines the migration strategy and governance framework for transitioning the UMIG system from current state to the target architecture defined in Phases A-D. It incorporates implementation planning for 49 Architectural Decision Records (ADRs), integrates critical security enhancement requirements (US-038, US-074, US-082), and establishes governance mechanisms to ensure architectural compliance throughout the migration.
+
+**SECURITY STATUS**: Current 6.1/10 rating with strong UI-level RBAC (4-role model) but interim API-level controls. Production deployment requires security approval and implementation of US-074 API-Level RBAC within Sprint 7.
 
 ---
 
@@ -18,15 +22,16 @@ This document defines the migration strategy and governance framework for transi
 
 #### 1.1.1 Migration Phases Overview
 
-| Phase   | Name                       | Duration | Key Deliverables                                          | Dependencies |
-| ------- | -------------------------- | -------- | --------------------------------------------------------- | ------------ |
-| Phase 0 | Foundation Setup           | 2 weeks  | Development environment, core infrastructure              | None         |
-| Phase 1 | Data Layer Implementation  | 4 weeks  | Database schema, repositories, ADR-043/044/047 compliance | Phase 0      |
-| Phase 2 | API Services Layer         | 3 weeks  | REST endpoints, error handling (ADR-039)                  | Phase 1      |
-| Phase 3 | UI Components              | 3 weeks  | IterationView, StepView, Admin GUI                        | Phase 2      |
-| Phase 4 | Integration & Testing      | 2 weeks  | End-to-end testing, ADR-040 validation                    | Phase 3      |
-| Phase 5 | Production Preparation     | 2 weeks  | Oracle migration, security hardening                      | Phase 4      |
-| Phase 6 | Deployment & Stabilization | 1 week   | Production deployment, monitoring                         | Phase 5      |
+| Phase   | Name                       | Duration | Key Deliverables                                          | Dependencies          | Security Gates                          |
+| ------- | -------------------------- | -------- | --------------------------------------------------------- | --------------------- | --------------------------------------- |
+| Phase 0 | Foundation Setup           | 2 weeks  | Development environment, core infrastructure              | None                  | ✅ Basic security scan                  |
+| Phase 1 | Data Layer Implementation  | 4 weeks  | Database schema, repositories, ADR-043/044/047 compliance | Phase 0               | ✅ Data security validation             |
+| Phase 2 | API Services Layer         | 3 weeks  | REST endpoints, error handling (ADR-039)                  | Phase 1               | ⚠️ Interim API security                 |
+| Phase 3 | UI Components              | 3 weeks  | IterationView, StepView, Admin GUI                        | Phase 2               | ✅ UI RBAC validation                   |
+| Phase 4 | Integration & Testing      | 2 weeks  | End-to-end testing, ADR-040 validation                    | Phase 3               | ✅ Security testing                     |
+| Phase 5 | **Security Enhancement**   | 3 weeks  | **US-074 API RBAC, security hardening, Oracle migration** | Phase 4               | **🚨 CRITICAL: Security Approval Gate** |
+| Phase 6 | Production Preparation     | 2 weeks  | Final validation, monitoring setup                        | **Security Approval** | ✅ Production readiness                 |
+| Phase 7 | Deployment & Stabilization | 1 week   | Production deployment, monitoring activation              | Phase 6               | ✅ Go-live authorization                |
 
 #### 1.1.2 Detailed Phase Breakdown
 
@@ -109,23 +114,70 @@ Deliverables:
 - Security assessment
 ```
 
-##### Phase 5: Production Preparation (Weeks 15-16)
+##### Phase 5: Security Enhancement (Weeks 15-17) 🚨 CRITICAL PHASE
 
 ```
+CRITICAL SECURITY IMPLEMENTATION:
+
 Activities:
+- [ ] US-074: Complete API-Level RBAC Implementation (8 points - HIGHEST PRIORITY)
+  * Implement role-based API endpoint restrictions
+  * Add request-level authorization validation
+  * Create middleware for permission checking
+  * Validate against 4-role model (USER/PILOT/ADMIN/SUPERADMIN)
+- [ ] US-038: RBAC Security Enhancement (conditional)
+  * JWT-based authentication tokens (if required)
+  * Enhanced session management
+  * Comprehensive permission audit trail
 - [ ] PostgreSQL to Oracle migration
-- [ ] Production configuration setup
+- [ ] Production configuration hardening
 - [ ] Email service integration (ADR-032)
 - [ ] URL construction service (ADR-048)
-- [ ] Disaster recovery setup
+
+Security Validation:
+- [ ] Security assessment validation (target: 8.0/10 minimum)
+- [ ] Penetration testing on API endpoints
+- [ ] RBAC matrix verification across all 25 APIs
+- [ ] Audit logging validation
 
 Deliverables:
+- Complete API-level RBAC implementation
+- Security approval documentation
 - Production-ready database
-- Deployment packages
-- DR procedures
+- Hardened deployment packages
+- Security compliance certification
+
+BLOCKER: Phase 6 cannot proceed without security approval
 ```
 
-##### Phase 6: Deployment & Stabilization (Week 17)
+##### Phase 6: Production Preparation (Weeks 18-19)
+
+```
+Prerequisites:
+- ✅ Security Approval Gate passed
+- ✅ API-Level RBAC operational
+- ✅ Security rating ≥8.0/10
+
+Activities:
+- [ ] Final security validation
+- [ ] UBP industrialization coordination
+  * Application Portfolio Declaration (UBP Architecture)
+  * PostgreSQL Database Provisioning (UBP DBA)
+  * CI/CD Pipeline Setup (IT Tooling)
+  * Production Environment Validation (Infrastructure)
+- [ ] Disaster recovery setup and testing
+- [ ] Monitoring system activation
+- [ ] Performance benchmarking
+- [ ] User acceptance testing completion
+
+Deliverables:
+- Production environment validated
+- All UBP teams coordinated and ready
+- DR procedures tested
+- Go-live readiness certification
+```
+
+##### Phase 7: Deployment & Stabilization (Week 20)
 
 ```
 Activities:
@@ -196,19 +248,33 @@ Dependencies: Parallel with Stream 2
 Risk Level: Low
 ```
 
-##### Stream 4: Security & Authentication (ADRs 33, 42)
+##### Stream 4: Security & Authentication (ADRs 33, 42, US-074, US-038)
 
 ```
 Owner: Security Team
-Priority: High
-Duration: 2 weeks
+Priority: CRITICAL (BLOCKS PRODUCTION)
+Duration: 3 weeks (extended for API RBAC)
 
 Work Items:
-- WP4.1: RBAC implementation (ADR-033)
-- WP4.2: Dual authentication context (ADR-042)
+- WP4.1: RBAC implementation (ADR-033) - COMPLETE
+- WP4.2: Dual authentication context (ADR-042) - COMPLETE
+- WP4.3: US-074 API-Level RBAC Implementation - CRITICAL
+  * Role-based API endpoint restrictions
+  * Request-level authorization validation
+  * Middleware for permission checking
+  * 4-role model enforcement (USER/PILOT/ADMIN/SUPERADMIN)
+- WP4.4: US-038 RBAC Security Enhancement (conditional)
+  * Enhanced authentication security
+  * JWT-based tokens (if required)
+  * Comprehensive audit trail
+- WP4.5: Security approval gate validation
+  * Target: 8.0/10 minimum security rating
+  * Penetration testing
+  * Compliance verification
 
-Dependencies: Stream 2 completion
-Risk Level: Medium
+Dependencies: Stream 2 completion, Security Architect approval
+Risk Level: CRITICAL - Production deployment blocked without completion
+Success Criteria: Security Approval Gate passed, API RBAC operational
 ```
 
 ##### Stream 5: Service Layer Architecture (ADRs 48, 49)
@@ -309,13 +375,16 @@ Status:
 
 #### 1.4.1 Technical Risks
 
-| Risk ID | Description                                     | Probability | Impact   | Mitigation                                          | Owner        |
-| ------- | ----------------------------------------------- | ----------- | -------- | --------------------------------------------------- | ------------ |
-| TR-001  | PostgreSQL to Oracle migration failures         | Medium      | Critical | Dual testing strategy, migration scripts validation | DBA Team     |
-| TR-002  | Type casting errors in production (ADR-043)     | Medium      | High     | Comprehensive testing, gradual rollout              | Dev Team     |
-| TR-003  | Repository pattern incompatibility (ADR-044)    | Low         | Critical | Early prototype validation                          | Architecture |
-| TR-004  | Performance degradation with enrichment changes | Medium      | Medium   | Performance benchmarking at each phase              | QA Team      |
-| TR-005  | ScriptRunner version incompatibility            | Low         | Critical | Version locking, compatibility testing              | DevOps       |
+| Risk ID    | Description                                     | Probability | Impact       | Mitigation                                                     | Owner             |
+| ---------- | ----------------------------------------------- | ----------- | ------------ | -------------------------------------------------------------- | ----------------- |
+| **TR-001** | **Security Approval Gate failure**              | **Medium**  | **CRITICAL** | **US-074 early implementation, security architect engagement** | **Security Team** |
+| **TR-002** | **API RBAC implementation delays**              | **Medium**  | **HIGH**     | **Sprint 7 focus, dedicated security resources**               | **Dev Team**      |
+| TR-003     | PostgreSQL to Oracle migration failures         | Medium      | Critical     | Dual testing strategy, migration scripts validation            | DBA Team          |
+| TR-004     | Type casting errors in production (ADR-043)     | Low         | High         | Comprehensive testing, gradual rollout                         | Dev Team          |
+| TR-005     | Repository pattern incompatibility (ADR-044)    | Low         | Critical     | Early prototype validation                                     | Architecture      |
+| TR-006     | Performance degradation with enrichment changes | Medium      | Medium       | Performance benchmarking at each phase                         | QA Team           |
+| TR-007     | ScriptRunner version incompatibility            | Low         | Critical     | Version locking, compatibility testing                         | DevOps            |
+| **TR-008** | **Security rating insufficient (< 8.0/10)**     | **Low**     | **CRITICAL** | **Comprehensive security testing, third-party validation**     | **Security Team** |
 
 #### 1.4.2 Operational Risks
 
@@ -384,15 +453,17 @@ Migration Teams:
 
 #### 1.5.3 Timeline & Milestones
 
-| Milestone               | Target Date | Criteria                     | Review Type         |
-| ----------------------- | ----------- | ---------------------------- | ------------------- |
-| M1: Environment Ready   | Week 2      | Dev environment operational  | Technical Review    |
-| M2: Data Layer Complete | Week 6      | All repositories functional  | Architecture Review |
-| M3: API Layer Complete  | Week 9      | All endpoints operational    | Integration Review  |
-| M4: UI Complete         | Week 12     | All UI components functional | User Review         |
-| M5: Testing Complete    | Week 14     | 95% test coverage achieved   | Quality Gate        |
-| M6: Production Ready    | Week 16     | Oracle migration complete    | Readiness Review    |
-| M7: Go-Live             | Week 17     | Production deployment        | Go/No-Go Decision   |
+| Milestone                 | Target Date | Criteria                               | Review Type         |
+| ------------------------- | ----------- | -------------------------------------- | ------------------- |
+| M1: Environment Ready     | Week 2      | Dev environment operational            | Technical Review    |
+| M2: Data Layer Complete   | Week 6      | All repositories functional            | Architecture Review |
+| M3: API Layer Complete    | Week 9      | All endpoints operational              | Integration Review  |
+| M4: UI Complete           | Week 12     | All UI components functional           | User Review         |
+| M5: Security Testing      | Week 14     | Basic security validation              | Security Review     |
+| **M6: Security Approval** | **Week 17** | **🚨 US-074 complete, 8.0/10+ rating** | **CRITICAL GATE**   |
+| M7: UBP Coordination      | Week 19     | All UBP teams ready                    | Readiness Review    |
+| M8: Production Ready      | Week 19     | Security + UBP approval                | Final Review        |
+| M9: Go-Live               | Week 20     | Production deployment                  | Go/No-Go Decision   |
 
 ---
 
@@ -402,14 +473,17 @@ Migration Teams:
 
 #### 2.1.1 Review Gates
 
-| Gate                     | Phase      | Purpose                       | Reviewers          | Criteria                       |
-| ------------------------ | ---------- | ----------------------------- | ------------------ | ------------------------------ |
-| G1: Foundation Review    | Week 2     | Validate infrastructure setup | Architecture Board | Environment checklist complete |
-| G2: Design Review        | Week 4     | Approve detailed design       | Technical Leads    | ADR compliance verified        |
-| G3: Code Review          | Continuous | Ensure coding standards       | Peer Developers    | ADR patterns followed          |
-| G4: Integration Review   | Week 9     | Validate integrations         | Integration Team   | All APIs functional            |
-| G5: Security Review      | Week 13    | Security assessment           | Security Team      | No critical vulnerabilities    |
-| G6: Production Readiness | Week 16    | Production approval           | All Stakeholders   | All criteria met               |
+| Gate                           | Phase       | Purpose                             | Reviewers              | Criteria                              |
+| ------------------------------ | ----------- | ----------------------------------- | ---------------------- | ------------------------------------- |
+| G1: Foundation Review          | Week 2      | Validate infrastructure setup       | Architecture Board     | Environment checklist complete        |
+| G2: Design Review              | Week 4      | Approve detailed design             | Technical Leads        | ADR compliance verified               |
+| G3: Code Review                | Continuous  | Ensure coding standards             | Peer Developers        | ADR patterns followed                 |
+| G4: Integration Review         | Week 9      | Validate integrations               | Integration Team       | All APIs functional                   |
+| G5: Security Testing           | Week 14     | Initial security validation         | Security Team          | Basic security testing passed         |
+| **G6: Security Approval Gate** | **Week 17** | **🚨 CRITICAL: Security Clearance** | **Security Architect** | **API RBAC complete, 8.0/10+ rating** |
+| G7: UBP Readiness              | Week 19     | UBP coordination complete           | UBP Teams              | All industrialization ready           |
+| G8: Production Readiness       | Week 19     | Final production approval           | All Stakeholders       | Security + UBP approval               |
+| G9: Go-Live Authorization      | Week 20     | Deployment authorization            | Executive Sponsor      | All gates passed                      |
 
 #### 2.1.2 Approval Workflows
 
@@ -600,7 +674,122 @@ Exception Request:
 | Extended  | 90 days          | CTO                 | Monthly          |
 | Permanent | Indefinite       | Executive Committee | Quarterly        |
 
-### 2.5 KPI Monitoring
+### 2.5 Security Governance Framework
+
+#### 2.5.1 Security Assessment Integration
+
+**Current Status**: UMIG Security Assessment completed (September 9, 2025)
+
+- **Current Rating**: 6.1/10 - MODERATE
+- **Target Rating**: 8.5/10 - VERY GOOD
+- **Primary Gap**: API-Level RBAC (ADR-051 interim solution)
+- **Remediation**: US-074, US-038, US-082 implementation
+
+**Security Architecture**:
+
+- ✅ **UI-Level RBAC**: Production-ready with 4-role model (USER/PILOT/ADMIN/SUPERADMIN)
+- ⚠️ **API-Level RBAC**: Interim solution (basic confluence-users authentication)
+- ✅ **Database Security**: Encrypted connections, audit logging
+- ✅ **Authentication**: 4-level fallback hierarchy with ADR-042 compliance
+
+#### 2.5.2 Security Approval Gate Criteria
+
+**G6: Security Approval Gate Requirements**:
+
+```yaml
+MANDATORY CRITERIA (ALL MUST PASS):
+  api_rbac_implementation:
+    - US-074 Complete: Role-based API endpoint restrictions
+    - Middleware operational: Request-level authorization validation
+    - 4-role model enforced: USER/PILOT/ADMIN/SUPERADMIN at API level
+    - All 25 endpoints: Role-based access controls implemented
+    - Testing complete: RBAC matrix validation passed
+
+  security_rating:
+    - Minimum: 8.0/10 (target 8.5/10)
+    - No critical vulnerabilities
+    - API security gap closed
+    - DoS protection improvements initiated
+
+  compliance_validation:
+    - Penetration testing: API endpoints validated
+    - OWASP ASVS Level 2: Compliance assessment
+    - Audit logging: Enhanced security event capture
+    - GDPR/SOX: Compliance maintained
+
+  technical_validation:
+    - 95%+ test coverage maintained
+    - Performance benchmarks met (<51ms API response)
+    - Service layer integration validated
+    - Database security (PostgreSQL/Oracle) verified
+
+APPROVAL AUTHORITY: Security Architect + Architecture Board
+ESCALATION: CTO (if conditional approval required)
+```
+
+#### 2.5.3 Ongoing Security Monitoring
+
+**Post-Deployment Security Framework**:
+
+```yaml
+CONTINUOUS_MONITORING:
+  api_security_monitoring:
+    - Real-time RBAC violation detection
+    - API endpoint access pattern analysis
+    - Unauthorized access attempt logging
+    - Performance impact monitoring
+
+  quarterly_security_reviews:
+    - User role assignment audits
+    - Access pattern analysis
+    - Security metrics dashboard review
+    - Compliance validation updates
+
+  vulnerability_management:
+    - Monthly security scans
+    - Dependency vulnerability tracking
+    - Zero-day threat assessment
+    - Patch management coordination
+
+  incident_response:
+    - Security event escalation procedures
+    - Incident classification and response times
+    - Root cause analysis and remediation
+    - Lessons learned integration
+
+GOVERNANCE_INTEGRATION:
+  saara_workflow:
+    - Q4 2025: UBP ACCESS team integration
+    - Automated role provisioning/deprovisioning
+    - Enterprise access governance alignment
+    - Eva Loendeaux coordination (Security Coordinator)
+
+  compliance_reporting:
+    - Monthly security metrics
+    - Quarterly compliance status
+    - Annual security assessment
+    - Executive security dashboard
+```
+
+#### 2.5.4 Security Enhancement Roadmap Integration
+
+**Critical Path Security Milestones**:
+
+| Milestone             | Timeline     | User Story | Success Criteria                  |
+| --------------------- | ------------ | ---------- | --------------------------------- |
+| **API RBAC Complete** | **Sprint 7** | **US-074** | **Security Approval Gate passed** |
+| Auth Enhancement      | Q3 2025      | US-038     | JWT tokens, enhanced audit trail  |
+| Production Monitoring | Q3 2025      | US-053     | API logging, performance metrics  |
+| DoS Protection        | Q4 2025      | US-066     | Rate limiting, async processing   |
+| Security Validation   | Q4 2025      | US-056/037 | OWASP ASVS Level 2 certified      |
+
+**Target Security Posture**:
+
+- **Sprint 7**: 8.0/10 (API RBAC complete)
+- **Q3 2025**: 8.5/10 (Full monitoring, enhanced auth)
+- **Q4 2025**: 9.0/10 (OWASP certified, comprehensive controls)
+
+### 2.6 KPI Monitoring
 
 #### 2.5.1 Architecture Effectiveness Metrics
 
@@ -714,9 +903,33 @@ Operational Dashboard:
 
 ### G. Revision History
 
-| Version | Date       | Author            | Description                                |
-| ------- | ---------- | ----------------- | ------------------------------------------ |
-| 1.0     | 2025-08-28 | Architecture Team | Initial migration and governance framework |
+| Version | Date       | Author            | Description                                                                            |
+| ------- | ---------- | ----------------- | -------------------------------------------------------------------------------------- |
+| 1.0     | 2025-08-28 | Architecture Team | Initial migration and governance framework                                             |
+| 1.1     | 2025-09-09 | Architecture Team | Security assessment integration, critical security gates, US-074/US-038/US-082 roadmap |
+
+### H. Security Assessment Cross-References
+
+**Primary Security Documents**:
+
+- `/docs/security/SECURITY_ARCHITECT_RESPONSE_SUMMARY.md` - Executive security assessment (6.1/10 rating)
+- `/docs/security/RBAC_IMPLEMENTATION_DETAIL.md` - 4-role RBAC model implementation details
+- `/docs/security/SECURITY_ARCHITECT_RESPONSE.md` - Comprehensive 50+ page security analysis
+
+**Critical Security User Stories**:
+
+- **US-074**: API-Level RBAC Implementation (Sprint 7) - BLOCKS PRODUCTION
+- **US-038**: RBAC Security Enhancement (Q3 2025)
+- **US-053**: Production Monitoring & API Error Logging (Q3 2025)
+- **US-066**: Async Email Processing (DoS Protection - Q4 2025)
+- **US-082**: Security assessment validation (Q4 2025)
+
+**Security Architecture Summary**:
+
+- ✅ **Current Strengths**: UI-level RBAC (4-role model), strong authentication, comprehensive audit logging
+- ⚠️ **Primary Gap**: API-level RBAC (interim solution per ADR-051)
+- 🎯 **Target**: 8.5/10 security rating through systematic enhancement roadmap
+- 🚨 **Production Blocker**: Security Approval Gate (G6) requires US-074 completion
 
 ---
 

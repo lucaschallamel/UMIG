@@ -1,14 +1,18 @@
 # UMIG Architecture Requirements Specification
 
-**Version:** 1.3  
-**Date:** September 4, 2025  
-**Status:** Final - All 49 ADRs + US-034 Phase 4-5 Enhancements Incorporated  
+**Version:** 1.4  
+**Date:** September 9, 2025  
+**Status:** Updated - Security Assessment Integration & RBAC Model Corrections  
 **TOGAF Phase:** Phase A-D Requirements  
 **Part of:** UMIG Enterprise Architecture
 
+**🚨 SECURITY STATUS**: Current 6.1/10 rating with API-level RBAC gap requiring US-074 completion for production deployment
+
 ## Executive Summary
 
-This document consolidates all architectural requirements for the Unified Migration Implementation Guide (UMIG) system, comprehensively derived from 49 architectural decisions, business needs, and technical constraints. It serves as the definitive requirements baseline for architecture validation, compliance assessment, and implementation guidance.
+This document consolidates all architectural requirements for the Unified Migration Implementation Guide (UMIG) system, comprehensively derived from 49 architectural decisions, security assessment findings (September 2025), and technical constraints. It serves as the definitive requirements baseline for architecture validation, compliance assessment, and implementation guidance.
+
+**SECURITY REQUIREMENTS INTEGRATION**: This version incorporates critical security enhancement requirements (US-074, US-038, US-082) and corrects RBAC model documentation to reflect actual 4-role implementation.
 
 ## 1. Architecture Principles
 
@@ -56,16 +60,19 @@ This document consolidates all architectural requirements for the Unified Migrat
 
 ### 2.2 User & Access Management Domain
 
-| ID        | Requirement                                                      | Priority | Source     |
-| --------- | ---------------------------------------------------------------- | -------- | ---------- |
-| FR-UA-001 | System shall integrate with Confluence authentication            | Critical | ADR-001    |
-| FR-UA-002 | System shall implement 3-tier RBAC (NORMAL/PILOT/ADMIN)          | Critical | ADR-033    |
-| FR-UA-003 | System shall support many-to-many user-team relationships        | High     | ADR-022    |
-| FR-UA-004 | System shall provide role-based UI adaptation                    | High     | ADR-033    |
-| FR-UA-005 | System shall maintain audit trail of all user actions            | Critical | Compliance |
-| FR-UA-006 | System shall provide user context API for role determination     | High     | ADR-033    |
-| FR-UA-007 | System shall implement dual authentication context with fallback | Critical | ADR-042    |
-| FR-UA-008 | System shall support intelligent user identification hierarchy   | Critical | ADR-042    |
+| ID            | Requirement                                                            | Priority     | Source     |
+| ------------- | ---------------------------------------------------------------------- | ------------ | ---------- |
+| FR-UA-001     | System shall integrate with Confluence authentication                  | Critical     | ADR-001    |
+| FR-UA-002     | System shall implement 4-role RBAC model (USER/PILOT/ADMIN/SUPERADMIN) | Critical     | ADR-033    |
+| FR-UA-003     | System shall support many-to-many user-team relationships              | High         | ADR-022    |
+| FR-UA-004     | System shall provide role-based UI adaptation                          | High         | ADR-033    |
+| FR-UA-005     | System shall maintain audit trail of all user actions                  | Critical     | Compliance |
+| FR-UA-006     | System shall provide user context API for role determination           | High         | ADR-033    |
+| FR-UA-007     | System shall implement dual authentication context with fallback       | Critical     | ADR-042    |
+| FR-UA-008     | System shall support intelligent user identification hierarchy         | Critical     | ADR-042    |
+| **FR-UA-009** | **System shall implement API-level RBAC controls**                     | **CRITICAL** | **US-074** |
+| **FR-UA-010** | **System shall validate role permissions at API endpoint level**       | **CRITICAL** | **US-074** |
+| **FR-UA-011** | **System shall provide comprehensive API security audit logging**      | **HIGH**     | **US-038** |
 
 ### 2.3 Collaboration Domain
 
@@ -140,29 +147,54 @@ This document consolidates all architectural requirements for the Unified Migrat
 
 ### 3.2 Security Requirements
 
-| ID        | Requirement                                 | Implementation                                                          | Source              |
-| --------- | ------------------------------------------- | ----------------------------------------------------------------------- | ------------------- |
-| NFR-S-001 | Enterprise SSO with enhanced verification   | Confluence LDAP/SAML + Additional MFA layers                            | ADR-001, 042        |
-| NFR-S-002 | Comprehensive role-based authorization      | 3-tier RBAC + Access reviews + Audit logging                            | ADR-033             |
-| NFR-S-003 | Multi-layer input validation                | Type safety + SQL injection prevention + XSS protection                 | ADR-031, 043        |
-| NFR-S-004 | SQL injection prevention framework          | Parameterized queries + Type casting + Validation                       | ADR-043             |
-| NFR-S-005 | XSS prevention with Content Security Policy | Output encoding + CSP headers + Input sanitization                      | Security Standards  |
-| NFR-S-006 | Comprehensive audit logging for compliance  | Database triggers + Application logging + SIEM integration              | GDPR/SOX Compliance |
-| NFR-S-007 | Encryption in transit with validation       | TLS 1.3 + Certificate pinning + Validation                              | Security Standards  |
-| NFR-S-008 | Encryption at rest with key management      | Oracle TDE + Key rotation + Access controls                             | Tech Architecture   |
-| NFR-S-009 | URL security and injection prevention       | Comprehensive validation + Sanitization + Deep linking security         | ADR-048             |
-| NFR-S-010 | Secure authentication fallback              | 4-level hierarchy + Context validation + Audit logging                  | ADR-042             |
-| NFR-S-011 | Data classification for compliance          | Automated classification + Privacy controls + Retention policies        | GDPR Compliance     |
-| NFR-S-012 | Security monitoring and incident response   | SIEM integration + Threat detection + Automated response                | Security Operations |
-| NFR-S-013 | Platform security integration               | Confluence/ScriptRunner security + Plugin validation + Sandbox controls | Platform Security   |
-| NFR-S-014 | Development-production security parity      | Consistent security controls + Testing + Validation                     | DevSecOps           |
-| NFR-S-015 | CVSS vulnerability scoring implementation   | Complete CVSS v3.1 scoring with threat classification                   | US-034 Phase 5      |
-| NFR-S-016 | Path traversal protection                   | Whitelist validation + Path sanitization + CVSS 9.1 mitigation          | US-034 Phase 5      |
-| NFR-S-017 | File extension validation                   | Strict whitelist enforcement + CVSS 8.8 security controls               | US-034 Phase 5      |
-| NFR-S-018 | Input size validation                       | 50MB request limits + CVSS 7.5 protection                               | US-034 Phase 5      |
-| NFR-S-019 | Batch size security limits                  | 1000 file maximum + CVSS 6.5 controls                                   | US-034 Phase 5      |
-| NFR-S-020 | Comprehensive security audit logging        | Complete threat tracking + Security event classification                | US-034 Phase 5      |
-| NFR-S-021 | Defense-in-depth import security            | Multiple validation layers + Excellent (9.2/10) security rating         | US-034 Phase 5      |
+| ID            | Requirement                                 | Implementation                                                                       | Source                  |
+| ------------- | ------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------- |
+| NFR-S-001     | Enterprise SSO with enhanced verification   | Confluence LDAP/SAML + Additional MFA layers                                         | ADR-001, 042            |
+| NFR-S-002     | Comprehensive role-based authorization      | 4-role RBAC model (USER/PILOT/ADMIN/SUPERADMIN) + API-level controls + Audit logging | ADR-033, US-074         |
+| NFR-S-003     | Multi-layer input validation                | Type safety + SQL injection prevention + XSS protection                              | ADR-031, 043            |
+| NFR-S-004     | SQL injection prevention framework          | Parameterized queries + Type casting + Validation                                    | ADR-043                 |
+| NFR-S-005     | XSS prevention with Content Security Policy | Output encoding + CSP headers + Input sanitization                                   | Security Standards      |
+| NFR-S-006     | Comprehensive audit logging for compliance  | Database triggers + Application logging + SIEM integration                           | GDPR/SOX Compliance     |
+| NFR-S-007     | Encryption in transit with validation       | TLS 1.3 + Certificate pinning + Validation                                           | Security Standards      |
+| NFR-S-008     | Encryption at rest with key management      | Oracle TDE + Key rotation + Access controls                                          | Tech Architecture       |
+| NFR-S-009     | URL security and injection prevention       | Comprehensive validation + Sanitization + Deep linking security                      | ADR-048                 |
+| NFR-S-010     | Secure authentication fallback              | 4-level hierarchy + Context validation + Audit logging                               | ADR-042                 |
+| NFR-S-011     | Data classification for compliance          | Automated classification + Privacy controls + Retention policies                     | GDPR Compliance         |
+| NFR-S-012     | Security monitoring and incident response   | SIEM integration + Threat detection + Automated response                             | Security Operations     |
+| NFR-S-013     | Platform security integration               | Confluence/ScriptRunner security + Plugin validation + Sandbox controls              | Platform Security       |
+| NFR-S-014     | Development-production security parity      | Consistent security controls + Testing + Validation                                  | DevSecOps               |
+| NFR-S-015     | CVSS vulnerability scoring implementation   | Complete CVSS v3.1 scoring with threat classification                                | US-034 Phase 5          |
+| NFR-S-016     | Path traversal protection                   | Whitelist validation + Path sanitization + CVSS 9.1 mitigation                       | US-034 Phase 5          |
+| NFR-S-017     | File extension validation                   | Strict whitelist enforcement + CVSS 8.8 security controls                            | US-034 Phase 5          |
+| NFR-S-018     | Input size validation                       | 50MB request limits + CVSS 7.5 protection                                            | US-034 Phase 5          |
+| NFR-S-019     | Batch size security limits                  | 1000 file maximum + CVSS 6.5 controls                                                | US-034 Phase 5          |
+| NFR-S-020     | Comprehensive security audit logging        | Complete threat tracking + Security event classification                             | US-034 Phase 5          |
+| NFR-S-021     | Defense-in-depth import security            | Multiple validation layers + Excellent (9.2/10) security rating                      | US-034 Phase 5          |
+| **NFR-S-022** | **API-level RBAC enforcement**              | **Role-based endpoint restrictions + Request validation + Middleware controls**      | **US-074 (CRITICAL)**   |
+| **NFR-S-023** | **DoS protection and rate limiting**        | **Per-user limits + Endpoint throttling + Resource protection**                      | **US-066**              |
+| **NFR-S-024** | **Security rating target achievement**      | **Minimum 8.0/10 rating + OWASP ASVS Level 2 compliance**                            | **Security Assessment** |
+| **NFR-S-025** | **Comprehensive API security monitoring**   | **Request/response logging + Violation detection + Performance tracking**            | **US-053**              |
+
+### 3.2.1 Critical Security Enhancement Requirements (NEW)
+
+**Based on Security Assessment findings (September 2025) - Production Deployment Blockers**:
+
+| ID             | Requirement                                | Implementation                                                          | Timeline     | Priority     |
+| -------------- | ------------------------------------------ | ----------------------------------------------------------------------- | ------------ | ------------ |
+| **NFR-SE-001** | **Complete API-Level RBAC Implementation** | **US-074: Role-based API endpoint restrictions for all 25 endpoints**   | **Sprint 7** | **CRITICAL** |
+| **NFR-SE-002** | **Security Approval Gate Achievement**     | **Minimum 8.0/10 security rating + Security Architect approval**        | **Week 17**  | **CRITICAL** |
+| **NFR-SE-003** | **RBAC Model Consistency**                 | **4-role model (USER/PILOT/ADMIN/SUPERADMIN) across UI and API layers** | **Sprint 7** | **CRITICAL** |
+| **NFR-SE-004** | **Security Audit Trail Enhancement**       | **US-038: Comprehensive API access logging + violation detection**      | **Q3 2025**  | **HIGH**     |
+| **NFR-SE-005** | **DoS Protection Implementation**          | **US-066: Rate limiting + async processing + resource protection**      | **Q4 2025**  | **HIGH**     |
+| **NFR-SE-006** | **Production Security Monitoring**         | **US-053: Real-time security event monitoring + correlation**           | **Q3 2025**  | **HIGH**     |
+
+**Security Assessment Status**:
+
+- **Current Rating**: 6.1/10 (MODERATE)
+- **Target Rating**: 8.5/10 (VERY GOOD)
+- **Primary Gap**: API-level RBAC (ADR-051 interim solution)
+- **Strong Foundations**: UI-level RBAC, authentication, database security
+- **Compliance**: GDPR/SOX ready, OWASP ASVS Level 2 target
 
 ### 3.3 Reliability & Availability Requirements
 
@@ -571,13 +603,48 @@ Complete checklist for ADR compliance available in implementation documentation.
 
 ### D. Revision History
 
-| Version | Date       | Author            | Description                                                                                                                                                              |
-| ------- | ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1.0     | 2025-08-28 | Architecture Team | Initial requirements specification from first 20 ADRs                                                                                                                    |
-| 1.1     | 2025-08-28 | Architecture Team | Expanded with ADRs 21-40                                                                                                                                                 |
-| 1.2     | 2025-08-28 | Architecture Team | Final version with all 49 ADRs comprehensively integrated                                                                                                                |
-| 1.3     | 2025-09-04 | Architecture Team | US-034 Phase 4-5 enhancements integrated: concurrent operations, security (CVSS 9.2/10), performance (4x improvement), streaming processing, comprehensive audit logging |
+| Version | Date       | Author            | Description                                                                                                                                                                 |
+| ------- | ---------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2025-08-28 | Architecture Team | Initial requirements specification from first 20 ADRs                                                                                                                       |
+| 1.1     | 2025-08-28 | Architecture Team | Expanded with ADRs 21-40                                                                                                                                                    |
+| 1.2     | 2025-08-28 | Architecture Team | Final version with all 49 ADRs comprehensively integrated                                                                                                                   |
+| 1.3     | 2025-09-04 | Architecture Team | US-034 Phase 4-5 enhancements integrated: concurrent operations, security (CVSS 9.2/10), performance (4x improvement), streaming processing, comprehensive audit logging    |
+| 1.4     | 2025-09-09 | Architecture Team | Security assessment integration: RBAC model corrections (4-role), API security requirements (US-074), critical security enhancement requirements (NFR-SE-001 to NFR-SE-006) |
 
 ---
 
-_This document represents the complete and final architectural requirements specification for the UMIG system, incorporating all 49 Architectural Decision Records with comprehensive implementation guidance and quality gates._
+### E. Security Assessment Cross-References
+
+**Security Documentation Integration** (September 2025):
+
+**Primary Security Assessment Documents**:
+
+- `/docs/security/SECURITY_ARCHITECT_RESPONSE_SUMMARY.md` - Executive security assessment (6.1/10 rating, production approval)
+- `/docs/security/RBAC_IMPLEMENTATION_DETAIL.md` - Complete 4-role RBAC implementation (USER/PILOT/ADMIN/SUPERADMIN)
+- `/docs/security/SECURITY_ARCHITECT_RESPONSE.md` - Comprehensive 50+ page security analysis
+
+**Critical Security User Stories Integration**:
+
+- **US-074**: Complete API-Level RBAC Implementation (Sprint 7) - **PRODUCTION BLOCKER**
+- **US-038**: RBAC Security Enhancement & Audit Trail (Q3 2025)
+- **US-053**: Production Monitoring & API Error Logging (Q3 2025)
+- **US-066**: Async Email Processing & DoS Protection (Q4 2025)
+- **US-082**: Security Assessment Validation & OWASP Compliance (Q4 2025)
+
+**Security Architecture Alignment**:
+
+- ✅ **Implemented**: UI-level RBAC (4-role model), authentication context (ADR-042), database security
+- ⚠️ **Gap**: API-level RBAC (interim solution per ADR-051) - addressed by US-074
+- 🎯 **Target**: 8.5/10 security rating, OWASP ASVS Level 2 compliance
+- 🚨 **Dependencies**: Security Approval Gate required for production deployment
+
+**Compliance Framework**:
+
+- **GDPR**: Data protection controls, audit logging, user consent management
+- **SOX**: Financial controls, audit trails, change management
+- **OWASP ASVS**: Level 2 compliance target, comprehensive security testing
+- **UBP Standards**: Saara workflow integration (Q4 2025), enterprise access governance
+
+---
+
+_This document represents the complete architectural requirements specification for the UMIG system, incorporating all 49 Architectural Decision Records, security assessment findings, and critical enhancement requirements with comprehensive implementation guidance and production deployment criteria._

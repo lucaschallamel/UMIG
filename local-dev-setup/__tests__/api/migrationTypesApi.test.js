@@ -43,38 +43,38 @@ describe("Migration Types API Integration Tests", () => {
   // Mock migration types test data
   const mockMigrationTypes = [
     {
-      mtm_id: 1,
-      mtm_code: "INFRASTRUCTURE",
-      mtm_name: "Infrastructure Migration",
-      mtm_description: "Infrastructure and hardware migration",
-      mtm_color: "#FF6B6B",
-      mtm_icon: "server",
-      mtm_display_order: 1,
-      mtm_active: true,
+      mit_id: 1,
+      mit_code: "INFRASTRUCTURE",
+      mit_name: "Infrastructure Migration",
+      mit_description: "Infrastructure and hardware migration",
+      mit_color: "#FF6B6B",
+      mit_icon: "server",
+      mit_display_order: 1,
+      mit_active: true,
       created_by: "system",
       updated_by: "system",
     },
     {
-      mtm_id: 2,
-      mtm_code: "APPLICATION",
-      mtm_name: "Application Migration",
-      mtm_description: "Software application migration",
-      mtm_color: "#4ECDC4",
-      mtm_icon: "apps",
-      mtm_display_order: 2,
-      mtm_active: true,
+      mit_id: 2,
+      mit_code: "APPLICATION",
+      mit_name: "Application Migration",
+      mit_description: "Software application migration",
+      mit_color: "#4ECDC4",
+      mit_icon: "apps",
+      mit_display_order: 2,
+      mit_active: true,
       created_by: "system",
       updated_by: "system",
     },
     {
-      mtm_id: 3,
-      mtm_code: "DATABASE",
-      mtm_name: "Database Migration",
-      mtm_description: "Database migration",
-      mtm_color: "#45B7D1",
-      mtm_icon: "database",
-      mtm_display_order: 3,
-      mtm_active: false,
+      mit_id: 3,
+      mit_code: "DATABASE",
+      mit_name: "Database Migration",
+      mit_description: "Database migration",
+      mit_color: "#45B7D1",
+      mit_icon: "database",
+      mit_display_order: 3,
+      mit_active: false,
       created_by: "system",
       updated_by: "system",
     },
@@ -85,19 +85,19 @@ describe("Migration Types API Integration Tests", () => {
       // Mock database query for active migration types
       const mockDbQuery = jest.fn();
       mockDbQuery.mockResolvedValueOnce(
-        mockMigrationTypes.filter((mt) => mt.mtm_active),
+        mockMigrationTypes.filter((mt) => mt.mit_active),
       );
 
       const response = {
         status: 200,
-        data: mockMigrationTypes.filter((mt) => mt.mtm_active),
+        data: mockMigrationTypes.filter((mt) => mt.mit_active),
       };
 
       expect(response.status).toBe(200);
       expect(response.data).toHaveLength(2);
-      expect(response.data.every((mt) => mt.mtm_active)).toBe(true);
-      expect(response.data[0].mtm_code).toBe("INFRASTRUCTURE");
-      expect(response.data[1].mtm_code).toBe("APPLICATION");
+      expect(response.data.every((mt) => mt.mit_active)).toBe(true);
+      expect(response.data[0].mit_code).toBe("INFRASTRUCTURE");
+      expect(response.data[1].mit_code).toBe("APPLICATION");
 
       testResults.endpointsValidated.push("GET /migrationTypes");
       testResults.databaseInteractions++;
@@ -115,9 +115,9 @@ describe("Migration Types API Integration Tests", () => {
 
       expect(response.status).toBe(200);
       expect(response.data).toHaveLength(3);
-      expect(response.data.some((mt) => !mt.mtm_active)).toBe(true);
+      expect(response.data.some((mt) => !mt.mit_active)).toBe(true);
       expect(
-        response.data.find((mt) => mt.mtm_code === "DATABASE"),
+        response.data.find((mt) => mt.mit_code === "DATABASE"),
       ).toBeDefined();
 
       testResults.endpointsValidated.push(
@@ -129,14 +129,14 @@ describe("Migration Types API Integration Tests", () => {
 
     it("should retrieve migration types for selection dropdown", async () => {
       const selectionData = mockMigrationTypes
-        .filter((mt) => mt.mtm_active)
+        .filter((mt) => mt.mit_active)
         .map((mt) => ({
-          mtm_id: mt.mtm_id,
-          mtm_code: mt.mtm_code,
-          mtm_name: mt.mtm_name,
-          mtm_color: mt.mtm_color,
-          mtm_icon: mt.mtm_icon,
-          mtm_display_order: mt.mtm_display_order,
+          mit_id: mt.mit_id,
+          mit_code: mt.mit_code,
+          mit_name: mt.mit_name,
+          mit_color: mt.mit_color,
+          mit_icon: mt.mit_icon,
+          mit_display_order: mt.mit_display_order,
         }));
 
       const mockDbQuery = jest.fn();
@@ -149,12 +149,12 @@ describe("Migration Types API Integration Tests", () => {
 
       expect(response.status).toBe(200);
       expect(response.data).toHaveLength(2);
-      expect(response.data[0]).toHaveProperty("mtm_id");
-      expect(response.data[0]).toHaveProperty("mtm_code");
-      expect(response.data[0]).toHaveProperty("mtm_name");
-      expect(response.data[0]).toHaveProperty("mtm_color");
-      expect(response.data[0]).toHaveProperty("mtm_icon");
-      expect(response.data[0]).not.toHaveProperty("mtm_description");
+      expect(response.data[0]).toHaveProperty("mit_id");
+      expect(response.data[0]).toHaveProperty("mit_code");
+      expect(response.data[0]).toHaveProperty("mit_name");
+      expect(response.data[0]).toHaveProperty("mit_color");
+      expect(response.data[0]).toHaveProperty("mit_icon");
+      expect(response.data[0]).not.toHaveProperty("mit_description");
 
       testResults.endpointsValidated.push("GET /migrationTypes/selection");
       testResults.databaseInteractions++;
@@ -171,10 +171,10 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data.mtm_id).toBe(1);
-      expect(response.data.mtm_code).toBe("INFRASTRUCTURE");
-      expect(response.data).toHaveProperty("mtm_name");
-      expect(response.data).toHaveProperty("mtm_description");
+      expect(response.data.mit_id).toBe(1);
+      expect(response.data.mit_code).toBe("INFRASTRUCTURE");
+      expect(response.data).toHaveProperty("mit_name");
+      expect(response.data).toHaveProperty("mit_description");
 
       testResults.endpointsValidated.push("GET /migrationTypes/1");
       testResults.databaseInteractions++;
@@ -191,8 +191,8 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data.mtm_code).toBe("APPLICATION");
-      expect(response.data.mtm_id).toBe(2);
+      expect(response.data.mit_code).toBe("APPLICATION");
+      expect(response.data.mit_id).toBe(2);
 
       testResults.endpointsValidated.push(
         "GET /migrationTypes/code/APPLICATION",
@@ -223,18 +223,18 @@ describe("Migration Types API Integration Tests", () => {
     it("should return usage statistics", async () => {
       const statsData = [
         {
-          mtm_id: 1,
-          mtm_code: "INFRASTRUCTURE",
-          mtm_name: "Infrastructure Migration",
-          mtm_active: true,
+          mit_id: 1,
+          mit_code: "INFRASTRUCTURE",
+          mit_name: "Infrastructure Migration",
+          mit_active: true,
           migration_count: 5,
           step_instance_count: 150,
         },
         {
-          mtm_id: 2,
-          mtm_code: "APPLICATION",
-          mtm_name: "Application Migration",
-          mtm_active: true,
+          mit_id: 2,
+          mit_code: "APPLICATION",
+          mit_name: "Application Migration",
+          mit_active: true,
           migration_count: 3,
           step_instance_count: 87,
         },
@@ -264,17 +264,17 @@ describe("Migration Types API Integration Tests", () => {
   describe("POST /migrationTypes endpoints", () => {
     it("should create new migration type", async () => {
       const newMigrationType = {
-        mtm_code: "NETWORK",
-        mtm_name: "Network Migration",
-        mtm_description: "Network infrastructure migration",
-        mtm_color: "#9B59B6",
-        mtm_icon: "network",
-        mtm_display_order: 4,
-        mtm_active: true,
+        mit_code: "NETWORK",
+        mit_name: "Network Migration",
+        mit_description: "Network infrastructure migration",
+        mit_color: "#9B59B6",
+        mit_icon: "network",
+        mit_display_order: 4,
+        mit_active: true,
       };
 
       const createdMigrationType = {
-        mtm_id: 4,
+        mit_id: 4,
         ...newMigrationType,
         created_by: "test-user",
         updated_by: "test-user",
@@ -291,9 +291,9 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(201);
-      expect(response.data.mtm_id).toBe(4);
-      expect(response.data.mtm_code).toBe("NETWORK");
-      expect(response.data.mtm_name).toBe("Network Migration");
+      expect(response.data.mit_id).toBe(4);
+      expect(response.data.mit_code).toBe("NETWORK");
+      expect(response.data.mit_name).toBe("Network Migration");
       expect(response.data).toHaveProperty("created_by");
 
       testResults.endpointsValidated.push("POST /migrationTypes");
@@ -303,13 +303,13 @@ describe("Migration Types API Integration Tests", () => {
 
     it("should return 400 for missing required fields", async () => {
       const invalidData = {
-        mtm_name: "Missing Code Migration",
-        // Missing mtm_code
+        mit_name: "Missing Code Migration",
+        // Missing mit_code
       };
 
       const response = {
         status: 400,
-        data: { error: "mtm_code and mtm_name are required" },
+        data: { error: "mit_code and mit_name are required" },
       };
 
       expect(response.status).toBe(400);
@@ -321,8 +321,8 @@ describe("Migration Types API Integration Tests", () => {
 
     it("should return 409 for duplicate migration type code", async () => {
       const duplicateData = {
-        mtm_code: "INFRASTRUCTURE", // Already exists
-        mtm_name: "Another Infrastructure Migration",
+        mit_code: "INFRASTRUCTURE", // Already exists
+        mit_name: "Another Infrastructure Migration",
       };
 
       const response = {
@@ -370,9 +370,9 @@ describe("Migration Types API Integration Tests", () => {
   describe("PUT /migrationTypes endpoints", () => {
     it("should update migration type by ID", async () => {
       const updateData = {
-        mtm_name: "Updated Infrastructure Migration",
-        mtm_description: "Updated description",
-        mtm_color: "#E74C3C",
+        mit_name: "Updated Infrastructure Migration",
+        mit_description: "Updated description",
+        mit_color: "#E74C3C",
       };
 
       const updatedMigrationType = {
@@ -391,9 +391,9 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data.mtm_name).toBe("Updated Infrastructure Migration");
-      expect(response.data.mtm_color).toBe("#E74C3C");
-      expect(response.data.mtm_id).toBe(1);
+      expect(response.data.mit_name).toBe("Updated Infrastructure Migration");
+      expect(response.data.mit_color).toBe("#E74C3C");
+      expect(response.data.mit_id).toBe(1);
 
       testResults.endpointsValidated.push("PUT /migrationTypes/1");
       testResults.databaseInteractions++;
@@ -402,8 +402,8 @@ describe("Migration Types API Integration Tests", () => {
 
     it("should update migration type by code", async () => {
       const updateData = {
-        mtm_name: "Updated Application Migration",
-        mtm_active: false,
+        mit_name: "Updated Application Migration",
+        mit_active: false,
       };
 
       const updatedMigrationType = {
@@ -422,9 +422,9 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data.mtm_name).toBe("Updated Application Migration");
-      expect(response.data.mtm_active).toBe(false);
-      expect(response.data.mtm_code).toBe("APPLICATION");
+      expect(response.data.mit_name).toBe("Updated Application Migration");
+      expect(response.data.mit_active).toBe(false);
+      expect(response.data.mit_code).toBe("APPLICATION");
 
       testResults.endpointsValidated.push(
         "PUT /migrationTypes/code/APPLICATION",
@@ -556,19 +556,19 @@ describe("Migration Types API Integration Tests", () => {
   describe("Admin GUI Parameter Pattern Tests (Bug Fix)", () => {
     it("should handle admin GUI sorting request without 500 error", async () => {
       // Reproduce exact admin GUI request pattern that causes 500 error:
-      // GET /migrationTypes?page=1&size=50&sort=mtm_display_order&direction=asc
+      // GET /migrationTypes?page=1&size=50&sort=mit_display_order&direction=asc
 
       const adminGuiParams = {
         page: "1",
         size: "50",
-        sort: "mtm_display_order",
+        sort: "mit_display_order",
         direction: "asc",
       };
 
       // This should NOT cause a 500 error
       const sortedData = mockMigrationTypes
-        .filter((item) => item.mtm_active)
-        .sort((a, b) => a.mtm_display_order - b.mtm_display_order);
+        .filter((item) => item.mit_active)
+        .sort((a, b) => a.mit_display_order - b.mit_display_order);
 
       const mockDbQuery = jest.fn();
       mockDbQuery.mockResolvedValueOnce(sortedData);
@@ -580,11 +580,11 @@ describe("Migration Types API Integration Tests", () => {
 
       expect(response.status).toBe(200); // NOT 500
       expect(Array.isArray(response.data)).toBe(true);
-      expect(response.data[0].mtm_display_order).toBe(1);
-      expect(response.data[1].mtm_display_order).toBe(2);
+      expect(response.data[0].mit_display_order).toBe(1);
+      expect(response.data[1].mit_display_order).toBe(2);
 
       testResults.endpointsValidated.push(
-        "GET /migrationTypes?page=1&size=50&sort=mtm_display_order&direction=asc (Admin GUI Bug Fix)",
+        "GET /migrationTypes?page=1&size=50&sort=mit_display_order&direction=asc (Admin GUI Bug Fix)",
       );
       testResults.databaseInteractions++;
       testResults.responsesValidated++;
@@ -615,7 +615,7 @@ describe("Migration Types API Integration Tests", () => {
         status: 400,
         data: {
           error:
-            "Invalid sort field 'invalid_field'. Allowed fields are: mtm_id, mtm_code, mtm_name, mtm_description, mtm_color, mtm_icon, mtm_display_order, mtm_active, created_by, created_at, updated_by, updated_at",
+            "Invalid sort field 'invalid_field'. Allowed fields are: mit_id, mit_code, mit_name, mit_description, mit_color, mit_icon, mit_display_order, mit_active, created_by, created_at, updated_by, updated_at",
         },
       };
 
@@ -631,12 +631,12 @@ describe("Migration Types API Integration Tests", () => {
     it("should handle SQL order clause construction correctly", async () => {
       // Test that ORDER BY clause construction doesn't cause SQL errors
       const testSortFields = [
-        "mtm_code",
-        "mtm_name",
-        "mtm_description",
-        "mtm_color",
-        "mtm_icon",
-        "mtm_display_order",
+        "mit_code",
+        "mit_name",
+        "mit_description",
+        "mit_color",
+        "mit_icon",
+        "mit_display_order",
       ];
 
       for (const field of testSortFields) {
@@ -668,14 +668,14 @@ describe("Migration Types API Integration Tests", () => {
 
     it("should handle all valid sort fields without errors", async () => {
       const validSortFields = [
-        "mtm_id",
-        "mtm_code",
-        "mtm_name",
-        "mtm_description",
-        "mtm_color",
-        "mtm_icon",
-        "mtm_display_order",
-        "mtm_active",
+        "mit_id",
+        "mit_code",
+        "mit_name",
+        "mit_description",
+        "mit_color",
+        "mit_icon",
+        "mit_display_order",
+        "mit_active",
         "created_by",
         "created_at",
         "updated_by",
@@ -697,10 +697,10 @@ describe("Migration Types API Integration Tests", () => {
     it("should handle mixed parameters like admin GUI", async () => {
       // Test various parameter combinations that admin GUI might send
       const paramCombinations = [
-        { page: "1", size: "25", sort: "mtm_code", direction: "asc" },
-        { page: "2", size: "10", sort: "mtm_name", direction: "desc" },
-        { sort: "mtm_display_order", direction: "asc" },
-        { page: "1", sort: "mtm_active" },
+        { page: "1", size: "25", sort: "mit_code", direction: "asc" },
+        { page: "2", size: "10", sort: "mit_name", direction: "desc" },
+        { sort: "mit_display_order", direction: "asc" },
+        { page: "1", sort: "mit_active" },
         { includeInactive: "true", sort: "created_at", direction: "desc" },
       ];
 
@@ -723,9 +723,9 @@ describe("Migration Types API Integration Tests", () => {
   });
 
   describe("Enhanced Functionality Tests", () => {
-    it("should sort by mtm_code ascending", async () => {
+    it("should sort by mit_code ascending", async () => {
       const sortedData = [...mockMigrationTypes].sort((a, b) =>
-        a.mtm_code.localeCompare(b.mtm_code),
+        a.mit_code.localeCompare(b.mit_code),
       );
       const mockDbQuery = jest.fn();
       mockDbQuery.mockResolvedValueOnce(sortedData);
@@ -736,19 +736,19 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data[0].mtm_code).toBe("APPLICATION");
-      expect(response.data[1].mtm_code).toBe("DATABASE");
+      expect(response.data[0].mit_code).toBe("APPLICATION");
+      expect(response.data[1].mit_code).toBe("DATABASE");
 
       testResults.endpointsValidated.push(
-        "GET /migrationTypes?sort=mtm_code&direction=asc",
+        "GET /migrationTypes?sort=mit_code&direction=asc",
       );
       testResults.databaseInteractions++;
       testResults.responsesValidated++;
     });
 
-    it("should sort by mtm_name descending", async () => {
+    it("should sort by mit_name descending", async () => {
       const sortedData = [...mockMigrationTypes].sort((a, b) =>
-        b.mtm_name.localeCompare(a.mtm_name),
+        b.mit_name.localeCompare(a.mit_name),
       );
       const mockDbQuery = jest.fn();
       mockDbQuery.mockResolvedValueOnce(sortedData);
@@ -759,19 +759,19 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data[0].mtm_name).toBe("Infrastructure Migration");
-      expect(response.data[1].mtm_name).toBe("Database Migration");
+      expect(response.data[0].mit_name).toBe("Infrastructure Migration");
+      expect(response.data[1].mit_name).toBe("Database Migration");
 
       testResults.endpointsValidated.push(
-        "GET /migrationTypes?sort=mtm_name&direction=desc",
+        "GET /migrationTypes?sort=mit_name&direction=desc",
       );
       testResults.databaseInteractions++;
       testResults.responsesValidated++;
     });
 
-    it("should sort by mtm_description ascending", async () => {
+    it("should sort by mit_description ascending", async () => {
       const sortedData = [...mockMigrationTypes].sort((a, b) =>
-        a.mtm_description.localeCompare(b.mtm_description),
+        a.mit_description.localeCompare(b.mit_description),
       );
       const mockDbQuery = jest.fn();
       mockDbQuery.mockResolvedValueOnce(sortedData);
@@ -782,21 +782,21 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data[0].mtm_description).toBe("Database migration");
-      expect(response.data[1].mtm_description).toBe(
+      expect(response.data[0].mit_description).toBe("Database migration");
+      expect(response.data[1].mit_description).toBe(
         "Infrastructure and hardware migration",
       );
 
       testResults.endpointsValidated.push(
-        "GET /migrationTypes?sort=mtm_description&direction=asc",
+        "GET /migrationTypes?sort=mit_description&direction=asc",
       );
       testResults.databaseInteractions++;
       testResults.responsesValidated++;
     });
 
-    it("should sort by mtm_color descending", async () => {
+    it("should sort by mit_color descending", async () => {
       const sortedData = [...mockMigrationTypes].sort((a, b) =>
-        b.mtm_color.localeCompare(a.mtm_color),
+        b.mit_color.localeCompare(a.mit_color),
       );
       const mockDbQuery = jest.fn();
       mockDbQuery.mockResolvedValueOnce(sortedData);
@@ -807,19 +807,19 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data[0].mtm_color).toBe("#FF6B6B"); // Red - highest alphabetically when sorted desc
-      expect(response.data[1].mtm_color).toBe("#4ECDC4"); // Teal/blue
+      expect(response.data[0].mit_color).toBe("#FF6B6B"); // Red - highest alphabetically when sorted desc
+      expect(response.data[1].mit_color).toBe("#4ECDC4"); // Teal/blue
 
       testResults.endpointsValidated.push(
-        "GET /migrationTypes?sort=mtm_color&direction=desc",
+        "GET /migrationTypes?sort=mit_color&direction=desc",
       );
       testResults.databaseInteractions++;
       testResults.responsesValidated++;
     });
 
-    it("should sort by mtm_icon ascending", async () => {
+    it("should sort by mit_icon ascending", async () => {
       const sortedData = [...mockMigrationTypes].sort((a, b) =>
-        a.mtm_icon.localeCompare(b.mtm_icon),
+        a.mit_icon.localeCompare(b.mit_icon),
       );
       const mockDbQuery = jest.fn();
       mockDbQuery.mockResolvedValueOnce(sortedData);
@@ -830,11 +830,11 @@ describe("Migration Types API Integration Tests", () => {
       };
 
       expect(response.status).toBe(200);
-      expect(response.data[0].mtm_icon).toBe("apps"); // First alphabetically
-      expect(response.data[1].mtm_icon).toBe("database"); // Second alphabetically
+      expect(response.data[0].mit_icon).toBe("apps"); // First alphabetically
+      expect(response.data[1].mit_icon).toBe("database"); // Second alphabetically
 
       testResults.endpointsValidated.push(
-        "GET /migrationTypes?sort=mtm_icon&direction=asc",
+        "GET /migrationTypes?sort=mit_icon&direction=asc",
       );
       testResults.databaseInteractions++;
       testResults.responsesValidated++;

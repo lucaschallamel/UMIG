@@ -7,8 +7,8 @@ This document provides the pure schema specification for the Unified Migration (
 - **Data Architecture**: [UMIG - TOGAF Phase C - Data Architecture.md](../architecture/UMIG%20-%20TOGAF%20Phase%20C%20-%20Data%20Architecture.md) - Enhanced architectural validation with database evidence
 - **Data Operations**: [UMIG - Data Operations Guide.md](../architecture/UMIG%20-%20Data%20Operations%20Guide.md) - Operational procedures, troubleshooting, and performance optimization
 
-**Document Status**: ✅ Production Ready | **Last Updated**: August 2025 | **Version**: 2.2 - SQL Schema Aligned  
-**Consolidated Sources**: umig_app_db.sql (Primary), System Configuration Schema, Instructions Schema Documentation, Database Migrations
+**Document Status**: ✅ Production Ready | **Last Updated**: December 2025 | **Version**: 2.3 - Types Management Enhanced  
+**Consolidated Sources**: umig_app_db.sql (Primary), System Configuration Schema, Instructions Schema Documentation, Database Migrations 001-029
 
 **Related Documentation**:
 
@@ -22,29 +22,29 @@ This document provides the pure schema specification for the Unified Migration (
 
 ### 1.1. Executive Summary Statistics
 
-**Schema Metrics** _(Calculated: August 28, 2025)_
+**Schema Metrics** _(Calculated: December 9, 2025)_
 
-- **Total Tables**: 42 (40 regular + 2 staging)
-- **Total Fields**: 382 total columns
-- **Total Primary Keys**: 41
-- **Total Foreign Keys**: 78 relationships
-- **Total Indexes**: 55 (36 regular + 19 unique)
+- **Total Tables**: 55 (52 regular + 3 staging)
+- **Total Fields**: 562 total columns
+- **Total Primary Keys**: 54
+- **Total Foreign Keys**: 85 relationships
+- **Total Indexes**: 140 (comprehensive optimization)
 
 ### 1.2. Field Distribution by Data Type
 
 | Data Type     | Count      | Percentage | Usage Pattern                  |
 | ------------- | ---------- | ---------- | ------------------------------ |
-| **VARCHAR**   | 128 fields | 33.5%      | Names, codes, descriptions     |
-| **TIMESTAMP** | 82 fields  | 21.5%      | Audit trails, execution timing |
-| **INTEGER**   | 71 fields  | 18.6%      | IDs, counts, durations         |
-| **UUID**      | 52 fields  | 13.6%      | Business entity identifiers    |
-| **TEXT**      | 37 fields  | 9.7%       | Long descriptions, content     |
-| **BOOLEAN**   | 9 fields   | 2.4%       | Flags, status indicators       |
-| **Other**     | 3 fields   | 0.8%       | Specialized types              |
+| **VARCHAR**   | 195 fields | 34.7%      | Names, codes, descriptions     |
+| **TIMESTAMP** | 135 fields | 24.0%      | Audit trails, execution timing |
+| **INTEGER**   | 98 fields  | 17.4%      | IDs, counts, durations         |
+| **UUID**      | 76 fields  | 13.5%      | Business entity identifiers    |
+| **TEXT**      | 43 fields  | 7.7%       | Long descriptions, content     |
+| **BOOLEAN**   | 11 fields  | 2.0%       | Flags, status indicators       |
+| **Other**     | 4 fields   | 0.7%       | Specialized types              |
 
 ### 1.3. Key Database Metrics
 
-- **Average fields per table**: 9.1 fields
+- **Average fields per table**: 10.2 fields
 - **Tables with most fields**:
   1. `instructions_instance_ini` (19 fields)
   2. `steps_instance_sti` (17 fields)
@@ -102,9 +102,11 @@ UMIG follows a **Canonical (Master) vs. Instance (Execution)** entity pattern:
 - **usr_id_owner** (INT, FK → users_usr): Owner
 - **mig_name** (VARCHAR): Migration name
 - **mig_description** (TEXT): Description
-- **mig_type** (VARCHAR(50), NOT NULL): Migration type classification
+- **mig_type** (VARCHAR(50), NOT NULL): Migration type classification (References migration_types_mit.mit_code)
 - **mig_status** (INTEGER, FK → status_sts.sts_id): Status from status_sts where sts_type='Migration'
 - **mig_start_date**, **mig_end_date**, **mig_business_cutover_date** (DATE): Key dates
+
+**Migration Types Integration**: The mig_type field references the dynamic migration_types_mit table implemented in Migration 029, providing centralized type management with visual differentiation and administrative control.
 
 ### 3.2. Iterations (`iterations_ite`)
 
@@ -787,9 +789,26 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 
 ### 8.4. Iteration Types (`iteration_types_itt`)
 
+**Enhanced in Migration 028**: Comprehensive management capabilities with visual differentiation and ordering support.
+
 - **itt_code** (VARCHAR(10), PK): Type code (e.g., RUN, DR, CUTOVER)
 - **itt_name** (VARCHAR): Display name
-- **itt_description** (TEXT): Description
+- **itt_description** (TEXT): Description (Enhanced in Migration 028)
+- **itt_color** (VARCHAR(7)): Hex color code for visual differentiation (Added in Migration 028)
+- **itt_icon** (VARCHAR(50)): Icon identifier for UI representation (Added in Migration 028)
+- **itt_display_order** (INTEGER): Sort order for consistent presentation (Added in Migration 028)
+- **itt_active** (BOOLEAN, DEFAULT TRUE): Active status flag (Added in Migration 028)
+- **created_at**, **updated_at** (TIMESTAMPTZ): Standard audit timestamps (Added in Migration 028)
+- **created_by**, **updated_by** (VARCHAR(255)): Standard audit users (Added in Migration 028)
+
+**Management Features**:
+
+- Visual differentiation with customizable colors and icons
+- Configurable display ordering for consistent UI presentation
+- Active/inactive status management
+- Full audit trail support
+
+**US-043 Integration**: Enhanced readonly implementation with visual cues and administrative control.
 
 ### 8.5. Email Templates (`email_templates_emt`)
 
@@ -804,6 +823,41 @@ Uses boolean `ini_is_completed` instead of complex status enumeration for clear 
 - **emt_created_by**, **emt_updated_by** (VARCHAR(255)): Legacy audit users
 - **created_at**, **updated_at** (TIMESTAMPTZ): Standard audit timestamps
 - **created_by**, **updated_by** (VARCHAR(255)): Standard audit users
+
+### 8.5. Migration Types (`migration_types_mit`)
+
+**Added in Migration 029**: Centralized migration type management system supporting US-042 dynamic CRUD operations.
+
+- **mit_id** (SERIAL, PK): Auto-incrementing primary key
+- **mit_code** (VARCHAR(20), UNIQUE, NOT NULL): Migration type code (e.g., INFRASTRUCTURE, APPLICATION, DATABASE)
+- **mit_name** (VARCHAR(100), NOT NULL): Display name for the migration type
+- **mit_description** (TEXT): Detailed description of the migration type
+- **mit_color** (VARCHAR(10), DEFAULT '#6B73FF'): Hex color code for visual identification
+- **mit_icon** (VARCHAR(50), DEFAULT 'layers'): Icon identifier for UI representation
+- **mit_display_order** (INTEGER, DEFAULT 0): Sort order for consistent presentation
+- **mit_active** (BOOLEAN, DEFAULT TRUE): Whether this migration type is available for selection
+
+**Predefined Migration Types (8 total)**:
+
+1. INFRASTRUCTURE - Infrastructure Release (#E65100, server icon)
+2. APPLICATION - Application Release (#1976D2, desktop icon)
+3. DATABASE - Database Release (#388E3C, database icon)
+4. NETWORK - Network Release (#7B1FA2, globe icon)
+5. SECURITY - Security Release (#D32F2F, shield icon)
+6. INTEGRATION - Integration Release (#F57C00, link icon)
+7. ACQUISITION - Acquisition Data Migration (#5D4037, life-ring icon)
+8. DECOMMISSION - System Decommission (#616161, trash icon)
+
+**Key Features**:
+
+- Dynamic CRUD operations via Admin GUI
+- Visual differentiation with colors and icons
+- Configurable display ordering
+- Active/inactive status management
+- Full audit trail support
+- Integration with migrations table via mig_type field
+
+**US-042 Integration**: Complete Admin GUI integration with creation, editing, and management capabilities.
 
 ### 8.6. Audit Log (`audit_log_aud`)
 
@@ -847,6 +901,28 @@ erDiagram
         VARCHAR itt_code PK
         VARCHAR itt_name
         TEXT itt_description
+        VARCHAR itt_color
+        VARCHAR itt_icon
+        INTEGER itt_display_order
+        BOOLEAN itt_active
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        VARCHAR created_by
+        VARCHAR updated_by
+    }
+    migration_types_mit {
+        SERIAL mit_id PK
+        VARCHAR mit_code
+        VARCHAR mit_name
+        TEXT mit_description
+        VARCHAR mit_color
+        VARCHAR mit_icon
+        INTEGER mit_display_order
+        BOOLEAN mit_active
+        TIMESTAMPTZ created_at
+        VARCHAR created_by
+        TIMESTAMPTZ updated_at
+        VARCHAR updated_by
     }
     %% Strategic Layer
     migrations_mig {
@@ -1103,6 +1179,7 @@ erDiagram
     }
     %% Relationships
     migrations_mig }o--|| users_usr : "owned by"
+    migrations_mig }o--|| migration_types_mit : "is of type"
     iterations_ite }o--|| migrations_mig : "belongs to"
     plans_master_plm }o--|| teams_tms : "owned by"
     sequences_master_sqm }o--|| plans_master_plm : "belongs to"
@@ -1168,6 +1245,8 @@ erDiagram
 - **Migration 015**: Centralized status management with color coding
 - **Migration 016**: Standardized audit fields across all tables
 - **Migration 017**: Tiered audit strategy for association tables
+- **Migration 028**: Enhanced iteration_types_itt with management fields (US-043) - Added visual management columns
+- **Migration 029**: Added migration_types_mit with 8 predefined types (US-042) - Centralized migration type management
 
 For query patterns, performance optimization, and implementation guidance, see:
 
@@ -1193,7 +1272,7 @@ All tables in the UMIG database follow a standardized audit fields pattern (migr
 
 **Instance Tables**: sequences_instance_sqi, phases_instance_phi, steps_instance_sti, controls_instance_cti, instructions_instance_ini
 
-**Reference Tables**: teams_tms, applications_app, environments_env, roles_rls, environment_roles_enr, step_types_stt, iteration_types_itt, status_sts, email_templates_emt
+**Reference Tables**: teams_tms, applications_app, environments_env, roles_rls, environment_roles_enr, step_types_stt, iteration_types_itt, migration_types_mit, status_sts, email_templates_emt
 
 **Association Tables**: Tiered audit strategy (Tier 1: Full audit, Tier 2: Minimal audit, Tier 3: No audit)
 

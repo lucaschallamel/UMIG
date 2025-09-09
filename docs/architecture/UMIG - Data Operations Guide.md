@@ -1,7 +1,7 @@
 # UMIG Data Operations Guide
 
-**Version:** 1.0  
-**Date:** August 28, 2025  
+**Version:** 1.1  
+**Date:** September 9, 2025  
 **Purpose:** Operational procedures, troubleshooting, and performance optimization for UMIG database operations  
 **Audience:** Database administrators, developers, operations teams
 
@@ -214,7 +214,45 @@ def updateConfigurationValue(UUID scfId, String newValue, String updatedBy, Stri
 - **Audit Trail**: Captures old value, new value, reason, and user
 - **Change Tracking**: Categorizes change type for reporting
 
-### 2.3. Type Safety and Filtering Patterns (ADR-031 Compliance)
+### 2.4. US-034 Import Queue Operations
+
+#### 2.4.1 Queue Monitoring
+
+Monitor import queue status and performance:
+
+```sql
+-- Real-time queue status (51ms avg response)
+SELECT iqm_status, COUNT(*) as queue_count,
+       AVG(iqm_estimated_duration) as avg_duration
+FROM stg_import_queue_management_iqm
+WHERE iqm_is_active = true
+GROUP BY iqm_status
+ORDER BY iqm_priority DESC;
+```
+
+#### 2.4.2 Resource Management
+
+Check resource lock status and conflicts:
+
+```sql
+-- Detect resource deadlocks
+SELECT COUNT(*) as long_running_locks,
+       irl_resource_identifier,
+       irl_locked_at
+FROM stg_import_resource_locks_irl
+WHERE irl_is_active = true
+  AND irl_locked_at < NOW() - INTERVAL '30 minutes'
+GROUP BY irl_resource_identifier, irl_locked_at;
+```
+
+#### 2.4.3 Performance Baselines
+
+- **Queue Operations**: 51ms average response (US-034 benchmark)
+- **Resource Locks**: <30ms acquisition time
+- **Schedule Execution**: <45ms tracking queries
+- **Performance Monitoring**: <60ms aggregation queries
+
+### 2.5. Type Safety and Filtering Patterns (ADR-031 Compliance)
 
 #### Explicit Type Casting for Query Parameters
 
@@ -373,7 +411,37 @@ def getPaginatedInstructions(UUID stepInstanceId, Integer limit = 20, Integer of
 }
 ```
 
-### 3.3. Performance Monitoring Queries
+### 3.4. US-034 Performance Optimization
+
+#### 3.4.1 Query Optimization Patterns
+
+```groovy
+// Optimized queue management queries (proven 51ms performance)
+class ImportQueueOptimizedQueries {
+    static List<Map> getQueueStatusOptimized() {
+        return DatabaseUtil.withSql { sql ->
+            sql.rows('''
+                SELECT iqm_status, COUNT(*) as queue_count,
+                       AVG(iqm_estimated_duration) as avg_duration,
+                       MIN(iqm_requested_at) as oldest_request
+                FROM stg_import_queue_management_iqm
+                WHERE iqm_is_active = true
+                GROUP BY iqm_status
+                ORDER BY iqm_priority DESC, oldest_request ASC
+            ''')
+        }
+    }
+}
+```
+
+#### 3.4.2 Resource Utilization Thresholds
+
+- **Memory**: 85% warning, 95% critical
+- **CPU**: 80% warning, 90% critical
+- **Concurrent Imports**: 3 active limit, 10 queue capacity
+- **Database Connections**: 3 per import, 15 total pool
+
+### 3.5. Performance Monitoring Queries
 
 #### Configuration Query Performance Analysis
 
