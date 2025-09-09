@@ -31,21 +31,21 @@ describe("MigrationTypesRepository Unit Tests", () => {
       return mockDatabaseUtil.withSql((sql) => {
         const query = `
           SELECT 
-            mtm_id,
-            mtm_code,
-            mtm_name,
-            mtm_description,
-            mtm_color,
-            mtm_icon,
-            mtm_display_order,
-            mtm_active,
+            mit_id,
+            mit_code,
+            mit_name,
+            mit_description,
+            mit_color,
+            mit_icon,
+            mit_display_order,
+            mit_active,
             created_by,
             created_at,
             updated_by,
             updated_at
-          FROM migration_types_master
-          ${includeInactive ? "" : "WHERE mtm_active = TRUE"}
-          ORDER BY mtm_display_order, mtm_code
+          FROM migration_types_mit
+          ${includeInactive ? "" : "WHERE mit_active = TRUE"}
+          ORDER BY mit_display_order, mit_code
         `;
 
         return sql.rows(query);
@@ -57,20 +57,20 @@ describe("MigrationTypesRepository Unit Tests", () => {
         return sql.firstRow(
           `
           SELECT 
-            mtm_id,
-            mtm_code,
-            mtm_name,
-            mtm_description,
-            mtm_color,
-            mtm_icon,
-            mtm_display_order,
-            mtm_active,
+            mit_id,
+            mit_code,
+            mit_name,
+            mit_description,
+            mit_color,
+            mit_icon,
+            mit_display_order,
+            mit_active,
             created_by,
             created_at,
             updated_by,
             updated_at
-          FROM migration_types_master
-          WHERE mtm_id = :mtmId
+          FROM migration_types_mit
+          WHERE mit_id = :mtmId
         `,
           [mtmId],
         );
@@ -82,20 +82,20 @@ describe("MigrationTypesRepository Unit Tests", () => {
         return sql.firstRow(
           `
           SELECT 
-            mtm_id,
-            mtm_code,
-            mtm_name,
-            mtm_description,
-            mtm_color,
-            mtm_icon,
-            mtm_display_order,
-            mtm_active,
+            mit_id,
+            mit_code,
+            mit_name,
+            mit_description,
+            mit_color,
+            mit_icon,
+            mit_display_order,
+            mit_active,
             created_by,
             created_at,
             updated_by,
             updated_at
-          FROM migration_types_master
-          WHERE mtm_code = :mtmCode
+          FROM migration_types_mit
+          WHERE mit_code = :mtmCode
         `,
           [mtmCode],
         );
@@ -105,42 +105,42 @@ describe("MigrationTypesRepository Unit Tests", () => {
     createMigrationType(params) {
       return mockDatabaseUtil.withSql((sql) => {
         // Validate required fields
-        if (!params.mtm_code || !params.mtm_name) {
-          throw new Error("mtm_code and mtm_name are required");
+        if (!params.mit_code || !params.mit_name) {
+          throw new Error("mit_code and mit_name are required");
         }
 
         // Set defaults
         const processedParams = {
           ...params,
-          mtm_description: params.mtm_description || null,
-          mtm_color: params.mtm_color || "#6B73FF",
-          mtm_icon: params.mtm_icon || "layers",
-          mtm_display_order: params.mtm_display_order || 0,
-          mtm_active: params.mtm_active != null ? params.mtm_active : true,
+          mit_description: params.mit_description || null,
+          mit_color: params.mit_color || "#6B73FF",
+          mit_icon: params.mit_icon || "layers",
+          mit_display_order: params.mit_display_order || 0,
+          mit_active: params.mit_active != null ? params.mit_active : true,
           created_by: params.created_by || "system",
           updated_by: params.updated_by || params.created_by || "system",
         };
 
         return sql.firstRow(
           `
-          INSERT INTO migration_types_master (
-            mtm_code,
-            mtm_name,
-            mtm_description,
-            mtm_color,
-            mtm_icon,
-            mtm_display_order,
-            mtm_active,
+          INSERT INTO migration_types_mit (
+            mit_code,
+            mit_name,
+            mit_description,
+            mit_color,
+            mit_icon,
+            mit_display_order,
+            mit_active,
             created_by,
             updated_by
           ) VALUES (
-            :mtm_code,
-            :mtm_name,
-            :mtm_description,
-            :mtm_color,
-            :mtm_icon,
-            :mtm_display_order,
-            :mtm_active,
+            :mit_code,
+            :mit_name,
+            :mit_description,
+            :mit_color,
+            :mit_icon,
+            :mit_display_order,
+            :mit_active,
             :created_by,
             :updated_by
           ) RETURNING *
@@ -154,17 +154,17 @@ describe("MigrationTypesRepository Unit Tests", () => {
       return mockDatabaseUtil.withSql((sql) => {
         // Build dynamic update query based on provided params
         const updateFields = [];
-        const queryParams = { mtm_id: mtmId };
+        const queryParams = { mit_id: mtmId };
 
         // List of updatable fields
         const updatableFields = [
-          "mtm_code",
-          "mtm_name",
-          "mtm_description",
-          "mtm_color",
-          "mtm_icon",
-          "mtm_display_order",
-          "mtm_active",
+          "mit_code",
+          "mit_name",
+          "mit_description",
+          "mit_color",
+          "mit_icon",
+          "mit_display_order",
+          "mit_active",
         ];
 
         updatableFields.forEach((field) => {
@@ -184,9 +184,9 @@ describe("MigrationTypesRepository Unit Tests", () => {
         queryParams.updated_by = params.updated_by || "system";
 
         const query = `
-          UPDATE migration_types_master
+          UPDATE migration_types_mit
           SET ${updateFields.join(", ")}
-          WHERE mtm_id = :mtm_id
+          WHERE mit_id = :mit_id
           RETURNING *
         `;
 
@@ -198,8 +198,8 @@ describe("MigrationTypesRepository Unit Tests", () => {
       return mockDatabaseUtil.withSql((sql) => {
         const deleted = sql.executeUpdate(
           `
-          DELETE FROM migration_types_master
-          WHERE mtm_id = :mtmId
+          DELETE FROM migration_types_mit
+          WHERE mit_id = :mtmId
         `,
           [mtmId],
         );
@@ -213,8 +213,8 @@ describe("MigrationTypesRepository Unit Tests", () => {
         const count = sql.firstRow(
           `
           SELECT COUNT(*) as count
-          FROM migration_types_master
-          WHERE mtm_code = :mtmCode
+          FROM migration_types_mit
+          WHERE mit_code = :mtmCode
         `,
           [mtmCode],
         );
@@ -260,42 +260,42 @@ describe("MigrationTypesRepository Unit Tests", () => {
   // Mock migration types data
   const mockMigrationTypes = [
     {
-      mtm_id: 1,
-      mtm_code: "INFRASTRUCTURE",
-      mtm_name: "Infrastructure Migration",
-      mtm_description: "Infrastructure and hardware migration",
-      mtm_color: "#FF6B6B",
-      mtm_icon: "server",
-      mtm_display_order: 1,
-      mtm_active: true,
+      mit_id: 1,
+      mit_code: "INFRASTRUCTURE",
+      mit_name: "Infrastructure Migration",
+      mit_description: "Infrastructure and hardware migration",
+      mit_color: "#FF6B6B",
+      mit_icon: "server",
+      mit_display_order: 1,
+      mit_active: true,
       created_by: "system",
       updated_by: "system",
       created_at: new Date(),
       updated_at: new Date(),
     },
     {
-      mtm_id: 2,
-      mtm_code: "APPLICATION",
-      mtm_name: "Application Migration",
-      mtm_description: "Software application migration",
-      mtm_color: "#4ECDC4",
-      mtm_icon: "apps",
-      mtm_display_order: 2,
-      mtm_active: true,
+      mit_id: 2,
+      mit_code: "APPLICATION",
+      mit_name: "Application Migration",
+      mit_description: "Software application migration",
+      mit_color: "#4ECDC4",
+      mit_icon: "apps",
+      mit_display_order: 2,
+      mit_active: true,
       created_by: "system",
       updated_by: "system",
       created_at: new Date(),
       updated_at: new Date(),
     },
     {
-      mtm_id: 3,
-      mtm_code: "DATABASE",
-      mtm_name: "Database Migration",
-      mtm_description: "Database migration",
-      mtm_color: "#45B7D1",
-      mtm_icon: "database",
-      mtm_display_order: 3,
-      mtm_active: false,
+      mit_id: 3,
+      mit_code: "DATABASE",
+      mit_name: "Database Migration",
+      mit_description: "Database migration",
+      mit_color: "#45B7D1",
+      mit_icon: "database",
+      mit_display_order: 3,
+      mit_active: false,
       created_by: "system",
       updated_by: "system",
       created_at: new Date(),
@@ -306,7 +306,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
   describe("findAllMigrationTypes", () => {
     it("should return only active migration types by default", async () => {
       const activeMigrationTypes = mockMigrationTypes.filter(
-        (mt) => mt.mtm_active,
+        (mt) => mt.mit_active,
       );
       mockSql.rows.mockResolvedValueOnce(activeMigrationTypes);
 
@@ -314,7 +314,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       expect(mockSql.rows).toHaveBeenCalledTimes(1);
       expect(mockSql.rows).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE mtm_active = TRUE"),
+        expect.stringContaining("WHERE mit_active = TRUE"),
       );
 
       testResults.repositoryMethodsValidated.push(
@@ -330,7 +330,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       expect(mockSql.rows).toHaveBeenCalledTimes(1);
       expect(mockSql.rows).toHaveBeenCalledWith(
-        expect.not.stringContaining("WHERE mtm_active = TRUE"),
+        expect.not.stringContaining("WHERE mit_active = TRUE"),
       );
 
       testResults.repositoryMethodsValidated.push(
@@ -345,7 +345,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
       const result = repository.findAllMigrationTypes();
 
       expect(mockSql.rows).toHaveBeenCalledWith(
-        expect.stringContaining("ORDER BY mtm_display_order, mtm_code"),
+        expect.stringContaining("ORDER BY mit_display_order, mit_code"),
       );
 
       testResults.repositoryMethodsValidated.push(
@@ -363,7 +363,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       expect(mockSql.firstRow).toHaveBeenCalledTimes(1);
       expect(mockSql.firstRow).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE mtm_id = :mtmId"),
+        expect.stringContaining("WHERE mit_id = :mtmId"),
         [1],
       );
 
@@ -378,7 +378,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       expect(mockSql.firstRow).toHaveBeenCalledTimes(1);
       expect(mockSql.firstRow).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE mtm_id = :mtmId"),
+        expect.stringContaining("WHERE mit_id = :mtmId"),
         [999],
       );
 
@@ -397,7 +397,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       expect(mockSql.firstRow).toHaveBeenCalledTimes(1);
       expect(mockSql.firstRow).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE mtm_code = :mtmCode"),
+        expect.stringContaining("WHERE mit_code = :mtmCode"),
         ["INFRASTRUCTURE"],
       );
 
@@ -422,19 +422,19 @@ describe("MigrationTypesRepository Unit Tests", () => {
   describe("createMigrationType", () => {
     it("should create migration type with all required fields", async () => {
       const newMigrationType = {
-        mtm_code: "NETWORK",
-        mtm_name: "Network Migration",
-        mtm_description: "Network infrastructure migration",
-        mtm_color: "#9B59B6",
-        mtm_icon: "network",
-        mtm_display_order: 4,
-        mtm_active: true,
+        mit_code: "NETWORK",
+        mit_name: "Network Migration",
+        mit_description: "Network infrastructure migration",
+        mit_color: "#9B59B6",
+        mit_icon: "network",
+        mit_display_order: 4,
+        mit_active: true,
         created_by: "test-user",
         updated_by: "test-user",
       };
 
       const createdMigrationType = {
-        mtm_id: 4,
+        mit_id: 4,
         ...newMigrationType,
         created_at: new Date(),
         updated_at: new Date(),
@@ -446,10 +446,10 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       expect(mockSql.firstRow).toHaveBeenCalledTimes(1);
       expect(mockSql.firstRow).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO migration_types_master"),
+        expect.stringContaining("INSERT INTO migration_types_mit"),
         expect.objectContaining({
-          mtm_code: "NETWORK",
-          mtm_name: "Network Migration",
+          mit_code: "NETWORK",
+          mit_name: "Network Migration",
         }),
       );
 
@@ -459,19 +459,19 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
     it("should set default values for optional fields", async () => {
       const minimalMigrationType = {
-        mtm_code: "MINIMAL",
-        mtm_name: "Minimal Migration",
+        mit_code: "MINIMAL",
+        mit_name: "Minimal Migration",
       };
 
       const createdMigrationType = {
-        mtm_id: 5,
-        mtm_code: "MINIMAL",
-        mtm_name: "Minimal Migration",
-        mtm_description: null,
-        mtm_color: "#6B73FF",
-        mtm_icon: "layers",
-        mtm_display_order: 0,
-        mtm_active: true,
+        mit_id: 5,
+        mit_code: "MINIMAL",
+        mit_name: "Minimal Migration",
+        mit_description: null,
+        mit_color: "#6B73FF",
+        mit_icon: "layers",
+        mit_display_order: 0,
+        mit_active: true,
         created_by: "system",
         updated_by: "system",
       };
@@ -481,12 +481,12 @@ describe("MigrationTypesRepository Unit Tests", () => {
       const result = repository.createMigrationType(minimalMigrationType);
 
       expect(mockSql.firstRow).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO migration_types_master"),
+        expect.stringContaining("INSERT INTO migration_types_mit"),
         expect.objectContaining({
-          mtm_color: "#6B73FF",
-          mtm_icon: "layers",
-          mtm_display_order: 0,
-          mtm_active: true,
+          mit_color: "#6B73FF",
+          mit_icon: "layers",
+          mit_display_order: 0,
+          mit_active: true,
           created_by: "system",
           updated_by: "system",
         }),
@@ -500,13 +500,13 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
     it("should throw error for missing required fields", async () => {
       const invalidMigrationType = {
-        mtm_name: "Missing Code Migration",
-        // Missing mtm_code
+        mit_name: "Missing Code Migration",
+        // Missing mit_code
       };
 
       expect(() => {
         repository.createMigrationType(invalidMigrationType);
-      }).toThrow("mtm_code and mtm_name are required");
+      }).toThrow("mit_code and mit_name are required");
 
       testResults.repositoryMethodsValidated.push(
         "createMigrationType (validation error)",
@@ -518,8 +518,8 @@ describe("MigrationTypesRepository Unit Tests", () => {
   describe("updateMigrationType", () => {
     it("should update specified fields only", async () => {
       const updateParams = {
-        mtm_name: "Updated Infrastructure Migration",
-        mtm_color: "#E74C3C",
+        mit_name: "Updated Infrastructure Migration",
+        mit_color: "#E74C3C",
         updated_by: "test-user",
       };
 
@@ -534,11 +534,11 @@ describe("MigrationTypesRepository Unit Tests", () => {
       const result = repository.updateMigrationType(1, updateParams);
 
       expect(mockSql.firstRow).toHaveBeenCalledWith(
-        expect.stringContaining("UPDATE migration_types_master"),
+        expect.stringContaining("UPDATE migration_types_mit"),
         expect.objectContaining({
-          mtm_id: 1,
-          mtm_name: "Updated Infrastructure Migration",
-          mtm_color: "#E74C3C",
+          mit_id: 1,
+          mit_name: "Updated Infrastructure Migration",
+          mit_color: "#E74C3C",
           updated_by: "test-user",
         }),
       );
@@ -571,7 +571,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
     it("should always update updated_by and updated_at fields", async () => {
       const updateParams = {
-        mtm_name: "New Name",
+        mit_name: "New Name",
         updated_by: "test-user",
       };
 
@@ -600,7 +600,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
       const result = repository.deleteMigrationType(3);
 
       expect(mockSql.executeUpdate).toHaveBeenCalledWith(
-        expect.stringContaining("DELETE FROM migration_types_master"),
+        expect.stringContaining("DELETE FROM migration_types_mit"),
         [3],
       );
 
@@ -616,7 +616,7 @@ describe("MigrationTypesRepository Unit Tests", () => {
       const result = repository.deleteMigrationType(999);
 
       expect(mockSql.executeUpdate).toHaveBeenCalledWith(
-        expect.stringContaining("DELETE FROM migration_types_master"),
+        expect.stringContaining("DELETE FROM migration_types_mit"),
         [999],
       );
 
@@ -685,8 +685,8 @@ describe("MigrationTypesRepository Unit Tests", () => {
 
       try {
         repository.createMigrationType({
-          mtm_code: "INFRASTRUCTURE",
-          mtm_name: "Duplicate Migration",
+          mit_code: "INFRASTRUCTURE",
+          mit_name: "Duplicate Migration",
         });
       } catch (error) {
         expect(error.sqlState).toBe("23505");
@@ -708,10 +708,10 @@ describe("MigrationTypesRepository Unit Tests", () => {
       // This would be part of a more complex transaction-based method
       mockSql.withTransaction(() => {
         mockSql.executeUpdate(
-          "UPDATE migration_types_master SET mtm_display_order = 1 WHERE mtm_id = 1",
+          "UPDATE migration_types_mit SET mit_display_order = 1 WHERE mit_id = 1",
         );
         mockSql.executeUpdate(
-          "UPDATE migration_types_master SET mtm_display_order = 2 WHERE mtm_id = 2",
+          "UPDATE migration_types_mit SET mit_display_order = 2 WHERE mit_id = 2",
         );
       });
 

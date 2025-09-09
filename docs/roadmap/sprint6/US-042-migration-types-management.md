@@ -52,19 +52,19 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 
 ### Database Changes
 
-**New Table: `migration_types_master_mtm`**
+**New Table: `migration_types_mit`**
 
 ```sql
-- mtm_name VARCHAR(50) PRIMARY KEY  -- Migration type name as primary key
-- mtm_description TEXT
-- mtm_color_code VARCHAR(7)         -- Hex color for UI
-- mtm_icon_name VARCHAR(50)         -- Icon identifier
-- mtm_is_active BOOLEAN DEFAULT true
-- mtm_display_order INTEGER
-- mtm_created_at TIMESTAMP
-- mtm_created_by VARCHAR(255)
-- mtm_updated_at TIMESTAMP
-- mtm_updated_by VARCHAR(255)
+- mit_name VARCHAR(50) PRIMARY KEY  -- Migration type name as primary key
+- mit_description TEXT
+- mit_color_code VARCHAR(7)         -- Hex color for UI
+- mit_icon_name VARCHAR(50)         -- Icon identifier
+- mit_is_active BOOLEAN DEFAULT true
+- mit_display_order INTEGER
+- mit_created_at TIMESTAMP
+- mit_created_by VARCHAR(255)
+- mit_updated_at TIMESTAMP
+- mit_updated_by VARCHAR(255)
 ```
 
 **No Changes to Existing Tables**
@@ -244,7 +244,7 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 
 **Phase 1: Database Foundation**
 
-1. Create new migration_types_master table
+1. Create new migration_types_mit table
 2. Implement data migration from existing static types
 3. Add foreign key relationships
 
@@ -290,22 +290,22 @@ Currently, Migration Types are hardcoded in the database and statically implemen
 **Simplified Migration Script**
 
 ```sql
--- Step 1: Create migration_types_master table
-CREATE TABLE migration_types_master_mtm (
-    mtm_name VARCHAR(50) PRIMARY KEY,
-    mtm_description TEXT,
-    mtm_color_code VARCHAR(7) DEFAULT '#007CBA',
-    mtm_icon_name VARCHAR(50),
-    mtm_is_active BOOLEAN DEFAULT true,
-    mtm_display_order INTEGER,
-    mtm_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    mtm_created_by VARCHAR(255),
-    mtm_updated_at TIMESTAMP,
-    mtm_updated_by VARCHAR(255)
+-- Step 1: Create migration_types_mit table
+CREATE TABLE migration_types_mit (
+    mit_name VARCHAR(50) PRIMARY KEY,
+    mit_description TEXT,
+    mit_color_code VARCHAR(7) DEFAULT '#007CBA',
+    mit_icon_name VARCHAR(50),
+    mit_is_active BOOLEAN DEFAULT true,
+    mit_display_order INTEGER,
+    mit_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    mit_created_by VARCHAR(255),
+    mit_updated_at TIMESTAMP,
+    mit_updated_by VARCHAR(255)
 );
 
 -- Step 2: Insert existing migration types
-INSERT INTO migration_types_master_mtm (mtm_name, mtm_description, mtm_display_order)
+INSERT INTO migration_types_mit (mit_name, mit_description, mit_display_order)
 SELECT DISTINCT
     mig_type,
     'Standard migration type',
@@ -322,7 +322,7 @@ WHERE mig_type IS NOT NULL AND mig_type != '';
 
 **Simple Rollback**
 
-- Just DROP the new migration_types_master_mtm table
+- Just DROP the new migration_types_mit table
 - Zero impact on existing functionality
 - No data restoration needed
 
@@ -357,7 +357,7 @@ WHERE mig_type IS NOT NULL AND mig_type != '';
 ### Sub-tasks
 
 1. **Database Schema & Migration** (1 point)
-   - Create migration_types_master_mtm table
+   - Create migration_types_mit table
    - Simple data population script
    - No foreign key relationships needed
 
@@ -410,8 +410,8 @@ WHERE mig_type IS NOT NULL AND mig_type != '';
 
 **Database Architecture Excellence**:
 
-- ✅ **NEW: 029_create_migration_types_master.sql** - Migration types master table with enhanced schema
-- ✅ **NEW: 028_enhance_iteration_types_master.sql** - Enhanced iteration types schema with color/icon support
+- ✅ **NEW: 029_create_migration_types_mit.sql** - Migration types master table with enhanced schema
+- ✅ **NEW: 028_enhance_iteration_types_mit.sql** - Enhanced iteration types schema with color/icon support
 - ✅ **Updated db.changelog-master.xml** - Proper Liquibase integration with sequential numbering
 
 **Comprehensive Testing Suite (1,324+ lines)**:
