@@ -2,181 +2,183 @@
 
 /**
  * Test Suite Organization Generator
- * 
+ *
  * Generates proper test categorization, environment configuration,
  * and package.json script organization for UMIG test suite.
- * 
+ *
  * Purpose: Fix the 37 failing tests by properly categorizing and configuring
  * test environments rather than fixing unit test infrastructure (which is complete).
  */
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 class TestSuiteOrganizer {
   constructor() {
-    this.baseDir = path.resolve(__dirname, '../..');
-    this.testsDir = path.join(this.baseDir, '__tests__');
-    
+    this.baseDir = path.resolve(__dirname, "../..");
+    this.testsDir = path.join(this.baseDir, "__tests__");
+
     // Test categorization based on infrastructure requirements
     this.testCategories = {
       unit: {
-        description: 'Tests that run in isolation without external dependencies',
-        environment: 'node',
+        description:
+          "Tests that run in isolation without external dependencies",
+        environment: "node",
         requirements: [],
-        pattern: '__tests__/unit/**/*.test.js',
-        shouldPass: true
+        pattern: "__tests__/unit/**/*.test.js",
+        shouldPass: true,
       },
       integration: {
-        description: 'Tests requiring running database/server stack',
-        environment: 'node',
-        requirements: ['database', 'confluence', 'api-server'],
-        pattern: '__tests__/integration/**/*.test.js',
-        shouldPass: false // without infrastructure
+        description: "Tests requiring running database/server stack",
+        environment: "node",
+        requirements: ["database", "confluence", "api-server"],
+        pattern: "__tests__/integration/**/*.test.js",
+        shouldPass: false, // without infrastructure
       },
       dom: {
-        description: 'Tests requiring DOM/browser environment but no external services',
-        environment: 'jsdom',
-        requirements: ['jsdom'],
-        pattern: '__tests__/**/dom-*.test.js',
-        shouldPass: true
+        description:
+          "Tests requiring DOM/browser environment but no external services",
+        environment: "jsdom",
+        requirements: ["jsdom"],
+        pattern: "__tests__/**/dom-*.test.js",
+        shouldPass: true,
       },
       e2e: {
-        description: 'End-to-end tests requiring full system infrastructure',
-        environment: 'playwright',
-        requirements: ['database', 'confluence', 'api-server', 'browser'],
-        pattern: '__tests__/e2e/**/*.test.js',
-        shouldPass: false // without infrastructure
+        description: "End-to-end tests requiring full system infrastructure",
+        environment: "playwright",
+        requirements: ["database", "confluence", "api-server", "browser"],
+        pattern: "__tests__/e2e/**/*.test.js",
+        shouldPass: false, // without infrastructure
       },
       email: {
-        description: 'Tests requiring MailHog SMTP server',
-        environment: 'node',
-        requirements: ['mailhog', 'smtp'],
-        pattern: '__tests__/email/**/*.test.js',
-        shouldPass: false // without MailHog
+        description: "Tests requiring MailHog SMTP server",
+        environment: "node",
+        requirements: ["mailhog", "smtp"],
+        pattern: "__tests__/email/**/*.test.js",
+        shouldPass: false, // without MailHog
       },
       uat: {
-        description: 'User acceptance tests requiring full system',
-        environment: 'playwright',
-        requirements: ['database', 'confluence', 'api-server', 'browser'],
-        pattern: '__tests__/uat/**/*.test.js',
-        shouldPass: false // without infrastructure
-      }
+        description: "User acceptance tests requiring full system",
+        environment: "playwright",
+        requirements: ["database", "confluence", "api-server", "browser"],
+        pattern: "__tests__/uat/**/*.test.js",
+        shouldPass: false, // without infrastructure
+      },
     };
-    
+
     // Current failing tests analysis
     this.failingTests = {
-      'integration/admin-gui/crud-operations.integration.test.js': {
-        issue: 'Requires running database and API server',
-        category: 'integration',
-        fix: 'Run with infrastructure or skip without'
+      "integration/admin-gui/crud-operations.integration.test.js": {
+        issue: "Requires running database and API server",
+        category: "integration",
+        fix: "Run with infrastructure or skip without",
       },
-      'integration/admin-gui/entity-loading.integration.test.js': {
-        issue: 'Requires running database and API server',
-        category: 'integration', 
-        fix: 'Run with infrastructure or skip without'
+      "integration/admin-gui/entity-loading.integration.test.js": {
+        issue: "Requires running database and API server",
+        category: "integration",
+        fix: "Run with infrastructure or skip without",
       },
-      'integration/admin-gui/status-dropdown-refactoring.integration.test.js': {
-        issue: 'DOM manipulation in node environment - needs jsdom',
-        category: 'dom',
-        fix: 'Change environment to jsdom'
+      "integration/admin-gui/status-dropdown-refactoring.integration.test.js": {
+        issue: "DOM manipulation in node environment - needs jsdom",
+        category: "dom",
+        fix: "Change environment to jsdom",
       },
-      'email/enhanced-email-database-templates.test.js': {
-        issue: 'Requires MailHog SMTP server',
-        category: 'email',
-        fix: 'Run with MailHog or skip without'
+      "email/enhanced-email-database-templates.test.js": {
+        issue: "Requires MailHog SMTP server",
+        category: "email",
+        fix: "Run with MailHog or skip without",
       },
-      'email/enhanced-email-mailhog.test.js': {
-        issue: 'Requires MailHog SMTP server',
-        category: 'email',
-        fix: 'Run with MailHog or skip without'
+      "email/enhanced-email-mailhog.test.js": {
+        issue: "Requires MailHog SMTP server",
+        category: "email",
+        fix: "Run with MailHog or skip without",
       },
-      'repositories/migrationTypesRepository.test.js': {
-        issue: 'Requires database connection',
-        category: 'integration',
-        fix: 'Run with database or mock properly'
+      "repositories/migrationTypesRepository.test.js": {
+        issue: "Requires database connection",
+        category: "integration",
+        fix: "Run with database or mock properly",
       },
-      'e2e/admin-gui-entity-migration.e2e.test.js': {
-        issue: 'Requires full system infrastructure',
-        category: 'e2e',
-        fix: 'Run with full infrastructure'
+      "e2e/admin-gui-entity-migration.e2e.test.js": {
+        issue: "Requires full system infrastructure",
+        category: "e2e",
+        fix: "Run with full infrastructure",
       },
-      'uat/stepview-alignment-uat.test.js': {
-        issue: 'Requires full system infrastructure',
-        category: 'uat',
-        fix: 'Run with full infrastructure'
+      "uat/stepview-alignment-uat.test.js": {
+        issue: "Requires full system infrastructure",
+        category: "uat",
+        fix: "Run with full infrastructure",
       },
-      'admin-gui/color-picker.test.js': {
-        issue: 'Playwright test in wrong environment',
-        category: 'e2e',
-        fix: 'Move to e2e directory or change to unit test'
+      "admin-gui/color-picker.test.js": {
+        issue: "Playwright test in wrong environment",
+        category: "e2e",
+        fix: "Move to e2e directory or change to unit test",
       },
-      'admin-gui/regex-validation.test.js': {
-        issue: 'Playwright test in wrong environment',
-        category: 'e2e', 
-        fix: 'Move to e2e directory or change to unit test'
+      "admin-gui/regex-validation.test.js": {
+        issue: "Playwright test in wrong environment",
+        category: "e2e",
+        fix: "Move to e2e directory or change to unit test",
       },
-      'admin-gui/performance.test.js': {
-        issue: 'Playwright test in wrong environment',
-        category: 'e2e',
-        fix: 'Move to e2e directory or change to unit test'
-      }
+      "admin-gui/performance.test.js": {
+        issue: "Playwright test in wrong environment",
+        category: "e2e",
+        fix: "Move to e2e directory or change to unit test",
+      },
     };
   }
 
   generateTestConfigurations() {
     const configs = {};
-    
+
     // Generate Jest config for each environment
-    configs['jest.config.unit.js'] = {
-      displayName: 'Unit Tests',
-      testEnvironment: 'node',
-      testMatch: ['**/__tests__/unit/**/*.test.js'],
-      setupFilesAfterEnv: ['<rootDir>/jest.setup.unit.js'],
+    configs["jest.config.unit.js"] = {
+      displayName: "Unit Tests",
+      testEnvironment: "node",
+      testMatch: ["**/__tests__/unit/**/*.test.js"],
+      setupFilesAfterEnv: ["<rootDir>/jest.setup.unit.js"],
       collectCoverage: true,
-      coverageDirectory: 'coverage/unit',
-      coverageReporters: ['text', 'lcov', 'html'],
-      verbose: true
+      coverageDirectory: "coverage/unit",
+      coverageReporters: ["text", "lcov", "html"],
+      verbose: true,
     };
 
-    configs['jest.config.dom.js'] = {
-      displayName: 'DOM Tests', 
-      testEnvironment: 'jsdom',
+    configs["jest.config.dom.js"] = {
+      displayName: "DOM Tests",
+      testEnvironment: "jsdom",
       testMatch: [
-        '**/__tests__/integration/admin-gui/status-dropdown-*.test.js',
-        '**/__tests__/**/dom-*.test.js'
+        "**/__tests__/integration/admin-gui/status-dropdown-*.test.js",
+        "**/__tests__/**/dom-*.test.js",
       ],
-      setupFilesAfterEnv: ['<rootDir>/jest.setup.dom.js'],
+      setupFilesAfterEnv: ["<rootDir>/jest.setup.dom.js"],
       collectCoverage: false,
-      verbose: true
+      verbose: true,
     };
 
-    configs['jest.config.integration.js'] = {
-      displayName: 'Integration Tests',
-      testEnvironment: 'node', 
+    configs["jest.config.integration.js"] = {
+      displayName: "Integration Tests",
+      testEnvironment: "node",
       testMatch: [
-        '**/__tests__/integration/**/*.test.js',
-        '**/__tests__/repositories/**/*.test.js'
+        "**/__tests__/integration/**/*.test.js",
+        "**/__tests__/repositories/**/*.test.js",
       ],
       testPathIgnorePatterns: [
-        'status-dropdown-refactoring.integration.test.js' // Moved to DOM tests
+        "status-dropdown-refactoring.integration.test.js", // Moved to DOM tests
       ],
-      setupFilesAfterEnv: ['<rootDir>/jest.setup.integration.js'],
+      setupFilesAfterEnv: ["<rootDir>/jest.setup.integration.js"],
       collectCoverage: false,
-      verbose: true
+      verbose: true,
     };
 
-    configs['jest.config.email.js'] = {
-      displayName: 'Email Tests',
-      testEnvironment: 'node',
-      testMatch: ['**/__tests__/email/**/*.test.js'],
-      setupFilesAfterEnv: ['<rootDir>/jest.setup.email.js'],
+    configs["jest.config.email.js"] = {
+      displayName: "Email Tests",
+      testEnvironment: "node",
+      testMatch: ["**/__tests__/email/**/*.test.js"],
+      setupFilesAfterEnv: ["<rootDir>/jest.setup.email.js"],
       collectCoverage: false,
-      verbose: true
+      verbose: true,
     };
 
     return configs;
@@ -185,7 +187,7 @@ class TestSuiteOrganizer {
   generateSetupFiles() {
     const setupFiles = {};
 
-    setupFiles['jest.setup.unit.js'] = `
+    setupFiles["jest.setup.unit.js"] = `
 // Unit Test Setup - No external dependencies
 console.log('🧪 Setting up Unit Test environment...');
 
@@ -214,7 +216,7 @@ global.testUtils = {
 console.log('✅ Unit test environment ready');
 `;
 
-    setupFiles['jest.setup.dom.js'] = `
+    setupFiles["jest.setup.dom.js"] = `
 // DOM Test Setup - JSDOM environment for DOM manipulation tests
 console.log('🌐 Setting up DOM Test environment...');
 
@@ -257,7 +259,7 @@ global.console = {
 console.log('✅ DOM test environment ready');
 `;
 
-    setupFiles['jest.setup.integration.js'] = `
+    setupFiles["jest.setup.integration.js"] = `
 // Integration Test Setup - Requires running infrastructure
 console.log('🔗 Setting up Integration Test environment...');
 
@@ -312,7 +314,7 @@ beforeAll(async () => {
 });
 `;
 
-    setupFiles['jest.setup.email.js'] = `
+    setupFiles["jest.setup.email.js"] = `
 // Email Test Setup - Requires MailHog SMTP server  
 console.log('📧 Setting up Email Test environment...');
 
@@ -353,33 +355,35 @@ beforeAll(async () => {
       "test:unit": "jest --config jest.config.unit.js",
       "test:unit:watch": "jest --config jest.config.unit.js --watch",
       "test:unit:coverage": "jest --config jest.config.unit.js --coverage",
-      
+
       "test:dom": "jest --config jest.config.dom.js",
       "test:dom:watch": "jest --config jest.config.dom.js --watch",
-      
+
       "test:integration": "jest --config jest.config.integration.js",
-      "test:integration:watch": "jest --config jest.config.integration.js --watch",
-      
+      "test:integration:watch":
+        "jest --config jest.config.integration.js --watch",
+
       "test:email": "jest --config jest.config.email.js",
       "test:email:watch": "jest --config jest.config.email.js --watch",
-      
+
       "test:e2e": "playwright test __tests__/e2e/",
       "test:e2e:headed": "playwright test __tests__/e2e/ --headed",
-      
+
       "test:uat": "playwright test __tests__/uat/",
       "test:uat:headed": "playwright test __tests__/uat/ --headed",
-      
+
       // Infrastructure-aware test runs
-      "test:with-infrastructure": "npm run test:integration && npm run test:email && npm run test:e2e && npm run test:uat",
+      "test:with-infrastructure":
+        "npm run test:integration && npm run test:email && npm run test:e2e && npm run test:uat",
       "test:without-infrastructure": "npm run test:unit && npm run test:dom",
-      
+
       // Smart test runner that checks infrastructure
       "test:smart": "node scripts/test-runners/SmartTestRunner.js",
-      
+
       // Legacy compatibility
-      "test": "npm run test:smart",
+      test: "npm run test:smart",
       "test:all": "npm run test:with-infrastructure",
-      "test:quick": "npm run test:without-infrastructure"
+      "test:quick": "npm run test:without-infrastructure",
     };
   }
 
@@ -565,8 +569,8 @@ export default SmartTestRunner;
   }
 
   async generateFiles() {
-    console.log('🏗️  Generating test suite organization files...');
-    
+    console.log("🏗️  Generating test suite organization files...");
+
     // Generate Jest configurations
     const configs = this.generateTestConfigurations();
     for (const [filename, config] of Object.entries(configs)) {
@@ -579,7 +583,7 @@ export default config;
       await fs.promises.writeFile(configPath, configContent);
       console.log(`✅ Generated ${filename}`);
     }
-    
+
     // Generate setup files
     const setupFiles = this.generateSetupFiles();
     for (const [filename, content] of Object.entries(setupFiles)) {
@@ -587,98 +591,115 @@ export default config;
       await fs.promises.writeFile(setupPath, content);
       console.log(`✅ Generated ${filename}`);
     }
-    
+
     // Generate smart test runner
     const smartRunner = this.generateSmartTestRunner();
-    const runnerPath = path.join(this.baseDir, 'scripts/test-runners/SmartTestRunner.js');
+    const runnerPath = path.join(
+      this.baseDir,
+      "scripts/test-runners/SmartTestRunner.js",
+    );
     await fs.promises.mkdir(path.dirname(runnerPath), { recursive: true });
     await fs.promises.writeFile(runnerPath, smartRunner);
-    await fs.promises.chmod(runnerPath, '755');
+    await fs.promises.chmod(runnerPath, "755");
     console.log(`✅ Generated SmartTestRunner.js`);
-    
+
     // Generate package.json script updates
     const newScripts = this.generatePackageJsonScripts();
-    console.log('📦 Package.json script updates:');
+    console.log("📦 Package.json script updates:");
     console.log(JSON.stringify(newScripts, null, 2));
-    
-    console.log('');
-    console.log('🎉 Test suite organization complete!');
-    console.log('');
-    console.log('Next steps:');
-    console.log('1. Update package.json scripts with the generated ones');
-    console.log('2. Move misplaced Playwright tests to appropriate directories');
+
+    console.log("");
+    console.log("🎉 Test suite organization complete!");
+    console.log("");
+    console.log("Next steps:");
+    console.log("1. Update package.json scripts with the generated ones");
+    console.log(
+      "2. Move misplaced Playwright tests to appropriate directories",
+    );
     console.log('3. Run "npm run test:smart" to test the new setup');
   }
 
   generateAnalysisReport() {
-    console.log('📊 Test Suite Analysis Report');
-    console.log('=============================');
-    console.log('');
-    
-    console.log('✅ CONFIRMED: TD-002 Unit Test Infrastructure is COMPLETE');
-    console.log('   - All unit tests in __tests__/unit/ are passing');
-    console.log('   - Infrastructure for unit testing is working correctly');
-    console.log('   - The 37 failing tests are NOT unit test infrastructure issues');
-    console.log('');
-    
-    console.log('🎯 Root Cause Analysis of 37 Failing Tests:');
-    console.log('');
-    
+    console.log("📊 Test Suite Analysis Report");
+    console.log("=============================");
+    console.log("");
+
+    console.log("✅ CONFIRMED: TD-002 Unit Test Infrastructure is COMPLETE");
+    console.log("   - All unit tests in __tests__/unit/ are passing");
+    console.log("   - Infrastructure for unit testing is working correctly");
+    console.log(
+      "   - The 37 failing tests are NOT unit test infrastructure issues",
+    );
+    console.log("");
+
+    console.log("🎯 Root Cause Analysis of 37 Failing Tests:");
+    console.log("");
+
     const categorized = {};
     for (const [testFile, analysis] of Object.entries(this.failingTests)) {
       const category = analysis.category;
       if (!categorized[category]) categorized[category] = [];
       categorized[category].push({ testFile, ...analysis });
     }
-    
+
     for (const [category, tests] of Object.entries(categorized)) {
       const categoryInfo = this.testCategories[category];
-      console.log(`📁 ${category.toUpperCase()} TESTS (${tests.length} failing)`);
+      console.log(
+        `📁 ${category.toUpperCase()} TESTS (${tests.length} failing)`,
+      );
       console.log(`   Description: ${categoryInfo.description}`);
       console.log(`   Environment: ${categoryInfo.environment}`);
-      console.log(`   Requirements: ${categoryInfo.requirements.join(', ') || 'none'}`);
-      console.log(`   Should pass without infrastructure: ${categoryInfo.shouldPass}`);
-      console.log('');
-      
+      console.log(
+        `   Requirements: ${categoryInfo.requirements.join(", ") || "none"}`,
+      );
+      console.log(
+        `   Should pass without infrastructure: ${categoryInfo.shouldPass}`,
+      );
+      console.log("");
+
       for (const test of tests) {
         console.log(`   ❌ ${test.testFile}`);
         console.log(`      Issue: ${test.issue}`);
         console.log(`      Fix: ${test.fix}`);
-        console.log('');
+        console.log("");
       }
     }
-    
-    console.log('💡 RECOMMENDED ACTIONS:');
-    console.log('1. Categorize tests properly by infrastructure requirements');
-    console.log('2. Configure appropriate test environments (node vs jsdom vs playwright)');
-    console.log('3. Create infrastructure-aware test runners');
-    console.log('4. Move misplaced tests to correct directories');
-    console.log('5. Update package.json scripts for clear test separation');
-    console.log('');
-    console.log('🎯 EXPECTED OUTCOME:');
-    console.log('- Unit tests: 100% passing (no infrastructure required)');
-    console.log('- DOM tests: 100% passing (jsdom only)');
-    console.log('- Integration/E2E/Email tests: Skip gracefully without infrastructure');
-    console.log('- All tests: 100% passing when infrastructure is running');
+
+    console.log("💡 RECOMMENDED ACTIONS:");
+    console.log("1. Categorize tests properly by infrastructure requirements");
+    console.log(
+      "2. Configure appropriate test environments (node vs jsdom vs playwright)",
+    );
+    console.log("3. Create infrastructure-aware test runners");
+    console.log("4. Move misplaced tests to correct directories");
+    console.log("5. Update package.json scripts for clear test separation");
+    console.log("");
+    console.log("🎯 EXPECTED OUTCOME:");
+    console.log("- Unit tests: 100% passing (no infrastructure required)");
+    console.log("- DOM tests: 100% passing (jsdom only)");
+    console.log(
+      "- Integration/E2E/Email tests: Skip gracefully without infrastructure",
+    );
+    console.log("- All tests: 100% passing when infrastructure is running");
   }
 }
 
 // Main execution
 async function main() {
   const organizer = new TestSuiteOrganizer();
-  
+
   // Generate analysis report
   organizer.generateAnalysisReport();
-  console.log('');
-  
+  console.log("");
+
   // Generate organizational files
   await organizer.generateFiles();
 }
 
 // Execute if run directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(error => {
-    console.error('❌ Failed to generate test suite organization:', error);
+  main().catch((error) => {
+    console.error("❌ Failed to generate test suite organization:", error);
     process.exit(1);
   });
 }

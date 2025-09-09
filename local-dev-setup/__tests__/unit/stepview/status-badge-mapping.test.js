@@ -96,7 +96,7 @@ describe("Status Badge Mapping Tests", () => {
     test("should map status ID 26 to BLOCKED using hardcoded fallback", () => {
       // Without loaded status data, should use hardcoded mapping
       expect(stepView.getStatusNameFromId(26)).toBe("BLOCKED");
-      
+
       const badge = stepView.createStatusBadge(26);
       expect(badge).toContain("BLOCKED");
       expect(badge).toContain("#FF6600");
@@ -104,9 +104,9 @@ describe("Status Badge Mapping Tests", () => {
 
     test("should map status ID 26 to BLOCKED with loaded status data", () => {
       stepView.loadMockStatusData();
-      
+
       expect(stepView.getStatusNameFromId(26)).toBe("BLOCKED");
-      
+
       const badge = stepView.createStatusBadge(26);
       expect(badge).toContain("BLOCKED");
       expect(badge).toContain("#FF6600");
@@ -128,32 +128,32 @@ describe("Status Badge Mapping Tests", () => {
       "should correctly map status ID $id to $name",
       ({ id, name, color }) => {
         stepView.loadMockStatusData();
-        
+
         expect(stepView.getStatusNameFromId(id)).toBe(name);
-        
+
         const badge = stepView.createStatusBadge(id);
         const displayName = name.replace(/_/g, " ");
         expect(badge).toContain(displayName);
         expect(badge).toContain(color);
-      }
+      },
     );
   });
 
   describe("Badge creation", () => {
     test("should create proper HTML badge element", () => {
       stepView.loadMockStatusData();
-      
+
       const badge = stepView.createStatusBadge(23);
       expect(badge).toBe(
-        '<span class="status-badge" style="background-color: #0066CC;">IN PROGRESS</span>'
+        '<span class="status-badge" style="background-color: #0066CC;">IN PROGRESS</span>',
       );
     });
 
     test("should handle unknown status IDs with default values", () => {
       const unknownId = 999;
-      
+
       expect(stepView.getStatusNameFromId(unknownId)).toBe("PENDING");
-      
+
       const badge = stepView.createStatusBadge(unknownId);
       expect(badge).toContain("PENDING");
       expect(badge).toContain("#DDDDDD");
