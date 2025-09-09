@@ -29,27 +29,31 @@ describe("RBAC Role Detection", () => {
   describe("Permission checks for different user roles", () => {
     test("Unknown Confluence admin (null role) should have no permissions", () => {
       const userRole = null;
-      
+
       expect(shouldShowStaticBadge(userRole)).toBe(true);
       expect(testPermissionCheck(userRole, "update_step_status")).toBe(false);
-      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(false);
+      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(
+        false,
+      );
       expect(testPermissionCheck(userRole, "bulk_operations")).toBe(false);
       expect(testPermissionCheck(userRole, "advanced_controls")).toBe(false);
     });
 
     test("Undefined role should have no permissions", () => {
       const userRole = undefined;
-      
+
       expect(shouldShowStaticBadge(userRole)).toBe(true);
       expect(testPermissionCheck(userRole, "update_step_status")).toBe(false);
-      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(false);
+      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(
+        false,
+      );
       expect(testPermissionCheck(userRole, "bulk_operations")).toBe(false);
       expect(testPermissionCheck(userRole, "advanced_controls")).toBe(false);
     });
 
     test("NORMAL user should have basic permissions", () => {
       const userRole = "NORMAL";
-      
+
       expect(shouldShowStaticBadge(userRole)).toBe(false);
       expect(testPermissionCheck(userRole, "update_step_status")).toBe(true);
       expect(testPermissionCheck(userRole, "complete_instructions")).toBe(true);
@@ -59,7 +63,7 @@ describe("RBAC Role Detection", () => {
 
     test("PILOT user should have elevated permissions", () => {
       const userRole = "PILOT";
-      
+
       expect(shouldShowStaticBadge(userRole)).toBe(false);
       expect(testPermissionCheck(userRole, "update_step_status")).toBe(true);
       expect(testPermissionCheck(userRole, "complete_instructions")).toBe(true);
@@ -69,7 +73,7 @@ describe("RBAC Role Detection", () => {
 
     test("ADMIN user should have all permissions", () => {
       const userRole = "ADMIN";
-      
+
       expect(shouldShowStaticBadge(userRole)).toBe(false);
       expect(testPermissionCheck(userRole, "update_step_status")).toBe(true);
       expect(testPermissionCheck(userRole, "complete_instructions")).toBe(true);
@@ -103,42 +107,64 @@ describe("RBAC Role Detection", () => {
   describe("Critical fix verification", () => {
     test("Unknown user should get static badge only with no dropdown permissions", () => {
       const unknownUserRole = null;
-      
+
       // Should show static badge
       const showBadge = shouldShowStaticBadge(unknownUserRole);
       expect(showBadge).toBe(true);
-      
+
       // Should NOT have any permissions
-      const canUpdate = testPermissionCheck(unknownUserRole, "update_step_status");
+      const canUpdate = testPermissionCheck(
+        unknownUserRole,
+        "update_step_status",
+      );
       expect(canUpdate).toBe(false);
-      
+
       // Verify the critical fix
       expect(showBadge && !canUpdate).toBe(true);
     });
 
     test("Known users should get dropdown with appropriate permissions", () => {
       const testCases = [
-        { role: "NORMAL", expectedBasicPerms: true, expectedAdvancedPerms: false },
-        { role: "PILOT", expectedBasicPerms: true, expectedAdvancedPerms: true },
-        { role: "ADMIN", expectedBasicPerms: true, expectedAdvancedPerms: true },
+        {
+          role: "NORMAL",
+          expectedBasicPerms: true,
+          expectedAdvancedPerms: false,
+        },
+        {
+          role: "PILOT",
+          expectedBasicPerms: true,
+          expectedAdvancedPerms: true,
+        },
+        {
+          role: "ADMIN",
+          expectedBasicPerms: true,
+          expectedAdvancedPerms: true,
+        },
       ];
 
-      testCases.forEach(({ role, expectedBasicPerms, expectedAdvancedPerms }) => {
-        const showBadge = shouldShowStaticBadge(role);
-        const canUpdate = testPermissionCheck(role, "update_step_status");
-        const canBulk = testPermissionCheck(role, "bulk_operations");
-        
-        expect(showBadge).toBe(false);
-        expect(canUpdate).toBe(expectedBasicPerms);
-        expect(canBulk).toBe(expectedAdvancedPerms);
-      });
+      testCases.forEach(
+        ({ role, expectedBasicPerms, expectedAdvancedPerms }) => {
+          const showBadge = shouldShowStaticBadge(role);
+          const canUpdate = testPermissionCheck(role, "update_step_status");
+          const canBulk = testPermissionCheck(role, "bulk_operations");
+
+          expect(showBadge).toBe(false);
+          expect(canUpdate).toBe(expectedBasicPerms);
+          expect(canBulk).toBe(expectedAdvancedPerms);
+        },
+      );
     });
   });
 
   describe("Permission matrix validation", () => {
     const permissionMatrix = [
       { feature: "update_step_status", normal: true, pilot: true, admin: true },
-      { feature: "complete_instructions", normal: true, pilot: true, admin: true },
+      {
+        feature: "complete_instructions",
+        normal: true,
+        pilot: true,
+        admin: true,
+      },
       { feature: "bulk_operations", normal: false, pilot: true, admin: true },
       { feature: "advanced_controls", normal: false, pilot: true, admin: true },
     ];
@@ -151,7 +177,7 @@ describe("RBAC Role Detection", () => {
         expect(testPermissionCheck("ADMIN", feature)).toBe(admin);
         expect(testPermissionCheck(null, feature)).toBe(false);
         expect(testPermissionCheck(undefined, feature)).toBe(false);
-      }
+      },
     );
   });
 });

@@ -63,15 +63,15 @@ describe("StandaloneStepView", () => {
       pathname: "/stepview.html",
       href: "http://localhost:8090/stepview.html",
       protocol: "http:",
-      origin: "http://localhost:8090"
+      origin: "http://localhost:8090",
     };
-    
+
     // Try to replace the entire location object
     try {
-      Object.defineProperty(window, 'location', {
+      Object.defineProperty(window, "location", {
         value: mockLocation,
         writable: true,
-        configurable: true
+        configurable: true,
       });
     } catch (e) {
       // If that fails, just set it directly
@@ -82,34 +82,42 @@ describe("StandaloneStepView", () => {
     global.window = window;
     global.document = document;
     global.URLSearchParams = window.URLSearchParams;
-    
+
     // Make mockLocation accessible to helper functions
     global.mockLocation = mockLocation;
-    
+
     // Helper function to update the URL search params
     global.setLocationSearch = (search) => {
       global.mockLocation.search = search;
       global.mockLocation.href = `${global.mockLocation.protocol}//${global.mockLocation.hostname}:${global.mockLocation.port}${global.mockLocation.pathname}${search}`;
-      
+
       // Also update window.location if it exists
       if (global.window && global.window.location) {
         global.window.location.search = search;
         global.window.location.href = global.mockLocation.href;
       }
     };
-    
+
     // Helper function to update the full URL
-    global.setLocationUrl = (hostname, port, path = "/stepview.html", search = "") => {
+    global.setLocationUrl = (
+      hostname,
+      port,
+      path = "/stepview.html",
+      search = "",
+    ) => {
       global.mockLocation.hostname = hostname;
       global.mockLocation.port = port;
       global.mockLocation.pathname = path;
       global.mockLocation.search = search;
-      const protocol = hostname === "localhost" || hostname === "127.0.0.1" ? "http:" : "https:";
+      const protocol =
+        hostname === "localhost" || hostname === "127.0.0.1"
+          ? "http:"
+          : "https:";
       global.mockLocation.protocol = protocol;
       const portStr = port ? `:${port}` : "";
       global.mockLocation.href = `${protocol}//${hostname}${portStr}${path}${search}`;
       global.mockLocation.origin = `${protocol}//${hostname}${portStr}`;
-      
+
       // Also update window.location if it exists
       // Use individual property assignments to avoid read-only property errors
       if (global.window && global.window.location) {
@@ -123,7 +131,10 @@ describe("StandaloneStepView", () => {
           // Skip origin as it's read-only in JSDOM
         } catch (e) {
           // If individual assignments fail, we'll rely on our global.mockLocation
-          console.warn('Could not update window.location properties:', e.message);
+          console.warn(
+            "Could not update window.location properties:",
+            e.message,
+          );
         }
       }
     };
@@ -164,19 +175,25 @@ describe("StandaloneStepView", () => {
 
       detectApiBaseUrl() {
         // Use our mock location to ensure we get the test data
-        const currentHost = global.mockLocation ? global.mockLocation.hostname : window.location.hostname;
-        const currentPort = global.mockLocation ? global.mockLocation.port : window.location.port;
+        const currentHost = global.mockLocation
+          ? global.mockLocation.hostname
+          : window.location.hostname;
+        const currentPort = global.mockLocation
+          ? global.mockLocation.port
+          : window.location.port;
 
         if (currentHost === "localhost" || currentHost === "127.0.0.1") {
           return `http://${currentHost}:${currentPort || 8090}/rest/scriptrunner/latest/custom`;
         } else {
-          return "/rest/scriptrunner/latest/custom"
+          return "/rest/scriptrunner/latest/custom";
         }
       }
 
       parseStepViewParams() {
         // Access the mocked location search directly to ensure we get the test data
-        const searchString = global.mockLocation ? global.mockLocation.search : window.location.search;
+        const searchString = global.mockLocation
+          ? global.mockLocation.search
+          : window.location.search;
         const params = new URLSearchParams(searchString);
 
         // Check for UUID format first
@@ -236,7 +253,9 @@ describe("StandaloneStepView", () => {
 
       initializeUserContext() {
         // Use our mock location to ensure we get the test data
-        const searchString = global.mockLocation ? global.mockLocation.search : window.location.search;
+        const searchString = global.mockLocation
+          ? global.mockLocation.search
+          : window.location.search;
         const params = new URLSearchParams(searchString);
 
         return {
@@ -319,7 +338,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should handle missing required parameters", () => {
-      setLocationSearch(""); 
+      setLocationSearch("");
 
       const stepView = new StandaloneStepView();
 
@@ -410,7 +429,7 @@ describe("StandaloneStepView", () => {
       const baseUrl = stepView.detectApiBaseUrl();
 
       expect(baseUrl).toBe(
-        "http://localhost:8090/rest/scriptrunner/latest/custom"
+        "http://localhost:8090/rest/scriptrunner/latest/custom",
       );
     });
 
@@ -421,7 +440,7 @@ describe("StandaloneStepView", () => {
       const baseUrl = stepView.detectApiBaseUrl();
 
       expect(baseUrl).toBe(
-        "http://127.0.0.1:8090/rest/scriptrunner/latest/custom"
+        "http://127.0.0.1:8090/rest/scriptrunner/latest/custom",
       );
     });
 
@@ -441,7 +460,7 @@ describe("StandaloneStepView", () => {
       const baseUrl = stepView.detectApiBaseUrl();
 
       expect(baseUrl).toBe(
-        "http://localhost:9090/rest/scriptrunner/latest/custom"
+        "http://localhost:9090/rest/scriptrunner/latest/custom",
       );
     });
   });
@@ -489,7 +508,7 @@ describe("StandaloneStepView", () => {
     });
 
     test("should default to NORMAL role when not specified", () => {
-      setLocationSearch(""); 
+      setLocationSearch("");
 
       const stepView = new StandaloneStepView();
       const context = stepView.initializeUserContext();
@@ -564,12 +583,12 @@ describe("StandaloneStepView", () => {
     });
 
     test("should detect correct API base URL in configuration", () => {
-      setLocationSearch(""); 
+      setLocationSearch("");
 
       const stepView = new StandaloneStepView();
 
       expect(stepView.config.api.baseUrl).toBe(
-        "http://localhost:8090/rest/scriptrunner/latest/custom"
+        "http://localhost:8090/rest/scriptrunner/latest/custom",
       );
     });
   });

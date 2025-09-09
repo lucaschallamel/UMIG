@@ -8,7 +8,7 @@
  * - Error handling and fallback mechanisms
  * - Unknown user vs formal user behavior
  * - Edge cases and security scenarios
- * 
+ *
  * @jest-environment jsdom
  */
 
@@ -279,7 +279,7 @@ describe("StepView RBAC System", () => {
       // This demonstrates that Object.freeze() only provides shallow immutability
       // In a real implementation, we'd need Object.freeze() on nested arrays too
       expect(stepView.hasPermission("debug_panel")).toBe(true);
-      
+
       // This test documents the current behavior - in production this would be a security concern
     });
   });

@@ -20,24 +20,19 @@
     "test:watch": "npm run test:unit:watch",
     "test:coverage": "npm run test:unit:coverage",
     "test:coverage:report": "npm run test:unit:coverage && open coverage/lcov-report/index.html",
-    
     "comment:phase1-technology-prefixed": "Phase 1: Technology-prefixed test commands for clear JS/Groovy separation",
-    
     "test:js:unit": "jest --config jest.config.unit.js",
     "test:js:integration": "jest --config jest.config.integration.js",
     "test:js:e2e": "playwright test __tests__/e2e/",
     "test:js:uat": "playwright test __tests__/uat/",
     "test:js:all": "npm run test:js:unit && npm run test:js:integration && npm run test:js:e2e && npm run test:js:uat",
-    
     "test:groovy:unit": "cd .. && find src/groovy/umig/tests/unit -name '*.groovy' -exec groovy {} \\;",
     "test:groovy:integration": "cd .. && find src/groovy/umig/tests/integration -name '*.groovy' -exec groovy {} \\;",
     "test:groovy:security": "npm run test:security:import && npm run test:security:comprehensive && npm run test:security:url",
     "test:groovy:all": "npm run test:groovy:unit && npm run test:groovy:integration && npm run test:groovy:security",
-    
     "test:all:unit": "npm run test:js:unit && npm run test:groovy:unit",
     "test:all:integration": "npm run test:js:integration && npm run test:groovy:integration",
     "test:all:comprehensive": "npm run test:js:all && npm run test:groovy:all",
-    
     "comment:legacy-commands": "Legacy commands maintained for backward compatibility during transition",
     "test:integration": "jest --config jest.config.integration.js",
     "test:integration:auth": "node scripts/test-runners/IntegrationTestRunner.js --auth",

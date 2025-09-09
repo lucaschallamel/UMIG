@@ -5,6 +5,7 @@ This document provides all the commands needed to verify that the test suite fix
 ## Quick Fix Application
 
 ### 1. Apply All Fixes (Automated)
+
 ```bash
 # Apply package declaration fixes
 cd /Users/lucaschallamel/Documents/GitHub/UMIG
@@ -20,6 +21,7 @@ groovy src/groovy/umig/tests/validate-all-fixes.groovy
 ## Individual Test Category Verification
 
 ### Category 1: Package Declaration Fixes (4 tests)
+
 ```bash
 # Validate package declarations
 groovy src/groovy/umig/tests/validate-package-fixes.groovy
@@ -32,6 +34,7 @@ groovy src/groovy/umig/tests/unit/DirectAuditLoggingTest.groovy
 ```
 
 ### Category 2: Abstract Class Fix (1 test + 3 dependent tests)
+
 ```bash
 # Verify EmailSecurityTestBase can be imported
 groovy -c "import umig.tests.unit.security.EmailSecurityTestBase; println 'Import successful'"
@@ -43,6 +46,7 @@ groovy src/groovy/umig/tests/unit/security/EmailTemplateSecurityTest.groovy
 ```
 
 ### Category 3: Spock Framework Conversion (2 tests)
+
 ```bash
 # Test converted Spock tests
 groovy src/groovy/umig/tests/unit/stepViewMacroTest.groovy
@@ -50,6 +54,7 @@ groovy src/groovy/umig/tests/unit/stepViewMacroRoleTest.groovy
 ```
 
 ### Category 4: Service Layer Import Resolution (6 tests)
+
 ```bash
 # Verify service layer mocks were created
 ls -la src/groovy/umig/service/
@@ -67,6 +72,7 @@ groovy src/groovy/umig/tests/unit/repository/StepRepositoryDTOTest.groovy
 ## Full Test Suite Execution
 
 ### Using npm Test Commands
+
 ```bash
 # Run JavaScript tests
 npm test
@@ -85,6 +91,7 @@ npm run test:all
 ```
 
 ### Direct Test Execution
+
 ```bash
 # Run specific test categories
 npm run test:unit:category unit
@@ -99,6 +106,7 @@ npm run test:unit:pattern "*Security*"
 ## Validation Before Running Tests
 
 ### Prerequisites Check
+
 ```bash
 # Verify system is ready
 npm run health:check
@@ -111,6 +119,7 @@ npm run test:integration:auth
 ```
 
 ### Quality Gates
+
 ```bash
 # Run quality checks
 npm run quality:check
@@ -125,6 +134,7 @@ npm run test:performance
 ## Debugging Failed Tests
 
 ### Individual Test Debugging
+
 ```bash
 # Run single test with verbose output
 groovy -Dverbose=true src/groovy/umig/tests/unit/[TestName].groovy
@@ -142,6 +152,7 @@ println 'All imports successful'
 ```
 
 ### System Diagnostic
+
 ```bash
 # Check container health
 npm run test:integration:core
@@ -156,17 +167,20 @@ groovy src/groovy/umig/tests/integration/AuthenticationTest.groovy
 ## Expected Results After Fixes
 
 ### Success Criteria
+
 - **Package Declaration Tests**: All 4 tests compile and run without package errors
 - **Abstract Class Tests**: EmailSecurityTestBase can be extended by 3 child tests
 - **Spock Conversion Tests**: Both tests run in standard Groovy format without Spock dependencies
 - **Service Layer Tests**: All 6 tests compile with mock service implementations
 
 ### Performance Targets
+
 - Test execution time: <10 seconds per individual test
 - Full unit test suite: <5 minutes
 - Integration test suite: <15 minutes (with running stack)
 
 ### Quality Gates
+
 - All tests must pass before merging
 - No compilation errors or unresolved imports
 - Proper error handling and meaningful assertions
@@ -175,6 +189,7 @@ groovy src/groovy/umig/tests/integration/AuthenticationTest.groovy
 ## Troubleshooting Common Issues
 
 ### Import Resolution Problems
+
 ```bash
 # Clear Groovy cache
 rm -rf ~/.groovy/grapes/
@@ -184,6 +199,7 @@ groovy -cp "src/groovy" -c "println System.getProperty('java.class.path')"
 ```
 
 ### Test Database Issues
+
 ```bash
 # Reset test database
 npm run restart:erase
@@ -192,7 +208,8 @@ npm run restart:erase
 groovy src/groovy/umig/tests/diagnostics/testDatabaseConnection.groovy
 ```
 
-### Authentication Context Issues  
+### Authentication Context Issues
+
 ```bash
 # Test authentication helper
 groovy src/groovy/umig/tests/integration/AuthenticationHelper.groovy
@@ -206,8 +223,9 @@ groovy src/groovy/umig/tests/integration/AuthenticationTest.groovy
 ## Summary
 
 Total fixes applied: **16 tests** across 4 categories
+
 - ✅ 4 package declaration fixes
-- ✅ 1 abstract class fix (affecting 3+ tests) 
+- ✅ 1 abstract class fix (affecting 3+ tests)
 - ✅ 2 Spock framework conversions
 - ✅ 6 service layer import resolutions
 
