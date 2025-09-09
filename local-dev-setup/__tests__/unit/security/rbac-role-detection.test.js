@@ -5,138 +5,179 @@
  * get null roles and static badges, not formal user permissions.
  */
 
-console.log("🧪 Testing RBAC Role Detection Fix");
-console.log("=====================================");
+describe("RBAC Role Detection", () => {
+  // Simulate the permission check logic
+  function testPermissionCheck(userRole, feature) {
+    const permissions = {
+      update_step_status: ["NORMAL", "PILOT", "ADMIN"],
+      complete_instructions: ["NORMAL", "PILOT", "ADMIN"],
+      bulk_operations: ["PILOT", "ADMIN"],
+      advanced_controls: ["PILOT", "ADMIN"],
+    };
 
-// Simulate the permission check logic
-function testPermissionCheck(userRole, feature) {
-  const permissions = {
-    update_step_status: ["NORMAL", "PILOT", "ADMIN"],
-    complete_instructions: ["NORMAL", "PILOT", "ADMIN"],
-    bulk_operations: ["PILOT", "ADMIN"],
-    advanced_controls: ["PILOT", "ADMIN"],
-  };
+    const allowed = permissions[feature] || [];
+    const hasAccess = allowed.includes(userRole);
 
-  const allowed = permissions[feature] || [];
-  const hasAccess = allowed.includes(userRole);
-
-  return hasAccess;
-}
-
-// Simulate the static badge condition
-function shouldShowStaticBadge(userRole) {
-  return userRole === null || userRole === undefined;
-}
-
-// Test cases
-const testCases = [
-  { userRole: null, description: "Unknown Confluence admin (no role param)" },
-  { userRole: undefined, description: "Undefined role" },
-  { userRole: "NORMAL", description: "Normal user" },
-  { userRole: "PILOT", description: "Pilot user" },
-  { userRole: "ADMIN", description: "Admin user" },
-];
-
-console.log("\n📋 Test Results:");
-console.log("================");
-
-testCases.forEach((testCase) => {
-  const { userRole, description } = testCase;
-
-  console.log(`\n🔍 ${description} (role: ${userRole})`);
-
-  // Test static badge condition
-  const showBadge = shouldShowStaticBadge(userRole);
-  console.log(`  🏷️  Show static badge: ${showBadge}`);
-  console.log(`  🎛️  Show dropdown: ${!showBadge}`);
-
-  // Test key permissions
-  const canUpdateStatus = testPermissionCheck(userRole, "update_step_status");
-  const canComplete = testPermissionCheck(userRole, "complete_instructions");
-  const canBulk = testPermissionCheck(userRole, "bulk_operations");
-  const canAdvanced = testPermissionCheck(userRole, "advanced_controls");
-
-  console.log(`  ✅ update_step_status: ${canUpdateStatus}`);
-  console.log(`  ✅ complete_instructions: ${canComplete}`);
-  console.log(`  ✅ bulk_operations: ${canBulk}`);
-  console.log(`  ✅ advanced_controls: ${canAdvanced}`);
-
-  // Expected behavior check
-  if (userRole === null || userRole === undefined) {
-    const isCorrect =
-      showBadge && !canUpdateStatus && !canComplete && !canBulk && !canAdvanced;
-    console.log(
-      `  ${isCorrect ? "✅" : "❌"} Expected: Static badge only, no permissions`,
-    );
-  } else {
-    const isCorrect = !showBadge && canUpdateStatus && canComplete;
-    console.log(
-      `  ${isCorrect ? "✅" : "❌"} Expected: Dropdown with appropriate permissions`,
-    );
+    return hasAccess;
   }
+
+  // Simulate the static badge condition
+  function shouldShowStaticBadge(userRole) {
+    return userRole === null || userRole === undefined;
+  }
+
+  describe("Permission checks for different user roles", () => {
+    test("Unknown Confluence admin (null role) should have no permissions", () => {
+      const userRole = null;
+
+      expect(shouldShowStaticBadge(userRole)).toBe(true);
+      expect(testPermissionCheck(userRole, "update_step_status")).toBe(false);
+      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(
+        false,
+      );
+      expect(testPermissionCheck(userRole, "bulk_operations")).toBe(false);
+      expect(testPermissionCheck(userRole, "advanced_controls")).toBe(false);
+    });
+
+    test("Undefined role should have no permissions", () => {
+      const userRole = undefined;
+
+      expect(shouldShowStaticBadge(userRole)).toBe(true);
+      expect(testPermissionCheck(userRole, "update_step_status")).toBe(false);
+      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(
+        false,
+      );
+      expect(testPermissionCheck(userRole, "bulk_operations")).toBe(false);
+      expect(testPermissionCheck(userRole, "advanced_controls")).toBe(false);
+    });
+
+    test("NORMAL user should have basic permissions", () => {
+      const userRole = "NORMAL";
+
+      expect(shouldShowStaticBadge(userRole)).toBe(false);
+      expect(testPermissionCheck(userRole, "update_step_status")).toBe(true);
+      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(true);
+      expect(testPermissionCheck(userRole, "bulk_operations")).toBe(false);
+      expect(testPermissionCheck(userRole, "advanced_controls")).toBe(false);
+    });
+
+    test("PILOT user should have elevated permissions", () => {
+      const userRole = "PILOT";
+
+      expect(shouldShowStaticBadge(userRole)).toBe(false);
+      expect(testPermissionCheck(userRole, "update_step_status")).toBe(true);
+      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(true);
+      expect(testPermissionCheck(userRole, "bulk_operations")).toBe(true);
+      expect(testPermissionCheck(userRole, "advanced_controls")).toBe(true);
+    });
+
+    test("ADMIN user should have all permissions", () => {
+      const userRole = "ADMIN";
+
+      expect(shouldShowStaticBadge(userRole)).toBe(false);
+      expect(testPermissionCheck(userRole, "update_step_status")).toBe(true);
+      expect(testPermissionCheck(userRole, "complete_instructions")).toBe(true);
+      expect(testPermissionCheck(userRole, "bulk_operations")).toBe(true);
+      expect(testPermissionCheck(userRole, "advanced_controls")).toBe(true);
+    });
+  });
+
+  describe("Static badge display logic", () => {
+    test("should show static badge for null role", () => {
+      expect(shouldShowStaticBadge(null)).toBe(true);
+    });
+
+    test("should show static badge for undefined role", () => {
+      expect(shouldShowStaticBadge(undefined)).toBe(true);
+    });
+
+    test("should NOT show static badge for NORMAL role", () => {
+      expect(shouldShowStaticBadge("NORMAL")).toBe(false);
+    });
+
+    test("should NOT show static badge for PILOT role", () => {
+      expect(shouldShowStaticBadge("PILOT")).toBe(false);
+    });
+
+    test("should NOT show static badge for ADMIN role", () => {
+      expect(shouldShowStaticBadge("ADMIN")).toBe(false);
+    });
+  });
+
+  describe("Critical fix verification", () => {
+    test("Unknown user should get static badge only with no dropdown permissions", () => {
+      const unknownUserRole = null;
+
+      // Should show static badge
+      const showBadge = shouldShowStaticBadge(unknownUserRole);
+      expect(showBadge).toBe(true);
+
+      // Should NOT have any permissions
+      const canUpdate = testPermissionCheck(
+        unknownUserRole,
+        "update_step_status",
+      );
+      expect(canUpdate).toBe(false);
+
+      // Verify the critical fix
+      expect(showBadge && !canUpdate).toBe(true);
+    });
+
+    test("Known users should get dropdown with appropriate permissions", () => {
+      const testCases = [
+        {
+          role: "NORMAL",
+          expectedBasicPerms: true,
+          expectedAdvancedPerms: false,
+        },
+        {
+          role: "PILOT",
+          expectedBasicPerms: true,
+          expectedAdvancedPerms: true,
+        },
+        {
+          role: "ADMIN",
+          expectedBasicPerms: true,
+          expectedAdvancedPerms: true,
+        },
+      ];
+
+      testCases.forEach(
+        ({ role, expectedBasicPerms, expectedAdvancedPerms }) => {
+          const showBadge = shouldShowStaticBadge(role);
+          const canUpdate = testPermissionCheck(role, "update_step_status");
+          const canBulk = testPermissionCheck(role, "bulk_operations");
+
+          expect(showBadge).toBe(false);
+          expect(canUpdate).toBe(expectedBasicPerms);
+          expect(canBulk).toBe(expectedAdvancedPerms);
+        },
+      );
+    });
+  });
+
+  describe("Permission matrix validation", () => {
+    const permissionMatrix = [
+      { feature: "update_step_status", normal: true, pilot: true, admin: true },
+      {
+        feature: "complete_instructions",
+        normal: true,
+        pilot: true,
+        admin: true,
+      },
+      { feature: "bulk_operations", normal: false, pilot: true, admin: true },
+      { feature: "advanced_controls", normal: false, pilot: true, admin: true },
+    ];
+
+    test.each(permissionMatrix)(
+      "$feature permissions should match expected matrix",
+      ({ feature, normal, pilot, admin }) => {
+        expect(testPermissionCheck("NORMAL", feature)).toBe(normal);
+        expect(testPermissionCheck("PILOT", feature)).toBe(pilot);
+        expect(testPermissionCheck("ADMIN", feature)).toBe(admin);
+        expect(testPermissionCheck(null, feature)).toBe(false);
+        expect(testPermissionCheck(undefined, feature)).toBe(false);
+      },
+    );
+  });
 });
-
-console.log("\n🎯 Critical Test Cases:");
-console.log("=======================");
-
-// Test the specific issue: unknown user should get static badge only
-const unknownUserRole = null;
-const unknownShowBadge = shouldShowStaticBadge(unknownUserRole);
-const unknownCanUpdate = testPermissionCheck(
-  unknownUserRole,
-  "update_step_status",
-);
-
-if (unknownShowBadge && !unknownCanUpdate) {
-  console.log(
-    "✅ CRITICAL FIX VERIFIED: Unknown user gets static badge only, no dropdown",
-  );
-} else {
-  console.log(
-    "❌ CRITICAL ISSUE: Unknown user still getting formal permissions!",
-  );
-  console.log(
-    `   Show badge: ${unknownShowBadge}, Can update: ${unknownCanUpdate}`,
-  );
-}
-
-// Test known user still works
-const knownUserRole = "ADMIN";
-const knownShowBadge = shouldShowStaticBadge(knownUserRole);
-const knownCanUpdate = testPermissionCheck(knownUserRole, "update_step_status");
-
-if (!knownShowBadge && knownCanUpdate) {
-  console.log(
-    "✅ REGRESSION TEST PASSED: Known users still get dropdowns and permissions",
-  );
-} else {
-  console.log(
-    "❌ REGRESSION ISSUE: Known users not getting expected permissions!",
-  );
-  console.log(
-    `   Show badge: ${knownShowBadge}, Can update: ${knownCanUpdate}`,
-  );
-}
-
-console.log("\n🔒 Security Analysis:");
-console.log("====================");
-
-// Check that null/undefined don't accidentally match formal roles
-const securityIssues = [];
-
-if (["NORMAL", "PILOT", "ADMIN"].includes(null)) {
-  securityIssues.push("null matches formal roles");
-}
-
-if (["NORMAL", "PILOT", "ADMIN"].includes(undefined)) {
-  securityIssues.push("undefined matches formal roles");
-}
-
-if (securityIssues.length === 0) {
-  console.log("✅ SECURITY VERIFIED: null/undefined do not match formal roles");
-} else {
-  console.log("❌ SECURITY ISSUES FOUND:");
-  securityIssues.forEach((issue) => console.log(`   - ${issue}`));
-}
-
-console.log("\n🚀 Test Complete!");

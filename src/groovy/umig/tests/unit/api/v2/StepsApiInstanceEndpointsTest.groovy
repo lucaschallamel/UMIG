@@ -1,4 +1,7 @@
 #!/usr/bin/env groovy
+
+package umig.tests.unit.api.v2
+
 /**
  * Unit Tests for Steps API Instance Endpoints (US-056-C Phase 2)
  * 
