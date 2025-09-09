@@ -127,11 +127,26 @@ return """
     return false;
   };
   
-  // Override console methods with targeted suppression
+  // Override console methods with targeted suppression - REDUCED FOR DEBUGGING
   console.warn = function() {
-    if (!isConfluenceWarning(arguments)) {
-      return originalWarn.apply(console, arguments);
+    // Only suppress very specific AJS.params warnings, not everything
+    if (arguments[0] && String(arguments[0]).includes('AJS.params is deprecated')) {
+      suppressedCount++;
+      window.UMIG_PERFORMANCE_METRICS.suppressedWarnings = suppressedCount;
+      return;
     }
+    // Allow all other warnings through for debugging
+    return originalWarn.apply(console, arguments);
+  };
+  
+  console.log = function() {
+    // Always allow our own logs and don't suppress other logs
+    return originalLog.apply(console, arguments);
+  };
+  
+  console.error = function() {
+    // Never suppress errors - they're critical for debugging
+    return originalError.apply(console, arguments);
   };
   
   console.log = function() {
@@ -150,7 +165,8 @@ return """
     return originalError.apply(console, arguments);
   };
   
-  // 2. Defer Confluence's heavy scripts
+  // 2. Defer Confluence's heavy scripts - DISABLED TO PREVENT BATCH.JS CONFLICTS
+  /*
   const originalCreateElement = document.createElement;
   document.createElement = function(tagName) {
     const element = originalCreateElement.call(document, tagName);
@@ -176,49 +192,28 @@ return """
     
     return element;
   };
+  */
   
-  // 3. Optimize AJS if it exists
-  if (typeof AJS !== 'undefined' && AJS.params) {
-    // Cache AJS.params access
-    const paramsCache = {};
-    const originalParams = AJS.params;
-    
-    AJS.params = new Proxy(originalParams, {
-      get: function(target, prop) {
-        if (!(prop in paramsCache)) {
-          paramsCache[prop] = target[prop];
-        }
-        return paramsCache[prop];
-      }
-    });
-  }
+  // Restore createElement to prevent conflicts
+  // document.createElement = originalCreateElement;
   
-  // 4. Report optimization results after DOM is ready
+  // Define reportResults function properly
   const reportResults = function() {
-    const perfEnd = performance.now();
-    const loadTime = (perfEnd - perfStart).toFixed(2);
+    const loadTime = performance.now() - perfStart;
     
-    // Restore console methods after initial load
-    setTimeout(function() {
-      console.warn = originalWarn;
-      console.log = originalLog;
-      console.error = originalError;
-      document.createElement = originalCreateElement;
-      
-      // Finalize performance metrics
-      window.UMIG_PERFORMANCE_METRICS.loadTime = loadTime;
-      window.UMIG_PERFORMANCE_METRICS.resourceCount = performance.getEntriesByType ? performance.getEntriesByType('resource').length : 0;
-      
-      // Report results
-      console.log('[UMIG] ⚡ Ultra-Performance Mode Active');
-      console.log('[UMIG] 🚀 Initial optimization time: ' + loadTime + 'ms');
-      console.log('[UMIG] 🤫 Suppressed ' + suppressedCount + ' console messages');
-      console.log('[UMIG] 📊 Performance metrics available at window.UMIG_PERFORMANCE_METRICS');
-      
-      if (suppressedSamples.length > 0) {
-        console.log('[UMIG] 📝 Sample suppressed messages:', suppressedSamples);
-      }
-    }, ${PERFORMANCE_CONFIG.CONSOLE_RESTORE_DELAY}); // Wait before restoring console methods
+    // Finalize performance metrics
+    window.UMIG_PERFORMANCE_METRICS.loadTime = loadTime;
+    window.UMIG_PERFORMANCE_METRICS.resourceCount = performance.getEntriesByType ? performance.getEntriesByType('resource').length : 0;
+    
+    // Report results
+    console.log('[UMIG] ⚡ Ultra-Performance Mode Active');
+    console.log('[UMIG] 🚀 Initial optimization time: ' + loadTime + 'ms');
+    console.log('[UMIG] 🤫 Suppressed ' + suppressedCount + ' console messages');
+    console.log('[UMIG] 📊 Performance metrics available at window.UMIG_PERFORMANCE_METRICS');
+    
+    if (suppressedSamples.length > 0) {
+      console.log('[UMIG] 📝 Sample suppressed messages:', suppressedSamples);
+    }
   };
   
   // Use multiple methods to ensure we run after DOM is ready
@@ -274,11 +269,10 @@ return """
         if (adminGui) {
           adminGui.style.display = 'block';
           
-          // Now load the scripts
+          // Now load the scripts - ONLY admin-gui.js (removed conflicting AdminGuiController.js)
           const scripts = [
             '${webResourcesPath}/js/EntityConfig.js?v=${jsVersion}',
             '${webResourcesPath}/js/ModalManager.js?v=${jsVersion}',
-            '${webResourcesPath}/js/AdminGuiController.js?v=${jsVersion}',
             '${webResourcesPath}/js/admin-gui.js?v=${jsVersion}'
           ];
           
@@ -363,10 +357,9 @@ return """
     window.UMIG_CONFIG = parent.UMIG_CONFIG;
     console.log('[UMIG] Running in isolated context - no Confluence overhead');
   </script>
-  <!-- Load modules in isolation -->
+  <!-- Load modules in isolation - ONLY admin-gui.js (removed conflicting AdminGuiController.js) -->
   <script src="${webResourcesPath}/js/EntityConfig.js?v=${jsVersion}"></script>
   <script src="${webResourcesPath}/js/ModalManager.js?v=${jsVersion}"></script>
-  <script src="${webResourcesPath}/js/AdminGuiController.js?v=${jsVersion}"></script>
   <script src="${webResourcesPath}/js/admin-gui.js?v=${jsVersion}"></script>
 </body>
 </html>
@@ -759,14 +752,16 @@ return """
     'UiUtils.js',
     'AdminGuiState.js'
   ];
+
+  // Load admin-gui.js after critical modules (the main controller)
+  const mainModule = 'admin-gui.js';
   
   // Deferred modules loaded after critical path (lazy load)
+  // REMOVED: TableManager.js and AdminGuiController.js (conflict with admin-gui.js)
   const deferredModules = [
     'ApiClient.js',
     'AuthenticationManager.js', 
-    'TableManager.js',
-    'ModalManager.js',
-    'AdminGuiController.js'
+    'ModalManager.js'
   ];
   
   // Load script with caching and error handling
@@ -808,26 +803,31 @@ return """
   loadModuleBatch(criticalModules, function() {
     console.log('✅ Critical modules loaded');
     
-    // Show interface after critical modules are ready
-    const container = document.getElementById('umig-admin-gui-root');
-    if (container) {
-      container.classList.add('loaded');
-    }
-    
-    // Start deferred loading after a short delay to prevent blocking
-    setTimeout(function() {
-      loadModuleBatch(deferredModules, function() {
-        console.log('✅ All modules loaded');
-        
-        // Trigger performance logging
-        if (window.UMIG_LOADER) {
-          window.UMIG_LOADER.logPerformance();
-        }
-        
-        // Mark fully loaded for any waiting components
-        document.body.setAttribute('data-umig-ready', 'true');
-      });
-    }, 10);
+    // Load the main admin-gui.js controller
+    loadScript(mainModule, function() {
+      console.log('✅ Main controller (admin-gui.js) loaded');
+      
+      // Show interface after main controller is ready
+      const container = document.getElementById('umig-admin-gui-root');
+      if (container) {
+        container.classList.add('loaded');
+      }
+      
+      // Start deferred loading after a short delay to prevent blocking
+      setTimeout(function() {
+        loadModuleBatch(deferredModules, function() {
+          console.log('✅ All modules loaded');
+          
+          // Trigger performance logging
+          if (window.UMIG_LOADER) {
+            window.UMIG_LOADER.logPerformance();
+          }
+          
+          // Mark fully loaded for any waiting components
+          document.body.setAttribute('data-umig-ready', 'true');
+        });
+      }, 10);
+    });
   });
   
 })();
@@ -835,7 +835,7 @@ return """
 
 <!-- Preload hints for faster subsequent requests -->
 <link rel="preload" href="${webResourcesPath}/js/EntityConfig.js?v=${jsVersion}" as="script">
-<link rel="preload" href="${webResourcesPath}/js/AdminGuiController.js?v=${jsVersion}" as="script">
+<link rel="preload" href="${webResourcesPath}/js/admin-gui.js?v=${jsVersion}" as="script">
 
 <!-- Early warning suppression and performance optimization -->
 <script>
@@ -886,7 +886,7 @@ return """
     suppressCount: suppressCount,
     loadedModules: [],
     criticalModules: ['StatusColorService', 'EntityConfig', 'UiUtils', 'AdminGuiState'],
-    deferredModules: ['ApiClient', 'AuthenticationManager', 'TableManager', 'ModalManager'],
+    deferredModules: ['ApiClient', 'AuthenticationManager', 'ModalManager'],
     
     // Load modules with priority and bundling
     loadModules: function(modules, callback) {

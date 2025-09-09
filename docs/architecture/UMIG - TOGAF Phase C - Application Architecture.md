@@ -1,8 +1,8 @@
 # UMIG Application Architecture
 
-**Version:** 1.0  
-**Date:** August 28, 2025  
-**Status:** Initial Draft  
+**Version:** 1.3  
+**Date:** September 09, 2025  
+**Status:** Security Architecture Aligned  
 **TOGAF Phase:** Phase C - Application Architecture  
 **Part of:** UMIG Enterprise Architecture
 
@@ -294,45 +294,63 @@ Database Row → Repository → DTO → Service → API Response → UI Model
 ```yaml
 Confluence Integration:
   Authentication:
-    - Method: Session-based
-    - Token: X-Atlassian-Token
-    - Validation: Per request
+    - Method: 4-level fallback hierarchy (ADR-042)
+    - Levels: ThreadLocal → Headers → Fallback → Default
+    - Token: X-Atlassian-Token (when available)
+    - Validation: Per request with UserService fallback
+    - Reliability: Enhanced via ADR-042 improvements
 
   User Management:
     - Source: Confluence user directory
-    - Sync: Real-time lookup
+    - Sync: Real-time lookup via UserService
     - Cache: 5-minute TTL
+    - Fallback: Multiple identification strategies
 
   Content Rendering:
     - Method: ScriptRunner macros
     - Location: Confluence pages
     - Assets: Versioned JS/CSS
+    - Security: groups=["confluence-users"] enforcement
 ```
 
 ### 8.3 API Gateway Pattern
 
 ```groovy
-// CustomEndpointDelegate Pattern
+// CustomEndpointDelegate Pattern with 4-level Authentication Fallback (ADR-042)
 @RestEndpoint(httpMethod = "GET", groups = ["confluence-users"])
 class StepEndpoint implements CustomEndpointDelegate {
 
     Response doHandle(HttpServletRequest request) {
-        // Authentication
-        def user = authenticateUser(request)
+        // 4-level Authentication Fallback (ADR-042)
+        def userService = new UserService()
+        def user = userService.getCurrentUser() // Handles ThreadLocal → Headers → Fallback → Default
 
-        // Authorization
-        if (!authorizeAccess(user, resource)) {
-            return Response.status(403).build()
+        // Explicit parameter casting (ADR-043)
+        def stepId = UUID.fromString(request.getParameter('stepId') as String)
+
+        // UI-level authorization (current implementation per ADR-051)
+        // Note: API-level RBAC planned for US-074
+        if (!user) {
+            return Response.status(401).build()
         }
 
-        // Service invocation
-        def result = stepService.getStep(stepId)
-
-        // Response transformation
-        return Response.ok(toJson(result)).build()
+        // Service invocation with error handling
+        try {
+            def result = stepService.getStep(stepId)
+            return Response.ok(toJson(result)).build()
+        } catch (Exception e) {
+            log.error("Step retrieval failed for stepId: ${stepId}", e)
+            return Response.status(500).entity([error: "Internal server error"]).build()
+        }
     }
 }
 ```
+
+**Security Notes**:
+
+- Current implementation provides UI-level access control
+- API-level RBAC enhancement planned for US-074
+- Authentication reliability improved via ADR-042 fallback hierarchy
 
 ## 9. Application Lifecycle Management
 
@@ -420,23 +438,40 @@ function initializeComponent(config) {
 ### 10.3 Role-Based UI Adaptation
 
 ```javascript
-// Progressive enhancement based on user role
+// Progressive enhancement based on 4-role RBAC model (ADR-051)
 class UIController {
   applyRoleBasedControls() {
     const role = this.userRole;
 
-    if (role === "NORMAL") {
-      this.disableEditControls();
-      this.hideAdminFeatures();
-    } else if (role === "PILOT") {
-      this.enableEditControls();
-      this.hideAdminFeatures();
-    } else if (role === "ADMIN") {
-      this.enableAllControls();
+    switch (role) {
+      case "NORMAL":
+        this.disableEditControls();
+        this.hideAdminFeatures();
+        this.hidePilotFeatures();
+        break;
+      case "PILOT":
+        this.enableEditControls();
+        this.hideAdminFeatures();
+        this.showPilotFeatures();
+        break;
+      case "ADMIN":
+        this.enableAllControls();
+        this.showAdminFeatures();
+        this.hideSuperAdminFeatures();
+        break;
+      case "SUPER_ADMIN":
+        this.enableAllControls();
+        this.showAdminFeatures();
+        this.showSuperAdminFeatures();
+        break;
+      default:
+        this.applyNormalPermissions();
     }
   }
 }
 ```
+
+**Note**: Current implementation is UI-level RBAC (ADR-051). API-level RBAC planned for US-074.
 
 ## 11. Service Architecture Patterns
 
@@ -544,14 +579,40 @@ Scalability Metrics:
 
 ### 12.3 Security Architecture
 
-| Layer                | Security Control          | Implementation     |
-| -------------------- | ------------------------- | ------------------ |
-| **Authentication**   | Confluence session        | Platform-native    |
-| **Authorization**    | Role-based (RBAC)         | 3-tier model       |
-| **Input Validation** | Type safety, sanitization | Explicit casting   |
-| **SQL Injection**    | Parameterized queries     | Repository pattern |
-| **XSS Prevention**   | Output encoding           | Template escaping  |
-| **Audit Trail**      | All modifications logged  | Database triggers  |
+| Layer                | Security Control           | Implementation                                       | Current Status     |
+| -------------------- | -------------------------- | ---------------------------------------------------- | ------------------ |
+| **Authentication**   | 4-level fallback hierarchy | ThreadLocal → Headers → Fallback → Default (ADR-042) | Production         |
+| **Authorization**    | Role-based (RBAC)          | 4-role model (NORMAL, PILOT, ADMIN, SUPER_ADMIN)     | UI-level (ADR-051) |
+| **Input Validation** | Type safety, sanitization  | Explicit casting (ADR-043)                           | Production         |
+| **SQL Injection**    | Parameterized queries      | Repository pattern                                   | Production         |
+| **XSS Prevention**   | Output encoding            | Template escaping                                    | Basic              |
+| **Audit Trail**      | All modifications logged   | Database triggers (audit_log_aud)                    | Production         |
+
+**Security Assessment**: Current overall security rating 6.1/10 (moderate risk) with improvement roadmap via US-038, US-074, US-082.
+
+### 12.4 Security Improvement Roadmap
+
+| Priority   | Enhancement                | Current State            | Target State            | User Story | Timeline |
+| ---------- | -------------------------- | ------------------------ | ----------------------- | ---------- | -------- |
+| **High**   | API-level RBAC             | UI-level only (ADR-051)  | Full API authorization  | US-074     | Sprint 7 |
+| **High**   | Security Assessment        | 6.1/10 rating            | 8.0/10 target           | US-038     | Sprint 7 |
+| **Medium** | Advanced Security Controls | Basic XSS protection     | Comprehensive controls  | US-082     | Sprint 8 |
+| **Medium** | DoS Protection             | Basic ImportQueue limits | Enterprise-grade limits | ADR-046    | Sprint 8 |
+
+**Current Security Capabilities**:
+
+- ✅ 4-level authentication fallback (ADR-042)
+- ✅ 4-role RBAC model (UI-level)
+- ✅ SQL injection prevention (Repository pattern)
+- ✅ Type safety enforcement (ADR-043)
+- ✅ Audit logging (audit_log_aud)
+
+**Planned Security Enhancements**:
+
+- 🔄 API-level RBAC implementation
+- 🔄 Advanced XSS protection
+- 🔄 Enhanced DoS protection
+- 🔄 Security monitoring & alerting
 
 ## 13. Compliance & Standards
 
@@ -602,11 +663,27 @@ Detailed API specifications in OpenAPI 3.0 format.
 - UMIG Business Architecture Document
 - UMIG Data Architecture Document
 
+**Architecture Decision Records (ADRs)**:
+
+- ADR-042: Authentication Context Management (4-level fallback)
+- ADR-043: Type Safety Enforcement (explicit casting)
+- ADR-046: DoS Protection via ImportQueue Configuration
+- ADR-047: Single Enrichment Point in Repositories
+- ADR-049: Unified DTO Architecture
+- ADR-051: UI-Level RBAC Implementation
+
+**User Stories**:
+
+- US-038: Security Assessment & Improvements
+- US-074: API-Level RBAC Implementation
+- US-082: Advanced Security Controls
+
 ### D. Revision History
 
-| Version | Date       | Author            | Description                               |
-| ------- | ---------- | ----------------- | ----------------------------------------- |
-| 1.2     | 2025-08-28 | Architecture Team | Initial application architecture document |
+| Version | Date       | Author            | Description                                                                                              |
+| ------- | ---------- | ----------------- | -------------------------------------------------------------------------------------------------------- |
+| 1.3     | 2025-09-09 | Architecture Team | Security architecture alignment update: 4-role RBAC, authentication fallback hierarchy, security roadmap |
+| 1.2     | 2025-08-28 | Architecture Team | Initial application architecture document                                                                |
 
 ---
 

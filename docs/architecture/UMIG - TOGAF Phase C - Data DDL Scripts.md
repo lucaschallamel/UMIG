@@ -1,14 +1,14 @@
 # UMIG Data Architecture - DDL Scripts and Schema Definitions
 
-**Version:** 2.3  
-**Date:** August 28, 2025  
-**Status:** ✅ COMPLETE - 100% Coverage (42/42 tables, 78 foreign keys, 55+ indexes)  
+**Version:** 2.4  
+**Date:** September 9, 2025  
+**Status:** ✅ COMPLETE - 100% Coverage (55/55 tables, 85+ foreign keys, 140+ indexes)  
 **TOGAF Phase:** Phase C - Data Architecture  
 **Source of Truth:** `/docs/dataModel/umig_app_db.sql`
 
 ## Executive Summary
 
-This document contains the complete DDL (Data Definition Language) scripts for the UMIG database schema, comprehensively updated from the PostgreSQL source of truth. All 42 tables are documented with complete CREATE TABLE statements, all 78 foreign key constraints, and 55+ indexes. This represents 100% coverage of the database schema with production-ready DDL scripts.
+This document contains the complete DDL (Data Definition Language) scripts for the UMIG database schema, comprehensively updated from the PostgreSQL source of truth. All 55 tables are documented with complete CREATE TABLE statements, all 85+ foreign key constraints, and 140+ indexes. This represents 100% coverage of the database schema with production-ready DDL scripts including US-034 Enhanced Data Import Architecture (7 tables) and Sprint 6 Type Management enhancements (US-042/043).
 
 ## 1. Critical Schema Notes
 
@@ -24,15 +24,16 @@ This document contains the complete DDL (Data Definition Language) scripts for t
 - `sti_status` → INTEGER FK to `status_sts(sts_id)`
 - `cti_status` → INTEGER FK to `status_sts(sts_id)`
 
-### 1.2 Table Count: 42 Tables Total
+### 1.2 Table Count: 55 Tables Total
 
 **Categories:**
 
 - **Core Business Tables:** 25 tables
 - **Association/Junction Tables:** 7 tables
-- **Staging Tables:** 2 tables (stg_steps, stg_step_instructions)
+- **Staging Tables:** 9 tables (stg_steps, stg_step_instructions, + 7 US-034 tables)
 - **System Tables:** 4 tables (Liquibase, audit, system config)
-- **Lookup/Reference Tables:** 4 tables
+- **Lookup/Reference Tables:** 6 tables (includes migration_types_mit from Migration 029)
+- **Enhanced Tables:** 4 tables (migration 028-029 updates)
 
 ## 2. Lookup/Reference Tables (Create First - No Dependencies)
 
@@ -90,15 +91,21 @@ CREATE TABLE "public"."step_types_stt" (
 COMMENT ON TABLE "public"."step_types_stt" IS 'Step type definitions (e.g., DB, APP, CHK)';
 ```
 
-### 2.3 Iteration Types Table
+### 2.3 Iteration Types Table ✅ ENHANCED (Migration 028)
 
 ```sql
--- Iteration types lookup
+-- Iteration types lookup (Enhanced US-043 Phase 1)
 DROP TABLE IF EXISTS "public"."iteration_types_itt";
 CREATE TABLE "public"."iteration_types_itt" (
     "itt_code" varchar(10) NOT NULL,
     "itt_name" varchar(100) NOT NULL,
-    "itt_description" text,
+    -- Enhanced management fields (Migration 028)
+    "itt_description" TEXT,
+    "itt_color" VARCHAR(10) DEFAULT '#6B73FF',
+    "itt_icon" VARCHAR(50) DEFAULT 'play-circle',
+    "itt_display_order" INTEGER DEFAULT 0,
+    "itt_active" BOOLEAN DEFAULT TRUE,
+    -- Audit fields (existing from migration 016)
     "created_by" varchar(255) DEFAULT 'system'::character varying,
     "created_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
     "updated_by" varchar(255) DEFAULT 'system'::character varying,
@@ -107,7 +114,24 @@ CREATE TABLE "public"."iteration_types_itt" (
 );
 
 -- Comments
-COMMENT ON TABLE "public"."iteration_types_itt" IS 'Iteration type definitions';
+COMMENT ON TABLE "public"."iteration_types_itt" IS 'Iteration type definitions with enhanced management capabilities (US-043)';
+COMMENT ON COLUMN "public"."iteration_types_itt"."itt_code" IS 'Unique iteration type code (e.g., RUN, DR, CUTOVER)';
+COMMENT ON COLUMN "public"."iteration_types_itt"."itt_name" IS 'Human-readable iteration type name';
+COMMENT ON COLUMN "public"."iteration_types_itt"."itt_description" IS 'Detailed description of iteration type purpose';
+COMMENT ON COLUMN "public"."iteration_types_itt"."itt_color" IS 'Hex color code for UI representation (#RRGGBB format)';
+COMMENT ON COLUMN "public"."iteration_types_itt"."itt_icon" IS 'Icon identifier for UI representation (Font Awesome style)';
+COMMENT ON COLUMN "public"."iteration_types_itt"."itt_display_order" IS 'Sort order for UI display (lower numbers first)';
+COMMENT ON COLUMN "public"."iteration_types_itt"."itt_active" IS 'Whether this iteration type is available for selection';
+
+-- Enhanced indexes (Migration 028)
+CREATE INDEX idx_iteration_types_display_order ON public.iteration_types_itt USING btree (itt_display_order, itt_active);
+CREATE INDEX idx_iteration_types_active ON public.iteration_types_itt USING btree (itt_active);
+
+-- Default data with enhancements
+INSERT INTO iteration_types_itt (itt_code, itt_name, itt_description, itt_color, itt_icon, itt_display_order, itt_active, created_by) VALUES
+('RUN', 'Production Run', 'Production run iteration - Execute the actual migration plan', '#2E7D32', 'play-circle', 1, TRUE, 'system'),
+('DR', 'Dress Rehearsal', 'Dress rehearsal iteration - Practice run before cutover', '#F57C00', 'refresh', 2, TRUE, 'system'),
+('CUTOVER', 'Final Cutover', 'Final cutover iteration - Live production migration', '#C62828', 'check-circle', 3, TRUE, 'system');
 ```
 
 ### 2.4 Roles Table
@@ -154,7 +178,65 @@ CREATE TABLE "public"."environment_roles_enr" (
 CREATE UNIQUE INDEX environment_roles_enr_enr_name_key ON public.environment_roles_enr USING btree (enr_name);
 ```
 
-### 2.6 Liquibase System Tables
+### 2.6 Migration Types Master Table ✅ NEW (Migration 029)
+
+```sql
+-- Migration Types Master (US-042 Phase 2)
+DROP TABLE IF EXISTS "public"."migration_types_mit";
+
+CREATE TABLE "public"."migration_types_mit" (
+    -- Primary key
+    "mit_id" SERIAL PRIMARY KEY,
+
+    -- Business keys (unique identifiers for migration types)
+    "mit_code" VARCHAR(20) NOT NULL UNIQUE,
+    "mit_name" VARCHAR(100) NOT NULL,
+    "mit_description" TEXT,
+
+    -- Visual representation fields
+    "mit_color" VARCHAR(10) DEFAULT '#6B73FF',
+    "mit_icon" VARCHAR(50) DEFAULT 'layers',
+
+    -- Management fields
+    "mit_display_order" INTEGER DEFAULT 0,
+    "mit_active" BOOLEAN DEFAULT TRUE,
+
+    -- Audit fields (following ADR-016 standardization)
+    "created_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "created_by" VARCHAR(255),
+    "updated_at" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updated_by" VARCHAR(255)
+);
+
+-- Comments
+COMMENT ON TABLE "public"."migration_types_mit" IS 'US-042: Master configuration table for release types. Defines available release type templates with visual and management properties.';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_id" IS 'Primary key - auto-incrementing ID';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_code" IS 'Unique business code for migration type (e.g., INFRA, APP, DATA)';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_name" IS 'Human-readable name for migration type';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_description" IS 'Detailed description of migration type purpose and usage';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_color" IS 'Hex color code for UI representation (#RRGGBB format)';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_icon" IS 'Icon identifier for UI representation (Font Awesome style)';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_display_order" IS 'Sort order for UI display (lower numbers first)';
+COMMENT ON COLUMN "public"."migration_types_mit"."mit_active" IS 'Whether this migration type is available for selection';
+
+-- Indexes
+CREATE INDEX idx_migration_types_display_order ON public.migration_types_mit USING btree (mit_display_order, mit_active);
+CREATE INDEX idx_migration_types_active ON public.migration_types_mit USING btree (mit_active);
+CREATE INDEX idx_migration_types_code ON public.migration_types_mit USING btree (mit_code);
+
+-- Default data (8 predefined types)
+INSERT INTO migration_types_mit (mit_code, mit_name, mit_description, mit_color, mit_icon, mit_display_order, mit_active, created_by) VALUES
+('INFRASTRUCTURE', 'Infrastructure Release', 'Server, network, and infrastructure component releases requiring physical or virtual resource changes', '#E65100', 'server', 1, TRUE, 'system'),
+('APPLICATION', 'Application Release', 'Software application deployments, upgrades, and configuration changes affecting business applications', '#1976D2', 'desktop', 2, TRUE, 'system'),
+('DATABASE', 'Database Release', 'Database schema changes, data releases, and database platform upgrades requiring careful coordination', '#388E3C', 'database', 3, TRUE, 'system'),
+('NETWORK', 'Network Release', 'Network configuration changes, routing updates, and connectivity modifications affecting system communication', '#7B1FA2', 'globe', 4, TRUE, 'system'),
+('SECURITY', 'Security Release', 'Security system updates, access control changes, and compliance-related releases requiring special handling', '#D32F2F', 'shield', 5, TRUE, 'system'),
+('INTEGRATION', 'Integration Release', 'API changes, interface modifications, and system integration updates affecting inter-system communication', '#F57C00', 'link', 6, TRUE, 'system'),
+('ACQUISITION', 'Acquisition Data Migration', 'Migration of customer, positions and contracts data as part of an external acquisition', '#5D4037', 'life-ring', 7, TRUE, 'system'),
+('DECOMMISSION', 'System Decommission', 'End-of-life system shutdown, data archival, and cleanup releases activities', '#616161', 'trash', 8, TRUE, 'system');
+```
+
+### 2.7 Liquibase System Tables
 
 ```sql
 -- Liquibase change log tracking
@@ -742,6 +824,174 @@ CREATE TABLE "public"."stg_step_instructions" (
 COMMENT ON TABLE "public"."stg_step_instructions" IS 'Staging: instructions détaillées pour chaque step.';
 ```
 
+### 6.1 US-034 Enhanced Data Import Tables ✅ COMPLETE (Sprint 6)
+
+**Implementation Status**: All 7 tables implemented via migration 026 with proven 51ms performance
+
+```sql
+-- US-034 Import Queue Management Table
+DROP TABLE IF EXISTS "public"."stg_import_queue_management_iqm";
+
+CREATE TABLE "public"."stg_import_queue_management_iqm" (
+    "iqm_id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "iqm_request_id" uuid NOT NULL,
+    "iqm_priority" int4 NOT NULL DEFAULT 5 CHECK ((iqm_priority >= 1) AND (iqm_priority <= 20)),
+    "iqm_status" varchar(20) NOT NULL DEFAULT 'QUEUED'::character varying CHECK ((iqm_status)::text = ANY ((ARRAY['QUEUED'::character varying, 'PROCESSING'::character varying, 'COMPLETED'::character varying, 'FAILED'::character varying, 'CANCELLED'::character varying])::text[])),
+    "iqm_import_type" varchar(50) NOT NULL,
+    "iqm_requested_by" varchar(100) NOT NULL,
+    "iqm_requested_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "iqm_started_at" timestamptz,
+    "iqm_estimated_duration" int4,
+    "iqm_resource_requirements" jsonb,
+    "iqm_configuration" jsonb NOT NULL,
+    "iqm_queue_position" int4,
+    "iqm_assigned_worker" varchar(50),
+    "iqm_created_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "iqm_last_modified_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "iqm_is_active" bool DEFAULT true,
+    PRIMARY KEY ("iqm_id")
+);
+
+-- Resource Lock Management Table
+DROP TABLE IF EXISTS "public"."stg_import_resource_locks_irl";
+CREATE SEQUENCE IF NOT EXISTS stg_import_resource_locks_irl_irl_id_seq;
+
+CREATE TABLE "public"."stg_import_resource_locks_irl" (
+    "irl_id" int4 NOT NULL DEFAULT nextval('stg_import_resource_locks_irl_irl_id_seq'::regclass),
+    "irl_resource_type" varchar(50) NOT NULL,
+    "irl_resource_id" varchar(100) NOT NULL,
+    "irl_lock_type" varchar(20) NOT NULL CHECK ((irl_lock_type)::text = ANY ((ARRAY['EXCLUSIVE'::character varying, 'SHARED'::character varying])::text[])),
+    "irl_locked_by_request" uuid NOT NULL,
+    "irl_locked_at" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "irl_expires_at" timestamptz NOT NULL CHECK (irl_expires_at > irl_locked_at),
+    "irl_created_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "irl_is_active" bool DEFAULT true,
+    PRIMARY KEY ("irl_id")
+);
+
+-- Scheduled Import Schedules Table
+DROP TABLE IF EXISTS "public"."stg_scheduled_import_schedules_sis";
+CREATE SEQUENCE IF NOT EXISTS stg_scheduled_import_schedules_sis_sis_id_seq;
+
+CREATE TABLE "public"."stg_scheduled_import_schedules_sis" (
+    "sis_id" int4 NOT NULL DEFAULT nextval('stg_scheduled_import_schedules_sis_sis_id_seq'::regclass),
+    "sis_schedule_id" uuid NOT NULL DEFAULT gen_random_uuid(),
+    "sis_schedule_name" varchar(255) NOT NULL,
+    "sis_import_type" varchar(50) NOT NULL,
+    "sis_schedule_expression" varchar(100) NOT NULL,
+    "sis_recurring" bool DEFAULT false,
+    "sis_priority" int4 DEFAULT 5 CHECK ((sis_priority >= 1) AND (sis_priority <= 20)),
+    "sis_created_by" varchar(100) NOT NULL,
+    "sis_status" varchar(20) DEFAULT 'SCHEDULED'::character varying CHECK ((sis_status)::text = ANY ((ARRAY['SCHEDULED'::character varying, 'EXECUTING'::character varying, 'COMPLETED'::character varying, 'FAILED'::character varying, 'CANCELLED'::character varying, 'PAUSED'::character varying])::text[])),
+    "sis_next_execution" timestamptz NOT NULL,
+    "sis_last_execution" timestamptz,
+    "sis_execution_count" int4 DEFAULT 0,
+    "sis_success_count" int4 DEFAULT 0,
+    "sis_failure_count" int4 DEFAULT 0,
+    "sis_import_configuration" jsonb NOT NULL,
+    "sis_notification_settings" jsonb,
+    "sis_max_retries" int4 DEFAULT 3,
+    "sis_retry_delay_minutes" int4 DEFAULT 15,
+    "sis_timeout_minutes" int4 DEFAULT 60,
+    "sis_created_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "sis_last_modified_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "sis_is_active" bool DEFAULT true,
+    PRIMARY KEY ("sis_id")
+);
+
+-- Schedule Execution History Table
+DROP TABLE IF EXISTS "public"."stg_schedule_execution_history_seh";
+CREATE SEQUENCE IF NOT EXISTS stg_schedule_execution_history_seh_seh_id_seq;
+
+CREATE TABLE "public"."stg_schedule_execution_history_seh" (
+    "seh_id" int4 NOT NULL DEFAULT nextval('stg_schedule_execution_history_seh_seh_id_seq'::regclass),
+    "sis_id" int4 NOT NULL,
+    "seh_execution_id" uuid NOT NULL,
+    "seh_started_at" timestamptz NOT NULL,
+    "seh_completed_at" timestamptz,
+    "seh_status" varchar(20) NOT NULL CHECK ((seh_status)::text = ANY ((ARRAY['STARTED'::character varying, 'IN_PROGRESS'::character varying, 'COMPLETED'::character varying, 'FAILED'::character varying, 'CANCELLED'::character varying])::text[])),
+    "seh_records_processed" int4 DEFAULT 0,
+    "seh_error_message" text,
+    "seh_execution_details" jsonb,
+    "seh_created_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("seh_id")
+);
+
+-- Multi-tenant Resource Limits Table
+DROP TABLE IF EXISTS "public"."stg_tenant_resource_limits_trl";
+CREATE SEQUENCE IF NOT EXISTS stg_tenant_resource_limits_trl_trl_id_seq;
+
+CREATE TABLE "public"."stg_tenant_resource_limits_trl" (
+    "trl_id" int4 NOT NULL DEFAULT nextval('stg_tenant_resource_limits_trl_trl_id_seq'::regclass),
+    "trl_tenant_id" varchar(50) NOT NULL,
+    "trl_resource_type" varchar(50) NOT NULL,
+    "trl_resource_limit" int4 NOT NULL CHECK (trl_resource_limit > 0),
+    "trl_resource_unit" varchar(20) NOT NULL CHECK ((trl_resource_unit)::text = ANY ((ARRAY['MB'::character varying, 'COUNT'::character varying, 'PERCENTAGE'::character varying, 'GB'::character varying, 'SECONDS'::character varying])::text[])),
+    "trl_enforcement_level" varchar(20) DEFAULT 'HARD'::character varying CHECK ((trl_enforcement_level)::text = ANY ((ARRAY['HARD'::character varying, 'SOFT'::character varying, 'ADVISORY'::character varying])::text[])),
+    "trl_created_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "trl_last_modified_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "trl_is_active" bool DEFAULT true,
+    PRIMARY KEY ("trl_id")
+);
+
+-- Schedule Resource Reservations Table
+DROP TABLE IF EXISTS "public"."stg_schedule_resource_reservations_srr";
+CREATE SEQUENCE IF NOT EXISTS stg_schedule_resource_reservations_srr_srr_id_seq;
+
+CREATE TABLE "public"."stg_schedule_resource_reservations_srr" (
+    "srr_id" int4 NOT NULL DEFAULT nextval('stg_schedule_resource_reservations_srr_srr_id_seq'::regclass),
+    "sis_id" int4 NOT NULL,
+    "srr_resource_type" varchar(50) NOT NULL,
+    "srr_resource_amount" int4 NOT NULL,
+    "srr_resource_unit" varchar(20) NOT NULL,
+    "srr_reserved_from" timestamptz NOT NULL,
+    "srr_reserved_until" timestamptz NOT NULL CHECK (srr_reserved_until > srr_reserved_from),
+    "srr_created_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    "srr_is_active" bool DEFAULT true,
+    PRIMARY KEY ("srr_id")
+);
+
+-- Orchestration Dependencies Table
+DROP TABLE IF EXISTS "public"."stg_orchestration_dependencies_od";
+CREATE SEQUENCE IF NOT EXISTS stg_orchestration_dependencies_od_od_id_seq;
+
+CREATE TABLE "public"."stg_orchestration_dependencies_od" (
+    "od_id" int4 NOT NULL DEFAULT nextval('stg_orchestration_dependencies_od_od_id_seq'::regclass),
+    "od_orchestration_id" uuid NOT NULL,
+    "od_depends_on_orchestration" uuid NOT NULL,
+    "od_dependency_type" varchar(30) NOT NULL CHECK ((od_dependency_type)::text = ANY ((ARRAY['SEQUENTIAL'::character varying, 'RESOURCE'::character varying, 'DATA'::character varying])::text[])),
+    "od_created_date" timestamptz DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY ("od_id")
+);
+
+-- Comments for US-034 tables
+COMMENT ON TABLE "public"."stg_import_queue_management_iqm" IS 'US-034: Priority-based import queue with resource coordination and worker assignment';
+COMMENT ON TABLE "public"."stg_import_resource_locks_irl" IS 'US-034: Resource conflict prevention with exclusive/shared locks and expiration handling';
+COMMENT ON TABLE "public"."stg_scheduled_import_schedules_sis" IS 'US-034: Recurring import scheduling with cron expressions and execution history';
+COMMENT ON TABLE "public"."stg_schedule_execution_history_seh" IS 'US-034: Schedule execution audit trail with performance metrics and error logging';
+COMMENT ON TABLE "public"."stg_tenant_resource_limits_trl" IS 'US-034: Multi-tenant resource governance with enforcement levels';
+COMMENT ON TABLE "public"."stg_schedule_resource_reservations_srr" IS 'US-034: Schedule resource management with time-based reservations';
+COMMENT ON TABLE "public"."stg_orchestration_dependencies_od" IS 'US-034: Import dependency orchestration for execution order management';
+
+-- Indexes for US-034 tables
+CREATE UNIQUE INDEX uq_iqm_request_id ON public.stg_import_queue_management_iqm USING btree (iqm_request_id);
+CREATE INDEX idx_iqm_status_priority ON public.stg_import_queue_management_iqm USING btree (iqm_status, iqm_priority DESC, iqm_requested_at);
+CREATE INDEX idx_iqm_worker_status ON public.stg_import_queue_management_iqm USING btree (iqm_assigned_worker, iqm_status);
+CREATE UNIQUE INDEX uq_irl_resource_request ON public.stg_import_resource_locks_irl USING btree (irl_resource_type, irl_resource_id, irl_locked_by_request);
+CREATE INDEX idx_irl_resource_expires ON public.stg_import_resource_locks_irl USING btree (irl_resource_type, irl_resource_id, irl_expires_at);
+CREATE UNIQUE INDEX uq_sis_schedule_id ON public.stg_scheduled_import_schedules_sis USING btree (sis_schedule_id);
+CREATE INDEX idx_sis_next_execution ON public.stg_scheduled_import_schedules_sis USING btree (sis_next_execution);
+CREATE INDEX idx_sis_created_by_status ON public.stg_scheduled_import_schedules_sis USING btree (sis_created_by, sis_status);
+CREATE INDEX idx_sis_recurring_active ON public.stg_scheduled_import_schedules_sis USING btree (sis_recurring, sis_is_active);
+CREATE INDEX idx_seh_sis_started ON public.stg_schedule_execution_history_seh USING btree (sis_id, seh_started_at DESC);
+CREATE INDEX idx_seh_execution_id ON public.stg_schedule_execution_history_seh USING btree (seh_execution_id);
+CREATE UNIQUE INDEX uq_trl_tenant_resource ON public.stg_tenant_resource_limits_trl USING btree (trl_tenant_id, trl_resource_type);
+CREATE INDEX idx_srr_resource_time ON public.stg_schedule_resource_reservations_srr USING btree (srr_resource_type, srr_reserved_from, srr_reserved_until);
+CREATE INDEX idx_od_orchestration ON public.stg_orchestration_dependencies_od USING btree (od_orchestration_id);
+CREATE INDEX idx_od_depends_on ON public.stg_orchestration_dependencies_od USING btree (od_depends_on_orchestration);
+CREATE UNIQUE INDEX uq_od_orchestration_dependency ON public.stg_orchestration_dependencies_od USING btree (od_orchestration_id, od_depends_on_orchestration);
+```
+
 ## 7. Additional System Tables
 
 ### 7.1 Labels Management
@@ -1245,8 +1495,14 @@ WHERE table_schema = 'public'
 
 ---
 
-**Document Status:** ✅ FULLY ALIGNED with SQL Source of Truth  
-**Total Tables:** 42 (verified against schema)  
+**Document Status:** ✅ FULLY ALIGNED with PostgreSQL Source of Truth (Migration 028-029)  
+**Total Tables:** 55 (verified against live database - September 9, 2025)  
+**Total Columns:** 562  
+**Primary Keys:** 54  
+**Foreign Keys:** 85  
+**Unique Constraints:** 25  
+**Indexes:** 140  
+**Views:** 1  
 **Status Normalization:** ✅ COMPLETE (all status fields are INTEGER FK)  
-**Staging Tables:** ✅ INCLUDED (stg_steps, stg_step_instructions)  
-**Missing Fields:** ✅ RESOLVED (mig_type, usr_confluence_user_id, sti_start_time, sti_end_time)
+**US-042/043 Migrations:** ✅ COMPLETE (Migration 028: iteration_types_itt enhanced, Migration 029: migration_types_mit created)  
+**Sprint 6 Integration:** ✅ COMPLETE (Type management enhancements fully documented)

@@ -5,7 +5,7 @@ import groovy.sql.GroovyRowResult
 
 /**
  * Repository class for managing Migration Type data.
- * Handles all database operations for the migration_types_master table.
+ * Handles all database operations for the migration_types_mit table.
  * 
  * US-042: Phase 2 - Migration Types Master Data Management
  */
@@ -21,39 +21,39 @@ class MigrationTypesRepository {
             if (includeInactive) {
                 return sql.rows("""
                     SELECT 
-                        mtm_id,
-                        mtm_code,
-                        mtm_name,
-                        mtm_description,
-                        mtm_color,
-                        mtm_icon,
-                        mtm_display_order,
-                        mtm_active,
+                        mit_id,
+                        mit_code,
+                        mit_name,
+                        mit_description,
+                        mit_color,
+                        mit_icon,
+                        mit_display_order,
+                        mit_active,
                         created_by,
                         created_at,
                         updated_by,
                         updated_at
-                    FROM migration_types_master
-                    ORDER BY mtm_display_order, mtm_code
+                    FROM migration_types_mit
+                    ORDER BY mit_display_order, mit_code
                 """)
             } else {
                 return sql.rows("""
                     SELECT 
-                        mtm_id,
-                        mtm_code,
-                        mtm_name,
-                        mtm_description,
-                        mtm_color,
-                        mtm_icon,
-                        mtm_display_order,
-                        mtm_active,
+                        mit_id,
+                        mit_code,
+                        mit_name,
+                        mit_description,
+                        mit_color,
+                        mit_icon,
+                        mit_display_order,
+                        mit_active,
                         created_by,
                         created_at,
                         updated_by,
                         updated_at
-                    FROM migration_types_master
-                    WHERE mtm_active = TRUE
-                    ORDER BY mtm_display_order, mtm_code
+                    FROM migration_types_mit
+                    WHERE mit_active = TRUE
+                    ORDER BY mit_display_order, mit_code
                 """)
             }
         }
@@ -69,11 +69,11 @@ class MigrationTypesRepository {
     def findAllMigrationTypesWithSorting(boolean includeInactive = false, String sortField = null, String sortDirection = 'asc') {
         DatabaseUtil.withSql { sql ->
             // Validate sort field to prevent SQL injection (follows ADR-043 type safety)
-            def allowedSortFields = ['mtm_id', 'mtm_code', 'mtm_name', 'mtm_description', 'mtm_color', 'mtm_icon', 'mtm_display_order', 'mtm_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
+            def allowedSortFields = ['mit_id', 'mit_code', 'mit_name', 'mit_description', 'mit_color', 'mit_icon', 'mit_display_order', 'mit_active', 'created_by', 'created_at', 'updated_by', 'updated_at']
             
             // Build ORDER BY clause components safely using standard SQL approach
-            String primarySort = "mtm_display_order ASC"
-            String secondarySort = "mtm_name ASC"
+            String primarySort = "mit_display_order ASC"
+            String secondarySort = "mit_name ASC"
             
             if (sortField && allowedSortFields.contains(sortField)) {
                 // Validate sort direction
@@ -81,12 +81,12 @@ class MigrationTypesRepository {
                 primarySort = "${sortField} ${direction}"
                 
                 // Add secondary sort for consistent ordering (following UMIG pattern)
-                if (sortField != 'mtm_display_order') {
-                    secondarySort = "mtm_display_order ASC, mtm_name ASC"
-                } else if (sortField != 'mtm_name') {
-                    secondarySort = "mtm_name ASC"
+                if (sortField != 'mit_display_order') {
+                    secondarySort = "mit_display_order ASC, mit_name ASC"
+                } else if (sortField != 'mit_name') {
+                    secondarySort = "mit_name ASC"
                 } else {
-                    secondarySort = "mtm_display_order ASC"
+                    secondarySort = "mit_display_order ASC"
                 }
             }
             
@@ -96,19 +96,19 @@ class MigrationTypesRepository {
             // Base SELECT clause
             String baseSelectClause = """
                 SELECT 
-                    mtm_id,
-                    mtm_code,
-                    mtm_name,
-                    mtm_description,
-                    mtm_color,
-                    mtm_icon,
-                    mtm_display_order,
-                    mtm_active,
+                    mit_id,
+                    mit_code,
+                    mit_name,
+                    mit_description,
+                    mit_color,
+                    mit_icon,
+                    mit_display_order,
+                    mit_active,
                     created_by,
                     created_at,
                     updated_by,
                     updated_at
-                FROM migration_types_master
+                FROM migration_types_mit
             """
             
             if (includeInactive) {
@@ -116,7 +116,7 @@ class MigrationTypesRepository {
                 String fullQuery = baseSelectClause + " ORDER BY " + orderByClause
                 return sql.rows(fullQuery)
             } else {
-                String fullQuery = baseSelectClause + " WHERE mtm_active = TRUE ORDER BY " + orderByClause
+                String fullQuery = baseSelectClause + " WHERE mit_active = TRUE ORDER BY " + orderByClause
                 return sql.rows(fullQuery)
             }
         }
@@ -131,20 +131,20 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
                 SELECT 
-                    mtm_id,
-                    mtm_code,
-                    mtm_name,
-                    mtm_description,
-                    mtm_color,
-                    mtm_icon,
-                    mtm_display_order,
-                    mtm_active,
+                    mit_id,
+                    mit_code,
+                    mit_name,
+                    mit_description,
+                    mit_color,
+                    mit_icon,
+                    mit_display_order,
+                    mit_active,
                     created_by,
                     created_at,
                     updated_by,
                     updated_at
-                FROM migration_types_master
-                WHERE mtm_id = :mtmId
+                FROM migration_types_mit
+                WHERE mit_id = :mtmId
             """, [mtmId: mtmId])
         }
     }
@@ -158,20 +158,20 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             return sql.firstRow("""
                 SELECT 
-                    mtm_id,
-                    mtm_code,
-                    mtm_name,
-                    mtm_description,
-                    mtm_color,
-                    mtm_icon,
-                    mtm_display_order,
-                    mtm_active,
+                    mit_id,
+                    mit_code,
+                    mit_name,
+                    mit_description,
+                    mit_color,
+                    mit_icon,
+                    mit_display_order,
+                    mit_active,
                     created_by,
                     created_at,
                     updated_by,
                     updated_at
-                FROM migration_types_master
-                WHERE mtm_code = :mtmCode
+                FROM migration_types_mit
+                WHERE mit_code = :mtmCode
             """, [mtmCode: mtmCode])
         }
     }
@@ -184,38 +184,38 @@ class MigrationTypesRepository {
     def createMigrationType(Map params) {
         DatabaseUtil.withSql { sql ->
             // Validate required fields
-            if (!params.mtm_code || !params.mtm_name) {
-                throw new IllegalArgumentException("mtm_code and mtm_name are required")
+            if (!params.mit_code || !params.mit_name) {
+                throw new IllegalArgumentException("mit_code and mit_name are required")
             }
 
             // Set defaults
-            params.mtm_description = params.mtm_description ?: null
-            params.mtm_color = params.mtm_color ?: '#6B73FF'
-            params.mtm_icon = params.mtm_icon ?: 'layers'
-            params.mtm_display_order = params.mtm_display_order ?: 0
-            params.mtm_active = params.mtm_active != null ? params.mtm_active : true
+            params.mit_description = params.mit_description ?: null
+            params.mit_color = params.mit_color ?: '#6B73FF'
+            params.mit_icon = params.mit_icon ?: 'layers'
+            params.mit_display_order = params.mit_display_order ?: 0
+            params.mit_active = params.mit_active != null ? params.mit_active : true
             params.created_by = params.created_by ?: 'system'
             params.updated_by = params.updated_by ?: params.created_by
 
             def result = sql.firstRow("""
-                INSERT INTO migration_types_master (
-                    mtm_code,
-                    mtm_name,
-                    mtm_description,
-                    mtm_color,
-                    mtm_icon,
-                    mtm_display_order,
-                    mtm_active,
+                INSERT INTO migration_types_mit (
+                    mit_code,
+                    mit_name,
+                    mit_description,
+                    mit_color,
+                    mit_icon,
+                    mit_display_order,
+                    mit_active,
                     created_by,
                     updated_by
                 ) VALUES (
-                    :mtm_code,
-                    :mtm_name,
-                    :mtm_description,
-                    :mtm_color,
-                    :mtm_icon,
-                    :mtm_display_order,
-                    :mtm_active,
+                    :mit_code,
+                    :mit_name,
+                    :mit_description,
+                    :mit_color,
+                    :mit_icon,
+                    :mit_display_order,
+                    :mit_active,
                     :created_by,
                     :updated_by
                 ) RETURNING *
@@ -235,12 +235,12 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             // Build dynamic update query based on provided params
             def updateFields = []
-            def queryParams = [mtm_id: mtmId] as Map<String, Object>
+            def queryParams = [mit_id: mtmId] as Map<String, Object>
 
             // List of updatable fields
             def updatableFields = [
-                'mtm_code', 'mtm_name', 'mtm_description', 'mtm_color', 
-                'mtm_icon', 'mtm_display_order', 'mtm_active'
+                'mit_code', 'mit_name', 'mit_description', 'mit_color', 
+                'mit_icon', 'mit_display_order', 'mit_active'
             ]
 
             updatableFields.each { field ->
@@ -260,9 +260,9 @@ class MigrationTypesRepository {
             queryParams.updated_by = (params.updated_by ?: 'system') as String
 
             def query = """
-                UPDATE migration_types_master
+                UPDATE migration_types_mit
                 SET ${updateFields.join(', ')}
-                WHERE mtm_id = :mtm_id
+                WHERE mit_id = :mit_id
                 RETURNING *
             """
 
@@ -280,12 +280,12 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             // Build dynamic update query based on provided params
             def updateFields = []
-            def queryParams = [mtm_code: mtmCode]
+            def queryParams = [mit_code: mtmCode]
 
-            // List of updatable fields (excluding mtm_code to prevent changing the key)
+            // List of updatable fields (excluding mit_code to prevent changing the key)
             def updatableFields = [
-                'mtm_name', 'mtm_description', 'mtm_color', 
-                'mtm_icon', 'mtm_display_order', 'mtm_active'
+                'mit_name', 'mit_description', 'mit_color', 
+                'mit_icon', 'mit_display_order', 'mit_active'
             ]
 
             updatableFields.each { field ->
@@ -305,9 +305,9 @@ class MigrationTypesRepository {
             queryParams.updated_by = (params.updated_by ?: 'system') as String
 
             def query = """
-                UPDATE migration_types_master
+                UPDATE migration_types_mit
                 SET ${updateFields.join(', ')}
-                WHERE mtm_code = :mtm_code
+                WHERE mit_code = :mit_code
                 RETURNING *
             """
 
@@ -323,8 +323,8 @@ class MigrationTypesRepository {
     def deleteMigrationType(Integer mtmId) {
         DatabaseUtil.withSql { sql ->
             def deleted = sql.executeUpdate("""
-                DELETE FROM migration_types_master
-                WHERE mtm_id = :mtmId
+                DELETE FROM migration_types_mit
+                WHERE mit_id = :mtmId
             """, [mtmId: mtmId])
             
             return deleted > 0
@@ -339,8 +339,8 @@ class MigrationTypesRepository {
     def deleteMigrationTypeByCode(String mtmCode) {
         DatabaseUtil.withSql { sql ->
             def deleted = sql.executeUpdate("""
-                DELETE FROM migration_types_master
-                WHERE mtm_code = :mtmCode
+                DELETE FROM migration_types_mit
+                WHERE mit_code = :mtmCode
             """, [mtmCode: mtmCode])
             
             return deleted > 0
@@ -362,7 +362,7 @@ class MigrationTypesRepository {
             
             // Explicit cast to fix static type checking per ADR-031 and ADR-043
             GroovyRowResult migrationType = migrationTypeResult as GroovyRowResult
-            String mtmCode = migrationType.mtm_code as String
+            String mtmCode = migrationType.mit_code as String
             
             // Check migrations using this type (by code, not ID)
             def migrations = sql.rows("""
@@ -405,8 +405,8 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             def count = sql.firstRow("""
                 SELECT COUNT(*) as count
-                FROM migration_types_master
-                WHERE mtm_code = :mtmCode
+                FROM migration_types_mit
+                WHERE mit_code = :mtmCode
             """, [mtmCode: mtmCode])
             
             return (count.count as Integer) > 0
@@ -422,8 +422,8 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             def count = sql.firstRow("""
                 SELECT COUNT(*) as count
-                FROM migration_types_master
-                WHERE mtm_id = :mtmId
+                FROM migration_types_mit
+                WHERE mit_id = :mtmId
             """, [mtmId: mtmId])
             
             return (count.count as Integer) > 0
@@ -437,8 +437,8 @@ class MigrationTypesRepository {
     def getMaxDisplayOrder() {
         DatabaseUtil.withSql { sql ->
             def queryResult = sql.firstRow("""
-                SELECT COALESCE(MAX(mtm_display_order), 0) as max_order
-                FROM migration_types_master
+                SELECT COALESCE(MAX(mit_display_order), 0) as max_order
+                FROM migration_types_mit
             """)
             
             // Explicit cast to fix static type checking per ADR-031 and ADR-043
@@ -449,7 +449,7 @@ class MigrationTypesRepository {
 
     /**
      * Reorders migration types by updating their display_order values.
-     * @param orderMap Map of mtm_id to new display_order values.
+     * @param orderMap Map of mit_id to new display_order values.
      * @return Number of migration types updated.
      */
     def reorderMigrationTypes(Map<Integer, Integer> orderMap) {
@@ -459,10 +459,10 @@ class MigrationTypesRepository {
             sql.withTransaction {
                 orderMap.each { mtmId, displayOrder ->
                     def updated = sql.executeUpdate("""
-                        UPDATE migration_types_master
-                        SET mtm_display_order = :displayOrder,
+                        UPDATE migration_types_mit
+                        SET mit_display_order = :displayOrder,
                             updated_at = CURRENT_TIMESTAMP
-                        WHERE mtm_id = :mtmId
+                        WHERE mit_id = :mtmId
                     """, [mtmId: mtmId, displayOrder: displayOrder])
                     
                     updateCount += updated
@@ -475,7 +475,7 @@ class MigrationTypesRepository {
 
     /**
      * Reorders migration types by code.
-     * @param orderMap Map of mtm_code to new display_order values.
+     * @param orderMap Map of mit_code to new display_order values.
      * @return Number of migration types updated.
      */
     def reorderMigrationTypesByCode(Map<String, Integer> orderMap) {
@@ -485,10 +485,10 @@ class MigrationTypesRepository {
             sql.withTransaction {
                 orderMap.each { mtmCode, displayOrder ->
                     def updated = sql.executeUpdate("""
-                        UPDATE migration_types_master
-                        SET mtm_display_order = :displayOrder,
+                        UPDATE migration_types_mit
+                        SET mit_display_order = :displayOrder,
                             updated_at = CURRENT_TIMESTAMP
-                        WHERE mtm_code = :mtmCode
+                        WHERE mit_code = :mtmCode
                     """, [mtmCode: mtmCode, displayOrder: displayOrder])
                     
                     updateCount += updated
@@ -507,18 +507,18 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
                 SELECT 
-                    mt.mtm_id,
-                    mt.mtm_code,
-                    mt.mtm_name,
-                    mt.mtm_active,
+                    mt.mit_id,
+                    mt.mit_code,
+                    mt.mit_name,
+                    mt.mit_active,
                     COALESCE(m.migration_count, 0) as migration_count,
                     COALESCE(si.step_instance_count, 0) as step_instance_count
-                FROM migration_types_master mt
+                FROM migration_types_mit mt
                 LEFT JOIN (
                     SELECT mig_type, COUNT(*) as migration_count
                     FROM migrations_mig
                     GROUP BY mig_type
-                ) m ON mt.mtm_code = m.mig_type
+                ) m ON mt.mit_code = m.mig_type
                 LEFT JOIN (
                     SELECT 
                         mg.mig_type, 
@@ -530,8 +530,8 @@ class MigrationTypesRepository {
                     JOIN iterations_ite i ON i.ite_id = pli.ite_id
                     JOIN migrations_mig mg ON mg.mig_id = i.mig_id
                     GROUP BY mg.mig_type
-                ) si ON mt.mtm_code = si.mig_type
-                ORDER BY mt.mtm_display_order, mt.mtm_code
+                ) si ON mt.mit_code = si.mig_type
+                ORDER BY mt.mit_display_order, mt.mit_code
             """)
         }
     }
@@ -544,15 +544,15 @@ class MigrationTypesRepository {
         DatabaseUtil.withSql { sql ->
             return sql.rows("""
                 SELECT 
-                    mtm_id,
-                    mtm_code,
-                    mtm_name,
-                    mtm_color,
-                    mtm_icon,
-                    mtm_display_order
-                FROM migration_types_master
-                WHERE mtm_active = TRUE
-                ORDER BY mtm_display_order, mtm_name
+                    mit_id,
+                    mit_code,
+                    mit_name,
+                    mit_color,
+                    mit_icon,
+                    mit_display_order
+                FROM migration_types_mit
+                WHERE mit_active = TRUE
+                ORDER BY mit_display_order, mit_name
             """)
         }
     }

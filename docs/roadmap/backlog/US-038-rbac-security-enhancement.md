@@ -1,5 +1,37 @@
 # US-038: RBAC Security Enhancement with Audit Logging and Permission Validation
 
+## Story Overview
+
+**Story ID**: US-038  
+**Epic**: Security & Compliance  
+**Story Points**: 13  
+**Priority**: CRITICAL (Production Blocker)  
+**Timeline**: Q3 2025 (Sprint 7-8)  
+**Dependencies**: Core RBAC system (existing)  
+**Status**: Ready for Implementation
+
+## Business Context
+
+This story addresses critical security gaps identified in the comprehensive security assessment that must be resolved before production deployment. The current RBAC implementation has significant vulnerabilities:
+
+- Client-side admin backdoor with hardcoded trump users ("ADM", "JAS", "SUP", "SYS")
+- Insufficient audit logging for role changes and authentication attempts
+- Missing two-layer authentication validation (Confluence + UMIG users_usr table)
+- Lack of row-level security and permission validation framework
+
+These issues represent a **CRITICAL security risk** that blocks production deployment and directly impacts the overall security rating improvement from 6.1/10 to 8.5/10 as outlined in the Security Architect Response.
+
+## Security Assessment Alignment
+
+**Primary Security Gaps Addressed**:
+
+- **Access Control Enhancement**: Implements proper two-layer authentication eliminating client-side bypasses
+- **Audit & Compliance**: Comprehensive audit logging for all authentication and role changes
+- **Authorization Framework**: Role-based permission validation with row-level security
+- **Vulnerability Remediation**: Complete removal of client-side admin backdoors
+
+**Integration with Security Roadmap**: This story is foundational for US-082 (Critical Security Vulnerabilities Fix) and essential for achieving production security clearance.
+
 ## User Story
 
 **As a** System Administrator  

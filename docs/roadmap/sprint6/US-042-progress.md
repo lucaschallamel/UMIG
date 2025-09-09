@@ -141,43 +141,43 @@ This implementation plan provides a comprehensive, phased approach for developin
 
 **Database Design Specifications**:
 
-**Primary Table**: `migration_types_master_mtm`
+**Primary Table**: `migration_types_mit`
 
 ```sql
 -- Following UMIG naming conventions and patterns (ADR-014)
-CREATE TABLE migration_types_master_mtm (
-    mtm_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,  -- Standard UUID PK
-    mtm_name VARCHAR(50) UNIQUE NOT NULL,               -- Unique name constraint
-    mtm_description TEXT NOT NULL,
-    mtm_color_code VARCHAR(7) DEFAULT '#007CBA',        -- Hex color validation needed
-    mtm_icon_name VARCHAR(50),                          -- Icon system integration
-    mtm_is_active BOOLEAN DEFAULT true NOT NULL,
-    mtm_display_order INTEGER DEFAULT 0,
-    mtm_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    mtm_created_by VARCHAR(255) NOT NULL,
-    mtm_updated_at TIMESTAMP,
-    mtm_updated_by VARCHAR(255),
+CREATE TABLE migration_types_mit (
+    mit_id UUID DEFAULT gen_random_uuid() PRIMARY KEY,  -- Standard UUID PK
+    mit_name VARCHAR(50) UNIQUE NOT NULL,               -- Unique name constraint
+    mit_description TEXT NOT NULL,
+    mit_color_code VARCHAR(7) DEFAULT '#007CBA',        -- Hex color validation needed
+    mit_icon_name VARCHAR(50),                          -- Icon system integration
+    mit_is_active BOOLEAN DEFAULT true NOT NULL,
+    mit_display_order INTEGER DEFAULT 0,
+    mit_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    mit_created_by VARCHAR(255) NOT NULL,
+    mit_updated_at TIMESTAMP,
+    mit_updated_by VARCHAR(255),
 
     -- Constraints
-    CONSTRAINT ck_mtm_color_code CHECK (mtm_color_code ~ '^#[0-9A-Fa-f]{6}$'),
-    CONSTRAINT ck_mtm_name_length CHECK (LENGTH(TRIM(mtm_name)) >= 2)
+    CONSTRAINT ck_mit_color_code CHECK (mit_color_code ~ '^#[0-9A-Fa-f]{6}$'),
+    CONSTRAINT ck_mit_name_length CHECK (LENGTH(TRIM(mit_name)) >= 2)
 );
 
 -- Indexes for performance
-CREATE INDEX idx_mtm_display_order ON migration_types_master_mtm(mtm_display_order);
-CREATE INDEX idx_mtm_is_active ON migration_types_master_mtm(mtm_is_active);
-CREATE INDEX idx_mtm_name ON migration_types_master_mtm(mtm_name);
+CREATE INDEX idx_mit_display_order ON migration_types_mit(mit_display_order);
+CREATE INDEX idx_mit_is_active ON migration_types_mit(mit_is_active);
+CREATE INDEX idx_mit_name ON migration_types_mit(mit_name);
 ```
 
 **Migration Strategy**:
 
 ```sql
 -- Data population from existing migrations
-INSERT INTO migration_types_master_mtm (
-    mtm_name,
-    mtm_description,
-    mtm_display_order,
-    mtm_created_by
+INSERT INTO migration_types_mit (
+    mit_name,
+    mit_description,
+    mit_display_order,
+    mit_created_by
 )
 SELECT DISTINCT
     mig_type,
@@ -187,7 +187,7 @@ SELECT DISTINCT
 FROM migrations_mig
 WHERE mig_type IS NOT NULL
 AND TRIM(mig_type) != ''
-AND mig_type NOT IN (SELECT mtm_name FROM migration_types_master_mtm);
+AND mig_type NOT IN (SELECT mit_name FROM migration_types_mit);
 ```
 
 #### Task 2.2: API Architecture Design
@@ -280,7 +280,7 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
 **Integration Points**:
 
 1. **Existing Migrations API** - No changes required
-   - `tbl_migrations_master.migration_type` continues to work
+   - `tbl_migrations_mit.migration_type` continues to work
    - Optional enhancement: Validation against migration types master
 
 2. **Admin GUI Integration** - New component only
@@ -303,8 +303,8 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
 ### Success Criteria ✅ ACHIEVED
 
 - ✅ Database design follows UMIG patterns and naming conventions
-  - `migration_types_master_mtm` table implemented with complete schema
-  - Liquibase migration script: 029_create_migration_types_master.sql
+  - `migration_types_mit` table implemented with complete schema
+  - Liquibase migration script: 029_create_migration_types_mit.sql
   - Repository pattern established following UMIG conventions
 - ✅ API design consistent with existing endpoints (StepsApi pattern)
 - ✅ Zero breaking changes to existing systems verified
@@ -348,54 +348,54 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
     <changeSet id="create-migration-types-master" author="us042-implementation">
         <comment>Create Migration Types Master table for dynamic type management</comment>
 
-        <createTable tableName="migration_types_master_mtm">
-            <column name="mtm_id" type="UUID" defaultValueComputed="gen_random_uuid()">
+        <createTable tableName="migration_types_mit">
+            <column name="mit_id" type="UUID" defaultValueComputed="gen_random_uuid()">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="mtm_name" type="VARCHAR(50)">
+            <column name="mit_name" type="VARCHAR(50)">
                 <constraints unique="true" nullable="false"/>
             </column>
-            <column name="mtm_description" type="TEXT">
+            <column name="mit_description" type="TEXT">
                 <constraints nullable="false"/>
             </column>
-            <column name="mtm_color_code" type="VARCHAR(7)" defaultValue="#007CBA">
+            <column name="mit_color_code" type="VARCHAR(7)" defaultValue="#007CBA">
                 <constraints nullable="false"/>
             </column>
-            <column name="mtm_icon_name" type="VARCHAR(50)"/>
-            <column name="mtm_is_active" type="BOOLEAN" defaultValueBoolean="true">
+            <column name="mit_icon_name" type="VARCHAR(50)"/>
+            <column name="mit_is_active" type="BOOLEAN" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
-            <column name="mtm_display_order" type="INTEGER" defaultValueNumeric="0"/>
-            <column name="mtm_created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
-            <column name="mtm_created_by" type="VARCHAR(255)">
+            <column name="mit_display_order" type="INTEGER" defaultValueNumeric="0"/>
+            <column name="mit_created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="mit_created_by" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="mtm_updated_at" type="TIMESTAMP"/>
-            <column name="mtm_updated_by" type="VARCHAR(255)"/>
+            <column name="mit_updated_at" type="TIMESTAMP"/>
+            <column name="mit_updated_by" type="VARCHAR(255)"/>
         </createTable>
 
         <!-- Constraints -->
         <sql>
-            ALTER TABLE migration_types_master_mtm
-            ADD CONSTRAINT ck_mtm_color_code
-            CHECK (mtm_color_code ~ '^#[0-9A-Fa-f]{6}$');
+            ALTER TABLE migration_types_mit
+            ADD CONSTRAINT ck_mit_color_code
+            CHECK (mit_color_code ~ '^#[0-9A-Fa-f]{6}$');
 
-            ALTER TABLE migration_types_master_mtm
-            ADD CONSTRAINT ck_mtm_name_length
-            CHECK (LENGTH(TRIM(mtm_name)) >= 2);
+            ALTER TABLE migration_types_mit
+            ADD CONSTRAINT ck_mit_name_length
+            CHECK (LENGTH(TRIM(mit_name)) >= 2);
         </sql>
 
         <!-- Indexes -->
-        <createIndex indexName="idx_mtm_display_order" tableName="migration_types_master_mtm">
-            <column name="mtm_display_order"/>
+        <createIndex indexName="idx_mit_display_order" tableName="migration_types_mit">
+            <column name="mit_display_order"/>
         </createIndex>
 
-        <createIndex indexName="idx_mtm_is_active" tableName="migration_types_master_mtm">
-            <column name="mtm_is_active"/>
+        <createIndex indexName="idx_mit_is_active" tableName="migration_types_mit">
+            <column name="mit_is_active"/>
         </createIndex>
 
-        <createIndex indexName="idx_mtm_name" tableName="migration_types_master_mtm">
-            <column name="mtm_name"/>
+        <createIndex indexName="idx_mit_name" tableName="migration_types_mit">
+            <column name="mit_name"/>
         </createIndex>
     </changeSet>
 
@@ -403,11 +403,11 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
         <comment>Populate initial migration types from existing data</comment>
 
         <sql>
-            INSERT INTO migration_types_master_mtm (
-                mtm_name,
-                mtm_description,
-                mtm_display_order,
-                mtm_created_by
+            INSERT INTO migration_types_mit (
+                mit_name,
+                mit_description,
+                mit_display_order,
+                mit_created_by
             )
             SELECT DISTINCT
                 mig_type,
@@ -418,8 +418,8 @@ migrationTypeByName(httpMethod: "GET", groups: ["confluence-users"]) { request, 
             WHERE mig_type IS NOT NULL
             AND TRIM(mig_type) != ''
             AND NOT EXISTS (
-                SELECT 1 FROM migration_types_master_mtm
-                WHERE mtm_name = mig_type
+                SELECT 1 FROM migration_types_mit
+                WHERE mit_name = mig_type
             );
         </sql>
     </changeSet>
@@ -445,18 +445,18 @@ class MigrationTypesRepository {
 
     private static final String BASE_QUERY = """
         SELECT
-            mtm_id as id,
-            mtm_name as name,
-            mtm_description as description,
-            mtm_color_code as colorCode,
-            mtm_icon_name as iconName,
-            mtm_is_active as isActive,
-            mtm_display_order as displayOrder,
-            mtm_created_at as createdAt,
-            mtm_created_by as createdBy,
-            mtm_updated_at as updatedAt,
-            mtm_updated_by as updatedBy
-        FROM migration_types_master_mtm
+            mit_id as id,
+            mit_name as name,
+            mit_description as description,
+            mit_color_code as colorCode,
+            mit_icon_name as iconName,
+            mit_is_active as isActive,
+            mit_display_order as displayOrder,
+            mit_created_at as createdAt,
+            mit_created_by as createdBy,
+            mit_updated_at as updatedAt,
+            mit_updated_by as updatedBy
+        FROM migration_types_mit
     """
 
     /**
@@ -471,12 +471,12 @@ class MigrationTypesRepository {
 
             // Apply filters
             if (filters.isActive != null) {
-                whereConditions << "mtm_is_active = ?"
+                whereConditions << "mit_is_active = ?"
                 params << Boolean.valueOf(filters.isActive as String)
             }
 
             if (filters.name) {
-                whereConditions << "LOWER(mtm_name) LIKE LOWER(?)"
+                whereConditions << "LOWER(mit_name) LIKE LOWER(?)"
                 params << "%${filters.name}%"
             }
 
@@ -485,7 +485,7 @@ class MigrationTypesRepository {
             if (whereConditions) {
                 query += " WHERE " + whereConditions.join(" AND ")
             }
-            query += " ORDER BY mtm_display_order, mtm_name"
+            query += " ORDER BY mit_display_order, mit_name"
 
             return sql.rows(query, params)
         }
@@ -498,7 +498,7 @@ class MigrationTypesRepository {
      */
     Map<String, Object> findByName(String name) {
         return DatabaseUtil.withSql { Sql sql ->
-            def query = BASE_QUERY + " WHERE mtm_name = ?"
+            def query = BASE_QUERY + " WHERE mit_name = ?"
             def results = sql.rows(query, [name])
             return results ? results[0] : null
         }
@@ -518,10 +518,10 @@ class MigrationTypesRepository {
             validateMigrationType(migrationType, false)
 
             def insertQuery = """
-                INSERT INTO migration_types_master_mtm (
-                    mtm_id, mtm_name, mtm_description, mtm_color_code,
-                    mtm_icon_name, mtm_is_active, mtm_display_order,
-                    mtm_created_by, mtm_created_at
+                INSERT INTO migration_types_mit (
+                    mit_id, mit_name, mit_description, mit_color_code,
+                    mit_icon_name, mit_is_active, mit_display_order,
+                    mit_created_by, mit_created_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
 
@@ -561,15 +561,15 @@ class MigrationTypesRepository {
             def now = new Timestamp(System.currentTimeMillis())
 
             def updateQuery = """
-                UPDATE migration_types_master_mtm
-                SET mtm_description = ?,
-                    mtm_color_code = ?,
-                    mtm_icon_name = ?,
-                    mtm_is_active = ?,
-                    mtm_display_order = ?,
-                    mtm_updated_by = ?,
-                    mtm_updated_at = ?
-                WHERE mtm_name = ?
+                UPDATE migration_types_mit
+                SET mit_description = ?,
+                    mit_color_code = ?,
+                    mit_icon_name = ?,
+                    mit_is_active = ?,
+                    mit_display_order = ?,
+                    mit_updated_by = ?,
+                    mit_updated_at = ?
+                WHERE mit_name = ?
             """
 
             sql.execute(updateQuery, [
@@ -606,7 +606,7 @@ class MigrationTypesRepository {
                 )
             }
 
-            def deleteQuery = "DELETE FROM migration_types_master_mtm WHERE mtm_name = ?"
+            def deleteQuery = "DELETE FROM migration_types_mit WHERE mit_name = ?"
             def rowsAffected = sql.executeUpdate(deleteQuery, [name])
 
             return rowsAffected > 0

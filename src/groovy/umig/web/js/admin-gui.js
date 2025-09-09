@@ -38,6 +38,9 @@
       teamFilter: null,
     },
 
+    // Track active timeouts for proper cleanup and MutationObserver conflict avoidance
+    activeTimeouts: new Set(),
+
     // Configuration from Groovy macro
     config: window.UMIG_CONFIG || {},
 
@@ -67,34 +70,76 @@
     // Entity configurations (delegated to EntityConfig.js)
     // Get entities from the centralized EntityConfig module with fallback
     get entities() {
-      if (window.EntityConfig && typeof window.EntityConfig.getAllEntities === 'function') {
+      if (
+        window.EntityConfig &&
+        typeof window.EntityConfig.getAllEntities === "function"
+      ) {
         return window.EntityConfig.getAllEntities();
       }
-      
+
       // Fallback warning if EntityConfig is not available
-      console.warn('EntityConfig not available, using empty configuration');
+      console.warn("EntityConfig not available, using empty configuration");
       return {};
     },
 
     // Helper method to get a specific entity configuration
-    getEntity: function(entityName) {
-      if (window.EntityConfig && typeof window.EntityConfig.getEntity === 'function') {
+    getEntity: function (entityName) {
+      if (
+        window.EntityConfig &&
+        typeof window.EntityConfig.getEntity === "function"
+      ) {
         const entity = window.EntityConfig.getEntity(entityName);
         if (!entity) {
           console.warn(`Entity '${entityName}' not found in EntityConfig`);
         }
         return entity;
       }
-      
+
       // Fallback to direct access if EntityConfig API is not available
-      console.warn('EntityConfig API not available, attempting fallback');
+      console.warn("EntityConfig API not available, attempting fallback");
       const entities = this.entities;
       return entities[entityName] || null;
+    },
+
+    // Cleanup function for active timeouts (MutationObserver safety)
+    cleanup: function () {
+      // Clear all active timeouts to prevent memory leaks
+      this.activeTimeouts.forEach((timeoutId) => {
+        clearTimeout(timeoutId);
+      });
+      this.activeTimeouts.clear();
+      console.log("[UMIG] Admin GUI cleanup completed");
     },
 
     // Initialize the application
     init: function () {
       console.log("UMIG Admin GUI initializing...");
+
+      // Defensive checks for required modules
+      const requiredModules = {
+        EntityConfig: window.EntityConfig,
+        UiUtils: window.UiUtils,
+        AdminGuiState: window.AdminGuiState,
+      };
+
+      const missingModules = [];
+      for (const [name, module] of Object.entries(requiredModules)) {
+        if (!module) {
+          missingModules.push(name);
+        }
+      }
+
+      if (missingModules.length > 0) {
+        console.warn(
+          "[UMIG] Missing required modules:",
+          missingModules.join(", "),
+        );
+        console.warn("[UMIG] Retrying initialization in 500ms...");
+        setTimeout(() => this.init(), 500);
+        return;
+      }
+
+      console.log("[UMIG] All required modules loaded successfully");
       this.bindEvents();
       this.initializeLogin();
     },
@@ -220,14 +265,21 @@
     handleLogin: function (e) {
       e.preventDefault();
 
-      const userCode = document
-        .getElementById("userCode")
-        .value.trim()
-        .toUpperCase();
-      const loginBtn = e.target.querySelector(".login-btn");
-      const btnText = loginBtn.querySelector(".btn-text");
-      const btnLoading = loginBtn.querySelector(".btn-loading");
+      // Get elements using direct selectors to avoid MutationObserver conflicts
+      const userCodeInput = document.getElementById("userCode");
+      const loginBtn = document.querySelector("button.login-btn");
+      const btnText = loginBtn ? loginBtn.querySelector(".btn-text") : null;
+      const btnLoading = loginBtn
+        ? loginBtn.querySelector(".btn-loading")
+        : null;
       const errorDiv = document.getElementById("loginError");
+
+      if (!userCodeInput || !loginBtn || !btnText || !btnLoading) {
+        console.error("[UMIG] Login form elements not found");
+        return;
+      }
+
+      const userCode = userCodeInput.value.trim().toUpperCase();
 
       // Basic validation
       if (!userCode || userCode.length !== 3) {
@@ -235,29 +287,42 @@
         return;
       }
 
-      // Show loading state
-      loginBtn.disabled = true;
-      btnText.style.display = "none";
-      btnLoading.style.display = "inline";
-      errorDiv.style.display = "none";
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        try {
+          // Show loading state
+          loginBtn.disabled = true;
+          btnText.style.display = "none";
+          btnLoading.style.display = "inline";
+          if (errorDiv) {
+            errorDiv.style.display = "none";
+          }
 
-      // Simulate authentication (in real app, this would call an API)
-      setTimeout(() => {
-        this.authenticateUser(userCode)
-          .then((user) => {
-            this.state.currentUser = user;
-            this.state.isAuthenticated = true;
-            this.showDashboard();
-          })
-          .catch((error) => {
-            this.showLoginError(error.message);
-          })
-          .finally(() => {
-            loginBtn.disabled = false;
-            btnText.style.display = "inline";
-            btnLoading.style.display = "none";
-          });
-      }, 500);
+          // Simulate authentication (in real app, this would call an API)
+          setTimeout(() => {
+            this.authenticateUser(userCode)
+              .then((user) => {
+                this.state.currentUser = user;
+                this.state.isAuthenticated = true;
+                this.showDashboard();
+              })
+              .catch((error) => {
+                this.showLoginError(error.message);
+              })
+              .finally(() => {
+                // Use another timeout to avoid MutationObserver conflicts
+                setTimeout(() => {
+                  loginBtn.disabled = false;
+                  btnText.style.display = "inline";
+                  btnLoading.style.display = "none";
+                }, 50);
+              });
+          }, 500);
+        } catch (error) {
+          console.error("[UMIG] Login handling error:", error);
+          this.showLoginError("Login system error. Please try again.");
+        }
+      }, 10); // Small delay to avoid MutationObserver conflicts
     },
 
     // Authenticate user (mock implementation)
@@ -309,29 +374,44 @@
 
     // Show login error
     showLoginError: function (message) {
-      const errorDiv = document.getElementById("loginError");
-      errorDiv.textContent = message;
-      errorDiv.style.display = "block";
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        const errorDiv = document.getElementById("loginError");
+        if (errorDiv) {
+          errorDiv.textContent = message;
+          errorDiv.style.display = "block";
+        } else {
+          console.error("[UMIG] Login error element not found:", message);
+        }
+      }, 10);
     },
 
     // Show main dashboard
     showDashboard: function () {
-      document.getElementById("loginPage").style.display = "none";
-      document.getElementById("adminDashboard").style.display = "flex";
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        const loginPage = document.getElementById("loginPage");
+        const dashboardPage = document.getElementById("dashboardPage");
 
-      this.setupUserInterface();
-      this.setupMenuVisibility();
-      this.loadCurrentSection();
+        if (loginPage) {
+          loginPage.style.display = "none";
+        }
+        if (dashboardPage) {
+          dashboardPage.style.display = "flex";
+        }
+
+        this.setupUserInterface();
+        this.setupMenuVisibility();
+        this.loadCurrentSection();
+      }, 10);
     },
 
     // Setup user interface with current user info
     setupUserInterface: function () {
       const user = this.state.currentUser;
 
-      document.getElementById("currentUserName").textContent =
-        `Welcome, ${user.name}`;
-      document.getElementById("currentUserRole").textContent =
-        user.role.toUpperCase();
+      document.getElementById("userName").textContent = `Welcome, ${user.name}`;
+      document.getElementById("userRole").textContent = user.role.toUpperCase();
     },
 
     // Setup menu visibility based on user role
@@ -362,140 +442,447 @@
 
     // Handle navigation menu clicks
     handleNavigation: function (navItem) {
-      // Remove active class from all nav items
-      document.querySelectorAll(".nav-item").forEach((item) => {
-        item.classList.remove("active");
-      });
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        this.activeTimeouts.delete(timeoutId);
+        try {
+          // Get section and entity from data attributes first (before DOM manipulation)
+          const section = navItem ? navItem.getAttribute("data-section") : null;
+          const entity = navItem
+            ? navItem.getAttribute("data-entity") || section
+            : null;
 
-      // Add active class to clicked item
-      navItem.classList.add("active");
+          if (!section) {
+            console.error(
+              "[UMIG] Navigation item missing data-section attribute",
+            );
+            return;
+          }
 
-      // Get section and entity from data attributes
-      const section = navItem.getAttribute("data-section");
-      const entity = navItem.getAttribute("data-entity") || section;
+          // Remove active class from all nav items with null checks
+          const navItems = document.querySelectorAll(".nav-item");
+          if (navItems) {
+            navItems.forEach((item) => {
+              if (item && item.classList) {
+                item.classList.remove("active");
+              }
+            });
+          }
 
-      this.state.currentSection = section;
-      this.state.currentEntity = entity;
-      this.state.currentPage = 1;
-      this.state.selectedRows.clear();
+          // Add active class to clicked item with null checks
+          if (navItem && navItem.classList) {
+            navItem.classList.add("active");
+          }
 
-      // Reset filters when switching sections
-      this.state.teamFilter = null;
+          // Update state
+          this.state.currentSection = section;
+          this.state.currentEntity = entity;
+          this.state.currentPage = 1;
+          this.state.selectedRows.clear();
 
-      this.updateContentHeader();
-      this.loadCurrentSection();
+          // Reset filters when switching sections
+          this.state.teamFilter = null;
+
+          // Update UI components
+          this.updateContentHeader();
+          this.loadCurrentSection();
+        } catch (error) {
+          console.error("[UMIG] Navigation handling error:", error);
+        }
+      }, 10);
+
+      this.activeTimeouts.add(timeoutId);
     },
 
     // Update content header based on current section
     updateContentHeader: function () {
-      const entity = this.getEntity(this.state.currentEntity);
-      if (entity) {
-        document.getElementById("contentTitle").textContent =
-          `${entity.name} Management`;
-        document.getElementById("contentDescription").textContent =
-          entity.description;
-        document.getElementById("addNewBtn").innerHTML =
-          `<span class="btn-icon">➕</span> Add New ${entity.name.slice(0, -1)}`;
-      }
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        this.activeTimeouts.delete(timeoutId);
+        try {
+          const entity = this.getEntity(this.state.currentEntity);
+          if (entity) {
+            const contentTitle = document.getElementById("contentTitle");
+            const contentDescription =
+              document.getElementById("contentDescription");
+            const addNewBtn = document.getElementById("addNewBtn");
+
+            if (contentTitle) {
+              contentTitle.textContent = `${entity.name} Management`;
+            }
+
+            if (contentDescription) {
+              contentDescription.textContent = entity.description;
+            }
+
+            if (addNewBtn) {
+              addNewBtn.innerHTML = `<span class="btn-icon">➕</span> Add New ${entity.name.slice(0, -1)}`;
+            }
+          }
+        } catch (error) {
+          console.error("[UMIG] Update content header error:", error);
+        }
+      }, 10);
+
+      this.activeTimeouts.add(timeoutId);
     },
 
     // Load data for current section
-    loadCurrentSection: function () {
-      this.showLoading();
+    async loadCurrentSection() {
+      const entity = this.state.currentEntity || this.state.currentSection;
+      console.log(
+        `[UMIG DEBUG] ====== STARTING loadCurrentSection for entity: ${entity} ======`,
+      );
 
-      const entity = this.state.currentEntity;
-      const endpoint = this.api.endpoints[entity];
-
-      if (!endpoint) {
-        this.showError("Invalid entity: " + entity);
+      if (!entity || entity === "dashboard") {
+        console.log(`[UMIG DEBUG] Showing dashboard for entity: ${entity}`);
+        this.showDashboard();
         return;
       }
 
-      // Build API URL with pagination and search
-      const params = new URLSearchParams({
-        page: this.state.currentPage,
-        size: this.state.pageSize,
+      // Defensive access to entities with comprehensive error handling
+      let config = null;
+      let availableEntities = [];
+
+      try {
+        const entities = this.entities;
+        if (!entities || typeof entities !== "object") {
+          console.error(`[UMIG DEBUG] Entities object is invalid:`, entities);
+          this.showErrorMessage(
+            `Configuration Error: Unable to load entity configurations. Please refresh the page.`,
+          );
+          return;
+        }
+
+        // Enhanced debugging for iterationTypes vs migrationTypes
+        if (entity === "iterationTypes" || entity === "migrationTypes") {
+          console.log(
+            `[UMIG DEBUG] 🔍 ENHANCED DEBUGGING FOR ${entity.toUpperCase()}`,
+          );
+          console.log(`[UMIG DEBUG] entities object type:`, typeof entities);
+          console.log(
+            `[UMIG DEBUG] entities object keys:`,
+            Object.keys(entities),
+          );
+          console.log(
+            `[UMIG DEBUG] Direct access to ${entity}:`,
+            entities[entity],
+          );
+          console.log(
+            `[UMIG DEBUG] Does ${entity} exist?:`,
+            entity in entities,
+          );
+          console.log(
+            `[UMIG DEBUG] EntityConfig proxy working?:`,
+            typeof this.entities,
+          );
+
+          // Check both entities for comparison
+          if (entity === "iterationTypes") {
+            console.log(
+              `[UMIG DEBUG] 📊 COMPARISON - migrationTypes config:`,
+              entities["migrationTypes"],
+            );
+            console.log(
+              `[UMIG DEBUG] 📊 COMPARISON - iterationTypes config:`,
+              entities["iterationTypes"],
+            );
+          }
+        }
+
+        config = entities[entity];
+        availableEntities = Object.keys(entities);
+
+        if (!config) {
+          console.error(
+            `[UMIG DEBUG] ❌ No config found for entity: ${entity}`,
+          );
+          console.log(
+            `[UMIG DEBUG] Available entity configs:`,
+            availableEntities,
+          );
+
+          // Special iteration types debugging
+          if (entity === "iterationTypes") {
+            console.error(
+              `[UMIG DEBUG] 🚨 CRITICAL: ITERATION TYPES CONFIG MISSING!`,
+            );
+            console.error(`[UMIG DEBUG] EntityConfig status:`, {
+              windowEntityConfig: typeof window.EntityConfig,
+              getAllEntitiesMethod: typeof window.EntityConfig?.getAllEntities,
+              proxyAccess: typeof this.entities,
+              directIteration:
+                window.EntityConfig?.getAllEntities()?.iterationTypes,
+            });
+          }
+
+          this.showErrorMessage(
+            `Unknown entity: ${entity}. Available: ${availableEntities.join(", ")}`,
+          );
+          return;
+        }
+      } catch (error) {
+        console.error(
+          `[UMIG DEBUG] Critical error accessing entity config:`,
+          error,
+        );
+        this.showErrorMessage(
+          `Critical Configuration Error: ${error.message}. Please refresh the page.`,
+        );
+        return;
+      }
+
+      console.log(`[UMIG DEBUG] Found config for ${entity}:`, {
+        name: config.name,
+        endpoint: config.endpoint,
+        hasFields: !!config.fields,
+        fieldsCount: config.fields ? config.fields.length : 0,
+        hasTableColumns: !!config.tableColumns,
+        tableColumnsCount: config.tableColumns ? config.tableColumns.length : 0,
+        permissions: config.permissions,
       });
 
-      if (this.state.searchTerm) {
-        params.append("search", this.state.searchTerm);
-      }
+      this.showLoadingSpinner();
 
-      if (this.state.sortField) {
-        params.append("sort", this.state.sortField);
-        params.append("direction", this.state.sortDirection);
-      }
-      if (this.state.teamFilter) {
-        params.append("teamId", this.state.teamFilter);
-      }
+      try {
+        // Get endpoint from config or use entity name as fallback
+        const endpoint =
+          this.api.endpoints[entity] || config.endpoint || `/${entity}`;
+        console.log(`[UMIG DEBUG] Using endpoint: ${endpoint}`);
 
-      const url = `${this.api.baseUrl}${endpoint}?${params.toString()}`;
-
-      fetch(url, {
-        method: "GET",
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          // Handle both paginated and non-paginated responses
-          if (data.content && Array.isArray(data.content)) {
-            // Paginated response
-            this.state.data[entity] = data.content;
-            this.state.pagination = {
-              totalElements: data.totalElements || 0,
-              totalPages: data.totalPages || 1,
-              pageNumber: data.pageNumber || 1,
-              pageSize: data.pageSize || 50,
-              hasNext: data.hasNext || false,
-              hasPrevious: data.hasPrevious || false,
-            };
-
-            // Update sort state from server response
-            if (data.sortField) {
-              this.state.sortField = data.sortField;
-              this.state.sortDirection = data.sortDirection || "asc";
-            }
-          } else if (Array.isArray(data)) {
-            // Non-paginated response (fallback)
-            this.state.data[entity] = data;
-            this.state.pagination = {
-              totalElements: data.length,
-              totalPages: 1,
-              pageNumber: 1,
-              pageSize: data.length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          } else {
-            // Fallback for unknown format
-            this.state.data[entity] = [];
-            this.state.pagination = {
-              totalElements: 0,
-              totalPages: 1,
-              pageNumber: 1,
-              pageSize: 50,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          }
-
-          this.renderTable();
-          this.renderFilterControls();
-          this.hideLoading();
-        })
-        .catch((error) => {
-          console.error("Error loading data:", error);
-          this.showError(`Failed to load ${entity}: ${error.message}`);
+        // Build API URL with pagination and search
+        const params = new URLSearchParams({
+          page: this.state.currentPage,
+          size: this.state.pageSize,
         });
+
+        if (this.state.searchTerm) {
+          params.append("search", this.state.searchTerm);
+        }
+
+        if (this.state.sortField) {
+          params.append("sort", this.state.sortField);
+          params.append("direction", this.state.sortDirection);
+        }
+        if (this.state.teamFilter) {
+          params.append("teamId", this.state.teamFilter);
+        }
+
+        const url = `${this.api.baseUrl}${endpoint}?${params.toString()}`;
+        console.log(`[UMIG DEBUG] Making API call to: ${url}`);
+
+        fetch(url, {
+          method: "GET",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+            console.log(`[UMIG DEBUG] Raw response status: ${response.status}`);
+            console.log(`[UMIG DEBUG] Raw response ok: ${response.ok}`);
+            console.log(
+              `[UMIG DEBUG] Raw response headers:`,
+              Array.from(response.headers.entries()),
+            );
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`,
+              );
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Debug logging to understand response structure
+            console.log(
+              `[UMIG DEBUG] ====== API RESPONSE ANALYSIS for ${entity} ======`,
+            );
+            console.log(`[UMIG DEBUG] Full API Response:`, data);
+            console.log(`[UMIG DEBUG] Response type:`, typeof data);
+            console.log(`[UMIG DEBUG] Is array:`, Array.isArray(data));
+            console.log(
+              `[UMIG DEBUG] Response keys:`,
+              data && typeof data === "object" ? Object.keys(data) : "N/A",
+            );
+
+            if (data && data.content) {
+              console.log(`[UMIG DEBUG] Has content property:`, !!data.content);
+              console.log(`[UMIG DEBUG] Content type:`, typeof data.content);
+              console.log(
+                `[UMIG DEBUG] Content is array:`,
+                Array.isArray(data.content),
+              );
+              if (Array.isArray(data.content)) {
+                console.log(
+                  `[UMIG DEBUG] Content length:`,
+                  data.content.length,
+                );
+                if (data.content.length > 0) {
+                  console.log(`[UMIG DEBUG] First item:`, data.content[0]);
+                  console.log(
+                    `[UMIG DEBUG] First item keys:`,
+                    Object.keys(data.content[0]),
+                  );
+                }
+              }
+            }
+
+            // Handle both paginated response formats
+            if (data.content && Array.isArray(data.content)) {
+              // Format 1: Paginated response with direct properties
+              console.log(
+                `[UMIG DEBUG] Processing Format 1 paginated response with ${data.content.length} items`,
+              );
+              this.state.data[entity] = data.content;
+              this.state.pagination = {
+                totalElements: data.totalElements || 0,
+                totalPages: data.totalPages || 1,
+                pageNumber: data.pageNumber || 1,
+                pageSize: data.pageSize || 50,
+                hasNext: data.hasNext || false,
+                hasPrevious: data.hasPrevious || false,
+              };
+              console.log(
+                `[UMIG DEBUG] Set pagination state:`,
+                this.state.pagination,
+              );
+
+              // Update sort state from server response
+              if (data.sortField) {
+                this.state.sortField = data.sortField;
+                this.state.sortDirection = data.sortDirection || "asc";
+                console.log(
+                  `[UMIG DEBUG] Updated sort state - field: ${this.state.sortField}, direction: ${this.state.sortDirection}`,
+                );
+              }
+            } else if (
+              data.data &&
+              Array.isArray(data.data) &&
+              data.pagination
+            ) {
+              // Format 2: Paginated response with nested structure
+              console.log(
+                `[UMIG DEBUG] Processing Format 2 paginated response with ${data.data.length} items`,
+              );
+              this.state.data[entity] = data.data;
+              this.state.pagination = {
+                totalElements: data.pagination.totalElements || 0,
+                totalPages: data.pagination.totalPages || 1,
+                pageNumber: data.pagination.pageNumber || 1,
+                pageSize: data.pagination.pageSize || 50,
+                hasNext: data.pagination.hasNext || false,
+                hasPrevious: data.pagination.hasPrevious || false,
+              };
+              console.log(
+                `[UMIG DEBUG] Set pagination state:`,
+                this.state.pagination,
+              );
+
+              // Update sort state from server response
+              if (data.pagination.sortField) {
+                this.state.sortField = data.pagination.sortField;
+                this.state.sortDirection =
+                  data.pagination.sortDirection || "asc";
+                console.log(
+                  `[UMIG DEBUG] Updated sort state - field: ${this.state.sortField}, direction: ${this.state.sortDirection}`,
+                );
+              }
+            } else if (Array.isArray(data)) {
+              // Non-paginated response (fallback)
+              console.log(
+                `[UMIG DEBUG] Processing array response with ${data.length} items`,
+              );
+              if (data.length > 0) {
+                console.log(`[UMIG DEBUG] First array item:`, data[0]);
+                console.log(
+                  `[UMIG DEBUG] First array item keys:`,
+                  Object.keys(data[0]),
+                );
+              }
+              this.state.data[entity] = data;
+              this.state.pagination = {
+                totalElements: data.length,
+                totalPages: 1,
+                pageNumber: 1,
+                pageSize: data.length,
+                hasNext: false,
+                hasPrevious: false,
+              };
+            } else if (data && typeof data === "string") {
+              // Handle string responses (fallback)
+              console.log(
+                `[UMIG DEBUG] Processing string response, attempting JSON parse`,
+              );
+              try {
+                const parsed = JSON.parse(data);
+                if (Array.isArray(parsed)) {
+                  this.state.data[entity] = parsed;
+                  console.log(
+                    `[UMIG DEBUG] Successfully parsed string to array with ${parsed.length} items`,
+                  );
+                } else {
+                  console.error(
+                    `[UMIG DEBUG] Parsed data is not an array:`,
+                    parsed,
+                  );
+                  this.state.data[entity] = [];
+                }
+              } catch (parseError) {
+                console.error(
+                  `[UMIG DEBUG] Failed to parse string response:`,
+                  parseError,
+                );
+                this.state.data[entity] = [];
+              }
+            } else {
+              // Unexpected response format
+              console.warn(
+                `[UMIG DEBUG] Unexpected response format for ${entity}:`,
+                typeof data,
+                data,
+              );
+              this.state.data[entity] = [];
+            }
+
+            console.log(
+              `[UMIG DEBUG] Final data set for ${entity}:`,
+              this.state.data[entity],
+            );
+            console.log(
+              `[UMIG DEBUG] Final data length:`,
+              this.state.data[entity]
+                ? this.state.data[entity].length
+                : "undefined",
+            );
+
+            // Render the table
+            console.log(`[UMIG DEBUG] About to call renderTable for ${entity}`);
+            this.renderTable();
+            this.hideLoadingSpinner();
+            console.log(
+              `[UMIG DEBUG] ====== COMPLETED loadCurrentSection for ${entity} ======`,
+            );
+          })
+          .catch((error) => {
+            console.error(
+              `[UMIG DEBUG] ====== ERROR in loadCurrentSection for ${entity} ======`,
+            );
+            console.error(`[UMIG DEBUG] Error details:`, error);
+            console.error(`[UMIG DEBUG] Error message:`, error.message);
+            console.error(`[UMIG DEBUG] Error stack:`, error.stack);
+            this.hideLoadingSpinner();
+            this.showErrorMessage(`Failed to load ${entity}: ${error.message}`);
+          });
+      } catch (error) {
+        console.error(
+          `[UMIG DEBUG] ====== OUTER ERROR in loadCurrentSection for ${entity} ======`,
+        );
+        console.error(`[UMIG DEBUG] Outer error:`, error);
+        this.hideLoadingSpinner();
+        this.showErrorMessage(`Error loading ${entity}: ${error.message}`);
+      }
     },
 
     // Render data table
@@ -503,22 +890,61 @@
       const entity = this.getEntity(this.state.currentEntity);
       const data = this.state.data[this.state.currentEntity] || [];
 
+      console.log(
+        `[UMIG DEBUG] ====== STARTING renderTable for ${this.state.currentEntity} ======`,
+      );
+      console.log(`[UMIG DEBUG] Data length: ${data.length}`);
+      console.log(`[UMIG DEBUG] Data contents:`, data);
+      console.log(`[UMIG DEBUG] Entity config found:`, !!entity);
+
+      if (entity) {
+        console.log(`[UMIG DEBUG] Entity config details:`, {
+          name: entity.name,
+          hasTableColumns: !!entity.tableColumns,
+          tableColumns: entity.tableColumns,
+          hasFields: !!entity.fields,
+          fieldsCount: entity.fields ? entity.fields.length : 0,
+        });
+      }
+
       if (!entity) {
-        console.error(`Entity configuration not found for: ${this.state.currentEntity}`);
-        this.showError(`Configuration error: Unable to load ${this.state.currentEntity}`);
+        console.error(
+          `[UMIG DEBUG] Entity configuration not found for: ${this.state.currentEntity}`,
+        );
+        console.error(
+          `[UMIG DEBUG] Available entities:`,
+          Object.keys(this.entities),
+        );
+        this.showError(
+          `Configuration error: Unable to load ${this.state.currentEntity}`,
+        );
         return;
       }
 
       // Ensure DOM elements exist before rendering
+      console.log(`[UMIG DEBUG] About to ensure table elements exist`);
       this.ensureTableElementsExist(() => {
+        console.log(
+          `[UMIG DEBUG] Table elements exist, proceeding with rendering`,
+        );
+
         // Render table headers
+        console.log(`[UMIG DEBUG] Calling renderTableHeaders`);
         this.renderTableHeaders(entity);
 
         // Render table body
+        console.log(
+          `[UMIG DEBUG] Calling renderTableBody with ${data.length} items`,
+        );
         this.renderTableBody(entity, data);
 
         // Update pagination
+        console.log(`[UMIG DEBUG] Calling updatePagination`);
         this.updatePagination(data.length);
+
+        console.log(
+          `[UMIG DEBUG] ====== COMPLETED renderTable for ${this.state.currentEntity} ======`,
+        );
       });
     },
 
@@ -531,29 +957,45 @@
         const headerRow = document.getElementById("tableHeader");
         const tbody = document.getElementById("tableBody");
         const mainContent = document.getElementById("mainContent");
-        
+
         // Check that elements exist and main content is visible
-        if (headerRow && tbody && mainContent && mainContent.style.display !== "none") {
+        if (
+          headerRow &&
+          tbody &&
+          mainContent &&
+          mainContent.style.display !== "none"
+        ) {
           // Elements found and visible, proceed with rendering
-          console.log(`[UMIG] Table DOM elements found and visible after ${attempts} attempts`);
+          console.log(
+            `[UMIG] Table DOM elements found and visible after ${attempts} attempts`,
+          );
           callback();
           return;
         }
-        
+
         attempts++;
         if (attempts >= maxAttempts) {
-          console.error("Table elements not found after maximum attempts. DOM structure may be invalid.");
+          console.error(
+            "Table elements not found after maximum attempts. DOM structure may be invalid.",
+          );
           console.error("Expected elements: #tableHeader, #tableBody");
-          console.error("Available table elements:", document.querySelectorAll("[id*='table']"));
-          this.showError("Unable to initialize table. Please refresh the page.");
+          console.error(
+            "Available table elements:",
+            document.querySelectorAll("[id*='table']"),
+          );
+          this.showError(
+            "Unable to initialize table. Please refresh the page.",
+          );
           return;
         }
-        
+
         // Log progress for debugging
         if (attempts % 5 === 0) {
-          console.log(`[UMIG] Waiting for table DOM elements... (attempt ${attempts}/${maxAttempts})`);
+          console.log(
+            `[UMIG] Waiting for table DOM elements... (attempt ${attempts}/${maxAttempts})`,
+          );
         }
-        
+
         // Wait 50ms and try again
         setTimeout(checkElements, 50);
       };
@@ -564,17 +1006,19 @@
     // Render table headers
     renderTableHeaders: function (entity) {
       const headerRow = document.getElementById("tableHeader");
-      
+
       if (!headerRow) {
         console.error("Table header element not found in DOM");
         return;
       }
-      
+
       if (!entity || !entity.tableColumns) {
-        console.error("Invalid entity configuration provided to renderTableHeaders");
+        console.error(
+          "Invalid entity configuration provided to renderTableHeaders",
+        );
         return;
       }
-      
+
       headerRow.innerHTML = "";
 
       // Add checkbox column for row selection
@@ -627,13 +1071,18 @@
 
     // Render table body
     renderTableBody: function (entity, data) {
+      console.log(`[UMIG DEBUG] ====== STARTING renderTableBody ======`);
+      console.log(`[UMIG DEBUG] Entity:`, entity?.name || "undefined");
+      console.log(`[UMIG DEBUG] Data length:`, data?.length || 0);
+      console.log(`[UMIG DEBUG] Table columns:`, entity?.tableColumns);
+
       const tbody = document.getElementById("tableBody");
-      
+
       if (!tbody) {
         console.error("Table body element not found in DOM");
         return;
       }
-      
+
       tbody.innerHTML = "";
 
       if (data.length === 0) {
@@ -670,20 +1119,20 @@
         const actionsTd = document.createElement("td");
         actionsTd.className = "action-buttons";
 
-        // Add view details button for environments and phase instances
+        // Add action buttons based on entity type
         let actionsHtml = "";
-        if (this.state.currentEntity === "environments") {
-          actionsHtml = `
-                        <button class="btn-table-action btn-view" data-action="view" data-id="${record[entity.fields[0].key]}" title="View Details">👁️</button>
-                    `;
-        } else if (this.state.currentEntity === "phasesinstance") {
-          actionsHtml = `
-                        <button class="btn-table-action btn-view" data-action="view" data-id="${record[entity.fields[0].key]}" title="View Phase Details">👁️</button>
+
+        // VIEW button - now available for ALL entities
+        actionsHtml += `<button class="btn-table-action btn-view" data-action="view" data-id="${record[entity.fields[0].key]}" title="View Details">👁️</button>`;
+
+        // Entity-specific action buttons
+        if (this.state.currentEntity === "phasesinstance") {
+          actionsHtml += `
                         <button class="btn-table-action btn-controls" data-action="controls" data-id="${record[entity.fields[0].key]}" title="Manage Control Points">🎛️</button>
                         <button class="btn-table-action btn-progress" data-action="progress" data-id="${record[entity.fields[0].key]}" title="Update Progress">📊</button>
                     `;
         } else if (this.state.currentEntity === "phasesmaster") {
-          actionsHtml = `
+          actionsHtml += `
                         <button class="btn-table-action btn-move" data-action="move" data-id="${record[entity.fields[0].key]}" title="Reorder Phase">↕️</button>
                     `;
         }
@@ -709,6 +1158,16 @@
 
     // Format cell value for display
     formatCellValue: function (record, columnKey, entity) {
+      // Defensive programming: ensure columnKey is a string
+      if (typeof columnKey !== "string") {
+        console.warn(
+          "[UMIG] formatCellValue: columnKey is not a string:",
+          typeof columnKey,
+          columnKey,
+        );
+        columnKey = String(columnKey);
+      }
+
       let value = record[columnKey];
 
       // Handle special display columns
@@ -741,6 +1200,36 @@
       }
       if (columnKey === "app_count") {
         return record.app_count || "0";
+      }
+
+      // Handle all computed count fields for flickering entities
+      if (columnKey === "application_count") {
+        return record.application_count || "0";
+      }
+      if (columnKey === "iteration_count") {
+        return record.iteration_count || "0";
+      }
+      if (columnKey === "environment_count") {
+        return record.environment_count || "0";
+      }
+      if (columnKey === "team_count") {
+        return record.team_count || "0";
+      }
+      if (columnKey === "label_count") {
+        return record.label_count || "0";
+      }
+      if (columnKey === "step_count") {
+        return record.step_count || "0";
+      }
+
+      // Handle computed name fields
+      if (columnKey === "mig_name") {
+        return record.mig_name || '<span style="color: #a0aec0;">—</span>';
+      }
+      if (columnKey === "created_by_name") {
+        return (
+          record.created_by_name || '<span style="color: #a0aec0;">—</span>'
+        );
       }
 
       // Handle phases-specific display columns
@@ -820,8 +1309,12 @@
           : '<span class="status-badge">No</span>';
       }
 
-      // Handle dates and timestamps
-      if ((columnKey.includes("date") || columnKey.includes("_at")) && value) {
+      // Handle dates and timestamps (with type safety)
+      if (
+        typeof columnKey === "string" &&
+        (columnKey.includes("date") || columnKey.includes("_at")) &&
+        value
+      ) {
         const date = new Date(value);
         // Format as YYYY-MM-DD HH:MM:SS
         const year = date.getFullYear();
@@ -833,8 +1326,12 @@
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       }
 
-      // Handle email
-      if (columnKey.includes("email") && value) {
+      // Handle email (with type safety)
+      if (
+        typeof columnKey === "string" &&
+        columnKey.includes("email") &&
+        value
+      ) {
         return `<a href="mailto:${value}">${value}</a>`;
       }
 
@@ -857,12 +1354,26 @@
 
     // Handle select all checkbox
     handleSelectAll: function (checked) {
-      const checkboxes = document.querySelectorAll(".row-select");
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        this.activeTimeouts.delete(timeoutId);
+        try {
+          const checkboxes = document.querySelectorAll(".row-select");
 
-      checkboxes.forEach((checkbox) => {
-        checkbox.checked = checked;
-        this.handleRowSelection(checkbox);
-      });
+          if (checkboxes) {
+            checkboxes.forEach((checkbox) => {
+              if (checkbox) {
+                checkbox.checked = checked;
+                this.handleRowSelection(checkbox);
+              }
+            });
+          }
+        } catch (error) {
+          console.error("[UMIG] Handle select all error:", error);
+        }
+      }, 10);
+
+      this.activeTimeouts.add(timeoutId);
     },
 
     // Update bulk actions button state
@@ -1001,39 +1512,48 @@
 
     // Bind table events
     bindTableEvents: function () {
-      // Table action buttons
+      // Table action buttons - use closest() to handle clicks on button content (like emoji)
       document.addEventListener("click", (e) => {
-        if (e.target.matches('[data-action="view"]')) {
-          const id = e.target.getAttribute("data-id");
+        const viewBtn = e.target.closest('[data-action="view"]');
+        if (viewBtn) {
+          const id = viewBtn.getAttribute("data-id");
           if (this.state.currentEntity === "environments") {
             this.showEnvironmentDetails(id);
           } else if (this.state.currentEntity === "phasesinstance") {
             this.showPhaseInstanceDetails(id);
+          } else {
+            // Generic view modal for all other entities
+            this.showGenericEntityView(id);
           }
         }
 
-        if (e.target.matches('[data-action="edit"]')) {
-          const id = e.target.getAttribute("data-id");
+        const editBtn = e.target.closest('[data-action="edit"]');
+        if (editBtn) {
+          const id = editBtn.getAttribute("data-id");
           this.showEditModal(id);
         }
 
-        if (e.target.matches('[data-action="delete"]')) {
-          const id = e.target.getAttribute("data-id");
+        const deleteBtn = e.target.closest('[data-action="delete"]');
+        if (deleteBtn) {
+          const id = deleteBtn.getAttribute("data-id");
           this.confirmDelete(id);
         }
 
-        if (e.target.matches('[data-action="controls"]')) {
-          const id = e.target.getAttribute("data-id");
+        const controlsBtn = e.target.closest('[data-action="controls"]');
+        if (controlsBtn) {
+          const id = controlsBtn.getAttribute("data-id");
           this.showControlPointsModal(id);
         }
 
-        if (e.target.matches('[data-action="progress"]')) {
-          const id = e.target.getAttribute("data-id");
+        const progressBtn = e.target.closest('[data-action="progress"]');
+        if (progressBtn) {
+          const id = progressBtn.getAttribute("data-id");
           this.showProgressModal(id);
         }
 
-        if (e.target.matches('[data-action="move"]')) {
-          const id = e.target.getAttribute("data-id");
+        const moveBtn = e.target.closest('[data-action="move"]');
+        if (moveBtn) {
+          const id = moveBtn.getAttribute("data-id");
           this.showMovePhaseModal(id);
         }
       });
@@ -1083,16 +1603,37 @@
 
     // Show edit modal
     showEditModal: function (id) {
-      const modal = document.getElementById("editModal");
-      const modalTitle = document.getElementById("modalTitle");
-      const deleteBtn = document.getElementById("deleteBtn");
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        this.activeTimeouts.delete(timeoutId);
+        try {
+          const modal = document.getElementById("editModal");
+          const modalTitle = document.getElementById("modalTitle");
+          const deleteBtn = document.getElementById("deleteBtn");
 
-      const isEdit = id !== null;
-      modalTitle.textContent = isEdit ? "Edit Record" : "Add New Record";
-      deleteBtn.style.display = isEdit ? "inline-block" : "none";
+          if (!modal) {
+            console.error("[UMIG] Edit modal element not found");
+            return;
+          }
 
-      this.renderEditForm(id);
-      modal.style.display = "flex";
+          const isEdit = id !== null;
+
+          if (modalTitle) {
+            modalTitle.textContent = isEdit ? "Edit Record" : "Add New Record";
+          }
+
+          if (deleteBtn) {
+            deleteBtn.style.display = isEdit ? "inline-block" : "none";
+          }
+
+          this.renderEditForm(id);
+          modal.style.display = "flex";
+        } catch (error) {
+          console.error("[UMIG] Show edit modal error:", error);
+        }
+      }, 10);
+
+      this.activeTimeouts.add(timeoutId);
 
       // Focus first input
       setTimeout(() => {
@@ -1107,7 +1648,9 @@
     renderEditForm: function (id) {
       const entity = this.getEntity(this.state.currentEntity);
       if (!entity) {
-        console.error(`Entity configuration not found for: ${this.state.currentEntity}`);
+        console.error(
+          `Entity configuration not found for: ${this.state.currentEntity}`,
+        );
         return;
       }
       const formFields = document.getElementById("formFields");
@@ -1285,8 +1828,22 @@
 
     // Hide edit modal
     hideEditModal: function () {
-      const modal = document.getElementById("editModal");
-      modal.style.display = "none";
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        this.activeTimeouts.delete(timeoutId);
+        try {
+          const modal = document.getElementById("editModal");
+          if (modal) {
+            modal.style.display = "none";
+          } else {
+            console.error("[UMIG] Edit modal element not found for hiding");
+          }
+        } catch (error) {
+          console.error("[UMIG] Hide edit modal error:", error);
+        }
+      }, 10);
+
+      this.activeTimeouts.add(timeoutId);
     },
 
     // Validate form data
@@ -1964,6 +2521,16 @@
       document.getElementById("errorState").style.display = "none";
     },
 
+    // Show loading spinner (alias for showLoading)
+    showLoadingSpinner: function () {
+      this.showLoading();
+    },
+
+    // Hide loading spinner (alias for hideLoading)
+    hideLoadingSpinner: function () {
+      this.hideLoading();
+    },
+
     // Show error state
     showError: function (message) {
       document.getElementById("errorMessage").textContent = message;
@@ -1983,7 +2550,7 @@
       this.state.isAuthenticated = false;
       this.state.currentUser = null;
 
-      document.getElementById("adminDashboard").style.display = "none";
+      document.getElementById("dashboardPage").style.display = "none";
       document.getElementById("loginPage").style.display = "flex";
       document.getElementById("userCode").value = "";
       document.getElementById("userCode").focus();
@@ -2210,6 +2777,124 @@
           console.error("Error loading phase instance details:", error);
           content.innerHTML = `<p class="error">Failed to load phase instance details: ${error.message}</p>`;
         });
+    },
+
+    // Show generic entity view modal for all entities
+    showGenericEntityView: function (id) {
+      // Get current entity configuration
+      const entity = this.getEntity(this.state.currentEntity);
+      if (!entity) {
+        this.showError(
+          `Entity configuration not found: ${this.state.currentEntity}`,
+        );
+        return;
+      }
+
+      // Find the record in current data
+      const data = this.state.data[this.state.currentEntity] || [];
+      const record = data.find((item) => item[entity.fields[0].key] == id);
+
+      if (!record) {
+        this.showError(`Record not found with ID: ${id}`);
+        return;
+      }
+
+      // Use setTimeout to avoid conflicts with Confluence's MutationObserver
+      const timeoutId = setTimeout(() => {
+        this.activeTimeouts.delete(timeoutId);
+        try {
+          // Create or get generic view modal
+          const modal =
+            document.getElementById("genericViewModal") ||
+            this.createGenericViewModal();
+          const title = document.getElementById("genericViewTitle");
+          const content = document.getElementById("genericViewContent");
+
+          if (!modal) {
+            console.error(
+              "[UMIG] Generic view modal not found or failed to create",
+            );
+            return;
+          }
+          if (!title) {
+            console.error("[UMIG] Generic view modal title element not found");
+            return;
+          }
+          if (!content) {
+            console.error(
+              "[UMIG] Generic view modal content element not found",
+            );
+            return;
+          }
+
+          console.log(
+            "[UMIG] All generic view modal elements found successfully",
+          );
+
+          // Set modal title
+          title.textContent = `View ${entity.name.slice(0, -1)} Details`;
+
+          // Build details HTML
+          let html = '<div class="generic-entity-details">';
+
+          entity.fields.forEach((field) => {
+            if (field.type === "password") return; // Skip password fields
+
+            const value = record[field.key];
+            const displayValue = this.formatCellValue(
+              record,
+              field.key,
+              entity,
+            );
+
+            html += '<div class="detail-row">';
+            html += `<div class="detail-label"><strong>${field.label}:</strong></div>`;
+            html += `<div class="detail-value">${displayValue || '<span style="color: #a0aec0;">—</span>'}</div>`;
+            html += "</div>";
+          });
+
+          html += "</div>";
+          content.innerHTML = html;
+
+          // Show modal
+          modal.style.display = "flex";
+        } catch (error) {
+          console.error("[UMIG] Error in showGenericEntityView:", error);
+          this.showError(
+            `Failed to display ${entity.name} details: ${error.message}`,
+          );
+        }
+      }, 10);
+
+      this.activeTimeouts.add(timeoutId);
+    },
+
+    // Create generic view modal if it doesn't exist
+    createGenericViewModal: function () {
+      try {
+        const modalHtml = `
+          <div id="genericViewModal" class="modal-overlay" style="display: none;">
+            <div class="modal modal-large">
+              <div class="modal-header">
+                <h3 id="genericViewTitle" class="modal-title">View Details</h3>
+                <button class="modal-close" onclick="document.getElementById('genericViewModal').style.display='none'">&times;</button>
+              </div>
+              <div class="modal-body">
+                <div id="genericViewContent"></div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-secondary" onclick="document.getElementById('genericViewModal').style.display='none'">Close</button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML("beforeend", modalHtml);
+        console.log("[UMIG] Generic view modal created successfully");
+        return document.getElementById("genericViewModal");
+      } catch (error) {
+        console.error("[UMIG] Error creating generic view modal:", error);
+        return null;
+      }
     },
 
     // Show control points management modal

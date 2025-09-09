@@ -872,7 +872,7 @@
         case "color":
           const defaultValue = field.default || "#000000";
           const colorValue = value || defaultValue;
-          
+
           // Create enhanced color field with picker, hex input, and preview
           fieldHtml += `
             <div class="color-field-container">

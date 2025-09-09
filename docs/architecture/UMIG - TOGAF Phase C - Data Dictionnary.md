@@ -1,20 +1,22 @@
-# Complete UMIG Data Dictionary - All 42 Tables ✅ COMPLETE
+# Complete UMIG Data Dictionary - All 55 Tables ✅ COMPLETE
 
-**Version:** 2.2  
-**Date:** August 28, 2025  
-**Status:** ✅ 100% COMPLETE - ALL 42 TABLES WITH LIQUIBASE SYSTEM TABLES  
-**Total Tables:** 42 (includes 2 Liquibase system tables: databasechangelog, databasechangeloglock)  
+**Version:** 2.3  
+**Date:** September 9, 2025  
+**Status:** ✅ 100% COMPLETE - ALL 55 TABLES WITH SPRINT 6 TYPE MANAGEMENT ENHANCEMENTS  
+**Total Tables:** 55 (includes migration_types_mit from Migration 029 and enhanced iteration_types_itt from Migration 028)  
 **Key Updates:** Liquibase system tables added, 100% coverage achieved, comprehensive schema statistics integration
 
 ## Schema Metrics - Complete Database Statistics
 
-**Executive Summary** _(Calculated: August 28, 2025)_
+**Executive Summary** _(Updated: September 9, 2025 with Sprint 6 enhancements)_
 
-- **Total Tables**: 42 (40 regular + 2 staging)
-- **Total Fields**: 382 total columns
-- **Total Primary Keys**: 41
-- **Total Foreign Keys**: 78 relationships
-- **Total Indexes**: 55 (36 regular + 19 unique)
+- **Total Tables**: 55 (verified from PostgreSQL database - September 9, 2025)
+- **Total Fields**: 562 total columns (includes enhanced iteration_types_itt and new migration_types_mit)
+- **Total Primary Keys**: 54
+- **Total Foreign Keys**: 85 relationships
+- **Total Indexes**: 140 (includes migration 028-029 performance indexes)
+- **Unique Constraints**: 25
+- **Views**: 1
 
 ### Field Distribution by Data Type
 
@@ -642,6 +644,58 @@
 | lockgranted | TIMESTAMP    |              | When lock was granted |
 | lockedby    | VARCHAR(255) |              | Who holds the lock    |
 
+## 7. Type Management Tables ✅ NEW (Sprint 6 - Migrations 028-029)
+
+### 7.1 iteration_types_itt ✅ ENHANCED (Migration 028)
+
+| Column            | Data Type    | Constraints               | Description                                     |
+| ----------------- | ------------ | ------------------------- | ----------------------------------------------- |
+| itt_code          | VARCHAR(10)  | PK                        | Type code (RUN, DR, CUTOVER)                    |
+| itt_name          | VARCHAR(100) | NOT NULL                  | Human-readable iteration type name              |
+| itt_description   | TEXT         |                           | Detailed description of iteration type purpose  |
+| itt_color         | VARCHAR(10)  | DEFAULT '#6B73FF'         | Hex color code for UI representation            |
+| itt_icon          | VARCHAR(50)  | DEFAULT 'play-circle'     | Icon identifier for UI representation           |
+| itt_display_order | INTEGER      | DEFAULT 0                 | Sort order for UI display (lower numbers first) |
+| itt_active        | BOOLEAN      | DEFAULT TRUE              | Whether this iteration type is available        |
+| created_by        | VARCHAR(255) | DEFAULT 'system'          | User who created the record                     |
+| created_at        | TIMESTAMPTZ  | DEFAULT CURRENT_TIMESTAMP | Creation timestamp                              |
+| updated_by        | VARCHAR(255) | DEFAULT 'system'          | User who last updated the record                |
+| updated_at        | TIMESTAMPTZ  | DEFAULT CURRENT_TIMESTAMP | Last update timestamp                           |
+
+**Business Purpose**: Enhanced iteration type management with visual management capabilities (US-043 Phase 1)
+
+**Key Indexes**:
+
+- `idx_iteration_types_display_order` ON (itt_display_order, itt_active)
+- `idx_iteration_types_active` ON (itt_active)
+
+### 7.2 migration_types_mit ✅ NEW (Migration 029)
+
+| Column            | Data Type    | Constraints               | Description                                     |
+| ----------------- | ------------ | ------------------------- | ----------------------------------------------- |
+| mit_id            | SERIAL       | PK                        | Primary key - auto-incrementing ID              |
+| mit_code          | VARCHAR(20)  | NOT NULL, UNIQUE          | Unique business code (INFRA, APP, DATA, etc.)   |
+| mit_name          | VARCHAR(100) | NOT NULL                  | Human-readable name for migration type          |
+| mit_description   | TEXT         |                           | Detailed description of migration type purpose  |
+| mit_color         | VARCHAR(10)  | DEFAULT '#6B73FF'         | Hex color code for UI representation            |
+| mit_icon          | VARCHAR(50)  | DEFAULT 'layers'          | Icon identifier for UI representation           |
+| mit_display_order | INTEGER      | DEFAULT 0                 | Sort order for UI display (lower numbers first) |
+| mit_active        | BOOLEAN      | DEFAULT TRUE              | Whether this migration type is available        |
+| created_at        | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP | Creation timestamp                              |
+| created_by        | VARCHAR(255) |                           | User who created the record                     |
+| updated_at        | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP | Last update timestamp                           |
+| updated_by        | VARCHAR(255) |                           | User who last updated the record                |
+
+**Business Purpose**: Master configuration table for release types (US-042 Phase 2)
+
+**Key Indexes**:
+
+- `idx_migration_types_display_order` ON (mit_display_order, mit_active)
+- `idx_migration_types_active` ON (mit_active)
+- `idx_migration_types_code` ON (mit_code)
+
+**Default Data**: 8 predefined migration types (INFRASTRUCTURE, APPLICATION, DATABASE, NETWORK, SECURITY, INTEGRATION, ACQUISITION, DECOMMISSION)
+
 ---
 
 ## Summary
@@ -650,10 +704,11 @@
 
 ### Comprehensive Coverage
 
-- **42 total tables** organized by architectural layer (Strategic, Canonical, Instance, Association, Lookup)
-- **382 total fields** with complete specifications including data types, constraints, and descriptions
-- **78 foreign key relationships** ensuring referential integrity across the system
-- **55 indexes** (36 regular + 19 unique) providing optimized data access patterns
+- **55 total tables** organized by architectural layer (Strategic, Canonical, Instance, Association, Lookup, Type Management)
+- **562 total fields** with complete specifications including data types, constraints, and descriptions
+- **85 foreign key relationships** ensuring referential integrity across the system
+- **140 indexes** providing optimized data access patterns
+- **25 unique constraints** preventing data duplication
 
 ### Architecture Excellence
 
@@ -676,4 +731,4 @@
 - **Scalable design patterns** supporting complex IT migration management workflows
 - **Production-ready specifications** aligned with SQL source of truth
 
-_Document Version 2.1 | Last Updated: August 28, 2025 | Statistics Calculated: August 28, 2025_
+_Document Version 2.3 | Last Updated: September 9, 2025 | Statistics Calculated: September 9, 2025 | Migration 028-029 Integration Complete_

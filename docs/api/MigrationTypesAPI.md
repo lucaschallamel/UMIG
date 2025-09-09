@@ -48,14 +48,14 @@
 
 #### Supported Sort Fields (12 total)
 
-- `mtm_id` - Migration type ID
-- `mtm_code` - Migration type code
-- `mtm_name` - Migration type name
-- `mtm_description` - Migration type description
-- `mtm_color` - Display color
-- `mtm_icon` - Display icon
-- `mtm_display_order` - Display order
-- `mtm_active` - Active status
+- `mit_id` - Migration type ID
+- `mit_code` - Migration type code
+- `mit_name` - Migration type name
+- `mit_description` - Migration type description
+- `mit_color` - Display color
+- `mit_icon` - Display icon
+- `mit_display_order` - Display order
+- `mit_active` - Active status
 - `created_by` - Creator user
 - `created_at` - Creation timestamp
 - `updated_by` - Last modifier user
@@ -70,13 +70,13 @@
 
 ```json
 {
-  "mtm_code": "string",
-  "mtm_name": "string",
-  "mtm_description": "string",
-  "mtm_color": "string",
-  "mtm_icon": "string",
-  "mtm_display_order": "integer",
-  "mtm_active": "boolean"
+  "mit_code": "string",
+  "mit_name": "string",
+  "mit_description": "string",
+  "mit_color": "string",
+  "mit_icon": "string",
+  "mit_display_order": "integer",
+  "mit_active": "boolean"
 }
 ```
 
@@ -84,13 +84,13 @@
 
 ```json
 {
-  "mtm_code": "INFRA_MIGRATION",
-  "mtm_name": "Infrastructure Migration",
-  "mtm_description": "Migration of core infrastructure components including servers, network, and storage systems",
-  "mtm_color": "#2196F3",
-  "mtm_icon": "icon-server",
-  "mtm_display_order": 10,
-  "mtm_active": true
+  "mit_code": "INFRA_MIGRATION",
+  "mit_name": "Infrastructure Migration",
+  "mit_description": "Migration of core infrastructure components including servers, network, and storage systems",
+  "mit_color": "#2196F3",
+  "mit_icon": "icon-server",
+  "mit_display_order": 10,
+  "mit_active": true
 }
 ```
 
@@ -102,7 +102,7 @@
 ```json
 {
   "orderMap": {
-    "mtm_id": "new_display_order"
+    "mit_id": "new_display_order"
   }
 }
 ```
@@ -131,14 +131,14 @@
 
 ```json
 {
-  "mtm_id": "integer",
-  "mtm_code": "string",
-  "mtm_name": "string",
-  "mtm_description": "string",
-  "mtm_color": "string",
-  "mtm_icon": "string",
-  "mtm_display_order": "integer",
-  "mtm_active": "boolean",
+  "mit_id": "integer",
+  "mit_code": "string",
+  "mit_name": "string",
+  "mit_description": "string",
+  "mit_color": "string",
+  "mit_icon": "string",
+  "mit_display_order": "integer",
+  "mit_active": "boolean",
   "created_by": "string",
   "created_at": "timestamp",
   "updated_by": "string",
@@ -150,14 +150,14 @@
 
 ```json
 {
-  "mtm_id": 1,
-  "mtm_code": "APP_MIGRATION",
-  "mtm_name": "Application Migration",
-  "mtm_description": "Migration of business applications and associated data",
-  "mtm_color": "#4CAF50",
-  "mtm_icon": "icon-application",
-  "mtm_display_order": 5,
-  "mtm_active": true,
+  "mit_id": 1,
+  "mit_code": "APP_MIGRATION",
+  "mit_name": "Application Migration",
+  "mit_description": "Migration of business applications and associated data",
+  "mit_color": "#4CAF50",
+  "mit_icon": "icon-application",
+  "mit_display_order": 5,
+  "mit_active": true,
   "created_by": "admin",
   "created_at": "2025-09-01T10:00:00Z",
   "updated_by": "admin",
@@ -174,14 +174,14 @@
 ```json
 [
   {
-    "mtm_id": "integer",
-    "mtm_code": "string",
-    "mtm_name": "string",
-    "mtm_description": "string",
-    "mtm_color": "string",
-    "mtm_icon": "string",
-    "mtm_display_order": "integer",
-    "mtm_active": "boolean",
+    "mit_id": "integer",
+    "mit_code": "string",
+    "mit_name": "string",
+    "mit_description": "string",
+    "mit_color": "string",
+    "mit_icon": "string",
+    "mit_display_order": "integer",
+    "mit_active": "boolean",
     "created_by": "string",
     "created_at": "timestamp",
     "updated_by": "string",
@@ -197,11 +197,11 @@
 ```json
 [
   {
-    "mtm_id": "integer",
-    "mtm_code": "string",
-    "mtm_name": "string",
-    "mtm_color": "string",
-    "mtm_icon": "string"
+    "mit_id": "integer",
+    "mit_code": "string",
+    "mit_name": "string",
+    "mit_color": "string",
+    "mit_icon": "string"
   }
 ]
 ```
@@ -213,9 +213,9 @@
 ```json
 [
   {
-    "mtm_id": "integer",
-    "mtm_code": "string",
-    "mtm_name": "string",
+    "mit_id": "integer",
+    "mit_code": "string",
+    "mit_name": "string",
     "usage_count": "integer",
     "last_used": "timestamp"
   }
@@ -237,8 +237,8 @@
 
 | Status Code | Content-Type     | Description                                     | Example Response                                                                                          |
 | ----------- | ---------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 400         | application/json | Bad Request (validation errors, invalid format) | `{"error": "mtm_code and mtm_name are required"}`                                                         |
-| 400         | application/json | Invalid sort field                              | `{"error": "Invalid sort field 'invalid_field'. Allowed fields are: mtm_id, mtm_code..."}`                |
+| 400         | application/json | Bad Request (validation errors, invalid format) | `{"error": "mit_code and mit_name are required"}`                                                         |
+| 400         | application/json | Invalid sort field                              | `{"error": "Invalid sort field 'invalid_field'. Allowed fields are: mit_id, mit_code..."}`                |
 | 400         | application/json | Invalid ID format                               | `{"error": "Invalid migration type ID format"}`                                                           |
 | 401         | application/json | Unauthorized (not logged in)                    | `{"error": "Authentication required"}`                                                                    |
 | 403         | application/json | Forbidden (insufficient permissions)            | `{"error": "Administrative privileges required"}`                                                         |
@@ -297,7 +297,7 @@
 ## 8. Dependencies & Backing Services
 
 - **DB Tables/Entities:**
-  - `migration_types_master` (primary table)
+  - `migration_types_mit` (primary table)
   - Related tables checked for blocking relationships on delete:
     - `migrations_master` (migration type references)
     - Other system tables with foreign key relationships
@@ -328,7 +328,7 @@
 
 ### Create Migration Type
 
-- **Required Fields:** `mtm_code`, `mtm_name`
+- **Required Fields:** `mit_code`, `mit_name`
 - **Code Uniqueness:** Must be unique across all migration types
 - **Display Order:** Auto-assigned if not provided
 - **Active Status:** Defaults to `true` if not specified
@@ -373,7 +373,7 @@
 
 ### Sorting and Filtering
 
-- **Default Sort:** `mtm_display_order ASC, mtm_code ASC`
+- **Default Sort:** `mit_display_order ASC, mit_code ASC`
 - **Custom Sorting:** 12 supported fields with ASC/DESC directions
 - **Secondary Sorting:** Always applied for consistent ordering
 - **Active Filter:** `includeInactive=false` by default
@@ -394,7 +394,7 @@ curl -X GET '/rest/scriptrunner/latest/custom/migrationTypes' \
 ### Get All Migration Types with Sorting
 
 ```bash
-curl -X GET '/rest/scriptrunner/latest/custom/migrationTypes?sort=mtm_name&direction=desc&includeInactive=true' \
+curl -X GET '/rest/scriptrunner/latest/custom/migrationTypes?sort=mit_name&direction=desc&includeInactive=true' \
   -H "Accept: application/json"
 ```
 
@@ -432,13 +432,13 @@ curl -X GET '/rest/scriptrunner/latest/custom/migrationTypes/stats' \
 curl -X POST '/rest/scriptrunner/latest/custom/migrationTypes' \
   -H "Content-Type: application/json" \
   -d '{
-    "mtm_code": "DATA_MIGRATION",
-    "mtm_name": "Data Migration",
-    "mtm_description": "Migration of enterprise data and databases",
-    "mtm_color": "#FF9800",
-    "mtm_icon": "icon-database",
-    "mtm_display_order": 15,
-    "mtm_active": true
+    "mit_code": "DATA_MIGRATION",
+    "mit_name": "Data Migration",
+    "mit_description": "Migration of enterprise data and databases",
+    "mit_color": "#FF9800",
+    "mit_icon": "icon-database",
+    "mit_display_order": 15,
+    "mit_active": true
   }'
 ```
 
@@ -448,8 +448,8 @@ curl -X POST '/rest/scriptrunner/latest/custom/migrationTypes' \
 curl -X PUT '/rest/scriptrunner/latest/custom/migrationTypes/1' \
   -H "Content-Type: application/json" \
   -d '{
-    "mtm_description": "Updated description for application migration",
-    "mtm_color": "#4CAF50"
+    "mit_description": "Updated description for application migration",
+    "mit_color": "#4CAF50"
   }'
 ```
 
@@ -476,7 +476,7 @@ curl -X DELETE '/rest/scriptrunner/latest/custom/migrationTypes/1' \
 
 ## 13. Notes
 
-- **Performance:** Optimized queries with proper indexing on `mtm_code`, `mtm_display_order`, and `mtm_active` fields
+- **Performance:** Optimized queries with proper indexing on `mit_code`, `mit_display_order`, and `mit_active` fields
 - **Concurrency:** Database-level constraints ensure data consistency in multi-user scenarios
 - **Caching:** No application-level caching implemented - relies on database query optimization
 - **Future Enhancements:**
@@ -487,7 +487,7 @@ curl -X DELETE '/rest/scriptrunner/latest/custom/migrationTypes/1' \
 
 ## 14. Related APIs
 
-- **Migrations API:** References migration types through `mtm_id` foreign key relationships
+- **Migrations API:** References migration types through `mit_id` foreign key relationships
 - **Import API:** Uses migration types for data validation and categorization during bulk imports
 - **Status API:** May reference migration type data for status reporting and categorization
 - **Controls API:** Administrative controls may affect migration type visibility and management

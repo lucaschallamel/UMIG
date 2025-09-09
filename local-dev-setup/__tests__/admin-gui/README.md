@@ -5,6 +5,7 @@ This test suite provides comprehensive coverage for the Admin GUI entity migrati
 ## Overview
 
 The test suite validates:
+
 - **EntityConfig integration**: Loading and configuration management
 - **API endpoint resolution**: Proper routing for new entities
 - **Proxy pattern functionality**: Fallback behavior and error handling
@@ -17,6 +18,7 @@ The test suite validates:
 ### Unit Tests (`/unit/admin-gui/`)
 
 #### `EntityConfig.test.js`
+
 - **Purpose**: Tests EntityConfig module availability and entity retrieval
 - **Coverage**:
   - Entity configuration completeness for iterationTypes and migrationTypes
@@ -25,6 +27,7 @@ The test suite validates:
   - Entity retrieval with proper error handling
 
 #### `admin-gui-proxy.test.js`
+
 - **Purpose**: Tests the proxy pattern and API endpoint resolution
 - **Coverage**:
   - API endpoint configuration for new entities
@@ -35,6 +38,7 @@ The test suite validates:
 ### Integration Tests (`/integration/admin-gui/`)
 
 #### `entity-loading.integration.test.js`
+
 - **Purpose**: Tests integration between AdminGUI, EntityConfig, and UI components
 - **Coverage**:
   - Section navigation and loading performance
@@ -43,6 +47,7 @@ The test suite validates:
   - State management during navigation
 
 #### `crud-operations.integration.test.js`
+
 - **Purpose**: Tests CRUD operations through the Admin GUI interface
 - **Coverage**:
   - Form generation from EntityConfig
@@ -55,6 +60,7 @@ The test suite validates:
 ### End-to-End Tests (`/e2e/`)
 
 #### `admin-gui-entity-migration.e2e.test.js`
+
 - **Purpose**: Tests complete user workflows and user experience
 - **Coverage**:
   - Complete lifecycle: Create → Edit → Delete
@@ -67,7 +73,9 @@ The test suite validates:
 ## Test Configuration
 
 ### `admin-gui-entity-migration.config.js`
+
 Provides centralized configuration including:
+
 - **Test Data**: Valid and invalid data sets for both entities
 - **Mock Configurations**: EntityConfig mocks and API handlers
 - **Utilities**: Helper functions for common test operations
@@ -76,56 +84,65 @@ Provides centralized configuration including:
 ## Key Test Scenarios
 
 ### 1. EntityConfig Integration
+
 ```javascript
 // Validates EntityConfig is properly loaded and entities are accessible
-test('should retrieve iterationTypes entity with complete configuration', () => {
-  const iterationTypes = EntityConfig.getEntity('iterationTypes');
-  expect(iterationTypes.name).toBe('Iteration Types');
+test("should retrieve iterationTypes entity with complete configuration", () => {
+  const iterationTypes = EntityConfig.getEntity("iterationTypes");
+  expect(iterationTypes.name).toBe("Iteration Types");
   expect(iterationTypes.fields.length).toBeGreaterThan(0);
 });
 ```
 
 ### 2. Proxy Pattern Fallback
+
 ```javascript
 // Tests fallback behavior when EntityConfig is unavailable
-test('should show fallback warning when EntityConfig is unavailable', () => {
+test("should show fallback warning when EntityConfig is unavailable", () => {
   delete window.EntityConfig;
   const entities = AdminGUI.entities;
-  expect(mockConsole.warn).toHaveBeenCalledWith('EntityConfig not available, using empty configuration');
+  expect(mockConsole.warn).toHaveBeenCalledWith(
+    "EntityConfig not available, using empty configuration",
+  );
 });
 ```
 
 ### 3. Form Field Validation
+
 ```javascript
 // Validates field behavior differences between create and edit modes
-test('itt_code field should be readonly in EDIT mode', () => {
+test("itt_code field should be readonly in EDIT mode", () => {
   const result = ModalManager.buildFormField(field, data, false); // Edit mode
-  expect(result).toContain('disabled');
-  expect(result).toContain('readonly-field');
+  expect(result).toContain("disabled");
+  expect(result).toContain("readonly-field");
 });
 ```
 
 ### 4. Complete User Workflow
+
 ```javascript
 // Tests full CRUD lifecycle with proper state management
-test('should complete full lifecycle: Create → Edit → Delete', async ({ page }) => {
+test("should complete full lifecycle: Create → Edit → Delete", async ({
+  page,
+}) => {
   // Create new item
-  await page.fill('#itt_code', 'E2ETEST');
-  await page.click('.modal .btn-primary');
-  
+  await page.fill("#itt_code", "E2ETEST");
+  await page.click(".modal .btn-primary");
+
   // Edit the item
-  await page.click('.btn-edit');
-  await page.fill('#itt_name', 'Updated Name');
-  await page.click('.modal .btn-primary');
-  
+  await page.click(".btn-edit");
+  await page.fill("#itt_name", "Updated Name");
+  await page.click(".modal .btn-primary");
+
   // Delete the item
-  await page.click('.btn-delete');
+  await page.click(".btn-delete");
 });
 ```
 
 ## Running the Tests
 
 ### Prerequisites
+
 - UMIG development environment running
 - Admin GUI accessible at `/confluence/pages/viewpage.action?pageId=12345#umig-admin-gui`
 - EntityConfig.js properly loaded
@@ -148,6 +165,7 @@ npm test -- --coverage --testPathPattern="admin-gui"
 ### CI/CD Integration
 
 Tests are designed to run in CI environments with:
+
 - Headless browser support
 - Increased timeouts for slower environments
 - Retry logic for flaky network conditions
@@ -156,57 +174,62 @@ Tests are designed to run in CI environments with:
 ## Test Data Management
 
 ### Iteration Types Test Data
+
 ```javascript
 ITERATION_TYPES_TEST_DATA = {
   valid: {
-    itt_code: 'TESTIT',
-    itt_name: 'Test Iteration Type',
-    itt_description: 'Test description',
-    itt_color: '#FF5722',
-    itt_active: true
+    itt_code: "TESTIT",
+    itt_name: "Test Iteration Type",
+    itt_description: "Test description",
+    itt_color: "#FF5722",
+    itt_active: true,
   },
   defaults: {
-    itt_color: '#6B73FF',
-    itt_icon: 'play-circle',
-    itt_display_order: 0
-  }
-}
+    itt_color: "#6B73FF",
+    itt_icon: "play-circle",
+    itt_display_order: 0,
+  },
+};
 ```
 
 ### Migration Types Test Data
+
 ```javascript
 MIGRATION_TYPES_TEST_DATA = {
   valid: {
-    mtm_code: 'TESTMT',
-    mtm_name: 'Test Migration Type',
-    mtm_color: '#9C27B0',
-    mtm_active: true
+    mit_code: "TESTMT",
+    mit_name: "Test Migration Type",
+    mit_color: "#9C27B0",
+    mit_active: true,
   },
   defaults: {
-    mtm_color: '#6B73FF',
-    mtm_icon: 'migration',
-    mtm_display_order: 0
-  }
-}
+    mit_color: "#6B73FF",
+    mit_icon: "migration",
+    mit_display_order: 0,
+  },
+};
 ```
 
 ## Mock API Responses
 
 The test suite uses comprehensive API mocking to ensure:
+
 - Consistent test data across runs
 - Proper error condition testing
 - No dependency on actual backend services
 - Fast test execution
 
 ### Example Mock Handler
+
 ```javascript
-const mockHandler = TestUtils.createMockApiHandler('iterationTypes', testData);
-await page.route('**/iterationTypes', mockHandler);
+const mockHandler = TestUtils.createMockApiHandler("iterationTypes", testData);
+await page.route("**/iterationTypes", mockHandler);
 ```
 
 ## Error Testing
 
 The suite includes extensive error testing:
+
 - **Network failures**: API endpoints returning errors
 - **Validation errors**: Invalid form data submission
 - **Missing dependencies**: EntityConfig unavailable
@@ -215,6 +238,7 @@ The suite includes extensive error testing:
 ## Performance Testing
 
 Performance tests validate:
+
 - Section loading times (< 3 seconds)
 - Rapid navigation handling (< 30 seconds for 15 switches)
 - Modal operations efficiency (< 10 seconds for 3 cycles)
@@ -223,6 +247,7 @@ Performance tests validate:
 ## Accessibility Testing
 
 Accessibility tests ensure:
+
 - Proper ARIA labels and roles
 - Keyboard navigation support
 - Focus management in modals
@@ -232,18 +257,21 @@ Accessibility tests ensure:
 ## Maintenance Guidelines
 
 ### Adding New Entity Tests
+
 1. Extend `TEST_CONFIG` with new entity test data
 2. Add entity configuration to `createMockEntityConfig()`
 3. Create entity-specific test scenarios
 4. Update integration and E2E tests
 
 ### Updating Field Configurations
+
 1. Modify field definitions in `createMockEntityConfig()`
 2. Update corresponding test data structures
 3. Adjust validation test expectations
 4. Verify form generation tests
 
 ### Handling Breaking Changes
+
 1. Update mock configurations to match new EntityConfig structure
 2. Adjust API endpoint expectations
 3. Modify form field validation rules
@@ -261,6 +289,7 @@ Accessibility tests ensure:
 ### Debug Mode
 
 Enable debug logging:
+
 ```javascript
 // Set environment variable
 DEBUG=true npm test

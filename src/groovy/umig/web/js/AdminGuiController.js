@@ -15,7 +15,7 @@
      */
     init: function () {
       console.log("UMIG Admin GUI Controller initializing...");
-      
+
       // Check if modules are available immediately or need to wait
       if (this.areModulesReady()) {
         this.initializeImmediately();
@@ -24,21 +24,23 @@
         this.waitForModulesWithFallback();
       }
     },
-    
+
     /**
      * Check if critical modules are ready
      */
-    areModulesReady: function() {
-      return window.StatusColorService && 
-             window.EntityConfig && 
-             window.UiUtils && 
-             window.AdminGuiState;
+    areModulesReady: function () {
+      return (
+        window.StatusColorService &&
+        window.EntityConfig &&
+        window.UiUtils &&
+        window.AdminGuiState
+      );
     },
-    
+
     /**
      * Initialize immediately when modules are ready
      */
-    initializeImmediately: function() {
+    initializeImmediately: function () {
       // Use microtask to avoid blocking but be faster than requestAnimationFrame
       Promise.resolve().then(() => {
         this.initializeModules();
@@ -46,27 +48,29 @@
         this.initializeApplication();
       });
     },
-    
+
     /**
      * Wait for modules with fallback strategy
      */
-    waitForModulesWithFallback: function() {
+    waitForModulesWithFallback: function () {
       let attempts = 0;
       const maxAttempts = 50; // 500ms max wait
-      
+
       const checkModules = () => {
         attempts++;
-        
+
         if (this.areModulesReady()) {
           this.initializeImmediately();
         } else if (attempts < maxAttempts) {
           setTimeout(checkModules, 10); // Check every 10ms
         } else {
-          console.warn('UMIG: Modules not ready after 500ms, initializing anyway');
+          console.warn(
+            "UMIG: Modules not ready after 500ms, initializing anyway",
+          );
           this.initializeImmediately();
         }
       };
-      
+
       checkModules();
     },
 

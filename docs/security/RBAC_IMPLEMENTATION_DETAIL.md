@@ -12,17 +12,20 @@
 UMIG implements a **3-level RBAC architecture** with a **4-role permission model**:
 
 ### RBAC Architecture Levels
+
 1. **Confluence Native RBAC** - Base authentication requirement
 2. **Application API Level RBAC** - Currently basic (interim solution per ADR-051)
 3. **Application UI Level RBAC** - Primary access control mechanism
 
 ### Role Model (4 Roles)
+
 - **USER (NORMAL)**: `rls_code: 'NORMAL', rls_id: 2` - Standard operational users
 - **PILOT**: `rls_code: 'PILOT', rls_id: 3` - Enhanced operational features
 - **ADMIN**: `rls_code: 'ADMIN', rls_id: 1` - Administrative privileges
 - **SUPERADMIN**: `usr_is_admin: true` - System-level administration (flag-based)
 
 ### Current Implementation Status
+
 - ✅ UI-Level RBAC: **Production Ready** (primary control mechanism)
 - ⚠️ API-Level RBAC: **Interim Solution** (basic `confluence-users` only)
 - 📋 Remediation: **US-074** planned for comprehensive API-level controls
@@ -37,13 +40,13 @@ UMIG implements a **3-level RBAC architecture** with a **4-role permission model
 **Implementation**: Standard Confluence user groups and permissions
 **Scope**: Controls access to Confluence spaces, pages, and basic application entry
 
-| Component | SUPERADMIN | ADMIN | PILOT | USER (NORMAL) |
-|-----------|------------|-------|-------|---------------|
-| **Space Administration** | ✅ Full space control | ✅ Space management | ❌ No space admin | ❌ No space admin |
-| **User Management** | ✅ Full user control | ✅ User administration | ❌ No user admin | ❌ No user admin |
-| **Plugin Management** | ✅ Full plugin control | ✅ Plugin management | ❌ No plugin access | ❌ No plugin access |
-| **Application Access** | ✅ Unrestricted | ✅ Full application | ✅ Full application | ✅ Full application |
-| **ScriptRunner Console** | ✅ Full access | ✅ Full access | ❌ No console access | ❌ No console access |
+| Component                | SUPERADMIN             | ADMIN                  | PILOT                | USER (NORMAL)        |
+| ------------------------ | ---------------------- | ---------------------- | -------------------- | -------------------- |
+| **Space Administration** | ✅ Full space control  | ✅ Space management    | ❌ No space admin    | ❌ No space admin    |
+| **User Management**      | ✅ Full user control   | ✅ User administration | ❌ No user admin     | ❌ No user admin     |
+| **Plugin Management**    | ✅ Full plugin control | ✅ Plugin management   | ❌ No plugin access  | ❌ No plugin access  |
+| **Application Access**   | ✅ Unrestricted        | ✅ Full application    | ✅ Full application  | ✅ Full application  |
+| **ScriptRunner Console** | ✅ Full access         | ✅ Full access         | ❌ No console access | ❌ No console access |
 
 ### 2. Application API Level RBAC (Current: Interim Implementation per ADR-051)
 
@@ -53,13 +56,13 @@ UMIG implements a **3-level RBAC architecture** with a **4-role permission model
 **Limitation**: No role-based API restrictions currently implemented
 **Remediation Plan**: US-074 to implement comprehensive API-level RBAC
 
-| Component | SUPERADMIN | ADMIN | PILOT | USER (NORMAL) |
-|-----------|------------|-------|-------|---------------|
-| **All REST APIs** | ✅ Full access | ✅ Full access | ✅ Full access | ✅ Full access |
-| **Data Modification** | ✅ All operations | ✅ All operations | ✅ All operations | ✅ All operations |
-| **System Configuration** | ✅ All endpoints | ✅ All endpoints | ✅ All endpoints | ✅ All endpoints |
-| **Import/Export** | ✅ All operations | ✅ All operations | ✅ All operations | ✅ All operations |
-| **Email Operations** | ✅ All templates | ✅ All templates | ✅ All templates | ✅ All templates |
+| Component                | SUPERADMIN        | ADMIN             | PILOT             | USER (NORMAL)     |
+| ------------------------ | ----------------- | ----------------- | ----------------- | ----------------- |
+| **All REST APIs**        | ✅ Full access    | ✅ Full access    | ✅ Full access    | ✅ Full access    |
+| **Data Modification**    | ✅ All operations | ✅ All operations | ✅ All operations | ✅ All operations |
+| **System Configuration** | ✅ All endpoints  | ✅ All endpoints  | ✅ All endpoints  | ✅ All endpoints  |
+| **Import/Export**        | ✅ All operations | ✅ All operations | ✅ All operations | ✅ All operations |
+| **Email Operations**     | ✅ All templates  | ✅ All templates  | ✅ All templates  | ✅ All templates  |
 
 **Note**: Current interim solution provides baseline security through Confluence authentication but lacks granular API controls. US-074 will implement role-specific API restrictions.
 
@@ -70,21 +73,21 @@ UMIG implements a **3-level RBAC architecture** with a **4-role permission model
 **Status**: Production Ready - This is the primary security control layer
 **Technology**: JavaScript-based permission checking with server-side user context
 
-| Component | SUPERADMIN | ADMIN | PILOT | USER (NORMAL) |
-|-----------|------------|-------|-------|---------------|
-| **Basic Operations** | ✅ All features | ✅ All features | ✅ All features | ✅ All features |
-| **View Step Details** | ✅ Full access | ✅ Full access | ✅ Full access | ✅ Full access |
-| **Add Comments** | ✅ All comments | ✅ All comments | ✅ All comments | ✅ All comments |
-| **Update Step Status** | ✅ All statuses | ✅ All statuses | ✅ All statuses | ✅ All statuses |
-| **Complete Instructions** | ✅ All instructions | ✅ All instructions | ✅ All instructions | ✅ All instructions |
-| **Bulk Operations** | ✅ All bulk ops | ✅ All bulk ops | ✅ Bulk operations | ❌ No bulk ops |
-| **Email Step Details** | ✅ Email features | ✅ Email features | ✅ Email features | ❌ No email |
-| **Advanced Controls** | ✅ All controls | ✅ All controls | ✅ Advanced controls | ❌ No advanced |
-| **Extended Shortcuts** | ✅ All shortcuts | ✅ All shortcuts | ✅ Extended shortcuts | ❌ Basic only |
-| **Debug Panel** | ✅ Debug access | ✅ Debug panel | ❌ No debug | ❌ No debug |
-| **Force Refresh Cache** | ✅ Cache control | ✅ Cache control | ✅ Cache refresh | ❌ No cache ops |
-| **Security Logging** | ✅ Full logs | ✅ Security logs | ❌ No security logs | ❌ No security logs |
-| **Admin GUI Access** | ✅ Full admin | ✅ Full admin | ✅ Instance entities | ❌ Read-only |
+| Component                 | SUPERADMIN          | ADMIN               | PILOT                 | USER (NORMAL)       |
+| ------------------------- | ------------------- | ------------------- | --------------------- | ------------------- |
+| **Basic Operations**      | ✅ All features     | ✅ All features     | ✅ All features       | ✅ All features     |
+| **View Step Details**     | ✅ Full access      | ✅ Full access      | ✅ Full access        | ✅ Full access      |
+| **Add Comments**          | ✅ All comments     | ✅ All comments     | ✅ All comments       | ✅ All comments     |
+| **Update Step Status**    | ✅ All statuses     | ✅ All statuses     | ✅ All statuses       | ✅ All statuses     |
+| **Complete Instructions** | ✅ All instructions | ✅ All instructions | ✅ All instructions   | ✅ All instructions |
+| **Bulk Operations**       | ✅ All bulk ops     | ✅ All bulk ops     | ✅ Bulk operations    | ❌ No bulk ops      |
+| **Email Step Details**    | ✅ Email features   | ✅ Email features   | ✅ Email features     | ❌ No email         |
+| **Advanced Controls**     | ✅ All controls     | ✅ All controls     | ✅ Advanced controls  | ❌ No advanced      |
+| **Extended Shortcuts**    | ✅ All shortcuts    | ✅ All shortcuts    | ✅ Extended shortcuts | ❌ Basic only       |
+| **Debug Panel**           | ✅ Debug access     | ✅ Debug panel      | ❌ No debug           | ❌ No debug         |
+| **Force Refresh Cache**   | ✅ Cache control    | ✅ Cache control    | ✅ Cache refresh      | ❌ No cache ops     |
+| **Security Logging**      | ✅ Full logs        | ✅ Security logs    | ❌ No security logs   | ❌ No security logs |
+| **Admin GUI Access**      | ✅ Full admin       | ✅ Full admin       | ✅ Instance entities  | ❌ Read-only        |
 
 **Implementation Note**: UI permissions are enforced through JavaScript role checking with graceful degradation and clear permission messaging.
 
@@ -94,13 +97,13 @@ UMIG implements a **3-level RBAC architecture** with a **4-role permission model
 **Implementation**: Application-level database accounts with separation of duties
 **Current Status**: Production-ready with encrypted connections and audit logging
 
-| Component | SUPERADMIN | ADMIN | PILOT | USER (NORMAL) |
-|-----------|------------|-------|-------|---------------|
-| **Database Access** | 🔧 Via app account | 🔧 Via app account | 🔧 Via app account | 🔧 Via app account |
-| **Data Modification** | ✅ Full CRUD | ✅ Full CRUD | ✅ Full CRUD | ✅ Full CRUD |
-| **Schema Changes** | ❌ Liquibase only | ❌ Liquibase only | ❌ Liquibase only | ❌ Liquibase only |
-| **Audit Trail** | ✅ All operations | ✅ All operations | ✅ All operations | ✅ All operations |
-| **Connection Pooling** | ✅ Shared pool | ✅ Shared pool | ✅ Shared pool | ✅ Shared pool |
+| Component              | SUPERADMIN         | ADMIN              | PILOT              | USER (NORMAL)      |
+| ---------------------- | ------------------ | ------------------ | ------------------ | ------------------ |
+| **Database Access**    | 🔧 Via app account | 🔧 Via app account | 🔧 Via app account | 🔧 Via app account |
+| **Data Modification**  | ✅ Full CRUD       | ✅ Full CRUD       | ✅ Full CRUD       | ✅ Full CRUD       |
+| **Schema Changes**     | ❌ Liquibase only  | ❌ Liquibase only  | ❌ Liquibase only  | ❌ Liquibase only  |
+| **Audit Trail**        | ✅ All operations  | ✅ All operations  | ✅ All operations  | ✅ All operations  |
+| **Connection Pooling** | ✅ Shared pool     | ✅ Shared pool     | ✅ Shared pool     | ✅ Shared pool     |
 
 **Note**: All users access the database through the same application account (`umig_app_user`). Role-based restrictions are enforced at the application layer, not database level.
 
@@ -110,12 +113,12 @@ UMIG implements a **3-level RBAC architecture** with a **4-role permission model
 **Scope**: Limited to development team and system administrators
 **Access Pattern**: Outside of application RBAC - managed through separate DevOps processes
 
-| Component | SUPERADMIN | ADMIN | PILOT | USER (NORMAL) |
-|-----------|------------|-------|-------|---------------|
-| **Local Development** | ❌ DevOps only | ❌ DevOps only | ❌ DevOps only | ❌ DevOps only |
-| **CI/CD Pipelines** | ❌ DevOps only | ❌ DevOps only | ❌ DevOps only | ❌ DevOps only |
-| **Container Management** | ❌ DevOps only | ❌ DevOps only | ❌ DevOps only | ❌ DevOps only |
-| **Monitoring Access** | ✅ Application logs | ✅ Application logs | 📊 Limited logs | 📊 Limited logs |
+| Component                | SUPERADMIN          | ADMIN               | PILOT           | USER (NORMAL)   |
+| ------------------------ | ------------------- | ------------------- | --------------- | --------------- |
+| **Local Development**    | ❌ DevOps only      | ❌ DevOps only      | ❌ DevOps only  | ❌ DevOps only  |
+| **CI/CD Pipelines**      | ❌ DevOps only      | ❌ DevOps only      | ❌ DevOps only  | ❌ DevOps only  |
+| **Container Management** | ❌ DevOps only      | ❌ DevOps only      | ❌ DevOps only  | ❌ DevOps only  |
+| **Monitoring Access**    | ✅ Application logs | ✅ Application logs | 📊 Limited logs | 📊 Limited logs |
 
 ---
 
@@ -132,7 +135,7 @@ CREATE TABLE roles_rls (
 );
 
 -- Actual role data (from generator script)
-INSERT INTO roles_rls (rls_code, rls_description) VALUES 
+INSERT INTO roles_rls (rls_code, rls_description) VALUES
 ('ADMIN', 'Full access to all system features.'),
 ('NORMAL', 'Standard user with access to create and manage implementation plans.'),
 ('PILOT', 'User with access to pilot features and functionalities.');
@@ -159,9 +162,9 @@ CREATE TABLE users_usr (
 @BaseScript CustomEndpointDelegate delegate
 
 // Current implementation - basic authentication only
-users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) { 
+users(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators"]) {
     MultivaluedMap queryParams, String body, HttpServletRequest request ->
-    
+
     // All authenticated Confluence users can access
     // No role-based restrictions at API level (ADR-051 interim solution)
     try {
@@ -203,7 +206,7 @@ class StepView {
       extended_shortcuts: ["PILOT", "ADMIN"],
       debug_panel: ["ADMIN"],
       force_refresh_cache: ["PILOT", "ADMIN"],
-      security_logging: ["ADMIN"]
+      security_logging: ["ADMIN"],
     };
 
     const allowed = permissions[feature] || [];
@@ -213,11 +216,13 @@ class StepView {
   // Permission denied messaging (actual implementation)
   showPermissionDenied(feature) {
     const roleMessages = {
-      NORMAL: "This action requires elevated permissions. Contact your administrator for PILOT or ADMIN access.",
-      PILOT: "This action requires ADMIN permissions. Contact your administrator.",
-      ADMIN: "Permission denied for security reasons."
+      NORMAL:
+        "This action requires elevated permissions. Contact your administrator for PILOT or ADMIN access.",
+      PILOT:
+        "This action requires ADMIN permissions. Contact your administrator.",
+      ADMIN: "Permission denied for security reasons.",
     };
-    
+
     const message = roleMessages[this.userRole] || "Permission denied.";
     // Display UI message...
   }
@@ -225,6 +230,7 @@ class StepView {
 ```
 
 **UI Security Features**:
+
 - ✅ Role-based feature visibility
 - ✅ Graceful permission degradation
 - ✅ Clear permission messaging
@@ -238,11 +244,11 @@ class StepView {
 ```groovy
 // Actual authentication pattern from UserService.groovy
 class UserService {
-    
+
     // 4-level fallback hierarchy for user identification
     static def getCurrentUser() {
         def user = null
-        
+
         // Level 1: Confluence ThreadLocal context (primary)
         try {
             def authContext = ComponentAccessor.getJiraAuthenticationContext()
@@ -252,7 +258,7 @@ class UserService {
         } catch (Exception e) {
             log.warn("ThreadLocal context failed: ${e.message}")
         }
-        
+
         // Level 2: HTTP request context (secondary)
         if (!user) {
             try {
@@ -264,7 +270,7 @@ class UserService {
                 log.warn("Request context failed: ${e.message}")
             }
         }
-        
+
         // Level 3: Frontend provided userId (tertiary)
         if (!user) {
             try {
@@ -276,12 +282,12 @@ class UserService {
                 log.warn("Frontend context failed: ${e.message}")
             }
         }
-        
+
         // Level 4: Anonymous/system fallback (fallback)
         if (!user) {
             user = createAnonymousUser()
         }
-        
+
         return user
     }
 }
@@ -298,26 +304,36 @@ async function generateUsers(config, options = {}) {
     acc[role.rls_code.toUpperCase()] = role.rls_id;
     return acc;
   }, {});
-  
+
   // Role assignments:
   // NORMAL: rls_id: 2, Standard operational users
-  // PILOT: rls_id: 3, Enhanced operational features  
+  // PILOT: rls_id: 3, Enhanced operational features
   // ADMIN: rls_id: 1, Administrative privileges
-  
+
   // Create SUPERADMIN user (ADM)
-  await client.query(`
+  await client.query(
+    `
     INSERT INTO users_usr (
       usr_code, usr_first_name, usr_last_name, usr_email, 
       usr_is_admin, rls_id, usr_active, created_by, created_at, updated_by, updated_at
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     ON CONFLICT (usr_code) DO UPDATE SET usr_is_admin = EXCLUDED.usr_is_admin
-  `, [
-    "ADM", "System", "Administrator", "admin@system.local",
-    true,        // usr_is_admin = SUPERADMIN flag
-    adminRoleId, // rls_id = ADMIN role (dual privilege)
-    true, "generator", new Date(), "generator", new Date()
-  ]);
-  
+  `,
+    [
+      "ADM",
+      "System",
+      "Administrator",
+      "admin@system.local",
+      true, // usr_is_admin = SUPERADMIN flag
+      adminRoleId, // rls_id = ADMIN role (dual privilege)
+      true,
+      "generator",
+      new Date(),
+      "generator",
+      new Date(),
+    ],
+  );
+
   // Team assignments:
   // - ADMIN and PILOT users → IT_CUTOVER team
   // - NORMAL users → distributed among business teams
@@ -325,6 +341,7 @@ async function generateUsers(config, options = {}) {
 ```
 
 **Database Security Features (PostgreSQL)**:
+
 - ✅ Connection pooling and encrypted connections
 - ✅ Application-level database account separation
 - ✅ Liquibase-controlled schema changes
@@ -344,7 +361,7 @@ stages:
 
 variables:
   SECURE_VARIABLES:
-    - $CI_DEPLOY_PASSWORD  # Masked
+    - $CI_DEPLOY_PASSWORD # Masked
     - $DB_CONNECTION_STRING # Masked
 
 security-scan:
@@ -364,7 +381,7 @@ deploy-production:
     - echo "Deploying to production"
   only:
     - master
-  when: manual  # Requires manual approval
+  when: manual # Requires manual approval
   needs:
     - security-scan
     - test
@@ -376,6 +393,7 @@ deploy-production:
 ```
 
 **CI/CD Security Practices**:
+
 - ✅ Signed commits required
 - ✅ No secrets in repositories
 - ✅ Pipeline approval for PROD
@@ -418,6 +436,7 @@ siem_config = {
 ```
 
 **SIEM Security Features**:
+
 - ✅ Immutable logs (WORM storage)
 - ✅ Real-time forwarding to SOC
 - ✅ Cryptographic log signing
@@ -438,7 +457,7 @@ upstream umig_backend {
 server {
     listen 443 ssl http2;
     server_name umig.enterprise.com;
-    
+
     # TLS Configuration
     ssl_certificate /etc/ssl/certs/umig.crt;
     ssl_certificate_key /etc/ssl/private/umig.key;
@@ -449,23 +468,23 @@ server {
     ssl_session_timeout 10m;
     ssl_stapling on;
     ssl_stapling_verify on;
-    
+
     # Security Headers
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline';" always;
-    
+
     # Rate Limiting
     limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
     limit_req zone=api burst=20 nodelay;
-    
+
     # WAF Rules
     if ($http_user_agent ~* (nikto|sqlmap|nmap|masscan)) {
         return 403;
     }
-    
+
     location / {
         proxy_pass http://umig_backend;
         proxy_set_header Host $host;
@@ -477,6 +496,7 @@ server {
 ```
 
 **Infrastructure Security Controls**:
+
 - ✅ TLS 1.3 exclusively
 - ✅ Perfect Forward Secrecy
 - ✅ HSTS with preload
@@ -519,6 +539,7 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 **Scope**: All 25 REST API endpoints
 
 **Implementation Strategy**:
+
 1. **Role-Based API Access**: Endpoint-level role validation
 2. **Data Filtering**: Role-appropriate data filtering
 3. **Operation Restrictions**: CRUD operation role requirements
@@ -528,13 +549,15 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 ### 3. Current Security Controls (Production)
 
 **Confluence-Level Security**:
+
 - ✅ MFA enforcement for admin accounts
-- ✅ Session timeout: 30 minutes idle  
+- ✅ Session timeout: 30 minutes idle
 - ✅ Anonymous access completely disabled
 - ✅ HTTPS/TLS encryption for all connections
 - ✅ ScriptRunner access restricted to admins
 
 **Application-Level Security**:
+
 - ✅ UI-based role enforcement (primary control)
 - ✅ Authentication context validation (4-level fallback)
 - ✅ Comprehensive audit logging
@@ -542,6 +565,7 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 - ✅ Graceful degradation for unauthorized actions
 
 **Database-Level Security**:
+
 - ✅ Encrypted database connections
 - ✅ Application account separation
 - ✅ Connection pooling and resource management
@@ -551,11 +575,13 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 ### 4. Role-Based Business Logic
 
 **Team Assignment Logic**:
+
 - ADMIN + PILOT users → IT_CUTOVER team (operational focus)
 - NORMAL users → Business teams (distributed assignment)
 - SUPERADMIN → All team visibility and management
 
 **Feature Access Patterns**:
+
 - Basic operations: All roles (NORMAL, PILOT, ADMIN)
 - Advanced operations: PILOT + ADMIN only
 - Administrative functions: ADMIN only
@@ -566,35 +592,50 @@ teams(httpMethod: "GET", groups: ["confluence-users", "confluence-administrators
 ```javascript
 // Actual Admin GUI role implementation
 class AdminGuiController {
-  
   // Entity access by role (actual production logic)
   getEntitySectionsForRole(userRole) {
     const sections = {
       // Master entities (ADMIN sections)
       admin: [
-        'plans', 'sequences', 'phases', 'steps', 'instructions',
-        'teams', 'users', 'applications', 'environments', 'labels',
-        'system-configuration', 'email-templates', 'migration-types', 'iteration-types'
+        "plans",
+        "sequences",
+        "phases",
+        "steps",
+        "instructions",
+        "teams",
+        "users",
+        "applications",
+        "environments",
+        "labels",
+        "system-configuration",
+        "email-templates",
+        "migration-types",
+        "iteration-types",
       ],
-      
-      // Instance entities (PILOT sections)  
+
+      // Instance entities (PILOT sections)
       pilot: [
-        'plansinstance', 'sequencesinstance', 'phasesinstance', 'stepsinstance', 'instructionsinstance',
-        'iterations', 'controls'
+        "plansinstance",
+        "sequencesinstance",
+        "phasesinstance",
+        "stepsinstance",
+        "instructionsinstance",
+        "iterations",
+        "controls",
       ],
-      
+
       // Read-only access (NORMAL users)
       normal: [
         // Read-only versions of selected entities
-      ]
+      ],
     };
-    
-    switch(userRole) {
-      case 'ADMIN':
+
+    switch (userRole) {
+      case "ADMIN":
         return [...sections.admin, ...sections.pilot]; // Full access
-      case 'PILOT':
+      case "PILOT":
         return sections.pilot; // Instance entities only
-      case 'NORMAL':
+      case "NORMAL":
         return sections.normal; // Read-only access
       default:
         return []; // No access
@@ -608,40 +649,39 @@ class AdminGuiController {
 ```javascript
 // Security event logging (actual implementation)
 class SecurityLogger {
-  
   logPermissionCheck(feature, userRole, hasAccess) {
     const logEvent = {
       timestamp: new Date().toISOString(),
-      event_type: 'permission_check',
-      feature: feature,
-      userRole: userRole, 
-      userId: this.userId,
-      hasAccess: hasAccess,
-      sessionId: this.sessionId
-    };
-    
-    // Log to browser console for ADMIN monitoring
-    if (this.userRole === 'ADMIN') {
-      console.log('🔒 Security Event:', logEvent);
-    }
-    
-    // Send to server for audit trail (when implemented)
-    this.sendToAuditTrail(logEvent);
-  }
-  
-  logUnauthorizedAttempt(feature, userRole) {
-    const securityEvent = {
-      timestamp: new Date().toISOString(),
-      event_type: 'unauthorized_attempt',
-      severity: 'HIGH',
+      event_type: "permission_check",
       feature: feature,
       userRole: userRole,
       userId: this.userId,
-      message: `User attempted unauthorized action: ${feature}`
+      hasAccess: hasAccess,
+      sessionId: this.sessionId,
     };
-    
+
+    // Log to browser console for ADMIN monitoring
+    if (this.userRole === "ADMIN") {
+      console.log("🔒 Security Event:", logEvent);
+    }
+
+    // Send to server for audit trail (when implemented)
+    this.sendToAuditTrail(logEvent);
+  }
+
+  logUnauthorizedAttempt(feature, userRole) {
+    const securityEvent = {
+      timestamp: new Date().toISOString(),
+      event_type: "unauthorized_attempt",
+      severity: "HIGH",
+      feature: feature,
+      userRole: userRole,
+      userId: this.userId,
+      message: `User attempted unauthorized action: ${feature}`,
+    };
+
     // Always log security violations
-    console.warn('⚠️ SECURITY VIOLATION:', securityEvent);
+    console.warn("⚠️ SECURITY VIOLATION:", securityEvent);
     this.sendToSecurityLog(securityEvent);
   }
 }
@@ -654,7 +694,7 @@ class SecurityLogger {
 ### Production-Ready Components ✅
 
 1. **UI-Level RBAC**: Complete 4-role permission matrix with graceful degradation
-2. **Authentication Context**: 4-level fallback hierarchy for reliable user identification  
+2. **Authentication Context**: 4-level fallback hierarchy for reliable user identification
 3. **Database Security**: Encrypted connections, audit logging, schema control
 4. **Role Management**: Clear role hierarchy with SUPERADMIN flag support
 5. **Security Logging**: Comprehensive permission checking and violation logging
@@ -668,6 +708,7 @@ class SecurityLogger {
 ### Active Remediation 📋
 
 **US-074**: API-Level RBAC Implementation (Sprint 7)
+
 - Role-based API endpoint restrictions
 - Data filtering by user role
 - Enhanced audit logging
@@ -676,6 +717,7 @@ class SecurityLogger {
 ### Risk Assessment
 
 **Current Risk Level**: **LOW-MEDIUM**
+
 - ✅ Strong UI-level controls (primary attack vector)
 - ✅ Confluence authentication requirement
 - ✅ Audit logging and monitoring
@@ -684,6 +726,7 @@ class SecurityLogger {
 ### Compliance Status
 
 **Security Framework Compliance**:
+
 - ✅ **Authentication**: Multi-level user identification
 - ✅ **Authorization**: Role-based feature access
 - ✅ **Audit**: Comprehensive activity logging
@@ -701,18 +744,21 @@ The following user stories define our comprehensive security enhancement roadmap
 #### Q3 2025 - Critical RBAC Enhancements
 
 **US-074: Complete API-Level RBAC Implementation** [🔴 CRITICAL]
+
 - Transform interim API solution to comprehensive role-based controls
 - Implement middleware for request-level authorization
 - Add role-specific endpoint restrictions for all 25 APIs
 - Expected Impact: Close critical security gap, achieve 9.0/10 rating
 
 **US-038: RBAC Security Enhancement** [🟡 HIGH]
+
 - Implement JWT-based authentication tokens
 - Add session management improvements
 - Create comprehensive permission audit trail
 - Implement principle of least privilege
 
 **US-052: Authentication Security Logging** [🟡 HIGH]
+
 - Comprehensive authentication event logging
 - Failed login attempt tracking and analysis
 - Suspicious activity detection algorithms
@@ -721,12 +767,14 @@ The following user stories define our comprehensive security enhancement roadmap
 #### Q4 2025 - Security Assessment & Validation
 
 **US-056/US-037: Security Assessment Report** [🟢 MEDIUM]
+
 - Comprehensive security assessment
 - Penetration testing by third party
 - OWASP ASVS Level 2 validation
 - Executive security certification
 
 **US-063: Comprehensive Security Audit** [🟢 MEDIUM]
+
 - Complete code security review
 - Dependency vulnerability assessment
 - Security policy updates
@@ -734,17 +782,18 @@ The following user stories define our comprehensive security enhancement roadmap
 
 ### Implementation Priority Matrix
 
-| User Story | Priority | Timeline | Impact on RBAC | Risk Mitigation |
-|------------|----------|----------|----------------|-----------------|
-| US-074 | CRITICAL | Sprint 7 | Completes API RBAC | UI controls active |
-| US-038 | HIGH | Q3 2025 | Enhanced authentication | Current auth sufficient |
-| US-052 | HIGH | Q3 2025 | Audit improvements | Basic logging active |
-| US-056/037 | MEDIUM | Q4 2025 | Validation only | Controls already in place |
-| US-063 | MEDIUM | Q4 2025 | Comprehensive review | Ongoing monitoring |
+| User Story | Priority | Timeline | Impact on RBAC          | Risk Mitigation           |
+| ---------- | -------- | -------- | ----------------------- | ------------------------- |
+| US-074     | CRITICAL | Sprint 7 | Completes API RBAC      | UI controls active        |
+| US-038     | HIGH     | Q3 2025  | Enhanced authentication | Current auth sufficient   |
+| US-052     | HIGH     | Q3 2025  | Audit improvements      | Basic logging active      |
+| US-056/037 | MEDIUM   | Q4 2025  | Validation only         | Controls already in place |
+| US-063     | MEDIUM   | Q4 2025  | Comprehensive review    | Ongoing monitoring        |
 
 ### Post-Implementation Security Posture
 
 **After US-074 (Sprint 7)**:
+
 - Full API-level RBAC with role-specific endpoint access
 - Request-level authorization validation
 - Complete least privilege implementation
@@ -775,6 +824,7 @@ The following user stories define our comprehensive security enhancement roadmap
 ---
 
 **Key Implementation Files**:
+
 - Database Schema: `local-dev-setup/liquibase/changelogs/001_unified_baseline.sql`
 - Role Generation: `local-dev-setup/scripts/generators/001_generate_core_metadata.js`
 - UI RBAC: `src/groovy/umig/web/js/step-view.js` (primary implementation)
