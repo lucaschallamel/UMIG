@@ -14,7 +14,7 @@ UMIG (Unified Migration Implementation Guide) is a pure ScriptRunner application
 
 ```bash
 npm start                    # Start complete development stack
-npm stop                     # Stop all services
+npm stop                     # Stop all services  
 npm run restart:erase        # Reset everything (clean slate)
 npm run generate-data:erase  # Generate fake data with reset
 ```
@@ -28,7 +28,10 @@ npm run test:integration    # Integration tests (needs running stack)
 npm run test:all            # Complete test suite (unit + integration + uat)
 npm run test:us034          # Data import tests (comprehensive)
 npm run test:us039          # Email notification tests
+npm run test:us067          # Email security test coverage
 npm run test:security       # Security validation tests
+npm run test:service-layer  # US-056 service layer standardization
+npm run test:admin-gui      # Admin GUI testing
 npm run health:check        # System health monitoring
 npm run quality:check       # Master quality assurance
 ```
@@ -39,6 +42,17 @@ npm run quality:check       # Master quality assurance
 npm run mailhog:test        # Test SMTP connectivity
 npm run mailhog:check       # Check message count
 npm run mailhog:clear       # Clear test inbox
+```
+
+### Running Single Tests
+
+```bash
+# JavaScript tests (Jest)
+jest --testPathPattern='specific.test.js'
+
+# Groovy tests (from project root)
+groovy src/groovy/umig/tests/unit/SpecificTest.groovy
+groovy src/groovy/umig/tests/integration/SpecificIntegrationTest.groovy
 ```
 
 ## Architecture & Patterns
