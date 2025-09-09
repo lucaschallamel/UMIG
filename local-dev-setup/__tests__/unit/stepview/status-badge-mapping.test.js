@@ -85,41 +85,78 @@ class MockStepView {
   }
 }
 
-// Run the tests
-console.log("🧪 Testing Status Badge Fix for DUM-003 (Status ID 26)...\n");
+describe("Status Badge Mapping Tests", () => {
+  let stepView;
 
-const stepView = new MockStepView();
+  beforeEach(() => {
+    stepView = new MockStepView();
+  });
 
-console.log("❌ BEFORE FIX (without status data loaded):");
-console.log("Status ID 26 → Name:", stepView.getStatusNameFromId(26));
-console.log("Status ID 26 → Badge:", stepView.createStatusBadge(26));
-console.log();
+  describe("Status ID 26 (BLOCKED) mapping", () => {
+    test("should map status ID 26 to BLOCKED using hardcoded fallback", () => {
+      // Without loaded status data, should use hardcoded mapping
+      expect(stepView.getStatusNameFromId(26)).toBe("BLOCKED");
+      
+      const badge = stepView.createStatusBadge(26);
+      expect(badge).toContain("BLOCKED");
+      expect(badge).toContain("#FF6600");
+    });
 
-console.log("✅ AFTER FIX (with status data loaded):");
-stepView.loadMockStatusData();
-console.log("Status ID 26 → Name:", stepView.getStatusNameFromId(26));
-console.log("Status ID 26 → Badge:", stepView.createStatusBadge(26));
-console.log();
+    test("should map status ID 26 to BLOCKED with loaded status data", () => {
+      stepView.loadMockStatusData();
+      
+      expect(stepView.getStatusNameFromId(26)).toBe("BLOCKED");
+      
+      const badge = stepView.createStatusBadge(26);
+      expect(badge).toContain("BLOCKED");
+      expect(badge).toContain("#FF6600");
+    });
+  });
 
-// Test all status IDs to make sure they work correctly
-console.log("🔍 Full Status ID Mapping Test:");
-for (let id = 21; id <= 27; id++) {
-  const name = stepView.getStatusNameFromId(id);
-  console.log(`  Status ID ${id} → ${name}`);
-}
+  describe("All status mappings", () => {
+    const testCases = [
+      { id: 21, name: "PENDING", color: "#DDDDDD" },
+      { id: 22, name: "TODO", color: "#FFFF00" },
+      { id: 23, name: "IN_PROGRESS", color: "#0066CC" },
+      { id: 24, name: "COMPLETED", color: "#00AA00" },
+      { id: 25, name: "FAILED", color: "#FF0000" },
+      { id: 26, name: "BLOCKED", color: "#FF6600" },
+      { id: 27, name: "CANCELLED", color: "#CC0000" },
+    ];
 
-// Verify the critical test case
-const blockedName = stepView.getStatusNameFromId(26);
-const isFixed = blockedName === "BLOCKED";
+    test.each(testCases)(
+      "should correctly map status ID $id to $name",
+      ({ id, name, color }) => {
+        stepView.loadMockStatusData();
+        
+        expect(stepView.getStatusNameFromId(id)).toBe(name);
+        
+        const badge = stepView.createStatusBadge(id);
+        const displayName = name.replace(/_/g, " ");
+        expect(badge).toContain(displayName);
+        expect(badge).toContain(color);
+      }
+    );
+  });
 
-console.log("\n🎯 CRITICAL TEST RESULT:");
-console.log(`Status ID 26 maps to: "${blockedName}"`);
-console.log(`Fix successful: ${isFixed ? "✅ YES" : "❌ NO"}`);
+  describe("Badge creation", () => {
+    test("should create proper HTML badge element", () => {
+      stepView.loadMockStatusData();
+      
+      const badge = stepView.createStatusBadge(23);
+      expect(badge).toBe(
+        '<span class="status-badge" style="background-color: #0066CC;">IN PROGRESS</span>'
+      );
+    });
 
-if (isFixed) {
-  console.log(
-    '\n🎉 SUCCESS: DUM-003 will now correctly show "BLOCKED" instead of "PENDING"!',
-  );
-} else {
-  console.log("\n💥 FAILURE: Issue still exists, needs further investigation");
-}
+    test("should handle unknown status IDs with default values", () => {
+      const unknownId = 999;
+      
+      expect(stepView.getStatusNameFromId(unknownId)).toBe("PENDING");
+      
+      const badge = stepView.createStatusBadge(unknownId);
+      expect(badge).toContain("PENDING");
+      expect(badge).toContain("#DDDDDD");
+    });
+  });
+});

@@ -1,5 +1,7 @@
 #!/usr/bin/env groovy
 
+package umig.tests.unit
+
 /**
  * StepRepository Audit Fix Test - Code Analysis
  * 

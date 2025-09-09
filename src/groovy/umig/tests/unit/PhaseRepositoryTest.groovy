@@ -1,4 +1,7 @@
 #!/usr/bin/env groovy
+
+package umig.tests.unit
+
 /**
  * Standalone Unit Test for PhaseRepository
  * Tests repository methods with simulated responses and zero dependencies
@@ -8,46 +11,48 @@
 
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 
 /**
  * Mock Response class to simulate phase repository responses
  */
+@CompileStatic
 class MockPhaseRepository {
     
-    static def findAllMasterPhases() {
+    static List<Map<String, Object>> findAllMasterPhases() {
         return [
             [phm_id: UUID.randomUUID(), phm_name: 'Phase 1', sqm_name: 'Sequence 1', plm_name: 'Plan 1', tms_name: 'Team 1'],
             [phm_id: UUID.randomUUID(), phm_name: 'Phase 2', sqm_name: 'Sequence 2', plm_name: 'Plan 2', tms_name: 'Team 2']
-        ]
+        ] as List<Map<String, Object>>
     }
     
-    static def findMasterPhasesBySequenceId(UUID sequenceId) {
+    static List<Map<String, Object>> findMasterPhasesBySequenceId(UUID sequenceId) {
         return [
             [phm_id: UUID.randomUUID(), phm_name: 'Phase 1', phm_order: 1],
             [phm_id: UUID.randomUUID(), phm_name: 'Phase 2', phm_order: 2]
-        ]
+        ] as List<Map<String, Object>>
     }
     
-    static def findPhaseInstances(Map filters) {
+    static List<Map<String, Object>> findPhaseInstances(Map<String, Object> filters) {
         return [
             [phi_id: UUID.randomUUID(), phi_name: 'Instance 1'],
             [phi_id: UUID.randomUUID(), phi_name: 'Instance 2']
-        ]
+        ] as List<Map<String, Object>>
     }
     
-    static def calculatePhaseProgress(UUID phaseId) {
+    static Double calculatePhaseProgress(UUID phaseId) {
         // Simulate progress calculation: (6 completed + 2 skipped) / 10 total = 80%
-        return 80.0
+        return 80.0 as Double
     }
     
-    static def findControlPoints(UUID phaseId) {
+    static List<Map<String, Object>> findControlPoints(UUID phaseId) {
         return [
             [ctm_id: UUID.randomUUID(), ctm_name: 'Control 1', control_type: 'master'],
             [ctm_id: UUID.randomUUID(), ctm_name: 'Control 2', control_type: 'master']
-        ]
+        ] as List<Map<String, Object>>
     }
     
-    static def validateControlPoints(UUID phaseId) {
+    static Map<String, Object> validateControlPoints(UUID phaseId) {
         return [
             total_controls: 4,
             passed_controls: 2,
@@ -59,10 +64,11 @@ class MockPhaseRepository {
             no_critical_failures: true,
             can_proceed: false,
             failed_critical_names: []
-        ]
+        ] as Map<String, Object>
     }
 }
 
+@CompileStatic
 class PhaseRepositoryTestClass {
     
     // ==================== MASTER PHASE TESTS ====================
@@ -71,7 +77,7 @@ class PhaseRepositoryTestClass {
         println "\n🧪 Testing findAllMasterPhases..."
         
         // Simulate repository response
-        def result = MockPhaseRepository.findAllMasterPhases()
+        List<Map<String, Object>> result = MockPhaseRepository.findAllMasterPhases()
         
         // Validate results
         assert result.size() == 2
@@ -86,10 +92,10 @@ class PhaseRepositoryTestClass {
     static void testFindMasterPhasesBySequenceId() {
         println "\n🧪 Testing findMasterPhasesBySequenceId..."
         
-        def sequenceId = UUID.randomUUID()
+        UUID sequenceId = UUID.randomUUID()
         
         // Simulate repository response
-        def result = MockPhaseRepository.findMasterPhasesBySequenceId(sequenceId)
+        List<Map<String, Object>> result = MockPhaseRepository.findMasterPhasesBySequenceId(sequenceId)
         
         // Validate results
         assert result.size() == 2
@@ -104,17 +110,17 @@ class PhaseRepositoryTestClass {
     static void testFindPhaseInstances() {
         println "\n🧪 Testing findPhaseInstances..."
         
-        def filters = [
+        Map<String, Object> filters = [
             migrationId: UUID.randomUUID().toString(),
             iterationId: UUID.randomUUID().toString(),
             planInstanceId: UUID.randomUUID().toString(),
             sequenceInstanceId: UUID.randomUUID().toString(),
             teamId: '123',
             statusId: '456'
-        ]
+        ] as Map<String, Object>
         
         // Simulate repository response
-        def result = MockPhaseRepository.findPhaseInstances(filters)
+        List<Map<String, Object>> result = MockPhaseRepository.findPhaseInstances(filters)
         
         // Validate results
         assert result.size() == 2
@@ -127,10 +133,10 @@ class PhaseRepositoryTestClass {
     static void testCalculatePhaseProgress() {
         println "\n🧪 Testing calculatePhaseProgress..."
         
-        def phaseId = UUID.randomUUID()
+        UUID phaseId = UUID.randomUUID()
         
         // Simulate repository response
-        def result = MockPhaseRepository.calculatePhaseProgress(phaseId)
+        Double result = MockPhaseRepository.calculatePhaseProgress(phaseId)
         
         // Validate progress calculation: (6 completed + 2 skipped) / 10 total = 80%
         assert result == 80.0 : "Should calculate progress as 80% (8/10 steps complete or skipped)"
@@ -141,10 +147,10 @@ class PhaseRepositoryTestClass {
     static void testFindControlPoints() {
         println "\n🧪 Testing findControlPoints..."
         
-        def phaseId = UUID.randomUUID()
+        UUID phaseId = UUID.randomUUID()
         
         // Simulate repository response
-        def result = MockPhaseRepository.findControlPoints(phaseId)
+        List<Map<String, Object>> result = MockPhaseRepository.findControlPoints(phaseId)
         
         // Validate results
         assert result.size() == 2
@@ -159,10 +165,10 @@ class PhaseRepositoryTestClass {
     static void testValidateControlPoints() {
         println "\n🧪 Testing validateControlPoints..."
         
-        def phaseId = UUID.randomUUID()
+        UUID phaseId = UUID.randomUUID()
         
         // Simulate repository response
-        def result = MockPhaseRepository.validateControlPoints(phaseId)
+        Map<String, Object> result = MockPhaseRepository.validateControlPoints(phaseId)
         
         // Validate comprehensive validation results
         assert result.total_controls == 4
@@ -183,7 +189,7 @@ class PhaseRepositoryTestClass {
         println "\n🧪 Testing phase validation flow..."
         
         // Simulate complex validation scenario
-        def phaseId = UUID.randomUUID()
+        UUID phaseId = UUID.randomUUID()
         
         // Test validation logic
         assert phaseId != null
@@ -197,7 +203,7 @@ class PhaseRepositoryTestClass {
         
         try {
             // Simulate error condition
-            def invalidId = null
+            UUID invalidId = null
             assert invalidId != null : "Should handle null ID"
         } catch (AssertionError e) {
             // Expected behavior
@@ -212,10 +218,10 @@ class PhaseRepositoryTestClass {
         println "Phase Repository Unit Tests (Fixed)"
         println "============================================\n"
         
-        def testsPassed = 0
-        def testsFailed = 0
+        int testsPassed = 0
+        int testsFailed = 0
         
-        def tests = [
+        Map<String, Closure> tests = [
             'findAllMasterPhases': this.&testFindAllMasterPhases,
             'findMasterPhasesBySequenceId': this.&testFindMasterPhasesBySequenceId,
             'findPhaseInstances': this.&testFindPhaseInstances,
@@ -224,7 +230,7 @@ class PhaseRepositoryTestClass {
             'validateControlPoints': this.&testValidateControlPoints,
             'validationFlow': this.&testValidationFlow,
             'errorHandling': this.&testErrorHandling
-        ]
+        ] as Map<String, Closure>
         
         tests.each { name, test ->
             try {
@@ -256,5 +262,17 @@ class PhaseRepositoryTestClass {
     }
 }
 
-// Run the tests
-PhaseRepositoryTestClass.main(args)
+// Test runner - this handles the args parameter properly
+@CompileStatic
+class TestRunner {
+    static void main(String[] args) {
+        PhaseRepositoryTestClass.main(args)
+    }
+}
+
+// Execute tests when run as script
+if (this.binding?.variables?.containsKey('args')) {
+    TestRunner.main(this.binding.variables.args as String[])
+} else {
+    TestRunner.main([] as String[])
+}

@@ -1,4 +1,7 @@
 #!/usr/bin/env groovy
+
+package umig.tests.unit
+
 /**
  * Unit Test for InstructionRepository - Standalone Groovy Test
  * Converted from Spock framework to standalone Groovy tests
@@ -24,50 +27,119 @@ import java.sql.SQLException
 
 /**
  * Mock SQL class that simulates database operations
+ * Comprehensive method overloads for static type checker compatibility
  */
 class MockSql {
-    def mockResults = [:]
-    def queryCaptured = null
-    def paramsCaptured = null
-    def methodCalled = null
+    Map<String, Object> mockResults = [:]
+    String queryCaptured = null
+    Object paramsCaptured = null
+    String methodCalled = null
     
-    def rows(String query, Map params = [:]) {
+    List<Map<String, Object>> rows(String query, Map<String, Object> params) {
         queryCaptured = query
         paramsCaptured = params
         methodCalled = 'rows'
-        return mockResults['rows'] ?: []
+        return (mockResults['rows'] as List<Map<String, Object>>) ?: []
     }
     
-    def firstRow(String query, Map params = [:]) {
+    List<Map<String, Object>> rows(String query, List<Object> params) {
+        queryCaptured = query
+        paramsCaptured = params
+        methodCalled = 'rows'
+        return (mockResults['rows'] as List<Map<String, Object>>) ?: []
+    }
+    
+    List<Map<String, Object>> rows(String query) {
+        queryCaptured = query
+        paramsCaptured = [:]
+        methodCalled = 'rows'
+        return (mockResults['rows'] as List<Map<String, Object>>) ?: []
+    }
+    
+    Map<String, Object> firstRow(String query, Map<String, Object> params) {
         queryCaptured = query
         paramsCaptured = params
         methodCalled = 'firstRow'
-        return mockResults['firstRow']
+        return mockResults['firstRow'] as Map<String, Object>
     }
     
-    def executeUpdate(String query, Map params = [:]) {
+    Map<String, Object> firstRow(String query, List<Object> params) {
+        queryCaptured = query
+        paramsCaptured = params
+        methodCalled = 'firstRow'
+        return mockResults['firstRow'] as Map<String, Object>
+    }
+    
+    Map<String, Object> firstRow(String query) {
+        queryCaptured = query
+        paramsCaptured = [:]
+        methodCalled = 'firstRow'
+        return mockResults['firstRow'] as Map<String, Object>
+    }
+    
+    int executeUpdate(String query, Map<String, Object> params) {
         queryCaptured = query
         paramsCaptured = params
         methodCalled = 'executeUpdate'
-        return mockResults['executeUpdate'] ?: 1
+        return (mockResults['executeUpdate'] as Integer) ?: 1
     }
     
+    int executeUpdate(String query, List<Object> params) {
+        queryCaptured = query
+        paramsCaptured = params
+        methodCalled = 'executeUpdate'
+        return (mockResults['executeUpdate'] as Integer) ?: 1
+    }
+    
+    int executeUpdate(String query) {
+        queryCaptured = query
+        paramsCaptured = [:]
+        methodCalled = 'executeUpdate'
+        return (mockResults['executeUpdate'] as Integer) ?: 1
+    }
+    
+    boolean execute(String query, Map<String, Object> params) {
+        queryCaptured = query
+        paramsCaptured = params
+        methodCalled = 'execute'
+        return true
+    }
+    
+    boolean execute(String query, List<Object> params) {
+        queryCaptured = query
+        paramsCaptured = params
+        methodCalled = 'execute'
+        return true
+    }
+    
+    boolean execute(String query) {
+        queryCaptured = query
+        paramsCaptured = [:]
+        methodCalled = 'execute'
+        return true
+    }
+    
+    /**
+     * Mock transaction wrapper
+     * @param closure Transaction closure
+     * @return Closure result
+     */
     def withTransaction(Closure closure) {
-        return closure()
+        return closure.call()
     }
     
-    def setMockResult(String method, Object result) {
+    void setMockResult(String method, Object result) {
         mockResults[method] = result
     }
 }
 
 /**
- * Mock DatabaseUtil for testing
+ * Mock DatabaseUtil for testing - completely self-contained
  */
 class DatabaseUtil {
     static MockSql mockSql = new MockSql()
     
-    static def withSql(Closure closure) {
+    static <T> T withSql(Closure<T> closure) {
         return closure(mockSql)
     }
     
@@ -95,13 +167,14 @@ class InstructionRepository {
      * @param stmId UUID of the step master
      * @return List of master instructions with team and control details
      */
-    def findMasterInstructionsByStepId(UUID stmId) {
+    List<Map<String, Object>> findMasterInstructionsByStepId(UUID stmId) {
         if (!stmId) {
             throw new IllegalArgumentException("Step master ID cannot be null")
         }
         
-        return DatabaseUtil.withSql { sql ->
+        return DatabaseUtil.withSql { MockSql sql ->
             try {
+                Map<String, Object> params = [stmId: stmId] as Map<String, Object>
                 return sql.rows('''
                     SELECT 
                         inm.inm_id,
@@ -120,7 +193,7 @@ class InstructionRepository {
                     LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
                     WHERE inm.stm_id = :stmId
                     ORDER BY inm.inm_order ASC
-                ''', [stmId: stmId])
+                ''', params)
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to find master instructions for step ${stmId}", e)
             }
@@ -132,13 +205,14 @@ class InstructionRepository {
      * @param inmId UUID of the master instruction
      * @return Master instruction details or null if not found
      */
-    def findMasterInstructionById(UUID inmId) {
+    Map<String, Object> findMasterInstructionById(UUID inmId) {
         if (!inmId) {
             throw new IllegalArgumentException("Master instruction ID cannot be null")
         }
         
-        return DatabaseUtil.withSql { sql ->
+        return DatabaseUtil.withSql { MockSql sql ->
             try {
+                Map<String, Object> params = [inmId: inmId] as Map<String, Object>
                 return sql.firstRow('''
                     SELECT 
                         inm.inm_id,
@@ -156,7 +230,7 @@ class InstructionRepository {
                     LEFT JOIN teams_tms tms ON inm.tms_id = tms.tms_id
                     LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id
                     WHERE inm.inm_id = :inmId
-                ''', [inmId: inmId])
+                ''', params)
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to find master instruction ${inmId}", e)
             }
@@ -168,24 +242,24 @@ class InstructionRepository {
      * @param params Map containing instruction parameters
      * @return Created instruction ID
      */
-    def createMasterInstruction(Map params) {
+    UUID createMasterInstruction(Map<String, Object> params) {
         if (!params.stmId || !params.inmOrder) {
             throw new IllegalArgumentException("Step ID and instruction order are required")
         }
         
-        return DatabaseUtil.withSql { sql ->
+        return DatabaseUtil.withSql { MockSql sql ->
             try {
                 // Type safety conversion (ADR-031)
-                def insertParams = [
+                Map<String, Object> insertParams = [
                     stmId: UUID.fromString(params.stmId as String),
                     tmsId: params.tmsId ? Integer.parseInt(params.tmsId as String) : null,
                     ctmId: params.ctmId ? UUID.fromString(params.ctmId as String) : null,
                     inmOrder: Integer.parseInt(params.inmOrder as String),
                     inmBody: params.inmBody as String,
                     inmDurationMinutes: params.inmDurationMinutes ? Integer.parseInt(params.inmDurationMinutes as String) : null
-                ]
+                ] as Map<String, Object>
                 
-                def result = sql.firstRow('''
+                Map<String, Object> result = sql.firstRow('''
                     INSERT INTO instructions_master_inm 
                     (stm_id, tms_id, ctm_id, inm_order, inm_body, inm_duration_minutes,
                      created_by, created_at, updated_by, updated_at)
@@ -194,7 +268,7 @@ class InstructionRepository {
                     RETURNING inm_id
                 ''', insertParams)
                 
-                return result.inm_id
+                return (UUID) (result['inm_id'] as UUID)
             } catch (SQLException e) {
                 if (e.SQLState == '23503') {
                     throw new IllegalArgumentException("Referenced step, team, or control does not exist")
@@ -275,11 +349,11 @@ class InstructionRepositoryTestRunner {
         DatabaseUtil.mockSql.setMockResult('rows', expectedResults)
         
         // Execute test
-        def result = repository.findMasterInstructionsByStepId(stepId)
+        List<Map<String, Object>> result = repository.findMasterInstructionsByStepId(stepId)
         
         // Validate SQL query structure
-        def query = DatabaseUtil.mockSql.queryCaptured
-        def params = DatabaseUtil.mockSql.paramsCaptured
+        String query = DatabaseUtil.mockSql.queryCaptured
+        Map<String, Object> params = DatabaseUtil.mockSql.paramsCaptured as Map<String, Object>
         
         assert query.contains('SELECT')
         assert query.contains('inm.inm_id')
@@ -299,7 +373,7 @@ class InstructionRepositoryTestRunner {
         assert query.contains('WHERE inm.stm_id = :stmId')
         assert query.contains('ORDER BY inm.inm_order ASC')
         
-        assert params.stmId == stepId
+        assert params['stmId'] == stepId
         assert result == expectedResults
         
         println "✓ findMasterInstructionsByStepId success test passed"
@@ -341,11 +415,11 @@ class InstructionRepositoryTestRunner {
         DatabaseUtil.mockSql.setMockResult('firstRow', expectedInstruction)
         
         // Execute test
-        def result = repository.findMasterInstructionById(instructionId)
+        Map<String, Object> result = repository.findMasterInstructionById(instructionId)
         
         // Validate SQL query structure
-        def query = DatabaseUtil.mockSql.queryCaptured
-        def params = DatabaseUtil.mockSql.paramsCaptured
+        String query = DatabaseUtil.mockSql.queryCaptured
+        Map<String, Object> params = DatabaseUtil.mockSql.paramsCaptured as Map<String, Object>
         
         assert query.contains('SELECT')
         assert query.contains('inm.inm_id')
@@ -364,7 +438,7 @@ class InstructionRepositoryTestRunner {
         assert query.contains('LEFT JOIN controls_master_ctm ctm ON inm.ctm_id = ctm.ctm_id')
         assert query.contains('WHERE inm.inm_id = :inmId')
         
-        assert params.inmId == instructionId
+        assert params['inmId'] == instructionId
         assert result == expectedInstruction
         
         println "✓ findMasterInstructionById success test passed"
@@ -374,30 +448,30 @@ class InstructionRepositoryTestRunner {
         println "Testing createMasterInstruction success..."
         
         // Setup test data
-        def stepId = UUID.randomUUID()
-        def teamId = 123
-        def controlId = UUID.randomUUID()
-        def params = [
+        UUID stepId = UUID.randomUUID()
+        Integer teamId = 123
+        UUID controlId = UUID.randomUUID()
+        Map<String, Object> params = [
             stmId: stepId.toString(),
             tmsId: teamId.toString(),
             ctmId: controlId.toString(),
             inmOrder: '2',
             inmBody: 'New Master Instruction',
             inmDurationMinutes: '30'
-        ]
-        def newInstructionId = UUID.randomUUID()
-        def insertResult = [inm_id: newInstructionId]
+        ] as Map<String, Object>
+        UUID newInstructionId = UUID.randomUUID()
+        Map<String, Object> insertResult = [inm_id: newInstructionId] as Map<String, Object>
         
         // Setup mock
         DatabaseUtil.resetMock()
         DatabaseUtil.mockSql.setMockResult('firstRow', insertResult)
         
         // Execute test
-        def result = repository.createMasterInstruction(params)
+        UUID result = repository.createMasterInstruction(params)
         
         // Validate SQL query structure
-        def query = DatabaseUtil.mockSql.queryCaptured
-        def insertParams = DatabaseUtil.mockSql.paramsCaptured
+        String query = DatabaseUtil.mockSql.queryCaptured
+        Map<String, Object> insertParams = DatabaseUtil.mockSql.paramsCaptured as Map<String, Object>
         
         assert query.contains('INSERT INTO instructions_master_inm')
         assert query.contains('stm_id, tms_id, ctm_id, inm_order, inm_body, inm_duration_minutes')
@@ -408,12 +482,12 @@ class InstructionRepositoryTestRunner {
         assert query.contains('RETURNING inm_id')
         
         // Validate type casting (ADR-031)
-        assert insertParams.stmId == stepId
-        assert insertParams.tmsId == teamId
-        assert insertParams.ctmId == controlId
-        assert insertParams.inmOrder == 2
-        assert insertParams.inmBody == 'New Master Instruction'
-        assert insertParams.inmDurationMinutes == 30
+        assert insertParams['stmId'] == stepId
+        assert insertParams['tmsId'] == teamId
+        assert insertParams['ctmId'] == controlId
+        assert insertParams['inmOrder'] == 2
+        assert insertParams['inmBody'] == 'New Master Instruction'
+        assert insertParams['inmDurationMinutes'] == 30
         
         assert result == newInstructionId
         
@@ -424,31 +498,31 @@ class InstructionRepositoryTestRunner {
         println "Testing createMasterInstruction with null optional parameters..."
         
         // Setup test data
-        def stepId = UUID.randomUUID()
-        def params = [
+        UUID stepId = UUID.randomUUID()
+        Map<String, Object> params = [
             stmId: stepId.toString(),
             inmOrder: '1',
             inmBody: 'Minimal Instruction'
-        ]
-        def newInstructionId = UUID.randomUUID()
-        def insertResult = [inm_id: newInstructionId]
+        ] as Map<String, Object>
+        UUID newInstructionId = UUID.randomUUID()
+        Map<String, Object> insertResult = [inm_id: newInstructionId] as Map<String, Object>
         
         // Setup mock
         DatabaseUtil.resetMock()
         DatabaseUtil.mockSql.setMockResult('firstRow', insertResult)
         
         // Execute test
-        def result = repository.createMasterInstruction(params)
+        UUID result = repository.createMasterInstruction(params)
         
         // Validate parameters with null values
-        def insertParams = DatabaseUtil.mockSql.paramsCaptured
+        Map<String, Object> insertParams = DatabaseUtil.mockSql.paramsCaptured as Map<String, Object>
         
-        assert insertParams.stmId == stepId
-        assert insertParams.tmsId == null
-        assert insertParams.ctmId == null
-        assert insertParams.inmOrder == 1
-        assert insertParams.inmBody == 'Minimal Instruction'
-        assert insertParams.inmDurationMinutes == null
+        assert insertParams['stmId'] == stepId
+        assert insertParams['tmsId'] == null
+        assert insertParams['ctmId'] == null
+        assert insertParams['inmOrder'] == 1
+        assert insertParams['inmBody'] == 'Minimal Instruction'
+        assert insertParams['inmDurationMinutes'] == null
         
         assert result == newInstructionId
         
@@ -458,7 +532,7 @@ class InstructionRepositoryTestRunner {
     static void testCreateMasterInstructionMissingRequiredParams() {
         println "Testing createMasterInstruction missing required parameters..."
         
-        def params = [inmBody: 'Incomplete Instruction']
+        Map<String, Object> params = [inmBody: 'Incomplete Instruction'] as Map<String, Object>
         
         try {
             repository.createMasterInstruction(params)
@@ -472,16 +546,22 @@ class InstructionRepositoryTestRunner {
     static void testCreateMasterInstructionForeignKeyViolation() {
         println "Testing createMasterInstruction foreign key constraint violation..."
         
-        def params = [
+        Map<String, Object> params = [
             stmId: UUID.randomUUID().toString(),
             inmOrder: '1',
             inmBody: 'Test Instruction'
-        ]
+        ] as Map<String, Object>
         
-        // Setup mock to throw SQL exception
+        // Setup mock to throw SQL exception using proper closure assignment
         DatabaseUtil.resetMock()
-        DatabaseUtil.mockSql.metaClass.firstRow = { String query, Map queryParams ->
-            throw new SQLException("Foreign key constraint", "23503")
+        MockSql mockSql = DatabaseUtil.mockSql
+        
+        // Create a custom MockSql that throws exception for firstRow
+        DatabaseUtil.mockSql = new MockSql() {
+            @Override
+            Map<String, Object> firstRow(String query, Map<String, Object> queryParams) {
+                throw new SQLException("Foreign key constraint", "23503")
+            }
         }
         
         try {
@@ -490,22 +570,31 @@ class InstructionRepositoryTestRunner {
         } catch (IllegalArgumentException e) {
             assert e.message.contains("Referenced step, team, or control does not exist")
             println "✓ createMasterInstruction foreign key violation test passed"
+        } finally {
+            // Restore original mock
+            DatabaseUtil.mockSql = mockSql
         }
     }
     
     static void testCreateMasterInstructionUniqueConstraintViolation() {
         println "Testing createMasterInstruction unique constraint violation..."
         
-        def params = [
+        Map<String, Object> params = [
             stmId: UUID.randomUUID().toString(),
             inmOrder: '1',
             inmBody: 'Duplicate Order Instruction'
-        ]
+        ] as Map<String, Object>
         
-        // Setup mock to throw SQL exception
+        // Setup mock to throw SQL exception using proper closure assignment
         DatabaseUtil.resetMock()
-        DatabaseUtil.mockSql.metaClass.firstRow = { String query, Map queryParams ->
-            throw new SQLException("Unique constraint violation", "23505")
+        MockSql mockSql = DatabaseUtil.mockSql
+        
+        // Create a custom MockSql that throws exception for firstRow
+        DatabaseUtil.mockSql = new MockSql() {
+            @Override
+            Map<String, Object> firstRow(String query, Map<String, Object> queryParams) {
+                throw new SQLException("Unique constraint violation", "23505")
+            }
         }
         
         try {
@@ -514,10 +603,29 @@ class InstructionRepositoryTestRunner {
         } catch (IllegalArgumentException e) {
             assert e.message.contains("Instruction order already exists for this step")
             println "✓ createMasterInstruction unique constraint violation test passed"
+        } finally {
+            // Restore original mock
+            DatabaseUtil.mockSql = mockSql
         }
     }
 }
 
 // Execute tests when run as script
-InstructionRepositoryTestRunner.main(args)
+// Handle both script execution contexts
+try {
+    // This will work when run as a script with args
+    if (this.binding.hasVariable('args')) {
+        def scriptArgs = this.binding.getVariable('args')
+        if (scriptArgs != null) {
+            InstructionRepositoryTestRunner.main(scriptArgs as String[])
+        } else {
+            InstructionRepositoryTestRunner.main([] as String[])
+        }
+    } else {
+        InstructionRepositoryTestRunner.main([] as String[])
+    }
+} catch (Exception e) {
+    // Fallback for environments where binding is not available
+    InstructionRepositoryTestRunner.main([] as String[])
+}
 
