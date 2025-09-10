@@ -1,7 +1,7 @@
 /** @type {import('jest').Config} */
 const config = {
   displayName: "Unit Tests",
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
   testMatch: ["**/__tests__/unit/**/*.test.js"],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.unit.js"],
   collectCoverage: true,
