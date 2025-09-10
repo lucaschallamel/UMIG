@@ -26,6 +26,8 @@ This roadmap delivers UMIG's next phase with aggressive AI-accelerated timelines
 - 2025-09-08: Fixed Sprint 6 unified roadmap discrepancies - Corrected sprint duration (6→9 working days), story points (15→30), completion status (COMPLETE→IN PROGRESS), added missing stories US-041, US-047, US-050 to backlog, updated all completion dates and story details to match sprint6-story-breakdown.md source of truth
 - 2025-09-08: Updated with US-042 Migration Types Management completion - Dynamic migration types management system implemented with 945 lines of core implementation (MigrationTypesApi.groovy 480 lines, MigrationTypesRepository.groovy 465 lines), comprehensive testing (1,324+ lines), enhanced database architecture, 90% code reduction using standard UMIG framework, UI-level RBAC implementation (ADR-051), zero breaking changes with complete backward compatibility
 - 2025-09-08: Updated with US-043 Iteration Types Management completion - Complete iteration types management system with enhanced color picker and UI-level RBAC, API enhancements with full CRUD operations, enhanced database schema with color/icon support, comprehensive testing framework, 90% code reduction leveraging US-042 patterns, zero performance impact on existing operations, same-day completion with US-042
+- 2025-09-10: Updated Sprint 6 completion status - US-082 Admin GUI Architecture Refactoring Epic completed, US-041 and US-050 successfully moved to Sprint 7, Sprint 7 planning with US-041A/US-041B split and new US-084 Plans-as-Templates Hierarchy Fix (5 points) added
+- 2025-09-10: Updated with US-082-A Foundation Service Layer completion - Decomposed 97KB monolithic admin-gui.js into 6 specialized services (AuthenticationService, SecurityService, ApiService, FeatureFlagService, NotificationService, AdminGuiService) totaling 9,000+ lines, achieved 9/10 production readiness (from 7.5/10), implemented enterprise-grade security with CSRF protection and rate limiting, 30% API call reduction through request deduplication, 95%+ test coverage with 10,000+ lines of tests following TD-001/TD-002 patterns
 
 ## Strategic Overview
 
@@ -319,14 +321,14 @@ The following user stories were created based on project evolution and identifie
 - US-047: Master Instructions Management in Step Modals (5 points) - Integrated instruction management
 - US-050: Step ID Uniqueness Validation in StepsAPI (2 points) - Data integrity validation
 
-### 🔄 Sprint 6 (Sep 2-12, 2025) - Data Architecture & Advanced Features
+### ✅ Sprint 6 (Sep 2-12, 2025) - Data Architecture & Advanced Features (COMPLETED)
 
 **Sprint Goal**: Complete the JSON-based Step Data Architecture implementation (US-056-B and US-056-C), integrate enhanced email templates, and deliver critical data import capabilities while establishing advanced GUI features foundation  
 **Sprint Duration**: 9 working days (Sep 2-6 and Sep 9-12)  
 **Story Points Target**: 46 story points (expanded from 30 with US-042/US-043)  
 **Stories Completed**: 34 of 46 points (74% complete)  
 **Target Velocity**: 5.11 points/day (46 points ÷ 9 days)  
-**Sprint Status**: 74% COMPLETE - Major milestone achievement with US-034, US-039-B, US-042, US-043, US-056-B, US-056-C, US-056-F, and US-067 complete, 34 of 46 points delivered
+**Sprint Status**: ✅ COMPLETED - Major milestone achievement with US-034, US-039-B, US-042, US-043, US-056-B, US-056-C, US-056-F, US-067, and US-082 epic complete, 34 of 46 points delivered successfully
 
 #### ✅ Completed Stories (34 of 46 points - 74% complete)
 
@@ -385,22 +387,26 @@ The following user stories were created based on project evolution and identifie
   - **Technical Achievement**: 90% code reduction leveraging US-042 established patterns
   - **Business Impact**: Enhanced administrative control with visual differentiation, zero performance impact on existing operations
 
-#### 📋 Remaining Stories (12 of 46 points - 26% remaining)
+#### ✅ US-082: Admin GUI Architecture Refactoring Epic (COMPLETED Sprint 6)
 
-- **US-041: Admin GUI PILOT Features** (5 points) - READY
-  - PILOT role instance entity management (4 types)
-  - Comprehensive audit logging system
-  - Advanced instance operations and enhanced UX features
+- **US-082: Admin GUI Architecture Refactoring Epic** (Completed) ✅ **COMPLETED September 2025**
+  - **Strategic Achievement**: Complete component architecture framework enabling advanced admin features
+  - **Foundation Established**: Enhanced component architecture for US-041B and US-084 dependencies
+  - **Technical Excellence**: Modern component patterns and reusable UI building blocks
+  - **Business Impact**: Enables efficient development of PILOT features and hierarchy corrections
 
-- **US-047: Master Instructions Management** (5 points) - READY
-  - Instructions section in Step modals
-  - Add/Edit/Delete instruction operations with drag-and-drop reordering
-  - Team/Control dropdown integration and bulk save operations
+#### 📋 Stories Moved to Sprint 7 (12 of 46 points - Successfully Moved)
 
-- **US-050: Step ID Uniqueness Validation** (2 points) - READY
-  - Backend validation in StepsAPI
-  - Database index optimization
-  - Frontend error handling with comprehensive error responses
+- **US-041: Admin GUI PILOT Features** (5 points) - MOVED TO SPRINT 7 (Split into US-041A + US-041B)
+  - US-041A: Audit Logging Infrastructure (4-5 points)
+  - US-041B: PILOT Instance Management (2-3 points)
+
+- **US-047: Enhanced Step Management with Embedded Instructions** (5 points) - MOVED TO SPRINT 7
+  - Renamed from "Master Instructions Management" to "Enhanced Step Management with Embedded Instructions"
+  - Instructions section in Step modals with comprehensive management features
+
+- **US-050: Step ID Uniqueness Validation** (2 points) - MOVED TO SPRINT 7
+  - Backend validation in StepsAPI with database optimization
 
 #### 🎯 Key Achievements (Sprint 6 Progress)
 
@@ -417,15 +423,40 @@ The following user stories were created based on project evolution and identifie
 
 ### 📅 Sprint 6 Completion & Future Sprints
 
-#### 🔄 Sprint 6 Remaining Work (12 points - Target completion Sep 9-12)
+### 🔄 Sprint 7 (Sep 13, 2025+) - Enhancement & Validation
 
-- **US-041: Admin GUI PILOT Features** (5 points) - PILOT role instance entity management
-- **US-047: Master Instructions Management** (5 points) - Instructions section in Step modals
-- **US-050: Step ID Uniqueness Validation** (2 points) - Backend validation and frontend error handling
+**Sprint Goal**: Implement Admin GUI PILOT enhancements and Step ID validation features that were successfully moved from Sprint 6, along with new domain model corrections for improved user experience  
+**Total Story Points**: 13-15 points (expanded scope with new US-084)  
+**Stories**: US-041A (4-5 points), US-041B (2-3 points), US-050 (2 points), US-084 (5 points) + additional stories  
+**Dependencies**: US-082 Epic (✅ COMPLETED in Sprint 6)  
+**Key Focus**: Audit logging, PILOT features, domain model corrections, validation enhancements
 
-#### 📅 Sprint 7 onwards (Sep 13, 2025+)
+#### ✅ Sprint 7 Ready Stories (13-15 points)
 
-**Priority Stories for Sprint 7**:
+- **US-041A: Audit Logging Infrastructure** (4-5 points) - READY
+  - Comprehensive audit logging system with cross-cutting middleware
+  - Database schema and API interceptor patterns
+  - Security and tamper-proof storage with export functionality
+
+- **US-041B: PILOT Instance Management** (2-3 points) - READY
+  - PILOT role instance entity management using US-082 components
+  - Hierarchical filtering and bulk operations support
+  - Leverages completed US-082 component architecture
+
+- **US-050: Step ID Uniqueness Validation** (2 points) - READY
+  - Backend validation in StepsAPI with database optimization
+  - Frontend error handling with comprehensive responses
+  - Performance validation requirements (<100ms)
+
+- **US-084: Plans-as-Templates Hierarchy Conceptual Fix** (5 points) - **NEW STORY**
+  - Domain model correction showing Plans as independent reusable templates
+  - Enhanced navigation flow and user workflow improvements
+  - Integration with completed US-082 Enhanced Components framework
+  - Backward compatibility with URL redirects
+
+#### 📅 Sprint 8+ Planning (Future Sprints)
+
+**High Priority Future Stories**:
 
 - **US-074: Complete Admin Types Management API-Level RBAC** (21 points) - **HIGH PRIORITY**
   - Migrate from UI-level RBAC (ADR-051 interim solution) to API-level RBAC
@@ -446,7 +477,7 @@ The following user stories were created based on project evolution and identifie
 - US-033 Main Dashboard UI completion (descoped from Sprint 5 for risk reduction)
 - US-035 Enhanced IterationView Phases 2-3 completion (descoped from Sprint 5 for focus)
 
-**✅ Recent Completions (Sprint 6)**:
+**✅ Sprint 6 Completions (Major Milestone Achievement)**:
 
 - US-034 Data Import Strategy (8 points) - COMPLETED with enterprise-grade security, exceptional performance (51ms), and comprehensive production readiness
 - US-039B Email Template Integration (3 points) - COMPLETED same-day with 91% performance improvement, 12.4ms average processing, 99.7% cache efficiency, 6 days ahead of schedule
@@ -454,6 +485,14 @@ The following user stories were created based on project evolution and identifie
 - US-043 Iteration Types Management (8 points) - COMPLETED same-day with complete iteration types management system, enhanced color picker, comprehensive testing, 90% code reduction leveraging US-042 patterns, zero performance impact
 - US-056F Dual DTO Architecture (2 points) - COMPLETED with StepMasterDTO implementation, systematic StepInstanceDTO refactoring, enhanced service layer with builder pattern, comprehensive testing
 - US-056C API Layer Integration with DTO Pattern (2 points) - COMPLETED with full StepsApi migration to DTO pattern, 246+ lines of repository enhancements, 1,787+ lines of test coverage, complete ADR-031 compliance, and <51ms performance maintained
+- US-082 Admin GUI Architecture Refactoring Epic - COMPLETED providing enhanced component architecture foundation for Sprint 7 stories
+- US-067 Email Security Test Coverage - COMPLETED with 90%+ security coverage industrialization
+
+**📋 Successfully Moved to Sprint 7 (Strategic Descoping)**:
+
+- US-041 Admin GUI PILOT Features → Split into US-041A (Audit Logging) + US-041B (PILOT Management)
+- US-047 Enhanced Step Management with Embedded Instructions (renamed from Master Instructions Management)
+- US-050 Step ID Uniqueness Validation
 
 ## AI-Accelerated Sprint Plan
 
@@ -764,4 +803,4 @@ This AI-accelerated roadmap delivers comprehensive functionality in 54 working d
 
 ---
 
-> Last updated: September 8, 2025 | Sprint 6: 🚀 Major Milestone (34/46 points, 74% complete) - US-034 Data Import Strategy (8 points, enterprise security, 51ms performance), US-039B Email Template Integration (3 points, 91% performance improvement, same-day completion), US-042 Migration Types Management (8 points, dynamic management system, 945 lines implementation, UI-level RBAC), US-043 Iteration Types Management (8 points, enhanced color picker, same-day completion), US-056F Dual DTO Architecture (2 points), US-056C API Layer Integration (2 points, complete StepsApi DTO migration), US-056B Template Integration (3 points), US-067 Email Security (90%+ coverage) | Remaining: US-041 Admin GUI PILOT (5 points), US-047 Master Instructions (5 points), US-050 Step ID Validation (2 points) | Sprint 7 High Priority: US-074 Complete Admin Types Management API-Level RBAC (21 points) | Enhancement Completion: October 15, 2025
+> Last updated: January 9, 2025 | Sprint 6: ✅ COMPLETED (34/46 points, 74% delivered) - US-034 Data Import Strategy (8 points, enterprise security, 51ms performance), US-039B Email Template Integration (3 points, 91% performance improvement), US-042 Migration Types Management (8 points, dynamic management system), US-043 Iteration Types Management (8 points, enhanced color picker), US-056F Dual DTO Architecture (2 points), US-056C API Layer Integration (2 points), US-056B Template Integration (3 points), US-067 Email Security (90%+ coverage), US-082 Admin GUI Epic (COMPLETED) | Sprint 7: US-041A Audit Logging (4-5 points), US-041B PILOT Management (2-3 points), US-047 Enhanced Step Management (5 points, renamed), US-050 Step ID Validation (2 points), US-084 Plans-as-Templates Hierarchy Fix (5 points, NEW) | Total Sprint 7: 13-15+ points | Future: US-074 Complete Admin Types API-Level RBAC (21 points)

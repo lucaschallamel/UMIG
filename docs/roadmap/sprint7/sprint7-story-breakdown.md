@@ -6,8 +6,8 @@
 **Sprint Start Date**: TBD  
 **Sprint End Date**: TBD  
 **Sprint Duration**: TBD  
-**Total Story Points**: 7 points (initial scope with carried-over stories)  
-**Stories Completed**: 0 of 7 points (0% complete)  
+**Total Story Points**: 13-15 points (US-041A + US-041B + US-050 + US-084 + additional stories)  
+**Stories Completed**: 0 of 13-15 points (0% complete)  
 **Target Velocity**: TBD  
 **Previous Sprint Velocity**: 6.89 points/day (Sprint 6)
 
@@ -17,16 +17,18 @@ Implement Admin GUI PILOT enhancements and Step ID validation features that were
 
 ## Story Point Summary
 
-| Story ID  | Story Title                           | Points | Priority | Dependencies           | Risk                 | Status             |
-| --------- | ------------------------------------- | ------ | -------- | ---------------------- | -------------------- | ------------------ |
-| **CARRIED OVER FROM SPRINT 6** |                       |        |          |                        |                      |                    |
-| US-041    | Admin GUI PILOT Features              | 5      | P1       | US-031 Complete        | LOW                  | READY              |
-| US-050    | Step ID Uniqueness Validation         | 2      | MEDIUM   | None                   | LOW                  | READY              |
-| **PLANNED SPRINT 7 STORIES** |                           |        |          |                        |                      |                    |
-| US-058    | EmailService Refactoring              | TBD    | HIGH     | TBD                    | TBD                  | PLANNED            |
-| US-068    | Integration Test Reliability          | TBD    | HIGH     | TBD                    | TBD                  | PLANNED            |
-| US-070    | Service Infrastructure Health         | TBD    | HIGH     | TBD                    | TBD                  | PLANNED            |
-| **TOTAL** |                                       | **7+** |          |                        |                      |                    |
+| Story ID                       | Story Title                      | Points     | Priority | Dependencies    | Risk       | Status           |
+| ------------------------------ | -------------------------------- | ---------- | -------- | --------------- | ---------- | ---------------- |
+| **CARRIED OVER FROM SPRINT 6** |                                  |            |          |                 |            |                  |
+| US-041A                        | Audit Logging Infrastructure     | 4-5        | P1       | None            | LOW        | READY            |
+| US-041B                        | PILOT Instance Management        | 2-3        | P2       | US-082 Complete | LOW-MEDIUM | READY (Week 3-4) |
+| US-050                         | Step ID Uniqueness Validation    | 2          | MEDIUM   | None            | LOW        | READY            |
+| US-084                         | Plans-as-Templates Hierarchy Fix | 5          | P1       | US-082 Complete | MEDIUM     | READY            |
+| **PLANNED SPRINT 7 STORIES**   |                                  |            |          |                 |            |                  |
+| US-058                         | EmailService Refactoring         | TBD        | HIGH     | TBD             | TBD        | PLANNED          |
+| US-068                         | Integration Test Reliability     | TBD        | HIGH     | TBD             | TBD        | PLANNED          |
+| US-070                         | Service Infrastructure Health    | TBD        | HIGH     | TBD             | TBD        | PLANNED          |
+| **TOTAL**                      |                                  | **13-15+** |          |                 |            |                  |
 
 ## Carried-Over Stories from Sprint 6
 
@@ -35,8 +37,9 @@ Implement Admin GUI PILOT enhancements and Step ID validation features that were
 Two stories were successfully descoped from Sprint 6 on September 10, 2025, after Sprint 6 achieved all core objectives:
 
 **Sprint 6 Achievements**:
+
 - ✅ US-042: Migration Types Management (8 points) - COMPLETE
-- ✅ US-043: Iteration Types Management (8 points) - COMPLETE  
+- ✅ US-043: Iteration Types Management (8 points) - COMPLETE
 - ✅ TD-001: Critical Technical Debt Resolution (100% unit test pass rate) - COMPLETE
 - ✅ TD-002: JavaScript Test Infrastructure (64/64 tests passing) - COMPLETE
 - ✅ US-082: Epic Planning for Admin GUI Architecture Refactoring - COMPLETE
@@ -45,25 +48,50 @@ Two stories were successfully descoped from Sprint 6 on September 10, 2025, afte
 
 ---
 
-### US-041: Admin GUI PILOT Features and Audit Logging
+### US-041A: Comprehensive Audit Logging Infrastructure
 
-**Status**: READY FOR SPRINT 7 (Carried over from Sprint 6)  
-**Points**: 5  
+**Status**: READY FOR SPRINT 7 (Split from original US-041)  
+**Points**: 4-5  
+**Owner**: Backend Development  
+**Original Sprint**: Sprint 6  
+**Moved to Sprint 7**: September 10, 2025
+
+**Key Deliverables**:
+
+- Database schema for audit_log_aud table with comprehensive fields
+- API middleware/interceptor pattern for all 25+ APIs
+- Async logging to prevent performance impact
+- Audit viewing interface with advanced filtering
+- Export functionality (CSV/JSON)
+- Security and tamper-proof storage
+
+**Dependencies**: None - Can start immediately  
+**Risk**: LOW - Foundational infrastructure work with established patterns
+
+**Rationale**: Split from original US-041 to provide dedicated focus on cross-cutting audit infrastructure that benefits entire system.
+
+---
+
+### US-041B: PILOT Instance Entity Management
+
+**Status**: READY FOR SPRINT 7 Week 3-4 (Split from original US-041)  
+**Points**: 2-3  
 **Owner**: Frontend Development  
 **Original Sprint**: Sprint 6  
 **Moved to Sprint 7**: September 10, 2025
 
 **Key Deliverables**:
-- PILOT role instance entity management (4 types)
-- Comprehensive audit logging system
-- Advanced instance operations
-- Enhanced UX features
-- Performance optimization (<3s load times)
 
-**Dependencies**: US-031 (Admin GUI Complete Integration) - MUST BE 100% COMPLETE  
-**Risk**: LOW - Builds on proven US-031 patterns
+- Instance CRUD operations using US-082 components
+- Hierarchical filtering for Plans/Sequences/Phases/Steps
+- Bulk operations support
+- PILOT role configuration
+- Leverages all existing backend APIs
 
-**Rationale for Move**: Sprint 6 successfully completed all core objectives without requiring this enhancement. Can be properly implemented in Sprint 7 with full focus.
+**Dependencies**: US-082 (Component Architecture) - COMPLETE  
+**Risk**: LOW-MEDIUM - Depends on US-082 component architecture (now complete)
+
+**Rationale**: Split from original US-041 to leverage US-082 component architecture optimally. Primarily UI composition work using existing building blocks. US-082 is now complete from Sprint 6.
 
 ---
 
@@ -76,6 +104,7 @@ Two stories were successfully descoped from Sprint 6 on September 10, 2025, afte
 **Moved to Sprint 7**: September 10, 2025
 
 **Key Deliverables**:
+
 - Backend validation in StepsAPI
 - Database index optimization
 - Frontend error handling
@@ -86,6 +115,29 @@ Two stories were successfully descoped from Sprint 6 on September 10, 2025, afte
 **Risk**: LOW - Straightforward validation logic
 
 **Rationale for Move**: Sprint 6 achieved full deployment readiness including critical technical debt resolution. This validation enhancement can be properly addressed in Sprint 7.
+
+---
+
+### US-084: Plans-as-Templates Hierarchy Conceptual Fix
+
+**Status**: READY FOR SPRINT 7 (New story added to Sprint 7)  
+**Points**: 5  
+**Owner**: Frontend Development + Backend Architecture  
+**Added to Sprint 7**: January 9, 2025
+
+**Key Deliverables**:
+
+- Correct domain model representation (Plans as independent templates)
+- Enhanced navigation flow: Select Plan → Select Migration → Create/Find Iteration
+- Plan template independence with usage statistics
+- Iteration context showing plan template relationship clearly
+- Backward compatibility with URL redirects
+- Integration with US-082 Enhanced Components
+
+**Dependencies**: US-082 (Enhanced Components) - COMPLETE  
+**Risk**: MEDIUM - User workflow change, backward compatibility requirements
+
+**Rationale**: Fixes fundamental domain model misrepresentation where Plans appear as children of Iterations. Corrects this to show Plans as independent reusable templates, improving user understanding and workflow efficiency.
 
 ---
 
@@ -115,22 +167,25 @@ Two stories were successfully descoped from Sprint 6 on September 10, 2025, afte
 
 ### Priority Sequence
 
-1. **US-041 (5 points)**: High-value Admin GUI PILOT features with audit logging
-2. **US-050 (2 points)**: Step ID validation for data integrity
-3. **Additional Sprint 7 stories**: Based on updated priorities and story point assignments
+1. **US-041A (4-5 points)**: Critical audit logging infrastructure - can start immediately
+2. **US-084 (5 points)**: Plans-as-Templates hierarchy fix - can start immediately (US-082 complete)
+3. **US-050 (2 points)**: Step ID validation for data integrity - can run in parallel
+4. **US-041B (2-3 points)**: PILOT instance management - can start immediately (US-082 complete)
+5. **Additional Sprint 7 stories**: Based on updated priorities and story point assignments
 
 ### Resource Allocation
 
-- **Frontend Team**: Focus on US-041 (Admin GUI PILOT features)
-- **Backend Team**: Focus on US-050 (validation) and other backend stories
+- **Backend Team**: Focus on US-041A (audit logging) and US-050 (validation) - can run in parallel
+- **Frontend Team**: Focus on US-084 (hierarchy fix) and US-041B (PILOT features) - both ready to start
 - **Cross-functional**: Integration testing and performance validation
 
 ### Success Criteria
 
-- Complete implementation of carried-over stories (7 points minimum)
+- Complete implementation of carried-over stories and new US-084 (13-15 points minimum)
 - Maintain quality standards established in Sprint 6
 - No regression in existing functionality
 - Comprehensive testing coverage for all new features
+- Successful domain model correction for improved user experience
 
 ---
 
@@ -162,7 +217,7 @@ Two stories were successfully descoped from Sprint 6 on September 10, 2025, afte
 
 ## Next Steps
 
-1. **Sprint Planning Session**: 
+1. **Sprint Planning Session**:
    - Finalize Sprint 7 timeline and duration
    - Complete story point estimation for existing Sprint 7 stories
    - Validate dependencies and resource allocation
