@@ -531,7 +531,7 @@ class ApiService {
 
     // Network status tracking
     this.networkStatus = {
-      isOnline: navigator.onlineStatus !== false,
+      isOnline: navigator.onLine !== false,
       lastConnectivity: Date.now(),
     };
 
@@ -1132,7 +1132,7 @@ class ApiService {
         adaptiveInterval: this.cacheStats.adaptiveCleanupInterval,
       },
       deduplicationStats,
-      networkStatus: { ...this.networkStatus },
+      networkStatus: this.networkStatus,
       performance: {
         averageResponseTime: this.metrics.averageResponseTime,
         errorRate,

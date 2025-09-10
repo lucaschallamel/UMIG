@@ -311,6 +311,9 @@ class AdminGuiService extends BaseService {
       errorCount: 0,
     };
 
+    // Interval tracking for proper cleanup
+    this.performanceMonitorInterval = null;
+
     // Logger
     this.logEntries = [];
     this.logger = {
@@ -746,8 +749,8 @@ class AdminGuiService extends BaseService {
       return;
     }
 
-    // Monitor memory usage periodically
-    setInterval(() => {
+    // Monitor memory usage periodically - store interval reference for cleanup
+    this.performanceMonitorInterval = setInterval(() => {
       this.performanceMetrics.memoryUsage = this._estimateMemoryUsage();
     }, 30000); // Every 30 seconds
 
@@ -953,6 +956,41 @@ class AdminGuiService extends BaseService {
     const messageLevel = levels[level] || 1;
 
     return messageLevel >= configLevel;
+  }
+
+  /**
+   * Override cleanup to handle AdminGuiService-specific resources
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _doCleanup() {
+    // Clear performance monitoring interval
+    if (this.performanceMonitorInterval) {
+      clearInterval(this.performanceMonitorInterval);
+      this.performanceMonitorInterval = null;
+    }
+
+    // Cleanup all service instances
+    for (const [serviceName, instance] of this.serviceInstances) {
+      try {
+        if (instance && typeof instance.cleanup === 'function') {
+          await instance.cleanup();
+        }
+      } catch (error) {
+        this._log("error", `Failed to cleanup service ${serviceName}:`, error);
+      }
+    }
+
+    // Clear collections
+    this.services.clear();
+    this.serviceInstances.clear();
+    this.dependencyGraph.clear();
+    this.eventBus.clear();
+    this.globalEventHandlers.clear();
+    this.logEntries = [];
+    this.errorBoundary.errorHistory = [];
+
+    this._log("info", "AdminGuiService cleanup completed successfully");
   }
 }
 
