@@ -423,15 +423,32 @@ The following user stories were created based on project evolution and identifie
 
 ### 📅 Sprint 6 Completion & Future Sprints
 
-### 🔄 Sprint 7 (Sep 13, 2025+) - Enhancement & Validation
+### 🔄 Sprint 7 (January 2025) - Security Hardening & Distributed Infrastructure
 
-**Sprint Goal**: Implement Admin GUI PILOT enhancements and Step ID validation features that were successfully moved from Sprint 6, along with new domain model corrections for improved user experience  
-**Total Story Points**: 13-15 points (expanded scope with new US-084)  
-**Stories**: US-041A (4-5 points), US-041B (2-3 points), US-050 (2 points), US-084 (5 points) + additional stories  
-**Dependencies**: US-082 Epic (✅ COMPLETED in Sprint 6)  
-**Key Focus**: Audit logging, PILOT features, domain model corrections, validation enhancements
+**Sprint Goal**: Implement critical security hardening measures and distributed rate limiting infrastructure to address production security requirements, plus Admin GUI PILOT enhancements from Sprint 6  
+**Sprint Duration**: 2 weeks (January 2025)  
+**Total Story Points**: 26-28 points (expanded scope with critical security infrastructure)  
+**Dependencies**: US-082-A Foundation Service Layer (✅ COMPLETED in Sprint 6)  
+**Key Focus**: Distributed rate limiting, security hardening, authentication improvements, PILOT features  
+**Security Priority**: HIGH - Addresses critical DoS vulnerabilities and timing attacks identified in code review
 
-#### ✅ Sprint 7 Ready Stories (13-15 points)
+#### ✅ Sprint 7 Stories (26-28 points total)
+
+**Critical Security Infrastructure (13 points - HIGH PRIORITY):**
+
+- **US-085: Distributed Rate Limiting & Caching** (8 points) - **CRITICAL SECURITY**
+  - Redis-based distributed rate limiting to eliminate multi-instance DoS vulnerabilities
+  - LRU cache eviction policies with bounded memory usage
+  - High availability Redis cluster configuration for production
+  - Addresses critical security vulnerability in current in-memory implementation
+
+- **US-086: Security Hardening Phase 2** (5 points) - **CRITICAL SECURITY**
+  - Constant-time authentication token comparison to prevent timing attacks
+  - Unified error boundary system with consistent sanitization
+  - Security headers integrity validation with checksums
+  - Comprehensive security audit logging integration
+
+**Admin GUI Enhancements (13-15 points - Moved from Sprint 6):**
 
 - **US-041A: Audit Logging Infrastructure** (4-5 points) - READY
   - Comprehensive audit logging system with cross-cutting middleware
@@ -454,7 +471,39 @@ The following user stories were created based on project evolution and identifie
   - Integration with completed US-082 Enhanced Components framework
   - Backward compatibility with URL redirects
 
-#### 📅 Sprint 8+ Planning (Future Sprints)
+### 🔄 Sprint 8 (February 2025) - Service Layer Completion & Performance Enhancement
+
+**Sprint Goal**: Complete service layer architecture with configuration validation and enhanced performance monitoring  
+**Sprint Duration**: 2 weeks (February 2025)  
+**Total Story Points**: 16 points (balanced with moderate complexity)  
+**Dependencies**: US-085 Distributed Rate Limiting (Redis infrastructure), US-086 Security Hardening Phase 2  
+**Key Focus**: Service layer completion, configuration validation, performance monitoring, health checks
+
+#### ✅ Sprint 8 Stories (16 points total)
+
+**Service Layer Completion (11 points):**
+
+- **US-087: Service Configuration Validation** (3 points)
+  - Health check endpoints for all 6 services (SecurityService, ApiService, etc.)
+  - Configuration validation schemas with automated testing
+  - Service dependency monitoring and circuit breaker patterns
+  - Production readiness verification system
+
+- **US-088: Performance Monitoring Enhancement** (5 points)
+  - Granular performance monitoring with method-level tracking
+  - Memory pressure detection and alerting
+  - Load testing framework integration with automated regression testing
+  - Performance dashboard with real-time metrics and historical trending
+
+- **US-082-B: Advanced Service Layer Integration** (8 points) - **Epic Continuation**
+  - Cross-service communication patterns and error propagation
+  - Advanced caching strategies with Redis integration
+  - Service orchestration patterns with transaction coordination
+  - Production deployment optimization and monitoring integration
+
+**Epic Integration**: Completes US-082 Admin GUI Architecture Refactoring Epic with advanced service patterns
+
+#### 📅 Sprint 9+ Planning (Future Sprints)
 
 **High Priority Future Stories**:
 
@@ -465,7 +514,21 @@ The following user stories were created based on project evolution and identifie
   - Complete security hardening for production deployment
   - Resolves technical debt documented in ADR-051
 
-**Additional Sprint 7+ Backlog**:
+**Security & Quality Assurance (Future Backlog):**
+
+- **US-089: External Security Audit Preparation** (8 points)
+  - Professional security assessment preparation with comprehensive documentation
+  - Vulnerability management process with automated scanning integration
+  - Security compliance framework (OWASP, NIST) with gap analysis
+  - Penetration testing coordination with security expert consultation
+
+- **US-090: Advanced Integration Testing** (5 points)
+  - Real Confluence instance testing beyond current mocked environment
+  - Multi-tenant testing scenarios with comprehensive validation
+  - Performance testing under production-like conditions
+  - Comprehensive end-to-end workflow validation with user acceptance criteria
+
+**Additional Future Backlog**:
 
 - Advanced analytics and reporting features
 - Assignment and delegation engine enhancements
