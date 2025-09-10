@@ -3,14 +3,18 @@
 **Epic**: Data Integrity and Validation  
 **Story Points**: 2  
 **Priority**: Medium  
-**Sprint**: Backlog  
-**Created**: 2025-01-26
+**Sprint**: Sprint 7 (Moved from Sprint 6)  
+**Created**: 2025-01-26  
+**Moved to Sprint 7**: September 10, 2025  
+**Status**: READY FOR SPRINT 7
 
 ## Story Description
 
 As a system administrator creating or editing Master Steps, I need the system to validate that Step IDs (combination of step_code + step_number) are globally unique across all steps, so that I can maintain proper step identification and prevent data conflicts.
 
 **Business Value**: Prevents duplicate Step IDs that could cause confusion, tracking issues, and data integrity problems in cutover planning and execution.
+
+**Sprint 6 Descope Note**: Originally planned for Sprint 6 but descoped on September 10, 2025, as Sprint 6 successfully completed all core objectives including critical technical debt resolution (TD-001, TD-002) and core feature delivery, achieving full deployment readiness without requiring this validation enhancement.
 
 ## Problem Statement
 
